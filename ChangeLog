@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 14:30:53 PST 2001
+TkrRecon/src/Dll
+
+Modified Files:
+	TkrRecon_load.cpp 
+Log Message:
+Allow entry points for track finding
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 14:29:20 PST 2001
 TkrRecon/src/Display
 
