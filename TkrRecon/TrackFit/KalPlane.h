@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/KalFit.h,v 1.2 2001/02/13 01:50:33 igable Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/TrackFit/KalPlane.h,v 1.1 2001/11/26 21:48:21 usher Exp $
 //----------------------------------------
 //
 //      Kalman Filter Objects Declarations
@@ -11,7 +11,7 @@
 #ifndef _KALPLANE_H
 #define _KALPLANE_H 1
 
-#include "TkrRecon/cluster/TkrClusters.h"
+#include "TkrRecon/Cluster/TkrClusters.h"
 #include "TkrRecon/TrackFit/KalHit.h"
 
 class KalPlane
