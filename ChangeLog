@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Sun Sep  1 15:20:59 PDT 2002
+TkrRecon/src/Vertex
+
+Removed Files:
+	VtxComboTrkTool.cxx VtxComboTrkTool.h 
+Log Message:
+removing these clones to TkrComboVtxRecon to avoid confusion
+    *
+------------------------------------------------------------
 User: lsrea  Sat Aug 31 14:30:51 PDT 2002
 TkrRecon/src/Services
 
