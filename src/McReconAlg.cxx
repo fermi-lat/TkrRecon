@@ -129,9 +129,10 @@ StatusCode McReconAlg::execute() {
     }
     
     HepLorentzVector vec = mcVert->initialFourMomentum();
-    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_xDir",vec.x());
-    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_yDir",vec.y());
-    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_zDir",vec.z());
+    Hep3Vector p(vec), dir(p.unit());
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_xDir",dir.x());
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_yDir",dir.y());
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_zDir",dir.z());
     
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Energy",vec.e()-vec.m());
      
