@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Wed Nov  7 21:40:15 PST 2001
+TkrRecon/TkrRecon/Services
+
+Added Files:
+	TkrAxis.h TkrGeometrySvc.h 
+Log Message:
+Add class definitions for TkrRecon to appropriate subfolders. In addition, broke all class definitions out into separate files
+    *
+------------------------------------------------------------
+User: usher  Wed Nov  7 21:40:15 PST 2001
 TkrRecon/TkrRecon/Display
 
 Added Files:
