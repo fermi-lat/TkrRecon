@@ -217,11 +217,17 @@ void GFtrack::step(int kplane)
     if (m_status == FOUND) 
     {
         double segChiSquare = _mGFsegment->chiSquare();
+        double maxChiSquare = numDataPoints() * 10. * m_runChiSquare;
 
-        //Don't add the new hit if it makes the track chi**2 lots worse
-        //But below will add hit if first two hits on track or very 
-        //straight track
-        if (numDataPoints() < 4 || segChiSquare < 1. || segChiSquare < 10. * m_runChiSquare)
+        //If we have fewer than 4 hits on a track then we go ahead and add it
+        //since, in theory, we can reject this segment later.
+        //If the segment chi-square is small (< 1) then add the hit as well (the
+        //chi-square does not appear to be well determined because the energy is not
+        //well determined so for stiff tracks the chi-square can be effectively zero)
+        //Finally, add the hit if the chi-square doesn't blow up too badly according to 
+        //a sliding scale which depends on track length.
+        //I dearly hope the "new" tracking code does a better job at this!
+       if (numDataPoints() < 4 || segChiSquare < 1. || segChiSquare < maxChiSquare)
         {
             kplanelist.push_back(_mGFsegment->getKPlane());
             if (numDataPoints() > 2) m_runChiSquare += segChiSquare;

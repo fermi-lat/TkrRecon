@@ -2,12 +2,13 @@
 #include "TkrRecon/GFcontrol.h"
 
 int		  GFcontrol::gammaTries          = 1;
-int       GFcontrol::particleTries       = 5;
+//int       GFcontrol::particleTries       = 5;
+int       GFcontrol::particleTries       = 15;
 int       GFcontrol::maxCandidates       = 2;
 
 double    GFcontrol::FEneParticle        = 1.;
 double    GFcontrol::FEne                = 0.66;
-double    GFcontrol::sigmaCut            = 6.;
+double    GFcontrol::sigmaCut            = 8.;
 
 int		  GFcontrol::error	             = 0;
 int		  GFcontrol::maxConsecutiveGaps  = 2;	// max consecutive Gaps - Stop
