@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Aug  6 09:41:49 PDT 2003
+TkrRecon/src/PatRec/LinkAndTree
+
+Modified Files:
+	TkrLinkAndTree.cxx 
+Log Message:
+Explicit call to TkrPatCand sort method
+
+    *
+------------------------------------------------------------
 User: usher  Wed Aug  6 09:41:48 PDT 2003
 TkrRecon/src/PatRec/Combo
 
