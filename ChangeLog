@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Mon Aug  4 13:08:37 PDT 2003
+TkrRecon/src/Display
+
+Modified Files:
+	TkrCandidate3DRep.cxx 
+Log Message:
+Modifications to include a "Monte Carlo Pattern Recognition" which forms candidate
+tracks from Monte Carlo associated clusters to allow testing of the fitting 
+and vertexing procedures. 
+
+    *
+------------------------------------------------------------
 User: usher  Mon Aug  4 13:04:40 PDT 2003
 TkrRecon/src/Track
 
