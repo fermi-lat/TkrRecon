@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Mar  1 16:25:23 PST 2005
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	ComboVtxTool.cxx 
+Log Message:
+fix unix warnings/semi-bugs; remove root data files
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Mar  1 16:25:22 PST 2005
 TkrRecon/src/Utilities
 
