@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sun Feb 10 19:52:05 PST 2002
+TkrRecon/TkrRecon/Display
+
+Removed Files:
+	TkrDisplayAlg.h 
+Log Message:
+Moving TkrDisplayAlg.h to GaudiAlg folder
+    *
+------------------------------------------------------------
 User: lsrea  Sat Feb  9 08:41:05 PST 2002
 TkrRecon/mgr
 
