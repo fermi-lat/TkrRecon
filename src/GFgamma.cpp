@@ -120,7 +120,7 @@ void GFpair::draw(gui::DisplayRep& v)
 {
 	v.setColor("blue");
 	_mGFbest->draw(v);
-	v.setColor("aquamarine");
+	v.setColor("green");
 	_mGFpair->draw(v);
 }
 //-------------------------------------------------------------------------
