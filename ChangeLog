@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: cohen  Mon Jul 22 03:03:51 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Removed Files:
+	TkrnewVertexAlg.cxx 
+Log Message:
+removing old test TkrnewVertexAlg, now obsolete
+    *
+------------------------------------------------------------
+User: cohen  Mon Jul 22 03:03:51 PDT 2002
 TkrRecon/src/Dll
 
 Modified Files:
