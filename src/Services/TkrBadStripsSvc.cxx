@@ -233,9 +233,9 @@ int TkrBadStripsSvc::tagGood(const int strip)
 }
 
 
-int TkrBadStripsSvc::untag(const int strip) 
+int TkrBadStripsSvc::stripNumber(const int strip) 
 {
-    // Purpose:  untag a tagged strip
+    // Purpose:  return the strip number of a (possibly tagged) strip
     return (strip & stripMask);
 }
 
@@ -279,7 +279,7 @@ bool TkrBadStripsSvc::isBadStrip(const v_strips* v, const int strip)
     bool isBad = false;
     v_strips_it it;
     for (it=v->begin(); it!=v->end(); it++) {
-        if ( untag(*it)==strip ) {
+        if ( stripNumber(*it)==strip ) {
             isBad = true;
             break;
         }
@@ -300,6 +300,28 @@ int TkrBadStripsSvc::swapForSort( const int strip)
     // Output:  same strip (swapped or normal)
     
     return ((strip&stripMask)<< tagShift) | (strip>>tagShift); 
+}
+
+void TkrBadStripsSvc::sortTaggedHits(std::vector<int> *list) 
+{
+    // Purpose: sort the input list by strip number
+    // Method: do swapForSort, then sort, then unswap
+    // Inputs: list of strips
+    // Outputs:  sorted list
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
+    // the following is a horrible kludge to do the merged sort 
+    //    until I figure out how to get the predicate thing working
+    
+    std::vector<int>::iterator ist;          
+    for (ist=list->begin(); ist!=list->end(); ist++) {           
+        *ist = swapForSort(*ist) ;
+    }
+    std::sort(list->begin(), list->end());         
+    for (ist=list->begin(); ist!=list->end(); ist++) {           
+        *ist = swapForSort(*ist) ;
+    }
 }
 
 // queryInterface

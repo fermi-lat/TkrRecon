@@ -36,7 +36,7 @@
  *
  * @author Leon Rochester
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrBadStripsSvc.h,v 1.5 2002/09/02 07:08:45 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrBadStripsSvc.h,v 1.6 2002/09/02 17:31:26 lsrea Exp $
  */
 
 #include "GaudiKernel/Service.h"
@@ -77,17 +77,21 @@ public:
     /// returns true if the given strip is found in the vector pointed 
     /// to by v_strips
     bool isBadStrip(const v_strips* v, const int strip);
-    /// retrieves the tag field from a strip
-    int tagField(const int strip);
-    /// swaps the possibly tagged strip into sorting order (and back)
-    int swapForSort(const int strip);
 
     /// returns true if the strip is tagged bad (used by TkrMakeClusters)
     bool isTaggedBad(const int taggedStrip);
-    /// untags a strip  (used by TkrMakeClusters)
-    int untag(const int strip); 
+    /// returns the strip number of a (possibly tagged) 
+    /// strip  (used by TkrMakeClusters)
+    int stripNumber(const int strip); 
+    /// retrieves the tag field from a strip
+    int tagField(const int strip);
+
     /// returns sentinel strip to TkrMakeClusters
     int lastStrip() {return tooBig;}
+    /// Sorts a list of tagged hits by strip number
+    void sortTaggedHits(std::vector<int>* list);
+    /// swaps the possibly tagged strip into sorting order (and back)
+    int swapForSort(const int strip);
 
     /// queryInterface - required for a service
     StatusCode queryInterface(const IID& riid, void** ppvUnknown);
