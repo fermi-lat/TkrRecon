@@ -18,6 +18,8 @@ const IAlgFactory& TkrClusterAlgFactory = Factory;
 TkrClusterAlg::TkrClusterAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator)  { }
 
+using namespace TkrRecon;
+
 StatusCode TkrClusterAlg::initialize()
 {
 	
@@ -43,8 +45,8 @@ StatusCode TkrClusterAlg::initialize()
     }
     
     //Initialize the rest of the data members
-    m_TkrClusters = 0;
-    m_TkrDigis   = 0; 
+    m_TkrClusterCol = 0;
+    m_TkrDigis      = 0; 
     
     return StatusCode::SUCCESS;
 }
@@ -52,11 +54,11 @@ StatusCode TkrClusterAlg::initialize()
 
 StatusCode TkrClusterAlg::execute()
 {
-    // Purpose and Method: makes TkrClusters
+    // Purpose and Method: makes TkrClusterCol
     // Inputs:  None
     // Outputs:  A StatusCode which denotes success or failure.
 	// TDS Input: TkrDigiCol
-	// TDS Output: TkrClusters
+	// TDS Output: TkrClusterCol
     // Restrictions and Caveats:  None
 	
 	
@@ -82,22 +84,22 @@ StatusCode TkrClusterAlg::execute()
     // Recover a pointer to the raw digi objects
     m_TkrDigis   = SmartDataPtr<TkrDigiCol>(eventSvc(),"/Event/TkrRecon/TkrDigis");
     
-    // Create the TkrClusters TDS object
-    m_TkrClusters = new TkrClusters();
+    // Create the TkrClusterCol TDS object
+    m_TkrClusterCol = new TkrClusterCol();
     // Register the object in the TDS
-    sc = eventSvc()->registerObject("/Event/TkrRecon/TkrClusters",m_TkrClusters);
+    sc = eventSvc()->registerObject("/Event/TkrRecon/TkrClusterCol",m_TkrClusterCol);
     
 	// make the clusters
-    TkrMakeClusters maker(m_TkrClusters, pTkrGeo, pBadStrips, m_TkrDigis);
+    TkrMakeClusters maker(m_TkrClusterCol, pTkrGeo, pBadStrips, m_TkrDigis);
 
 	//initialize the cluster query class
 	TkrQueryClusters query(0);
 	query.s_towerPitch = pTkrGeo->towerPitch();
 
-	if (m_TkrClusters == 0 || m_TkrDigis ==0) sc = StatusCode::FAILURE;
+	if (m_TkrClusterCol == 0 || m_TkrDigis ==0) sc = StatusCode::FAILURE;
     return sc;
 	
-    m_TkrClusters->writeOut(log);
+    m_TkrClusterCol->writeOut(log);
     
     return sc;
 }

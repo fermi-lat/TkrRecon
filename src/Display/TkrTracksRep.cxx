@@ -4,6 +4,8 @@
 /// Algorithm parameters which can be set at run time must be declared.
 /// This should be done in the constructor.
 
+using namespace TkrRecon;
+
 //#############################################################################
 TkrTracksRep::TkrTracksRep(IDataProviderSvc* dataProviderSvc)
 //#############################################################################
@@ -15,7 +17,7 @@ TkrTracksRep::TkrTracksRep(IDataProviderSvc* dataProviderSvc)
 void TkrTracksRep::update()
 //##############################################
 {
-    TkrTracks* pTracks = SmartDataPtr<TkrTracks>(dps,"/Event/TkrRecon/TkrTracks");
+    TkrFitTrackCol* pTracks = SmartDataPtr<TkrFitTrackCol>(dps,"/Event/TkrRecon/TkrFitTrackCol");
 
 	//Now see if we can do the drawing
 	if (pTracks)
@@ -48,8 +50,8 @@ void TkrTracksRep::update()
 void TkrTracksRep::drawChiSq(TkrFitTrack* track)
 {
     gui::DisplayRep* pDisplay = this;
-    TkrFitHit::TYPE  fit     = TkrFitHit::SMOOTH;
-    TkrFitHit::TYPE  typ     = TkrFitHit::SMOOTH;
+    TkrFitHit::TYPE  fit      = TkrFitHit::SMOOTH;
+    TkrFitHit::TYPE  typ      = TkrFitHit::SMOOTH;
 
     TkrFitPlaneConPtr hitIter = track->hitIterConst();
 
@@ -88,8 +90,8 @@ void TkrTracksRep::drawChiSq(TkrFitTrack* track)
 void TkrTracksRep::drawTrack(TkrFitTrack* track)
 {
     gui::DisplayRep* pDisplay = this;
-    TkrFitHit::TYPE  fit     = TkrFitHit::SMOOTH;
-    TkrFitHit::TYPE  typ     = TkrFitHit::SMOOTH;
+    TkrFitHit::TYPE  fit      = TkrFitHit::SMOOTH;
+    TkrFitHit::TYPE  typ      = TkrFitHit::SMOOTH;
 
     TkrFitPlaneConPtr hitIter = track->hitIterConst();
 

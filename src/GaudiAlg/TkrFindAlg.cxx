@@ -15,7 +15,7 @@
 
 #include "TkrRecon/GaudiAlg/TkrFindAlg.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
-#include "TkrRecon/Cluster/TkrClusters.h"
+#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrRecon/Track/GFcontrol.h"
 
 //#include "src/PatRec/LinkAndTree/TkrLinkAndTreePR.h"
@@ -73,7 +73,7 @@ StatusCode TkrFindAlg::execute()
     }
     
     //Recover a pointer to the raw digi objects
-    TkrClusters*   pTkrClus  = SmartDataPtr<TkrClusters>(eventSvc(),"/Event/TkrRecon/TkrClusters");
+    TkrRecon::TkrClusterCol* pTkrClus  = SmartDataPtr<TkrRecon::TkrClusterCol>(eventSvc(),"/Event/TkrRecon/TkrClusterCol");
 
     //Ultimately we want pattern recognition to be independent of calorimetry.
     //But, for now allow this option to help some pattern rec algorithms
@@ -100,10 +100,10 @@ StatusCode TkrFindAlg::execute()
     }
 
     //Create the TkrCandidates TDS object
-    TkrCandidates* pTkrCands = pPatRecon->doPatRecon(pTkrClus, CalEnergy, CalPosition);
+    TkrRecon::TkrPatCandCol* pTkrCands = pPatRecon->doPatRecon(pTkrClus, CalEnergy, CalPosition);
 
     //Register this object in the TDS
-    sc = eventSvc()->registerObject("/Event/TkrRecon/TkrCandidates",pTkrCands);
+    sc = eventSvc()->registerObject("/Event/TkrRecon/TkrPatCandCol",pTkrCands);
     
     if (pTkrClus == 0 || pTkrCands == 0) sc = StatusCode::FAILURE;
     

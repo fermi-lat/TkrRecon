@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.9 2002/05/01 04:10:34 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.10 2002/05/01 05:08:52 lsrea Exp $
 //
 // Description:
 //      Controls the track fitting
@@ -13,7 +13,7 @@
 #include <vector>
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
-#include "TkrRecon/Track/TkrTracks.h"
+#include "GlastEvent/Recon/TkrRecon/TkrFitTrackCol.h"
 #include "src/Track/TkrLinkAndTreeTrackFit.h"
 #include "TkrRecon/Track/GFcontrol.h"
 
@@ -29,11 +29,14 @@
 #include "GlastSvc/Reco/IRecoSvc.h"
 #include "GlastSvc/Reco/IPropagatorSvc.h"
 
+using namespace TkrRecon;
+
 static const AlgFactory<TkrReconAlg>  Factory;
 const IAlgFactory& TkrReconAlgFactory = Factory;
 
-
 IKalmanParticle* TkrReconAlg::m_KalParticle = 0;
+
+using namespace TkrRecon;
 
 TkrReconAlg::TkrReconAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator) 
@@ -86,10 +89,10 @@ StatusCode TkrReconAlg::execute()
 	log << MSG::DEBUG << "------- Recon of new Event --------" << endreq;
 
     // Recover pointer to the reconstructed clusters
-    m_TkrClusters = SmartDataPtr<TkrClusters>(eventSvc(),"/Event/TkrRecon/TkrClusters"); 
+    m_TkrClusters = SmartDataPtr<TkrClusterCol>(eventSvc(),"/Event/TkrRecon/TkrClusterCol"); 
 
     // Find the patter recon tracks
-    TkrCandidates* pTkrCands = SmartDataPtr<TkrCandidates>(eventSvc(),"/Event/TkrRecon/TkrCandidates");
+    TkrPatCandCol* pTkrCands = SmartDataPtr<TkrPatCandCol>(eventSvc(),"/Event/TkrRecon/TkrPatCandCol");
 
     // Recover pointer to Cal Cluster info    
     ICsIClusterList* pCalClusters = SmartDataPtr<ICsIClusterList>(eventSvc(),"/Event/CalRecon/CsIClusterList");
@@ -115,9 +118,9 @@ StatusCode TkrReconAlg::execute()
     }
 
     // Reconstruct the pattern recognized tracks
-    TkrTracks* tracks = m_TrackFit->doTrackFit(m_TkrClusters, pTkrCands, CalEnergy);
+    TkrFitTrackCol* tracks = m_TrackFit->doTrackFit(m_TkrClusters, pTkrCands, CalEnergy);
 
-    sc = eventSvc()->registerObject("/Event/TkrRecon/TkrTracks", tracks);
+    sc = eventSvc()->registerObject("/Event/TkrRecon/TkrFitTrackCol", tracks);
 
     tracks->writeOut(log);
 
