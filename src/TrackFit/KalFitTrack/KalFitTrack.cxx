@@ -26,6 +26,8 @@
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "src/Track/TkrControl.h"
 
+#include <algorithm>
+
 using namespace Event;
 
 //-----------------------------------------------------
@@ -1212,7 +1214,7 @@ void KalFitTrack::eneDetermination()
         }
         
         double e_factor = exp(-totalRad);        
-        double t0t1 = t0*t1;
+        double t0t1 = std::min(t0*t1,1.);
         double theta = acos(t0t1);
         double rl_factor = radLen;
         
@@ -1236,14 +1238,14 @@ void KalFitTrack::eneDetermination()
                         m_tkrGeo->siStripPitch()             + 1.;
     double prj_size_y = m_tkrGeo->siThickness()*fabs(sY)/
                         m_tkrGeo->siStripPitch()             + 1.;
-    double range_limit = 10000;  // 10 GeV max... 
+    double range_limit = 100000;  // 100 GeV max... 
     if((x_cls_size - prj_size_x) > 2 || (y_cls_size - prj_size_y) > 2) {
-        range_limit = totalRad * 50.; // 10 MeV = 15% rad. len
+        range_limit = totalRad * 50.; // 10 MeV = 20% rad. len
     }
 
     m_KalThetaMS = sqrt(thetaSum/2./tSumCount);
-    double e_inv = sqrt(eneSum  /2./eSumCount); 
-    m_KalEnergy = 13.6/e_inv; //Units MeV
+    double e_inv = sqrt(eneSum/2./eSumCount); 
+    m_KalEnergy  = 13.6/std::max(e_inv, 1.e-6); //Units:  MeV
     
     if(m_KalEnergy < m_control->getMinEnergy()/3.) m_KalEnergy = m_control->getMinEnergy()/3.; 
     if(m_KalEnergy > range_limit) m_KalEnergy = range_limit;
