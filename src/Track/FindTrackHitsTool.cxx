@@ -317,7 +317,7 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrack* track)
     yTower = (int) floor(end_pos.y()/towerPitch + 0.5*numY + 0.001);
     int endTower = idents::TowerId(xTower,yTower).id();
 
-    if (m_trackAcrossTowers && startTower !=endTower) return trackHit;
+    if (!m_trackAcrossTowers && startTower != endTower) return trackHit;
 
 	// Setup the propagator and transport the track parameters along this step
 	m_propagatorTool->setStepStart(last_hit->getTrackParams(Event::TkrTrackHit::FILTERED), 
