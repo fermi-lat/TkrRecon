@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Fri May 10 14:53:56 PDT 2002
+TkrRecon/src/Display
+
+Modified Files:
+	TkrBestCandRep.cxx 
+Log Message:
+Change includes to switch from GlastEvent to Event
+
+    *
+------------------------------------------------------------
 User: usher  Fri May 10 14:53:55 PDT 2002
 TkrRecon/src/Cluster
 
