@@ -119,6 +119,13 @@ SiClusters::SiClusters(int nViews, int nPlanes, double stripPitch, double trayWi
 	ini();
 }
 
+SiClusters::~SiClusters()
+{
+    clear();
+
+    return;
+}
+
 //######################################################
 void SiClusters::addCluster(SiCluster* cl)
 //######################################################
