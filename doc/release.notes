@@ -3,6 +3,7 @@
  * Package TkrRecon
  * Manager: Leon Rochester 
  *
+ * v6r5    20-Aug-2002  TU    New revision - use Gaudi Tools to drive the reconstruction
  * v6r4p4  07-Aug-2002  LSR   Improvements and bug fixes from Bill
  * v6r4p3  23-Jul-2002  TU    Picks up upgrades and bug fixes to Combo PR/Fit from Bill Atwood
  * v6r4p2   3-Jul-2002  TU    This does fix the crashes on linux
