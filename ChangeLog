@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Tue Jul 23 12:53:25 PDT 2002
+TkrRecon/src/Vertex
+
+Modified Files:
+	VtxKalFitTool.cxx 
+Log Message:
+bug fix (uglyy fix) to seg fault when one track is not accepted in the fit
+    *
+------------------------------------------------------------
 User: usher  Tue Jul 23 09:02:02 PDT 2002
 TkrRecon/doc
 
