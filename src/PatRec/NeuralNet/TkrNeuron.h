@@ -14,7 +14,7 @@
 * @todo impliment a real equality operator.
 * @todo decide whether to keep 'position' global.
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/TkrNeuron.h,v 1.3 2002/08/22 21:04:55 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/TkrNeuron.h,v 1.4 2002/09/05 16:25:34 lsrea Exp $
 */
 
 #ifndef __TKRNEURON_H
@@ -25,9 +25,6 @@
 #include "src/Utilities/TkrPoint.h"
 #include <vector>
 #include <assert.h>
-
-// forward declarations
-class TkrNeuralNet;
 
 // global definitions
 /// top is defined as being the end of the neuron with the lower layer number.
@@ -58,8 +55,8 @@ public:
     public:
 
         // constructor
-        Synapse(TkrNeuron* neuron, float wieght = 0.0):
-          m_neuron(neuron), m_wieght(wieght) {}
+        Synapse(TkrNeuron* neuron, float weight = 0.0):
+          m_neuron(neuron), m_weight(weight) {}
 
         // destructor
         virtual ~Synapse() {}
@@ -68,13 +65,13 @@ public:
         */
         //@{
         TkrNeuron* getNeuron() const { return m_neuron; }
-        float getWieght()      const { return m_wieght; }
+        float getWeight()      const { return m_weight; }
         //}@
 
         /** @name manipulation methods
         */
         //@{
-        void setWieght(float wieght) { m_wieght = wieght;}
+        void setWeight(float weight) { m_weight = weight;}
         //}@
 
     private:
@@ -83,8 +80,8 @@ public:
 
         /// pointer to neuron which shares the connection
         TkrNeuron* m_neuron;
-        /// wieght or cost of having both neurons active
-        float      m_wieght;
+        /// weight or cost of having both neurons active
+        float      m_weight;
 
     };
 
@@ -97,14 +94,19 @@ public:
     // in the following 'position' is an enum which has values of 'top' or 'bottom'.
     Point  getPnt(position pos)   const {
         return pos==top ? m_pnt0->getPoint() : m_pnt1->getPoint();}
+
     int    getLayer(position pos) const {
         return pos==top ? m_pnt0->getLayer() : m_pnt1->getLayer();}
+
     int    getTower(position pos) const {
         return pos==top ? m_pnt0->getTower() : m_pnt1->getTower();}
+
     int    getIdX(position pos)   const {
         return pos==top ? m_pnt0->getIdX() : m_pnt1->getIdX();}
+
     int    getIdY(position pos)   const {
         return pos==top ? m_pnt0->getIdY() : m_pnt1->getIdY();}
+
     int    getLayerDiff()         const {return m_l;}
     Vector getDirection()         const {return m_direction;}
     float  getActivity()          const {return m_activity;}
@@ -112,20 +114,21 @@ public:
 
     // access methods for synapses
     unsigned int numSynapse(position pos) const 
-    { return pos==top ? m_synapseList0.size():m_synapseList1.size(); }
+      { return pos==top ? m_synapseList0.size():m_synapseList1.size(); }
 
     // getNextNeuron pre: the neuron pointed to by the synapse is != NULL.
     TkrNeuron*   getNextNeuron(position pos, unsigned int syn) const;       
-    float        getWieght(position pos, unsigned int syn) const;
+    float        getWeight(position pos, unsigned int syn) const;
     //@}
 
     /** @name manipulation methods
     */
     //@{
-    void addConnection(float (TkrNeuralNet::*func)(TkrNeuron*,TkrNeuron*), 
-                       TkrNeuralNet* const net, position pos, TkrNeuron* neuron);
+    void addConnection(position, TkrNeuron*, double, double);
+
     void setActivity(float act) { 
         if((act >= 0.0) && (act <= 1.0)) m_activity = act;}
+
     void setBias(float bias)    { m_bias = bias;}
     //@}
 
@@ -136,24 +139,58 @@ public:
     bool operator==(const TkrNeuron& neuron) const; // equality operator
     //@}
 
+    /**
+     * update()
+     *
+     * @param temp is the tempurature of the system.
+     * 
+     * This function updates a given neurons activity level based on the update
+     * rule.  Neurons which are incoming or outgoing reinforce the neuron.
+     * Neurons which are competing detract from the neurons activity.
+     *
+     * There currently many global parameters used in this function.  I would
+     * like to change it so that these parameters are passed from the joboptions
+     * file.
+     */
+    void update(float, double, double, double);
+
 private:
 
-    // data members
+    /**
+     * calcWeight()
+     *
+     * This function returns the weight value for the two neurons' connection.
+     * The formula is:
+     * \f[
+     * T_{ijk} = \frac{\cos^{\lambda}\psi_{ijk}}{d^{\mu}_{ij} + d^{\mu}_{jk}}
+     * \f]
+     */
+     float calcWeight(TkrNeuron*,double,double);
 
+    // data members
     /// hits and info about hits
     TkrPoint *m_pnt0, *m_pnt1;
+
     /// level of activity (a float betweeen 0 and 1)
     float       m_activity;
+
     /// l = layer0 - layer1  (layer1 is always greater than layer0)
     int         m_l;
+
     /// bias parameter to be used in some min. finding alg.
     float       m_bias;
+
     /// unit vector pointing from pnt0 to pnt1
     Vector      m_direction;
+
     /// List of synapses at pnt0
     SynapseList m_synapseList0; 
+
     /// List of synapses at pnt1
     SynapseList m_synapseList1; 
 };
+
+typedef std::vector<TkrNeuron> TkrNeuronList;
+typedef std::vector<TkrNeuron>::const_iterator neuron_const_iterator;
 
 #endif // __TKRNEURON_H
