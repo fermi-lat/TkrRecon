@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Mon Sep  9 13:17:05 PDT 2002
+TkrRecon/src
+
+Modified Files:
+	mainpage.h 
+Log Message:
+link to the latex2html-based documentation for the Kalman Vertexer
+    *
+------------------------------------------------------------
 User: cohen  Mon Sep  9 13:16:25 PDT 2002
 TkrRecon/doc/KalVtx
 
