@@ -5,7 +5,7 @@ branches src mgr doc
 
 use GlastSvc
 
-use reconstruction v3r1
+use reconstruction 
 
 library TkrRecon  *.cxx ../TkrRecon/*.h  Dll/*.cpp
 
