@@ -236,7 +236,9 @@ void SiRecObjsAlg::searchParticles()
 			if (!_GFparticle->empty()) {
 				m_SiRecObjs->addParticle(_GFparticle);
 				_GFparticle->flagAllHits();
-			}
+            } else {
+                delete _GFparticle;
+            }
 		} else end = true;
 		delete tracks;
 		
