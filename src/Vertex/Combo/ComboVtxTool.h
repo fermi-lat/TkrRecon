@@ -24,16 +24,32 @@ class ComboVtxTool : public AlgTool, virtual public IVtxBaseTool
   // Standard Destructor
   virtual ~ComboVtxTool() {;}
 
+  ///Implementation of the method provided by the base class AlgTool.
+  virtual StatusCode initialize();
+
   ///@brief Implement the pure virtual method of IVtxBaseTool
-  StatusCode retrieveVtxCol(Event::TkrVertexCol&);
+  StatusCode findVtxs();
+
+  StatusCode retrieveVtxCol(Event::TkrVertexCol& VtxList);
 
  protected:
 
     /// @brief Keep pointers to the geometry service and the data 
     /// data provider service. These are both needed by the combo
     /// vertexing routine
-    ITkrGeometrySvc* m_tkrGeom;
-    DataSvc*        pDataSvc;
+    ITkrGeometrySvc*  m_tkrGeom;
+    IDataProviderSvc* m_dataSvc;
+	/// Pointer to the G4 propagator
+    IPropagator*      m_propagatorTool;
+
+private:
+	double m_maxDOCA;   /// Max. accepted DOCA separation for which to make vertex
+	double m_minQuality;/// Min. accepted VTX quality
+
+	double m_chisq;     /// Internal transport for Chi-Square
+
+	Event::TkrTrackParams& getParamAve(Event::TkrTrackParams& params1, 
+									   Event::TkrTrackParams& params2);
 
 };
 #endif

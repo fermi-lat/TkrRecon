@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.11 2004/10/12 19:03:38 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.12 2004/10/22 20:17:32 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -179,8 +179,9 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies(double totalEnergy)
         else {               // Divide up the energy between the first two tracks
             Event::TkrTrack* secndCandTrk = (*trackCol)[1];
         
-            int num_hits1 = firstCandTrk->getNumHits();
-            int num_hits2 = secndCandTrk->getNumHits();
+			// Need to use Hits-on-Fits until tracks are truncated to last real SSD hit
+            int num_hits1 = firstCandTrk->getNumFitHits();
+            int num_hits2 = secndCandTrk->getNumFitHits();
             double e1 = firstCandTrk->front()->getEnergy();
             double e2 = secndCandTrk->front()->getEnergy();
             double e1_min = 2.*num_hits1;        //Coefs are MeV/Hit
@@ -255,18 +256,20 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrTrack* track, double CalEner
     int num_last_hits = 0; 
     double arc_len    = 5./fabs(dir_ini.z()); 
     
-    int top_plane     = track->front()->getTkrId().getPlane();   
-    int max_planes = m_tkrGeom->numLayers();
+	int layer       = track->front()->getTkrId().getLayer(); //numbering: bottom-up
+    int top_layer   = m_tkrGeom->reverseLayerNumber(layer);   
+    int max_layers  = m_tkrGeom->numLayers();
 
-    int thin_planes  = 0;
-    int thick_planes = 0;
-    int norad_planes = 0;
+    int thin_layers  = 0;
+    int thick_layers = 0;
+    int norad_layers = 0;
 
-    for(int iplane = top_plane; iplane < max_planes; iplane++) {
+	// This loops over layers using top-down numbering (0 - 17 starting at the top)
+    for(int ilayer = top_layer; ilayer < max_layers; ilayer++) {
         
         double xms = 0.;
         double yms = 0.;
-        if(iplane > top_plane) {
+        if(ilayer > top_layer) {
             Event::TkrFitMatrix Q = kalPart->mScat_Covr(CalEnergy/2., arc_len);
             xms = Q.getcovX0X0();
             yms = Q.getcovY0Y0();
@@ -278,31 +281,31 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrTrack* track, double CalEner
 
         // Assume location of shower center in given by 1st track
         Point x_hit = getPosAtZ(track, arc_len);
-        int numHits = m_clusTool->numberOfHitsNear(m_tkrGeom->reverseLayerNumber(iplane), 
-            xSprd, ySprd, x_hit);
-         
-        convType type = m_tkrGeom->getReconLayerType(iplane);
+		int rev_layer = m_tkrGeom->reverseLayerNumber(ilayer); 
+        int numHits = m_clusTool->numberOfHitsNear(rev_layer, xSprd, ySprd, x_hit);
+
+        convType type = m_tkrGeom->getReconLayerType(ilayer);
         switch(type) {
         case NOCONV:
             num_last_hits += numHits; 
-            norad_planes++;
+            norad_layers++;
             break;
         case STANDARD:
             num_thin_hits += numHits;
-            thin_planes++;
+            thin_layers++;
             break;
         case SUPER:
             num_thick_hits += numHits;
-            thick_planes++;
+            thick_layers++;
             break;
         default: // shouldn't happen, but I'm being nice to the compiler
             ;
         }
 
         // Increment arc-length
-        int nextPlane = iplane+1;
-        if (iplane==max_planes-1) nextPlane--;
-        double deltaZ = m_tkrGeom->getReconLayerZ(iplane)-m_tkrGeom->getReconLayerZ(nextPlane);
+        int nextlayer = ilayer+1;
+        if (ilayer==max_layers-1) nextlayer--;
+        double deltaZ = m_tkrGeom->getReconLayerZ(ilayer)-m_tkrGeom->getReconLayerZ(nextlayer);
         arc_len += fabs( deltaZ/dir_ini.z()); 
     }
     
@@ -312,29 +315,14 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrTrack* track, double CalEner
 
     //Just the radiators -- divide by costheta, just like for rad_min
     double rad_nom  = 
-        (thinConvRadLen*thin_planes + thickConvRadLen*thick_planes)/fabs(dir_ini.z());
+        (thinConvRadLen*thin_layers + thickConvRadLen*thick_layers)/fabs(dir_ini.z());
     //The "real" rad- len 
     double rad_swim = kalPart->radLength();                 
     //The non-radiator
     double rad_min  = 
-        (thin_planes+thick_planes+norad_planes)*trayRadLen/fabs(dir_ini.z()); 
+        (thin_layers+thick_layers+norad_layers)*trayRadLen/fabs(dir_ini.z()); 
     rad_swim = std::max(rad_swim, rad_nom + rad_min); 
     double ene_total  =  ene_trks * rad_swim/rad_nom + CalEnergy; //Scale and add cal. energy
-
-    // rad_thin, rad_thick, and rad_last are still defined and filled in code
-    /*
-    kalPart->setStepStart(x_ini, dir_ini, rad_thin);
-    rad_thin = kalPart->radLength();
-    kalPart->setStepStart(x_ini, dir_ini, rad_thick);
-    rad_thick = kalPart->radLength()-rad_thin;
-    kalPart->setStepStart(x_ini, dir_ini, rad_last);
-    rad_last = kalPart->radLength()-rad_thin-rad_thick;
-
-    m_out<<num_thin_hits<<'\t'<<num_thick_hits<<'\t'<<num_last_hits<<'\t';
-    m_out<<rad_thin<<'\t'<<rad_thick<<'\t'<<rad_last<<'\t';
-    m_out<<rad_swim<<'\t'<<rad_nom<<'\t'<<'\t';
-    m_out<<cal_Energy<<'\t'<<ene_total<<'\n';
-    */
 
     return ene_total;
 }

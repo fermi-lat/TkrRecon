@@ -25,7 +25,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*tkrGeom*/,
                                    Event::TkrTrackCol* pTracks, 
                                    Event::TkrPatCandCol* /*pCandTracks*/,
                                    Event::TkrVertexTrackTab* vertexRelTab)
-{
+{/*
     //Define a vector to contain a list of "isolated" tracks
     int    numTracks = pTracks->size();
     std::vector<bool> unused(numTracks);
@@ -223,7 +223,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*tkrGeom*/,
             Event::TkrVertexTrackRel* rel = new Event::TkrVertexTrackRel(vertex, track1);
             vertexRelTab->addRelation(rel);
         }
-    }            
+    } */           
     return;
 }
 

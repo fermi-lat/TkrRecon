@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.2 2004/09/08 15:32:48 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.21 2004/09/23 21:30:32 usher Exp $
 // Description:                                                  
 //      Implementation of the Kalman vertexer
 //
@@ -41,7 +41,7 @@ StatusCode VtxKalFitTool::initialize()
 
 
 StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
-{
+{/*
   m_VtxCovEstimates.erase(m_VtxCovEstimates.begin(),m_VtxCovEstimates.end());
   m_VtxEstimates.erase(m_VtxEstimates.begin(),m_VtxEstimates.end());
 
@@ -314,7 +314,7 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
   vertex->writeOut(log);
 
   VtxCol.push_back(vertex); 
-
+*/
   return StatusCode::SUCCESS;
 }
 

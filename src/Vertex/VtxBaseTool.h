@@ -10,7 +10,7 @@
  * @class VtxBaseTool
  * @brief Base class for the concrete vertexing tools.
  * @author Johann Cohen-Tanugi
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxBaseTool.h,v 1.4 2002/09/01 22:37:41 cohen Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxBaseTool.h,v 1.5 2002/09/02 19:46:15 cohen Exp $
  */
 class VtxBaseTool : public AlgTool, virtual public IVtxBaseTool 
 {
@@ -27,6 +27,7 @@ class VtxBaseTool : public AlgTool, virtual public IVtxBaseTool
 
   ///@brief Implement the pure virtual method of IVtxBaseTool
   virtual StatusCode retrieveVtxCol(Event::TkrVertexCol&);
+  virtual StatusCode findVtxs(); 
 
   /// @brief Main method to be implemented by concrete classes.
   /// It should contain the actual vertexing procedure, and is called

@@ -13,7 +13,7 @@
   *
   * @author Tracy Usher (as editor instead of author)
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TrackFitUtils.h,v 1.5 2004/10/12 19:03:38 lsrea Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TrackFitUtils.h,v 1.6 2004/11/10 23:38:22 atwood Exp $
 */
 
 #ifndef __TrackFitUtils_H
@@ -62,7 +62,7 @@ public:
     void   flagAllHits(Event::TkrTrack& track, int iflag=1);
     void   unFlagAllHits(Event::TkrTrack& track);
     void   unFlagHit(Event::TkrTrack& track,int num);
-    void   setSharedHitsStatus(Event::TkrTrack& track);
+    void   setSharedHitsStatus(Event::TkrTrack& track, int maxShare);
 
 private:    
     /// Pointers to clusters, geoemtry, and control parameters
