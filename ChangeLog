@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Nov 10 14:21:25 PST 2004
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx 
+Log Message:
+un-test first cut at this tool
+    *
+------------------------------------------------------------
 User: atwood  Wed Nov 10 14:19:39 PST 2004
 TkrRecon/src/PatRec/Combo
 
