@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Thu May  2 06:55:15 PDT 2002
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+add "/src/Cluster/*.h" to TkrCluster_headers
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed May  1 22:03:15 PDT 2002
 TkrRecon/doc
 
