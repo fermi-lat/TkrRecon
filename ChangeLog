@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: atwood  Wed Aug 21 15:11:19 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	TkrComboFitTool.cxx TkrControl.cxx TkrControl.h 
+	TkrLinkAndTreeFitTool.cxx TkrNeuralNetFitTool.cxx 
+Log Message:
+Change over to TkrControl from GFXXXXX classes
+    *
+------------------------------------------------------------
 User: atwood  Wed Aug 21 15:06:49 PDT 2002
 TkrRecon/src/Services
 
