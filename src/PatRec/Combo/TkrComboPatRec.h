@@ -47,10 +47,12 @@ private:
         void setSigma(float sig)      {m_sigma      = sig;}
         void setQuality(float Q)      {m_qual       = Q;}
         void setGap(int gs)           {m_gap        = gs;}
+        void setConEnergy(double e)   {m_ConEnergy  = e;}
         float  deflection()    const {return m_deflection;}
         float  sigma()         const {return m_sigma;}
         float  quality()       const {return m_qual;}
         int    gap()           const {return m_gap;} 
+        double conEnergy()     const {return m_ConEnergy;}
         KalFitTrack *track()         {return m_track;} 
         
     private:	
@@ -58,6 +60,7 @@ private:
         float m_sigma;         // Number of sigma deflection corresponds to
         float m_qual;          // Resulting track Quality
         int m_gap;             // Size of gap (hopefully zero!) 
+        double m_ConEnergy;    // Constraind energy results
         KalFitTrack *m_track;  // The trial track fit
     };
 
@@ -69,8 +72,10 @@ private:
     iterator begin()            {return m_candidates.begin();}
     iterator end()              {return m_candidates.end();}
 
+    // Major Sub sections 
     void searchCandidates(double CalEnergy, Point CalPosition);
     void setEnergies(double CalEnergy); 
+    void loadOutput(); 
     
     // internal drivers
     void findBlindCandidates();
