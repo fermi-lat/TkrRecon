@@ -15,7 +15,7 @@ use xml
 use TkrUtil    v1r*
 
 use Recon
-#use G4Generator
+use G4Propagator v*
 
 set JOBOPTIONS ${TKRRECONROOT}/src/test/jobOptions.txt
 
