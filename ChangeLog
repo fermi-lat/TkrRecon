@@ -1,4 +1,21 @@
 ------------------------------------------------------------
+User: usher  Thu Mar  7 09:27:28 PST 2002
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	TkrComboVtxRecon.cxx TkrComboVtxRecon.h 
+Added Files:
+	RayDoca.cxx RayDoca.h TkrComboVtxRep.cxx TkrComboVtxRep.h 
+Log Message:
+
+Implemented a simple "combinatoric" vertexing algorithm to serve as a
+model to build upon. Included a utility routine (RayDoca) to compute
+the distance of closest approach between two lines and some associated
+parameters. Also included a visualization routine example (TkrComboVtxRep).
+Modifed the interface accordingly (TkrComboVtxRecon)
+
+    *
+------------------------------------------------------------
 User: usher  Mon Mar  4 11:22:53 PST 2002
 TkrRecon/src/GaudiAlg
 
