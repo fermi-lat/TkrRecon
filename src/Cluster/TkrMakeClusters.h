@@ -28,7 +28,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.15 2002/09/18 23:41:01 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.16 2003/01/06 19:03:51 lsrea Exp $
 */
 
 #include <vector>
@@ -39,7 +39,7 @@
 #include "Event/Digi/TkrDigi.h"
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
-#include "TkrRecon/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrBadStripsSvc.h"
 
 class TkrMakeClusters

@@ -15,7 +15,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/Combo/TkrComboVtxRecon.h,v 1.9 2002/08/29 21:15:58 atwood Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/Combo/TkrComboVtxRecon.h,v 1.10 2002/10/09 23:44:12 usher Exp $
 */
 #ifndef TkrComboVtxRecon_H
 #define TkrComboVtxRecon_H
@@ -23,7 +23,7 @@
 #include "Event/Recon/TkrRecon/TkrVertex.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "Event/Recon/TkrRecon/TkrFitTrack.h"
-#include "TkrRecon/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 
 
 

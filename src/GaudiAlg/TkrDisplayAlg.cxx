@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.7 2002/08/29 23:01:07 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.8 2002/09/05 16:42:30 lsrea Exp $
 //
 // Description:
 //      Contains the implementation of the methods for setting up the TkrRecon display
@@ -32,7 +32,7 @@
 #include "src/Vertex/Combo/TkrComboVtxRep.h"
 
 #include "TkrRecon/Services/TkrInitSvc.h"
-#include "TkrRecon/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 
 
 static const AlgFactory<TkrDisplayAlg>  Factory;

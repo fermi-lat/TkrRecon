@@ -3,7 +3,8 @@
  * Package TkrRecon
  * Manager: Leon Rochester 
  * 
- * v8r6    10-Jan-2002  LSR   GlastRelease version, including new TDS stuff
+ * v8r6p1  10-Jan-2003  LSR   Move TkrGeometrySvc to TkrUtil
+ * v8r6    10-Jan-2003  LSR   GlastRelease version, including new TDS stuff, and TkrBadStripsSvc to TkrUtil
  * v8r5p1  21-Nov-2002  TU    Patches for "final" Gleam release
  * v8r5    30-Oct-2002  LSR   fix bug in TkrComboPatRec, and new code from Bill for TkrComboVtxRecon
  * v8r4p4  16-oct-2002  LSR   fix overrunning loop in TkrMakeClusters

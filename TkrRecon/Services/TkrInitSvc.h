@@ -3,7 +3,7 @@
 #define __TKRINITSVC_H 1
 
 #include "GaudiKernel/Service.h"
-#include "TkrRecon/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 
 /** 
  * @class TkrInitSvc
@@ -17,7 +17,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.8 2002/09/05 16:51:32 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.9 2002/09/06 06:59:52 lsrea Exp $
  */
 
 

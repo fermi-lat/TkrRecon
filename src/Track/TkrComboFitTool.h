@@ -7,7 +7,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrComboFitTool.h,v 1.1 2002/08/28 22:55:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.h,v 1.2 2002/08/29 19:18:47 usher Exp $
  */
 
 #ifndef TKRCOMBOFITTOOL_H
@@ -16,7 +16,7 @@
 #include "GaudiKernel/AlgTool.h"
 #include "GaudiKernel/DataSvc.h"
 #include "TkrRecon/Track/ITkrFitTool.h"
-#include "TkrRecon/Services/TkrGeometrySvc.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 
 class TkrComboFitTool : public AlgTool, virtual public ITkrFitTool
 {
@@ -33,7 +33,7 @@ public:
 
 private:
     /// Pointer to the local Tracker geometry service
-    TkrGeometrySvc* pTkrGeoSvc;
+    ITkrGeometrySvc* pTkrGeoSvc;
 
     /// Pointer to the Gaudi data provider service
     DataSvc*        pDataSvc;

@@ -3,7 +3,7 @@
 #define __TKRCANDIDATE3DREP_H
 
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
-#include "TkrRecon/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 #include "gui/DisplayRep.h"
 #include "GaudiKernel/IDataProviderSvc.h"
 #include "GaudiKernel/SmartDataPtr.h"

@@ -7,7 +7,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.h,v 1.2 2002/08/29 19:39:50 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.h,v 1.3 2002/09/02 23:08:11 usher Exp $
  */
 
 #ifndef COMBOFINDTRACKTOOL_H
@@ -16,7 +16,7 @@
 #include "GaudiKernel/AlgTool.h"
 #include "GaudiKernel/DataSvc.h"
 #include "TkrRecon/PatRec/ITkrFindTrackTool.h"
-#include "TkrRecon/Services/TkrGeometrySvc.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 
 class ComboFindTrackTool : public AlgTool, virtual public ITkrFindTrackTool
 {
@@ -33,7 +33,7 @@ public:
 
 private:
     /// Pointer to the local Tracker geometry service
-    TkrGeometrySvc* m_tkrGeo;
+    ITkrGeometrySvc* m_tkrGeo;
 
     /// Pointer to the Gaudi data provider service (interface to the TDS)
     DataSvc*        m_dataSvc;

@@ -11,7 +11,7 @@
 #include "GaudiKernel/AlgTool.h"
 #include "GaudiKernel/DataSvc.h"
 #include "TkrRecon/Track/ITkrFitTool.h"
-#include "TkrRecon/Services/TkrGeometrySvc.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 #include "Event/Recon/TkrRecon/TkrFitTrack.h"
 
 
@@ -32,7 +32,7 @@ class ComboVtxTool : public AlgTool, virtual public IVtxBaseTool
     /// @brief Keep pointers to the geometry service and the data 
     /// data provider service. These are both needed by the combo
     /// vertexing routine
-    TkrGeometrySvc* pTkrGeoSvc;
+    ITkrGeometrySvc* pTkrGeoSvc;
     DataSvc*        pDataSvc;
 
 };

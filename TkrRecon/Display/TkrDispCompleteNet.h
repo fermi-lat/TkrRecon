@@ -10,7 +10,7 @@
 * 
 * @authors b. allgood and w. atwood
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Display/TkrDispCompleteNet.h,v 1.4 2002/09/05 16:30:54 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Display/TkrDispCompleteNet.h,v 1.5 2002/10/09 23:44:08 usher Exp $
 */
 
 #ifndef __TKRDISPCOMPLETENET_H
@@ -18,7 +18,7 @@
 
 #include "src/PatRec/NeuralNet/TkrNeuralNet.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
-#include "TkrRecon/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 #include "gui/DisplayRep.h"
 #include "GaudiKernel/IDataProviderSvc.h"
 #include "GaudiKernel/SmartDataPtr.h"

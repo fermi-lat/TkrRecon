@@ -3,7 +3,7 @@
 #define __TKRBESTCANDREP_H
 
 #include "src/PatRec/LinkAndTree/TkrLinkAndTree.h"
-#include "TkrRecon/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 #include "gui/DisplayRep.h"
 #include "GaudiKernel/IDataProviderSvc.h"
 #include "GaudiKernel/SmartDataPtr.h"
