@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Thu Dec 19 13:59:17 PST 2002
+TkrRecon/TkrRecon/Display
+
+Modified Files:
+	TkrTracksRep.h 
+Log Message:
+Modifications necessary for adapting to the new TkrKalFitTrack TDS class. In
+additions to modifications, also introduced a new class, KalFitter, resident
+in src/TrackFit/KalFitTrack which contains the fit methods and stores the 
+data in TkrKalFitTrack.
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Dec  3 11:47:16 PST 2002
 TkrRecon/TkrRecon/Cluster
 
