@@ -23,10 +23,10 @@ class IVtxBaseTool : virtual public IAlgTool
   static const InterfaceID& interfaceID() { return IID_IVtxBaseTool; }
 
   /// @brief Returns the filled Vertex list.
-  /// The argument is the TkrVertexCol object that will be filled.
+  /// @param VtxList {TkrVertexCol object to be filled and returned.
   /// This is to keep the declaration/instantiation of this object
-  /// in the TkrVertexAlg scope.  
-  virtual StatusCode retrieveVtxCol(Event::TkrVertexCol&)=0;
+  /// within the TkrVertexAlg scope.}  
+  virtual StatusCode retrieveVtxCol(Event::TkrVertexCol& VtxList)=0;
 
 };
 #endif

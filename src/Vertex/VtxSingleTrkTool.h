@@ -2,21 +2,19 @@
 #ifndef VTX_SINGLETRK_TOOL_H
 #define VTX_SINGLETRK_TOOL_H
 
+#include "VtxBaseTool.h"
+#include "Event/Recon/TkrRecon/TkrFitTrack.h"
+#include "Event/Recon/TkrRecon/TkrVertex.h"
+
 /**
  * @class VtxSingleTrkTool
  *
- * @brief A simple Tool that assign first hit as the "vertex" of single tracks 
+ * @brief A simple Tool that assigns to every track the first hit as "vertex"
  * This is directly taken from the few last lines of 
  * TkrComboVtxRecon.cxx
  *
  * @author Johann Cohen-Tanugi
  */
-
-#include "VtxBaseTool.h"
-#include "Event/Recon/TkrRecon/TkrFitTrack.h"
-#include "Event/Recon/TkrRecon/TkrVertex.h"
-
-
 class VtxSingleTrkTool : public VtxBaseTool
 {
  public:
@@ -29,7 +27,8 @@ class VtxSingleTrkTool : public VtxBaseTool
   // Standard Destructor
   virtual ~VtxSingleTrkTool() { }
   
-  ///concrete implementation of VtxBaseTool
+  ///concrete implementation of VtxBaseTool: 
+  ///take each track of TkrFitTrackCol and assign first hit as a vertex.
   StatusCode doVtxFit(Event::TkrVertexCol& /*theVtxColToFill*/);
   
 };

@@ -15,7 +15,13 @@ VtxBaseTool::VtxBaseTool( const std::string& type,
   declareInterface<IVtxBaseTool>(this);
 }
 
-
+// Purpose and Method: implement AlgTool initialize() method to get basic services
+// Inputs: None
+// Output: StatusCode upon completion
+// Dependencies: EventDataSvc should be accessible
+//
+// Restrictions and Caveats:  only EventDataSvc is currently looked for; 
+//                            other services sould be accessed in the future
 StatusCode VtxBaseTool::initialize()
 {
   MsgStream log(msgSvc(), name());
@@ -23,9 +29,10 @@ StatusCode VtxBaseTool::initialize()
   StatusCode sc=StatusCode::FAILURE;
 
   m_evtSvc = 0;
-  if( serviceLocator() ) {
-    sc = serviceLocator()->service( "EventDataSvc", m_evtSvc, true );
-  }
+  if( serviceLocator() ) 
+    {
+      sc = serviceLocator()->service( "EventDataSvc", m_evtSvc, true );
+    }
   if(sc.isFailure())
     {
       log << MSG::ERROR << "Could not find eventSvc" << endreq;
@@ -35,7 +42,13 @@ StatusCode VtxBaseTool::initialize()
   return sc;
 }
 
-//Main method filling a TkrVertexCol object, passed as argument.
+// Purpose and Method: Call doVtxFit method to find and return a list of candidate vertices 
+// Inputs: None
+// Output: The list of vertices, as a TkrVertexCol object
+// Dependencies: None
+//
+// Restrictions and Caveats: virtual might prove unnecessary as inheriting classes are
+//                           expected to implement doVtxFit method rather than retrieveVtxCol
 StatusCode VtxBaseTool::retrieveVtxCol(Event::TkrVertexCol& VtxCol)
 {
   MsgStream log(msgSvc(), name());

@@ -1,19 +1,16 @@
-/**
- * @class VtxBaseTool
- * @brief Base class for the concrete vertexing tools.
- * @author Johann Cohen-Tanugi
- */
-
 #ifndef VTXBASETOOL_H
 #define VTXBASETOOL_H
 
 #include "IVtxBaseTool.h"
 #include "GaudiKernel/AlgTool.h"
-
 #include "GaudiKernel/IDataProviderSvc.h"
 #include "Event/Recon/TkrRecon/TkrFitTrack.h"
 
-
+/**
+ * @class VtxBaseTool
+ * @brief Base class for the concrete vertexing tools.
+ * @author Johann Cohen-Tanugi
+ */
 class VtxBaseTool : public AlgTool, virtual public IVtxBaseTool 
 {
  public:
@@ -27,15 +24,12 @@ class VtxBaseTool : public AlgTool, virtual public IVtxBaseTool
 
 
   ///@brief Implement the pure virtual method of IVtxBaseTool
-  //JCT: Maybe remove the virtual as it might prove to be unecessary
-  //to expect inheriting classes to update that method 
-  //(they should update the doVtxFit() only)
   virtual StatusCode retrieveVtxCol(Event::TkrVertexCol&);
 
-  // @brief Main method to be implemented by concrete classes.
-  // It should contain the actual vertexing procedure, and is called
-  // by  VtxBaseTool::retrieveVtxCol, to allow for possible increase
-  // in complexity.
+  /// @brief Main method to be implemented by concrete classes.
+  /// It should contain the actual vertexing procedure, and is called
+  /// by  VtxBaseTool::retrieveVtxCol, to allow for possible increase
+  /// in complexity.
   virtual StatusCode doVtxFit(Event::TkrVertexCol&)=0;
 
  protected:
