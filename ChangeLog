@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Thu May 17 22:06:55 PDT 2001
+TkrRecon/xml Tkr_Balloon.xml Tkr_Flight.xml Tkr_TestBeam.xml
+
+Modified Files:
+	Tkr_Balloon.xml Tkr_Flight.xml Tkr_TestBeam.xml 
+Log Message:
+The files I actually changed are: SiClustersAlg.cxx, ITkrGeometrySvc.h, TkrGeometrySvc.h;.cxx, and the .xml files.
+Fixed bugs in positioning the clusters.  Clusters now fall on top of the gismo hits.
+
+    *
+------------------------------------------------------------
 User: lsrea  Thu May 17 22:06:54 PDT 2001
 TkrRecon/src SiClustersAlg.cxx TkrGeometrySvc.cxx
 
