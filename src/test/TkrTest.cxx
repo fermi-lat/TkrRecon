@@ -17,7 +17,9 @@
 //------------------------------------------------------------------------------
 #include <iostream>
 // this needed for instrument.lib??
-//void FATAL(const char* text){std::cerr << text << std::endl;}
+#ifndef WIN32
+void FATAL(const char* text){std::cerr << text << std::endl;}
+#endif // WIN32
 
 
 
