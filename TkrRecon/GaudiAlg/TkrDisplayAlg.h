@@ -6,6 +6,7 @@
 #include "TkrRecon/Cluster/TkrClusters.h"
 #include "TkrRecon/Track/SiRecObjs.h"
 #include "TkrRecon/PatRec/TkrCandidates.h"
+#include "TkrRecon/Track/TkrTracks.h"
 
 
 //----------------------------------------------
@@ -41,7 +42,9 @@ private:
 	TkrClusters*   m_TkrClusters;
     TkrCandidates* m_TkrCandidates;
     TkrCandidates* m_TkrBestCands;
+    TkrCandidates* m_TkrCandidate3D;
 	SiRecObjs*     m_SiRecObjs;
+    TkrTracks*     m_Tracks;
 };
       
 #endif

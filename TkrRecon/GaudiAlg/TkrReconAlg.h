@@ -55,10 +55,10 @@ private:
 	TkrClusters* m_TkrClusters;
 
 	// tracking objects information
-	SiRecObjs*  m_SiRecObjs;
-	// calorimter TDS
+	SiRecObjs*   m_SiRecObjs;
+
+    // calorimter TDS
 	// m_cal
-	
 	double m_CsIEnergy;
 	Point  m_CsIPosition;
 };
