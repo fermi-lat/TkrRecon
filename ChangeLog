@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Thu Oct 10 10:32:29 PDT 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusterTable.cxx 
+Log Message:
+take out write statement
+    *
+------------------------------------------------------------
 User: cohen  Thu Oct 10 01:43:11 PDT 2002
 TkrRecon/src/GaudiAlg
 
