@@ -3,6 +3,7 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v8r12p15 10-May-2004  LSR  Fix first-hit-view bug
   v8r12p14 10-May-2004  LSR  Tag before fixing first-hit-view bug
   v8r12p13 20-Apr-2004  TU   This fixes bug introduced by Johann during previous linux compile fixes
   v8r12p12 20-Apr-2004  TU   This does fix the linux errors
