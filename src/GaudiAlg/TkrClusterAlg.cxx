@@ -12,22 +12,19 @@
 #include "src/Cluster/TkrMakeClusters.h"
 #include "TkrRecon/Cluster/TkrQueryClusters.h"
 
-// Needed for Gaudi
 static const AlgFactory<TkrClusterAlg>  Factory;
 const IAlgFactory& TkrClusterAlgFactory = Factory;
 
-
 TkrClusterAlg::TkrClusterAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator)  { }
-
 
 StatusCode TkrClusterAlg::initialize()
 {
 	
     // Purpose and Method:  initializes TkrClusterAlg
     // Inputs:  None
-    // Outputs:  A StatusCode which denotes success or failure.
-    // Dependencies: TkrGeometrySvc must be created
+    // Outputs: TkrGeometrySvc will be created if not already present
+    // Dependencies:
     // Restrictions and Caveats:  None
 	
     MsgStream log(msgSvc(), name());
@@ -58,7 +55,8 @@ StatusCode TkrClusterAlg::execute()
     // Purpose and Method: makes TkrClusters
     // Inputs:  None
     // Outputs:  A StatusCode which denotes success or failure.
-    // Dependencies: Requires TkrDigis
+	// TDS Input: TkrDigiCol
+	// TDS Output: TkrClusters
     // Restrictions and Caveats:  None
 	
 	

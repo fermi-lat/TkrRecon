@@ -7,20 +7,17 @@
 #include "geometry/Point.h"
 #include "TkrRecon/Cluster/TkrCluster.h"
 
-
+/// constants for the array of cluster lists
 enum {NVIEWS=2, NPLANES=18};
 
-/// for Gaudi
 extern const CLID& CLID_TkrClusters;
 
 /** 
 * @class TkrClusters
 *
-* @brief TDS Container for TkrCluster objects.
+* @brief TDS Object for TkrCluster vector, and array of vectors.
 *
-* Some questions:
-*
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrClusters.h,v 1.7 2002/03/29 02:09:42 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrClusters.h,v 1.8 2002/04/30 01:35:47 lsrea Exp $
 */
 
 class TkrClusters : public DataObject
@@ -31,9 +28,7 @@ public:
     TkrClusters();
 	/// destructor: also deletes the clusters in the list
 	virtual ~TkrClusters();
-    /// needed for Gaudi
 	static const CLID& classID() {return CLID_TkrClusters;}
-	/// needed for Gaudi
 	virtual const CLID& clID() const {return classID();}
 	
 	/// returns total number of clusters
@@ -46,7 +41,7 @@ public:
 	/// returns true if the ith TkrCluster is flagged (view obsolete)
 	bool hitFlagged(TkrCluster::view v, int i) {return getHit(v,i)->hitFlagged();}
 	
-	/// returns pointer to the ith TkrCluster 
+	/// returns pointer to the ith TkrCluster in simple cluster list
 	TkrCluster* getHit(int i) const {return m_clustersList[i];}
 	/// returns pointer to the ith TkrCluster (view obsolete)
 	TkrCluster* getHit(TkrCluster::view v, int i) {return m_clustersList[i];}
@@ -67,8 +62,8 @@ public:
 	void addCluster(TkrCluster* cl);
 
 	/// delete the clusters in the cluster list
-	/** This is called by the destructor. 
-	*/
+	/// called by the destructor. 
+
 	virtual void clear();
 	
 	/// write out the information of the Clusters

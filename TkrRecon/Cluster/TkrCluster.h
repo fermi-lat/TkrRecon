@@ -15,12 +15,13 @@
 /** 
 * @class TkrCluster
 *
-* @brief Contains the data members which specify a TKR cluster, and access methods
+* @brief Contains the data members which specify a TKR cluster, 
+* and access methods
 *
 * Adapted from SiCluster of Jose Hernando
 *
 * @author Tracy Usher, Leon Rochester
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrCluster.h,v 1.5 2002/02/26 07:09:02 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrCluster.h,v 1.6 2002/04/30 01:35:47 lsrea Exp $
 */
 
 class TkrCluster
@@ -43,7 +44,7 @@ public:
     /// Constructor with arguments
     /**
     * Construct a cluster with all of its private members set
-    * @param id Sequential ID of cluster (Why?)
+    * @param id Sequential ID of cluster
     * @param v  View of cluster (x=0, y=1)
     * @param istrip0  first strip
     * @param istripf  last strip
@@ -56,16 +57,18 @@ public:
     
     
     // set methods
-    inline void flag(int flag=1) {m_flag = flag;}
+    /// sets the flag of a cluster
+	inline void flag(int flag=1) {m_flag = flag;}
+	/// clears the flag of a cluster
     inline void unflag()         {m_flag = 0;}
 	
     // get methods
-	inline int tower()     const {return m_tower;}
-    inline int id()        const {return m_id;}
-    inline int plane()     const {return m_plane;}
-    inline view v()        const {return m_view;}
-    inline int firstStrip()    const {return m_strip0;}
-    inline int lastStrip()     const {return m_stripf;}
+	inline int  tower()      const {return m_tower;}
+    inline int  id()         const {return m_id;}
+    inline int  plane()      const {return m_plane;}
+    inline view v()          const {return m_view;}
+    inline int  firstStrip() const {return m_strip0;}
+    inline int  lastStrip()  const {return m_stripf;}
 
 	int chip();
 	double strip();
@@ -110,4 +113,4 @@ private:
 };
 
 
-#endif
+#endif // TKRCLUSTER_H

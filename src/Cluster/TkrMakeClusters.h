@@ -21,48 +21,40 @@ enum {bigStripNum = 0x7FFFFF};
 /** 
 * @class TkrMakeClusters
 *
-* @brief methods to generate the clusters, and methods used by Pattern Recognition.
+* @brief methods to generate the clusters, 
+* and methods used by subsequent algorithms to mark clusters as used.
 *
 * The methods take into account the bad strips.
 *
-* Some questions:
-*
-
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrMakeClusters.h,v 1.1 2002/04/30 01:35:48 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.1 2002/04/30 05:02:31 lsrea Exp $
 */
 
 class TkrMakeClusters
-//###################################################
 {
 public:
 	
 	/// default constructor: passes pointers to services and classes, and makes the clusters
 	
-	/** The strategy for finding clusters is to merge the list of hits in a layer with the list of known bad strips. 
-	* The good and bad hits are marked so they can be recognized, but the mechanism is (mostly) hidden in
-	* the TkrBadStripsSvc.
+	/** The strategy for finding clusters is to merge the list 
+	* of hits in a layer with the list of known bad strips. 
+	* The good and bad hits are marked so they can be recognized, 
+	* but the mechanism is (mostly) hidden in the TkrBadStripsSvc.
 	*  
 	* What constititutes a gap and a good cluster is defined by the code in isGap and
 	* isGoodCluster, respectively.
 	*    
-	* A set of adjacent hits followed by a gap is a potential cluster. A gap may be a non-hit strip, or 
-	* the space between ladders. For each potential cluster, 
-	* we ask if it contains any good hits.  If so, the cluster is added, if not, it is dropped. There
-	* may be other criteria for dropping a cluster, such as too many hits.
-	*      
-	* What constititutes a gap and a good cluster is defined by the code in 
-	* isGapBetweem and isGoodCluster, respectively.
+	* A set of adjacent hits followed by a gap is a potential cluster. 
+	* A gap may be a non-hit strip, or the space between ladders. 
+	* For each potential cluster, we ask if it contains any good hits.  
+	* If so, the cluster is added, if not, it is dropped. 
+	* There may be other criteria for dropping a cluster, such as too many hits.      
 	*/
+	/// the pointers to services and data are passed through the constructor
     TkrMakeClusters(TkrClusters* pClus, 
 		ITkrGeometrySvc* pTkrGeo, ITkrBadStripsSvc* pBadStrips, 
 		TkrDigiCol* pTkrDigiCol);
 	/// destructor: also deletes the clusters in the list
 	~TkrMakeClusters() { }
-	/// Returns the strip pitch stored from geometry file
-	//static double const stripPitch() {return pTkrGeo->siStripPitch();}
-	/// Returns the tower pitch stored from geometry file
-	//static double const towerPitch()  {return pTkrGeo->towerPitch();}
-	
     
     /// gets the position of a cluster
 	Point position(int ilayer, TkrCluster::view v, 

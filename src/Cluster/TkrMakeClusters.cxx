@@ -1,8 +1,7 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.1 2002/04/30 01:35:49 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.2 2002/04/30 16:58:54 lsrea Exp $
 //
 // Description:
-//      TkrMakeClusters has the methods
-//      for making the clusters from hits, and for accessing the clusters for various kinds of information.
+//      TkrMakeClusters has the methods for making the clusters, and for setting the cluster flag.
 //
 // Author(s):
 //      Tracy Usher     
@@ -48,7 +47,7 @@ TkrMakeClusters::TkrMakeClusters(TkrClusters* pClus,
             int sizex = badStrips->size();
         }
 		
-        //Make a local vector big enough to hold everything
+        //Make a local vector big enough to hold the hit strips and the bad strips for this layer.
         int hitsSize = nHits + badStripsSize + 1;
         std::vector<int> stripHits(hitsSize);
         
@@ -110,19 +109,17 @@ TkrMakeClusters::TkrMakeClusters(TkrClusters* pClus,
 }
 
 
-//------------  Operations ---------------------------
-
 Point TkrMakeClusters::position(const int plane, TkrCluster::view v,
 								const int strip0, const int stripf, const int tower)
 {
     // Purpose and Method: returns the position of a cluster
-    // Inputs:  plane, view, strip, and tower
+    // Inputs:  plane, view, first and last strip and tower
     // Outputs:  position
     // Dependencies: None
     // Restrictions and Caveats:  None
 
 
-    // note the differences between layers and planes - ordering!
+    // this converts from recon numbering to physical numbering of layers.
     int layer = pTkrGeo->ilayer(plane);
 	double strip = 0.5*(strip0 + stripf);
 	HepPoint3D p = pTkrGeo->getDoubleStripPosition(tower, layer, (int) v, strip);

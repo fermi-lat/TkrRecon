@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrQueryClusters.cxx,v 1.8 2002/04/18 18:29:09 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrQueryClusters.cxx,v 1.1 2002/04/30 01:35:49 lsrea Exp $
 //
 // Description:
 //      TkrQueryClusters is a container for Tkr clusters, and has the methods
@@ -35,13 +35,13 @@ Point TkrQueryClusters::meanHit(TkrCluster::view v, int iplane)
 	return Pini2;
 }
 
-Point TkrQueryClusters::meanHitInside(TkrCluster::view v, int iplane, double inRadius,
+Point TkrQueryClusters::meanHitInside(TkrCluster::view v, int iplane, double inDistance,
 								 Point Pcenter)
 {
     // Purpose and Method: Returns mean position of hits
     //    within a distance of a point in the measured dimension,
     //    and no more than one tower away
-    // Inputs:  view and plane number, radius and center
+    // Inputs:  view and plane number, Distance and center
     // Outputs:  mean position of clusters satisfying criterion
     // Dependencies: None
     // Restrictions and Caveats:  None
@@ -60,22 +60,22 @@ Point TkrQueryClusters::meanHitInside(TkrCluster::view v, int iplane, double inR
     {
 		P = AuxList[ihit]->position();
 		
-        double hitRadius = fabs(P.x() - Pcenter.x());
-        double twrRadius = fabs(P.y() - Pcenter.y());
+        double hitDistance = fabs(P.x() - Pcenter.x());
+        double twrDistance = fabs(P.y() - Pcenter.y());
 		
 		if      (v == TkrCluster::Y) 
         {
-            hitRadius = fabs(P.y() - Pcenter.y());
-            twrRadius = fabs(P.x() - Pcenter.x());
+            hitDistance = fabs(P.y() - Pcenter.y());
+            twrDistance = fabs(P.x() - Pcenter.x());
         }
         else if (v != TkrCluster::X) 
         {
-            hitRadius = (P-Pcenter).mag();
-            twrRadius = 0.;
+            hitDistance = (P-Pcenter).mag();
+            twrDistance = 0.;
         }
 		
         // Check that hit is close and within one tower
-        if (hitRadius < inRadius && twrRadius < 1.1 * s_towerPitch) 
+        if (hitDistance < inDistance && twrDistance < 1.1 * s_towerPitch) 
         {
 			nsum += 1.;
 			xsum += P.x();
@@ -90,7 +90,7 @@ Point TkrQueryClusters::meanHitInside(TkrCluster::view v, int iplane, double inR
 }
 
 Point TkrQueryClusters::nearestHitOutside(TkrCluster::view v, int iplane, 
-									 double inRadius, Point Pcenter, int& id)
+									 double inDistance, Point Pcenter, int& id)
 {
     // Purpose and Method: returns the position of the closest cluster
     //    outside of a given distance from a point in the measured direction,
@@ -109,8 +109,8 @@ Point TkrQueryClusters::nearestHitOutside(TkrCluster::view v, int iplane,
 	std::vector<TkrCluster*> AuxList;
 	AuxList = m_pClus->getHits(v,iplane);
 	
-	double minRadius = inRadius;
-	double maxRadius = 1e6;
+	double minDistance = inDistance;
+	double maxDistance = 1e6;
 	Point Pini(0.,0.,0.);
 	for (int ihit = 0; ihit< nhits; ihit++) 
     {
@@ -119,23 +119,23 @@ Point TkrQueryClusters::nearestHitOutside(TkrCluster::view v, int iplane,
 		Pini = AuxList[ihit]->position();
 		
 		
-        double hitRadius = fabs(Pini.x() - Pcenter.x());
-        double twrRadius = fabs(Pini.y() - Pcenter.y());
+        double hitDistance = fabs(Pini.x() - Pcenter.x());
+        double twrDistance = fabs(Pini.y() - Pcenter.y());
 		
 		if      (v == TkrCluster::Y) 
         {
-            hitRadius = fabs(Pini.y() - Pcenter.y());
-            twrRadius = fabs(Pini.x() - Pcenter.x());
+            hitDistance = fabs(Pini.y() - Pcenter.y());
+            twrDistance = fabs(Pini.x() - Pcenter.x());
         }
         else if (v != TkrCluster::X) 
         {
-            hitRadius = (Pini-Pcenter).mag();
-            twrRadius = 0.;
+            hitDistance = (Pini-Pcenter).mag();
+            twrDistance = 0.;
         }
         
-        if ( hitRadius >= minRadius && hitRadius < maxRadius && twrRadius < 1.1*s_towerPitch) 
+        if ( hitDistance >= minDistance && hitDistance < maxDistance && twrDistance < 1.1*s_towerPitch) 
         {
-			maxRadius = hitRadius;
+			maxDistance = hitDistance;
 			Pnear     = Pini;
 			id        = AuxList[ihit]->id();
 		}
@@ -143,16 +143,16 @@ Point TkrQueryClusters::nearestHitOutside(TkrCluster::view v, int iplane,
 	return Pnear;
 }
 
-int TkrQueryClusters::numberOfHitsNear( int iPlane, double inRadius, Point& x0)
+int TkrQueryClusters::numberOfHitsNear( int iPlane, double inDistance, Point& x0)
 {
 	// Purpose and Method: counts the number of hits in a bilayer 
-	//       within a square of side 2*inRadius
+	//       within a square of side 2*inDistance
 	// Inputs:  plane number, distance, central point
 	// Outputs:  the number of hits that satisfy the criteria
 	// Dependencies: None
 	// Restrictions and Caveats:  None
 	
-    return numberOfHitsNear(iPlane, inRadius, inRadius, x0);
+    return numberOfHitsNear(iPlane, inDistance, inDistance, x0);
 }
 
 int TkrQueryClusters::numberOfHitsNear( int iPlane, double dX, double dY, Point& x0)
@@ -193,9 +193,9 @@ int TkrQueryClusters::numberOfHitsNear( int iPlane, double dX, double dY, Point&
     return numHits;
 }
 
-int TkrQueryClusters::numberOfHitsNear( TkrCluster::view v, int iPlane, double inRadius, Point& x0)
+int TkrQueryClusters::numberOfHitsNear( TkrCluster::view v, int iPlane, double inDistance, Point& x0)
 {
-    // Purpose and Method: counts the number of hits within a distance "inRadius" in the 
+    // Purpose and Method: counts the number of hits within a distance "inDistance" in the 
     //     measurement direction, and within one tower in the other direction
     // Inputs:  plane number, dx, dy, central point
     // Outputs:  the number of hits that satisfy the criteria
@@ -217,7 +217,7 @@ int TkrQueryClusters::numberOfHitsNear( TkrCluster::view v, int iPlane, double i
 			? x0.y() - clusterList[nHitsInPlane]->position().y()
 			: x0.x() - clusterList[nHitsInPlane]->position().x();
 		
-        if (fabs(hitDiffV) < inRadius && fabs(hitDiffO) < s_towerPitch) numHits++;
+        if (fabs(hitDiffV) < inDistance && fabs(hitDiffO) < s_towerPitch) numHits++;
     }
 	
     return numHits;
