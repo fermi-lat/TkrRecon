@@ -41,8 +41,8 @@ public:
     //virtual int    numSuperGLayers()=0;
     virtual int    indMixed()=0;
     virtual int    numPlanes()=0;
-    virtual int    Z0()=0;
-    
+
+    virtual double Z0()=0;  
     virtual double towerPitch()=0;
     virtual double trayWidth()=0;
     virtual double trayHeight()=0;
