@@ -6,8 +6,6 @@
 #include "Event/TopLevel/EventModel.h"
 
 #include "src/TrackFit/KalFitTrack/KalFitTrack.h"
-#include "src/TrackFit/KalFitTrack/GFcontrol.h"
-#include "src/PatRec/Utilities/GFtutor.h"
 
 static ToolFactory<TkrComboFitTool> s_factory;
 const IToolFactory& TkrComboFitToolFactory = s_factory;
@@ -41,9 +39,6 @@ StatusCode TkrComboFitTool::doTrackFit(Event::TkrPatCand* patCand)
 
     //Retrieve the pointer to the reconstructed clusters
     Event::TkrClusterCol* pTkrClus = SmartDataPtr<Event::TkrClusterCol>(pDataSvc,EventModel::TkrRecon::TkrClusterCol); 
-
-    // Store cluster and geometry information for the subclasses
-    Event::GFtutor::load(pTkrClus, pTkrGeoSvc);
     
     //Go through each candidate and pass to the fitter
     int    iniLayer = patCand->getLayer();
@@ -51,8 +46,9 @@ StatusCode TkrComboFitTool::doTrackFit(Event::TkrPatCand* patCand)
     Ray    testRay  = patCand->getRay();
     double energy   = patCand->getEnergy();
         
-        
-    Event::KalFitTrack* track = new Event::KalFitTrack(pTkrClus, pTkrGeoSvc, iniLayer, iniTower, GFcontrol::sigmaCut, energy, testRay);                 
+    TkrControl* control = TkrControl::getPtr();   
+    Event::KalFitTrack* track = new Event::KalFitTrack(pTkrClus, pTkrGeoSvc, iniLayer, iniTower,
+                                       control->getSigmaCut(), energy, testRay);                 
         
     //track->findHits(); Using PR Solution to save time
         
@@ -67,7 +63,7 @@ StatusCode TkrComboFitTool::doTrackFit(Event::TkrPatCand* patCand)
         
     track->doFit();
         
-    if (!track->empty(GFcontrol::minSegmentHits)) 
+    if (!track->empty(control->getMinSegmentHits())) 
     {
         Event::TkrFitTrackCol* pFitTracks = SmartDataPtr<Event::TkrFitTrackCol>(pDataSvc,EventModel::TkrRecon::TkrFitTrackCol); 
         pFitTracks->push_back(track);
@@ -101,7 +97,7 @@ StatusCode TkrComboFitTool::doTrackFit(Event::TkrPatCand* patCand)
                     slope = tkr_par.getXSlope();
                 }        
                 int hit_Id = plane.getIDHit();;
-                double cls_size = Event::GFtutor::_DATA->size(hit_proj, hit_Id);        
+                double cls_size = pTkrClus->size(hit_proj, hit_Id);        
                 double prj_size = 400.*fabs(slope)/228. + 1.;
                 if(cls_size> prj_size) {
                     track->unFlagHit(i_Hit);

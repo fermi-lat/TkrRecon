@@ -2,9 +2,6 @@
 #ifndef TKRCONTROL_H
 #define TKRCONTROL_H
 
-// Temporary (I think...)
-#include "src/TrackFit/KalFitTrack/GFcontrol.h"
-
 //############################################
 class TkrControl
 //############################################
@@ -12,33 +9,35 @@ class TkrControl
 public:
 
     // Define as a singleton object
-    static TkrControl* GetPtr();
+    static TkrControl* getPtr();
 
     // Retrieve values
-    inline int    GetMaxCandidates()      const {return m_MaxCandidates;     }
-    inline int    GetMinTermHitCount()    const {return m_MinTermHitCount;   }
-    inline double GetFEneParticle()       const {return m_FEneParticle;      }
-    inline double GetSigmaCut()           const {return m_SigmaCut;          }
-    inline double GetMinEnergy()          const {return m_MinEnergy;         }
-    inline int    GetMaxConsecutiveGaps() const {return m_MaxConsecutiveGaps;}
-    inline int    GetMinSegmentHits()     const {return m_MinSegmentHits;    }
-    inline double GetMaxChisqCut()        const {return m_MaxChiSqCut;       }
-    inline double GetIniErrSlope()        const {return m_IniErrorSlope;     }
-    inline double GetIniErrPosition()     const {return m_IniErrorPosition;  }
-    inline bool   GetPlaneEnergies()      const {return m_PlaneEnergies;     }
+
+    const inline int    getMaxCandidates()      {return m_MaxCandidates;     }
+    const inline int    getMinTermHitCount()    {return m_MinTermHitCount;   }
+    const inline double getFEneParticle()       {return m_FEneParticle;      }
+    const inline double getSigmaCut()           {return m_SigmaCut;          }
+    const inline double getMinEnergy()          {return m_MinEnergy;         }
+    const inline int    getMaxConsecutiveGaps() {return m_MaxConsecutiveGaps;}
+    const inline int    getMinSegmentHits()     {return m_MinSegmentHits;    }
+    const inline double getMaxChisqCut()        {return m_MaxChiSqCut;       }
+    const inline double getIniErrSlope()        {return m_IniErrorSlope;     }
+    const inline double getIniErrPosition()     {return m_IniErrorPosition;  }
+    const inline bool   getPlaneEnergies()      {return m_PlaneEnergies;     }
+
 
     // Allow for control variables to be set at initialization
-    void SetMaxCandidates(  int    maxCand)   {m_MaxCandidates      = maxCand;   GFcontrol::maxCandidates     = maxCand;   }
-    void SetMinTermHitCount(int    minCount)  {m_MinTermHitCount    = minCount;  GFcontrol::minTermHitCount    = minCount; }
-    void SetFEneParticle(   double enePart)   {m_FEneParticle       = enePart;   GFcontrol::FEneParticle       = enePart;  }
-    void SetSigmaCut(       double sigmaCut)  {m_SigmaCut           = sigmaCut;  GFcontrol::sigmaCut           = sigmaCut; }
-    void SetMinEnergy(      double minEnergy) {m_MinEnergy          = minEnergy; GFcontrol::minEnergy          = minEnergy;}
-    void SetMaxConsGaps(    int    maxGaps)   {m_MaxConsecutiveGaps = maxGaps;   GFcontrol::maxConsecutiveGaps = maxGaps;  }
-    void SetMinSegmentHits( int    minHits)   {m_MinSegmentHits     = minHits;   GFcontrol::minSegmentHits     = minHits;  }
-    void SetMaxChisqCut(    double maxChi)    {m_MaxChiSqCut        = maxChi;    GFcontrol::maxChisqCut        = maxChi;   }
-    void SetIniErrSlope(    double errSlp)    {m_IniErrorSlope      = errSlp;    GFcontrol::iniErrorSlope      = errSlp;   }
-    void SetIniErrPos(      double errPos)    {m_IniErrorPosition   = errPos;    GFcontrol::iniErrorPosition   = errPos;   }
-    void SetPlaneEnergies(  bool   enePlane)  {m_PlaneEnergies      = enePlane;  GFcontrol::planeEnergies      = enePlane; }
+    void setMaxCandidates(  int    maxCand)   {m_MaxCandidates      = maxCand;  }
+    void setMinTermHitCount(int    minCount)  {m_MinTermHitCount    = minCount; }
+    void setFEneParticle(   double enePart)   {m_FEneParticle       = enePart;  }
+    void setSigmaCut(       double sigmaCut)  {m_SigmaCut           = sigmaCut; }
+    void setMinEnergy(      double minEnergy) {m_MinEnergy          = minEnergy;}
+    void setMaxConsGaps(    int    maxGaps)   {m_MaxConsecutiveGaps = maxGaps;  }
+    void setMinSegmentHits( int    minHits)   {m_MinSegmentHits     = minHits;  }
+    void setMaxChisqCut(    double maxChi)    {m_MaxChiSqCut        = maxChi;   }
+    void setIniErrSlope(    double errSlp)    {m_IniErrorSlope      = errSlp;   }
+    void setIniErrPos(      double errPos)    {m_IniErrorPosition   = errPos;   }
+    void setPlaneEnergies(  bool   enePlane)  {m_PlaneEnergies      = enePlane; }
 
 private:
     // Constructor and destructor are private

@@ -18,6 +18,7 @@
 #include "Event/Recon/TkrRecon/TkrPatCandHit.h"
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
+#include "src/Track/TkrControl.h"
 
 namespace Event {
 
@@ -124,9 +125,10 @@ private:
     int    m_nyHits;
     double m_KalEnergyErr;
 
-    //Pointers to clusters and geoemtry
+    //Pointers to clusters, geoemtry, and control parameters
     Event::TkrClusterCol* m_clusters;
     ITkrGeometrySvc*      m_tkrGeo;
+    TkrControl*           m_control;
 };
 
 };

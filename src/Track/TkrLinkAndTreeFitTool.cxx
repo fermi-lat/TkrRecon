@@ -6,8 +6,7 @@
 #include "Event/TopLevel/EventModel.h"
 
 #include "src/TrackFit/KalFitTrack/KalFitTrack.h"
-#include "src/TrackFit/KalFitTrack/GFcontrol.h"
-#include "src/PatRec/Combo/GFtutor.h"
+#include "src/Track/TkrControl.h"
 
 static ToolFactory<TkrLinkAndTreeFitTool> s_factory;
 const IToolFactory& TkrLinkAndTreeFitToolFactory = s_factory;
@@ -41,9 +40,6 @@ StatusCode TkrLinkAndTreeFitTool::doTrackFit(Event::TkrPatCand* patCand)
 
     //Retrieve the pointer to the reconstructed clusters
     Event::TkrClusterCol* pTkrClus = SmartDataPtr<Event::TkrClusterCol>(pDataSvc,EventModel::TkrRecon::TkrClusterCol); 
-
-    // Store cluster and geometry information for the subclasses
-    Event::GFtutor::load(pTkrClus, pTkrGeoSvc);
     
     //Go through each candidate and pass to the fitter
     int    iniLayer = patCand->getLayer();
@@ -51,8 +47,9 @@ StatusCode TkrLinkAndTreeFitTool::doTrackFit(Event::TkrPatCand* patCand)
     Ray    testRay  = patCand->getRay();
     double energy   = patCand->getEnergy();
         
-        
-    Event::KalFitTrack* track = new Event::KalFitTrack(pTkrClus, pTkrGeoSvc, iniLayer, iniTower, GFcontrol::sigmaCut, energy, testRay);                 
+    TkrControl* control = TkrControl::getPtr(); 
+    Event::KalFitTrack* track = new Event::KalFitTrack(pTkrClus, pTkrGeoSvc, iniLayer, iniTower,
+                                        control->getSigmaCut(), energy, testRay);                 
         
     //track->findHits(); Using PR Solution to save time
         
@@ -73,7 +70,7 @@ StatusCode TkrLinkAndTreeFitTool::doTrackFit(Event::TkrPatCand* patCand)
     //If some new hits have been added, redo the fit
     if (numHits < track->getNumHits()) track->doFit();
         
-    if (!track->empty(GFcontrol::minSegmentHits)) 
+    if (!track->empty(control->getMinSegmentHits())) 
     {
         Event::TkrFitTrackCol* pFitTracks = SmartDataPtr<Event::TkrFitTrackCol>(pDataSvc,EventModel::TkrRecon::TkrFitTrackCol); 
         pFitTracks->push_back(track);

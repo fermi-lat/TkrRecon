@@ -6,8 +6,7 @@
 #include "Event/TopLevel/EventModel.h"
 
 #include "src/TrackFit/KalFitTrack/KalFitTrack.h"
-#include "src/TrackFit/KalFitTrack/GFcontrol.h"
-#include "src/PatRec/Combo/GFtutor.h"
+#include "src/Track/TkrControl.h"   
 
 static ToolFactory<TkrNeuralNetFitTool> s_factory;
 const IToolFactory& TkrNeuralNetFitToolFactory = s_factory;
@@ -39,11 +38,11 @@ StatusCode TkrNeuralNetFitTool::doTrackFit(Event::TkrPatCand* patCand)
     //Always believe in success
     StatusCode sc = StatusCode::SUCCESS;
 
+    // Get the Controls
+    TkrControl* control = TkrControl::getPtr();
+
     //Retrieve the pointer to the reconstructed clusters
     Event::TkrClusterCol* pTkrClus = SmartDataPtr<Event::TkrClusterCol>(pDataSvc,EventModel::TkrRecon::TkrClusterCol); 
-
-    // Store cluster and geometry information for the subclasses
-    Event::GFtutor::load(pTkrClus, pTkrGeoSvc);
     
     //Go through each candidate and pass to the fitter
     int    iniLayer = patCand->getLayer();
@@ -52,14 +51,15 @@ StatusCode TkrNeuralNetFitTool::doTrackFit(Event::TkrPatCand* patCand)
     double energy   = patCand->getEnergy();
         
         
-    Event::KalFitTrack* track = new Event::KalFitTrack(pTkrClus, pTkrGeoSvc, iniLayer, iniTower, GFcontrol::sigmaCut, energy, testRay);                 
+    Event::KalFitTrack* track = new Event::KalFitTrack(pTkrClus, pTkrGeoSvc, iniLayer, iniTower, 
+                                          control->getSigmaCut(), energy, testRay);                 
         
     //track->findHits(); Using PR Solution to save time
         
     track->findHits();        
     track->doFit();
         
-    if (!track->empty(GFcontrol::minSegmentHits)) 
+    if (!track->empty(control->getMinSegmentHits())) 
     {
         Event::TkrFitTrackCol* pFitTracks = SmartDataPtr<Event::TkrFitTrackCol>(pDataSvc,EventModel::TkrRecon::TkrFitTrackCol); 
         pFitTracks->push_back(track);
