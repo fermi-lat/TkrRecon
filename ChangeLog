@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Tue Dec  3 11:47:16 PST 2002
+TkrRecon/TkrRecon/Cluster
+
+Modified Files:
+	TkrQueryClusters.h 
+Log Message:
+fix arg of setTowerPitch (int -> double!)
+    *
+------------------------------------------------------------
 User: lsrea  Mon Dec  2 11:28:06 PST 2002
 TkrRecon/src/PatRec/Combo
 
