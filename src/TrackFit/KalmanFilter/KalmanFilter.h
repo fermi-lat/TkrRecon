@@ -33,6 +33,7 @@ public:
 
     TkrFitHit filter(TkrFitPlane& filterPlane);
     TkrFitHit smoother(TkrFitPlane& start, const TkrFitPlane& kplast);
+    void computeMeasCov(TkrFitPlane& filterPlane, TkrFitPar pars);
 
     // Access functions
     double getRadLength()                     const {return m_radLength;}
