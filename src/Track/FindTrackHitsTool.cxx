@@ -310,18 +310,19 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrack* track)
 	if(!m_tkrGeom->isInActiveLAT(end_pos)) return trackHit;
   
     // Check on crossing from one tower to the next
-    int numX = m_tkrGeom->numXTowers();
-    int numY = m_tkrGeom->numYTowers();
-    double towerPitch = m_tkrGeom->towerPitch();
+	if(!m_trackAcrossTowers) {
+        int numX = m_tkrGeom->numXTowers();
+        int numY = m_tkrGeom->numYTowers();
+        double towerPitch = m_tkrGeom->towerPitch();
 	// get the tower from the position... not the best - this should be in TkrGeometrySvc!
-    int xTower = (int) floor(start_pos.x()/towerPitch + 0.5*numX + 0.001);
-    int yTower = (int) floor(start_pos.y()/towerPitch + 0.5*numY + 0.001);
-    int startTower = idents::TowerId(xTower,yTower).id();
-    xTower = (int) floor(end_pos.x()/towerPitch + 0.5*numX + 0.001);
-    yTower = (int) floor(end_pos.y()/towerPitch + 0.5*numY + 0.001);
-    int endTower = idents::TowerId(xTower,yTower).id();
-
-    if (!m_trackAcrossTowers && startTower != endTower) return trackHit;
+        int xTower = (int) floor(start_pos.x()/towerPitch + 0.5*numX + 0.001);
+        int yTower = (int) floor(start_pos.y()/towerPitch + 0.5*numY + 0.001);
+        int startTower = idents::TowerId(xTower,yTower).id();
+        xTower = (int) floor(end_pos.x()/towerPitch + 0.5*numX + 0.001);
+        yTower = (int) floor(end_pos.y()/towerPitch + 0.5*numY + 0.001);
+        int endTower = idents::TowerId(xTower,yTower).id();
+        if (startTower != endTower) return trackHit;
+	}
 
 	// Setup the propagator and transport the track parameters along this step
 	m_propagatorTool->setStepStart(last_hit->getTrackParams(Event::TkrTrackHit::FILTERED), 
@@ -568,7 +569,7 @@ Event::TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, Event::TkrTr
     double rError=sqrt(pos_cov+zError*zError);
 
 	// Set search region from control parameter, limit to 1/4 tray width
-	double max_dist = std::max(m_sigma*rError, m_tkrGeom->trayWidth()/4.);  
+	double max_dist = std::min(m_sigma*rError, m_tkrGeom->trayWidth()/4.);  
     
     double x0=params->getxPosition();
     double y0=params->getyPosition();
