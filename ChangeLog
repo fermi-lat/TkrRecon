@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Tue Jul 29 08:08:02 PDT 2003
+TkrRecon/src/PatRec/LinkAndTree
+
+Modified Files:
+	LinkAndTreeFindTrackTool.cxx LinkAndTreeFindTrackTool.h 
+Log Message:
+PatRec based class now used by all algorithms
+    *
+------------------------------------------------------------
 User: cohen  Tue Jul 29 08:08:01 PDT 2003
 TkrRecon/src/PatRec/Combo
 
