@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.19 2004/11/23 19:23:16 atwood Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.20 2005/02/01 19:18:05 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -11,6 +11,7 @@
 #include "GaudiKernel/IParticlePropertySvc.h"
 #include "src/PatRec/PatRecBaseTool.h"
 #include "Event/MonteCarlo/McParticle.h"
+#include "GaudiKernel/ParticleProperty.h"
 
 #include "GaudiKernel/ToolFactory.h"
 #include "GaudiKernel/SmartDataPtr.h"
@@ -48,7 +49,10 @@ private:
                                        const double energy);
 
     /// Pointer to the local Tracker geometry service
-    ITkrGeometrySvc*    m_tkrGeom;
+    ITkrGeometrySvc*       m_tkrGeom;
+
+    /// Pointer to the particle property service
+    IParticlePropertySvc*  m_partPropSvc;
 
     IMcBuildRelTablesTool* m_mcBuildInfo;
 
@@ -92,6 +96,13 @@ StatusCode MonteCarloFindTrackTool::initialize()
     {
         throw GaudiException("Tool [McBuildRelTablesTool] not found", name(), sc);
     }
+
+    if ((sc = serviceLocator()->getService("ParticlePropertySvc", iService, true)).isFailure())
+    {
+        throw GaudiException("Service [ParticlePropertySvc] not found", name(), sc);
+    }
+
+    m_partPropSvc  = dynamic_cast<IParticlePropertySvc*>(iService);
 
   return sc;
 }
@@ -220,6 +231,9 @@ Event::TkrTrack* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* mc
         // Sort in a time ordered fashion
         std::sort(hitVec.begin(),hitVec.end(),CompareMcPosHits());
 
+        // Get the particle properties
+        ParticleProperty* partProp = m_partPropSvc->findByStdHepID(mcPart->particleProperty());
+
         // Ok, now add the clusters on the downward part of the track
         int numGaps     =  0;
         int gapSize     =  0;
@@ -248,7 +262,7 @@ Event::TkrTrack* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* mc
                 Point         measHitPos  = cluster->position();
                 Hep3Vector    mcHitAvePos = 0.5 * (posHit->globalEntryPoint() + posHit->globalExitPoint());
                 Hep3Vector    mcHitVec    = posHit->globalExitPoint() - posHit->globalEntryPoint();
-                double        energy      = posHit->particleEnergy();
+                double        energy      = posHit->particleEnergy() - partProp->mass();
                 double        startX      = tkrId.getView() == idents::TkrId::eMeasureX
                                           ? measHitPos.x() : mcHitAvePos.x();
                 double        startY      = tkrId.getView() == idents::TkrId::eMeasureY
@@ -266,7 +280,7 @@ Event::TkrTrack* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* mc
                 if (mcHitVec.z() > 0.) trackDir = -1;
 
                 // Create and add the first hit (which gets some special treatment)
-                Event::TkrTrackHit* newHit = newTkrTrackHit(tkrId, cluster, posHit->particleEnergy());
+                Event::TkrTrackHit* newHit = newTkrTrackHit(tkrId, cluster, energy);
 	
                 // Now make reasonable estimates for first hit filtered and predicted values
             	double x_slope = mcHitVec.x()/mcHitVec.z();
@@ -316,6 +330,10 @@ Event::TkrTrack* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* mc
             // If a candidate track has been started then we follow this path
             else
             {
+                // Get energy at this hit
+                double        energy = posHit->particleEnergy() - partProp->mass();
+
+                // Where are we? 
                 idents::TkrId tkrId(posHit->volumeID());
 
                 // This ugliness is meant to insure we are not in the same plane and that 
@@ -329,7 +347,7 @@ Event::TkrTrack* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* mc
                 // Looper or same plane, continue with next hit
                 if (deltaPlane <= 0) continue;
 
-                Event::TkrTrackHit* newHit = newTkrTrackHit(tkrId, cluster, posHit->particleEnergy());
+                Event::TkrTrackHit* newHit = newTkrTrackHit(tkrId, cluster, energy);
 
                 //trackHits.push_back(newHit);
                 candTrack->push_back(newHit);
