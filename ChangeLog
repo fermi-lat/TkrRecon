@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Fri Jul 18 14:26:58 PDT 2003
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx ComboFindTrackTool.h 
+Log Message:
+move all initialization to initialize(); clean up access to services
+
+    *
+------------------------------------------------------------
 User: burnett  Fri Jul 18 09:19:39 PDT 2003
 TkrRecon/src/Vertex
 
