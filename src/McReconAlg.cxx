@@ -21,6 +21,7 @@
 #include "GlastEvent/MonteCarlo/McVertex.h"
 #include "GlastEvent/MonteCarlo/McParticle.h"
 #include "GlastEvent/TopLevel/Event.h"
+#include "GlastEvent/TopLevel/MCEvent.h"
 
 #include "ntupleWriterSvc/INtupleWriterSvc.h"
 
@@ -117,7 +118,17 @@ StatusCode McReconAlg::execute() {
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"Event_ID",event->event());
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"Run_Number",event->run());
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"Triage_Time",event->time().time()/1e6);
+    if( 0==event) { log << MSG::ERROR << "could not find the event header" << endreq;
+       return StatusCode::FAILURE;
+    }
 
+
+    SmartDataPtr<MCEvent> mcEvent(eventSvc(),"/Event/MC");
+    if( 0==mcEvent) { log << MSG::ERROR << "could not find the MCEvent header" << endreq;
+       return StatusCode::FAILURE;
+    }
+
+    //TODO: extract stuff from the MCEvent header.
 
     McVertex* mcVert = vertList->front();
     
@@ -129,12 +140,18 @@ StatusCode McReconAlg::execute() {
     }
     
     HepLorentzVector vec = mcVert->initialFourMomentum();
+
+    double ke = vec.e()-vec.m();
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Energy",ke);
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_logE",log10(ke));
+
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_src_Id",0);
+    
     Hep3Vector p(vec), dir(p.unit());
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_xDir",dir.x());
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_yDir",dir.y());
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_zDir",dir.z());
     
-    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Energy",vec.e()-vec.m());
      
     HepPoint3D pos = mcVert->initialPosition();
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_X0",pos.x());
