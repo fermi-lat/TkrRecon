@@ -60,6 +60,7 @@ library TkrTrack     -no_share Track/*.cxx                     \
 
 library TkrVertex    -no_share Vertex/*.cxx                    \
                                Vertex/Combo/*.cxx              \
+                               Vertex/DocaVtx/*.cxx              \
                                ${TkrVertex_headers}
 
 macro libs ""   WIN32   "$(TkrReconDir)/TkrGaudiAlgs.lib \
