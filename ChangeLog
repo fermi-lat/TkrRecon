@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Thu Sep  5 23:59:52 PDT 2002
+TkrRecon/TkrRecon/Services
+
+Modified Files:
+	TkrInitSvc.h 
+Log Message:
+use new form of TkrClusterCol methods (no view)
+    *
+------------------------------------------------------------
 User: lsrea  Thu Sep  5 18:41:02 PDT 2002
 TkrRecon/src/Vertex
 
