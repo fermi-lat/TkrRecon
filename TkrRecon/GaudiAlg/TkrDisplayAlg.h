@@ -31,6 +31,8 @@ public:
 	StatusCode finalize();
 
 private:
+    /// which patrec algorithm: 0 -> Link&Tree, 1 -> Combo, 2 -> NeuralNet
+    std::string m_TrackerReconType;
 };
       
 #endif

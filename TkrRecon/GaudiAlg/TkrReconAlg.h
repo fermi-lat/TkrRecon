@@ -4,22 +4,15 @@
 #include "geometry/Point.h"
 #include "GaudiKernel/Algorithm.h"
 
-#include "TkrRecon/Track/TkrTrackFit.h"
-#include "Event/Recon/TkrRecon/TkrClusterCol.h"
-
-#include "GlastSvc/Reco/IKalmanParticle.h"
-
 /** 
  * @class TkrReconAlg
  *
  * @brief Controls the track fitting
  * 
- * 07-Nov-2001
- * Adapted from SiRecObjsAlg, originally by Bill Atwood and Jose Hernando
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrReconAlg.h,v 1.10 2002/05/10 21:53:54 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrReconAlg.h,v 1.11 2002/05/12 05:52:58 usher Exp $
  */
 
 class TkrReconAlg : public Algorithm
@@ -32,24 +25,16 @@ public:
 	StatusCode initialize();
 	StatusCode execute();
 	StatusCode finalize();
-
-    static IKalmanParticle* m_KalParticle;
 	
 private:
 	
-	/// clusters information
-    Event::TkrClusterCol* m_TkrClusters;
-
-    /// Fit control information
-    Event::TkrTrackFit* m_TrackFit;
-
-    /// Propagator type, currently RcParticle or G4Propagator
-    int    m_PropagatorType;
-
-	/// Calorimeter estimated energy
-	double m_CsIEnergy;
-	/// Calorimeter estimated position
-	Point  m_CsIPosition;
+	/// which patrec algorithm: 0 -> Link&Tree, 1 -> Combo, 2 -> NeuralNet
+    std::string m_TrackerReconType;
+    
+    Algorithm*  m_TkrClusterAlg;
+    Algorithm*  m_TkrFindAlg;
+    Algorithm*  m_TkrTrackFitAlg;
+    Algorithm*  m_TkrVertexAlg;
 };
 
 #endif // __TKRRECONALG_H

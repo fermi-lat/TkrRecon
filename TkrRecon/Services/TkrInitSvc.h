@@ -3,14 +3,7 @@
 #define __TKRINITSVC_H 1
 
 #include "GaudiKernel/Service.h"
-
-#include "TkrRecon/PatRec/TkrPatRecon.h"
-#include "TkrRecon/Track/TkrTrackFit.h"
-#include "TkrRecon/Vertex/TkrFindVertex.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
-#include "GaudiKernel/IDataProviderSvc.h"
-
-#include "gui/DisplayControl.h"
 
 /** 
  * @class TkrInitSvc
@@ -24,7 +17,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.5 2002/05/12 05:52:58 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.6 2002/05/31 19:24:35 burnett Exp $
  */
 
 
@@ -40,18 +33,6 @@ public:
     StatusCode       initialize();
     StatusCode       finalize();
 
-    /// This for initializing the pattern reconstruction
-    Event::TkrPatRecon*     setPatRecon();
-
-    /// This for initializing the particular display routines
-    void                    setDisplayRtns(gui::DisplayControl::DisplaySubMenu&, IDataProviderSvc* dps);
-
-    /// This for initializing the track fit algorithm
-    Event::TkrTrackFit*     setTrackFit();
-
-    /// This for initializing the vertex finding algorithm
-    Event::TkrFindVertex*   setVertexing();
-
     /// This for returning the pointer to the geometry service
     ITkrGeometrySvc* getGeometrySvc() {return pTkrGeo;}
         
@@ -65,10 +46,25 @@ public:
  
 private:
 
-	/// which patrec algorithm: 0 -> Link&Tree, 1 -> Combo, 2 -> NeuralNet
-    int              m_TrackerReconType;
 	/// pointer to the geometry service
     ITkrGeometrySvc* pTkrGeo;
+
+    /// Variables which can be changed in TkrControl
+    int              m_MaxCandidates;
+    int              m_MinTermHitCount;
+
+    double           m_FEneParticle;
+
+    double           m_SigmaCut;
+    double           m_MinEnergy;
+
+    int              m_MaxConsecutiveGaps;
+    int              m_MinSegmentHits;
+    double           m_MaxChiSqCut;
+    double           m_IniErrorSlope;
+    double           m_IniErrorPosition;
+
+    bool             m_PlaneEnergies;
 };
 
 #endif // __TKRINITSVC_H
