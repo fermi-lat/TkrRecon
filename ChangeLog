@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Nov 10 14:17:18 PST 2004
+TkrRecon/src/Dll
+
+Modified Files:
+	tkrRecon_load.cxx 
+Log Message:
+added FindTrackHitsTool
+    *
+------------------------------------------------------------
 User: atwood  Wed Nov 10 14:14:01 PST 2004
 TkrRecon/TkrRecon/Track
 
