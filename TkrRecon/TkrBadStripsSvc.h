@@ -30,10 +30,10 @@ public:
     
     StatusCode initialize();
     StatusCode finalize();
-    int getIndex(const int tower, const int layer, const int view);
-    v_strips* getBadStrips(const int tower, const int layer, const int view);
+    int getIndex(const int tower, const int layer, const TkrAxis::axis);
+    v_strips* getBadStrips(const int tower, const int layer, const TkrAxis::axis);
     v_strips* getBadStrips(const int index);
-    bool isBadStrip(const int tower, const int layer, const int view, const int strip);
+    bool isBadStrip(const int tower, const int layer, const TkrAxis::axis, const int strip);
     bool isBadStrip(const v_strips* v, const int strip);
     bool isTaggedBad(const int taggedStrip);
     int tagBad(const int strip);

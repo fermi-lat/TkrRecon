@@ -150,7 +150,7 @@ void TkrBadStripsSvc::readFromFile(std::ifstream* file)
 		int view = element/2;
 
         v_strips* v;
-		if (makestrips) v = getBadStrips(tower, layer, view);
+        if (makestrips) v = getBadStrips(tower, layer, (TkrAxis::axis) view);
         int strip = -1;
         *file >>  strip;
         while (strip>=0) {
@@ -168,8 +168,14 @@ void TkrBadStripsSvc::readFromFile(std::ifstream* file)
 }
 
 
-int TkrBadStripsSvc::getIndex(const int tower, const int layer, const int view) 
+int TkrBadStripsSvc::getIndex(const int tower, const int layer, const TkrAxis::axis axis) 
 {
+    int view; 
+    // this is to decouple the store from the current definition of axes
+    // not that it will ever change
+    if (axis==TkrAxis::X)  {view = 0;}
+    else if (axis==TkrAxis::Y) {view = 1;}
+    else {return 0;}
     return view + m_nviews*(layer + m_nlayers*tower);
 }
 
@@ -183,9 +189,9 @@ void TkrBadStripsSvc::addStrip(v_strips* v, const int strip) {
 }
 
 
-v_strips* TkrBadStripsSvc::getBadStrips(const int tower, const int layer, const int view)
+v_strips* TkrBadStripsSvc::getBadStrips(const int tower, const int layer, const TkrAxis::axis axis)
 {
-    int index = getIndex(tower, layer, view);
+    int index = getIndex(tower, layer, axis);
 
     return getBadStrips(index);
 }
@@ -223,15 +229,16 @@ bool TkrBadStripsSvc::isTaggedBad(const int taggedStrip) {
 
 
 bool TkrBadStripsSvc::isBadStrip(const int tower, const int layer, 
-                                 const int view, const int strip) 
+                                 const TkrAxis::axis axis, const int strip) 
 {
-    v_strips* v = getBadStrips(tower, layer, view);
+    v_strips* v = getBadStrips(tower, layer, axis);
     return isBadStrip(v, strip);
 }
 
 bool TkrBadStripsSvc::isBadStrip(const v_strips* v, const int strip)
 {
-    return std::find(v->begin(), v->end(), tagBad(strip));
+    v_strips_it it = std::find(v->begin(), v->end(), tagBad(strip));
+    return (it!=v->end());
 }
 
 

@@ -36,12 +36,12 @@ public:
     //virtual StatusCode finalize() = 0;
     
 
-    virtual int getIndex(const int tower, const int layer, const int view) = 0;
+    virtual int getIndex(const int tower, const int layer, const TkrAxis::axis axis) = 0;
     virtual v_strips* getBadStrips(const int tower, const int layer, 
-        const int view) = 0;
+        const TkrAxis::axis axis) = 0;
     virtual v_strips* getBadStrips(const int index)= 0;
     virtual bool isBadStrip(const int tower, const int layer, 
-        const int view, const int strip) = 0;
+        const TkrAxis::axis axis, const int strip) = 0;
     virtual bool isBadStrip(const v_strips* v, const int strip) = 0;
     virtual bool isTaggedBad(const int taggedStrip) = 0;
     virtual int tagBad(const int strip) = 0;
