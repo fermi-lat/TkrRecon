@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/GlastProcNoiseMatrix.h,v 1.1 2004/03/24 00:03:26 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/GlastProcNoiseMatrix.h,v 1.2 2004/03/25 21:45:05 cohen Exp $
  */
 
 #ifndef GlastProcNoiseMatrix_h
@@ -23,7 +23,7 @@ public:
 
     // Constructor needs the matrices that transform state vector, covariance matrix
     GlastProcNoiseMatrix(ITkrGeometrySvc* tkrGeo, std::vector<double> zCoords, std::vector<double> energy);
-    ~GlastProcNoiseMatrix() {};
+    virtual ~GlastProcNoiseMatrix() {};
 
     KFmatrix Q(const KFvector& stateVec, int i, int j);
     KFmatrix operator()(const KFvector& stateVec, const int &i, const int &j);
