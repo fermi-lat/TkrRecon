@@ -16,7 +16,7 @@ Service(name, pSvcLocator)
 //#############################################################################
 {
     //Do we want a specific type of geometry?
-    declareProperty("geometryType", geomType = 0);
+    declareProperty("geometryType", m_geomType = 0);
     
     //--------------- parameters -----------------------
     //     TEST BEAM GEOMETRY IS THE DEFAULT GEOMETRY
@@ -36,7 +36,8 @@ Service(name, pSvcLocator)
     double tb_pbX0           = 0.56;
     
     double tb_ladderWidth    = 6.4;
-    double tb_ladderLength   = 32.08; 
+    double tb_ladderLength   = 32.012; // I use the value for the 5-wafer ladder
+                                       // The 3-wafer ladder is 32.046 cm long
     double tb_ladderGap      = 0.02;
     double tb_ladderInnerGap = 0.003;
     int    tb_ladderNStrips  = 320; 
@@ -44,8 +45,11 @@ Service(name, pSvcLocator)
     double tb_siStripPitch   = 0.0194;
     double tb_siResolution   = 0.0056;
     double tb_siThickness    = 0.0400;
-    double tb_siDeadDistance = 0.1057;
+    double tb_siDeadDistance = 0.0960;
     double tb_siX0           = 9.3600;
+
+    double tb_thinConvHeight = 0.02032;  // from Eduardo
+    double tb_thickConvHeight = 0.15748; // from Eduardo
     
     //Modify parameters as per input file (go crazy mode)
     declareProperty("numYTowers",     m_numY           = tb_numY);
@@ -54,7 +58,7 @@ Service(name, pSvcLocator)
     declareProperty("numPbLayers",    m_nPbLayers      = tb_nPbLayers);
     declareProperty("numSuperGlast",  m_nSuperGLayers  = tb_nSuperGLayers);
     declareProperty("indMixed",       m_indMixed       = tb_indMixed);
-    declareProperty("Z0",             m_Z0             = tb_Z0);
+ /*   declareProperty("Z0",             m_Z0             = tb_Z0);
     declareProperty("towerPitch",     m_towerPitch     = tb_towerPitch);
     declareProperty("trayWidth",      m_trayWidth      = tb_trayWidth);	
     declareProperty("trayHeight",     m_trayHeight     = tb_trayHeight);
@@ -67,7 +71,10 @@ Service(name, pSvcLocator)
     declareProperty("siDeadDistance", m_siDeadDistance = tb_siDeadDistance);
     declareProperty("siX0",           m_siX0           = tb_siX0);
     declareProperty("pbX0",           m_pbX0           = tb_pbX0);
+    declareProperty("thinConvHeight", m_thinConvHeight = tb_thinConvHeight);
+    declareProperty("thickConvHeight", m_thickConvHeight = tb_thickConvHeight);
     
+      */
     return;	
 }
 
@@ -78,7 +85,7 @@ StatusCode TkrGeometrySvc::initialize()
     StatusCode sc = StatusCode::SUCCESS;
     
     //Check to see if we change from the Test Beam to Balloon Geometry
-    if (geomType == 1)
+    if (m_geomType == 1)
     {
         //     BALLOON FLIGHT GEOMETRY
         //
@@ -87,7 +94,7 @@ StatusCode TkrGeometrySvc::initialize()
         int    bn_nlayers        = 13;
         int    bn_nPbLayers      = 11;
         int    bn_nSuperGLayers  = 3;
-        int    tb_indMixed       = 12;
+        int    bn_indMixed       = 12;
         int    bn_Z0             = 0;
         
         double bn_towerPitch     = 0.0;
@@ -97,7 +104,7 @@ StatusCode TkrGeometrySvc::initialize()
         double bn_pbX0           = 0.56;
         
         double bn_ladderWidth    = 6.4;
-        double bn_ladderLength   = 32.08; 
+        double bn_ladderLength   = 32.012; 
         double bn_ladderGap      = 0.02;
         double bn_ladderInnerGap = 0.003;
         int    bn_ladderNStrips  = 320; 
@@ -105,8 +112,11 @@ StatusCode TkrGeometrySvc::initialize()
         double bn_siStripPitch   = 0.0194;
         double bn_siResolution   = 0.0056;
         double bn_siThickness    = 0.0400;
-        double bn_siDeadDistance = 0.1057;
+        double bn_siDeadDistance = 0.0960;
         double bn_siX0           = 9.3600;
+
+        double bn_thinConvHeight = 0.02032;
+        double bn_thickConvHeight= 0.15748;
         
         m_numY           = bn_numY;
         m_nviews         = bn_nviews;
@@ -127,6 +137,8 @@ StatusCode TkrGeometrySvc::initialize()
         m_siDeadDistance = bn_siDeadDistance;
         m_siX0           = bn_siX0;
         m_pbX0           = bn_pbX0;
+        m_thinConvHeight = bn_thinConvHeight;
+        m_thickConvHeight= bn_thickConvHeight;
     }
     
     return sc;
@@ -144,9 +156,13 @@ double TkrGeometrySvc::pbRadLen(int ilayer)
 //################################################
 {
     double radlen = 0.;
-    if (ilayer < numLayers()-numPbLayers()) radlen = 0.;
-    else if (ilayer < numLayers()-numPbLayers()+numSuperGLayers()) radlen = 0.28;
-    else radlen = 0.036;
+    if (ilayer < numLayers()-numPbLayers()) {
+        radlen = 0.;
+    } else if (ilayer < numLayers()-numPbLayers()+numSuperGLayers()) {
+        radlen = thickConvHeight()/pbX0();
+    } else {
+        radlen = thinConvHeight()/pbX0();
+    }
     
     return radlen;
 }
@@ -154,8 +170,8 @@ double TkrGeometrySvc::pbRadLen(int ilayer)
 double TkrGeometrySvc::layerGap(int ilayer)
 //################################################
 {
-    double zgap = 0.249;
-    if (ilayer < 5) zgap = 0.274;
+    double zgap = 0.2913;
+    if (ilayer < 5) zgap = 0.3156;
     return zgap;
 }
 //################################################
@@ -172,11 +188,11 @@ int TkrGeometrySvc::nLadders(int ilayer, axis a)
 double TkrGeometrySvc::diceSize(int ilayer, axis a, int iladder)
 //################################################
 {
-    double size = 10.667;
+    double size = 10.68;
     if (ilayer > 8 ) size = 6.4;
     if (ilayer == 8 && a == X) size = 6.4;  
     if (ilayer == 7 && a == Y) size = 6.4;
-    if (ilayer == indMixed() && a == Y && iladder == 2) size = 10.667;
+    if (ilayer == indMixed() && a == Y && iladder == 2) size = 10.68;
     
     return size;
 }
@@ -187,13 +203,13 @@ int TkrGeometrySvc::nDices(int ilayer, axis a,int iladder)
 {
     int ndices = 5;
     double size = TkrGeometrySvc::diceSize(ilayer,a, iladder);
-    if (size == 10.667) ndices = 3;
+    if (size == 10.68) ndices = 3;
     
     return ndices;
 }
 
 //##############################################
-detGeo TkrGeometrySvc::getSiLayer(int ilayer, axis a)
+detGeo TkrGeometrySvc::getSiLayer(int ilayer, axis a, int tower)
 //##############################################
 {
     // geometrical position
@@ -211,8 +227,17 @@ detGeo TkrGeometrySvc::getSiLayer(int ilayer, axis a)
     
     double xpos = 0.;
     double ypos = 0.;
-    if (a == detGeo::X) xpos = pos;
-    else ypos = pos;
+    int rank;
+    if (a == detGeo::X) {
+        rank = tower%TkrGeometrySvc::numYTowers();
+        xpos = pos;
+        xpos += (rank - 0.5*(TkrGeometrySvc::numYTowers()-1))*TkrGeometrySvc::towerPitch();
+    }
+    else {
+        rank = tower/TkrGeometrySvc::numYTowers();
+        ypos = pos;
+        ypos += (rank - 0.5*(TkrGeometrySvc::numYTowers()-1))*TkrGeometrySvc::towerPitch();
+    }
     
     double xsize = sizeRef;
     double ysize = sizeRef;
@@ -226,7 +251,7 @@ detGeo TkrGeometrySvc::getSiLayer(int ilayer, axis a)
     return layer;
 }
 //##############################################
-detGeo TkrGeometrySvc::getPbLayer(int ilayer)
+detGeo TkrGeometrySvc::getPbLayer(int ilayer, int tower)
 //##############################################
 {
     // geometrical position
@@ -237,6 +262,13 @@ detGeo TkrGeometrySvc::getPbLayer(int ilayer)
     
     double xpos = 0.;
     double ypos = 0.;
+    int nTowers = TkrGeometrySvc::numYTowers();
+
+    int xrank = tower%nTowers;
+    int yrank = tower/nTowers; 
+
+    xpos += (xrank - 0.5*(nTowers-1))*TkrGeometrySvc::towerPitch();
+    ypos += (yrank - 0.5*(nTowers-1))*TkrGeometrySvc::towerPitch();
     
     double sizeRef  = trayWidth();
     double xsize = sizeRef;
@@ -255,10 +287,10 @@ detGeo TkrGeometrySvc::getPbLayer(int ilayer)
 }
 
 //##############################################
-detGeo TkrGeometrySvc::getSiLadder(int ilayer, detGeo::axis a, int iladder)
+detGeo TkrGeometrySvc::getSiLadder(int ilayer, detGeo::axis a, int iladder, int tower)
 //##############################################
 {
-    detGeo layer = getSiLayer(ilayer,a);
+    detGeo layer = getSiLayer(ilayer, a, tower);
     double zpos = layer.position().z();
     double xpos = layer.position().x();
     double ypos = layer.position().y();
@@ -287,7 +319,7 @@ detGeo TkrGeometrySvc::getSiLadder(int ilayer, detGeo::axis a, int iladder)
     return ladder;
 }
 //##############################################
-detGeo TkrGeometrySvc::getSiDice(int ilayer, detGeo::axis a, int iladder, int idice)
+detGeo TkrGeometrySvc::getSiDice(int ilayer, detGeo::axis a, int iladder, int idice, int tower)
 //##############################################
 {
     detGeo ladder = getSiLadder(ilayer,a,iladder);

@@ -7,7 +7,7 @@
 //---------------------------------------------------
 //###################################################
 SiCluster::SiCluster(int id, int v, int ilayer, 
-					 int istrip0, int istripf, double ToT)
+					 int istrip0, int istripf, double ToT, int tower)
 //###################################################
 {
 	ini();
@@ -25,6 +25,7 @@ SiCluster::SiCluster(int id, int v, int ilayer,
 	m_size = fabs(m_stripf-m_strip0+1);
 	
 	m_ToT = ToT;
+        m_tower = tower;
 	
 }
 
