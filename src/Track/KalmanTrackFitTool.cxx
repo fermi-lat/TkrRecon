@@ -381,7 +381,7 @@ void KalmanTrackFitTool::doKalmanFit(Event::TkrTrack& track)
     int nplanes = track.getNumHits();
 
     // Set the initial hit for this track
-    getInitialFitHit(track);
+    //getInitialFitHit(track);
     
     // Run the filter and follow with the smoother
     double chiSqFit    = doFilter(track);
@@ -471,13 +471,11 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
 
     // The current plane
     idents::TkrId referenceTkrId = referenceHit.getTkrId();
- //   double        referenceZ     = referenceHit.getZPlane();
-	double referenceZ  = referenceHit.getZPlane();
+    double        referenceZ     = referenceHit.getZPlane();
 
     // The plane to fit (the next plane)
     idents::TkrId filterTkrId    = filterHit.getTkrId();
- //   double        filterZ        = filterHit.getZPlane();
-	double filterZ  = filterHit.getZPlane();
+    double        filterZ        = filterHit.getZPlane();
 
     // Delta z for next to current plane
     double        deltaZ         = filterZ - referenceZ;
@@ -561,6 +559,7 @@ double KalmanTrackFitTool::doSmoother(Event::TkrTrack& track)
     int                 nplanes  = track.getNumHits();
     Event::TkrTrackHit& prvPlane = *track[nplanes-1];
     idents::TkrId       tkrId    = prvPlane.getTkrId();
+    double              prevZ    = prvPlane.getZPlane();
     TkrTrkParams        fitPar   = prvPlane.getTrackParams(Event::TkrTrackHit::FILTERED);
     TkrCovMatrix        fitCov   = prvPlane.getTrackParams(Event::TkrTrackHit::FILTERED);
 
@@ -585,15 +584,13 @@ double KalmanTrackFitTool::doSmoother(Event::TkrTrack& track)
     for (int iplane=nplanes-2; iplane >= 0; iplane--) 
     {
         Event::TkrTrackHit& currentPlane = *track[iplane];
-        idents::TkrId       tkrId        = currentPlane.getTkrId();
         double              currentZ     = currentPlane.getZPlane();
-        double              lastZ        = (*track[iplane+1]).getZPlane();
-        double              deltaZ       = lastZ - currentZ;
+        double              deltaZ       = prevZ - currentZ;
     
         KFvector curStateVec(currentPlane.getTrackParams(Event::TkrTrackHit::FILTERED));
         KFmatrix curCovMat(currentPlane.getTrackParams(Event::TkrTrackHit::FILTERED));
 
-        KFmatrix& Q = (*m_Qmat)(curStateVec, currentZ, currentPlane.getEnergy(), lastZ);
+        KFmatrix& Q = (*m_Qmat)(curStateVec, currentZ, currentPlane.getEnergy(), prevZ);
 
         m_KalmanFit->Smooth(curStateVec, curCovMat, prvStateVec, prvCovMat, 
                             F(deltaZ), Q);
@@ -601,32 +598,33 @@ double KalmanTrackFitTool::doSmoother(Event::TkrTrack& track)
         curStateVec  = m_KalmanFit->StateVecSmooth();
         curCovMat    = m_KalmanFit->CovMatSmooth();
 
-#ifdef DEBUG
-        double diagsxx = curCovMat(2,2);
-        double diagsyy = curCovMat(4,4);
-        double diagsxy = curCovMat(2,4);
-#endif
-
         // Update the smoothed hit at this plane
         currentPlane.setTrackParams(curStateVec, Event::TkrTrackHit::SMOOTHED);
         currentPlane.setTrackParams(curCovMat, Event::TkrTrackHit::SMOOTHED);
 
-        // Extract the measured state vector from the TDS version
-        // There must be a better way to do this...
-        measVec    = H(tkrId) * KFvector(currentPlane.getTrackParams(Event::TkrTrackHit::MEASURED));
-        measCovMat = H(tkrId) * KFmatrix(currentPlane.getTrackParams(Event::TkrTrackHit::MEASURED)) * H(tkrId).T();
-
+        // Compute chi-square at this point
         double chiSqKF =  0.;
         
         if (currentPlane.getStatusBits() & Event::TkrTrackHit::HITONFIT)
-              chiSqKF = m_KalmanFit->chiSqSmooth(measVec, measCovMat, H(tkrId));
+        {
+            idents::TkrId tkrId = currentPlane.getTkrId();
+
+            // Extract the measured state vector from the TDS version
+            // There must be a better way to do this...
+            measVec    = H(tkrId) * KFvector(currentPlane.getTrackParams(Event::TkrTrackHit::MEASURED));
+            measCovMat = H(tkrId) * KFmatrix(currentPlane.getTrackParams(Event::TkrTrackHit::MEASURED)) * H(tkrId).T();
+
+            chiSqKF = m_KalmanFit->chiSqSmooth(measVec, measCovMat, H(tkrId));
+
+            // Update previous plane parameters (but only if a valid hit)
+            prvStateVec  = curStateVec;
+            prvCovMat    = curCovMat;
+            prevZ        = currentZ;
+        }
 
         chiSqSmooth += chiSqKF;
 
         currentPlane.setChiSquareSmooth(chiSqKF);
-
-        prvStateVec  = curStateVec;
-        prvCovMat    = curCovMat;
     }
 
     return chiSqSmooth;
