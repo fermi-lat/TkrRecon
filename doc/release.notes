@@ -3,6 +3,7 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v10r3p6  07-Feb-2005  LSR  TkrCluster; put tracks back into old event display
   v10r3p5  06-Feb-2005  LSR  Redo eneDetermination, now called computeMSEnergy
                              Bug fixes to ComboFindTrackTool
                              Start filling in TkrTrackHit status bits
