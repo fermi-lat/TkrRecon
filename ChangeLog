@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Jul  3 15:16:58 PDT 2002
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx 
+Log Message:
+Set the plane loop max to m_hits.size() instead of m_nxHits+m_nyHits
+    *
+------------------------------------------------------------
 User: usher  Wed Jul  3 14:25:38 PDT 2002
 TkrRecon/doc
 
