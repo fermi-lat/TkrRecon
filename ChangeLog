@@ -1,5 +1,38 @@
 ------------------------------------------------------------
 User: igable  Mon Feb 12 17:50:34 PST 2001
+TkrRecon/src/Dll TkrRecon_load.cpp
+
+Modified Files:
+	TkrRecon_load.cpp 
+Log Message:
+Changes made by Jose and I (Ian) to finish integrating the Gaudi port of 
+the TBRecon version of TkrRecon. This includes the noteworthy incantation:
+
+    DataObject* pnode=0;
+
+    sc = eventSvc()->retrieveObject( "/Event", pnode );
+    
+    if( sc.isFailure() ) {
+        log << MSG::ERROR << "Could not retrieve Event directory" << endreq;
+        return sc;
+    }
+    
+    sc = eventSvc()->retrieveObject( "/Event/Raw", pnode );
+    
+    if( sc.isFailure() ) {
+        sc = eventSvc()->registerObject("/Event/Raw",pnode);
+        if( sc.isFailure() ) {
+            
+            log << MSG::ERROR << "Could not create Raw directory" << endreq;
+            return sc;
+        }
+    }
+
+which is required to prep the TDS before you register an object.
+
+    *
+------------------------------------------------------------
+User: igable  Mon Feb 12 17:50:34 PST 2001
 TkrRecon/src GFdata.cxx KalFit.cxx SiClusters.cpp SiClustersAlg.cxx SiClustersIRFAlg.cxx SiLayers.cpp SiLayersIRFAlg.cpp SiRecObjs.cpp SiRecObjsAlg.cxx TkrRecoAlg.cxx
 
 Modified Files:
