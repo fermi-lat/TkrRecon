@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Nov 20 09:24:35 PST 2002
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+Fixed bug in energy sharing when there are < 8 hits each.  Was creating very large energies on occasion. 
+    *
+------------------------------------------------------------
 User: atwood  Sat Nov  2 17:29:00 PST 2002
 TkrRecon/src/TrackFit/KalFitTrack
 
