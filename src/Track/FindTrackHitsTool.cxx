@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.20 2005/01/03 21:16:57 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.21 2005/01/25 20:04:49 lsrea Exp $
  */
 
 // to turn one debug variables
@@ -343,19 +343,6 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrackHit* last_hit,
         m_tkrGeom->truncateCoord(end_pos.y(),   towerPitch, numY, jYTower);
         if(iXTower!=jXTower || iYTower!=jYTower) return trackHit;
         
-        /*
-        int numX = m_tkrGeom->numXTowers();
-        int numY = m_tkrGeom->numYTowers();
-        double towerPitch = m_tkrGeom->towerPitch();
-	// get the tower from the position... not the best - this should be in TkrGeometrySvc!
-        int xTower = (int) floor(start_pos.x()/towerPitch + 0.5*numX + 0.001);
-        int yTower = (int) floor(start_pos.y()/towerPitch + 0.5*numY + 0.001);
-        int startTower = idents::TowerId(xTower,yTower).id();
-        xTower = (int) floor(end_pos.x()/towerPitch + 0.5*numX + 0.001);
-        yTower = (int) floor(end_pos.y()/towerPitch + 0.5*numY + 0.001);
-        int endTower = idents::TowerId(iXTower,iYTower).id();
-        if (startTower != endTower) return trackHit;
-        */
 	}
 
 	// Setup the propagator and transport the track parameters along this step
@@ -415,16 +402,34 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrackHit* last_hit,
 		if(edge_sigma > m_rej_sigma) return trackHit;
 
 		// No cluster found  - so this a gap of some sort
-	    trackHit = new Event::TkrTrackHit();
-		trackHit->setZPlane(m_tkrGeom->getPlaneZ(next_plane));
+
+        // make up a TkrId for this hit... 
+        // For now, use the nominal tower, tray, face and view
+
+        int layer = m_tkrGeom->getLayer(next_plane);
+        int view  = m_tkrGeom->getView(next_plane);
+
+        m_tkrGeom->truncateCoord(end_pos.x(),   towerPitch, numX, jXTower);
+        m_tkrGeom->truncateCoord(end_pos.y(),   towerPitch, numY, jYTower);
+
+        int tray, face;
+        m_tkrGeom->layerToTray(layer, view, tray, face);
+        idents::TkrId tkrId = idents::TkrId(jXTower, jYTower, tray, 
+            (face == idents::TkrId::eTKRSiTop), view);
+        double planeZ = m_tkrGeom->getPlaneZ(next_plane);
+
+        trackHit = new Event::TkrTrackHit(0, tkrId, planeZ, 0., 0., 0., 0., 0.); 
+
+
+
+	    //trackHit = new Event::TkrTrackHit();
+		//trackHit->setZPlane(m_tkrGeom->getPlaneZ(next_plane));
 		// Retrieve a reference to the measured parameters (for setting)
         Event::TkrTrackParams& params = trackHit->getTrackParams(Event::TkrTrackHit::MEASURED);
 
         // find out whether there are dead clusters in this plane.
         // should we restrict ourselves to one tower?
 
-        int layer = m_tkrGeom->getLayer(next_plane);
-        int view  = m_tkrGeom->getView(next_plane);
         Event::TkrCluster* badCluster = m_clusTool->nearestBadClusterOutside(view, layer, 0.0, end_pos);
         double distance;
         double width;
