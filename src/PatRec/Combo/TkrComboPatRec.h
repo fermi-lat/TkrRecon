@@ -15,7 +15,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/TkrComboPatRec.h,v 1.21 2003/03/13 19:13:23 lsrea Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/TkrComboPatRec.h,v 1.22 2003/03/24 01:27:50 lsrea Exp $
 */
 
 #ifndef __TKRCOMBOPATREC_H

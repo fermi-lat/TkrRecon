@@ -148,3 +148,15 @@ void TkrNeuron::update(float temp, double gamma, double alpha_up, double alpha_d
   
   return;
 }
+
+
+std::ostream & operator<<(std::ostream& os, const TkrNeuron& n)
+{
+  os<< "POINT TOP: "<<n.getPnt(top).x()<<","<<n.getPnt(top).y()<<","<<n.getPnt(top).z()<<"\n";
+  os<< "POINT BOT: "<<n.getPnt(top).x()<<","<<n.getPnt(bottom).y()<<","<<n.getPnt(bottom).z()<<"\n";
+  os<< "LAYER DIFF: "<<n.getLayerDiff()<<"\n";
+  os<<"ACTIVITY: "<<n.getActivity()<<"\n";
+  os<<"NUM SYNAPSE TOP: "<<n.numSynapse(top)<<"\n";
+  os<<"NUM SYNAPSE BOT: "<<n.numSynapse(bottom)<<"\n";
+  return os;
+}

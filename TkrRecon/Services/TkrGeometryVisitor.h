@@ -11,7 +11,7 @@
 *
 * @author Leon Rochester 
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometryVisitor.h,v 1.5 2002/09/02 17:31:26 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometryVisitor.h,v 1.6 2002/09/02 23:29:53 lsrea Exp $
 */
 
 #include "GlastSvc/GlastDetSvc/IGeometry.h"
