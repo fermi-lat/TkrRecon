@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/PatRecBaseTool.cxx,v 1.5 2004/10/12 19:03:34 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/PatRecBaseTool.cxx,v 1.6 2004/12/13 23:50:40 atwood Exp $
 // Description:
 //      Implementation of the base class of concrete pattern recognition tools
 //
@@ -11,7 +11,6 @@
 #include "GaudiKernel/ToolFactory.h"
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/ISvcLocator.h"
-#include "Event/Recon/TkrRecon/TkrFitTrack.h"
 #include "Event/TopLevel/EventModel.h"
 
 PatRecBaseTool::PatRecBaseTool( const std::string& type, 

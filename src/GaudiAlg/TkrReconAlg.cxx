@@ -14,14 +14,11 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.2 2004/09/08 15:32:43 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.27 2004/09/23 21:30:26 usher Exp $
  */
 
 
 #include <vector>
-
-#include "Event/Recon/TkrRecon/TkrFitTrack.h"
-#include "Event/Recon/TkrRecon/TkrPatCand.h"
 
 #include "TkrRecon/Services/TkrInitSvc.h"
 

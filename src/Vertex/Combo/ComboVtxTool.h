@@ -12,7 +12,6 @@
 #include "GaudiKernel/DataSvc.h"
 #include "TkrRecon/Track/ITkrFitTool.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
-#include "Event/Recon/TkrRecon/TkrFitTrack.h"
 
 
 class ComboVtxTool : public AlgTool, virtual public IVtxBaseTool 

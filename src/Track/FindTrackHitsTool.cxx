@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.13 2004/12/13 23:50:41 atwood Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.14 2004/12/15 15:28:03 atwood Exp $
  */
 
 // to turn one debug variables
@@ -507,8 +507,9 @@ Event::TkrTrackHit* FindTrackHitsTool::setFirstHit(Event::TkrTrack* track)
     predPar = filtPar;
 
     // Last: set the hit status bits
-	unsigned int status_bits = Event::TkrTrackHit::HITONFIT    | Event::TkrTrackHit::HASMEASURED |
-		                       Event::TkrTrackHit::HASFILTERED | Event::TkrTrackHit::HITISSSD;
+	unsigned int status_bits = Event::TkrTrackHit::HITONFIT     | Event::TkrTrackHit::HASMEASURED |
+                               Event::TkrTrackHit::HASPREDICTED | Event::TkrTrackHit::HASFILTERED | 
+                               Event::TkrTrackHit::HITISSSD;
 	if(view == idents::TkrId::eMeasureX) status_bits |= Event::TkrTrackHit::MEASURESX;
 	else                                 status_bits |= Event::TkrTrackHit::MEASURESY;
 	status_bits |= Event::TkrTrackHit::HASVALIDTKR;

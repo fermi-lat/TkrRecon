@@ -6,13 +6,12 @@
 #include "TkrRecon/PatRec/ITkrFindTrackTool.h"
 #include "GaudiKernel/AlgTool.h"
 #include "GaudiKernel/IDataProviderSvc.h"
-#include "Event/Recon/TkrRecon/TkrFitTrack.h"
 
 /**
  * @class PatRecBaseTool
  * @brief Base class for the concrete pattern recognition tools.
  * @author GLAST Tracker Software group
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/PatRecBaseTool.h,v 1.3 2004/09/23 21:30:28 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/PatRecBaseTool.h,v 1.4 2004/10/12 19:03:34 lsrea Exp $
  */
 class PatRecBaseTool : public AlgTool, virtual public ITkrFindTrackTool 
 {

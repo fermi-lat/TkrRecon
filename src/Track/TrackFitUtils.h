@@ -13,7 +13,7 @@
   *
   * @author Tracy Usher (as editor instead of author)
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TrackFitUtils.h,v 1.7 2004/12/13 23:50:41 atwood Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TrackFitUtils.h,v 1.8 2004/12/15 15:26:49 atwood Exp $
 */
 
 #ifndef __TrackFitUtils_H
@@ -24,7 +24,6 @@
 #include "TkrUtil/TkrTrkParams.h"
 #include "TkrUtil/TkrCovMatrix.h"
 #include "Event/Recon/TkrRecon/TkrTrack.h"
-#include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "src/TrackFit/KalmanFilterFit/TrackEnergy/IFitHitEnergy.h"
 

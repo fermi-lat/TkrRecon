@@ -7,11 +7,8 @@
 #include "GaudiKernel/GaudiException.h" 
 
 #include "Event/TopLevel/EventModel.h"
-#include "Event/Recon/TkrRecon/TkrFitTrack.h"
 #include "Event/Recon/TkrRecon/TkrTrack.h"
-#include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "Event/Recon/TkrRecon/TkrVertex.h"
-#include "Event/Recon/TkrRecon/TkrVertexTab.h"
 
 #include "src/TrackFit/KalmanFilterUtils/KalmanFilterDefs.h"
 #include "src/Vertex/Combo/TkrComboVtxRecon.h"
@@ -75,8 +72,6 @@ StatusCode ComboVtxTool::findVtxs()
 	Event::TkrTrackCol*   pTracks     = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol); 
 
 	Event::TkrVertexCol*  pVerts      = SmartDataPtr<Event::TkrVertexCol>(m_dataSvc,EventModel::TkrRecon::TkrVertexCol); 
-	Event::TkrVertexTrackTab vertexRelTab = SmartDataPtr
-		                        <Event::TkrVertexTrackTabList>(m_dataSvc,EventModel::TkrRecon::TkrVertexTrackTab);
 
 	if(!pTracks || !pVerts) return sc;
 
@@ -209,12 +204,6 @@ StatusCode ComboVtxTool::findVtxs()
 		
 		// Add track to TkrVertexCol
 		pVerts->push_back(newVertex);
-
-		// Add track/vertex to relational table
-        Event::TkrVertexTrackRel* rel1 = new Event::TkrVertexTrackRel(newVertex, track1);
-        Event::TkrVertexTrackRel* rel2 = new Event::TkrVertexTrackRel(newVertex, best_track2);
-        vertexRelTab.addRelation(rel1);
-        vertexRelTab.addRelation(rel2);
 
         unused[tkr1Idx] = false;
         if(best_tkr2Idx > -1) unused[best_tkr2Idx] = false;

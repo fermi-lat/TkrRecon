@@ -3,7 +3,6 @@
 #define VTX_SINGLETRK_TOOL_H
 
 #include "VtxBaseTool.h"
-#include "Event/Recon/TkrRecon/TkrFitTrack.h"
 #include "Event/Recon/TkrRecon/TkrVertex.h"
 
 /**
@@ -14,7 +13,7 @@
  * TkrComboVtxRecon.cxx
  *
  * @author Johann Cohen-Tanugi
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Vertex/VtxSingleTrkTool.h,v 1.2 2004/09/08 15:32:48 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxSingleTrkTool.h,v 1.7 2004/09/23 21:30:32 usher Exp $
  */
 class VtxSingleTrkTool : public VtxBaseTool
 {

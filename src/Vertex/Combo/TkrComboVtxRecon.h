@@ -15,25 +15,21 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/Combo/TkrComboVtxRecon.h,v 1.13 2004/09/23 21:30:31 usher Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/Combo/TkrComboVtxRecon.h,v 1.14 2004/10/12 19:03:41 lsrea Exp $
 */
 #ifndef TkrComboVtxRecon_H
 #define TkrComboVtxRecon_H
 
-#include "Event/Recon/TkrRecon/TkrVertexTab.h"
-#include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "Event/Recon/TkrRecon/TkrTrack.h"
+#include "Event/Recon/TkrRecon/TkrVertex.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
-#include "Event/RelTable/RelTable.h"
 
 class TkrComboVtxRecon 
 {
 public:
     TkrComboVtxRecon(ITkrGeometrySvc* tkrGeom, 
                      Event::TkrVertexCol* vertexCol, 
-                     Event::TkrTrackCol* pTracks, 
-                     Event::TkrPatCandCol* pCandTracks, 
-                     Event::TkrVertexTrackTab* vertexRelTab);
+                     Event::TkrTrackCol*  trackCol);
    ~TkrComboVtxRecon();
 
 private:

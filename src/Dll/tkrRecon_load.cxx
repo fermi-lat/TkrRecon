@@ -27,10 +27,10 @@ DECLARE_FACTORY_ENTRIES(TkrRecon)
     DECLARE_TOOL(      VtxSingleTrkTool        );
     DECLARE_TOOL(      VtxKalFitTool           );
     DECLARE_TOOL(      ComboVtxTool            );
-    DECLARE_TOOL(      TkrComboFitTool         );
+//    DECLARE_TOOL(      TkrComboFitTool         );
     DECLARE_TOOL(      KalmanTrackFitTool      );
-    DECLARE_TOOL(      TkrLinkAndTreeFitTool   );
-    DECLARE_TOOL(      TkrNeuralNetFitTool     );
+//    DECLARE_TOOL(      TkrLinkAndTreeFitTool   );
+//    DECLARE_TOOL(      TkrNeuralNetFitTool     );
     DECLARE_TOOL(      ComboFindTrackTool      );
     DECLARE_TOOL(      LinkAndTreeFindTrackTool);
     DECLARE_TOOL(      NeuralNetFindTrackTool  );

@@ -4,13 +4,12 @@
 #include "IVtxBaseTool.h"
 #include "GaudiKernel/AlgTool.h"
 #include "GaudiKernel/IDataProviderSvc.h"
-#include "Event/Recon/TkrRecon/TkrFitTrack.h"
 
 /**
  * @class VtxBaseTool
  * @brief Base class for the concrete vertexing tools.
  * @author Johann Cohen-Tanugi
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxBaseTool.h,v 1.5 2002/09/02 19:46:15 cohen Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxBaseTool.h,v 1.6 2004/12/13 23:50:42 atwood Exp $
  */
 class VtxBaseTool : public AlgTool, virtual public IVtxBaseTool 
 {
