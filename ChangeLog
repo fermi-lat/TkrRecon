@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Tue Jan 29 17:07:54 PST 2002
+TkrRecon/TkrRecon
+
+Removed Files:
+	mainpage.h 
+Log Message:
+move mainpage.h to /src
+update release.notes to new form
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon Jan 28 12:45:12 PST 2002
 TkrRecon/TkrRecon
 
