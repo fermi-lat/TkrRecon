@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Thu Sep  5 09:30:54 PDT 2002
+TkrRecon/TkrRecon/Display
+
+Modified Files:
+	TkrBestCandRep.h TkrCandidate3DRep.h TkrCandidatesRep.h 
+	TkrClustersRep.h TkrDispActiveNet.h TkrDispCompleteNet.h 
+	TkrRecObjsRep.h TkrTracksRep.h 
+Log Message:
+untabify
+    *
+------------------------------------------------------------
 User: lsrea  Thu Sep  5 09:25:34 PDT 2002
 TkrRecon/src/PatRec/NeuralNet
 
