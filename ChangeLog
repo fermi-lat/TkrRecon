@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Mar 26 21:06:14 PST 2002
+TkrRecon/src/Display
+
+Modified Files:
+	TkrClustersRep.cxx 
+Log Message:
+Fix the "x" that marks the cluster; scales with stripPitch now.
+
+    *
+------------------------------------------------------------
 User: usher  Tue Mar 26 14:12:34 PST 2002
 TkrRecon/xml
 
