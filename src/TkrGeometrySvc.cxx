@@ -3,7 +3,7 @@
 #include "GaudiKernel/SvcFactory.h"
 #include "TkrRecon/TkrGeometrySvc.h"
 
-#include "xml/Ifile.h"
+#include "xml/IFile.h"
 #include "idents/TowerId.h"
 
 static const SvcFactory<TkrGeometrySvc> s_factory;
