@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Wed May  2 11:18:43 PDT 2001
+TkrRecon/TkrRecon ITkrGeometrySvc.h TkrGeometrySvc.h
+
+Modified Files:
+	ITkrGeometrySvc.h TkrGeometrySvc.h 
+Log Message:
+Changes for generalized TKR geometry -- BTEM, BFEM and flight
+
+    *
+------------------------------------------------------------
 User: igable  Thu Apr 26 11:16:50 PDT 2001
 TkrRecon/TkrRecon ITkrGeometrySvc.h
 
