@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Thu Jan 23 13:55:35 PST 2003
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrTrackFitAlg.cxx 
+Log Message:
+Modificatons for switching to propagator tool
+
+    *
+------------------------------------------------------------
 User: als  Thu Jan 16 18:21:01 PST 2003
 TkrRecon/cmt
 
