@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.9 2003/07/29 13:08:59 cohen Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.10 2003/07/29 15:08:02 cohen Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the Neural Net approach
@@ -203,12 +203,14 @@ void NeuralNetFindTrackTool::buildCand(Event::TkrPatCandCol& TkrCands,
 	    //Add the Hits
 	    Event::TkrFitPlaneConPtr hitPtr = _track->getHitIterBegin();
 	    while(hitPtr != _track->getHitIterEnd())
-	      {
-		Event::TkrFitPlane hitplane = *hitPtr++;
-		unsigned hit_ID = hitplane.getIDHit();
-		Event::TkrCluster * pClus = pTkrClusters->getHit(hit_ID);
-		newTrack->addCandHit(pClus);
-	      }
+	    {
+		    Event::TkrFitPlane hitplane = *hitPtr++;
+		    unsigned hit_ID = hitplane.getIDHit();
+		    Event::TkrCluster * pClus = pTkrClusters->getHit(hit_ID);
+		    newTrack->addCandHit(pClus);
+	    }
+
+        newTrack->sortHits();
 	    
 	    TkrCands.push_back(newTrack);
 	    

@@ -227,6 +227,9 @@ void TkrComboPatRec::loadOutput()
                 TkrCluster * pClus = m_clusters->getHit(hit_ID);
                 newTrack->addCandHit(pClus);
             }
+
+            //Sort the hits by z (just in case)
+            newTrack->sortHits();
             
             //Store the track 
             push_back(newTrack);
