@@ -6,7 +6,7 @@
 #include "xml/IFile.h"
 #include "idents/TowerId.h"
 
-//#include <iostream>
+#include <iostream>
 
 static const SvcFactory<TkrGeometrySvc> s_factory;
 const ISvcFactory& TkrGeometrySvcFactory = s_factory;
@@ -112,11 +112,31 @@ StatusCode TkrGeometrySvc::initialize()
 
 	    p_GlastDetSvc->getTransform3DByID(volId1, &T1);
 		p_GlastDetSvc->getTransform3DByID(volId2, &T2);
+		
 		double z1 = (T1.getTranslation()).z();
 		double z2 = (T2.getTranslation()).z();
 		double trayPitch = z1 - z2;
 		if (trayPitch<m_trayHeight) { m_trayHeight = trayPitch;}
-		// std::cout << "layer " << ilayer <<" z1/2" << z1 <<" "<< z2 <<" trayPitch " << trayPitch << std::endl;
+		/*
+		std::cout << "layer " << ilayer << " x " << x1 << " z1/2 " 
+		       << z1 <<" "<< z2 <<" trayPitch " << trayPitch << std::endl;
+		std::cout << " angle " << angle << " axis " << axis.x() 
+		       << " " << axis.y() << " " << axis.z << std::endl;
+		
+		double x1 = (T1.getTranslation()).x();
+		HepDouble angle;
+		Hep3Vector axis;
+		(T1.getRotation()).getAngleAxis( angle, axis);
+
+		idents::VolumeIdentifier volId3;
+		HepTransform3D T3;
+		volId3.init();
+		volId3.append(m_volId_tower[0]);
+		volId3.append(m_volId_layer[ilayer-1][1-layer%2]);
+		p_GlastDetSvc->getTransform3DByID(volId3, &T3);
+		(T3.getRotation()).getAngleAxis( angle, axis);
+		std::cout << " angle " << angle << " axis " << axis.x() << " " << axis.y() << " " << axis.z << std::endl;
+        */
 	}
 	
     
