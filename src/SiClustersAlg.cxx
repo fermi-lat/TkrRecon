@@ -1,8 +1,8 @@
 
-#include "Gaudi/MessageSvc/MsgStream.h"
-#include "Gaudi/Kernel/AlgFactory.h"
-#include "Gaudi/Interfaces/IDataProviderSvc.h"
-#include "Gaudi/DataSvc/SmartDataPtr.h"
+#include "GaudiKernel/MsgStream.h"
+#include "GaudiKernel/AlgFactory.h"
+#include "GaudiKernel/IDataProviderSvc.h"
+#include "GaudiKernel/SmartDataPtr.h"
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 #include "gui/DisplayControl.h"
 #include "GuiSvc/IGuiSvc.h"
@@ -34,7 +34,7 @@ StatusCode SiClustersAlg::initialize()
 //##############################################
 {
     //Look for the geometry service
-    StatusCode sc = service("TkrGeometrySvc", pTrackerGeo);
+    StatusCode sc = service("TkrGeometrySvc", pTrackerGeo,true);
     
     //Initialize the rest of the data members
     m_SiClusters = 0;

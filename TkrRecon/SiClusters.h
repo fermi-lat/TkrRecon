@@ -6,8 +6,8 @@
 #define __SICLUSTERS_H 1
 
 #include <vector>
-#include "Gaudi/MessageSvc/MsgStream.h"
-#include "Gaudi/Kernel/DataObject.h"
+#include "GaudiKernel/MsgStream.h"
+#include "GaudiKernel/DataObject.h"
 #include "geometry/Point.h"
 
 #include "gui/DisplayRep.h"

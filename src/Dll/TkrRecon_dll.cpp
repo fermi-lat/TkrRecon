@@ -16,7 +16,7 @@
 //====================================================================
 
 // DllMain entry point
-#include "Gaudi/System/DllMain.icpp"
+#include "GaudiKernel/DllMain.icpp"
 #include <iostream>
 void GaudiDll::initialize(void*) 
 {
@@ -26,7 +26,7 @@ void GaudiDll::finalize(void*)
 {
 }
 extern void TkrRecon_load();
-#include "Gaudi/Kernel/FactoryTable.h"
+#include "GaudiKernel/FactoryTable.h"
 
 extern "C" FactoryTable::EntryList* getFactoryEntries() {
   static bool first = true;

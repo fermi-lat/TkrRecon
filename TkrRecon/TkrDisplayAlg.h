@@ -2,7 +2,7 @@
 #ifndef __TKRDISPLAYALG_H
 #define __TKRDISPLAYALG_H 1
 
-#include "Gaudi/Algorithm/Algorithm.h"
+#include "GaudiKernel/Algorithm.h"
 #include "TkrRecon/SiClusters.h"
 #include "TkrRecon/SiRecObjs.h"
 
