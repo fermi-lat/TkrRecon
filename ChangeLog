@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Wed Mar 30 09:16:06 PST 2005
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Fix the last fix...
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r5p5, operation: add
 Package: TkrRecon
