@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.4 2004/04/20 17:21:01 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.5 2004/04/20 19:27:19 usher Exp $
  */
 
 // Tool and Gaudi related stuff
@@ -499,7 +499,7 @@ double KalmanTrackFitTool::doSmoothStep(Event::TkrKalFitTrack& track, Event::Tra
         // Update the smoothed hit at this plane
 	    Event::TkrFitPar    curPar = Event::TkrFitPar(curStateVec);
 	    Event::TkrFitMatrix curCov = Event::TkrFitMatrix(curCovMat);
-        trackUtils.addNewHit(curPlane, Event::TkrFitHit::FIT,curPar,curCov);
+        trackUtils.addNewHit(curPlane, Event::TkrFitHit::SMOOTH, curPar, curCov);
 
         // Extract the measured state vector from the TDS version
         // There must be a better way to do this...
