@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.23 2005/02/05 07:29:52 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.24 2005/02/11 07:14:52 lsrea Exp $
  */
 
 // to turn one debug variables
@@ -277,6 +277,8 @@ StatusCode FindTrackHitsTool::findTrackHits(TkrTrack* track)
 	// Remove trailing gap hits
 	while(!track->back()->validCluster()) 
 	{
+        Event::TkrTrackHit* lastHit = track->back();
+        delete lastHit;
 		track->pop_back();
 	}
 	return sc;
