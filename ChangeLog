@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: allgood  Mon Apr  1 11:21:21 PST 2002
+TkrRecon/src/PatRec/NeuralNet
+
+Added Files:
+	TkrNeuralNetPR.cxx 
+Log Message:
+Gaudi interface for Neural Net PatRec routine.
+    *
+------------------------------------------------------------
 User: allgood  Mon Apr  1 11:20:05 PST 2002
 TkrRecon/src/PatRec/NeuralNet
 
