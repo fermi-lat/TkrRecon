@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Aug 21 15:05:31 PDT 2002
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	NeuralNetFindTrackTool.cxx TkrNeuralNet.cxx 
+Log Message:
+Change over to TkrControl from GFXXXXX classes
+    *
+------------------------------------------------------------
 User: atwood  Wed Aug 21 15:04:25 PDT 2002
 TkrRecon/src/PatRec/LinkAndTree
 
