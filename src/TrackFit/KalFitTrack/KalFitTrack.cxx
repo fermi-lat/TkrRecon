@@ -103,6 +103,23 @@ void KalFitTrack::addMeasHit(const TkrPatCandHit& candHit)
     return;
 }
 
+void KalFitTrack::addMeasHit(int clusIdx, int planeID, TkrCluster::view proj, double zPlane,
+                             int before_hit)
+{
+    TkrFitPlane newPlane(clusIdx, planeID, getStartEnergy(),
+                         zPlane, proj);
+
+    incorporateFoundHit(newPlane, clusIdx);
+
+    m_hits.insert(&m_hits[before_hit], newPlane);
+
+    if(proj == TkrCluster::X) m_nxHits++;
+    else                      m_nyHits++;
+    if(m_nxHits > 2 && m_nyHits > 2) m_status = FOUND;
+
+    return;
+}
+
 int KalFitTrack::compareFits(KalFitTrack& ktrack)
 {
     int numComData=0;
@@ -386,7 +403,7 @@ double KalFitTrack::sigmaFoundHit(const TkrFitPlane& previousKplane, const TkrFi
     double residual  = 1e6;
     double sigmahit = 1e6;
     
-    double MAX_RADIUS = .55*m_tkrGeo->trayWidth()/2.;
+    double MAX_RADIUS = m_tkrGeo->trayWidth()/4.;
     
     TkrFitHit hitp = nextKplane.getHit(TkrFitHit::PRED);
     m_axis = nextKplane.getProjection();
@@ -401,7 +418,7 @@ double KalFitTrack::sigmaFoundHit(const TkrFitPlane& previousKplane, const TkrFi
         zError=m_tkrGeo->siThickness()*hitp.getPar().getYSlope();
     }
     double rError=sqrt(tError*tError+zError*zError);
-    double max_dist=2.*m_sigma*rError; 
+    double max_dist=2.*m_sigma*rError;  //Big error as not cov. propagation
     if (max_dist > MAX_RADIUS ) max_dist = MAX_RADIUS;		
     
     double x0=hitp.getPar().getXPosition();
@@ -419,6 +436,57 @@ double KalFitTrack::sigmaFoundHit(const TkrFitPlane& previousKplane, const TkrFi
     while (!done) {
         TkrQueryClusters query(m_clusters);
         nearHit = query.nearestHitOutside(m_axis, klayer, min_dist, center, indexhit);
+        done = foundHit(indexhit, min_dist, max_dist, rError, center, nearHit);
+    }
+    
+    if (indexhit >= 0) {
+        if(m_axis == TkrCluster::X) residual = fabs(nearHit.x() - center.x());
+        else                        residual = fabs(nearHit.y() - center.y());
+        if (rError > 0.) sigmahit= residual/rError;
+    }
+    
+    return sigmahit;
+}
+
+double KalFitTrack::sigmaFoundHit(Point center, int nextLayer, int prevLayer, 
+                                  int& indexhit, double& radiushit)
+{
+    indexhit  = -1;
+    double residual  = 1e6;
+    double sigmahit = 1e6;
+    
+    double MAX_RADIUS = m_tkrGeo->trayWidth()/4.;
+    
+    TkrFitHit hitp = m_hits[prevLayer].getHit(TkrFitHit::SMOOTH);
+
+    double tError = 0.;
+    double zError = 0.; 
+    if(m_axis == TkrCluster::X) {
+        double cov_xx = hitp.getCov().getcovX0X0();
+        double cov_sxx= hitp.getCov().getcovSxX0();
+        tError = sqrt(cov_xx+900.*fabs(cov_sxx));
+        zError=m_tkrGeo->siThickness()*hitp.getPar().getXSlope();
+    }
+    else {
+        double cov_yy = hitp.getCov().getcovY0Y0();
+        double cov_syy= hitp.getCov().getcovSyY0();
+        tError = sqrt(cov_yy+900.*fabs(cov_syy));
+        zError=m_tkrGeo->siThickness()*hitp.getPar().getYSlope();
+    }
+    double rError=sqrt(tError*tError+zError*zError);
+    double max_dist=2.*m_sigma*rError; 
+    if (max_dist > MAX_RADIUS ) max_dist = MAX_RADIUS;		
+    
+    Point nearHit(0.,0.,center.z());
+    
+    
+    // Must be inside Glast
+    double min_dist = -1.;
+    bool done = false;
+    int loop_count = 0;
+    while (!done && loop_count++ < 4) {
+        TkrQueryClusters query(m_clusters);
+        nearHit = query.nearestHitOutside(m_axis, nextLayer, min_dist, center, indexhit);
         done = foundHit(indexhit, min_dist, max_dist, rError, center, nearHit);
     }
     
@@ -535,6 +603,71 @@ void KalFitTrack::finish()
         m_chisqSegment     = computeChiSqSegment(m_numSegmentPoints);
         m_Q                = computeQuality();
     }	
+}
+
+int KalFitTrack::addLeadingHits(int top_layer)
+{
+    //This method projects backwards from the start of the track
+    // to pick-up possible un-paired x & y hits.  Returns the 
+    // the number of hits added
+    
+    int  added_hit_count = 0;
+    double       arc_min = 0.; 
+
+    //Protection
+    if(m_hits[0].getIDPlane() == 0) return added_hit_count;
+
+    int old_tower  = m_iTower; 
+    double old_z   = m_hits[0].getZPlane();
+
+    //Setup backward looking search loop
+    int next_layer = top_layer-1; 
+    double arc_x, arc_y; 
+    while(next_layer >= 0 && top_layer-next_layer < 2) {   // Limit additions to 2 layers
+        //Check that there are hits to here
+        if((m_clusters->nHits(TkrCluster::X, next_layer) + 
+            m_clusters->nHits(TkrCluster::X, next_layer)) < 1) {
+            next_layer--;
+            continue;
+        }
+        //Find the Z location for the x & y planes 
+        int rev_layer = m_tkrGeo->ilayer(next_layer); 
+        double zx = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::X, 751).z();
+        double zy = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::Y, 751).z();
+        //Compute which one is closest 
+        double d_xz = zx - old_z;
+        double d_yz = zy - old_z;
+        if(d_xz < .5 && d_yz < .5) {
+            next_layer--;
+            continue;
+        }
+        arc_x = fabs(d_xz/m_dir.z());
+        arc_y = fabs(d_yz/m_dir.z());
+        if(arc_x < arc_min+.5 && arc_y < arc_min+.5) {
+            next_layer--;
+            continue;
+        }
+        else if(arc_x > arc_min && arc_y > arc_min) { 
+            arc_min = (arc_x < arc_y) ? arc_x:arc_y;
+        }
+        else { 
+            arc_min = (arc_x > arc_y) ? arc_x:arc_y; 
+        }
+        m_axis = (arc_min==arc_y) ? TkrCluster::Y :TkrCluster::X;
+
+        //Project the track to this layer & search for a hit
+        Point predHit = getPosAtZ(-arc_min);
+        int indexHit;
+        double residual; 
+        double sigma  = sigmaFoundHit(predHit, next_layer, 0, indexHit, residual);
+        if(sigma < m_sigma && indexHit >=0) {
+             addMeasHit(indexHit, next_layer, m_axis, predHit.z(), 0);
+             added_hit_count++;
+             m_iLayer = next_layer;
+        }
+        old_z = predHit.z();
+    }
+    return added_hit_count; 
 }
 
 void KalFitTrack::doFit()
