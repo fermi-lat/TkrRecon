@@ -1,9 +1,11 @@
 
 #include "TkrRecon/Track/GFtutor.h"
 
+using namespace TkrRecon;
+
 //-------- GFtutor --------------------------------------
 
-TkrClusters* GFtutor::_DATA = 0;// Sets by TrackerRecon - made accesible to all GF-objects
+TkrClusterCol* GFtutor::_DATA = 0;// Sets by TrackerRecon - made accesible to all GF-objects
 
 bool GFtutor::CUT_veto = false;
 bool GFtutor::CONTROL_connectGFpair = false;
@@ -20,7 +22,7 @@ double	GFtutor::m_siResolution = 0;
 
 //----------------- Static function ----------------------
 //########################################################
-void GFtutor::load(TkrClusters* scl, ITkrGeometrySvc* pTrkGeo)			 
+void GFtutor::load(TkrClusterCol* scl, ITkrGeometrySvc* pTrkGeo)			 
 //########################################################
 {
 

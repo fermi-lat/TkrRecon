@@ -18,17 +18,21 @@
 //------------------------------------------------------------------------
 //
 
+namespace TkrRecon { //Namespace
+
 class TkrComboTrackFit : public TkrTrackFit
 {
 public:
     TkrComboTrackFit(ITkrGeometrySvc* pTkrGeo) {pGeometry = pTkrGeo;}
    ~TkrComboTrackFit() {}
 
-    TkrTracks* doTrackFit(TkrClusters* pTkrClus, TkrCandidates* pTkrCand, double CalEnergy)
+    TkrFitTrackCol* doTrackFit(TkrClusterCol* pTkrClus, TkrPatCandCol* pTkrCand, double CalEnergy)
     {return new TkrComboFit(pGeometry, pTkrClus, pTkrCand, CalEnergy );}
 
 private:
     ITkrGeometrySvc* pGeometry;
 };
+
+}; //Namespace
 
 #endif

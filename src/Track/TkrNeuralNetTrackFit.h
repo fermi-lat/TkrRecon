@@ -9,7 +9,7 @@
 *
 * @authors b. allgood and w. atwood
 *
-* $Header$
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetTrackFit.h,v 1.1 2002/04/01 19:26:47 allgood Exp $
 */
 
 #ifndef TKRNEURALNETTRACKFIT_H
@@ -18,17 +18,20 @@
 #include "src/Track/TkrNeuralNetFit.h"
 #include "TkrRecon/Track/TkrTrackFit.h"
 
+namespace TkrRecon { //Namespace
+
 class TkrNeuralNetTrackFit : public TkrTrackFit
 {
 public:
     TkrNeuralNetTrackFit(ITkrGeometrySvc* pTkrGeo) {pGeometry = pTkrGeo;}
    ~TkrNeuralNetTrackFit() {}
 
-    TkrTracks* doTrackFit(TkrClusters* pTkrClus, TkrCandidates* pTkrCand, double CalEnergy)
+    TkrFitTrackCol* doTrackFit(TkrClusterCol* pTkrClus, TkrPatCandCol* pTkrCand, double CalEnergy)
     {return new TkrNeuralNetFit(pGeometry, pTkrClus, pTkrCand, CalEnergy );}
 
 private:
     ITkrGeometrySvc* pGeometry;
 };
 
+}; //Namespace
 #endif

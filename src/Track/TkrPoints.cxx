@@ -9,11 +9,11 @@ TkrPoints::TkrPoints(int iniLayer)
 void TkrPoints::ini()
 {
 
-    m_xHits = GFtutor::_DATA->nHits(TkrCluster::X,m_layer);
-    if (m_xHits > 0) m_xHitList = GFtutor::_DATA->getHits(TkrCluster::X,m_layer);
+    m_xHits = TkrRecon::GFtutor::_DATA->nHits(TkrRecon::TkrCluster::X,m_layer);
+    if (m_xHits > 0) m_xHitList = TkrRecon::GFtutor::_DATA->getHits(TkrRecon::TkrCluster::X,m_layer);
 
-    m_yHits = GFtutor::_DATA->nHits(TkrCluster::Y,m_layer);
-    if (m_yHits > 0) m_yHitList = GFtutor::_DATA->getHits(TkrCluster::Y,m_layer);
+    m_yHits = TkrRecon::GFtutor::_DATA->nHits(TkrRecon::TkrCluster::Y,m_layer);
+    if (m_yHits > 0) m_yHitList = TkrRecon::GFtutor::_DATA->getHits(TkrRecon::TkrCluster::Y,m_layer);
 
     m_end = false;
     if (m_xHits == 0 || m_yHits == 0) {
