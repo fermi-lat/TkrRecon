@@ -2,7 +2,8 @@
 @brief Pacakage TkrRecon
 @verbatim
   Manager: Leon Rochester 
-  
+
+  v8r8p3  10-mar-2003  LSR   Use GlastPropagatorSvc
   v8r8p2  28-feb-2003  LSR   Cleanup of unix errors
   v8r8p1  05-feb-2003  TU    fix bug in exit test for loop on planes in KalFitTrack
   v8r8    03-feb-2003  LSR   First pass at adding alignment service
