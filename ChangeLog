@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Mon Jul 22 11:35:59 PDT 2002
+TkrRecon/src/Vertex
+
+Modified Files:
+	VtxKalFitTool.cxx 
+Log Message:
+brut force fix to the current inheritance problem of TkrFitMatrix and TkrFitPar
+    *
+------------------------------------------------------------
 User: cohen  Mon Jul 22 06:45:54 PDT 2002
 TkrRecon/src/Dll
 
