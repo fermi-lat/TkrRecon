@@ -39,7 +39,7 @@ KalFitTrack::KalFitTrack(int ilyr, int itwr, double sigmaCut,double energy, cons
                              m_ray(testRay)
 {
     // Initialization for KalFitTrack
-    m_energy0 = energy; 
+    m_energy0 = 1000.; //energy; 
     m_status  = EMPTY;
 
     m_hits.clear();
@@ -70,7 +70,7 @@ void KalFitTrack::unFlagAllHits()
 void KalFitTrack::unFlagHit(int num)
 {
     TkrFitPlaneConPtr hitPtr = getHitIterBegin();
-    TkrFitPlane hitplane = hitPtr[num];
+    TkrFitPlane hitplane     = hitPtr[num];
     GFtutor::_DATA->unflagHit(hitplane.getProjection(), hitplane.getIDHit());
 }  
 
@@ -123,7 +123,7 @@ void KalFitTrack::findHits()
     bool filter       = m_nxHits >= 2 && m_nyHits >= 2 ? true : false;
     
     TkrFitHit::TYPE type = TkrFitHit::FIT;
-    Status statushit = FOUND;
+    Status statushit     = FOUND;
 
     while( -1 < kplane && kplane < GFtutor::numPlanes()) 
     {
@@ -193,7 +193,7 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
                                             TkrFitHit::TYPE type)
 {
     Status statushit = EMPTY;
-    int num_steps = 0;
+    int num_steps    = 0;
     double arc_total = 0;
     
     while(statushit == EMPTY && num_steps < 4) {
@@ -210,10 +210,9 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
         arc_total = arc_min;
         num_steps++; 
         
-        double zend = nextKplane.getZPlane(); 
+        double zend    = nextKplane.getZPlane(); 
         double arc_len = (zend - m_ray.position().z())/m_ray.direction().z(); 
-        if(nextKplane.getProjection() == TkrCluster::X) 
-        {
+        if(nextKplane.getProjection() == TkrCluster::X) {
             if(m_nxHits <= 2) 
             {
                 Point x0 = m_ray.position(arc_len); 
@@ -223,8 +222,7 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
                 nextKplane.setHit(TkrFitHit(type, par, hitp.getCov()));
             }
         }
-        else 
-        {
+        else  {
             if(m_nyHits <= 2) 
             {
                 Point x0 = m_ray.position(arc_len); 
@@ -238,13 +236,11 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
         int indexhit = -1;
         double radius = 0.; 
         double sigma = sigmaFoundHit(previousKplane, nextKplane, indexhit, radius);
-        if (sigma < m_sigma) 
-        {
+        if (sigma < m_sigma) {
             statushit = FOUND;
             incorporateFoundHit(nextKplane, indexhit);
         } 
-        else 
-        {
+        else {
             double act_dist = nextKplane.getActiveDist();
             if(act_dist < 0.) continue; 
         
@@ -278,7 +274,6 @@ TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer, dou
 {
     // The z end position of the next klayer plane
     KalmanFilter KF;
-    int          nlayers =0; 
     double       zEnd; 
     double       actDist; 
     TkrFitHit    predhit;
@@ -293,9 +288,6 @@ TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer, dou
 
     ITkrGeometrySvc * geoPtr = GFtutor::pTrackerGeo;
 
-    if(prevKplane.getProjection() == TkrCluster::XY) {
-        nlayers = 1; // Origin Plane Flag
-    }
     int next_layer = klayer; 
     while(next_layer < 3+old_layer && next_layer < 18) { // Limit Gap to 2 missed x-y planes
         int rev_layer = geoPtr->ilayer(next_layer);
@@ -321,7 +313,6 @@ TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer, dou
             arc_min = (arc_x > arc_y) ? arc_x:arc_y;
         }
  
-        //TkrFitHit predhit = KF.predicted(prevKplane, type, nlayers, klayer, zEnd, arc_min);
         predhit = KF.predicted(prevKplane, type, next_layer, zEnd, arc_min);
         actDist = KF.getActiveDist();
         break;
@@ -490,7 +481,7 @@ void KalFitTrack::finish()
         int    nplanes = getNumHits();
         double x       = m_hits[0].getHit(TkrFitHit::SMOOTH).getPar().getXPosition();
         double y       = m_hits[0].getHit(TkrFitHit::SMOOTH).getPar().getYPosition();
-        double z       = m_hits[0].getZPlane();  // comment this part out: + .01; 
+        double z       = m_hits[0].getZPlane();  
 
         m_x0 = Point(x,y,z);
 
@@ -565,14 +556,14 @@ void KalFitTrack::doFit()
     
     // Smoother
     //---------
-    TkrFitHit hitsm=(m_hits[nplanes-1].getHit(TkrFitHit::FIT)).changeType(TkrFitHit::SMOOTH);
+    TkrFitHit hitsm = (m_hits[nplanes-1].getHit(TkrFitHit::FIT)).changeType(TkrFitHit::SMOOTH);
     m_hits[nplanes-1].setHit(hitsm);
-    m_chisqSmooth=m_hits[nplanes-1].getDeltaChiSq(TkrFitHit::SMOOTH);
+    m_chisqSmooth = m_hits[nplanes-1].getDeltaChiSq(TkrFitHit::SMOOTH);
     
     for (iplane=nplanes-2; iplane>=0;iplane--) {
-        TkrFitHit hitsm=KF.smoother(m_hits[iplane],m_hits[iplane+1]);
+        TkrFitHit hitsm = KF.smoother(m_hits[iplane],m_hits[iplane+1]);
         m_hits[iplane].setHit(hitsm);
-        m_chisqSmooth+=m_hits[iplane].getDeltaChiSq(TkrFitHit::SMOOTH);                
+        m_chisqSmooth += m_hits[iplane].getDeltaChiSq(TkrFitHit::SMOOTH);                
     }
     
     // End the Calculations
@@ -647,20 +638,21 @@ TkrFitPlane KalFitTrack::previousKPlane() const
 }
 
 TkrFitPlane KalFitTrack::originalKPlane() const
-{
+{  
+    // Create a fake first plane.... 
     // Back off incoming vertex to cause the first hit to be picked up
     Ray testRay(m_ray.position(),m_ray.direction());
-    Point x_ini = testRay.position(-10.); // 10 mm back-up -Should be adequit
+    double backup_dist = 5./fabs(m_ray.direction().z()); //Backup a bit 
+    Point x_ini = testRay.position(-backup_dist); 
     double x_slope = m_ray.direction().x()/m_ray.direction().z();
     double y_slope = m_ray.direction().y()/m_ray.direction().z();
     TkrFitPar pfit(x_ini.x(), x_slope, x_ini.y(), y_slope);
     
-    double sigma2Slope = GFcontrol::iniErrorSlope * GFcontrol::iniErrorSlope;
+    double sigma2Slope    = GFcontrol::iniErrorSlope * GFcontrol::iniErrorSlope;
     double sigma2Position = GFcontrol::iniErrorPosition * GFcontrol::iniErrorPosition;
     TkrFitMatrix covfit(1);
 
-    //double sigma_alt = GFtutor::trayWidth()/sqrt(12.); //mm before
-    double sigma_alt = GFtutor::trayWidth(); //mm before
+    double sigma_alt = GFtutor::trayWidth(); //Big error... 
     if(m_axis == TkrCluster::X) {
         covfit(1,1) = sigma2Position;
         covfit(3,3) = sigma_alt*sigma_alt;
