@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: burnett  Sat Feb 16 15:31:06 PST 2002
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+need to make use statements public so they get built
+    *
+------------------------------------------------------------
 User: lsrea  Thu Feb 14 22:10:07 PST 2002
 TkrRecon/TkrRecon/Cluster
 
