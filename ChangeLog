@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Aug  6 09:41:48 PDT 2003
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+Explicit call to TkrPatCand sort method
+
+    *
+------------------------------------------------------------
 User: usher  Mon Aug  4 13:18:50 PDT 2003
 TkrRecon/cmt
 
