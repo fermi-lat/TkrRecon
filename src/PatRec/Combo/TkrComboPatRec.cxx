@@ -20,6 +20,7 @@ Implementation of a Combinatoric Pattern recognition for GLAST
 //#include <fstream>
 
 #include <algorithm>
+#include <stdexcept>
 
 //static std::ofstream m_out("Energies.txt");
 
