@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Wed Oct 16 17:37:26 PDT 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrGeometrySvc.cxx 
+Log Message:
+add info about layer composition to TkrGeometrySvc, and use it in TkrComboPatRec
+    *
+------------------------------------------------------------
 User: lsrea  Wed Oct 16 17:37:25 PDT 2002
 TkrRecon/src/PatRec/Combo
 
