@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Sat Aug 31 14:30:50 PDT 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusters.h 
+Log Message:
+fixing up documentation
+
+    *
+------------------------------------------------------------
+User: lsrea  Sat Aug 31 14:30:50 PDT 2002
 TkrRecon/TkrRecon/Services
 
 Modified Files:
