@@ -1,4 +1,20 @@
 ------------------------------------------------------------
+User: lsrea  Fri Oct  8 21:47:01 PDT 2004
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+Start on conversion to new layer, plane definition
+Start on correcting layer/plane confusion:
+      a plane is a single silicon face. 
+      a layer is a close pair of planes, one x and one y.
+      The thing characterised by (layer, view) or (tray, botTop) is therefor a plane!
+NOTE: Link&Tree and Neural net have been somewhat left behind.
+
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Oct  6 23:09:12 PDT 2004
 TkrRecon/src/Track
 
