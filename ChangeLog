@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: lsrea  Tue Oct  8 15:30:17 PDT 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusters.cxx 
+Added Files:
+	TkrMakeClusterTable.cxx TkrMakeClusterTable.h 
+Log Message:
+Mods for relational tables:
+TkrClusterAlg: call TkrMakeClusterTable
+TkrMakeClusterTable: new--makes hit<->cluster relation
+    *
+------------------------------------------------------------
 User: lsrea  Mon Sep 30 11:42:25 PDT 2002
 TkrRecon/doc
 
