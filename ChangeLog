@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: burnett  Thu Feb 14 10:46:07 PST 2002
+TkrRecon/src/TrackFit
+
+Modified Files:
+	KalPar.cxx KalTrack.cxx 
+Log Message:
+const is required for parameters passed by reference or pointer
+    *
+------------------------------------------------------------
+User: burnett  Thu Feb 14 10:46:07 PST 2002
 TkrRecon/TkrRecon/TrackFit
 
 Modified Files:
