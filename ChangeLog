@@ -1,4 +1,20 @@
 ------------------------------------------------------------
+User: usher  Sun Jan 27 11:45:11 PST 2002
+TkrRecon/src/Track
+
+Modified Files:
+	SiRecObjs.cxx TkrFitTrack.cxx 
+Added Files:
+	TkrLinkAndTreeFit.cxx TkrTracks.cxx 
+Log Message:
+New Files: code to implement the Fit Track TDS class and code to drive the 
+           fitting of candidate Link and Tree pattern rec tracks
+
+Old Files: Temporarily modified SiRecObjs to not do any track finding and fitting,
+           plan to move that to the "new" format
+
+    *
+------------------------------------------------------------
 User: usher  Sun Jan 27 11:41:59 PST 2002
 TkrRecon/src/PatRec
 
