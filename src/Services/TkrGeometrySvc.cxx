@@ -156,7 +156,7 @@ int TkrGeometrySvc::nDices(int ilayer, axis a,int iladder)
     return 0;
 }
 
-HepPoint3D TkrGeometrySvc::getStripPosition(int tower, int layer, int view, int stripid)
+HepPoint3D TkrGeometrySvc::getDoubleStripPosition(int tower, int layer, int view, double stripid)
 {
 	MsgStream log(msgSvc(), name());
 	
@@ -166,11 +166,17 @@ HepPoint3D TkrGeometrySvc::getStripPosition(int tower, int layer, int view, int 
 	
 	HepTransform3D volTransform;
 	StatusCode sc = p_GlastDetSvc->getTransform3DByID(m_volId[tower][layer][view], &volTransform);
-	double stripLclX = p_GlastDetSvc->stripLocalX(stripid);
+	double stripLclX = p_GlastDetSvc->stripLocalXDouble(stripid);
 	HepPoint3D p(stripLclX,0.,0.);
 	if (view==1) {p = -p;}
 	p = volTransform*p;
 	return p;
+}
+
+HepPoint3D TkrGeometrySvc::getStripPosition(int tower, int layer, int view, int stripid)
+{
+	double strip = stripid;
+	return getDoubleStripPosition(tower, layer, view, strip);
 }
 
 // queryInterface

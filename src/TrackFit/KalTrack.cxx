@@ -1,5 +1,5 @@
 
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalTrack.cxx,v 1.4 2002/02/14 19:20:58 burnett Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalTrack.cxx,v 1.5 2002/03/07 17:33:08 usher Exp $
 
 //----------------------------------------------------------------------
 //    
@@ -42,7 +42,7 @@ void KalTrack::drawChiSq(gui::DisplayRep& v,  KalHit::TYPE typ)
         if(prj == TkrCluster::X){
             x0 = kplanelist[iplane].getHit(typ).getPar().getXPosition();
             y0 = kplanelist[iplane].getHit(fit).getPar().getYPosition(); 
-            z0 = kplanelist[iplane].getZPlane()+0.01;
+            z0 = kplanelist[iplane].getZPlane()+0.1;
             xl = x0-0.5*delta;
             xr = x0+0.5*delta;
             yl = y0;
@@ -51,7 +51,7 @@ void KalTrack::drawChiSq(gui::DisplayRep& v,  KalHit::TYPE typ)
         else {
             x0 = kplanelist[iplane].getHit(fit).getPar().getXPosition();
             y0 = kplanelist[iplane].getHit(typ).getPar().getYPosition(); 
-            z0 = kplanelist[iplane].getZPlane()+0.01;
+            z0 = kplanelist[iplane].getZPlane()+0.1;
             xl = x0;
             xr = x0;
             yl = y0-0.5*delta;
@@ -69,18 +69,18 @@ void KalTrack::drawTrack(gui::DisplayRep& v, KalHit::TYPE typ)
     for (int iplane=0; iplane<nplanes-1; iplane++) {
         KalPlane::AXIS prj = kplanelist[iplane].getProjection();
         double x0, y0, z0;
-        double delta= kplanelist[iplane].getDeltaChiSq(typ);
-        if(prj == TkrCluster::X){
-            x0 = kplanelist[iplane].getHit(typ).getPar().getXPosition();
-            y0 = kplanelist[iplane].getHit(fit).getPar().getYPosition(); 
-            z0 = kplanelist[iplane].getZPlane()+0.01;
-        }
-        else {
-            x0 = kplanelist[iplane].getHit(fit).getPar().getXPosition();
-            y0 = kplanelist[iplane].getHit(typ).getPar().getYPosition(); 
-            z0 = kplanelist[iplane].getZPlane()+0.01;
-        }
-        double tanx = kplanelist[iplane].getHit(typ).getPar().getXSlope();
+
+		KalHit::TYPE xtyp, ytyp;
+		xtyp = (prj == TkrCluster::X ? typ : fit);
+		ytyp = (prj == TkrCluster::X ? fit : typ);
+
+		// first draw the track segment to the next plane
+    
+        x0 = kplanelist[iplane].getHit(xtyp).getPar().getXPosition();
+        y0 = kplanelist[iplane].getHit(ytyp).getPar().getYPosition(); 
+        z0 = kplanelist[iplane].getZPlane();
+ 
+		double tanx = kplanelist[iplane].getHit(typ).getPar().getXSlope();
         double tany = kplanelist[iplane].getHit(typ).getPar().getYSlope();
         
         Point origin(x0,y0,z0);
@@ -91,6 +91,25 @@ void KalTrack::drawTrack(gui::DisplayRep& v, KalHit::TYPE typ)
         double cosz=dir.z();
         v.moveTo(segment.position(0.));
         v.lineTo(segment.position(zstep/cosz));
+
+        // now draw (an eventually) dotted line from the lower part of the extrapolated track
+		//  to the next hit.
+
+        v.moveTo(segment.position(0.8*zstep/cosz));
+
+		prj = kplanelist[iplane].getNextProj();
+
+		xtyp = (prj == TkrCluster::X ? typ : fit);
+		ytyp = (prj == TkrCluster::X ? fit : typ);
+
+        x0 = kplanelist[iplane+1].getHit(xtyp).getPar().getXPosition();
+        y0 = kplanelist[iplane+1].getHit(ytyp).getPar().getYPosition(); 
+        z0 = kplanelist[iplane+1].getZPlane();
+
+        Point p(x0, y0, z0);
+		//v.set_line_style(1);  dotted line doesn't seem to work, use color for now
+		//v.setColor("green");  hmmm... color not working either!
+        v.lineTo(p);        
     }
 }
 

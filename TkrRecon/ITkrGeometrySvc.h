@@ -64,6 +64,7 @@ public:
     virtual int ilayer(int iplane)=0;
 
 	virtual HepPoint3D getStripPosition( int tower, int layer, int view, int stripid) = 0;
+	virtual HepPoint3D getDoubleStripPosition( int tower, int layer, int view, double stripid) = 0;
         
     // geometry related access
     virtual int    nLadders(int ilayer, axis a)=0;

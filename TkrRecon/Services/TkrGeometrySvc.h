@@ -69,6 +69,7 @@ public:
     int ilayer(int iplane)   {return numPlanes()-iplane-1;}
 
 	HepPoint3D getStripPosition(int tower, int layer, int view, int stripid);
+	HepPoint3D getDoubleStripPosition(int tower, int layer, int view, double stripid);
     
     
     // geometry related access
@@ -113,6 +114,7 @@ private:
 
 	IGlastDetSvc * p_GlastDetSvc;
 
+	// room for maximum number of idents, by [tower][layer][view]
 	idents::VolumeIdentifier m_volId[16][18][2];
 
     xml::IFile::intVector m_layertype;    // X-Y (0) or Y-X (1)

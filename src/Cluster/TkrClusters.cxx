@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrClusters.cxx,v 1.5 2002/02/26 07:09:03 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrClusters.cxx,v 1.6 2002/03/29 02:09:43 lsrea Exp $
 //
 // Description:
 //      TkrClusters is a container for Tkr clusters, and has the methods
@@ -379,7 +379,7 @@ Point TkrClusters::position(const int plane, TkrCluster::view v, const double st
     // note the differences between layers and planes - ordering!
     int layer = pTkrGeo->ilayer(plane);
 	
-	HepPoint3D p = pTkrGeo->getStripPosition(tower, layer, (int) v, (int) strip);
+	HepPoint3D p = pTkrGeo->getDoubleStripPosition(tower, layer, (int) v, strip);
 	Point p1(p.x(), p.y(), p.z());
 	return p1;
 	
