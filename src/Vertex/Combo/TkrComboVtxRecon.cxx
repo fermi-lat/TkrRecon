@@ -7,7 +7,7 @@
 #include "src/Vertex/Combo/TkrComboVtxRecon.h"
 #include "src/Vertex/Combo/RayDoca.h"
 
-TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTracks, TkrPatCandCol* pCandTracks)
+TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrVertexCol* vertexCol, TkrFitTrackCol* pTracks, TkrPatCandCol* pCandTracks)
 {
        //Define a vector to contain a list of "isolated" tracks
     int    numTracks = pTracks->size();
@@ -155,7 +155,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTr
                 vertex->addTrack(track1);
                 vertex->addTrack(track2);
                 
-                push_back(vertex); // addVertex(vertex);
+                vertexCol->push_back(vertex); // addVertex(vertex);
                 
                 unused[trk1Idx] = false;
                 unused[trk2Idx] = false;
@@ -179,7 +179,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTr
 
             vertex->addTrack(track1);
 
-            push_back(vertex); //addVertex(vertex);
+            vertexCol->push_back(vertex); //addVertex(vertex);
         }
     }
 
