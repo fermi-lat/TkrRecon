@@ -1,6 +1,6 @@
 package TkrRecon
 
-version v8r12p23
+version v8r12p24
 
 author Tracy Usher    <usher@slac.stanford.edu>
 author Leon Rochester <lsrea@slac.stanford.edu>
@@ -29,7 +29,6 @@ private
 
 use RootIo v* -no_auto_imports
 use RootPolicy v4r* -no_auto_imports
-
 
 #the following prepend makes the includes folder available locally: avoid the package_include
 macro_prepend includes "-I ../src " WIN32 " /I ..\src  "
