@@ -7,7 +7,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/MonteCarloHitEnergy.h,v 1.1 2004/04/19 22:51:00 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/MonteCarloHitEnergy.h,v 1.2 2004/04/20 17:21:03 usher Exp $
  */
 
 #ifndef MonteCarloHitEnergy_h
@@ -27,7 +27,9 @@ public:
     MonteCarloHitEnergy(IDataProviderSvc* dataSvc, IParticlePropertySvc* partPropSvc);
     virtual ~MonteCarloHitEnergy() {};
 
-    double initialHitEnergy(const Event::TkrPatCandHit& candHit, const double trkEnergy);
+    double initialHitEnergy(const Event::TkrPatCand& patCand, 
+                            const Event::TkrPatCandHit& candHit, 
+                            const double trkEnergy);
     double updateHitEnergy(const double curEnergy, const double radLen);
     double getHitEnergy(const double energy);
 

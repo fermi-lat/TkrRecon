@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/BetheBlockHitEnergy.cxx,v 1.1 2004/03/24 00:03:27 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/BetheBlockHitEnergy.cxx,v 1.1 2004/04/19 22:51:00 usher Exp $
  */
 
 #include "BetheBlockHitEnergy.h"
@@ -18,7 +18,9 @@ BetheBlockHitEnergy::BetheBlockHitEnergy() :
     return;
 }
 
-double BetheBlockHitEnergy::initialHitEnergy(const Event::TkrPatCandHit& candHit, const double trkEnergy)
+double BetheBlockHitEnergy::initialHitEnergy(const Event::TkrPatCand& patCand, 
+                                             const Event::TkrPatCandHit& candHit, 
+                                             const double trkEnergy)
 {
     return trkEnergy;
 }

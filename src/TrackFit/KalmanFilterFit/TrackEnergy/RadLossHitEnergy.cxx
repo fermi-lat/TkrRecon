@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/RadLossHitEnergy.cxx,v 1.1 2004/03/24 00:03:27 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/RadLossHitEnergy.cxx,v 1.1 2004/04/19 22:51:00 usher Exp $
  */
 
 #include "RadLossHitEnergy.h"
@@ -16,7 +16,9 @@ RadLossHitEnergy::RadLossHitEnergy() :
     return;
 }
 
-double RadLossHitEnergy::initialHitEnergy(const Event::TkrPatCandHit& candHit, const double trkEnergy)
+double RadLossHitEnergy::initialHitEnergy(const Event::TkrPatCand& patCand, 
+                                          const Event::TkrPatCandHit& candHit, 
+                                          const double trkEnergy)
 {
     return trkEnergy;
 }
