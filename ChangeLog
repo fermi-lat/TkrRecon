@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Apr  2 15:40:03 PDT 2001
+TkrRecon/TkrRecon detGeo.h
+
+Removed Files:
+	detGeo.h 
+Log Message:
+Replaced with TkrDetGeo
+
+    *
+------------------------------------------------------------
 User: usher  Mon Apr  2 15:39:04 PDT 2001
 TkrRecon/src detGeo.cpp
 
