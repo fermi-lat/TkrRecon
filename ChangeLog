@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Fri Jul 18 14:26:59 PDT 2003
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	NeuralNetFindTrackTool.cxx NeuralNetFindTrackTool.h 
+Log Message:
+move all initialization to initialize(); clean up access to services
+
+    *
+------------------------------------------------------------
+User: lsrea  Fri Jul 18 14:26:59 PDT 2003
 TkrRecon/src/PatRec/LinkAndTree
 
 Modified Files:
