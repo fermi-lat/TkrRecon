@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Mon May 13 08:54:29 PDT 2002
+TkrRecon/src/Display
+
+Modified Files:
+	TkrBestCandRep.cxx TkrCandidate3DRep.cxx TkrCandidatesRep.cxx 
+	TkrClustersRep.cxx TkrDispActiveNet.cxx TkrDispCompleteNet.cxx 
+	TkrTracksRep.cxx 
+Log Message:
+Change explicit TDS path to EventModel defined string name
+
+    *
+------------------------------------------------------------
 User: lsrea  Sun May 12 14:41:40 PDT 2002
 TkrRecon/src/GaudiAlg
 
