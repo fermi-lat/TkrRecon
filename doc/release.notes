@@ -3,6 +3,8 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v8r12p17 01-Jun-2004  LSR  Add code to break tracks at tower boundaries
+                             using flag in TkrInitSvc... defaults off, of course!
   v8r12p16 13-May-2004  LSR  Fix uninitialized pointer in KalmanTrackFitTool
   v8r12p15 10-May-2004  LSR  Fix first-hit-view bug
   v8r12p14 10-May-2004  LSR  Tag before fixing first-hit-view bug

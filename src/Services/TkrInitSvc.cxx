@@ -26,6 +26,7 @@ Service(name, pSvcLocator)
     declareProperty("TkrIniErrorPosition",   m_iniErrorPosition   = control->getIniErrPosition()    );
     declareProperty("TkrPlaneEnergies",      m_planeEnergies      = control->getPlaneEnergies()     );
     declareProperty("TkrErrorType",          m_errorType          = control->getErrorType()         );
+    declareProperty("TkrTrackAcrossTowers",  m_trackAcrossTowers  = control->trackAcrossTowers()    );
 
     return; 
 }
@@ -57,6 +58,7 @@ StatusCode TkrInitSvc::initialize()
     if (m_iniErrorPosition   != control->getIniErrPosition()    ) control->setIniErrPos(m_iniErrorPosition);
     if (m_planeEnergies      != control->getPlaneEnergies()     ) control->setPlaneEnergies(m_planeEnergies);
     if (m_errorType          != control->getErrorType()         ) control->setErrorType(m_errorType); 
+    if (m_trackAcrossTowers  != control->trackAcrossTowers()    ) control->setTrackAcrossTowers(m_trackAcrossTowers);
 
     return sc;
 }
