@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Tue May  7 15:55:53 PDT 2002
+TkrRecon/src/PatRec
+
+Removed Files:
+	TkrPatCand.cxx TkrPatCandHit.cxx 
+Log Message:
+TDS output classes moved to GlastEvent
+Modify remaining source code to reflect this movement
+
+    *
+------------------------------------------------------------
 User: usher  Tue May  7 15:54:33 PDT 2002
 TkrRecon/src/GaudiAlg
 
