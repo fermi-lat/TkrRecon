@@ -17,7 +17,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.27 2004/11/02 22:55:43 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.28 2004/12/13 23:50:40 atwood Exp $
  */
 
 #include "GaudiKernel/IToolSvc.h"
@@ -31,7 +31,6 @@
 
 #include "Event/TopLevel/EventModel.h"
 #include "Event/Recon/TkrRecon/TkrTrack.h"
-#include "Event/Recon/TkrRecon/TkrVertexTab.h"
 
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 
@@ -124,16 +123,6 @@ StatusCode TkrVertexAlg::execute()
         {
             pVtxCol->pop_back();
         }
-
-        //do the same for all relations between the vertices and tracks
-        //since we delete all of them, don't worry about "erase"ing properly
-        SmartDataPtr<Event::TkrVertexTrackTabList> vtxTable(eventSvc(),EventModel::TkrRecon::TkrVertexTrackTab);
-        int                                        relTabSize = vtxTable->size();
-
-        while(relTabSize--)
-        {
-            vtxTable->pop_back();
-        }
     }
     else  
     {
@@ -142,15 +131,6 @@ StatusCode TkrVertexAlg::execute()
 
         //Register the vertex collection object in the TDS
         sc = eventSvc()->registerObject("/Event/TkrRecon/TkrVertexCol",pVtxCol);
-
-        if (sc.isSuccess())
-        {
-            // Create a new relational table for pattern recognition and fit tracks
-            Event::TkrVertexTrackTab vertexRelTab;
-            vertexRelTab.init();
-
-            sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrVertexTrackTab, vertexRelTab.getAllRelations());
-        }
     }
 
     // If we have fit tracks then proceed with the vertexing

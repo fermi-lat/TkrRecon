@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.12 2004/09/23 21:30:28 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.13 2004/10/12 19:03:37 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the Neural Net approach
@@ -15,7 +15,6 @@
 #include "Event/TopLevel/EventModel.h"
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "Event/Recon/CalRecon/CalCluster.h"
-#include "src/PatRec/KalFitTrack/KalFitTrack.h"
 
 #include "src/PatRec/NeuralNet/TkrNeuralNet.h"
 
@@ -88,12 +87,12 @@ StatusCode NeuralNetFindTrackTool::findTracks()
     }
   
   //Create the TkrCandidates TDS object
-  SmartDataPtr<Event::TkrPatCandCol> pTkrCands(m_dataSvc, EventModel::TkrRecon::TkrPatCandCol);
+  SmartDataPtr<Event::TkrTrackCol> pTkrCands(m_dataSvc, EventModel::TkrRecon::TkrTrackCol);
   if(!pTkrCands)
     {
       //Register this object in the TDS
-      pTkrCands = new Event::TkrPatCandCol();
-      sc = m_dataSvc->registerObject(EventModel::TkrRecon::TkrPatCandCol,pTkrCands);
+      pTkrCands = new Event::TkrTrackCol();
+      sc = m_dataSvc->registerObject(EventModel::TkrRecon::TkrTrackCol,pTkrCands);
       if(sc.isFailure())
 	{
 	  std::cout<<"failed to register PatCandCol"<<std::endl;
@@ -153,86 +152,88 @@ StatusCode NeuralNetFindTrackTool::findTracks()
 // This funciton takes all neurons with an activity above 0.9 and places
 // them in candidates.  It then proceed to do some preliminary fitting
 // of the track.  This will be changed soon.
-void NeuralNetFindTrackTool::buildCand(Event::TkrPatCandCol& TkrCands, 
+void NeuralNetFindTrackTool::buildCand(Event::TkrTrackCol& TkrCands, 
 			     const TkrNeuronList& neuronList,Event::TkrClusterCol* pTkrClusters)
 {
-  std::vector<TkrBase> candList;
+    std::vector<TkrBase> candList;
 
-  // take neurons with activity above 0.9.
-  for(unsigned int i = 0;i < neuronList.size(); i++){
-    if(neuronList[i].getActivity() >= 0.9){
-      TkrBase trial = TkrBase(neuronList[i].getLayer(top), neuronList[i].getTower(top), .03, 
-			      neuronList[i].getPnt(top),neuronList[i].getDirection());
-      candList.push_back(trial);
-    }
-  }
-  
-  // list of tracks to be used with Kalman fit.
-  Event::TkrFitTrackCol tracks;
-  
-  TkrControl * control = TkrControl::getPtr(); 
-  if (candList.size() > 0) {
-    
-    std::vector<TkrBase>::const_iterator hypo;
-    for(hypo  = candList.begin(); 
-	hypo != candList.end();   hypo++)
-      {
-	int   iniLayer = (*hypo).firstLayer();
-	int   iniTower = (*hypo).tower();
-	Ray   testRay  = Ray((*hypo).ray().position(),-(*hypo).ray().direction());
-	float energy   = (*hypo).energy();
-	
-	Event::KalFitTrack* _track = new Event::KalFitTrack(pTkrClusters, m_tkrGeom, m_clusTool,
-							    iniLayer, iniTower, 
-							    control->getSigmaCut(), energy, testRay); 
-	
-	_track->findHits();
-	_track->doFit();
-	
-	if (!_track->empty(control->getMinSegmentHits())) 
-	  {
-	    //Keep pointer to the track temporarily
-	    tracks.push_back(_track);
-	    
-	    //Keep this track (but as a candidate)
-	    Event::TkrPatCand* newTrack = new Event::TkrPatCand(iniLayer, iniTower, energy, 
-								1., 1, _track->getRay());
-	    
-	    newTrack->setEnergy(energy);
-	    
-	    //Add the Hits
-	    Event::TkrFitPlaneConPtr hitPtr = _track->getHitIterBegin();
-	    while(hitPtr != _track->getHitIterEnd())
-	    {
-		    Event::TkrFitPlane hitplane = *hitPtr++;
-		    unsigned hit_ID = hitplane.getIDHit();
-		    Event::TkrCluster * pClus = (*pTkrClusters)[hit_ID];
-		    newTrack->addCandHit(pClus);
-	    }
-
-        newTrack->sortHits();
-	    
-	    TkrCands.push_back(newTrack);
-	    
-	    _track->flagAllHits();
-	    
-	  } 
-	else delete _track;
-      }
-  }
-  
-  // Ok, go through all the attempted track fits and unflag the hits for the 
-  // real fit
-  if (tracks.size())
+    // take neurons with activity above 0.9.
+    for(unsigned int i = 0;i < neuronList.size(); i++)
     {
-      Event::TkrFitTrackCol::iterator iter = tracks.begin();
-      
-      while(iter != tracks.end())
+        if(neuronList[i].getActivity() >= 0.9)
         {
-	  Event::KalFitTrack* pTrack = (Event::KalFitTrack*)(*iter++);
-	  pTrack->unFlagAllHits();
+            TkrBase trial = TkrBase(neuronList[i].getLayer(top), neuronList[i].getTower(top), .03, 
+			              neuronList[i].getPnt(top),neuronList[i].getDirection());
+            candList.push_back(trial);
         }
     }
   
-  return;
+    // list of tracks to be used with Kalman fit.
+    Event::TkrTrackCol tracks;
+  
+    TkrControl * control = TkrControl::getPtr(); 
+    if (candList.size() > 0) 
+    {
+        std::vector<TkrBase>::const_iterator hypo;
+        for(hypo  = candList.begin(); hypo != candList.end();   hypo++)
+        {
+	        int   iniLayer = (*hypo).firstLayer();
+	        int   iniTower = (*hypo).tower();
+	        Ray   testRay  = Ray((*hypo).ray().position(),-(*hypo).ray().direction());
+	        float energy   = (*hypo).energy();
+	
+	        Event::TkrTrack* _track = new Event::TkrTrack(); //pTkrClusters, m_tkrGeom, m_clusTool,
+							    //iniLayer, iniTower, 
+							    //control->getSigmaCut(), energy, testRay); 
+	
+///	        _track->findHits();
+///	        _track->doFit();
+/*	
+	        if (!_track->empty(control->getMinSegmentHits())) 
+	        {
+	            //Keep pointer to the track temporarily
+	            tracks.push_back(_track);
+	    
+	            //Keep this track (but as a candidate)
+	            Event::TkrPatCand* newTrack = new Event::TkrPatCand(iniLayer, iniTower, energy, 
+								1., 1, _track->getRay());
+	    
+	            newTrack->setEnergy(energy);
+	    
+	            //Add the Hits
+	            Event::TkrFitPlaneConPtr hitPtr = _track->getHitIterBegin();
+	            while(hitPtr != _track->getHitIterEnd())
+	            {
+		            Event::TkrFitPlane hitplane = *hitPtr++;
+		            unsigned hit_ID = hitplane.getIDHit();
+		            Event::TkrCluster * pClus = (*pTkrClusters)[hit_ID];
+		            newTrack->addCandHit(pClus);
+	            }
+
+                newTrack->sortHits();
+	    
+	            TkrCands.push_back(newTrack);
+	    
+	            _track->flagAllHits();
+	    
+	        } 
+	        else delete _track;
+*/
+        }
+    } 
+
+    // Ok, go through all the attempted track fits and unflag the hits for the 
+    // real fit
+    if (tracks.size())
+    {
+        Event::TkrTrackCol::iterator iter = tracks.begin();
+      
+        while(iter != tracks.end())
+        {
+	        Event::TkrTrack* pTrack = *iter++;
+///	        pTrack->unFlagAllHits();
+        }
+    }
+  
+    return;
 }

@@ -10,13 +10,12 @@
 * 
 * @authors b. allgood and w. atwood
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Display/TkrDispCompleteNet.h,v 1.1 2004/09/23 21:30:26 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Display/TkrDispCompleteNet.h,v 1.2 2004/10/12 19:03:34 lsrea Exp $
 */
 
 #ifndef __TKRDISPCOMPLETENET_H
 #define __TKRDISPCOMPLETENET_H
 
-#include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "gui/DisplayRep.h"
 #include "GaudiKernel/IDataProviderSvc.h"

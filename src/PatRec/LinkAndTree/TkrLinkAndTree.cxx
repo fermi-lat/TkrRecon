@@ -4,6 +4,7 @@
 */
 
 #include "src/PatRec/LinkAndTree/TkrLinkAndTree.h"
+#include "Geometry/Ray.h"
 
 TkrLinkAndTree::TkrLinkAndTree(ITkrGeometrySvc* /*tkrGeom*/, ITkrQueryClustersTool* clusTool, double energy)
 {
@@ -249,17 +250,17 @@ void TkrLinkAndTree::buildCand3D()
             double quality = TkrNodeX->getQuality()->getAngleRMS()
                            + TkrNodeY->getQuality()->getAngleRMS();
 
-            TkrPatCand* newTrack = new TkrPatCand(layer,pTopClusterX->tower(),energy,1.,quality,initDir);
+            TkrTrack* newTrack = new TkrTrack(); ///layer,pTopClusterX->tower(),energy,1.,quality,initDir);
 
-            newTrack->addCandHit(pTopClusterX);
-            newTrack->addCandHit(pTopClusterY);
+///            newTrack->addCandHit(pTopClusterX);
+///            newTrack->addCandHit(pTopClusterY);
            
             while(nNodesX--)
             {
                 TkrNodeX     = dynamic_cast<TkrLinkNode*>(*nodePtrX++);
                 pClusLinkX   = dynamic_cast<TkrClusterLink*>(TkrNodeX->getThisLayerLink());
                 
-                newTrack->addCandHit(pClusLinkX->pBotClus());
+///                newTrack->addCandHit(pClusLinkX->pBotClus());
             }
            
             while(nNodesY--)
@@ -267,10 +268,10 @@ void TkrLinkAndTree::buildCand3D()
                 TkrNodeY     = dynamic_cast<TkrLinkNode*>(*nodePtrY++);
                 pClusLinkY   = dynamic_cast<TkrClusterLink*>(TkrNodeY->getThisLayerLink());
                 
-                newTrack->addCandHit(pClusLinkY->pBotClus());
+///                newTrack->addCandHit(pClusLinkY->pBotClus());
             }
 
-            newTrack->sortHits();
+///            newTrack->sortHits();
 
             push_back(newTrack);
 

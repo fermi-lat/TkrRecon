@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.17 2004/09/23 21:30:26 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.18 2004/10/12 19:03:34 lsrea Exp $
 //
 // Description:
 //      Contains the implementation of the methods for setting up the TkrRecon display
@@ -19,12 +19,6 @@
 
 #include "TkrRecon/GaudiAlg/TkrDisplayAlg.h"
 #include "src/Display/TkrClustersRep.h"
-#include "src/Display/TkrTracksRep.h"
-
-#include "src/Display/TkrPatCandRep.h"
-#include "src/Display/TkrCandidatesRep.h"
-#include "src/Display/TkrBestCandRep.h"
-#include "src/Display/TkrCandidate3DRep.h"
 
 // Display stuff for NeuralNet PatRec Alg
 #include "src/Display/TkrDispCompleteNet.h"
@@ -90,18 +84,18 @@ StatusCode TkrDisplayAlg::initialize()
         if (m_TrackerReconType == "LinkAndTree")
         {
             //Set up the display rep for the reconstructed objects
-            tkrmenu.add(new TkrCandidatesRep(eventSvc(), tkrGeom), "PatRec: Trees");
+///            tkrmenu.add(new TkrCandidatesRep(eventSvc(), tkrGeom), "PatRec: Trees");
         
             //Set up the display rep for the reconstructed objects
-            tkrmenu.add(new TkrBestCandRep(eventSvc(), tkrGeom), "PatRec: Best");
+///            tkrmenu.add(new TkrBestCandRep(eventSvc(), tkrGeom), "PatRec: Best");
         
             //Set up the display rep for the reconstructed objects
-            tkrmenu.add(new TkrCandidate3DRep(eventSvc(), tkrGeom), "PatRec: 3D Cands");
+///            tkrmenu.add(new TkrCandidate3DRep(eventSvc(), tkrGeom), "PatRec: 3D Cands");
         }
         //TkrCombo display routines
         else if (m_TrackerReconType == "Combo")
         {
-            tkrmenu.add(new TkrPatCandRep(eventSvc()), "PatRec: Monte Carlo");
+///            tkrmenu.add(new TkrPatCandRep(eventSvc()), "PatRec: Monte Carlo");
         }
         //Neural Net display routines
         else if (m_TrackerReconType == "NeuralNet")
@@ -115,11 +109,11 @@ StatusCode TkrDisplayAlg::initialize()
         //Monte Carlo Pat Rec display routines
         else if (m_TrackerReconType == "MonteCarlo")
         {
-            tkrmenu.add(new TkrPatCandRep(eventSvc()), "PatRec: Monte Carlo");
+//            tkrmenu.add(new TkrPatCandRep(eventSvc()), "PatRec: Monte Carlo");
         }
         
         //Set up the display rep for the reconstructed tracks
-        tkrmenu.add(new TkrTracksRep(eventSvc()), "Tracks");
+//        tkrmenu.add(new TkrTracksRep(eventSvc()), "Tracks");
     
         //Vertex display routines
         tkrmenu.add(new TkrGammaRep(eventSvc(), tkrGeom), "Gamma Vertex");

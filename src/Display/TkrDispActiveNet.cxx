@@ -11,6 +11,7 @@
 #include "src/PatRec/NeuralNet/TkrNeuralNet.h"
 #include "src/PatRec/NeuralNet/TkrNeuron.h"
 #include "Event/TopLevel/EventModel.h"
+#include "Event/Recon/TkrRecon/TkrTrack.h"
 
 //------------------------------------------------------------------------------
 /// Algorithm parameters which can be set at run time must be declared.
@@ -40,11 +41,11 @@ TkrDispActiveNet::TkrDispActiveNet(IDataProviderSvc* dataProviderSvc,
 
 void TkrDispActiveNet::update()
 {
-    Event::TkrPatCandCol* pTkrPatCandCol = 
-      SmartDataPtr<Event::TkrPatCandCol>(dps, EventModel::TkrRecon::TkrPatCandCol);
+    Event::TkrTrackCol* pTkrTrackCol = 
+      SmartDataPtr<Event::TkrTrackCol>(dps, EventModel::TkrRecon::TkrTrackCol);
 
     //Now see if we can do the drawing
-    if (pTkrPatCandCol)
+    if (pTkrTrackCol)
     {
 
       DataObject* dataObj;

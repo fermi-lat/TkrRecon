@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxBaseTool.cxx,v 1.5 2002/09/02 19:46:15 cohen Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxBaseTool.cxx,v 1.6 2004/12/13 23:50:42 atwood Exp $
 // Description:
 //      Implementation of the base class of concrete vertexing tools
 //
@@ -11,7 +11,6 @@
 #include "GaudiKernel/ToolFactory.h"
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/ISvcLocator.h"
-#include "Event/Recon/TkrRecon/TkrFitTrack.h"
 #include "Event/TopLevel/EventModel.h"
 
 VtxBaseTool::VtxBaseTool( const std::string& type, 

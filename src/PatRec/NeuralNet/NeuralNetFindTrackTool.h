@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.h,v 1.2 2004/09/08 15:32:44 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.h,v 1.7 2004/09/23 21:30:28 usher Exp $
  */
 
 #ifndef NEURALNETFINDTRACKTOOL_H
@@ -14,9 +14,9 @@
 
 #include "GaudiKernel/DataSvc.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
-#include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "src/PatRec/NeuralNet/TkrNeuron.h"
 #include "src/PatRec/PatRecBaseTool.h"
+#include "Event/Recon/TkrRecon/TkrTrack.h"
 
 class NeuralNetFindTrackTool : public PatRecBaseTool
 {
@@ -40,9 +40,9 @@ class NeuralNetFindTrackTool : public PatRecBaseTool
 
 
   /// Instantiation and fake fit of the TkrPatCand candidate tracks.
-  void buildCand( Event::TkrPatCandCol&, 
-		  const TkrNeuronList&, 
-		  Event::TkrClusterCol* );
+  void buildCand( Event::TkrTrackCol&, 
+		          const TkrNeuronList&, 
+		          Event::TkrClusterCol* );
   
 
  private:

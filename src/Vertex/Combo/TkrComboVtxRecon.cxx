@@ -4,9 +4,6 @@
 
 #include "src/Vertex/Combo/TkrComboVtxRecon.h"
 #include "src/Vertex/Combo/RayDoca.h"
-#include "Event/Recon/TkrRecon/TkrVertexTab.h"
-
-#include "Event/Recon/TkrRecon/TkrKalFitTrack.h"
 
 double fast_erf(double x) {
     double t = 1./(1.+.47047*x);
@@ -22,9 +19,7 @@ using namespace Event;
 
 TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*tkrGeom*/, 
                                    Event::TkrVertexCol* vertexCol, 
-                                   Event::TkrTrackCol* pTracks, 
-                                   Event::TkrPatCandCol* /*pCandTracks*/,
-                                   Event::TkrVertexTrackTab* vertexRelTab)
+                                   Event::TkrTrackCol* pTracks)
 {/*
     //Define a vector to contain a list of "isolated" tracks
     int    numTracks = pTracks->size();

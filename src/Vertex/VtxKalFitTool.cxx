@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.21 2004/09/23 21:30:32 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.22 2004/12/13 23:50:42 atwood Exp $
 // Description:                                                  
 //      Implementation of the Kalman vertexer
 //
@@ -319,7 +319,7 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
 }
 
 
-StatusCode  VtxKalFitTool::initVertex(Event::TkrFitTrackCol& theTracks)
+StatusCode  VtxKalFitTool::initVertex(Event::TkrTrackCol& theTracks)
 {
   // Purpose and Method: defines starting vertex estimate as first hit on 
   //                     first (aka best) track
@@ -338,7 +338,7 @@ StatusCode  VtxKalFitTool::initVertex(Event::TkrFitTrackCol& theTracks)
   //                           best track.
   //                           Error on Z-coordinate needs to be iterated and 
   //                           should come from TkrGeoSvc.
-
+/*
   Point p0 = theTracks.front()->getPosition();
   HepVector vtx0(3);
   vtx0[0] = p0.x();
@@ -359,7 +359,7 @@ StatusCode  VtxKalFitTool::initVertex(Event::TkrFitTrackCol& theTracks)
   Cov0(3,3) = 0.4/sqrt(12.0); //waffer thickness = 400um
 
   m_VtxCovEstimates.push_back(Cov0);
-
+*/
   return StatusCode::SUCCESS;
 }
 
@@ -441,7 +441,7 @@ HepMatrix VtxKalFitTool::computeMatrixB(const HepVector x, const HepVector /*q*/
 }
 
 
-HepVector VtxKalFitTool::getTkrParVec(const Event::TkrFitTrack& theTrack)
+HepVector VtxKalFitTool::getTkrParVec(const Event::TkrTrack& theTrack)
 {
   // Purpose and Method: Simple translation of TkrFitPar (+ energy) 
   //                     into an HepVector
@@ -451,18 +451,18 @@ HepVector VtxKalFitTool::getTkrParVec(const Event::TkrFitTrack& theTrack)
   //
   // Restrictions and Caveats: None
 
-  Event::TkrFitPar par0 = theTrack.getTrackPar();
+///  Event::TkrFitPar par0 = theTrack.getTrackPar();
   HepVector m(5,0);
-  m(1) = par0.getXPosition();
-  m(2) = par0.getXSlope();
-  m(3) = par0.getYPosition();
-  m(4) = par0.getYSlope();
-  m(5) = theTrack.getEnergy();
+///  m(1) = par0.getXPosition();
+///  m(2) = par0.getXSlope();
+///  m(3) = par0.getYPosition();
+///  m(4) = par0.getYSlope();
+///  m(5) = theTrack.getEnergy();
   return m;
 }
 
 
-HepVector VtxKalFitTool::computeQatVtx(const Event::TkrFitTrack& theTrack,
+HepVector VtxKalFitTool::computeQatVtx(const Event::TkrTrack& theTrack,
                                        const HepVector /*theVertex*/)
 {
   // Purpose and Method: Simple building of the geometrical momentum (Sx,Sy,E).
@@ -477,37 +477,37 @@ HepVector VtxKalFitTool::computeQatVtx(const Event::TkrFitTrack& theTrack,
   // Restrictions and Caveats: No attempt to play with energy, maybe not even 
   // necessary
   HepVector q(3);
-  q[0] = theTrack.getTrackPar().getXSlope();
-  q[1] = theTrack.getTrackPar().getYSlope();
-  q[2] = theTrack.getEnergy();
+///  q[0] = theTrack.getTrackPar().getXSlope();
+///  q[1] = theTrack.getTrackPar().getYSlope();
+///  q[2] = theTrack.getEnergy();
   return q;
 }
 
 
 //This is just a reformatting of TkrFitMatrix into HepSymMatrix
-HepSymMatrix VtxKalFitTool::getHepSymCov(const Event::TkrFitMatrix& measCov)
+HepSymMatrix VtxKalFitTool::getHepSymCov(const Event::TkrTrackParams& measCov)
 {
   HepSymMatrix G(4,0);
-  G(1,1) = measCov.getcovX0X0();
-  G(2,2) = measCov.getcovSxSx();
-  G(1,2) = measCov.getcovX0Sx();
-  G(2,1) = measCov.getcovSxX0();
+  G(1,1) = measCov(1,1);
+  G(2,2) = measCov(2,2);
+  G(1,2) = measCov(1,2);
+  G(2,1) = measCov(2,1);
   
-  G(3,3) = measCov.getcovY0Y0();
-  G(4,4) = measCov.getcovSySy();
-  G(3,4) = measCov.getcovY0Sy();
-  G(4,3) = measCov.getcovSyY0();
+  G(3,3) = measCov(3,3);
+  G(4,4) = measCov(4,4);
+  G(3,4) = measCov(3,4);
+  G(4,3) = measCov(4,3);
   
-  G(1,3) = measCov.getcovX0Y0();
-  G(1,4) = measCov.getcovX0Sy();
-  G(4,1) = measCov.getcovSyX0();
+  G(1,3) = measCov(1,3);
+  G(1,4) = measCov(1,4);
+  G(4,1) = measCov(4,1);
   
-  G(3,1) = measCov.getcovY0X0();
-  G(3,2) = measCov.getcovY0Sx();
-  G(2,3) = measCov.getcovSxY0();
+  G(3,1) = measCov(3,1);
+  G(3,2) = measCov(3,2);
+  G(2,3) = measCov(2,3);
   
-  G(2,4) = measCov.getcovSxSy();
-  G(4,2) = measCov.getcovSySx();
+  G(2,4) = measCov(2,4);
+  G(4,2) = measCov(4,2);
   return G;
 }
 
@@ -549,8 +549,8 @@ HepMatrix VtxKalFitTool::SlopeToDir(HepVector Q, int sign_uz)
       return T;
 }
 
-Event::TkrFitMatrix 
-VtxKalFitTool::propagCovToVtx(const Event::TkrFitMatrix Cov, 
+Event::TkrTrackParams 
+VtxKalFitTool::propagCovToVtx(const Event::TkrTrackParams Cov, 
                               const HepVector /*Vtx*/)
 {
   // Purpose and Method: Propagate Cov matrix to vicinity of current 
@@ -566,7 +566,7 @@ VtxKalFitTool::propagCovToVtx(const Event::TkrFitMatrix Cov,
 
 
 HepSymMatrix 
-VtxKalFitTool::computeWeightMatrix(const Event::TkrFitTrack& theTrack,
+VtxKalFitTool::computeWeightMatrix(const Event::TkrTrack& theTrack,
                                    const HepVector Vtx)
 {
   // Purpose and Method: Computation of the weight matrix in 3 steps:
@@ -583,18 +583,18 @@ VtxKalFitTool::computeWeightMatrix(const Event::TkrFitTrack& theTrack,
   MsgStream log(msgSvc(), name());
 
   //first bring Cov(X,Sx,Y,Sy) close to current vertex
-  Event::TkrFitMatrix measCov = propagCovToVtx(theTrack.getTrackCov(), Vtx);
+///  Event::TkrFitMatrix measCov = propagCovToVtx(theTrack.getTrackCov(), Vtx);
   //Then get the weight matrix of this part:
-  measCov.invert(ifail);
-  if(ifail)
-    log << MSG::ERROR <<"ERROR INVERTING measCov!"<<endreq;
+///  measCov.invert(ifail);
+///  if(ifail)
+///    log << MSG::ERROR <<"ERROR INVERTING measCov!"<<endreq;
  
   //We clearly assumes here that Energy is independant:
   HepSymMatrix G(5,0);
-  G.sub(1,getHepSymCov(measCov));
+///  G.sub(1,getHepSymCov(measCov));
    
   //Now add the energy error:
-  double E = theTrack.getEnergy();
+  double E = theTrack.getInitialEnergy();
   if(E>1000000) 
     {
       log << MSG::WARNING << "Track Energy Not determined: will put huge errors" << endreq;
