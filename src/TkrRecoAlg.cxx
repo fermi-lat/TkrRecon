@@ -46,17 +46,7 @@ StatusCode TkrRecoAlg::initialize() {
     setProperties();
     
     // now try to find the GlastDevSvc service
-#if 1  // old way, Gaudi v5.  
-    IGlastDetSvc* detSvc = 0;
-    const IID&  IID_IGlastDetSvc  =  401; // wired it for now!
-    StatusCode sc = serviceLocator()->getService ("GlastDetSvc",
-        IID_IGlastDetSvc, reinterpret_cast<IInterface*&>( detSvc ));
-    
-    m_detSvc = detSvc;
-
-#else //this is the new way in v6, 
     StatusCode sc = service("GlastDetSvc", m_detSvc);
-#endif    
 
     if (!sc.isSuccess ()){
         log << MSG::ERROR << "Couldn't find the GlastDetSvc!" << endreq;

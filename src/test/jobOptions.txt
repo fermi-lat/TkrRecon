@@ -4,7 +4,7 @@
 //
 
 
-ApplicationMgr.ExtSvc   = { "GlastDetSvc", "EventSelector" , "EventCnvSvc"};
+ApplicationMgr.ExtSvc   = { "GlastDetSvc", "GlastEventSelector/EventSelector" , "EventCnvSvc"};
 
 ApplicationMgr.DLLs   = { "GlastSvc", "TkrRecon", "RootHistCnv"  };
 
@@ -20,7 +20,8 @@ MessageSvc.OutputLevel      = 2;
 EventPersistencySvc.CnvServices = {"EventCnvSvc"};
 
 
-ApplicationMgr.EvtSel = "IRFFILE /Gaudi2/instrument/v2r2/src/test/muontest.irf";
+EventSelector.Input = "IRFFILE /packages/gaudi_dev/instrument/v2r3/src/test/muontest.irf";
+//want this: EventSelector.Input = "IRFFILE $(INSTRUMENTROOT)/src/test/muontest.irf";
 
 ApplicationMgr.EvtMax = 20;
 
