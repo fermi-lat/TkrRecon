@@ -83,22 +83,22 @@ StatusCode TkrFindAlg::execute()
     //But, for now allow this option to help some pattern rec algorithms
     ICsIClusterList* pCalClusters = SmartDataPtr<ICsIClusterList>(eventSvc(),"/Event/CalRecon/CsIClusterList");
 
-    double CalEnergy   = 0.03;
+    double CalEnergy   = 30.0; //MeV
     Point  CalPosition = Point(0.,0.,0.);
 
     //If clusters, then retrieve estimate for the energy
     if (pCalClusters)
     {
         ICsICluster* pCalClus = pCalClusters->Cluster(0);
-        CalEnergy             = pCalClus->energySum() / 1000; //GeV for now
+        CalEnergy             = pCalClus->energySum(); //MeV
         CalPosition           = pCalClus->position();
     }
 
     //Provide for some lower cutoff energy...
-    if (CalEnergy < 0.03)
+    if (CalEnergy < 30.0)  // MeV
     {
         //! for the moment use:
-        double MINENE = 0.03;
+        double MINENE = 30.0;  // MeV
         CalEnergy     = MINENE;
         CalPosition   = Point(0.,0.,0.);
     }
@@ -119,5 +119,4 @@ StatusCode TkrFindAlg::finalize()
 {	
     return StatusCode::SUCCESS;
 }
-
 
