@@ -5,11 +5,12 @@
  * @section introduction Introduction
  *
  * TkrRecon contains the code that reconstructs tracks from
- * hit strips in the TKR.
+ * hit strips in the TKR. 
  * 
- * It's organized a a series of algorithms that act
+ * It's organized as a series of algorithms that act
  * successively, taking input from, and sending output to
- * the Transient Data Store.
+ * the Transient Data Store. Starting from TkrDigi objects, it generates
+ * TkrCluster's, then TkrPatCand's, TkrFitTrack's and finally TkrVertex objects.
  * 
  * The major driver algorithms are written to support multiple 
  * implementations. 
@@ -36,9 +37,9 @@
  * TkrReconAlg: (bad name! It's called TkrFitAlg in the diagram.)
  * The candidate tracks are fit, and TkrTracks is filled with TkrFitTrack objects.
  * Here the work is done by one of TkrLinkAndTreeFit, TkrComboFit or TkrNeuralNetFit.
- * All three of these currently pass patrec candidates to the same Kalman Filter, 
+ * All three of these currently pass patrec candidates to the same Kalman Filter, KalFitTrack, 
  * but because each patrec produces slightly different information, we still need
- * three separate classes.
+ * three separate classes. We need to fix this.
  *
  * TkrVertexAlg: Finds vertices among the TkrTracks, 
  * to produce TkrVertexCol, the collection of TkrVertex objects.. 
