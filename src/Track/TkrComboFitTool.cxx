@@ -8,7 +8,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.15 2003/08/04 20:04:40 usher Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.16 2004/09/07 22:15:52 lsrea Exp $
 */
 
 #include "src/Track/TkrComboFitTool.h"
@@ -130,9 +130,17 @@ StatusCode TkrComboFitTool::doTrackFit(Event::TkrPatCand* patCand)
     }
     track->setType(type);
 
-    fitter->doFit();
+    bool fitted = true;
+    try {
+        fitter->doFit();
+    } catch(std::domain_error e) {
+        std::cout << "TkrComboFitTool: " << e.what() << std::endl
+                  << "                 Will delete this track and continue." << std::endl;
+        
+        fitted = false;
+    }
 
-    if (!track->empty(control->getMinSegmentHits())) 
+    if (!track->empty(control->getMinSegmentHits()) && fitted) 
     {
         //Add the track to the collection in the TDS
         Event::TkrFitTrackCol* pFitTracks = SmartDataPtr<Event::TkrFitTrackCol>(pDataSvc,EventModel::TkrRecon::TkrFitTrackCol); 

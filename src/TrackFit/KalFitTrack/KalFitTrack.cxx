@@ -1246,7 +1246,10 @@ void KalFitTrack::eneDetermination()
     
     Vector t0(0.,0.,0.); 
     int old_Plane_Id = m_hits[0].getIDPlane(); 
-   
+
+    // smallest radlen to include step in energy calculation
+    const double rl_min = 1.e-4;
+
     for (int iplane = 0; iplane < nplanes; iplane++) { 
        // Get the last cluster size for range estimation
        TkrCluster::view hit_proj = m_hits[iplane].getProjection();
@@ -1282,7 +1285,7 @@ void KalFitTrack::eneDetermination()
         double theta = acos(t0t1);
         double rl_factor = radLen;
         
-        if(rl_factor>1.e-4) {
+        if(rl_factor>rl_min) {
             eSumCount += 1.; 
             tSumCount += 1./rl_factor; 
             eneSum += (theta * e_factor)*(theta * e_factor)/rl_factor; 
@@ -1309,7 +1312,7 @@ void KalFitTrack::eneDetermination()
         range_limit = totalRad * 50.; // 10 MeV = 20% rad. len
     }
 
-    m_KalThetaMS = sqrt(thetaSum/2./std::max(1.e-4,tSumCount));
+    m_KalThetaMS = sqrt(thetaSum/2./std::max(rl_min,tSumCount));
     double e_inv = sqrt(eneSum/2./eSumCount); 
     m_KalEnergy  = 13.6/std::max(e_inv, 1.e-6); //Units:  MeV
     

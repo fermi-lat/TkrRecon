@@ -3,6 +3,7 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v9r0p2gr5 20-Oct-2004 LSR  Catch one more exception
   v9r0p2gr4 19-Oct-2004 LSR  Protect for zero radiation length
   v9r0p2gr3 19-Oct-2004 LSR  Catch exception from propagator
   v9r0p2gr1 23-Sep-2004  TU   Branch to GlastRelease-v4r5, tag "base" TkrRecon
