@@ -77,7 +77,7 @@ private:
     void findCalCandidates();
 
     // internal utilities
-    float findNextHit(int, float, Ray&, float&, int&);
+    float findNextHit(int, Ray&, float&, int&);
     void  incorporate(Candidate*);
     
     // data members
