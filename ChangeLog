@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Fri May 31 11:53:31 PDT 2002
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	TkrComboVtxRep.cxx 
+Log Message:
+numVertices not needed anymore
+    *
+------------------------------------------------------------
 User: cohen  Fri May 31 10:08:54 PDT 2002
 TkrRecon/src/Vertex/DocaVtx
 
