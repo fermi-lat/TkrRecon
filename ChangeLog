@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Sun Sep  8 08:52:21 PDT 2002
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+fix requirements for test program, ready for v8r1
+    *
+------------------------------------------------------------
 User: lsrea  Sat Sep  7 17:14:56 PDT 2002
 TkrRecon/src/Services
 
