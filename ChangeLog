@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: usher  Sat May 11 22:53:00 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrClusterAlg.cxx TkrFindAlg.cxx TkrReconAlg.cxx 
+	TkrVertexAlg.cxx 
+Log Message:
+Change namespace TkrRecon to Event
+
+    *
+------------------------------------------------------------
+User: usher  Sat May 11 22:53:00 PDT 2002
 TkrRecon/src/Display
 
 Modified Files:
