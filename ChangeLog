@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Tue Oct 12 12:03:41 PDT 2004
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	ComboVtxTool.cxx ComboVtxTool.h TkrComboVtxRecon.cxx 
+	TkrComboVtxRecon.h TkrComboVtxRep.cxx TkrComboVtxRep.h 
+Log Message:
+change to m_tkrGeom throughout
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Oct 12 12:03:40 PDT 2004
 TkrRecon/src/Vertex
 
