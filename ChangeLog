@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 14:16:41 PST 2001
+TkrRecon/TkrRecon
+
+Removed Files:
+	RecNtupleAlg.h TkrNtupleAlg.h 
+Log Message:
+Moving these gaudi algorithm definitions to GaudiAlg
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 14:14:07 PST 2001
 TkrRecon/TkrRecon/cluster
 
