@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: lsrea  Mon Jan 17 11:16:45 PST 2005
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx 
+Log Message:
+Major refactoring of ComboFindTrackTool, with bug fixes
+add method numUniqueHits() to TrackFitUtils... more efficient version of compareTracks()
+use new geomSvc methods in ComboVtxTool
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon Jan 17 11:16:44 PST 2005
 TkrRecon/doc
 
