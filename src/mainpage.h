@@ -70,7 +70,10 @@
  * This service may go away if we can teach
  * the algorithms about sub-algorithms.
  *
- * @authors Tracy Usher, Bill Atwood, Leon Rochester
+ * @authors Tracy Usher, Leon Rochester (SLAC) <br>
+ * Bill Atwood, Brandon Allgood(UC Santa Cruz) <br>
+ * Michael Kuss, Johann Tanugi-Cohen (INFN Pisa) <br>
+ * Jose Angel Hernando Morata (Santiago de Compostela)
  * <hr>
  * @section requirements CMT Requirements
  * @verbinclude requirements
@@ -79,5 +82,14 @@
  * release.notes
  * <hr>
  * @todo
- * 
+ * Develop mechanism to handle constants required by code. Current plan is to put the constants in an xml file,
+ * and to make them properties as well, so that they can be over-written from the jobOptions.
+ *
+ * Consolidate references to geometry - remove from GFtutor and other places
+ *
+ * Root out last hardwired numbers
+ *
+ * Respond to DSTF review
+ *
+ * Doxygenate remainder of code
  */
