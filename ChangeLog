@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Thu Jun 17 11:27:37 PDT 2004
+TkrRecon/src/TrackFit/LineFit2D
+
+Modified Files:
+	LineFit2D.cxx 
+Log Message:
+prepare for tag v8r12p20 -- Fix a bunch of unix warnings; the rest are for Tracy
+
+    *
+------------------------------------------------------------
 User: lsrea  Thu Jun 17 11:27:36 PDT 2004
 TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy
 
