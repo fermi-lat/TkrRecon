@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Tue May  7 15:59:40 PDT 2002
+TkrRecon/src/Vertex
+
+Removed Files:
+	TkrVertex.cxx TkrVertexCol.cxx 
+Log Message:
+TDS output classes moved to GlastEvent
+Modify remaining source code to reflect this movement
+
+    *
+------------------------------------------------------------
 User: usher  Tue May  7 15:58:49 PDT 2002
 TkrRecon/src/TrackFit/KalmanFilter
 
