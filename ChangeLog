@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: kyoung  Wed Jun 20 15:15:27 PDT 2001
+TkrRecon/src TkrGeometrySvc.cxx
+
+Modified Files:
+	TkrGeometrySvc.cxx 
+Log Message:
+Changed Ifile.h IFile.h
+    *
+------------------------------------------------------------
 User: kyoung  Wed Jun 20 15:14:21 PDT 2001
 TkrRecon/src TkrNtupleAlg.cpp
 
