@@ -6,7 +6,7 @@
 * @author Tracking Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.27 2005/03/01 00:55:50 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.28 2005/03/02 00:25:21 lsrea Exp $
 */
 
 // to turn one debug variables
@@ -112,6 +112,8 @@ private:
     double m_max_gap_dist;     // Max. allowed error in mm when testing for gap edges
     double m_max_slope;        // Max. allowed abs(slope)
     int    m_maxLeadingHits;   // Max. number of leading hits to add
+    int    m_maxGaps;          // Max. number of gaps (hitType = UNKNOWN) to allow on a track
+    int    m_maxConsecutiveGaps; // Max. # of consecutive gaps (hitType = UNKNOWN) allowed
 };
 
 static ToolFactory<FindTrackHitsTool> s_factory;
@@ -137,7 +139,8 @@ AlgTool(type, name, parent)
     declareProperty("GapMaxRejectionSize",   m_max_gap_dist = 10.); 
     declareProperty("MaxAllowedSlope",       m_max_slope = 5.);
     declareProperty("MaxLeadingHits",        m_maxLeadingHits = 2);
-
+    declareProperty("MaxGaps",               m_maxGaps = 0);
+    declareProperty("MaxConsecutiveGaps",    m_maxConsecutiveGaps = 0);
     return;
 }
 
@@ -223,6 +226,9 @@ StatusCode FindTrackHitsTool::findTrackHits(TkrTrack* track)
 
     StatusCode sc = StatusCode::SUCCESS;
 
+    int  nGaps            = 0;
+    int  nConsecutiveGaps = 0;
+
     // Set the first hit on the track here
     TkrTrackHit* lastHit = setFirstHit(track);
     if(!lastHit) return StatusCode::FAILURE;
@@ -240,12 +246,18 @@ StatusCode FindTrackHitsTool::findTrackHits(TkrTrack* track)
     track->push_back(lastHit);
 
     // Loop until no more track hits found or hit of type HITISUNKNOWN is returned  
-    // For now stop in the latter case, we can look into allow 1 or 2 of these
+    // Stop when m_maxGaps or m_maxConsecutiveGaps is exceeded.
 
     while(TkrTrackHit* trackHit = findNextHit(lastHit, false))
     {
         // Could be a hit of type HITISUNKNOWN... terminate for now
         if(((trackHit->getStatusBits())&TkrTrackHit::HITISUNKNOWN)!=0) {
+            nGaps++;
+            nConsecutiveGaps++;
+        } else {
+            nConsecutiveGaps = 0;
+        }
+        if(nGaps>m_maxGaps || nConsecutiveGaps>m_maxConsecutiveGaps) {
             //we're done here
             delete trackHit;
             break;
@@ -842,6 +854,16 @@ int FindTrackHitsTool::addLeadingHits(TkrTrack* track)
     double sigma_temp = m_sigma; 
     m_sigma  = m_LHsigma; 
 
+    int nConsecutiveGaps = 0; // by definition!
+    int nGaps = 0;
+    int nHits = (*track).size();
+    while (--nHits) {
+        TkrTrackHit* trackHit = (*track)[nHits];
+        if(((trackHit->getStatusBits())&TkrTrackHit::HITISUNKNOWN)!=0) {
+            nGaps++;
+        }
+    }
+
     // Get the first hit on the track
     TkrTrackHit* lastHit = (*track)[0];
 
@@ -856,11 +878,18 @@ int FindTrackHitsTool::addLeadingHits(TkrTrack* track)
 
     // Loop until no more track hits found or hit of type UNKNOWN is encountered
     int  planes_crossed  = 0;
-    int  added_hits      = 0; 
+    int  added_hits      = 0;
+
     while(TkrTrackHit* trackHit = findNextHit(lastHit, true))
     {   
-        // handle "HITISUNKNOWN"... presumably we don't want to add this hit!
         if(((trackHit->getStatusBits())&TkrTrackHit::HITISUNKNOWN)!=0) {
+            nGaps++;
+            nConsecutiveGaps++;
+        } else {
+            nConsecutiveGaps = 0;
+        }
+  
+        if(nGaps>m_maxGaps || nConsecutiveGaps>m_maxConsecutiveGaps) {
             //we're done here
             delete trackHit;
             break;
