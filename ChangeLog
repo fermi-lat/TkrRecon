@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Mon Jan 31 14:43:17 PST 2005
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Ready to tag v10r3p4
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r3p3, operation: add
 Package: TkrRecon
