@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrClusters.cxx,v 1.6 2002/03/29 02:09:43 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrClusters.cxx,v 1.7 2002/03/30 02:52:03 lsrea Exp $
 //
 // Description:
 //      TkrClusters is a container for Tkr clusters, and has the methods
@@ -31,11 +31,11 @@ TkrClusters::TkrClusters(ITkrGeometrySvc* pTkrGeoSvc, ITkrBadStripsSvc* pBadStri
 		// each digi contains the digitized hits from one layer of one tower
         TkrDigi* pDigi = pTkrDigi[idigi];
         
-        int layer  = pDigi->layer();
-        int view   = pDigi->view();
-        int tower  = pDigi->tower();
+        int layer  = pDigi->getBilayer();
+		int view   = pDigi->getView();
+        int tower  = (pDigi->getTower()).id();
         
-        int nHits  = pDigi->num();
+        int nHits  = pDigi->getNumHits();
 		
         // the list of bad strips
         v_strips* badStrips = 0;
@@ -54,7 +54,7 @@ TkrClusters::TkrClusters(ITkrGeometrySvc* pTkrGeoSvc, ITkrBadStripsSvc* pBadStri
         // copy and mark the hits good
         int ihit=0;
         for ( ihit = 0; ihit < nHits; ihit++,running_index++){
-            stripHits[running_index] = tagGood(pDigi->hit(ihit));
+            stripHits[running_index] = tagGood(pDigi->getHit(ihit));
         } 
         // copy the bad strips, already marked
         if (pBadStrips) {
@@ -90,7 +90,8 @@ TkrClusters::TkrClusters(ITkrGeometrySvc* pTkrGeoSvc, ITkrBadStripsSvc* pBadStri
                     // it's good... make a new cluster
                     TkrCluster* cl = new TkrCluster(nclusters, view, 
 						pTkrGeo->numPlanes()-layer-1,
-                        untag(lowStrip), untag(highStrip), pDigi->ToT(0), tower);
+                        untag(lowStrip), untag(highStrip), 
+						pDigi->getToTForStrip(untag(highStrip)), tower);
                     cl->setPosition(position(cl->plane(),cl->v(),cl->strip(), cl->tower()));
                     addCluster(cl);
                     nclusters++;   

@@ -31,6 +31,7 @@ StatusCode TkrBadStripsSvc::initialize()
 	// Outputs: Status code (Success/Failure)
 
 	MsgStream log(msgSvc(), name());
+	log.setLevel(MSG::DEBUG);
     StatusCode sc = StatusCode::SUCCESS;
        
     Service::initialize();
@@ -53,14 +54,19 @@ StatusCode TkrBadStripsSvc::initialize()
     }
 
 	// this is a test of the message service.  Some of these messages don't get logged
-	log << MSG::DEBUG << "Test 1"<< endreq;
+	// it looks like the problem is that m_level has been set to INFO before this call,
+	// but I have no idea who does this. Something for another day.
+
+	//std::cout << " about to send a debug and an info message" << std::endl;
+	//log << MSG::DEBUG << "Test 1 Debug"<< endreq;
+	//log << MSG::INFO << "Test 1 Info"<< endreq;
 
     // this method resolves environmental variables in the file name
 	xml::IFile::extractEnvVar(&m_badStripsFile);    
     log << MSG::INFO << "Input file for bad strips: " << m_badStripsFile << endreq;
 
 	// another test
-	log << MSG::DEBUG << "Test 2"<< endreq;
+	//log << MSG::DEBUG << "Test 2"<< endreq;
 
     // open bad strips file
     std::ifstream file;
@@ -173,6 +179,8 @@ void TkrBadStripsSvc::readFromFile(std::ifstream* file)
 		if (makestrips) std::sort(v->begin(), v->end());
         
     }
+	std::cout << "another place, same test" << std::endl;
+    log << MSG::DEBUG << nStrips << " bad strips read from file" << endreq;
     log << MSG::INFO << nStrips << " bad strips read from file" << endreq;
    
     return;
