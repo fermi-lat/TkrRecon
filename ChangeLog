@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Sat May 19 20:55:18 PDT 2001
+TkrRecon/src TkrGeometrySvc.cxx
+
+Modified Files:
+	TkrGeometrySvc.cxx 
+Log Message:
+Fixed a little bug in the code for establishing the ladder position.
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri May 18 12:01:02 PDT 2001
 TkrRecon/xml Tkr_Balloon.xml Tkr_TestBeam.xml
 
