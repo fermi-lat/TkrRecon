@@ -27,3 +27,13 @@ N TkrRecon/TkrRecon/TkrRecoAlg.h
 No conflicts created by this import
 
     *
+------------------------------------------------------------
+User: burnett  Tue Dec 19 12:39:35 PST 2000
+TkrRecon/src TkrRecoAlg.cxx
+
+Modified Files:
+	TkrRecoAlg.cxx 
+Log Message:
+
+tracker recon standalone.
+    *
