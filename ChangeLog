@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Sun Dec 26 15:30:03 PST 2004
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Prepare for tag v10r1: mods for TkrCluster; gap and bad-cluster calls in FindTrackHitsTool
+
+    *
+------------------------------------------------------------
 User: usher  Wed Dec 22 09:52:56 PST 2004
 TkrRecon/src/Track
 
