@@ -1064,20 +1064,24 @@ TkrFitPlane KalFitTrack::originalKPlane() const
     TkrFitMatrix covfit(1);
 
     double sigma_alt = m_tkrGeo->trayWidth(); //Big error... 
-    if(m_axis == TkrCluster::X) {
-        covfit(1,1) = sigma2Position;
-        covfit(3,3) = sigma_alt*sigma_alt;
-    }
-    else {
-        covfit(1,1) = sigma_alt*sigma_alt;
-        covfit(3,3) = sigma2Position;
-    }
+
+    int tray, botTop;
+    // get the view of the top plane of this layer
+    m_tkrGeo->layerToTray(m_iLayer, 0, tray, botTop);
+    TkrCluster::view axis = TkrCluster::intToView(botTop ? 0 : 1);
+
+    int measured, other;
+    if (axis==TkrCluster::X) { measured = 1; other = 3; }
+    else                     { measured = 3; other = 1; }
+
+    covfit(measured, measured) = sigma2Position;
+    covfit(other,    other   ) = sigma_alt*sigma_alt;
     covfit(2,2) = covfit(4,4) = sigma2Slope; 
     
     TkrFitHit hitfit(TkrFitHit::FIT, pfit, covfit);
     TkrFitHit hitmeas(TkrFitHit::MEAS, pfit, covfit); 
     
-    TkrFitPlane kp(-1,m_iTower, m_iLayer-1,m_energy0, x_ini.z(), hitfit, TkrCluster::XY);
+    TkrFitPlane kp(-1,m_iTower, m_iLayer-1,m_energy0, x_ini.z(), hitfit, axis);
     kp.setHit(hitmeas);
     
     return kp;
