@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/TrackFit/KalPlane.h,v 1.1 2001/11/26 21:48:21 usher Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/TrackFit/KalPlane.h,v 1.2 2002/02/17 00:36:57 burnett Exp $
 //----------------------------------------
 //
 //      Kalman Filter Objects Declarations
@@ -42,7 +42,7 @@ public:
     // Adding Hits, energy and other variables
     void setHit(const KalHit& hit);
     inline void setEnergy(double const e) {
-                m_eneplane = (e < 0.03? 0.03:e);}
+		m_eneplane = (e < 30.0? 30.0:e);} //MeV
     inline void setIDHit(unsigned id) {
 		m_IDHit = id;
 		m_IDTower = (int) id/1000000;
