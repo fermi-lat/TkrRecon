@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Sat May 11 22:52:59 PDT 2002
+TkrRecon/TkrRecon/Services
+
+Modified Files:
+	TkrInitSvc.h 
+Log Message:
+Change namespace TkrRecon to Event
+
+    *
+------------------------------------------------------------
 User: usher  Sat May 11 22:52:58 PDT 2002
 TkrRecon/TkrRecon/PatRec
 
