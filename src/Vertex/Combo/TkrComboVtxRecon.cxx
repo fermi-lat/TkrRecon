@@ -36,10 +36,12 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTr
                                       Ray(track2->getPosition(),track2->getDirection()));
             double  dist    = doca.docaRay1Ray2();
             
+            double cost1t2 = track1->getDirection()*track2->getDirection();
+            double t1t2 = acos(cost1t2);  
             
             //Check that the DOCA is not too big
-            if ((doca.docaRay1Ray2() < 5. && (doca.arcLenRay1() <= 5. || doca.arcLenRay2() <= 5.)) ||
-                doca.docaRay1Ray2() < 2.) {
+            if ((dist < 5. && doca.arcLenRay1() <= 10. && doca.arcLenRay2() <= 10.) ||
+                (dist < 1. && t1t2 < .005)) {
 
                 Point  gamPos;
                 Vector gamDir;
@@ -70,9 +72,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTr
                 Ray        gamma  = Ray(gamPos,gamDir);
                 TkrVertex* vertex = new TkrVertex(track1->getLayer(),track1->getTower(),gamEne,dist,gamma);
  //               vertex->setDist1(doca.arcLenRay1());
- //               vertex->setDist2(doca.arcLenRay2());
-                double cost1t2 = track1->getDirection()*track2->getDirection();
-                double t1t2 = acos(cost1t2); 
+ //               vertex->setDist2(doca.arcLenRay2())
 //                vertex->setAngle(t1t2); 
                 vertex->addTrack(track1);
                 vertex->addTrack(track2);
