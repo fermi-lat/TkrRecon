@@ -29,6 +29,7 @@ apply_pattern package_headers
 macro_append TkrCluster_headers   "" WIN32 " ../TkrRecon/Cluster/*.h"
 macro_append TkrPatRec_headers    "" WIN32 " ../TkrRecon/PatRec/*.h ../src/PatRec/LinkAndTree/*.h ../src/PatRec/Combo/*.h"
 macro_append TkrTrack_headers     "" WIN32 " ../TkrRecon/Track/*.h ../TkrRecon/TrackFit/*.h"
+macro_append TkrVertex_headers    "" WIN32 " ../TkrRecon/Vertex/*.h ../src/Vertex/Combo/*.h"
 macro_append TkrGaudiAlgs_headers "" WIN32 " ../TkrRecon/GaudiAlg/*.h ../TkrRecon/Display/*.h ../TkrRecon/Services/*.h "
 
 # have a seperate libraries to divide into manageable sub projects
@@ -51,12 +52,17 @@ library TkrTrack     -no_share Track/*.cxx                     \
                                TrackFit/*.cxx                  \
                                ${TkrTrack_headers}
 
+library TkrVertex    -no_share Vertex/*.cxx                    \
+                               Vertex/Combo/*.cxx              \
+                               ${TkrVertex_headers}
+
 macro libs ""   WIN32   "$(TkrReconDir)/TkrGaudiAlgs.lib \
                          $(TkrReconDir)/TkrCluster.lib   \
                          $(TkrReconDir)/TkrPatRec.lib    \
-                         $(TkrReconDir)/TkrTrack.lib"
+                         $(TkrReconDir)/TkrTrack.lib     \
+                         $(TkrReconDir)/TkrVertex.lib"
 
-macro TkrRecon_linkopts "-L $(TkrReconDir) -lTkrGaudiAlgs -lTkrCluster -lTkrPatRec -lTkrTrack"\
+macro TkrRecon_linkopts "-L $(TkrReconDir) -lTkrGaudiAlgs -lTkrCluster -lTkrPatRec -lTkrTrack -lTkrVertex" \
                       WIN32 ""
 
 
