@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon Jul  2 11:00:01 PDT 2001
+TkrRecon/src/Dll TkrRecon_load.cpp
+
+Modified Files:
+	TkrRecon_load.cpp 
+Log Message:
+Fix BadStrips code, and connect to SiClustersAlg
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon Jul  2 11:00:00 PDT 2001
 TkrRecon/src SiClustersAlg.cxx TkrBadStripsSvc.cxx
 
