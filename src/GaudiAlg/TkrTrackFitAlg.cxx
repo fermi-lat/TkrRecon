@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.4 2002/09/05 16:42:30 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.5 2002/10/09 23:44:09 usher Exp $
 //
 // Description:
 //      Controls the track fitting
@@ -25,8 +25,7 @@
 
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 
-#include "GlastSvc/Reco/IRecoSvc.h"
-#include "GlastSvc/Reco/IPropagatorSvc.h"
+#include "GlastSvc/Reco/IPropagatorTool.h"
 #include "GaudiKernel/IToolSvc.h"
 
 // Used by Gaudi for identifying this algorithm
@@ -62,22 +61,20 @@ StatusCode TkrTrackFitAlg::initialize()
     log << MSG::INFO << "TkrTrackFitAlg Initialization" << endreq;
 
     // Which propagator to use?
+    IPropagatorTool* propTool = 0;
     if (m_PropagatorType == 0)
     {
         // Look for the G4PropagatorSvc service
-        IPropagatorSvc* propSvc = 0;
-        sc = service("G4PropagatorSvc", propSvc, true);
-        m_KalParticle = propSvc->getPropagator();
+        sc = toolSvc()->retrieveTool("G4PropagatorTool", propTool);
         log << MSG::INFO << "Using Geant4 Particle Propagator" << endreq;
     }
     else
     {
         // Look for GismoGenerator Service
-        IRecoSvc* gismoSvc = 0;
-        sc = service("RecoSvc", gismoSvc, true);
-        m_KalParticle = gismoSvc->getPropagator();
+        sc = toolSvc()->retrieveTool("RecoTool", propTool);
         log << MSG::INFO << "Using Gismo Particle Propagator" << endreq;
     }
+    m_KalParticle = propTool->getPropagator();
 
     // Depending upon the value of the m_TrackFitType parameter, set up the 
     // Gaudi Tool for performing the track fit. 
