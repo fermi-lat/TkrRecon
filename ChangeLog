@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Sun Jan 27 11:46:51 PST 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrDisplayAlg.cxx TkrFindAlg.cxx TkrReconAlg.cxx 
+Log Message:
+
+Modifications to implement pattern recognition through track fitting.
+Also added new display reps for drawing 3D candidate tracks
+
+
+    *
+------------------------------------------------------------
 User: usher  Sun Jan 27 11:45:11 PST 2002
 TkrRecon/src/Track
 
