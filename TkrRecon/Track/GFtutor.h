@@ -19,7 +19,7 @@ public:
     static void GFtutor::load(TkrClusterCol* scl, ITkrGeometrySvc* pTrkGeo);
 	static void GFtutor::setVeto(bool vt) {CUT_veto = vt;}
 	static TkrClusterCol* _DATA;
-
+	static ITkrGeometrySvc* pTrackerGeo;
 
 
 
@@ -45,7 +45,7 @@ public:
 
 private:
 
-	static ITkrGeometrySvc* pTrackerGeo;
+
 
 	static int m_numPlanes;
 	

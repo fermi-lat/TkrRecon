@@ -64,7 +64,7 @@ void TkrTracksRep::drawChiSq(const TkrFitTrack& track)
         TkrFitPlane::AXIS prj = plane.getProjection();
 
         double x0, y0, z0, xl, xr, yl, yr;
-        double delta= plane.getDeltaChiSq(typ);
+        double delta= plane.getDeltaChiSq(typ)*10.; //Scale factor! We're in mm now!
 
         if(prj == TkrCluster::X){
             x0 = plane.getHit(typ).getPar().getXPosition();

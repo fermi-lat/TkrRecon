@@ -229,3 +229,4 @@ StatusCode  TkrGeometrySvc::queryInterface (const IID& riid, void **ppvIF)
 const IID&  TkrGeometrySvc::type () const {
     return IID_ITkrGeometrySvc;
 }
+
