@@ -51,8 +51,15 @@ StatusCode TkrInitSvc::initialize()
     if (m_minTermHitCount    != control->getMinTermHitCount()   ) control->setMinTermHitCount(m_minTermHitCount);
     if (m_fEneParticle       != control->getFEneParticle()      ) control->setFEneParticle(m_fEneParticle);
     if (m_sigmaCut           != control->getSigmaCut()          ) control->setSigmaCut(m_sigmaCut);
-    if (m_minEnergy          != control->getMinEnergy()         ) control->setMinEnergy(m_minEnergy);
     if (m_hitEnergyType      != control->getHitEnergyType()     ) control->setHitEnergyType(m_hitEnergyType);
+    if (m_minEnergy          != control->getMinEnergy()         ) {
+        control->setMinEnergy(m_minEnergy);
+    } else {
+        if(m_hitEnergyType=="MuRadLoss") {
+            control->setMinEnergy(1000.);
+            log<< MSG::INFO << "Setting minimum energy to 1000 MeV for MuRadLoss" << endreq;
+        }
+    }
     if (m_maxConsecutiveGaps != control->getMaxConsecutiveGaps()) control->setMaxConsGaps(m_maxConsecutiveGaps);
     if (m_minSegmentHits     != control->getMinSegmentHits()    ) control->setMinSegmentHits(m_minSegmentHits);
     if (m_maxChiSqCut        != control->getMaxChisqCut()       ) control->setMaxChisqCut(m_maxChiSqCut);

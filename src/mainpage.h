@@ -130,6 +130,8 @@ emeritus: Jose Angel Hernando Morata (Santiago de Compostela)
 
   @param TkrReconAlg.TrackerReconType
   sets recon type (default = "Combo")
+  @param TkrReconAlg.saveBadEvents
+  sets whether to continue (return SUCCESS) after an error or exception (default = true)
 
   @param TkrTrackFitAlg.PropagatorType
   obsolete, now set in GlastPropagatorSvc
@@ -148,8 +150,8 @@ The following are technical and should not ordinarily be set by the casual user:
   @param TkrInitSvc.TkrMinTermHitCount
   @param TkrInitSvc.TkrFEneParticle
   @param TkrInitSvc.TkrSigmaCut
-  @param TkrInitSvc.TkrMinEnergy
-  @param TkrInitSvc.TkrHitEnergyType
+  @param TkrInitSvc.TkrMinEnergy Default: 30; 1000 for MuRadLoss
+  @param TkrInitSvc.TkrHitEnergyType 
   @param TkrInitSvc.TkrMaxConsecutiveGaps
   @param TkrInitSvc.TkrMinSegmentHits
   @param TkrInitSvc.TkrMaxChiSqCut

@@ -107,7 +107,7 @@ KalFitter::KalFitter(TkrClusterCol* clusters, ITkrGeometrySvc* geo,
 KalFitter::KalFitter(TkrClusterCol* clusters, ITkrGeometrySvc* geo,
                      TkrKalFitTrack* track,  
                      double sigmaCut,double energy) :
-      m_ray(Ray(track->getInitialPosition(),
+m_ray(Ray(track->getInitialPosition(),
       track->getInitialDirection())),
       m_iLayer(track->getLayer()), m_iTower(track->getTower()),
       m_sigma(sigmaCut),
@@ -133,11 +133,11 @@ KalFitter::KalFitter(TkrClusterCol* clusters, ITkrGeometrySvc* geo,
 
 void KalFitter::flagAllHits(int iflag)
 {
-   // Purpose and Method: Flag all clusters as having been used
-   // Inputs: flag that is passed on the TkrCluster (!= 0 means flagged) 
-   // Outputs: None
-   // Dependencies: None
-   // Restrictions and Caveats:  None
+    // Purpose and Method: Flag all clusters as having been used
+    // Inputs: flag that is passed on the TkrCluster (!= 0 means flagged) 
+    // Outputs: None
+    // Dependencies: None
+    // Restrictions and Caveats:  None
 
     TkrFitPlaneConPtr hitPtr = m_track->begin();
 
@@ -289,7 +289,7 @@ void KalFitter::findHits()
     TkrFitHit::TYPE type = TkrFitHit::FIT;
     Status statushit     = FOUND;
 
-    
+
     while( -1 < kplane && kplane < m_tkrGeo->numLayers()) 
     {
         step_counter++; 
@@ -396,7 +396,7 @@ KalFitter::Status KalFitter::nextKPlane(const TkrFitPlane& previousKplane,
         kplane = nextKplane.getIDPlane();
 
         if(kplane > m_tkrGeo->numLayers()) break;
-        
+
         arc_total = arc_min;
         num_steps++; 
 
@@ -533,12 +533,12 @@ TkrFitPlane KalFitter::projectedKPlane(TkrFitPlane prevKplane, int klayer, doubl
     projectedKplane.setQmaterial(Q);
     if (m_control->getPlaneEnergies() && prevKplane.getProjection() != TkrCluster::XY
         && prev_energy > m_control->getMinEnergy()/2.) { 
-        //projectedKplane.setDeltaEne(prevKplane.getEnergy());
-        // or try
-        setDeltaEnergy(prevKplane);
+            //projectedKplane.setDeltaEne(prevKplane.getEnergy());
+            // or try
+            setDeltaEnergy(prevKplane);
         }
 
-    return projectedKplane;
+        return projectedKplane;
 }
 
 void KalFitter::incorporateFoundHit(TkrFitPlane& nextKplane, int indexhit)
@@ -1373,12 +1373,12 @@ void KalFitter::eneDetermination()
         double t0t1 = t0*t1;
         double theta = acos(t0t1);
         double rl_factor = radLen;
-        
+
         if(rl_factor>rl_min) {
-        eSumCount += 1.; 
-        tSumCount += 1./rl_factor; 
-        eneSum += (theta * e_factor)*(theta * e_factor)/rl_factor; 
-        thetaSum += theta * theta /rl_factor; 
+            eSumCount += 1.; 
+            tSumCount += 1./rl_factor; 
+            eneSum += (theta * e_factor)*(theta * e_factor)/rl_factor; 
+            thetaSum += theta * theta /rl_factor; 
         }
 
         // Reset for next X,Y measuring plane
@@ -1463,7 +1463,7 @@ void KalFitter::setDeltaEnergy(TkrFitPlane& plane, double ene )
 {
     std::string mode = m_control->getHitEnergyType();
     double radlen = plane.getRadLen();
-    if (ene==-1.e10) ene = plane.getEnergy();
+    if (ene==1.e10) ene = plane.getEnergy();
 
     if (mode=="MuRadLoss") {
         //  Code for muon testing ~ Bethe-Block dE/dx 
@@ -1478,6 +1478,7 @@ void KalFitter::setDeltaEnergy(TkrFitPlane& plane, double ene )
         double e_next    = ke_next + MUMASS;
         double p_next_sq = e_next*e_next - mu_sq; 
         double pB_next   = p_next_sq/e_next;
+        pB_next = std::max(pB_next, 0.5*m_control->getMinEnergy());
         plane.setEnergy(pB_next);
     } else {
         //    Code for e+ & e-: average radiative loss
@@ -1485,4 +1486,3 @@ void KalFitter::setDeltaEnergy(TkrFitPlane& plane, double ene )
         plane.setEnergy(ene*factor);   
     }
 }
-
