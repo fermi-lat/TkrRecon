@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Sat May 11 09:06:29 PDT 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusters.h 
+Log Message:
+move enum inside of class
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri May 10 20:48:12 PDT 2002
 TkrRecon/src/test
 
