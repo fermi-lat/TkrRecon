@@ -40,6 +40,7 @@ public:
                                              const{return m_chisqSegment + penaltyGap*getNumGaps();}
     inline int    getNumXHits()              const{return m_nxHits;}
     inline int    getNumYHits()              const{return m_nyHits;}
+    inline double getKalEnergyError()        const{return m_KalEnergyErr;}
 
     /// Access errors at track start
     double        getErrorXPosition()      const;
@@ -117,6 +118,7 @@ private:
     double m_sigma;
     int    m_nxHits;
     int    m_nyHits;
+    double m_KalEnergyErr; 
 };
 
 };
