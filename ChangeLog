@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: burnett  Wed Jun  6 21:47:58 PDT 2001
+TkrRecon/src McReconAlg.cxx
+
+Modified Files:
+	McReconAlg.cxx 
+Log Message:
+
+event and run numbers.
+    *
+------------------------------------------------------------
 User: burnett  Wed Jun  6 08:48:19 PDT 2001
 TkrRecon/src McReconAlg.cxx
 
