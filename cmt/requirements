@@ -76,7 +76,7 @@ macro libs ""   WIN32   "$(TkrReconDir)/TkrGaudiAlgs.lib \
                          $(TkrReconDir)/TkrUtilities.lib \
                          $(TkrReconDir)/TkrVertex.lib"
 
-macro TkrRecon_linkopts "-L $(TkrReconDir) -lTkrGaudiAlgs -lTkrCluster -lTkrPatRec -lTkrTrack -lTkrVertex" \
+macro TkrRecon_linkopts "-L $(TkrReconDir) -lTkrGaudiAlgs -lTkrCluster -lTkrPatRec -lTkrTrack -lTkrVertex -lTkrUtilities" \
                       WIN32 ""
 
 
