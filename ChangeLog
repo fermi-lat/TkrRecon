@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Feb 11 21:18:32 PST 2004
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrVertexAlg.cxx 
+Log Message:
+Modify iterative recon section to prevent linux crashes in reconRootWriterAlg
+
+    *
+------------------------------------------------------------
 User: burnett  Thu Jan 15 17:13:27 PST 2004
 TkrRecon/doc
 
