@@ -77,7 +77,7 @@ private:
     void findCalCandidates();
 
     // internal utilities
-    float findNextHit(int, Ray&, float&, int&);
+    float findNextHit(int, Ray&, float&);
     void  incorporate(Candidate*);
     
     // data members
@@ -90,7 +90,7 @@ private:
     double m_arclen;   // arclength transfer space 
     int m_BestHitCount;// highest hit count on a track this event
     int m_TopLayer;    // Upper most layer in which a track was found
-
+    int m_firstLayer;  // Find first hit layer once
 };
 
 #endif
