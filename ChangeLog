@@ -1,5 +1,18 @@
 ------------------------------------------------------------
 User: lsrea  Fri Nov 19 12:22:00 PST 2004
+TkrRecon/doc
+
+Modified Files:
+      Tag: GlastRelease-v4r5
+	release.notes 
+Log Message:
+prepare for tag v9r0p2gr7
+    default to not crash after TkrRecon error
+    default minEnergy to 1000 if MuRadLoss is chosen
+
+    *
+------------------------------------------------------------
+User: lsrea  Fri Nov 19 12:22:00 PST 2004
 TkrRecon/cmt
 
 Modified Files:
