@@ -18,7 +18,7 @@
 
 #include "KalFitTrack.h"
 #include "src/TrackFit/KalmanFilter/KalmanFilter.h"
-#include "src/TrackFit/KalFitTrack/GFcontrol.h"
+#include "src/Track/TkrControl.h"
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
 #include "TkrRecon/Cluster/TkrQueryClusters.h"
 
@@ -47,6 +47,9 @@ KalFitTrack::KalFitTrack(Event::TkrClusterCol* clusters, ITkrGeometrySvc* geo, i
     m_hits.clear();
     m_nxHits  = 0;
     m_nyHits  = 0; 
+
+    // Set up control
+    m_control = TkrControl::getPtr();
 }
 
 void KalFitTrack::flagAllHits(int iflag)
@@ -141,7 +144,7 @@ void KalFitTrack::findHits()
         
         kplane = nextKplane.getIDPlane();
         lstgaps = kplane - prevKplane.getIDPlane()-1; 
-        if (lstgaps >= GFcontrol::maxConsecutiveGaps) {
+        if (lstgaps >= m_control->getMaxConsecutiveGaps()) {
             break; //Limits the size of a jump
         }
 
@@ -330,8 +333,8 @@ TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer, dou
     projectedKplane.setActiveDist(actDist);
     projectedKplane.setRadLen(radLen); 
     projectedKplane.setQmaterial(Q);
-    if (GFcontrol::planeEnergies && prevKplane.getProjection() != TkrCluster::XY
-        && prev_energy > GFcontrol::minEnergy/2.)  
+    if (m_control->getPlaneEnergies() && prevKplane.getProjection() != TkrCluster::XY
+        && prev_energy > m_control->getMinEnergy()/2.)  
         projectedKplane.setDeltaEne(prevKplane.getEnergy());
    
     return projectedKplane;
@@ -585,7 +588,7 @@ void KalFitTrack::doFit()
     finish();
 
     // Final determination of status
-    if(!empty(GFcontrol::minSegmentHits)) m_status = FOUND;
+    if(!empty(m_control->getMinSegmentHits())) m_status = FOUND;
     else                                  clear();
     
     return;
@@ -609,8 +612,8 @@ void KalFitTrack::filterStep(int iplane)
 
     double prev_energy = m_hits[iplane].getEnergy();
     m_hits[iplane+1].setEnergy(prev_energy);
-    if (GFcontrol::planeEnergies) {
-        if(prev_energy > GFcontrol::minEnergy/2.) 
+    if (m_control->getPlaneEnergies()) {
+        if(prev_energy > m_control->getMinEnergy()/2.) 
             m_hits[iplane+1].setDeltaEne(prev_energy);
     }
 }
@@ -671,8 +674,8 @@ TkrFitPlane KalFitTrack::originalKPlane() const
     double y_slope = m_ray.direction().y()/m_ray.direction().z();
     TkrFitPar pfit(x_ini.x(), x_slope, x_ini.y(), y_slope);
     
-    double sigma2Slope    = GFcontrol::iniErrorSlope * GFcontrol::iniErrorSlope;
-    double sigma2Position = GFcontrol::iniErrorPosition * GFcontrol::iniErrorPosition;
+    double sigma2Slope    = m_control->getIniErrSlope() * m_control->getIniErrSlope();
+    double sigma2Position = m_control->getIniErrPosition() * m_control->getIniErrPosition();
     TkrFitMatrix covfit(1);
 
     double sigma_alt = m_tkrGeo->trayWidth(); //Big error... 
@@ -703,8 +706,8 @@ TkrFitHit KalFitTrack::generateFirstFitHit(TkrFitPar parguess)
 
     //  The first error is arbitrary to a degree
     TkrFitMatrix first_errors; 
-    first_errors(2,2) = GFcontrol::iniErrorSlope * GFcontrol::iniErrorSlope;
-    first_errors(4,4) = GFcontrol::iniErrorSlope * GFcontrol::iniErrorSlope;
+    first_errors(2,2) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
+    first_errors(4,4) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
     
     if(parguess.getXPosition()==0. && parguess.getYPosition()==0.) 
         return TkrFitHit();
@@ -865,7 +868,7 @@ void KalFitTrack::eneDetermination()
     double e_inv = sqrt(eneSum  /2./eSumCount); 
     m_KalEnergy = 13.6/e_inv; //Units MeV
     
-    if(m_KalEnergy < GFcontrol::minEnergy/3.) m_KalEnergy = GFcontrol::minEnergy/3.; 
+    if(m_KalEnergy < m_control->getMinEnergy()/3.) m_KalEnergy = m_control->getMinEnergy()/3.; 
     if(m_KalEnergy > range_limit) m_KalEnergy = range_limit;
     m_KalEnergyErr = m_KalEnergy/sqrt(eSumCount);
 }

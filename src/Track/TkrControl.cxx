@@ -24,7 +24,7 @@ TkrControl::TkrControl()
     return;
 }
 
-TkrControl* TkrControl::GetPtr()
+TkrControl* TkrControl::getPtr()
 {
     if (!m_this) m_this = new TkrControl();
 
