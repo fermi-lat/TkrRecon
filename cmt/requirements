@@ -1,6 +1,6 @@
 package TkrRecon
 
-version v9r0p2gr7
+version v9r0p2gr8
 
 author Tracy Usher    <usher@slac.stanford.edu>
 author Leon Rochester <lsrea@slac.stanford.edu>
@@ -21,6 +21,8 @@ use xml
 use TkrUtil    v2r*
 
 use G4Propagator v*
+
+use LdfEvent   v*
 
 
 private 

@@ -3,8 +3,10 @@
 @verbatim
   Manager: Leon Rochester 
 
-  v9r0p2gr6 19-N0v-2004 LSR  Fix exception handling in TkrRecon
-                                default now soldiers on after an error
+  v9r0p2gr8 22-N0v-2004 LSR  Set bit in EventSummaryData if TkrRecon fails
+                             Output list of failed events at end of job
+  v9r0p2gr7 19-N0v-2004 LSR  Fix exception handling in TkrRecon
+                                default will now soldier on after an error
                              Default minEnergy set to 1000 for MuRadLoss
   v9r0p2gr6 20-Oct-2004 LSR  #include <stdexcept>
   v9r0p2gr5 20-Oct-2004 LSR  Catch one more exception
