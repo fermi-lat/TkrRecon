@@ -103,7 +103,7 @@ StatusCode McReconAlg::execute() {
     
     if( vertList == 0)
     {
-        log << MSG::ERROR << "McRecon Failed to get /Event/MC/McParticles" << endreq;
+        log << MSG::ERROR << "McRecon Failed to get /Event/MC/McVertexCol" << endreq;
         sc = StatusCode::FAILURE;
         return sc;
     }
@@ -128,15 +128,14 @@ StatusCode McReconAlg::execute() {
         return sc;
     }
     
-    HepLorentzVector vec = mcVert->finalFourMomentum();
+    HepLorentzVector vec = mcVert->initialFourMomentum();
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_xDir",vec.x());
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_yDir",vec.y());
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_zDir",vec.z());
     
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Energy",vec.e()-vec.m());
-    
-    
-    HepPoint3D pos = mcVert->finalPosition();
+     
+    HepPoint3D pos = mcVert->initialPosition();
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_X0",pos.x());
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Y0",pos.y()); 
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Z0",pos.z());
