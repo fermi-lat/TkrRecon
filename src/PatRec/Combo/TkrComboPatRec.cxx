@@ -48,7 +48,6 @@ using namespace Event;
 
 
 TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo,
-                               ITkrFailureModeSvc* pTkrFail,
                                TkrClusterCol* pClusters, 
                                double CalEnergy, Point CalPosition)
 {
@@ -71,7 +70,7 @@ TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo,
     // Internal init's 
     m_clusters     = pClusters;
     m_tkrGeo       = pTkrGeo;
-    m_tkrFail      = pTkrFail;
+    m_tkrFail      = pTkrGeo->getTkrFailureModeSvc();
     m_control = TkrControl::getPtr();
     
     m_BestHitCount = 0;
@@ -530,7 +529,7 @@ void TkrComboPatRec::findBlindCandidates()
 
                         // If good hit found: make a trial fit & store it away
                         if(sigma < m_cut && deflection > .7) {        
-                            Candidate* trial = new Candidate(m_clusters, m_tkrGeo, m_tkrFail,
+                            Candidate* trial = new Candidate(m_clusters, m_tkrGeo,
                                                              ilayer, itwr, m_energy, x1, VDir, 
                                                              deflection, m_cut, gap, m_TopLayer); 
                             if(trial->track()->status() == KalFitTrack::EMPTY) {
@@ -646,7 +645,7 @@ void TkrComboPatRec::findCalCandidates()
                     double deflection = 1.;
                     Vector t_trial = Vector(-deltaX/deltaZx, -deltaY/deltaZy, -1.).unit();
                     
-                    Candidate *trial = new Candidate(m_clusters, m_tkrGeo, m_tkrFail,
+                    Candidate *trial = new Candidate(m_clusters, m_tkrGeo,
                                                      ilayer, itwr, m_energy, x1, t_trial, 
                                                      deflection, m_cut, gap, m_TopLayer); 
                     if(trial->track()->status() == KalFitTrack::EMPTY) {
@@ -782,7 +781,6 @@ bool TkrComboPatRec::incorporate(Candidate* trial)
 
 TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
                                      ITkrGeometrySvc* geometry,
-                                     ITkrFailureModeSvc* failureMode,
                                      int layer, int twr, double e, 
                                      Point x, Vector t, 
                                      float d, float s, int g, int /* top */): 

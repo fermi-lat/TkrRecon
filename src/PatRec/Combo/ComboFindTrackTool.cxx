@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.6 2003/01/10 19:43:24 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.7 2003/03/13 19:13:23 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -38,11 +38,7 @@ ComboFindTrackTool::ComboFindTrackTool(const std::string& type, const std::strin
 
     m_tkrGeo  = dynamic_cast<ITkrGeometrySvc*>(iService);
 
-    //Locate and store a pointer to the geometry service
-    iService = 0;
-    sc       = serviceLocator()->getService("TkrFailureModeSvc", iService, true);
-
-    m_tkrFail  = dynamic_cast<ITkrFailureModeSvc*>(iService);
+    m_tkrFail = m_tkrGeo->getTkrFailureModeSvc();
 
     //Locate and store a pointer to the data service
     sc        = serviceLocator()->getService("EventDataSvc", iService);
@@ -83,7 +79,7 @@ StatusCode ComboFindTrackTool::findTracks()
 
     //Create the TkrCandidates TDS object
     Event::TkrPatCandCol* pTkrCands = new TkrComboPatRec(
-        m_tkrGeo, m_tkrFail, pTkrClus, 
+        m_tkrGeo, pTkrClus, 
         CalEnergy, CalPosition);
 
     //Register this object in the TDS
