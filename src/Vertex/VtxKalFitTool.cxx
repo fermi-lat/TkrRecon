@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.13 2002/09/01 22:37:41 cohen Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.14 2002/09/02 19:46:15 cohen Exp $
 // Description:                                                  
 //      Implementation of the Kalman vertexer
 //
@@ -580,8 +580,7 @@ VtxKalFitTool::computeWeightMatrix(const Event::TkrFitTrack& theTrack,
   double E = theTrack.getEnergy();
   if(E>1000000) 
     {
-      log<<MSG::WARNING<<"Track Energy Not determined: will 
-                          put huge errors"<<endreq;
+      log << MSG::WARNING << "Track Energy Not determined: will put huge errors" << endreq;
       G(5,5) = 0.001; //arbitrary but should be enough to kill it
     }
   else
