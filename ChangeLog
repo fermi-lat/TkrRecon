@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Jun 14 13:45:19 PDT 2004
+TkrRecon/src/PatRec/MonteCarlo
+
+Modified Files:
+	MonteCarloFindTrackTool.cxx 
+Log Message:
+Modifications to improve Monte Carlo pattern recognition
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Jun  1 15:04:16 PDT 2004
 TkrRecon/src/TrackFit/KalFitTrack
 
