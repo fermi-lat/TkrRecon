@@ -5,6 +5,8 @@
 #include "TkrRecon/PatRec/TkrCandidates.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "gui/DisplayRep.h"
+#include "GaudiKernel/IDataProviderSvc.h"
+#include "GaudiKernel/SmartDataPtr.h"
 
 //----------------------------------------------
 //
@@ -20,14 +22,14 @@ class TkrCandidate3DRep : public gui::DisplayRep
 {
 public:
 	//! Constructor of this form must be provided
-	TkrCandidate3DRep(TkrCandidates** pTkrCandidates, ITkrGeometrySvc* pTkrGeo);
+	TkrCandidate3DRep(IDataProviderSvc* dps, ITkrGeometrySvc* pTkrGeo);
 	virtual ~TkrCandidate3DRep() {}
 
 	void update();
 
 private:
 
-	TkrCandidates**  ppTkrCandidates;
+    IDataProviderSvc* dps;
     ITkrGeometrySvc* pTkrGeo;
 };
       
