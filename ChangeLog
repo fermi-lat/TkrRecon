@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: burnett  Fri Jun  1 23:03:04 PDT 2001
+TkrRecon/src TkrGeometrySvc.cxx TkrNtupleAlg.cpp
+
+Modified Files:
+	TkrGeometrySvc.cxx TkrNtupleAlg.cpp 
+Log Message:
+clean up deadwood in requirements;
+output to log file, not cout;
+fix memory leak.
+
+    *
+------------------------------------------------------------
+User: burnett  Fri Jun  1 23:03:04 PDT 2001
 TkrRecon/mgr requirements
 
 Modified Files:
