@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Wed Aug  6 14:54:39 PDT 2003
+TkrRecon/src/GaudiAlg
+
+Added Files:
+	TkrBuildMcRelationsAlg.cxx 
+Log Message:
+An algorithm for building the Tracker Recon / Monte Carlo relationships. To
+be run at the end of recon, if used.
+
+    *
+------------------------------------------------------------
 User: usher  Wed Aug  6 14:53:21 PDT 2003
 TkrRecon/src/MonteCarlo
 
