@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Sat Mar 30 00:34:40 PST 2002
+TkrRecon/TkrRecon
+
+Modified Files:
+	ITkrGeometrySvc.h 
+Log Message:
+Removed last references to private TkrRecon geometry
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Mar 29 18:52:03 PST 2002
 TkrRecon/src/TrackFit
 
