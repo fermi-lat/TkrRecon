@@ -6,6 +6,7 @@
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/DataObject.h"
 #include "TkrRecon/GFcandidates.h"
+#include "GlastEvent/Recon/ISiRecObjs.h"
 
 #include "gui/DisplayRep.h"
 
@@ -28,7 +29,7 @@ extern const CLID& CLID_SiRecObjs;
 SiRecObjs container and service class of the Tracker Reconstructed objects (gamma and tracks)
 */
 //##########################################################
-class SiRecObjs : public DataObject
+class SiRecObjs : public ISiRecObjs
 //##########################################################
 {
 
@@ -66,6 +67,20 @@ public:
 	virtual void make() {}
 	//! write out the information of the SiRecObjs
 	virtual void writeOut(MsgStream& log) const;
+
+    //new methods required for the interface
+    //! Get the X slope of the ith GFparticle
+    double getXGFparticleSlope(int i) {return m_GFparticleList[i]->getXGFtrack()->slope();}
+    //! Get the Y slope of the ith GFparticle
+	double getYGFparticleSlope(int i) { return m_GFparticleList[i]->getYGFtrack()->slope();}
+    //! get the vextex of the ith Gamma
+    Point getGammaVertex(int i) { return m_GFgammaList[i]->vertex(); }
+    //! get the direction vector of the ith Gamma
+    Vector getGammaDirection(int i) { return m_GFgammaList[i]->direction(); }
+    //! Get the X slope of the ith GFgamma
+    double getXGFgammaSlope(int i) {return m_GFgammaList[i]->getPair(SiCluster::X)->slope(); }
+    //! Get the Y slope of the ith GFgamma
+    double getYGFgammaSlope(int i) { return m_GFgammaList[i]->getPair(SiCluster::Y)->slope(); }
 
 private:
 

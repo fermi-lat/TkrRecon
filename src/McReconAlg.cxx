@@ -118,17 +118,12 @@ StatusCode McReconAlg::execute() {
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"Event_ID",event->event());
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"Run_Number",event->run());
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"Triage_Time",event->time().time()/1e6);
-    if( 0==event) { log << MSG::ERROR << "could not find the event header" << endreq;
-       return StatusCode::FAILURE;
-    }
 
 
     SmartDataPtr<MCEvent> mcEvent(eventSvc(),"/Event/MC");
     if( 0==mcEvent) { log << MSG::ERROR << "could not find the MCEvent header" << endreq;
        return StatusCode::FAILURE;
     }
-
-    //TODO: extract stuff from the MCEvent header.
 
     McVertex* mcVert = vertList->front();
     
@@ -168,39 +163,26 @@ StatusCode McReconAlg::execute() {
     double     Gamma_Ydir_Err = -9999;
     double     Gamma_Err      = -9999;
 
-    SiRecObjs* pSiRecObjs     = SmartDataPtr<SiRecObjs>(eventSvc(),"/Event/TkrRecon/SiRecObjs");
+    ISiRecObjs* pSiRecObjs     = SmartDataPtr<ISiRecObjs>(eventSvc(),"/Event/TkrRecon/SiRecObjs");
 
     if (pSiRecObjs)
     {
         if (pSiRecObjs->numGammas() > 0) 
         {
             // Right now we are assuming that the first gamma is the "right" gamma
-            GFgamma* gamma  = pSiRecObjs->Gamma(0);
-
-            // If the gamma has no tracks then no point in going on 
-            if (!gamma->empty())
-            {
-                //Retrieve vectors for gamma direction, and best fit track direction
-                Vector t0 = gamma->direction();
-                Vector t1 = GFdata::doDirection(gamma->getBest(SiCluster::X)->direction(),
-                                            gamma->getBest(SiCluster::Y)->direction());
+            Vector t0 = pSiRecObjs->getGammaDirection(0);
             
-                //Determine difference in best fit direction to MC
-                Fit_Xdir_Err   = t1.x() - dir.x();
-                Fit_Ydir_Err   = t1.y() - dir.y();
-                Fit_Zdir_Err   = t1.z() - dir.z();
-
-                //Determine difference in gamma direction to MC
-                Gamma_Xdir_Err = t0.x() - dir.x();
-                Gamma_Ydir_Err = t0.y() - dir.y();
-    
-                Gamma_Err      = t0 * dir;
             
-                if      (Gamma_Err >   1.0) Gamma_Err = 1.0;
-                else if (Gamma_Err <= -1.0) Gamma_Err = -0.99999;
-
-                Gamma_Err = acos(Gamma_Err);
-            }
+            //Determine difference in gamma direction to MC
+            Gamma_Xdir_Err = t0.x() - dir.x();
+            Gamma_Ydir_Err = t0.y() - dir.y();
+            
+            Gamma_Err      = t0 * dir;
+            
+            if      (Gamma_Err >   1.0) Gamma_Err = 1.0;
+            else if (Gamma_Err <= -1.0) Gamma_Err = -0.99999;
+            
+            Gamma_Err = acos(Gamma_Err);
         }
     }
 
