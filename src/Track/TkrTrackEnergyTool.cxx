@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.23 2005/03/01 00:55:50 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.24 2005/03/30 01:56:05 lsrea Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -161,22 +161,26 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
         Event::TkrTrack* secndCandTrk = 0;
         int num_hits2 = 0;
         if (trackCol->size() > 1) {
-            int num_hits2 = secndCandTrk->getNumFitHits();
-            Event::TkrTrack* secndCandTrk = (*trackCol)[1];
+            secndCandTrk = (*trackCol)[1];
+            num_hits2 = secndCandTrk->getNumFitHits();
         }
         
 	    if(firstCandTrk->getStatusBits() & Event::TkrTrack::LATENERGY) 
         {
             if (!pCalClusters) {
                 // no cal info... set track energies to MS energies if possible.
+                double minEnergy = m_control->getMinEnergy();
+                if (trackCol->size()>1) minEnergy *= 0.5;
                 if (num_hits1>7) {
-                    double msEnergy = firstCandTrk->getKalEnergy();
+                    double msEnergy = 
+                        std::max(firstCandTrk->getKalEnergy(),minEnergy);
                     firstCandTrk->setInitialEnergy(msEnergy);
                     // change the hit energy on first track
                     (*firstCandTrk)[0]->setEnergy(msEnergy); 
                 }
                 if (num_hits2>7) {
-                    double msEnergy = secndCandTrk->getKalEnergy();
+                    double msEnergy = 
+                        std::max(secndCandTrk->getKalEnergy(),minEnergy);
                     secndCandTrk->setInitialEnergy(msEnergy);
                     // change the hit energy on first track
                     (*secndCandTrk)[0]->setEnergy(msEnergy); 
