@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Mar 24 15:01:46 PST 2004
+TkrRecon/src/PatRec/MonteCarlo
+
+Modified Files:
+	MonteCarloFindTrackTool.cxx 
+Log Message:
+Fix slight bug so that track will skip two planes
+
+    *
+------------------------------------------------------------
 User: usher  Tue Mar 23 16:07:44 PST 2004
 TkrRecon/src/PatRec/MonteCarlo
 
