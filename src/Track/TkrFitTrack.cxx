@@ -1,4 +1,4 @@
-// $Id: TkrFitTrack.cxx,v 1.1 2002/01/11 23:44:56 atwood Exp $
+// $Id: TkrFitTrack.cxx,v 1.2 2002/01/27 19:45:11 usher Exp $
 //------------------------------------------------------------------------------
 //
 //     TkrFitTrack
@@ -408,7 +408,8 @@ void TkrFitTrack::loadTkrBase()
     m_position = k_position(0.);
     double factor = -1.;
     m_direction = k_direction();
-    m_energy =  KalEnergy();
+    //m_energy =  KalEnergy();
+    m_energy =  iniEnergy();
     m_Q = computeQuality();
     m_firstLayer = kplanelist[0].getIDPlane();
     m_itower = kplanelist[0].getIDTower();

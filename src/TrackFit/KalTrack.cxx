@@ -1,5 +1,5 @@
 
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalTrack.cxx,v 1.3 2002/02/14 18:46:07 burnett Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalTrack.cxx,v 1.4 2002/02/14 19:20:58 burnett Exp $
 
 //----------------------------------------------------------------------
 //    
@@ -208,7 +208,7 @@ double KalTrack::doFit()
 
 void KalTrack::ini()
 {
-    m_energy0      = 0.;
+    //m_energy0      = 0.;
     m_x0           = Point(0., 0., 0.);
     m_dir          = Vector(0., 0., 0.);
     m_rmsResid     = 0.;
