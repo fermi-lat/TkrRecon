@@ -16,8 +16,6 @@ class TkrLinkTree : public LayerLinkTree
 {
 	int            firstLayer;
 	bestNodeVec    pNodeVector;
-
-	//void          drawFullTree(LayerLinkNode* pNode, GraphicsRep& v);
 public:
 	TkrLinkTree();
 	TkrLinkTree(layerLinkListPtr pLinkList, LayerLinkNode* pNode);
@@ -34,9 +32,6 @@ public:
 	LayerLinkNode* getFirstBestNode(int id) {return pNodeVector[id]->getFirstNode();};
 	BestNodeList*  getBestNodeList(int id)  {return pNodeVector[id];};
 	void           addToBestNodeVec(BestNodeList* pBest) {pNodeVector.push_back(pBest);};  
- 
-	//Draw the best node list for this tree
-	//void            draw(const char* pColor, const bool fullTree, GraphicsRep& v);
 };
 
 

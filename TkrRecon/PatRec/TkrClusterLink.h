@@ -29,9 +29,16 @@ public:
        ~TkrClusterLink();
 
 	//Set and access whether link is in use
-	virtual bool           linkInUse()                       {return inUse;};
-	virtual void           setInUse()                        {inUse = true;}
-	virtual void           notInUse()                        {inUse = false;}
+	bool                   linkInUse()                       {return inUse;};
+	void                   setInUse()                        {inUse = true;}
+	void                   notInUse()                        {inUse = false;}
+
+    //Test if link shares top or bottom cluster with another
+    bool                   sameTopCluster(LayerLink* pLink);
+    bool                   sameBotCluster(LayerLink* pLink);
+
+    //(signed) angle between links
+    double                 angleWith(LayerLink* pLink);
 
 	//Set and access pointer to node associated with this link
 	virtual LayerLinkNode* getLinkNode()                     {return pLinkNode;};
