@@ -2,11 +2,10 @@
 #define TkrKalVtxAlg_H
 
 #include "GaudiKernel/Algorithm.h"
-#include "Event/Recon/TkrRecon/TkrVertexCol.h"
+#include "Event/Recon/TkrRecon/TkrVertex.h"
 
 
 using namespace Event;
-
 
 class DocaVtxAlg : public Algorithm
 {

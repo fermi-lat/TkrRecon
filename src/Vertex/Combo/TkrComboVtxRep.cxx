@@ -1,4 +1,5 @@
 #include "src/Vertex/Combo/TkrComboVtxRep.h"
+#include "Event/Recon/TkrRecon/TkrVertex.h"
 
 //------------------------------------------------------------------------------
 /// Algorithm parameters which can be set at run time must be declared.
@@ -16,33 +17,31 @@ TkrComboVtxRep::TkrComboVtxRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySv
 void TkrComboVtxRep::update()
 //##############################################
 {
-    Event::TkrVertexCol* pVertices = SmartDataPtr<Event::TkrVertexCol>(dps,"/Event/TkrRecon/TkrVertexCol");
+  Event::TkrVertexCol* pVertices = SmartDataPtr<Event::TkrVertexCol>(dps,"/Event/TkrRecon/TkrVertexCol");
 
-	//Now see if we can do the drawing
-	if (pVertices)
+  //Now see if we can do the drawing
+  if (pVertices)
+    {
+      int numVertices = pVertices->size();
+      
+      gui::DisplayRep* pDisplay = this;
+      
+      Event::TkrVertexCol::const_iterator it;
+      for(it = pVertices->begin(); it != pVertices->end(); ++it)
 	{
-        int numVertices = pVertices->getNumVertices();
-
-        gui::DisplayRep* pDisplay = this;
-
-        while(numVertices--)
-        {
-            Event::TkrVertex* pVertex = pVertices->getVertex(numVertices);
-
-            Point startPoint = Point(pVertex->getPosition());
-            Point endPoint   = startPoint;
-
-            endPoint -= 300.*pVertex->getDirection();
-
-            // draw reconstructed gamma
-            setColor("yellow");
-            markerAt(startPoint);
-            moveTo(startPoint);
-            lineTo(endPoint);
-            setColor("black");
-        }
+	  const Event::TkrVertex& pVertex = **it;
+	  
+	  Point startPoint = Point(pVertex.getPosition());
+	  
+	  // draw reconstructed gamma
+	  setColor("yellow");
+	  markerAt(startPoint);
+	  moveTo(startPoint);
+	  lineTo(startPoint - 300.*pVertex.getDirection());
+	  setColor("black");
+	}
     }
-
-    return;
+  
+  return;
 }
 
