@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: burnett  Thu Feb 14 11:20:58 PST 2002
+TkrRecon/src/TrackFit
+
+Modified Files:
+	KalTrack.cxx 
+Log Message:
+handle cygwin isnan
+    *
+------------------------------------------------------------
 User: burnett  Thu Feb 14 10:47:40 PST 2002
 TkrRecon/src/Display
 
