@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: cohen  Thu Mar 25 13:45:06 PST 2004
+TkrRecon/src/TrackFit/KalmanFilterUtils
+
+Modified Files:
+	KalmanFilterDefs.h KalmanFilterUtils.h ProcNoiseMatrix.h 
+	ProjectionMatrix.h TransportMatrix.h 
+Log Message:
+added newline at end of files
+    *
+------------------------------------------------------------
 User: cohen  Thu Mar 25 13:45:05 PST 2004
 TkrRecon/src/TrackFit/KalmanFilterFit
 
