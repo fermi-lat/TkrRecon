@@ -78,7 +78,7 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int &
     double relDeltaZ = down*fabs(arc_min*dir_ini.z());
 
     TkrFitMatrix F(relDeltaZ);
-	                      
+                          
     m_Qmaterial = TkrFitPart->mScat_Covr(ene, arc_min); 
     pp = F*pp;
     if (down == -1.)     Ck=(F*(Ck*F.T()))+m_Qmaterial;
@@ -132,7 +132,7 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int k
     double relDeltaZ = down*fabs(arc_min*dir_ini.z());
 
     TkrFitMatrix F(relDeltaZ);
-	                      
+                          
     m_Qmaterial = TkrFitPart->mScat_Covr(ene, arc_min); 
     pp = F*pp;
     if (down == -1.)     Ck=(F*(Ck*F.T()))+m_Qmaterial;
@@ -186,7 +186,7 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitPlane& kplaneNext)
     double relDeltaZ = down * fabs(deltaZ);
 
     TkrFitMatrix F(relDeltaZ);
-	                      
+                          
     m_Qmaterial = TkrFitPart->mScat_Covr(ene, arc_len); 
     pp = F*pp;
     if (down == -1.)     Ck=(F*(Ck*F.T()))+m_Qmaterial;
