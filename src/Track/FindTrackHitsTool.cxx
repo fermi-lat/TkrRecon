@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.22 2005/01/31 22:43:18 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.23 2005/02/05 07:29:52 lsrea Exp $
  */
 
 // to turn one debug variables
@@ -397,16 +397,11 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
         params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
 
 		// Last: set the hit status bits
-	    unsigned int status_bits = TkrTrackHit::HITONFIT | TkrTrackHit::HASMEASURED |
+	    status_bits = TkrTrackHit::HITONFIT | TkrTrackHit::HASMEASURED |
 		                           TkrTrackHit::HITISSSD | TkrTrackHit::HASVALIDTKR;
 	    if(measIdx == xPosIdx) status_bits |= TkrTrackHit::MEASURESX;
 	    else                   status_bits |= TkrTrackHit::MEASURESY;
-		if(t_z > 0 && !reverse) status_bits |= TkrTrackHit::UPWARDS;
-
-        trackHit->setStatusBit((TkrTrackHit::StatusBits)status_bits);
-	}
-    else 
-    {
+	} else {
 		// Check if we should terminate this track
 	    double act_dist = m_propagatorTool->isInsideActArea();
 		double big_error = sqrt(next_params(xPosIdx,xPosIdx)+ next_params(yPosIdx,yPosIdx));
@@ -478,7 +473,7 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
         measIdx = xPosIdx;
         nonmIdx = yPosIdx;
 
-        unsigned int status_bits = TkrTrackHit::HASMEASURED;
+        status_bits = TkrTrackHit::HASMEASURED;
 
         if(inTower) { // a gap , could use deaddist/sqrt(12);
             sigma = m_tkrGeom->siDeadDistance();
@@ -496,13 +491,13 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
         params(measIdx,measIdx) = sigma * sigma;
         params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
 
-        if(t_z > 0 && !reverse) status_bits |= TkrTrackHit::UPWARDS;
+    }
 
-        // store the status bit word
-        trackHit->setStatusBit((TkrTrackHit::StatusBits)status_bits);
-	}
+    if(t_z > 0 && !reverse) status_bits |= TkrTrackHit::UPWARDS;
+    // store the status word
+    trackHit->setStatusBit((TkrTrackHit::StatusBits)status_bits);
 
-   return trackHit;
+    return trackHit;
 }
 
 TkrTrackHit* FindTrackHitsTool::setFirstHit(TkrTrack* track)

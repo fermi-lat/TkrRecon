@@ -53,8 +53,8 @@ void TkrTracksRep::update()
 void TkrTracksRep::drawChiSq(const TkrTrack& track)
 {
     gui::DisplayRep* pDisplay = this;
-    TkrTrackHit::ParamType  fit      = TkrTrackHit::SMOOTHED;
-    TkrTrackHit::ParamType  typ      = TkrTrackHit::SMOOTHED;
+    //TkrTrackHit::ParamType  fit      = TkrTrackHit::SMOOTHED;
+    //TkrTrackHit::ParamType  typ      = TkrTrackHit::SMOOTHED;
 
     TkrTrackHitVecConItr hitIter = track.begin();
 

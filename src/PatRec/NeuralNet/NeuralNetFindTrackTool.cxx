@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.14 2004/12/16 05:04:22 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.15 2005/01/25 20:04:48 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the Neural Net approach
@@ -230,8 +230,8 @@ void NeuralNetFindTrackTool::buildCand(Event::TkrTrackCol& /*TkrCands*/,
       
         while(iter != tracks.end())
         {
-	        Event::TkrTrack* pTrack = *iter++;
-///	        pTrack->unFlagAllHits();
+//	        Event::TkrTrack* pTrack = *iter++;
+//          pTrack->unFlagAllHits();
         }
     }
   

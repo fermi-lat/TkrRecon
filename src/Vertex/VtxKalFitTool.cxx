@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.24 2004/12/26 23:30:05 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.25 2005/01/25 20:04:49 lsrea Exp $
 // Description:                                                  
 //      Implementation of the Kalman vertexer
 //
@@ -40,7 +40,7 @@ StatusCode VtxKalFitTool::initialize()
 
 
 
-StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
+StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& /*VtxCol*/)
 {/*
   m_VtxCovEstimates.erase(m_VtxCovEstimates.begin(),m_VtxCovEstimates.end());
   m_VtxEstimates.erase(m_VtxEstimates.begin(),m_VtxEstimates.end());
@@ -319,7 +319,7 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
 }
 
 
-StatusCode  VtxKalFitTool::initVertex(Event::TkrTrackCol& theTracks)
+StatusCode  VtxKalFitTool::initVertex(Event::TkrTrackCol& /*theTracks*/)
 {
   // Purpose and Method: defines starting vertex estimate as first hit on 
   //                     first (aka best) track
@@ -441,7 +441,7 @@ HepMatrix VtxKalFitTool::computeMatrixB(const HepVector x, const HepVector /*q*/
 }
 
 
-HepVector VtxKalFitTool::getTkrParVec(const Event::TkrTrack& theTrack)
+HepVector VtxKalFitTool::getTkrParVec(const Event::TkrTrack& /*theTrack*/)
 {
   // Purpose and Method: Simple translation of TkrFitPar (+ energy) 
   //                     into an HepVector
@@ -462,7 +462,7 @@ HepVector VtxKalFitTool::getTkrParVec(const Event::TkrTrack& theTrack)
 }
 
 
-HepVector VtxKalFitTool::computeQatVtx(const Event::TkrTrack& theTrack,
+HepVector VtxKalFitTool::computeQatVtx(const Event::TkrTrack& /*theTrack*/,
                                        const HepVector /*theVertex*/)
 {
   // Purpose and Method: Simple building of the geometrical momentum (Sx,Sy,E).
@@ -567,7 +567,7 @@ VtxKalFitTool::propagCovToVtx(const Event::TkrTrackParams Cov,
 
 HepSymMatrix 
 VtxKalFitTool::computeWeightMatrix(const Event::TkrTrack& theTrack,
-                                   const HepVector Vtx)
+                                   const HepVector /*Vtx*/)
 {
   // Purpose and Method: Computation of the weight matrix in 3 steps:
   //                     1) Propagate Cov. matrix to the Poca w.r.t Vtx;

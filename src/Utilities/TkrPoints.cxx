@@ -14,7 +14,7 @@
  *
  * @authors Bill Atwood, Brian Algood
  *
- * $Header:$
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoints.cxx,v 1.10 2004/11/02 22:55:44 lsrea Exp $
  *
 */
 
@@ -49,7 +49,7 @@ void TkrPoints::ini()
                 //const_cast<Event::TkrCluster*>(clX), 
                 //const_cast<Event::TkrCluster*>(clY));
             this->push_back(point);
-            TkrPointListConItr iPt1 = this->begin();
+            //TkrPointListConItr iPt1 = this->begin();
         }
     }
 }
@@ -60,7 +60,7 @@ TkrPoint* TkrPoints::getNearestPointOutside(Point x0, double & dist_min) const
     // outside a distance d
     // returns distance to this point, negative if no point is found
 
-    double x_min=0, y_min=0, z_min=0;
+    //double x_min=0, y_min=0, z_min=0;
     double dist_best = 1000000.;
     double dist_min2 = dist_min*dist_min;
     bool found = false;

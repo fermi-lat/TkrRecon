@@ -18,8 +18,8 @@ double thrshold(double x) {
 using namespace Event;
 
 TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*tkrGeom*/, 
-                                   Event::TkrVertexCol* vertexCol, 
-                                   Event::TkrTrackCol* pTracks)
+                                   Event::TkrVertexCol* /*vertexCol*/, 
+                                   Event::TkrTrackCol* /*pTracks*/)
 {/*
     //Define a vector to contain a list of "isolated" tracks
     int    numTracks = pTracks->size();

@@ -28,7 +28,7 @@ ComboVtxTool::ComboVtxTool( const std::string& type, const std::string& name, co
 	declareProperty("MinQuality", m_minQuality = -100.);
 }
 
-StatusCode ComboVtxTool::retrieveVtxCol(Event::TkrVertexCol& VtxList)
+StatusCode ComboVtxTool::retrieveVtxCol(Event::TkrVertexCol& /*VtxList*/)
 {
 	// Historic method - should be deleted
 	return StatusCode::SUCCESS;
@@ -85,7 +85,7 @@ StatusCode ComboVtxTool::findVtxs()
     //Track counter
 	int   tkr1Idx = 0;
     
-    double gamEne = 0.;
+    //double gamEne = 0.;
     
     
 	Event::TkrTrackColPtr pTrack1 = pTracks->begin();

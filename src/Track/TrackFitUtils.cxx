@@ -303,8 +303,8 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
         thisLayer.m_count  += 1;
 
         int size = 0;
-        if (hit.getClusterPtr()) size = (hit.getClusterPtr())->size();
-        double zHit = hit.getZPlane();
+        if (hit.getClusterPtr()) size = (int) (hit.getClusterPtr())->size();
+        //double zHit = hit.getZPlane();
         if (newHitId.getView()==idents::TkrId::eMeasureX) {
             thisLayer.m_hasXHit = true;
             xClustSize = size;

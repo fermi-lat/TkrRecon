@@ -6,7 +6,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/StdTransportMatrix.h,v 1.3 2004/10/01 21:07:39 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/StdTransportMatrix.h,v 1.4 2004/11/09 21:27:45 usher Exp $
  */
 
 #ifndef StdTransportMatrix_h
@@ -27,9 +27,9 @@ public:
     KFmatrix& operator()(const double &deltaZ);
 
     // Other two methods return identity matrix (no transport)
-    KFmatrix& operator()(const idents::TkrId &id) {return m_I;}
-    KFmatrix& operator()(const KFvector& stateVec, const double& zStart, 
-                         const double& eStart, const double& zStop, bool forward = true)
+    KFmatrix& operator()(const idents::TkrId& /* id */) {return m_I;}
+    KFmatrix& operator()(const KFvector& /*stateVec*/, const double& /*zStart*/, 
+                         const double& /*eStart*/, const double& /*zStop*/, bool /*forward = true*/)
                                                   {return m_I;}
 
 private:

@@ -35,24 +35,24 @@ class ITkrFitTool : virtual public IAlgTool
     virtual StatusCode doTrackReFit(Event::TkrTrack* patCand)=0;
 
     /// @brief Method to set type of hit energy loss for a track
-    virtual void       setHitEnergyLoss(const std::string& energyLossType)  {return;}
+    virtual void       setHitEnergyLoss(const std::string& energyLossType) = 0; //  {return;}
 
     /// @brief Method to set method for determing cluster errors in fit
-    virtual void       setClusErrCompType(const std::string& clusErrorType) {return;}
+    virtual void       setClusErrCompType(const std::string& clusErrorType) = 0; // {return;}
 
     /// @brief Method to set multiple scattering matrix computation
-    virtual void       setMultipleScatter(const bool doMultScatComp)        {return;}
+    virtual void       setMultipleScatter(const bool doMultScatComp) = 0; //      {return;}
 
     /// @brief Method to set Kalman Filter projection matrix type
-    virtual void       setProjectionMatrix(const bool measOnly)             {return;}
+    virtual void       setProjectionMatrix(const bool measOnly) = 0; //            {return;}
 
     /// @brief This method runs the filter for the next hit
     virtual double     doFilterStep(Event::TkrTrackHit& referenceHit, Event::TkrTrackHit& filterHit)
-                       {return 0.;}
+                        = 0; //{return 0.;}
 
     /// @brief This method runs the smoother for the next hit
     virtual double     doSmoothStep(Event::TkrTrackHit& referenceHit, Event::TkrTrackHit& smoothHit)
-                       {return 0.;}
+                        = 0; //{return 0.;}
 
 };
 #endif
