@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrQueryClusters.cxx,v 1.4 2002/05/12 05:52:59 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrQueryClusters.cxx,v 1.5 2002/05/24 16:01:17 usher Exp $
 //
 // Description:
 //      TkrQueryClusters is a container for Tkr clusters, and has the methods
@@ -111,7 +111,7 @@ Point TkrQueryClusters::nearestHitOutside(Event::TkrCluster::view v, int iplane,
 	id = -1;
 
     // Kludge to prevent crashes when requested plane out of range
-    if (iplane < 0 || iplane > Event::TkrClusterCol::NPLANES) return Pnear;
+    if (iplane < 0 || iplane >= Event::TkrClusterCol::NPLANES) return Pnear;
 	
 	int nhits = m_pClus->nHits(v,iplane);
 	if (nhits == 0) return Pnear;
