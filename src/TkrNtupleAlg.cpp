@@ -152,7 +152,8 @@ TkrTupleValues::TkrTupleValues()
     Tkr_xeneYSlope = 0;
     Tkr_weightXSlope = 0;
     Tkr_weightYSlope = 0;
-    Tkr_First_XHit = 0;
+    Tkr_First_XHit = 1000.;
+    Tkr_Zbottom = 1000.;
     Tkr_Diff_1st_Hit = 0;
     Tkr_Fit_Kink = 0;
     Tkr_Fit_KinkN = 0;
@@ -234,6 +235,9 @@ StatusCode TkrTupleValues::calcTupleValues(SiClusters* pClusters, SiRecObjs* pRe
 
         GFtrack* _Xbest = gamma->getXpair()->getBest();
         GFtrack* _Ybest = gamma->getYpair()->getBest();
+
+        int      nHitsX = _Xbest->numDataPoints();
+        int      nHitsY = _Ybest->numDataPoints();
     
         // Gamma quality
         double type = 0;
@@ -252,7 +256,7 @@ StatusCode TkrTupleValues::calcTupleValues(SiClusters* pClusters, SiRecObjs* pRe
         Tkr_qual_X          = _Xbest->Q();
         Tkr_qual_Y          = _Ybest->Q();
         Tkr_qual            = _Xbest->Q() + _Ybest->Q();
-        Tkr_No_Hits         = _Xbest->numDataPoints()+_Ybest->numDataPoints();
+        Tkr_No_Hits         =  nHitsX + nHitsY;
         Tkr_No_Gaps         = _Xbest->numGaps()+_Ybest->numGaps();
         Tkr_No_Gaps_1st     = _Xbest->numFirstGaps()+_Ybest->numFirstGaps();
         Tkr_No_Noise        = _Xbest->numNoise()+_Ybest->numNoise();
@@ -342,11 +346,19 @@ StatusCode TkrTupleValues::calcTupleValues(SiClusters* pClusters, SiRecObjs* pRe
         Tkr_weightYSlope    = gamma->getYpair()->weightSlope();
     
         //	First Used Layer and previous Hits...
-        int x_layer = _Xbest->firstLayer();
-        Tkr_First_XHit      = x_layer;
+        int x_layer         = _Xbest->firstLayer();
+        Tkr_First_XHit      =  x_layer;
         int y_layer         = _Ybest->firstLayer();
-        int diffXY          = x_layer - y_layer;
-        Tkr_Diff_1st_Hit    = diffXY;
+        int diffXY          =  x_layer - y_layer;
+        Tkr_Diff_1st_Hit    =  diffXY;
+
+        double lastHitX     = Tkr_First_XHit;
+        double lastHitY     = Tkr_First_XHit;
+
+        if (nHitsX > 0) lastHitX = _Xbest->kplanelist[nHitsX-1].getZPlane();
+        if (nHitsY > 0) lastHitY = _Ybest->kplanelist[nHitsY-1].getZPlane();
+
+        Tkr_Zbottom         = lastHitX < lastHitY ? lastHitX : lastHitY;
 
         // Calculate the fit kink quantities
         calcFitKink(gamma);
@@ -462,6 +474,7 @@ StatusCode TkrTupleValues::fillTupleValues(INTupleWriterSvc* pSvc, const char* p
         //	First Used Layer and previous Hits...
         if ((sc = pSvc->addItem(pName, "TKR_First_XHit",      Tkr_First_XHit     )).isFailure()) return sc;
         if ((sc = pSvc->addItem(pName, "TKR_Diff_1st_Hit",    Tkr_Diff_1st_Hit   )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Zbottom",         Tkr_Zbottom        )).isFailure()) return sc;
 
         // Might there be kinks in the tracks?
         if ((sc = pSvc->addItem(pName, "TKR_Fit_Kink",        Tkr_Fit_Kink       )).isFailure()) return sc;
