@@ -3,6 +3,8 @@
 #define __TKRCLUSTERSREP_H
 
 #include "TkrRecon/Cluster/TkrClusters.h"
+#include "TkrRecon/ITkrGeometrySvc.h"
+
 #include "gui/DisplayRep.h"
 #include "GaudiKernel/IDataProviderSvc.h"
 #include "GaudiKernel/SmartDataPtr.h"
@@ -29,9 +31,13 @@ public:
 	//This function called to do the display
 	void update();
 
+	void setTkrGeo(ITkrGeometrySvc * ptr) { pTkrGeo = ptr;}
+
 private:
 	//Here we keep a pointer to the pointer to the cluster data...
     IDataProviderSvc* dps;
+	
+	ITkrGeometrySvc* pTkrGeo;
 };
       
 #endif

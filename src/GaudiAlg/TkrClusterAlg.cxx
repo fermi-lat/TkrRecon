@@ -9,6 +9,8 @@
 #include "gui/GuiMgr.h"
 
 #include "TkrRecon/GaudiAlg/TkrClusterAlg.h"
+#include "TkrRecon/Cluster/TkrMakeClusters.h"
+#include "TkrRecon/Cluster/TkrQueryClusters.h"
 
 // Needed for Gaudi
 static const AlgFactory<TkrClusterAlg>  Factory;
@@ -83,11 +85,18 @@ StatusCode TkrClusterAlg::execute()
     m_TkrDigis   = SmartDataPtr<TkrDigiCol>(eventSvc(),"/Event/TkrRecon/TkrDigis");
     
     // Create the TkrClusters TDS object
-    m_TkrClusters = new TkrClusters(pTkrGeo, pBadStrips, m_TkrDigis);
+    m_TkrClusters = new TkrClusters();
     // Register the object in the TDS
     sc = eventSvc()->registerObject("/Event/TkrRecon/TkrClusters",m_TkrClusters);
     
-    if (m_TkrClusters == 0 || m_TkrDigis ==0) sc = StatusCode::FAILURE;
+	// make the clusters
+    TkrMakeClusters maker(m_TkrClusters, pTkrGeo, pBadStrips, m_TkrDigis);
+
+	//initialize the cluster query class
+	TkrQueryClusters query(0);
+	query.s_towerPitch = pTkrGeo->towerPitch();
+
+	if (m_TkrClusters == 0 || m_TkrDigis ==0) sc = StatusCode::FAILURE;
     return sc;
 	
     m_TkrClusters->writeOut(log);

@@ -20,6 +20,7 @@
 #include "TkrRecon/Track/GFtutor.h"
 #include "TkrRecon/Track/GFcontrol.h"
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
+#include "TkrRecon/Cluster/TkrQueryClusters.h"
 //-----------------------------------------------------
 //
 //   KalFitTrack
@@ -350,7 +351,8 @@ double KalFitTrack::sigmaFoundHit(const TkrFitPlane& previousKplane, const TkrFi
     // Must be inside Glast
     bool done = false;
     while (!done) {
-        nearHit = GFtutor::_DATA->nearestHitOutside(m_axis, klayer, inerRadius, center, indexhit);
+		TkrQueryClusters query(GFtutor::_DATA);
+        nearHit = query.nearestHitOutside(m_axis, klayer, inerRadius, center, indexhit);
         done = foundHit(indexhit, inerRadius, outRadius, center, nearHit);
     }
     
