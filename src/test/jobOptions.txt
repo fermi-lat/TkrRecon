@@ -28,7 +28,6 @@ EventSelector.Input = "NONE";
 
 ApplicationMgr.DLLs += {"GlastSvc", "G4Propagator", "G4Generator" };
 ApplicationMgr.ExtSvc += { "GlastDetSvc"};
-ApplicationMgr.ExtSvc += { "GlastPropagatorSvc", "G4GeometrySvc"}; 
 
 GlastDetSvc.topVolume="LAT"; 
 
