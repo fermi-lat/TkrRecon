@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Wed Oct 16 19:40:50 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrMeritTool.cxx 
+Log Message:
+set z(skirt) to top of CsI, as measured in the Event Display
+    *
+------------------------------------------------------------
 User: lsrea  Wed Oct 16 17:37:26 PDT 2002
 TkrRecon/src/Services
 
