@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Thu Apr 11 12:22:16 PDT 2002
+TkrRecon/TkrRecon/TrackFit
+
+Modified Files:
+	KalPlane.h 
+Log Message:
+consolidating all the minEnergy's: now all come from GFcontrol.h
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Apr 10 09:14:36 PDT 2002
 TkrRecon/doc
 
