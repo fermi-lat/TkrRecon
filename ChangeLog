@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: hernando  Mon Feb  5 11:20:31 PST 2001
+TkrRecon/mgr requirements
+
+Modified Files:
+	requirements 
+Log Message:
+
+
+    *
+------------------------------------------------------------
 User: hernando  Mon Feb  5 11:05:55 PST 2001
 TkrRecon/src detGeo.cpp GFcandidates.cpp GFcontrol.cpp GFdata.cxx GFgamma.cpp GFparticle.cpp GFsegment.cpp KalFit.cxx SiClusters.cpp SiClustersAlg.cxx SiClustersIRFAlg.cxx SiLayers.cpp SiLayersIRFAlg.cpp SiRecObjs.cpp SiRecObjsAlg.cxx trackerGeo.cpp
 
