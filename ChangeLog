@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Tue Mar 23 16:05:28 PST 2004
+TkrRecon/src/TrackFit/KalmanFilterUtils
+
+Added Files:
+	KalmanFilterDefs.h KalmanFilterUtils.cxx KalmanFilterUtils.h 
+	ProcNoiseMatrix.h ProjectionMatrix.h TransportMatrix.h 
+Log Message:
+Generic class definitions for implementing a Kalman Filter for test purposes
+
+    *
+------------------------------------------------------------
 User: usher  Tue Mar 23 16:04:18 PST 2004
 TkrRecon/src/TrackFit/KalmanFilterUtils
 
