@@ -3,6 +3,7 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v8r12p24 25-Aug-2004  LSR  Fix jobOptions for test program
   v8r12p23 21-Jul-2004  LSR  Fix req. file according to Traudl's suggestion
   v8r12p22 15-Jul-2004  LSR  make radlen accounting a bit more robust (for EM2)
                              fiddle slope-dependent errors a bit
