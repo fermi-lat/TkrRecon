@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 14:29:20 PST 2001
+TkrRecon/src/Display
+
+Removed Files:
+	TkrDisplayAlg.cxx 
+Log Message:
+Moving this algorithm to GaudiAlg
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 14:28:15 PST 2001
 TkrRecon/src/Cluster
 
