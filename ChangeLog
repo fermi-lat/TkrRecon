@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Apr 10 15:59:47 PDT 2001
+TkrRecon/src TkrGeometrySvc.cxx
+
+Modified Files:
+	TkrGeometrySvc.cxx 
+Log Message:
+Include call to service::initialize()
+    *
+------------------------------------------------------------
 User: usher  Tue Apr 10 15:57:23 PDT 2001
 TkrRecon/src SiClusters.cpp
 
