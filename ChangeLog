@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Apr 10 15:56:45 PDT 2001
+TkrRecon/TkrRecon SiClusters.h
+
+Modified Files:
+	SiClusters.h 
+Log Message:
+Updating for movement of silayers.h
+    *
+------------------------------------------------------------
 User: usher  Mon Apr  2 16:40:29 PDT 2001
 TkrRecon/src/Dll TkrRecon_load.cpp
 
