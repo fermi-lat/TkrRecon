@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Thu Jul 25 05:08:50 PDT 2002
+TkrRecon/src/Vertex
+
+Modified Files:
+	VtxKalFitTool.cxx 
+Log Message:
+forgot to remove a test output depending on a private Event/TkrFitMatrix version
+    *
+------------------------------------------------------------
 User: burnett  Thu Jul 25 02:12:24 PDT 2002
 TkrRecon/src/GaudiAlg
 
