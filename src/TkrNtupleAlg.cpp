@@ -1,0 +1,536 @@
+// Implements ntuple writing algorithm
+
+#include "TkrRecon\TkrNtupleAlg.h"
+#include "TkrRecon\SiClusters.h"
+
+#include <algorithm>
+inline static double sqr(double x) {return x*x;}
+using namespace std;
+
+static const AlgFactory<TkrNtupleAlg>  Factory;
+const IAlgFactory& TkrNtupleAlgFactory = Factory;
+
+
+//###############################
+TkrNtupleAlg::TkrNtupleAlg(const std::string& name, ISvcLocator* pSvcLocator) :
+              Algorithm(name, pSvcLocator)
+//###############################
+{
+    declareProperty("tupleName", m_tupleName="");
+}
+
+//###############################
+StatusCode TkrNtupleAlg::initialize() 
+//###############################
+{	
+	StatusCode sc = StatusCode::SUCCESS;
+
+    MsgStream log(msgSvc(), name());
+    log << MSG::INFO << "initialize" << endreq;
+
+    // Use the Job options service to set the Algorithm's parameters
+    /// This will retrieve parameters set in the job options file
+    setProperties();
+
+    // get a pointer to our ntupleWriterSvc
+    sc = serviceLocator()->getService("ntupleWriterSvc", 
+        IID_INTupleWriterSvc, reinterpret_cast<IInterface*&>( ntupleWriteSvc));
+
+    if( sc.isFailure() ) 
+    {
+        log << MSG::ERROR << "TkrNtupleAlg failed to get the ntupleWriterSvc" << endreq;
+        return sc;
+    }
+
+	return sc;
+}
+//--------------------------------------------------------
+//     Execution Function fills the ntuple
+//--------------------------------------------------------
+//###############################
+StatusCode TkrNtupleAlg::execute() 
+//###############################
+{	
+	//! retrieve the pointers to the transient data
+    StatusCode sc = StatusCode::SUCCESS;
+
+    //Create the tuple class
+    TkrTupleValues* pTuple = new TkrTupleValues();
+    
+    SiRecObjs*  pSiRecObjs  = SmartDataPtr<SiRecObjs>(eventSvc(),"/Event/TkrRecon/SiRecObjs");
+	SiClusters* pSiClusters = SmartDataPtr<SiClusters>(eventSvc(),"/Event/TkrRecon/SiClusters");
+
+    if ((sc = pTuple->calcTupleValues(pSiClusters, pSiRecObjs)).isFailure()) return sc;
+
+    return pTuple->fillTupleValues(ntupleWriteSvc, m_tupleName.c_str());
+}
+//###############################
+StatusCode TkrNtupleAlg::finalize() 
+//###############################
+{	
+	StatusCode sc = StatusCode::SUCCESS;
+
+    return sc;
+}
+
+
+
+//
+//Implementation of the TkrTupleValues class begins here
+//
+
+//################################
+TkrTupleValues::TkrTupleValues()
+//################################
+{
+    Tkr_Cnv_Lyr_Hits = 0;
+    Tkr_Max_controller_hits = 0;
+    Tkr_Fst_Cnv_Lyr = 0;
+    Tkr_NCnv_Lyrs_Hit = 0;
+    Tkr_No_X_Trks = 0;
+    Tkr_No_Y_Trks = 0;
+    Tkr_No_Tracks = 0;
+    Tkr_Fit_Type = 0;
+    Tkr_Fit_Topo = 0;
+    Tkr_Chisq = 0;
+    Tkr_Chisq_1st = 0;
+    Tkr_qual_X = 0;
+    Tkr_qual_Y = 0;
+    Tkr_qual = 0;
+    Tkr_No_Hits = 0;
+    Tkr_No_Gaps = 0;
+    Tkr_No_Gaps_1st = 0;
+    Tkr_No_Noise = 0;
+    Tkr_No_Noise_1st = 0;
+    Tkr_Fit_XNhits = 0;
+    Tkr_Fit_YNhits = 0;
+    Tkr_Fit_XChisq = 0;
+    Tkr_Fit_YChisq = 0;
+    Tkr_Fit_XChisq_1st = 0;
+    Tkr_Fit_YChisq_1st = 0;
+    Tkr_Fit_XKalEne = 0;
+    Tkr_Fit_YKalEne = 0;
+    Tkr_Fit_XKalThetaMS = 0;
+    Tkr_Fit_YKalThetaMS = 0;
+    Tkr_Fit_xdir = 0;
+    Tkr_Fit_ydir = 0;
+    Tkr_Fit_zdir = 0;
+    Tkr_Fit_x0 = 0;
+    Tkr_Fit_x0 = 0;
+    Tkr_Fit_x0 = 0;
+    Tkr_Pair_xdir = 0;
+    Tkr_Pair_ydir = 0;
+    Tkr_Pair_zdir = 0;
+    Tkr_Pair_x0 = 0;
+    Tkr_Pair_y0 = 0;
+    Tkr_Pair_z0 = 0;
+    Tkr_Gamma_xdir = 0;
+    Tkr_Gamma_ydir = 0;
+    Tkr_Gamma_zdir = 0;
+    Tkr_Gamma_x0 = 0;
+    Tkr_Gamma_y0 = 0;
+    Tkr_Gamma_z0 = 0;
+    Tkr_Pair_XNhits = 0;
+    Tkr_XChisq = 0;
+    Tkr_XChisq_1st = 0;
+    Tkr_XKalEne = 0;
+    Tkr_XKalThetaMS = 0;
+    Tkr_Pair_YNhits = 0;
+    Tkr_YChisq = 0;
+    Tkr_YChisq_1st = 0;
+    Tkr_YKalEne = 0;
+    Tkr_YKalThetaMS = 0;
+    Tkr_errSlopeX = 0;
+    Tkr_errSlopeY = 0;
+    Tkr_xeneXSlope = 0;
+    Tkr_xeneYSlope = 0;
+    Tkr_weightXSlope = 0;
+    Tkr_weightYSlope = 0;
+    Tkr_First_XHit = 0;
+    Tkr_Diff_1st_Hit = 0;
+    Tkr_Fit_Kink = 0;
+    Tkr_Fit_KinkN = 0;
+    Tkr_Pair_Kink = 0;
+    Tkr_Pair_KinkN = 0;
+};
+
+//################################
+StatusCode TkrTupleValues::calcTupleValues(SiClusters* pClusters, SiRecObjs* pRecObjs)
+//################################
+{
+	StatusCode sc = StatusCode::SUCCESS;
+
+    //Make sure we have valid cluster data
+    if (pClusters)
+    {
+        int planeIdx = NPLANES;
+        while(planeIdx--)
+        {
+            int hitCount = pClusters->nHits(SiCluster::X, planeIdx) 
+                         + pClusters->nHits(SiCluster::Y, planeIdx);
+
+            if (hitCount > 0)
+            {
+                Tkr_Fst_Cnv_Lyr    = planeIdx;
+                Tkr_NCnv_Lyrs_Hit += 1;
+            }
+        }
+
+        Tkr_Cnv_Lyr_Hits = pClusters->nHits();
+    }
+
+    //Make sure we have valid reconstructed data
+    if (pRecObjs)
+    {
+        unsigned int  ngammas = pRecObjs->numGammas();
+
+        if (ngammas == 0)   return sc;
+
+        //Count the number of tracks in the two gammas
+        while(ngammas--)
+        {
+            GFgamma* pGam = pRecObjs->Gamma(ngammas);
+
+            if (pGam->getBest(SiCluster::X)) Tkr_No_X_Trks += 1;
+            if (pGam->getBest(SiCluster::Y)) Tkr_No_Y_Trks += 1;
+            if (pGam->getPair(SiCluster::X)) Tkr_No_X_Trks += 1;
+            if (pGam->getPair(SiCluster::Y)) Tkr_No_Y_Trks += 1;
+        }
+
+        Tkr_No_Tracks   = Tkr_No_X_Trks + Tkr_No_Y_Trks;
+    
+
+        GFgamma*      gamma   = pRecObjs->Gamma(0);
+
+        if (!gamma)         return sc;
+        if (gamma->empty()) return sc;
+
+        GFtrack* _Xbest = gamma->getXpair()->getBest();
+        GFtrack* _Ybest = gamma->getYpair()->getBest();
+    
+//        data.addData(i_Kal_Energy,gamma->RCenergy());
+//        data.addData(i_Kal_Energy_X, gamma->getXpair()->RCenergy());
+//        data.addData(i_Kal_Energy_Y, gamma->getYpair()->RCenergy());
+    
+        // Gamma quality
+        double type = 0;
+        if (!gamma->empty()) type = 11;
+        if (!gamma->getPair(SiCluster::X)->empty()) type += 1;
+        if (!gamma->getPair(SiCluster::Y)->empty()) type += 10;
+        Tkr_Fit_Type = type;
+    
+        double topo = 0;
+        if (gamma->fix()) topo = 1.;
+        if (gamma->conflictPattern()) topo *= -1.;
+        Tkr_Fit_Topo = topo;
+    
+        Tkr_Chisq           = _Xbest->chiSquare() + _Ybest->chiSquare();
+        Tkr_Chisq_1st       = _Xbest->chiSquareSegment() + _Ybest->chiSquareSegment();
+        Tkr_qual_X          = _Xbest->Q();
+        Tkr_qual_Y          = _Ybest->Q();
+        Tkr_qual            = _Xbest->Q() + _Ybest->Q();
+        Tkr_No_Hits         = _Xbest->numDataPoints()+_Ybest->numDataPoints();
+        Tkr_No_Gaps         = _Xbest->numGaps()+_Ybest->numGaps();
+        Tkr_No_Gaps_1st     = _Xbest->numFirstGaps()+_Ybest->numFirstGaps();
+        Tkr_No_Noise        = _Xbest->numNoise()+_Ybest->numNoise();
+        Tkr_No_Noise_1st    = _Xbest->numFirstNoise()+_Ybest->numFirstNoise();
+    
+        int nxhits = _Xbest->numDataPoints();
+        int nyhits = _Ybest->numDataPoints();
+    
+        if (!gamma->getXpair()->getPair()->empty()) 
+        {
+            int nhits = gamma->getXpair()->getPair()->numDataPoints();
+            if (nhits < nxhits) nxhits = nhits;
+        }
+        if (!gamma->getYpair()->getPair()->empty()) 
+        {
+            int nhits = gamma->getYpair()->getPair()->numDataPoints();
+            if (nhits< nyhits) nyhits = nhits;
+        }
+
+        // Pair reconstruction
+        Tkr_Fit_XNhits      = _Xbest->nhits();
+        Tkr_Fit_YNhits      = _Ybest->nhits();
+        Tkr_Fit_XChisq      = _Xbest->chiSquare();
+        Tkr_Fit_YChisq      = _Ybest->chiSquare();
+        Tkr_Fit_XChisq_1st  = _Xbest->chiSquareSegment();
+        Tkr_Fit_YChisq_1st  = _Ybest->chiSquareSegment();
+        Tkr_Fit_XKalEne     = _Xbest->RCenergy();
+        Tkr_Fit_YKalEne     = _Ybest->RCenergy();
+        Tkr_Fit_XKalThetaMS = _Xbest->KalThetaMS();
+        Tkr_Fit_YKalThetaMS = _Ybest->KalThetaMS();
+
+
+        //Calculate the vertices and directions for everyone...
+//        m_firstLayer = gamma->firstLayer();
+//        m_fitType = 0; // need some work
+//        m_xFactor =XENE;
+//        m_yFactor = XENE;
+    
+        Point  x1 = GFdata::doVertex(gamma->getBest(SiCluster::X)->ray(),
+                                     gamma->getBest(SiCluster::Y)->ray());
+        Vector t1 = GFdata::doDirection(gamma->getBest(SiCluster::X)->direction(),
+                                        gamma->getBest(SiCluster::Y)->direction());
+    
+        Point  x2 = x1;
+        Vector t2 = t1;
+        if (!gamma->getPair(SiCluster::X)->empty() && !gamma->getPair(SiCluster::Y)->empty()) 
+        {
+            x2 = GFdata::doVertex(gamma->getPair(SiCluster::X)->ray(),
+                                  gamma->getPair(SiCluster::Y)->ray());
+            t2 = GFdata::doDirection(gamma->getPair(SiCluster::X)->direction(),
+                                     gamma->getPair(SiCluster::Y)->direction());
+        }
+        
+        Point  x0 = gamma->vertex();
+        Vector t0 = gamma->direction();
+    
+        Tkr_Fit_xdir        = t1.x();
+        Tkr_Fit_ydir        = t1.y();
+        Tkr_Fit_zdir        = t1.z();
+        Tkr_Fit_x0          = x1.x();
+        Tkr_Fit_y0          = x1.y();
+        Tkr_Fit_z0          = x1.z();
+    
+        Tkr_Pair_xdir       = t2.x();
+        Tkr_Pair_ydir       = t2.y();
+        Tkr_Pair_zdir       = t2.z();
+        Tkr_Pair_x0         = x2.x();
+        Tkr_Pair_y0         = x2.y();
+        Tkr_Pair_z0         = x2.z();
+    
+        Tkr_Gamma_xdir      = t0.x();
+        Tkr_Gamma_ydir      = t0.y();
+        Tkr_Gamma_zdir      = t0.z();
+        Tkr_Gamma_x0        = x0.x();
+        Tkr_Gamma_y0        = x0.y();
+        Tkr_Gamma_z0        = x0.z();
+        
+        float sinDLT = sqrt(std::max(0.0,(1. - sqr(t0*t1))));
+        Tkr_Gamma_DLT       = sinDLT;
+    
+        GFtrack* _Xpair = gamma->getXpair()->getPair();
+        GFtrack* _Ypair = gamma->getYpair()->getPair();
+
+        if (!_Xpair->empty()) 
+        {
+            Tkr_Pair_XNhits = _Xpair->nhits();
+            Tkr_XChisq      = _Xpair->chiSquare();
+            Tkr_XChisq_1st  = _Xpair->chiSquareSegment();
+            Tkr_XKalEne     = _Xpair->RCenergy();
+            Tkr_XKalThetaMS =_Xpair->KalThetaMS();
+        }
+        if (!_Ypair->empty()) 
+        {
+            Tkr_Pair_YNhits = _Ypair->nhits();
+            Tkr_YChisq      = _Ypair->chiSquare();
+            Tkr_YChisq_1st  = _Ypair->chiSquareSegment();
+            Tkr_YKalEne     = _Ypair->RCenergy();
+            Tkr_YKalThetaMS = _Ypair->KalThetaMS();
+        }
+    
+//        data.addData(i_e_frac, (m_xFactor+m_yFactor)/2.);
+
+        Tkr_errSlopeX       = gamma->getXpair()->errorSlope();
+        Tkr_errSlopeY       = gamma->getYpair()->errorSlope();
+        Tkr_xeneXSlope      = gamma->getXpair()->RCenergy();
+        Tkr_xeneYSlope      = gamma->getYpair()->RCenergy();
+        Tkr_weightXSlope    = gamma->getXpair()->weightSlope();
+        Tkr_weightYSlope    = gamma->getYpair()->weightSlope();
+    
+        //	First Used Layer and previous Hits...
+        int x_layer = _Xbest->firstLayer();
+        Tkr_First_XHit      = x_layer;
+        int y_layer         = _Ybest->firstLayer();
+        int diffXY          = x_layer - y_layer;
+        Tkr_Diff_1st_Hit    = diffXY;
+    
+        // Tracker Recon Analysis Variables
+        //----------------------------------
+    
+        // compute the tracker veto parameters
+
+        // ******* Take Note *******
+//        if(cal == 0)
+//        {
+//            return;
+//        }
+//        m_tkrVeto->compute();
+    
+        // compute the tower/track boundary parameters
+//        m_twrBounds->compute();
+    
+        // compute the "Active_Dist" parameter
+//        m_activeDist->compute();
+    
+        double Zdiff_XY= gamma->getXpair()->vertex().z()-gamma->getYpair()->vertex().z();
+//        data.addData(i_Zdiff_XY, Zdiff_XY);
+        Point firstHit = gamma->getFirstHit();
+        double Zdiff_plane = gamma->vertex().z()-firstHit.z();
+//        data.addData(i_Zdiff_plane,Zdiff_plane);
+    
+        // compute the extra hits parameters
+//        m_extraHits->compute();
+    
+        // compute the CsI corrected energy
+//        m_Ecorr->compute();
+    
+        // make sure the data member for the CsICorrEnergy is set...
+//        m_CsICorrEnergy = m_Ecorr->result()->energyCorr();
+    
+        // kink in the first segment
+//        double fitkink,pairkink,fitkinkN,pairkinkN;
+//        fitkink = TAna_kink(pairkink, fitkinkN, pairkinkN);
+//        data.addData(i_fit_kink,fitkink);
+//        data.addData(i_pair_kink,pairkink);
+//        data.addData(i_fit_kinkN,fitkinkN);
+//        data.addData(i_pair_kinkN,pairkinkN);
+    
+        // hits in the previos and next plane
+//        double previousHits, firstHits, nextHits;
+//        firstHits = TAna_densityHits(previousHits, nextHits);
+//        data.addData(i_hits_previous,previousHits);
+//        data.addData(i_hits_first,firstHits);
+//        data.addData(i_hits_next,nextHits);
+        
+    }
+    
+    return sc;
+}
+
+//################################
+StatusCode TkrTupleValues::fillTupleValues(INTupleWriterSvc* pSvc, const char* pName)
+//################################
+{
+	StatusCode sc = StatusCode::SUCCESS;
+
+    if (pSvc)
+    {
+        if ((sc = pSvc->addItem(pName, "TKR_Cnv_Lyr_Hits",        Tkr_Cnv_Lyr_Hits       )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Max_controller_hits", Tkr_Max_controller_hits)).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fst_Cnv_Lyr",         Tkr_Fst_Cnv_Lyr        )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_NCnv_Lyrs_Hit",       Tkr_NCnv_Lyrs_Hit      )).isFailure()) return sc;
+
+        //Reconstructed stuff starts here        
+        if ((sc = pSvc->addItem(pName, "TKR_No_X_Trks",       Tkr_No_X_Trks      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_No_Y_Trks",       Tkr_No_Y_Trks      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_No_Tracks",       Tkr_No_Tracks      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_Type",        Tkr_Fit_Type       )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_Topo",        Tkr_Fit_Topo       )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Chisq",           Tkr_Chisq          )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Chisq_1st",       Tkr_Chisq_1st      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_qual_X",          Tkr_qual_X         )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_qual_Y",          Tkr_qual_Y         )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_qual",            Tkr_qual           )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_No_Hits",         Tkr_No_Hits        )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_Gaps",        Tkr_No_Gaps        )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_First_Fit_Gaps",  Tkr_No_Gaps_1st    )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_No_Noise",        Tkr_No_Noise       )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_No_Noise_1st",    Tkr_No_Noise_1st   )).isFailure()) return sc;
+
+        // Pair reconstruction
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_XNhits",      Tkr_Fit_XNhits     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_YNhits",      Tkr_Fit_YNhits     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_XChisq",      Tkr_Fit_XChisq     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_YChisq",      Tkr_Fit_YChisq     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_XChisq_1st",  Tkr_Fit_XChisq_1st )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_YChisq_1st",  Tkr_Fit_YChisq_1st )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_XKalEne" ,    Tkr_XKalEne        )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_YKalEne" ,    Tkr_YKalEne        )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_XKalThetaMS", Tkr_Fit_XKalThetaMS)).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_YKalThetaMS", Tkr_Fit_YKalThetaMS)).isFailure()) return sc;
+
+  
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_xdir",        Tkr_Fit_xdir       )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_ydir",        Tkr_Fit_ydir       )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_zdir",        Tkr_Fit_zdir       )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_x0",          Tkr_Fit_x0         )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_y0",          Tkr_Fit_y0         )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_z0",          Tkr_Fit_z0         )).isFailure()) return sc;
+    
+        if ((sc = pSvc->addItem(pName, "TKR_Pair_xdir",       Tkr_Pair_xdir      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Pair_ydir",       Tkr_Pair_ydir      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Pair_zdir",       Tkr_Pair_zdir      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Pair_x0",         Tkr_Pair_x0        )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Pair_y0",         Tkr_Pair_y0        )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Pair_z0",         Tkr_Pair_z0        )).isFailure()) return sc;
+    
+        if ((sc = pSvc->addItem(pName, "TKR_Gamma_xdir",      Tkr_Gamma_xdir     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Gamma_ydir",      Tkr_Gamma_ydir     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Gamma_zdir",      Tkr_Gamma_zdir     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Gamma_x0",        Tkr_Gamma_x0       )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Gamma_y0",        Tkr_Gamma_y0       )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Gamma_z0",        Tkr_Gamma_z0       )).isFailure()) return sc;
+        
+        if ((sc = pSvc->addItem(pName, "TKR_Pair_XNhits",     Tkr_Pair_XNhits    )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_XChisq",          Tkr_XChisq         )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_XChisq_1st",      Tkr_XChisq_1st     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_XKalEne",         Tkr_XKalEne        )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_XKalThetaMS",     Tkr_XKalThetaMS    )).isFailure()) return sc;
+
+        if ((sc = pSvc->addItem(pName, "TKR_Pair_YNhits",     Tkr_Pair_YNhits    )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_YChisq",          Tkr_YChisq         )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_YChisq_1st",      Tkr_YChisq_1st     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_YKalEne",         Tkr_YKalEne        )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_YKalThetaMS",     Tkr_YKalThetaMS    )).isFailure()) return sc;
+    
+//        data.addData(i_e_frac, (m_xFactor+m_yFactor)/2.);
+
+        if ((sc = pSvc->addItem(pName, "TKR_errSlopeX",       Tkr_errSlopeX      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_errSlopeY",       Tkr_errSlopeY      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_xeneXSlope",      Tkr_xeneXSlope     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_xeneYSlope",      Tkr_xeneYSlope     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_weightXSlope",    Tkr_weightXSlope   )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_weightYSlope",    Tkr_weightYSlope   )).isFailure()) return sc;
+    
+        //	First Used Layer and previous Hits...
+        if ((sc = pSvc->addItem(pName, "TKR_First_XHit",      Tkr_First_XHit     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Diff_1st_Hit",    Tkr_Diff_1st_Hit   )).isFailure()) return sc;
+
+        // Might there be kinks in the tracks?
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_Kink",        Tkr_Fit_Kink       )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Fit_KinkN",       Tkr_Fit_KinkN      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Pair_Kink",       Tkr_Pair_Kink      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Pair_Kink",       Tkr_Fit_KinkN      )).isFailure()) return sc;
+    }
+    
+    return sc;
+}
+
+//########################################################
+void TkrTupleValues::calcFitKink(GFgamma* pGamma)
+//########################################################
+{
+    GFtrack* xtrk = pGamma->getBest(SiCluster::X);
+    GFtrack* ytrk = pGamma->getBest(SiCluster::Y);
+    
+    if (xtrk->empty() || ytrk->empty()) return;
+    
+    double xkink = xtrk->kink(0);
+    double ykink = ytrk->kink(0);
+
+    Tkr_Fit_Kink = (fabs(ykink) > fabs(xkink)? ykink:xkink);
+    
+    double xkinkN = xtrk->kinkNorma(0);
+    double ykinkN = ytrk->kinkNorma(0);
+    Tkr_Fit_KinkN = (fabs(ykinkN) > fabs(xkinkN)? ykinkN:xkinkN);
+    
+    // Pair Track
+    xtrk = pGamma->getPair(SiCluster::X);
+    ytrk = pGamma->getPair(SiCluster::Y);
+    
+    if (xtrk->empty() || ytrk->empty()) return;
+    
+    xkink = xtrk->kink(0);
+    ykink = ytrk->kink(0);
+    Tkr_Pair_Kink = (fabs(ykink) > fabs(xkink)? ykink:xkink);
+    
+    xkinkN = xtrk->kinkNorma(0);
+    ykinkN = ytrk->kinkNorma(0);
+    Tkr_Pair_KinkN = (fabs(ykinkN) > fabs(xkinkN)? ykinkN:xkinkN);
+    
+    return;
+}
+
+
