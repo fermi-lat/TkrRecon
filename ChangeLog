@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: cohen  Thu Sep  5 05:44:21 PDT 2002
+TkrRecon/src/Utilities
+
+Modified Files:
+	TkrBase.h 
+Log Message:
+a few small fixes to avoid some gcc warnings
+    *
+------------------------------------------------------------
+User: cohen  Thu Sep  5 05:44:21 PDT 2002
 TkrRecon/src/TrackFit/KalFitTrack
 
 Modified Files:
