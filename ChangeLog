@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: cohen  Sun Sep  1 15:24:59 PDT 2002
+TkrRecon/src/Dll
+
+Modified Files:
+	tkrRecon_load.cxx 
+Log Message:
+removing these clones to TkrComboVtxRecon to avoid confusion
+    *
+------------------------------------------------------------
+User: cohen  Sun Sep  1 15:24:59 PDT 2002
 TkrRecon/src/GaudiAlg
 
 Modified Files:
