@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: lsrea  Tue Oct 19 18:12:10 PDT 2004
+TkrRecon/doc
+
+Modified Files:
+      Tag: GlastRelease-v4r5
+	release.notes 
+Log Message:
+Prepare for tag v9r0p2gr3
+Catch exception from propagator
+
+    *
+------------------------------------------------------------
+User: lsrea  Tue Oct 19 18:12:10 PDT 2004
 TkrRecon/cmt
 
 Modified Files:
