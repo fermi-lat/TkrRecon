@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: burnett  Thu Feb 14 10:46:07 PST 2002
+TkrRecon/TkrRecon/TrackFit
+
+Modified Files:
+	KalMatrix.h KalPar.h 
+Log Message:
+const is required for parameters passed by reference or pointer
+    *
+------------------------------------------------------------
 User: lsrea  Wed Feb 13 17:27:26 PST 2002
 TkrRecon/src
 
