@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Apr 10 16:02:57 PDT 2001
+TkrRecon/mgr requirements
+
+Modified Files:
+	requirements 
+Log Message:
+Add reference to GuiSvc for event display
+    *
+------------------------------------------------------------
 User: usher  Tue Apr 10 16:01:48 PDT 2001
 TkrRecon/src/Dll TkrRecon_load.cpp
 
