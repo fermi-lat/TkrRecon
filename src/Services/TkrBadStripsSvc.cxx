@@ -145,28 +145,33 @@ void TkrBadStripsSvc::readFromFile(std::ifstream* file)
         int element = (sequence+3)%4;
         int view = element/2;
         
-        v_strips* v;
-        if (makestrips) v = getBadStrips(tower, layer, 
-            static_cast<idents::GlastAxis::axis>(view) );
+        stripCol* v;
+		// my private use of getBadStrips requires non-const pointer
+		// to build the vector of bad strips...
+		// but public uses should return const pointer, so...
+
+        if (makestrips) v = const_cast<stripCol*> 
+			(getBadStrips(tower, layer, 
+            static_cast<idents::GlastAxis::axis>(view)));
         int strip = -1;
-        *file >>  strip;
+        *file >> strip;
         while (strip>=0) {
             if (makestrips) {
-                addStrip(v, tagBad(strip, tag));
+                addStrip(v, TaggedStrip(strip, tag));
                 *file >> strip;
                 nStrips++;
             }
             
             // sort strips in ascending order of strip number 
             // after each line is read in
-            if (makestrips) sortTaggedStrips(v);           
+            if (makestrips) std::sort(v->begin(), v->end());           
         }  
         return;
     }
 }
 
-int TkrBadStripsSvc::getIndex(const int tower, const int layer, 
-                              const idents::GlastAxis::axis axis) 
+int TkrBadStripsSvc::getIndex(int tower, int layer, 
+                              idents::GlastAxis::axis axis) const
 {
     // Purpose:  calculate index into array of vectors
     // Inputs:   tower, bilayer, axis
@@ -175,14 +180,16 @@ int TkrBadStripsSvc::getIndex(const int tower, const int layer,
     int view; 
     // this is to decouple the store from the current definition of axes
     // not that it will ever change
+    int index = -1;
     if (axis==idents::GlastAxis::X)  {view = 0;}
     else if (axis==idents::GlastAxis::Y) {view = 1;}
-    else {return 0;}
+    else {return index;}
+    if (layer<0 || layer>=NLAYERS || tower<0 || tower>=NTOWERS) {return index;} 
     // for now, hardwired to be as large as will ever by needed
     return view + NVIEWS*(layer + NLAYERS*tower);
 }
 
-void TkrBadStripsSvc::addStrip(v_strips* v, const int taggedStrip) 
+void TkrBadStripsSvc::addStrip(stripCol* v, TaggedStrip taggedStrip) 
 {
     // Purpose: add a bad strip to the list, already tagged bad
     // Inputs:  strip number
@@ -192,94 +199,55 @@ void TkrBadStripsSvc::addStrip(v_strips* v, const int taggedStrip)
     return;
 }
 
-v_strips* TkrBadStripsSvc::getBadStrips(const int tower, const int layer, 
-                                        const idents::GlastAxis::axis axis)
+const stripCol* TkrBadStripsSvc::getBadStrips(int tower, int layer, 
+                                        idents::GlastAxis::axis axis) const
 {
     // Purpose:  return pointer to a bad strip vector
     // Inputs:   tower, layer, axis
     // Outputs:  pointer to that vector
     
     int index = getIndex(tower, layer, axis);
-    
+
     return getBadStrips(index);
 }
 
 
-v_strips* TkrBadStripsSvc::getBadStrips(const int index)
+const stripCol* TkrBadStripsSvc::getBadStrips(int index) const
 {
     // Purpose:  return pointer to a bad strip vector
     // Inputs:   index
     // Outputs:  pointer to that vector
     
-    // int ind = (m_stripsCol.size()==0) ? m_stripsCol.size() : index;
-    int ind = (index<0 || index>575) ? 0 : index;
-    return &m_stripsCol[ind];
+    // original code... maybe some day...
+	// int ind = (m_stripsCol.size()==0) ? m_stripsCol.size() : index;
+
+    if (index>=0 && index < NELEMENTS) {return &m_stripsCol[index];}
+    else                         {return 0;}
 }
 
 
-int TkrBadStripsSvc::tagBad(const int strip, const int tag) 
-{
-    // Purpose: tag a strip bad
-    
-    return (strip | tag << tagShift);
-}
-
-
-int TkrBadStripsSvc::tagGood(const int strip) 
-{
-    // Purpose: tag a strip good
-    
-    return strip;
-}
-
-
-int TkrBadStripsSvc::stripNumber(const int strip) 
-{
-    // Purpose:  return the strip number of a (possibly tagged) strip
-    return (strip & stripMask);
-}
-
-int TkrBadStripsSvc::tagField(const int strip) 
-{
-    // Purpose: recover the tag field from the tagged strip
-    // Input:   tagged strip
-    // Output:  tag field
-    return (strip>>tagShift);
-}
-
-
-bool TkrBadStripsSvc::isTaggedBad(const int taggedStrip) 
-{
-    // Purpose: return status of tagged strip
-    // Input:   tagged strip
-    // Output:  true if strip is tagged bad
-    
-    return (tagField(taggedStrip)>0);
-}
-
-
-bool TkrBadStripsSvc::isBadStrip(const int tower, const int layer, 
-                                 const idents::GlastAxis::axis axis, 
-                                 const int strip) 
+bool TkrBadStripsSvc::isBadStrip(int tower, int layer, 
+                                 idents::GlastAxis::axis axis, 
+                                 int strip) const 
 {
     // Purpose: determine if a given strip is bad
     // Inputs:  tower, bilayer, axis, strip#
     // Output:  true if strip is in the list ( that is, is bad)
     
-    v_strips* v = getBadStrips(tower, layer, axis);
+    const stripCol* v = getBadStrips(tower, layer, axis);
     return isBadStrip(v, strip);
 }
 
-bool TkrBadStripsSvc::isBadStrip(const v_strips* v, const int strip)
+bool TkrBadStripsSvc::isBadStrip(const stripCol* v, int strip) const
 {
     // Purpose: determine if a given strip is bad
     // Inputs:  index, strip#
     // Output:  true if strip is in the list
     
     bool isBad = false;
-    v_strips_it it;
+    stripCon_it it;
     for (it=v->begin(); it!=v->end(); it++) {
-        if ( stripNumber(*it)==strip ) {
+        if ( (*it).getStripNumber()==strip ) {
             isBad = true;
             break;
         }
@@ -288,40 +256,8 @@ bool TkrBadStripsSvc::isBadStrip(const v_strips* v, const int strip)
     
     // this was the orginal code, before the tag was variable
     // might be useful again some day
-    //v_strips_it it = std::find(v->begin(), v->end(), tagBad(strip));
+    //stripCol_it it = std::find(v->begin(), v->end(), tagBad(strip));
     //return (it!=v->end());
-}
-
-int TkrBadStripsSvc::swapForSort( const int strip)
-{
-    // Purpose: swaps high and low order stuff, so tagged strips 
-    //          can be sorted by strip number
-    // Inputs:  strip, tagged or untagged (normal or swapped)
-    // Output:  same strip (swapped or normal)
-   
-    return ((strip&stripMask)<< tagShift) | (strip>>tagShift); 
-}
-
-void TkrBadStripsSvc::sortTaggedStrips(std::vector<int> *list) 
-{
-    // Purpose: sort the input list by strip number
-    // Method: do swapForSort, then sort, then unswap
-    // Inputs: list of strips
-    // Outputs:  sorted list
-    // Dependencies: None
-    // Restrictions and Caveats:  None
-
-    // the following is a horrible kludge to do the merged sort 
-    //    until I figure out how to get the predicate thing working
-    
-    std::vector<int>::iterator ist;          
-    for (ist=list->begin(); ist!=list->end(); ist++) {           
-        *ist = swapForSort(*ist) ;
-    }
-    std::sort(list->begin(), list->end());         
-    for (ist=list->begin(); ist!=list->end(); ist++) {           
-        *ist = swapForSort(*ist) ;
-    }
 }
 
 // queryInterface

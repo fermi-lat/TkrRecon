@@ -8,9 +8,6 @@
 #include <vector>
 #include <fstream>
 
-typedef std::vector<int> v_strips;
-typedef v_strips::const_iterator v_strips_it;
-
 //----------------------------------------------
 //
 //   TkrBadStripsSvc
@@ -23,6 +20,46 @@ typedef v_strips::const_iterator v_strips_it;
 
 static const InterfaceID IID_ITkrBadStripsSvc(907, 1 , 0); 
 
+/// A small class to define tagged strips 
+class TaggedStrip 
+{
+public: 
+    enum {tagShift = 12, stripMask = 0xFFF, BIG = stripMask};
+    
+    TaggedStrip(int stripNumber = 0, int tag = 0)
+    {
+        m_stripNumber = (stripNumber & stripMask);
+        m_tag = (tag & stripMask);
+    }
+    
+    ~TaggedStrip() {}
+    
+    int getStripNumber() const { return m_stripNumber;}
+    int getTag()         const { return m_tag;}
+    bool isTaggedBad()   const { return getTag()>0;}
+    static TaggedStrip makeLastStrip() { return TaggedStrip(BIG, BIG);}
+    static TaggedStrip makeTaggedStrip(const int &strip) 
+    {
+        return TaggedStrip(strip);
+    }
+    
+    operator int() const
+    {
+        return ((m_stripNumber & stripMask) << tagShift) 
+            | ((m_tag & stripMask));
+    }
+    
+private:
+    int m_stripNumber;
+    int m_tag;
+};
+
+
+typedef std::vector<TaggedStrip> stripCol;
+typedef stripCol::iterator       stripCol_it;
+typedef stripCol::const_iterator stripCon_it;
+
+
 class ITkrBadStripsSvc : public virtual IInterface
 {
 public:
@@ -31,20 +68,14 @@ public:
 
     static const InterfaceID& interfaceID() { return IID_ITkrBadStripsSvc; }
    
-    virtual int getIndex(const int tower, const int layer, 
-        const idents::GlastAxis::axis axis) = 0;
-    virtual v_strips* getBadStrips(const int tower, const int layer, 
-        const idents::GlastAxis::axis axis) = 0;
-    virtual v_strips* getBadStrips(const int index)= 0;
-    virtual bool isBadStrip(const int tower, const int layer, 
-        const idents::GlastAxis::axis axis, const int strip) = 0;
-    virtual bool isBadStrip(const v_strips* v, const int strip) = 0;
-    virtual bool isTaggedBad(const int taggedStrip) = 0;
-    virtual int tagField(const int strip) = 0;
-    virtual int stripNumber(const int strip) = 0;
-    virtual int swapForSort(const int strip) = 0;
-    virtual void sortTaggedStrips(std::vector<int> * list) = 0;
-    virtual int lastStrip() = 0;
+    virtual int getIndex(int tower, int layer, 
+        idents::GlastAxis::axis axis) const = 0;
+    virtual const stripCol* getBadStrips(int tower, int layer, 
+        idents::GlastAxis::axis axis) const = 0;
+    virtual const stripCol* getBadStrips(int index) const = 0;
+    virtual bool isBadStrip(int tower, int layer, 
+        idents::GlastAxis::axis axis, int strip) const = 0;
+    virtual bool isBadStrip(const stripCol* v, int strip) const = 0;
  };
 
 #endif
