@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Aug 29 16:01:07 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrDisplayAlg.cxx 
+Log Message:
+First attempt at documentation
+    *
+------------------------------------------------------------
 User: atwood  Thu Aug 29 14:15:58 PDT 2002
 TkrRecon/src/Vertex/Combo
 
