@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: lsrea  Thu Sep  5 23:59:53 PDT 2002
+TkrRecon/src/TrackFit/KalmanFilter
+
+Modified Files:
+	KalmanFilter.cxx 
+Log Message:
+use new form of TkrClusterCol methods (no view)
+    *
+------------------------------------------------------------
+User: lsrea  Thu Sep  5 23:59:53 PDT 2002
 TkrRecon/src/TrackFit/KalFitTrack
 
 Modified Files:
