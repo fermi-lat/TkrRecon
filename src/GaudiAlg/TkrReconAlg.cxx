@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.15 2002/05/31 23:38:36 cohen Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.16 2002/06/13 23:27:04 usher Exp $
 //
 // Description:
 //      Controls the track fitting
@@ -43,7 +43,7 @@ TkrReconAlg::TkrReconAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator) 
 {
     // Variable to switch propagators
-    declareProperty("PropagatorType", m_PropagatorType=0);
+    declareProperty("PropagatorType", m_PropagatorType=1);
 }
 
 StatusCode TkrReconAlg::initialize()

@@ -29,7 +29,7 @@ TkrInitSvc::TkrInitSvc(const std::string& name, ISvcLocator* pSvcLocator) :
 Service(name, pSvcLocator)
 {
     // Type of patrec required
-    declareProperty("TrackerReconType", m_TrackerReconType=0);
+    declareProperty("TrackerReconType", m_TrackerReconType=1);
     
     return;	
 }
