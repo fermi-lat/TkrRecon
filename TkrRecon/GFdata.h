@@ -7,7 +7,7 @@
 #ifndef __GLASTFIT_H
 #define __GLASTFIT_H 1
 
-#include "Gaudi/MessageSvc/MsgStream.h"
+#include "GaudiKernel/MsgStream.h"
 #include "geometry/Ray.h"
 #include "TkrRecon/GFcontrol.h"
 

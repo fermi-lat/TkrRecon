@@ -10,7 +10,7 @@
 
 #include "GlastEvent/Digi/TkrDigi.h"
 
-#include "Gaudi/Algorithm/Algorithm.h"
+#include "GaudiKernel/Algorithm.h"
 
 //----------------------------------------------
 //

@@ -2,7 +2,7 @@
 #ifndef __GFPARTICLE_H
 #define __GFPARTICLE_H 1
 
-#include "Gaudi/MessageSvc/MsgStream.h"
+#include "GaudiKernel/MsgStream.h"
 #include "TkrRecon/GFsegment.h"
 
 //##############################################

@@ -13,7 +13,7 @@
 #define __SIRECOBJSALG_H 1
 
 #include "geometry/Point.h"
-#include "Gaudi/Algorithm/Algorithm.h"
+#include "GaudiKernel/Algorithm.h"
 
 #include "TkrRecon/SiClusters.h"
 #include "TkrRecon/SiRecObjs.h"

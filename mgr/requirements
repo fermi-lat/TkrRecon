@@ -6,37 +6,45 @@ branches src mgr doc
 use GlastSvc
 use gui
 use GuiSvc
+use GaudiKernel
 
-macro TkrReconDir  "$(TKRRECONROOT)/$(DEBUGDIR)"
+#macro TkrReconDir  "$(TKRRECONROOT)/$(DEBUGDIR)"
+ignore_pattern include_none
+apply_pattern package_include
 
 macro TkrRecon_linkopts   " " 
 macro TkrRecon_stamps     
 
-set   TkrReconShr           "${TKRRECONROOT}/${DEBUGDIR}/libTkrRecon"
-
 # have a seperate library to export the tracker recon data classes 
-library TkrReconData -no_share *.cpp *.cxx
 
-macro TkrRecon_linkopts   "$(TkrReconDir)/libTkrReconData.a  " \
-      VisualC             "$(TkrReconDir)/libTkrReconData.lib  " 
+
 
 library TkrRecon  *.cpp *.cxx ../TkrRecon/*.h  Dll/*.cpp
 
-path_append LD_LIBRARY_PATH "${TKRRECONROOT}/${DEBUGDIR}/"
+library TkrReconData -no_share *.cpp *.cxx
 
-include_path $(TKRRECONROOT)
+macro TkrRecon_linkopts   "$(TkrReconDir)/libTkrReconData.a  " \
+      VisualC             "$(TkrReconDir)/TkrReconData.lib  " 
+
+#path_append LD_LIBRARY_PATH "${TKRRECONROOT}/${DEBUGDIR}/"
+apply_pattern ld_library_path 
+
+#include_path $(TKRRECONROOT)
 
 private 
 
+apply_pattern packageShr
 
 # note that the debug versions of the used libraries are inserted below
 
-macro TkrRecon_shlibflags   "$(libraryshr_linkopts) $(use_linkopts)" \
-      VisualC        "DataObject.obj $(componentshr_linkopts) $(use_linkopts) $(Win32Debug)"
+#macro TkrRecon_shlibflags   "$(libraryshr_linkopts) $(use_linkopts)" \
+#      WIN32        "$(componentshr_linkopts) $(use_linkopts) $(Win32Debug)"
+
+apply_pattern package_Cshlibflags 
 
 # build this for testing
 
-macro jobOptions "" VisualC "test/jobOptions.txt"
+macro jobOptions "" WIN32 "test/jobOptions.txt"
 
 application test \
         test/*.cxx $(jobOptions)

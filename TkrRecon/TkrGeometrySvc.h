@@ -2,7 +2,7 @@
 #ifndef __SISETGEOMETRY_H
 #define __SISETGEOMETRY_H 1
 
-#include "Gaudi/Kernel/Service.h"
+#include "GaudiKernel/Service.h"
 
 #include "TkrRecon/TkrAxis.h"
 #include "src/TkrDetGeo.h"
@@ -18,6 +18,9 @@
 //----------------------------------------------
 //             Tracy Usher, SLAC, 2/28/01
 //----------------------------------------------
+
+static const InterfaceID IID_TkrGeometrySvc(905, 1 , 0); 
+
 //##########################################################
 class TkrGeometrySvc : public TkrAxis, public Service
 //##########################################################
@@ -30,6 +33,8 @@ public:
     
     StatusCode initialize();
     StatusCode finalize();
+
+	static const InterfaceID& interfaceID() { return IID_TkrGeometrySvc; }
     
     //Retrieve stored information
     int    geomType()        {return m_geomType;}

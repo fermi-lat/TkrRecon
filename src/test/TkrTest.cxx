@@ -1,11 +1,11 @@
 
 // Include files
-#include "Gaudi/Kernel/SmartIF.h"
-#include "Gaudi/Kernel/Bootstrap.h"
-#include "Gaudi/Interfaces/IAppMgrUI.h"
-#include "Gaudi/Interfaces/IProperty.h"
-#include "Gaudi/JobOptionsSvc/Property.h"
-#include "Gaudi/System/System.h"
+#include "GaudiKernel/SmartIF.h"
+#include "GaudiKernel/Bootstrap.h"
+#include "GaudiKernel/IAppMgrUI.h"
+#include "GaudiKernel/IProperty.h"
+#include "GaudiKernel/Property.h"
+#include "GaudiKernel/System.h"
 
 
 //------------------------------------------------------------------------------

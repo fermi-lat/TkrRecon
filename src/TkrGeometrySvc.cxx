@@ -1,6 +1,6 @@
 
-#include "Gaudi/MessageSvc/MsgStream.h"
-#include "Gaudi/Kernel/SvcFactory.h"
+#include "GaudiKernel/MsgStream.h"
+#include "GaudiKernel/SvcFactory.h"
 #include "TkrRecon/TkrGeometrySvc.h"
 
 #include "xml/IFile.h"

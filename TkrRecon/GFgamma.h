@@ -3,7 +3,7 @@
 #define __GFGAMMA_H 1
 
 #include <math.h>
-#include "Gaudi/MessageSvc/MsgStream.h"
+#include "GaudiKernel/MsgStream.h"
 #include "TkrRecon/GFparticle.h"
 
 //#############################################################
