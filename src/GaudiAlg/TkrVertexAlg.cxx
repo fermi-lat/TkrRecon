@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.12 2002/09/01 22:24:59 cohen Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.13 2002/09/05 16:42:30 lsrea Exp $
 //
 // Description:
 //      Handles the Gaudi part of the vertex reconstruction
@@ -69,7 +69,6 @@ StatusCode TkrVertexAlg::execute()
     StatusCode sc = StatusCode::SUCCESS;
   
     MsgStream log(msgSvc(), name());
-    log << MSG::DEBUG << "Executing TkrVertexAlg"<<endreq;
   
     // Recover the collection of Fit tracks
     Event::TkrFitTrackCol* pTkrTracks = SmartDataPtr<Event::TkrFitTrackCol>(eventSvc(),EventModel::TkrRecon::TkrFitTrackCol);
@@ -101,7 +100,7 @@ StatusCode TkrVertexAlg::execute()
             VtxToolName = std::string("DEFAULT");
         }
 
-        log << MSG::INFO << "Vertexing performed with: "<< VtxToolName.c_str() <<endreq;
+        log << MSG::DEBUG << "Vertexing performed with: "<< VtxToolName.c_str() <<endreq;
 
         // Look up (and instantiate if necessary) a private version of the tool
         sc = toolSvc()->retrieveTool(VtxToolName.c_str(), m_VtxTool, this);
