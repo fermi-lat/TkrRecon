@@ -55,7 +55,8 @@ class ITkrMcTracksTool : virtual public IAlgTool
     virtual const int                   getGapStartHitNo(const Event::McParticleRef mcPart, int gapIdx)=0;
 
     /// @brief Returns the "straightness" of a given track
-    virtual const double                getTrackStraightness(const Event::McParticleRef mcPart)=0;
+    virtual const double                getTrackStraightness(const Event::McParticleRef mcPart, int firstHitIdx=0, int lastHitIdx=40)=0;
+    virtual const Hep3Vector            getTrackDirection(const Event::McParticleRef mcPart, int firstHitIdx=0, int lastHitIdx=40)=0;
 
     /// @brief Compares two tracks and returns information on shared hits (if any)
     virtual const unsigned int          getSharedHitInfo(const Event::McParticleRef mcPart)=0;
