@@ -20,7 +20,7 @@ private
 
 #the following prepend makes the includes folder available locally: avoid the package_include
 #apply_pattern package_include
-macro_prepend includes "-i $(TRKRECONROOT) " WIN32 "/I $(TKRRECONROOT) "
+macro_prepend includes "-I $(TRKRECONROOT) " WIN32 "/I $(TKRRECONROOT) "
 
 macro TkrRecon_stamps     
 
