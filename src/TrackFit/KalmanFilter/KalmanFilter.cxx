@@ -23,7 +23,7 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int &
                            double &arc_min)
 {
     // Extrapolate the hit to the next SSD layer - maybe an X or a Y
-    //     Note: distance will be > arc_min - arc_len used returned as arc_min
+    //     Note: distance will be > arc_min;   arc_len used returned as arc_min
     // Returns (nlayers)  the number of GLAST Planes crossed 
     // Note: nlayers = 0 for crossing between X and Y in same plane
 
@@ -48,7 +48,7 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int &
 
     IKalmanParticle* TkrFitPart = TkrReconAlg::m_KalParticle;
     TkrFitPart->setStepStart(x_ini, dir_ini, arc_min);
-    if(TkrFitPart->trackToNextPlane()) //This is bad? - need to swim by Delta-Z
+    if(TkrFitPart->trackToNextPlane()) 
     {
         AXIS planeProjection = TkrCluster::Y;
         if(TkrFitPart->isXPlane()) planeProjection = TkrCluster::X; 
