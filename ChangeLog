@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Mon Jul 22 06:41:47 PDT 2002
+TkrRecon/src/Vertex
+
+Added Files:
+	IVtxBaseTool.h VtxBaseTool.h VtxBaseTool.cxx 
+Log Message:
+Creation of the base class for vertexing, based on Gaudi tool concept
+    *
+------------------------------------------------------------
 User: cohen  Mon Jul 22 06:38:37 PDT 2002
 TkrRecon/src/Vertex
 
