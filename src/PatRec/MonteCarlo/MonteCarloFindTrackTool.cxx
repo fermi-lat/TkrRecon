@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.24 2005/02/17 20:17:48 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.25 2005/02/19 22:40:28 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -294,7 +294,7 @@ void MonteCarloFindTrackTool::buildTrackFromMcPart(const Event::McParticle* mcPa
         {
             Event::ClusMcPosHitRel*  mcHitRel = (*hitIter)->getSecond();
             Event::McPositionHit*    posHit   =  mcHitRel->getSecond();
-            const Event::TkrCluster* cluster  =  mcHitRel->getFirst();
+            //const Event::TkrCluster* cluster  =  mcHitRel->getFirst();
 
             // Where are we? 
             idents::TkrId tkrId(posHit->volumeID());

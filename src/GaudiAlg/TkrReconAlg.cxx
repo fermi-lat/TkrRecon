@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.30 2005/01/28 20:06:33 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.31 2005/02/21 01:19:18 lsrea Exp $
 */
 
 
@@ -45,6 +45,8 @@ namespace {
             << x;
         return oStr.str();
     }
+
+    const int exceptionTestTypes = 10;
 }
 
 // little class to hold the event error information
@@ -295,15 +297,18 @@ StatusCode TkrReconAlg::execute()
         // throw some exceptions to test the logging, maybe make an option later
         m_stage = "TestExceptions";
         if (m_testExceptions) {
-            if(m_eventCount%5==1) {
+            if(m_eventCount%exceptionTestTypes==1) {
                 throw TkrException("Testing TkrException ");
             }
 
-            if(m_eventCount%5==2) {
+            if(m_eventCount%exceptionTestTypes==2) {
                 int i = 0;
                 int j = 1;
                 int k = j/i;
                 k++;
+            } else if(m_eventCount%exceptionTestTypes==5) {
+                int* pInt = 0;
+                int x = *pInt;
             }
         }
 
@@ -318,7 +323,7 @@ StatusCode TkrReconAlg::execute()
         // Call track fit
         m_stage = "TkrTrackFitAlg";
         if(m_lastStage>=FITTING) sc = m_TkrTrackFitAlg->execute();
-        if (m_testExceptions && m_eventCount%5==3) sc = StatusCode::FAILURE;
+        if (m_testExceptions && m_eventCount%exceptionTestTypes==3) sc = StatusCode::FAILURE;
 
         if (sc.isFailure())
         {
@@ -328,7 +333,7 @@ StatusCode TkrReconAlg::execute()
         // Call vertexing
         m_stage = "TkrVertexAlg";
         if(m_lastStage>=VERTEXING) sc = m_TkrVertexAlg->execute();
-        if (name()=="Iteration" && m_testExceptions && m_eventCount%5==4) sc = StatusCode::FAILURE;
+        if (name()=="Iteration" && m_testExceptions && m_eventCount%exceptionTestTypes==4) sc = StatusCode::FAILURE;
         if (sc.isFailure())
         {
             return handleError(stageFailed);

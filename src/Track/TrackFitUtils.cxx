@@ -282,8 +282,8 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
 
     idents::TkrId hitId   = (*hitIter)->getTkrId();
     double initialPBeta = m_hitEnergy->kinETopBeta((*hitIter)->getEnergy());
-    double sX, sY;
-    double xClustSize, yClustSize;
+    double sX = 0.0, sY = 0.0;
+    double xClustSize = -1000.0, yClustSize = -1000.0;
     double totalRadLen = 0.0;
     for (; hitIter!=track.end(); ++hitIter) {
         const Event::TkrTrackHit& hit   = **hitIter;
@@ -380,13 +380,14 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
 
     // Set a max. energy based on range 
     //        - use last cluster size as indicator of range-out
-    // If it's too wide, the particle as straggled
+    // If it's too wide, the particle has straggled
 
     double aspectRatio = m_tkrGeom->siStripPitch()/m_tkrGeom->siThickness();
     double prj_size_x = (fabs(sX)/aspectRatio) + 1.;
     double prj_size_y = (fabs(sY)/aspectRatio) + 1.;
     double range_limit = 100000.;  // 100 GeV max...
-    if((xClustSize - prj_size_x) > 2 || (yClustSize - prj_size_y) > 2) {
+    if((xClustSize>0 && (xClustSize - prj_size_x) > 2) || 
+        (yClustSize>0 && (yClustSize - prj_size_y) > 2)) {
         range_limit = totalRadLen * 50.; // 10 MeV = 15% rad. len 
     }
 

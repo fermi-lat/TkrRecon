@@ -8,7 +8,7 @@
  *
  * @author Tracy Usher (editor) from version implemented by Leon Rochester (due to Bill Atwood)
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.8 2005/02/17 17:27:12 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.9 2005/02/19 00:27:03 lsrea Exp $
  */
 
 #include "SlopeCorrectedMeasErrs.h"
@@ -66,13 +66,13 @@ double SlopeCorrectedMeasErrs::getError(double strips, double slope) const
     //   and needs to be dealt with separately.
     double factor = 0.0;
     double minErr = m_tkrGeom->siResolution(); 
-    int    nStrips = (int) strips+.01;  // just to be safe
+    int    nStrips = static_cast<int>(strips+.01);  // just to be safe
 
 
     double eps0 = -0.1; // use this to extent or restrict the valid range for 1-strip clusters
     double eps1 = -0.1; // ditto for the rest of the clusters
-    double minStrips, maxStrips, peakStrips;
-    double loPar1, hiPar1, peakDev;
+    double minStrips=0, maxStrips=0, peakStrips=0;
+    double loPar1=0.5, hiPar1=0.5, peakDev=0.9;
 
     /*
     Here's the idea: for a given number of strips in the cluster, there is a limited range of

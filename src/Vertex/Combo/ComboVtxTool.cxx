@@ -221,7 +221,7 @@ Event::TkrTrackParams ComboVtxTool::getParamAve(Event::TkrTrackParams& params1,
     // Computes the cov. weight average input TkrTrackParams - also it computes the
     // Chisquare for the association
 
-    bool debug = true;
+    //bool debug = true;
     
     //MsgStream log(msgSvc(), name());
     
