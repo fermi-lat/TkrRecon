@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Fri Jun 22 09:15:59 PDT 2001
+TkrRecon/src TkrClustersRep.cxx TkrRecObjsRep.cxx
+
+Modified Files:
+	TkrClustersRep.cxx TkrRecObjsRep.cxx 
+Log Message:
+Zero pointer to prevent it from trying to look at a non-existent data object
+
+    *
+------------------------------------------------------------
 User: igable  Thu Jun 21 16:03:49 PDT 2001
 TkrRecon/src McReconAlg.cxx SiRecObjs.cpp
 
