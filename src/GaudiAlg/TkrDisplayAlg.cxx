@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.12 2003/08/04 20:08:37 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.13 2003/08/06 21:56:22 usher Exp $
 //
 // Description:
 //      Contains the implementation of the methods for setting up the TkrRecon display
@@ -21,7 +21,7 @@
 #include "TkrRecon/Display/TkrClustersRep.h"
 #include "TkrRecon/Display/TkrTracksRep.h"
 
-#include "../src/Display/TkrPatCandRep.h"
+#include "src/Display/TkrPatCandRep.h"
 #include "TkrRecon/Display/TkrCandidatesRep.h"
 #include "TkrRecon/Display/TkrBestCandRep.h"
 #include "TkrRecon/Display/TkrCandidate3DRep.h"
