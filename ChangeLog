@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+User: cohen  Mon Sep  9 13:16:25 PDT 2002
+TkrRecon/doc/KalVtx
+
+Added Files:
+	images.aux images.log images.pl images.tex img10.png img11.png 
+	img12.png img13.png img14.png img15.png img16.png img17.png 
+	img18.png img19.png img1.png img20.png img21.png img22.png 
+	img23.png img24.png img25.png img26.png img2.png img3.png 
+	img4.png img5.png img6.png img7.png img8.old img8.png img9.png 
+	index.html KalVtx.css KalVtx.html labels.pl 
+Log Message:
+Creation of a latex2html based documentation for the Kalman Vertexer
+    *
+------------------------------------------------------------
 User: cohen  Mon Sep  9 13:14:30 PDT 2002
 TkrRecon/doc
 
