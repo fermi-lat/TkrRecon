@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 13:46:32 PST 2001
+TkrRecon/TkrRecon/TrackFit
+
+Removed Files:
+	KalFit.h TkrReconAlg.h 
+Log Message:
+TkrReconAlg is moving to another folder
+KalFit is being replaced by new code to do the fit
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 13:44:14 PST 2001
 TkrRecon/TkrRecon/Track
 
