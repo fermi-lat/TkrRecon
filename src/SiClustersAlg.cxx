@@ -146,7 +146,7 @@ StatusCode SiClustersAlg::retrieve()
         }
     }
     
-    m_SiClusters = new SiClusters(pTrackerGeo->numViews(), pTrackerGeo->numLayers(), pTrackerGeo->siStripPitch(), pTrackerGeo->trayWidth());
+    m_SiClusters = new SiClusters(pTrackerGeo->numViews(), pTrackerGeo->numLayers(), pTrackerGeo->siStripPitch(), pTrackerGeo->towerPitch());
     sc = eventSvc()->registerObject("/Event/TkrRecon/SiClusters",m_SiClusters);
     
     m_TkrDigis  = SmartDataPtr<TkrDigiCol>(eventSvc(),"/Event/TkrRecon/TkrDigis");
