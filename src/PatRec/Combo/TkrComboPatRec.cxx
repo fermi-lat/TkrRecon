@@ -14,11 +14,11 @@ Implementation of a Combinatoric Pattern recognition for GLAST
 */
 
 #include "src/PatRec/Combo/TkrComboPatRec.h"
-#include "TkrRecon/Track/GFtutor.h"
-#include "TkrRecon/Track/GFcontrol.h"
-#include "TkrRecon/Track/TkrPoints.h"
+#include "src/PatRec/Utilities/GFtutor.h"
+#include "src/TrackFit/KalFitTrack/GFcontrol.h"
+#include "src/PatRec/Utilities/TkrPoints.h"
 #include "TkrRecon/Cluster/TkrQueryClusters.h"
-#include "TkrRecon/GaudiAlg/TkrReconAlg.h"
+#include "TkrRecon/GaudiAlg/TkrTrackFitAlg.h"
 #include "GlastSvc/Reco/IKalmanParticle.h"
 
 #include <algorithm>
@@ -42,6 +42,9 @@ TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pCluster
     m_BestHitCount = 0;
     m_firstLayer = 0; 
     m_TopLayer     = GFtutor::numPlanes(); 
+
+    m_clusters     = pClusters;
+    m_tkrGeo       = pTkrGeo;
     
     //Search for candidate tracks
     searchCandidates(CalEnergy, CalPosition);
@@ -210,7 +213,7 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     Vector dir_ini = first_track->getDirection(); 
     double arc_tot = x_ini.z() / fabs(dir_ini.z()); // z=0 at top of grid
     
-    IKalmanParticle* kalPart = TkrReconAlg::m_KalParticle;
+    IKalmanParticle* kalPart = TkrTrackFitAlg::m_KalParticle;
     kalPart->setStepStart(x_ini, dir_ini, arc_tot);
 
     // Setup summed var's and loop over all layers between x_ini & cal
@@ -575,7 +578,7 @@ m_deflection(d)
 {
     // Do a prelim. Fit using TkrKalTrack to find all the hits
     Ray testRay(x,t);   
-    m_track = new KalFitTrack(layer, twr, m_sigma, e, testRay); 
+    m_track = new KalFitTrack(GFtutor::_DATA, GFtutor::pTrackerGeo, layer, twr, m_sigma, e, testRay); 
     m_track->findHits();
     if(m_track->status()==KalFitTrack::EMPTY) return; 
     m_track->doFit();
