@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: usher  Thu Sep 23 10:22:13 PDT 2004
+TkrRecon/doc
+
+Modified Files:
+      Tag: GlastRelease-v4r5
+	release.notes 
+Log Message:
+Change to new branch name convention, updating to new "patch" tag v9r0p2gr1
+    *
+------------------------------------------------------------
+User: usher  Thu Sep 23 10:22:13 PDT 2004
 TkrRecon/cmt
 
 Modified Files:
