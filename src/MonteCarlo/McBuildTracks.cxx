@@ -6,9 +6,9 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/MonteCarlo/McBuildTracks.cxx,v 1.1 2003/08/04 20:11:24 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/MonteCarlo/McBuildTracks.cxx,v 1.2 2003/08/06 21:53:21 usher Exp $
  */
-#include "src/MonteCarlo/McBuildTracks.h"
+#include "McBuildTracks.h"
 #include "GaudiKernel/SmartDataPtr.h"
 #include "Event/TopLevel/EventModel.h"
 #include "TkrRecon/MonteCarlo/TkrEventModel.h"
