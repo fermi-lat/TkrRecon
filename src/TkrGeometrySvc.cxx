@@ -285,3 +285,20 @@ tkrDetGeo TkrGeometrySvc::getSiDice(int ilayer, tkrDetGeo::axis a, int iladder, 
     
     return dice;
 }
+
+// queryInterface
+StatusCode  TkrGeometrySvc::queryInterface (const IID& riid, void **ppvIF)
+{
+    if (IID_ITkrGeometrySvc == riid) {
+        *ppvIF = dynamic_cast<ITkrGeometrySvc*> (this);
+        return StatusCode::SUCCESS;
+    }
+    else {
+        return Service::queryInterface (riid, ppvIF);
+    }
+}
+
+// access the type of this service
+const IID&  TkrGeometrySvc::type () const {
+    return IID_ITkrGeometrySvc;
+}
