@@ -12,7 +12,7 @@
 *
 * @authors Bill Atwood, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.11 2002/09/02 17:30:33 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.12 2002/09/02 23:29:52 lsrea Exp $
 */
 
 #include <vector>
@@ -59,7 +59,7 @@ public:
     void setNumLayers(int num)    { s_numLayers = num;}
 
     /// Checks that a layer number is in the correct range
-    bool validLayer(int layer) {return (layer>=0 && layer < s_numLayers-1);};
+    bool validLayer(int layer) {return (layer>=0 && layer < s_numLayers);};
 
     
 
