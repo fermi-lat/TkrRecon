@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Wed Oct 20 11:20:34 PDT 2004
+TkrRecon/cmt
+
+Modified Files:
+      Tag: GlastRelease-v4r5
+	requirements 
+Log Message:
+Prepare for tag v9r0p2gr6; add <stdexecpt> for safety
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Oct 20 07:06:47 PDT 2004
 TkrRecon/src/TrackFit/KalFitTrack
 
