@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.3 2004/11/15 21:17:49 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.4 2004/11/16 03:36:37 atwood Exp $
  */
 
 // to turn one debug variables
@@ -357,6 +357,7 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrack* track)
 	else {
 		// No cluster found  - so this a gap of some sort
 	    trackHit = new Event::TkrTrackHit();
+		trackHit->setZPlane(end_pos.z());
 		// Retrieve a reference to the measured parameters (for setting)
         Event::TkrTrackParams& params = trackHit->getTrackParams(Event::TkrTrackHit::MEASURED);
 		// Set measured track parameters - NEED NEW CODE HERE
