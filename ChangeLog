@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Nov  7 21:33:31 PST 2001
+TkrRecon/TkrRecon/cluster
+
+Added Files:
+	TkrCluster.h TkrClusterAlg.h TkrClusters.h 
+Log Message:
+Add the clustering class definitions to TkrRecon/Cluster
+    *
+------------------------------------------------------------
 User: usher  Wed Nov  7 21:30:26 PST 2001
 TkrRecon/TkrRecon/TrackFit
 
