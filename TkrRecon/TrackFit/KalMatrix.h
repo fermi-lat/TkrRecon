@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/KalFit.h,v 1.2 2001/02/13 01:50:33 igable Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/TrackFit/KalMatrix.h,v 1.1 2001/11/26 21:48:20 usher Exp $
 //----------------------------------------
 //
 //      Kalman Filter Objects Declarations
@@ -25,7 +25,7 @@ public:
     KalMatrix() : HepMatrix(4, 4, 0) {}
 
     // Init from a CLHEP matrix 
-    KalMatrix(HepMatrix &A) : HepMatrix(A) {}
+    KalMatrix(const HepMatrix &A) : HepMatrix(A) {}
 
     // Special constructor to produce propagation matrix F
     KalMatrix(double step) : HepMatrix(4, 4, 1){

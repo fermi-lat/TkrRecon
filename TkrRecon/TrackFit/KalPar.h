@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/TrackFit/KalPar.h,v 1.1 2001/11/26 21:48:20 usher Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/TrackFit/KalPar.h,v 1.2 2002/02/06 21:38:59 usher Exp $
 //----------------------------------------
 //
 //      Part of the KALMAN Filter Objects Declarations
@@ -35,8 +35,8 @@ public:
       operator[](2) = ay; operator[](3) = sy;}
 
     // Create from a 3D trajectory
-    KalPar (Ray &); 
-    KalPar (Ray *); 
+    KalPar (const Ray &); 
+    KalPar (const Ray *); 
     
     // Access methods for individual fit parameters
     inline double getXPosition() const {return operator[](0);}

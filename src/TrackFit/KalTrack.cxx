@@ -1,5 +1,5 @@
 
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalTrack.cxx,v 1.1 2001/11/26 21:51:12 usher Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalTrack.cxx,v 1.2 2002/02/06 22:00:17 usher Exp $
 
 //----------------------------------------------------------------------
 //    
@@ -17,7 +17,9 @@
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
 #include "GlastSvc/Reco/IKalmanParticle.h"
 #include <cmath>
-
+#ifndef WIN32
+# include <ieeefp.h>
+#endif
 bool CONTROL_setDeltaEne = false;
 double CONTROL_MaxEne = 2.;
 int CONTROL_maxPlanesEne = 8;
