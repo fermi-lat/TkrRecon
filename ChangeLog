@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: igable  Sun Jun  3 16:58:03 PDT 2001
+TkrRecon/src McReconAlg.cxx
+
+Added Files:
+	McReconAlg.cxx 
+Log Message:
+Adds MC related items to a ntuple using Heather ntupleWriterSvc.
+
+    *
+------------------------------------------------------------
 User: igable  Sun Jun  3 16:51:45 PDT 2001
 TkrRecon/src/Dll TkrRecon_load.cpp
 
