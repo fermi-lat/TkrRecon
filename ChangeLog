@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Tue Jul 29 08:08:01 PDT 2003
+TkrRecon/src/PatRec
+
+Modified Files:
+	PatRecBaseTool.cxx PatRecBaseTool.h 
+Log Message:
+PatRec based class now used by all algorithms
+    *
+------------------------------------------------------------
 User: cohen  Tue Jul 29 06:08:59 PDT 2003
 TkrRecon/src/PatRec/NeuralNet
 
