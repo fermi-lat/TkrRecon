@@ -254,7 +254,7 @@ void KalFitter::findHits()
     TkrFitHit::TYPE type = TkrFitHit::FIT;
     Status statushit     = FOUND;
     
-    while( -1 < kplane && kplane < m_tkrGeo->numPlanes()) 
+    while( -1 < kplane && kplane < m_tkrGeo->numLayers()) 
     {
         step_counter++; 
         TkrFitPlane prevKplane;
@@ -309,7 +309,13 @@ void KalFitter::findHits()
             }
         }
         // Check if there are any planes left.... Last plane is a Y plane, #17
-        if(kplane == m_tkrGeo->numPlanes()-1 && nextKplane.getProjection()==TkrCluster::Y) break; 
+        // better to check for plane==0
+        int tray, botTop;
+        m_tkrGeo->layerToTray(m_tkrGeo->reverseLayerNumber(kplane), (int)nextKplane.getProjection(), tray, botTop);
+        if(m_tkrGeo->trayToPlane(tray, botTop)==0) {
+            std::cout << "we will be breaking here" << std::endl;
+        }
+        if(kplane == m_tkrGeo->numLayers()-1 && nextKplane.getProjection()==TkrCluster::Y) break; 
     }
 }
 
@@ -348,7 +354,7 @@ KalFitter::Status KalFitter::nextKPlane(const TkrFitPlane& previousKplane,
         
         // Check that we haven't fall off the end of the stack
         kplane = nextKplane.getIDPlane();
-        if(kplane > m_tkrGeo->numPlanes()) break;
+        if(kplane > m_tkrGeo->numLayers()) break;
         
         arc_total = arc_min;
         num_steps++; 
@@ -1030,7 +1036,7 @@ double KalFitter::computeQuality() const
     // Restrictions and Caveats:  None
     
     // Calc. How many hits are possible?
-    int num_max = 2*(m_tkrGeo->numPlanes() - m_iLayer); 
+    int num_max = m_tkrGeo->numPlanes() - 2*m_iLayer; 
     if(num_max > 16) num_max = 16;
     
     // Don't allow more then 8 of each projection

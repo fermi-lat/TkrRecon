@@ -368,10 +368,10 @@ double TrackFitUtils::computeQuality(const TkrKalFitTrack& track) const
     // Restrictions and Caveats:  None
     
     // Calc. How many hits are possible?
-    int num_max = 2*(m_tkrGeo->numPlanes() - track.getLayer());
+    int num_max = m_tkrGeo->numPlanes() - 2*track.getLayer();
     if(num_max > 16) num_max = 16;
     
-    // Don't allow more then 8 of each projection
+    // Don't allow more than 8 of each projection
     int num_Hits  = (track.getNumXHits() <= 8) ? track.getNumXHits() : 8;
     num_Hits     += (track.getNumYHits() <= 8) ? track.getNumYHits() : 8;
     
