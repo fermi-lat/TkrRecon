@@ -13,7 +13,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitTrack.h,v 1.20 2002/11/03 01:29:00 atwood Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitTrack.h,v 1.21 2002/11/27 20:17:31 atwood Exp $
 */
 
 #ifndef __KalFitTrack_H
@@ -77,6 +77,8 @@ public:
     void          setStatus(Status status) {m_status = status;}
     void          setType(int type)        {m_type   = type;}
     Status        status() const           {return m_status;}
+
+    void          setEnergy(double energy) {m_energy0 = energy;}
     
 private:    
     /// Utilities

@@ -16,8 +16,6 @@ Implementation of a Combinatoric Pattern recognition for GLAST
 #include "src/PatRec/Combo/TkrComboPatRec.h"
 #include "src/Utilities/TkrPoints.h"
 #include "TkrRecon/Cluster/TkrQueryClusters.h"
-#include "TkrRecon/GaudiAlg/TkrTrackFitAlg.h"
-#include "GlastSvc/Reco/IKalmanParticle.h"
 
 //#include <fstream>
 
@@ -205,16 +203,17 @@ void TkrComboPatRec::loadOutput()
         
         for(hypo  = m_candidates.begin(); hypo != m_candidates.end();   hypo++){
             
-            int   iniLayer = (*hypo)->track()->getLayer();
-            int   iniTower = (*hypo)->track()->getTower();
-            Ray   testRay  = (*hypo)->track()->getRay();
-            float energy   = (*hypo)->conEnergy(); // Which energy to use?  
- //         float quality  = (*hypo)->track()->getQuality();
-            float type     = (*hypo)->type();
+            int    iniLayer = (*hypo)->track()->getLayer();
+            int    iniTower = (*hypo)->track()->getTower();
+            Ray    testRay  = (*hypo)->track()->getRay();
+            double energy   = (*hypo)->conEnergy(); // Which energy to use?  
+            double enErr    = (*hypo)->track()->getKalEnergyError();
+ //         float  quality  = (*hypo)->track()->getQuality();
+            double type     = (*hypo)->type();
             
             //Keep this track (but as a candidate)
 //           TkrPatCand* newTrack = new TkrPatCand(iniLayer,iniTower,energy,quality,testRay);
-             TkrPatCand* newTrack = new TkrPatCand(iniLayer,iniTower,energy,type,testRay);
+             TkrPatCand* newTrack = new TkrPatCand(iniLayer,iniTower,energy,enErr,type,testRay);
           
             newTrack->setEnergy(energy);
             
@@ -279,7 +278,7 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     Vector dir_ini = first_track->getDirection(); 
     double arc_tot = x_ini.z() / fabs(dir_ini.z()); // z=0 at top of grid
     
-    IKalmanParticle* kalPart = TkrTrackFitAlg::m_KalParticle;
+    IKalmanParticle* kalPart = m_tkrGeo->getPropagator();
     kalPart->setStepStart(x_ini, dir_ini, arc_tot);
 
     // Set up summed var's and loop over all layers between x_ini & cal
@@ -852,6 +851,16 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
         pln_pointer++;
     }
     int first_layer = m_track->getLayer();
+
+    // Initial setting of constrained energies
+    // This originally in the SetEnergies method, moved here to initialize con energy
+    double kal_energy = std::min(5000., m_track->getKalEnergy());
+    double energy     = std::max(e, kal_energy);
+
+    if(energy == e) adjustType(10);
+    else            adjustType(20);
+    
+    setConEnergy(energy);
 
     // This parameter sets the order of the tracks to be considered
     // Penalities: big kinks at start, begining later in stack, and

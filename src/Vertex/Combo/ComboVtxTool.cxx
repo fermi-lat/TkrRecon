@@ -7,6 +7,7 @@
 #include "Event/Recon/TkrRecon/TkrFitTrack.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "Event/Recon/TkrRecon/TkrVertex.h"
+#include "Event/Recon/TkrRecon/TkrVertexTab.h"
 #include "Event/TopLevel/EventModel.h"
 
 #include "src/Vertex/Combo/TkrComboVtxRecon.h"
@@ -41,9 +42,12 @@ StatusCode ComboVtxTool::retrieveVtxCol(Event::TkrVertexCol& vertexCol)
     Event::TkrFitTrackCol* tracks     = SmartDataPtr<Event::TkrFitTrackCol>(pDataSvc,EventModel::TkrRecon::TkrFitTrackCol); 
     Event::TkrPatCandCol*  candidates = SmartDataPtr<Event::TkrPatCandCol>(pDataSvc,EventModel::TkrRecon::TkrPatCandCol); 
 
+    Event::TkrVertexTab 
+        vertexRelTab(SmartDataPtr<Event::TkrVertexTabList >(pDataSvc,EventModel::TkrRecon::TkrVertexTab));
+
     //Ok, this will do the combo vertexing putting the results into the already defined vertex 
     //collection "vertexCol"
-    TkrComboVtxRecon vertex(pTkrGeoSvc, &vertexCol, tracks, candidates);
+    TkrComboVtxRecon vertex(pTkrGeoSvc, &vertexCol, tracks, candidates, &vertexRelTab);
 
     return sc;
 }

@@ -4,6 +4,7 @@
 
 #include "src/Vertex/Combo/TkrComboVtxRecon.h"
 #include "src/Vertex/Combo/RayDoca.h"
+#include "Event/Recon/TkrRecon/TkrVertexTab.h"
 
 double erf(double x) {
     double t = 1./(1.+.47047*x);
@@ -15,7 +16,13 @@ double thrshold(double x) {
     else      return (.5*(1. - erf( x)));
 }
 
-TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* vertexCol, TkrFitTrackCol* pTracks, TkrPatCandCol* /*pCandTracks*/)
+using namespace Event;
+
+TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, 
+                                   Event::TkrVertexCol* vertexCol, 
+                                   Event::TkrFitTrackCol* pTracks, 
+                                   Event::TkrPatCandCol* /*pCandTracks*/,
+                                   Event::RelTable<Event::TkrVertex,Event::TkrFitTrackBase>* vertexRelTab)
 {
     //Define a vector to contain a list of "isolated" tracks
     int    numTracks = pTracks->size();
@@ -164,7 +171,13 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
         vertex->addTrack(best_track2);
         
         vertexCol->push_back(vertex); // addVertex(vertex);
-        
+
+        // Add track/vertex to relational table
+        Event::TkrVertexRel* rel1 = new Event::TkrVertexRel(vertex, track1);
+        Event::TkrVertexRel* rel2 = new Event::TkrVertexRel(vertex, best_track2);
+        vertexRelTab->addRelation(rel1);
+        vertexRelTab->addRelation(rel2);
+
         unused[trk1Idx] = false;
         unused[bst_trk2Idx] = false;
     }
@@ -186,7 +199,11 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
             vertex->addTrack(track1);
                     
             vertexCol->push_back(vertex); //addVertex(vertex);
-         }
+ 
+            // Add track/vertex to relational table
+            Event::TkrVertexRel* rel = new Event::TkrVertexRel(vertex, track1);
+            vertexRelTab->addRelation(rel);
+        }
     }            
     return;
 }

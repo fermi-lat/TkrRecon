@@ -17,8 +17,6 @@
 
 
 #include "KalFitter.h" 
-#include "TkrRecon/GaudiAlg/TkrTrackFitAlg.h"
-#include "GlastSvc/Reco/IKalmanParticle.h"
 #include "src/TrackFit/KalmanFilter/KalmanFilter.h"
 #include "src/Track/TkrControl.h"
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
@@ -58,6 +56,30 @@ KalFitter::KalFitter(Event::TkrClusterCol* clusters, ITkrGeometrySvc* geo, TkrKa
     m_track->setStartEnergy(energy);
     m_track->setInitialPosition(testRay.position());
     m_track->setInitialDirection(testRay.direction());
+
+    // Set up control
+    m_control = TkrControl::getPtr();
+}
+
+KalFitter::KalFitter(Event::TkrClusterCol* clusters, ITkrGeometrySvc* geo, TkrKalFitTrack* track, double sigmaCut,double energy) :
+                             m_ray(Ray(track->getInitialPosition(),track->getInitialDirection())),
+                             m_iLayer(track->getLayer()),
+                             m_iTower(track->getTower()),
+                             m_sigma(sigmaCut),
+                             m_nxHits(track->getNumXHits()),
+                             m_nyHits(track->getNumYHits()),
+                             m_track(track),
+                             m_clusters(clusters),
+                             m_tkrGeo(geo)
+{
+    // Purpose and Method: Constructor - Initialization for KalFitter
+  
+    // Inputs:  Pointer to Detector Geometery, pointer to TrkClusters, the Cal Energy,
+    // Outputs: KalFitter
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
+    m_track->setStartEnergy(energy);
 
     // Set up control
     m_control = TkrControl::getPtr();
@@ -777,7 +799,7 @@ void KalFitter::finish()
 
     // Compute the radiation lengths to the calorimeter front face
     double arc_min = (m_track->getInitialPosition().z() + 26.5)/fabs(m_track->getInitialDirection().z()); 
-    IKalmanParticle* TkrFitPart = TkrTrackFitAlg::m_KalParticle;
+    IKalmanParticle* TkrFitPart = m_tkrGeo->getPropagator();
     TkrFitPart->setStepStart(x0, dir, arc_min);
     m_track->setTkrCalRadLen(TkrFitPart->radLength()); 
 
