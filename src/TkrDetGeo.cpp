@@ -1,4 +1,4 @@
-#include "src/tkrDetGeo.h"
+#include "src/TkrDetGeo.h"
 
 //#########################################################
 void TkrGeo::setGeo(Point p, Point s) 
