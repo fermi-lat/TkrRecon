@@ -3,6 +3,8 @@
  * Package TkrRecon
  * Manager: Leon Rochester 
  *
+ * v5r1    01-Apr-2002  LSR   Run TkrGeometrySvc entirely from detModel, get fitter running
+ * v5r0    26-Mar-2002  TU    Cleanup and tkrApp requirements file that works
  * v4r4p8  09-Mar-2002  LSR   Remove GFxxxxx and SiRecObjs, no longer used
  * v4r4p7  07-Mar-2002  TU    Mainly, add a combo vertexing to the TkrRecon sequence
  * v4r4p6  26-Feb-2002  LSR   same as previous, but with more documentation
