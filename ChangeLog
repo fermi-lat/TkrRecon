@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Mar 26 14:11:36 PST 2002
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Added use geometry and xml to requirements file, removed ntupleWriterSvc
+    *
+------------------------------------------------------------
 User: usher  Tue Mar 26 14:09:49 PST 2002
 TkrRecon/src/Dll
 
