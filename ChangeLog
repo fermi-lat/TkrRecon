@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue May  7 15:50:31 PDT 2002
+TkrRecon/TkrRecon/TrackFit
+
+Removed Files:
+	TkrFitHit.h TkrFitMatrix.h TkrFitPar.h TkrFitPlane.h 
+Log Message:
+TDS output classes moved to GlastEvent
+
+    *
+------------------------------------------------------------
 User: usher  Tue May  7 15:48:49 PDT 2002
 TkrRecon/TkrRecon/Track
 
