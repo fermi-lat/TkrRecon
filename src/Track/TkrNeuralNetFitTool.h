@@ -7,7 +7,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetFitTool.h,v 1.3 2003/01/10 19:43:25 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetFitTool.h,v 1.4 2003/03/13 19:13:24 lsrea Exp $
  */
 
 #ifndef TKRCOMBOFITTOOL_H
@@ -17,7 +17,7 @@
 #include "GaudiKernel/DataSvc.h"
 #include "TkrRecon/Track/ITkrFitTool.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
-#include "TkrUtil/ItkrFailureModeSvc.h"
+#include "TkrUtil/ITkrFailureModeSvc.h"
 
 class TkrNeuralNetFitTool : public AlgTool, virtual public ITkrFitTool
 {
