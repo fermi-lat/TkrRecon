@@ -5,10 +5,11 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/BetheBlockHitEnergy.cxx,v 1.1 2004/04/19 22:51:00 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/BetheBlockHitEnergy.cxx,v 1.2 2004/09/08 15:32:46 usher Exp $
  */
 
 #include "BetheBlockHitEnergy.h"
+#include "Event/Recon/TkrRecon/TkrTrack.h"
 
 const double muMass = 105.7;
 
@@ -18,8 +19,8 @@ BetheBlockHitEnergy::BetheBlockHitEnergy() :
     return;
 }
 
-double BetheBlockHitEnergy::initialHitEnergy(const Event::TkrPatCand& patCand, 
-                                             const Event::TkrPatCandHit& candHit, 
+double BetheBlockHitEnergy::initialHitEnergy(const Event::TkrTrack& patCand, 
+                                             const Event::TkrTrackHit& candHit, 
                                              const double trkEnergy)
 {
     return trkEnergy;
