@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: lsrea  Sun Jan 26 16:38:58 PST 2003
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrClusterAlg.cxx 
+Log Message:
+added calls to alignment service
+    *
+------------------------------------------------------------
+User: lsrea  Sun Jan 26 16:38:58 PST 2003
 TkrRecon/src/Cluster
 
 Modified Files:
