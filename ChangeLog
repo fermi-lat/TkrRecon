@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Tue May  7 15:58:48 PDT 2002
+TkrRecon/src/TrackFit
+
+Removed Files:
+	TkrFitHit.cxx TkrFitPar.cxx TkrFitPlane.cxx 
+Log Message:
+TDS output classes moved to GlastEVent
+Modify remaining source code to reflect this movement
+
+    *
+------------------------------------------------------------
 User: usher  Tue May  7 15:57:21 PDT 2002
 TkrRecon/src/Track
 
