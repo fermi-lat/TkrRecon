@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Sat May 11 22:53:04 PDT 2002
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	TkrComboVtx.h TkrComboVtxRecon.h TkrComboVtxRep.cxx 
+Log Message:
+Change namespace TkrRecon to Event
+
+    *
+------------------------------------------------------------
 User: usher  Sat May 11 22:53:03 PDT 2002
 TkrRecon/src/TrackFit/KalmanFilter
 
