@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.21 2005/02/08 23:07:33 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.23 2005/02/15 20:34:25 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -281,6 +281,9 @@ void MonteCarloFindTrackTool::buildTrackFromMcPart(const Event::McParticle* mcPa
                 break;
             }
         }
+
+        // No track, no sense continuing
+        if (track == 0) return;
 
         // Now loop through to fill in the hits
         // Note that if no cluster found above then this loop will not (should not) execute
