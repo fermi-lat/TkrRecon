@@ -3,6 +3,7 @@
  * Package TkrRecon
  * Manager: Leon Rochester 
  *
+ * v5r1p1  08-Apr-2002  LsR   remove "-y" kludge (detModel is fixed now)
  * v5r1    01-Apr-2002  LSR   Run TkrGeometrySvc entirely from detModel, get fitter running
  *                            Neural Net patrec in cvs
  * v5r0    26-Mar-2002  TU    Cleanup and tkrApp requirements file that works
