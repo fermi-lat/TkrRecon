@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.22 2003/03/12 23:32:20 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.23 2003/03/26 22:05:02 usher Exp $
  */
 
 
@@ -53,6 +53,7 @@ private:
     Algorithm*  m_TkrFindAlg;
     Algorithm*  m_TkrTrackFitAlg;
     Algorithm*  m_TkrVertexAlg;
+    Algorithm*  m_TkrDisplayAlg;
 };
 
 // Definitions for use within Gaudi
@@ -116,6 +117,14 @@ StatusCode TkrReconAlg::initialize()
             log << MSG::ERROR << " could not open TkrVertexAlg " << endreq;
             return StatusCode::FAILURE;
         }
+
+        // Display algorithm (if GuiSvc is present)
+        if( createSubAlgorithm("TkrDisplayAlg", "TkrDisplayAlg", m_TkrDisplayAlg).isFailure() ) 
+        {
+            log << MSG::ERROR << " could not open TkrDisplayAlg " << endreq;
+            return StatusCode::FAILURE;
+        }
+        m_TkrDisplayAlg->setProperty("TrackerReconType", m_TrackerReconType);
     }
     else
     {

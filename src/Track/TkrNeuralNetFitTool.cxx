@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetFitTool.cxx,v 1.7 2003/03/26 22:05:03 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetFitTool.cxx,v 1.8 2003/05/27 18:24:55 usher Exp $
 //
 // Description:
 //      Tool for performing the fit of Neural Net Pat Rec candidate tracks
@@ -117,6 +117,12 @@ StatusCode TkrNeuralNetFitTool::doTrackFit(Event::TkrPatCand* patCand)
         Event::TkrFitTrackCol* pFitTracks = SmartDataPtr<Event::TkrFitTrackCol>(pDataSvc,EventModel::TkrRecon::TkrFitTrackCol); 
         pFitTracks->push_back(track);
 
+        //Update the candidate - fit track relational table
+        Event::TkrFitTrackTab  trackRelTab(SmartDataPtr<Event::TkrFitTrackTabList >(pDataSvc,EventModel::TkrRecon::TkrTrackTab));
+        Event::TkrFitTrackRel* rel = new Event::TkrFitTrackRel(patCand, track);
+
+        trackRelTab.addRelation(rel);
+
         fitter->flagAllHits();
         if(pFitTracks->size() == 1) 
         {
@@ -142,12 +148,13 @@ StatusCode TkrNeuralNetFitTool::doTrackReFit(Event::TkrPatCand* patCand)
     Event::TkrClusterCol* pTkrClus = SmartDataPtr<Event::TkrClusterCol>(pDataSvc,EventModel::TkrRecon::TkrClusterCol); 
 
     // Recover the pat track - fit track relational table
-    SmartDataPtr<Event::TkrFitTrackTab> trackRelTab(pDataSvc,EventModel::TkrRecon::TkrTrackTab);
+    //SmartDataPtr<Event::TkrFitTrackTab> trackRelTab(pDataSvc,EventModel::TkrRecon::TkrTrackTab);
+    Event::TkrFitTrackTab  trackRelTab(SmartDataPtr<Event::TkrFitTrackTabList >(pDataSvc,EventModel::TkrRecon::TkrTrackTab));
 
     // Make sure we have some tracks to work with here!
-    if (trackRelTab->getAllRelations())
+    if (trackRelTab.getAllRelations())
     {
-        Event::TkrFitTrackBase* baseFitTrack = trackRelTab->getRelByFirst(patCand)[0]->getSecond();
+        Event::TkrFitTrackBase* baseFitTrack = trackRelTab.getRelByFirst(patCand)[0]->getSecond();
 
         // Does fit track really exist?
         if (baseFitTrack)

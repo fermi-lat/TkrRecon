@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.10 2003/03/26 22:05:02 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.11 2003/05/27 18:24:54 usher Exp $
  */
 
 #include <vector>
@@ -131,7 +131,7 @@ StatusCode TkrTrackFitAlg::execute()
     StatusCode sc = StatusCode::SUCCESS;
 
     // What to do depends upon first track fit or iteration
-    if (name() != "TkrFitIter") sc = doTrackFit();
+     if (name() != "TkrFitIter") sc = doTrackFit();
     else                        sc = doTrackReFit();
 
     return sc;
