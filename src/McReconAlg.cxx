@@ -148,7 +148,7 @@ StatusCode McReconAlg::execute() {
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_zDir",dir.z());
     
      
-    HepPoint3D pos = mcVert->initialPosition();
+    HepPoint3D pos = mcVert->finalPosition();
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_X0",pos.x());
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Y0",pos.y()); 
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Z0",pos.z());
@@ -156,9 +156,6 @@ StatusCode McReconAlg::execute() {
     //The following code is added for providing MC-recon comparisons 
     //Its not obvious to me that this is where this code should go... 
     //but for now it goes here - Tracy Usher 13-Jun-2001
-    double     Fit_Xdir_Err   = -9999;
-    double     Fit_Ydir_Err   = -9999;
-    double     Fit_Zdir_Err   = -9999;
     double     Gamma_Xdir_Err = -9999;
     double     Gamma_Ydir_Err = -9999;
     double     Gamma_Err      = -9999;
@@ -186,9 +183,6 @@ StatusCode McReconAlg::execute() {
         }
     }
 
-    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(), "MC_Fit_Xdir_Err",   Fit_Xdir_Err);
-    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(), "MC_Fit_Ydir_Err",   Fit_Ydir_Err);
-    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(), "MC_Fit_Zdir_Err",   Fit_Zdir_Err);
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(), "MC_Gamma_Xdir_Err", Gamma_Xdir_Err);
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(), "MC_Gamma_Ydir_Err", Gamma_Ydir_Err);
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(), "MC_Gamma_Err",      Gamma_Err);
