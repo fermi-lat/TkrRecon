@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Mon Jul 22 13:49:29 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	GFcontrol.cxx 
+Log Message:
+added min. hits to terminate ComboPR
+    *
+------------------------------------------------------------
 User: atwood  Mon Jul 22 13:48:34 PDT 2002
 TkrRecon/src/TrackFit/KalmanFilter
 
