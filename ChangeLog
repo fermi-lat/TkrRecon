@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+User: usher  Sun Jan 27 11:32:44 PST 2002
+TkrRecon/TkrRecon/Track
+
+Modified Files:
+	TkrFitTrack.h 
+Added Files:
+	TkrLinkAndTreeFit.h TkrTracks.h 
+Log Message:
+New Files: Class definition for Fit Tracks (TDS class)
+           class definition for fitting Link and Tree recognized tracks
+
+
+    *
+------------------------------------------------------------
 User: usher  Sun Jan 27 11:28:38 PST 2002
 TkrRecon/TkrRecon/PatRec
 
