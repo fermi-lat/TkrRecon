@@ -765,20 +765,29 @@ void KalFitTrack::eneDetermination()
     double count     = 0.; 
     double eSumCount = 0.;
     double tSumCount = 0.;
+    double x_cls_size = 1.;
+    double y_cls_size = 1.;
     
     Vector t0(0.,0.,0.); 
     int old_Plane_Id = m_hits[0].getIDPlane(); 
-
-    
-    for (int iplane = 0; iplane < nplanes; iplane++) {     
+   
+    for (int iplane = 0; iplane < nplanes; iplane++) { 
+       // Get the last cluster size for range estimation
+       TkrCluster::view hit_proj = m_hits[iplane].getProjection();
+       int hit_Id = m_hits[iplane].getIDHit();
+       if(hit_proj == TkrCluster::X) {
+           x_cls_size = GFtutor::_DATA->size(hit_proj, hit_Id);
+       }
+       else {
+           y_cls_size = GFtutor::_DATA->size(hit_proj, hit_Id);
+       }
         if(m_hits[iplane].getIDPlane() == old_Plane_Id) {
             sX += m_hits[iplane].getHit(TkrFitHit::SMOOTH).getPar().getXSlope();
             sY += m_hits[iplane].getHit(TkrFitHit::SMOOTH).getPar().getYSlope();
-            radLen += m_hits[iplane].getRadLen();
+            radLen += m_hits[iplane].getRadLen(); 
             count += 1.; 
-            continue; 
+            if(iplane != nplanes-1) continue;
         }
-        
         totalRad += radLen;    
         Vector t1 = Vector(-sX/count, -sY/count, -1.).unit();
         
@@ -788,8 +797,8 @@ void KalFitTrack::eneDetermination()
             sY = m_hits[iplane].getHit(TkrFitHit::SMOOTH).getPar().getYSlope();
             radLen = m_hits[iplane].getRadLen();
             count =1.;
-            old_Plane_Id = m_hits[iplane].getIDPlane();           
-            continue;
+            old_Plane_Id = m_hits[iplane].getIDPlane(); 
+            continue; 
         }
         
         double e_factor = exp(-totalRad);        
@@ -810,11 +819,25 @@ void KalFitTrack::eneDetermination()
         radLen = m_hits[iplane].getRadLen();
         count =1.;
     }
+
+    // Set a max. energy based on range 
+    //        - use cluster size as indicator of range-out
+    double prj_size_x = GFtutor::siThickness()*fabs(sX)/
+                        GFtutor::siStripPitch()             + 1.;
+    double prj_size_y = GFtutor::siThickness()*fabs(sY)/
+                        GFtutor::siStripPitch()             + 1.;
+    double range_limit = 10000;  // 10 GeV max... 
+    if((x_cls_size - prj_size_x) > 2 || (y_cls_size - prj_size_y) > 2) {
+        range_limit = totalRad * 50.; // 10 MeV = 15% rad. len
+    }
+
     m_KalThetaMS = sqrt(thetaSum/2./tSumCount);
     double e_inv = sqrt(eneSum  /2./eSumCount); 
     m_KalEnergy = 13.6/e_inv; //Units MeV
     
     if(m_KalEnergy < GFcontrol::minEnergy/3.) m_KalEnergy = GFcontrol::minEnergy/3.; 
+    if(m_KalEnergy > range_limit) m_KalEnergy = range_limit;
+    m_KalEnergyErr = m_KalEnergy/sqrt(eSumCount);
 }
 
 double KalFitTrack::getKink(int kplane) const
