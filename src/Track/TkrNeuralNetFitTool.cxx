@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrNeuralNetFitTool.cxx,v 1.2 2002/08/28 22:55:48 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease/TkrRecon/src/Track/TkrNeuralNetFitTool.cxx,v 1.3 2002/08/29 19:18:47 usher Exp $
 //
 // Description:
 //      Tool for performing the fit of Neural Net Pat Rec candidate tracks
@@ -14,7 +14,8 @@
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "Event/TopLevel/EventModel.h"
 
-#include "src/TrackFit/KalFitTrack/KalFitTrack.h"
+#include "Event/Recon/TkrRecon/TkrKalFitTrack.h"
+#include "src/TrackFit/KalFitTrack/KalFitter.h"
 #include "src/Track/TkrControl.h"   
 
 static ToolFactory<TkrNeuralNetFitTool> s_factory;
@@ -59,26 +60,26 @@ StatusCode TkrNeuralNetFitTool::doTrackFit(Event::TkrPatCand* patCand)
     Ray    testRay  = patCand->getRay();
     double energy   = patCand->getEnergy();
         
-        
-    Event::KalFitTrack* track = new Event::KalFitTrack(pTkrClus, pTkrGeoSvc, iniLayer, iniTower, 
-                                          control->getSigmaCut(), energy, testRay);                 
+    Event::TkrKalFitTrack* track  = new Event::TkrKalFitTrack();
+    Event::KalFitter*      fitter = new Event::KalFitter(pTkrClus, pTkrGeoSvc, track, iniLayer, iniTower, 
+                                               control->getSigmaCut(), energy, testRay);                 
         
     //track->findHits(); Using PR Solution to save time
         
-    track->findHits();        
-    track->doFit();
+    fitter->findHits();        
+    fitter->doFit();
         
     if (!track->empty(control->getMinSegmentHits())) 
     {
         Event::TkrFitTrackCol* pFitTracks = SmartDataPtr<Event::TkrFitTrackCol>(pDataSvc,EventModel::TkrRecon::TkrFitTrackCol); 
         pFitTracks->push_back(track);
 
-        track->flagAllHits();
+        fitter->flagAllHits();
         if(pFitTracks->size() == 1) 
         {
             //Unflag first hit on track (x and y)
-            track->unFlagHit(0);
-            track->unFlagHit(1);
+            fitter->unFlagHit(0);
+            fitter->unFlagHit(1);
         }
     } 
     else  {

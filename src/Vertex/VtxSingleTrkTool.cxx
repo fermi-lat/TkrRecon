@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxSingleTrkTool.cxx,v 1.3 2002/09/01 22:37:41 cohen Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease/TkrRecon/src/Vertex/VtxSingleTrkTool.cxx,v 1.4 2002/09/02 19:46:15 cohen Exp $
 // Description:
 //      Simple vertexing tool for single track event
 //
@@ -39,7 +39,7 @@ StatusCode VtxSingleTrkTool::doVtxFit(Event::TkrVertexCol& theVtxCol)
   Event::TkrFitConPtr itr = m_theTracks->begin();
   while(itr != m_theTracks->end())
     {
-      Event::TkrFitTrack* theTrack = *itr++;
+      Event::TkrFitTrackBase* theTrack = *itr++;
       Event::TkrVertex* 
         vertex = new Event::TkrVertex(theTrack->getLayer(),
                                       theTrack->getTower(),

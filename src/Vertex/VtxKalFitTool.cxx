@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.15 2002/09/02 21:51:06 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.16 2002/09/05 12:44:21 cohen Exp $
 // Description:                                                  
 //      Implementation of the Kalman vertexer
 //
@@ -80,10 +80,10 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
 
   sc = StatusCode::FAILURE;
 
-  Event::TkrFitConPtr tkrIter = theTracks->begin();
+  Event::TkrFitColPtr tkrIter = theTracks->begin();
   while(tkrIter != theTracks->end())
     { 
-      Event::TkrFitTrack* theTrack  = *tkrIter++;
+      Event::TkrFitTrack* theTrack  = dynamic_cast<Event::TkrFitTrack*>(*tkrIter++);
 
       if(theTrack->getQuality()<0) continue;
 
@@ -186,7 +186,7 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
   HepVector Vtx      = m_VtxEstimates.back();
   HepSymMatrix CovXX = m_VtxCovEstimates.back();
 
-  Event::TkrFitConPtr usedIter = usedTracks.begin();
+  std::vector<Event::TkrFitTrack*>::iterator usedIter = usedTracks.begin();
   int i=0;
   while(usedIter != usedTracks.end())
     { 
@@ -292,8 +292,8 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
                                   theRay
                                   );
 
-  tkrIter = usedTracks.begin();
-  while(tkrIter != usedTracks.end()) vertex->addTrack(*tkrIter++);
+  usedIter = usedTracks.begin();
+  while(usedIter != usedTracks.end()) vertex->addTrack(*usedIter++);
 
   vertex->writeOut(log);
 
