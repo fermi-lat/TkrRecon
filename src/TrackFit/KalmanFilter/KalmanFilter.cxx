@@ -11,10 +11,19 @@
 //-----------------------------------------------------------------------
 
 #include "KalmanFilter.h"
-#include "TkrRecon/GaudiAlg/TkrReconAlg.h"
+#include "TkrRecon/GaudiAlg/TkrTrackFitAlg.h"
 #include "GlastSvc/Reco/IKalmanParticle.h"
 
 using namespace Event;
+
+KalmanFilter::KalmanFilter(TkrClusterCol* clusters, ITkrGeometrySvc* geo)
+{
+    m_clusters   = clusters;
+    m_tkrGeo     = geo;
+
+    m_radLength  = 0.;
+    m_activeDist = 0;
+}
 
 //-------------------------------------
 //  Kalman Functions
@@ -47,7 +56,7 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int &
 
     double       down    = nsteps < 0 ? +1. : -1.;
 
-    IKalmanParticle* TkrFitPart = TkrReconAlg::m_KalParticle;
+    IKalmanParticle* TkrFitPart = TkrTrackFitAlg::m_KalParticle;
     TkrFitPart->setStepStart(x_ini, dir_ini, arc_min);
     if(TkrFitPart->trackToNextPlane()) 
     {
@@ -107,7 +116,7 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int k
 
     double       down    = -1.;
 
-    IKalmanParticle* TkrFitPart = TkrReconAlg::m_KalParticle;
+    IKalmanParticle* TkrFitPart = TkrTrackFitAlg::m_KalParticle;
     TkrFitPart->setStepStart(x_ini, dir_ini, arc_min);
     if(arc_min >= 0) {
         AXIS planeProjection = TkrCluster::Y;
@@ -171,7 +180,7 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitPlane& kplaneNext)
     double       deltaZ  = kplaneNext.getZPlane() - start.getZPlane();
     double       arc_len = fabs(deltaZ/dir_ini.z()); 
 
-    IKalmanParticle* TkrFitPart = TkrReconAlg::m_KalParticle;
+    IKalmanParticle* TkrFitPart = TkrTrackFitAlg::m_KalParticle;
     TkrFitPart->setStepStart(x_ini, dir_ini, arc_len);
 
     double relDeltaZ = down * fabs(deltaZ);
@@ -281,23 +290,23 @@ void KalmanFilter::computeMeasCov(TkrFitPlane& plane, TkrFitPar pred_pars)
     // too small.
 
     TkrFitMatrix newCov(1);
-    double min_err = GFtutor::siResolution();   
+    double min_err = m_tkrGeo->siResolution();   
 
     if(plane.getProjection()==TkrCluster::X) {
-        double size_Cls = GFtutor::_DATA->size(TkrCluster::X,id_Cls);
+        double size_Cls = m_clusters->size(TkrCluster::X,id_Cls);
         double x_slope = pred_pars.getXSlope();
-        double wid_proj = fabs(x_slope*GFtutor::siThickness());
-        double wid_cls  = size_Cls*GFtutor::siStripPitch();
+        double wid_proj = fabs(x_slope*m_tkrGeo->siThickness());
+        double wid_cls  = size_Cls*m_tkrGeo->siStripPitch();
         double error    = (wid_cls - wid_proj)/3.4641;
         error = (error > min_err) ? error : min_err; 
         newCov(1,1) = error*error;
         newCov(3,3) = meas_hit.getCov().getcovY0Y0();
     }
     else {
-        double size_Cls = GFtutor::_DATA->size(TkrCluster::Y,id_Cls);
+        double size_Cls = m_clusters->size(TkrCluster::Y,id_Cls);
         double y_slope = pred_pars.getYSlope();
-        double wid_proj = fabs(y_slope*GFtutor::siThickness());
-        double wid_cls  = size_Cls*GFtutor::siStripPitch();
+        double wid_proj = fabs(y_slope*m_tkrGeo->siThickness());
+        double wid_cls  = size_Cls*m_tkrGeo->siStripPitch();
         double error    = (wid_cls - wid_proj)/3.4641;
         error = (error > min_err) ? error : min_err; 
         newCov(1,1) = meas_hit.getCov().getcovX0X0();

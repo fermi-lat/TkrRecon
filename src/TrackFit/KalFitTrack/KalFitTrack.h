@@ -17,13 +17,14 @@
 #include "Event/Recon/TkrRecon/TkrFitTrack.h"
 #include "Event/Recon/TkrRecon/TkrPatCandHit.h"
 #include "Event/Recon/TkrRecon/TkrCluster.h"
+#include "TkrRecon/ITkrGeometrySvc.h"
 
 namespace Event {
 
 class KalFitTrack: public TkrFitTrack
 {    
 public:
-    KalFitTrack(int layer, int tower, double sigmaCut, double energy, const Ray& testRay);
+    KalFitTrack(TkrClusterCol* clusters, ITkrGeometrySvc* geo, int layer, int tower, double sigmaCut, double energy, const Ray& testRay);
    ~KalFitTrack() {}
 
     // Hit Finding & Fitting
@@ -71,6 +72,7 @@ private:
     TkrFitHit     generateFirstFitHit(TkrFitPar pars);
     void          finish();
     void          filterStep(int iplane);
+    int           okClusterSize(TkrCluster::view axis, int indexhit, double slope);	
        
     // Finds the next hit layer using particle propagator
     TkrFitPlane   projectedKPlane(TkrFitPlane previous, int klayer, double& arc_min, TkrFitHit::TYPE type = TkrFitHit::FIT);
@@ -120,7 +122,11 @@ private:
     double m_sigma;
     int    m_nxHits;
     int    m_nyHits;
-    double m_KalEnergyErr; 
+    double m_KalEnergyErr;
+
+    //Pointers to clusters and geoemtry
+    Event::TkrClusterCol* m_clusters;
+    ITkrGeometrySvc*      m_tkrGeo;
 };
 
 };
