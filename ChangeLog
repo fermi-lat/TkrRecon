@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon May 10 16:42:39 PDT 2004
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Fix of first-plane-view bug found by Michael; prepare for tag v8r12p15
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon May 10 15:56:01 PDT 2004
 TkrRecon/doc
 
