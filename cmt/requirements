@@ -7,8 +7,8 @@ use GlastPolicy
 
 apply_pattern packageShr
 
-use Event
-use GlastSvc
+use Event      v9*
+use GlastSvc   v9*
 use GuiSvc
 use geometry
 use xml
