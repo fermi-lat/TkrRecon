@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusterTable.cxx,v 1.2 2002/10/10 00:31:30 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusterTable.cxx,v 1.3 2002/10/10 17:32:29 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusterTable has the methods for making the clusters, 
@@ -79,12 +79,12 @@ TkrMakeClusterTable::TkrMakeClusterTable(const TkrClusterCol* pClus,
         std::vector<McPositionHit*>::const_iterator itH;
         for(itH=mcHits.begin(); itH!=mcHits.end();itH++) {
             McPositionHit* theHit = *itH;
-            std::cout << theHit << " " ;
+            //std::cout << theHit << " " ;
             Relation<TkrCluster, McPositionHit>* rel 
                 = new Relation<TkrCluster, McPositionHit>(p_clu, theHit);
             clustHitsTab.addRelation(rel);
         }
-        std::cout << std::endl;
+        //std::cout << std::endl;
     }   
 }
 
