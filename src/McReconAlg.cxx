@@ -23,7 +23,7 @@
 #include "GlastEvent/TopLevel/Event.h"
 #include "GlastEvent/TopLevel/MCEvent.h"
 
-#include "ntupleWriterSvc/INtupleWriterSvc.h"
+#include "ntupleWriterSvc/INTupleWriterSvc.h"
 
 #include "TkrRecon/SiClusters.h"
 #include "TkrRecon/SiRecObjs.h"
