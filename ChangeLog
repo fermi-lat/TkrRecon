@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Thu Sep  5 23:59:54 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	TkrComboFitTool.cxx TkrControl.cxx TkrControl.h 
+Log Message:
+use new form of TkrClusterCol methods (no view)
+    *
+------------------------------------------------------------
 User: lsrea  Thu Sep  5 23:59:53 PDT 2002
 TkrRecon/src/TrackFit/KalmanFilter
 
