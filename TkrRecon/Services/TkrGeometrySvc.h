@@ -19,7 +19,7 @@ enum { NVIEWS=2, NPLANES=18, NTOWERS=16};
  * 
  * @author Leon Rochester
  *
- * $Header$
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometrySvc.h,v 1.10 2002/05/01 04:10:34 lsrea Exp $
  */
 class TkrGeometrySvc : public Service,
         virtual public ITkrGeometrySvc
@@ -113,6 +113,7 @@ private:
 	/// width of the dead region around the edge of a wafer
     double m_siDeadDistance;
 
+    double m_siWaferSide;
 	/// kludge to reverse the position of the local y coordinate
 	bool   m_reverseY;      
 
