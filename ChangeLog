@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: usher  Wed Nov  7 21:40:15 PST 2001
+TkrRecon/TkrRecon/Track
+
+Added Files:
+	GFbase.h GFcandidates.h GFcontrol.h GFdata.h GFgamma.h 
+	GFpair.h GFparticle.h GFsegment.h GFtrack.h GFtutor.h 
+	SiRecObjs.h 
+Log Message:
+Add class definitions for TkrRecon to appropriate subfolders. In addition, broke all class definitions out into separate files
+    *
+------------------------------------------------------------
+User: usher  Wed Nov  7 21:40:15 PST 2001
 TkrRecon/TkrRecon/Services
 
 Added Files:
