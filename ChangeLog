@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Sat May 11 22:53:00 PDT 2002
+TkrRecon/src/Display
+
+Modified Files:
+	TkrCandidate3DRep.cxx TkrClustersRep.cxx TkrTracksRep.cxx 
+Log Message:
+Change namespace TkrRecon to Event
+
+    *
+------------------------------------------------------------
 User: usher  Sat May 11 22:52:59 PDT 2002
 TkrRecon/src/Cluster
 
