@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: tlindner  Tue Apr 10 18:36:07 PDT 2001
+TkrRecon/TkrRecon TkrGeometrySvc.h
+
+Modified Files:
+	TkrGeometrySvc.h 
+Log Message:
+fix capitalization
+    *
+------------------------------------------------------------
 User: tlindner  Tue Apr 10 18:32:59 PDT 2001
 TkrRecon/src TkrDetGeo.cpp
 
