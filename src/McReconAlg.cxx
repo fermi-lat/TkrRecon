@@ -22,11 +22,9 @@
 #include "GlastEvent/MonteCarlo/McParticle.h"
 #include "GlastEvent/TopLevel/Event.h"
 #include "GlastEvent/TopLevel/MCEvent.h"
+#include "GlastEvent/Recon/ISiRecObjs.h"
 
 #include "ntupleWriterSvc/INTupleWriterSvc.h"
-
-#include "TkrRecon/SiClusters.h"
-#include "TkrRecon/SiRecObjs.h"
 
 
 //------------------------------------------------------------------------------
@@ -117,7 +115,7 @@ StatusCode McReconAlg::execute() {
 
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"Event_ID",event->event());
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"Run_Number",event->run());
-    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"Triage_Time",event->time().time()/1e6);
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"Elapsed_Time",event->time().time()/1e6);
 
 
     SmartDataPtr<MCEvent> mcEvent(eventSvc(),"/Event/MC");
@@ -140,7 +138,7 @@ StatusCode McReconAlg::execute() {
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Energy",ke);
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_logE",log10(ke));
 
-    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_src_Id",0);
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_src_Id", mcEvent->sourceId());
     
     Hep3Vector p(vec), dir(p.unit());
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_xDir",dir.x());
