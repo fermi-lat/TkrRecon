@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Nov  7 21:58:54 PST 2001
+TkrRecon/TkrRecon/Services
+
+Added Files:
+	TkrBadStripsSvc.h 
+Log Message:
+Adding class definition to subfolder
+    *
+------------------------------------------------------------
 User: usher  Wed Nov  7 21:54:16 PST 2001
 TkrRecon/src/TrackFit
 
