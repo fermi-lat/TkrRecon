@@ -1,13 +1,6 @@
 #ifndef TKRQUERYCLUSTERS_H
 #define TKRQUERYCLUSTERS_H 
 
-#include <vector>
-#include "GaudiKernel/MsgStream.h"
-#include "geometry/Point.h"
-#include "gui/DisplayRep.h"
-#include "Event/Recon/TkrRecon/TkrCluster.h"
-#include "Event/Recon/TkrRecon/TkrClusterCol.h"
-
 /** 
 * @class TkrQueryClusters
 *
@@ -18,8 +11,15 @@
 *
 * @authors Bill Atwood, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.8 2002/08/31 17:51:39 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.9 2002/08/31 20:14:55 lsrea Exp $
 */
+
+#include <vector>
+#include "GaudiKernel/MsgStream.h"
+#include "geometry/Point.h"
+#include "gui/DisplayRep.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
+#include "Event/Recon/TkrRecon/TkrClusterCol.h"
 
 class TkrQueryClusters
 {

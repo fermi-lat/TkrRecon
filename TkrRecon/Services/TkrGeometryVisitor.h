@@ -1,16 +1,22 @@
-#include "GlastSvc/GlastDetSvc/IGeometry.h"
-#include "idents/VolumeIdentifier.h"
-#include "idents/TowerId.h"
 
+#ifndef TKRGEOMETRYVISITOR_H
+#define TKRGEOMETRYVISITOR_H 
 
 /**  
 * @class TkrGeometryVisitor
 *
 * @brief A sample Geometry visitor for the TKR
+*
+* Just a toy example
+*
 * @author Leon Rochester 
 *
-* $Header
+* $Header$
 */
+
+#include "GlastSvc/GlastDetSvc/IGeometry.h"
+#include "idents/VolumeIdentifier.h"
+#include "idents/TowerId.h"
   
 class TkrGeometryVisitor: public IGeometry
 {
@@ -51,3 +57,5 @@ private:
 
 
 };
+
+#endif  // TKRGEOMETRYVISITOR_H

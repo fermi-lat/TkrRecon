@@ -2,17 +2,6 @@
 #ifndef TKRCLUSTERALG_H
 #define TKRCLUSTERALG_H 
 
-#include <vector>
-#include "geometry/Point.h"
-#include "Event/Recon/TkrRecon/TkrClusterCol.h"
-#include "TkrRecon/ITkrGeometrySvc.h"
-#include "TkrRecon/ITkrBadStripsSvc.h"
-
-#include "Event/Digi/TkrDigi.h"
-
-#include "GaudiKernel/Algorithm.h"
-
-
 /** 
 * @class TkrClusterAlg
 *
@@ -24,8 +13,18 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrClusterAlg.h,v 1.6 2002/05/12 05:52:58 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrClusterAlg.h,v 1.7 2002/07/25 09:12:23 burnett Exp $
 */
+
+#include <vector>
+#include "geometry/Point.h"
+#include "Event/Recon/TkrRecon/TkrClusterCol.h"
+#include "TkrRecon/ITkrGeometrySvc.h"
+#include "TkrRecon/ITkrBadStripsSvc.h"
+
+#include "Event/Digi/TkrDigi.h"
+
+#include "GaudiKernel/Algorithm.h"
 
 class TkrClusterAlg : public Algorithm
 
