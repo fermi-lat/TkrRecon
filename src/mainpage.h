@@ -12,7 +12,7 @@
  * @include mgr/requirements
  * <hr>
  * @section notes Release notes the current release
- * @include doc/release.notes
+ * release.notes
  * <hr>
  * @todo Start filling in this document!
  * @todo Get this code working!

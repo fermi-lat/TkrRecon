@@ -1,9 +1,8 @@
-package TkrRecon
+/** @file release.notes
+ * Package TkrRecon
+ * Manager: Leon Rochester
+ *
+ * 29-jan-2002 LSR new-style release notes, no content yet!
+ */
 
-package manager:I.Gable
 
-07-jun-2001: THB tag as v1r6
-
-! 20010213 IG: Jose remade pacakage out of TBRecon code
-
-!======================================================================
