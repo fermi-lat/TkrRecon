@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.19 2005/01/29 00:58:19 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.20 2005/01/30 07:13:37 lsrea Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -242,6 +242,9 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
                     Event::TkrTrack* track     = *trackIter;
                     double           kalEnergy = track->getKalEnergy();
                     double           trkEnergy = std::min(kalEnergy, 2.*m_control->getMinEnergy());
+
+                    track->clearEnergyStatusBits();
+                    track->setStatusBit(Event::TkrTrack::USERENERGY);
 
                     (*track)[0]->setEnergy(trkEnergy);
                 }

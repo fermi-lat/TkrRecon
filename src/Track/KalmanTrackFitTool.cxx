@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.25 2005/01/25 20:04:49 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.26 2005/01/29 05:15:21 usher Exp $
  */
 
 // to turn one debug variables
@@ -33,6 +33,7 @@
 #include "src/Track/TrackFitUtils.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "src/Track/TkrControl.h"
+#include "src/Utilities/TkrException.h"
 #include "TkrUtil/ITkrFailureModeSvc.h"
 #include "TkrUtil/TkrTrkParams.h"
 #include "TkrUtil/TkrCovMatrix.h"
@@ -94,12 +95,14 @@ public:
     double     doSmoothStep(Event::TkrTrackHit& referenceHit, Event::TkrTrackHit& smoothHit);
 
 private:
-    /// Actual track fit method
+    /// Actual track fit methods
     void       doKalmanFit(Event::TkrTrack& track);
-    void       doFinalFitCalculations(Event::TkrTrack& track);
     double     doFilter(Event::TkrTrack& track);
     double     doSmoother(Event::TkrTrack& track);
     void       getInitialFitHit(Event::TkrTrack& track);
+
+    /// Study "memory" of smoother in fit
+    int        doSmootherMemory(Event::TkrTrack* track);
 
     /// Pointer to the local Tracker geometry service and IPropagator
     ITkrGeometrySvc*     m_tkrGeom;
@@ -119,6 +122,11 @@ private:
     bool                 m_MultScatMat;
     std::string          m_HitEnergyType;
     std::string          m_HitErrorType;
+
+    /// Diagnostic running
+    bool                 m_RunSmootherMemory;
+    int                  m_MinSegmentHits;
+    double               m_SegmentRes;
 
     /// The matrices which define the Kalman Filter
     IFitHitEnergy*       m_HitEnergy;
@@ -154,10 +162,13 @@ m_KalmanFit(0), m_nMeasPerPlane(0), m_nParams(0), m_fitErrs(0)
     declareInterface<ITkrFitTool>(this);
 
     //Declare the fit track property
-    declareProperty("HitEnergyType",    m_HitEnergyType="eRadLoss");
-    declareProperty("DoMultScatMat",    m_MultScatMat=true);
-    declareProperty("FitMeasHitOnly",   m_FitMeasOnly=true);
-    declareProperty("MeasHitErrorType", m_HitErrorType="SlopeCorrected");
+    declareProperty("HitEnergyType",     m_HitEnergyType="eRadLoss");
+    declareProperty("DoMultScatMat",     m_MultScatMat=true);
+    declareProperty("FitMeasHitOnly",    m_FitMeasOnly=true);
+    declareProperty("MeasHitErrorType",  m_HitErrorType="SlopeCorrected");
+    declareProperty("RunSmootherMemory", m_RunSmootherMemory=false);
+    declareProperty("MinSegmentHits",    m_MinSegmentHits=4);
+    declareProperty("SegmentMinDelta",   m_SegmentRes=0.005);
     
     return;
 }
@@ -338,14 +349,26 @@ void KalmanTrackFitTool::setProjectionMatrix(const bool measOnly)
 
 StatusCode KalmanTrackFitTool::doTrackFit(Event::TkrTrack* track)
 {
+    // Purpose and Method: Drives the initial track fits
+    // Inputs: a reference to a TkrTrack loaded with hits
+    // Outputs: a StatusCode to determine success/failure
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
     // Always believe in success
     StatusCode sc = StatusCode::SUCCESS;
 
     // Run the Kalman Filter to do the track fit
     doKalmanFit(*track);
 
-    // Now determine Track values with completed fit
-    doFinalFitCalculations(*track);
+    // Now determine Track values with completed fit using the Track Fit Utilities
+    TrackFitUtils trackUtils(m_tkrGeom, m_HitEnergy);
+
+    // Complete "track" calculations
+    trackUtils.finish(*track);
+
+    // Kalman Energy determination (why not part of Kalman Filter itself?)
+    trackUtils.eneDetermination(*track);
 
     // Set the bit to confirm completion
     track->setStatusBit(Event::TkrTrack::ONEPASS);
@@ -356,16 +379,109 @@ StatusCode KalmanTrackFitTool::doTrackFit(Event::TkrTrack* track)
 
 StatusCode KalmanTrackFitTool::doTrackReFit(Event::TkrTrack* track)
 {
+    // Purpose and Method: Drives the iterative recon track fits
+    // Inputs: A fully fit track with updated energy in its first hit
+    // Outputs: a StatusCode to determine success/failure
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
     // Always believe in success
     StatusCode sc = StatusCode::SUCCESS;
 
-    // This is just a normal fit of the same track over again
-    doTrackFit(track);
+    // Run the Kalman Filter to do the track fit
+    doKalmanFit(*track);
+
+    // Now determine Track values with completed fit
+    // Get an instance of the track fit utilities
+    TrackFitUtils trackUtils(m_tkrGeom, m_HitEnergy);
+
+    trackUtils.finish(*track);
+
+    // No Kalman Filter energy re-determination on the second pass? 
+    if (track->getStatusBits() & Event::TkrTrack::LATENERGY) trackUtils.eneDetermination(*track);
 
     // Set the bit to confirm completion
     track->setStatusBit(Event::TkrTrack::TWOPASS);
+
+    // do the smoother diagnostic here
+    if (m_RunSmootherMemory)
+    {
+        int numSegmentHits = doSmootherMemory(track);
+
+        track->setNumSegmentPoints(numSegmentHits);
+        
+        if (track->getChiSquareFilter() >= 0) 
+        {
+            track->setChiSqSegment(trackUtils.computeChiSqSegment(*track, numSegmentHits));
+            track->setQuality(trackUtils.computeQuality(*track));
+        }   
+    }
     
     return sc;
+}
+
+int KalmanTrackFitTool::doSmootherMemory(Event::TkrTrack* track)
+{
+    // Purpose and Method: Diagnostic code for performance of the smoother
+    // Inputs: a reference to a fully fit track
+    // Outputs: None
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
+    // Set our mininum
+    int numSegmentHits = 0;
+
+    // Create a copy of the input track
+    Event::TkrTrack* myTrack = new Event::TkrTrack();
+
+    *myTrack = *track;
+
+    myTrack->clear();
+
+    int numHits = 0;
+
+    Event::TkrTrackParams& trackPrms = (*track)[0]->getTrackParams(Event::TkrTrackHit::SMOOTHED);
+    TkrTrkParams           trackVec  = TkrTrkParams(trackPrms);
+    TkrCovMatrix           trackCov  = TkrCovMatrix(trackPrms);
+
+    // Loop over the track hits running the filter 
+    for(Event::TkrTrackHitVecItr hitIter = track->begin(); hitIter != track->end(); hitIter++)
+    {
+        // Make a copy of this hit
+        Event::TkrTrackHit* myHit = new Event::TkrTrackHit();
+
+        *myHit = **hitIter;
+
+        myTrack->push_back(myHit);
+
+        if (++numSegmentHits > m_MinSegmentHits)
+        {
+            // Run the smoother
+            double chiSq = doSmoother(*myTrack);
+            
+            Event::TkrTrackParams myParams = (*myTrack)[0]->getTrackParams(Event::TkrTrackHit::SMOOTHED);
+            TkrTrkParams          myTrkVec = TkrTrkParams(myParams);
+            TkrTrkParams          trkDiff  = trackVec - myTrkVec;
+            TkrCovMatrix          myTrkCov = TkrCovMatrix(myParams);
+            //TkrCovMatrix          covDiff  = trackCov - myTrkCov;
+
+            int matInvErr = 0;
+            myTrkCov.invert(matInvErr);
+
+            if (matInvErr) throw(TkrException("Failed to invert residuals covariance matrix in KalmanTrackFitTool::doSmootherMemory "));
+                
+            //covDiff.invert(matInvErr);
+
+            KFvector chiVec = trkDiff.T() * myTrkCov * trkDiff;
+
+            if (chiVec(1) < m_SegmentRes) break;
+        }
+    }
+
+    // clean up
+    delete myTrack;
+
+    return numSegmentHits;
 }
 
 void KalmanTrackFitTool::doKalmanFit(Event::TkrTrack& track)
@@ -403,33 +519,6 @@ void KalmanTrackFitTool::doKalmanFit(Event::TkrTrack& track)
     return;
 }
 
-void KalmanTrackFitTool::doFinalFitCalculations(Event::TkrTrack& track)
-{
-    // Get an instance of the track fit utilities
-    TrackFitUtils trackUtils(m_tkrGeom, m_HitEnergy);
-
-    trackUtils.finish(track);
-
-    // If successful then store in TDS
-    if (track.getNumHits() >= m_control->getMinSegmentHits()) 
-    {
-        //Its a keeper
-        track.setStatusBit(Event::TkrTrack::FILTERED);
-
-        //Add the track to the collection in the TDS
-        Event::TkrTrackCol* pFitTracks = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol); 
-        if(!pFitTracks) return;
-
-        //Flag the hits
-  //      trackUtils.flagAllHits(track);
-
-        //Check if this is the first track in the TDS collection
-  //      if(pFitTracks->front() == &track) trackUtils.setSharedHitsStatus(track);
-    } 
-
-    return;
-}
-
 double KalmanTrackFitTool::doFilter(Event::TkrTrack& track)
 {
     double chiSqInc = 0.;
@@ -442,10 +531,10 @@ double KalmanTrackFitTool::doFilter(Event::TkrTrack& track)
     // Loop over the track hits running the filter 
     for( ; filtIter != track.end(); filtIter++, refIter++)
     {
-        // The current plane
+        // The current hit
         Event::TkrTrackHit& referenceHit = **refIter;
 
-        // The plane to fit (the next plane)
+        // The hit to fit (the next hit)
         Event::TkrTrackHit& filterHit    = **filtIter;
 
         // Update energy at the current hit
@@ -467,15 +556,15 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
     IKalmanFilterMatrix& F = *m_Tmat;
     IKalmanFilterMatrix& H = *m_Hmat;
 
-    // The current plane
+    // The current hit
     idents::TkrId referenceTkrId = referenceHit.getTkrId();
     double        referenceZ     = referenceHit.getZPlane();
 
-    // The plane to fit (the next plane)
+    // The hit to fit (the next hit)
     idents::TkrId filterTkrId    = filterHit.getTkrId();
     double        filterZ        = filterHit.getZPlane();
 
-    // Delta z for next to current plane
+    // Delta z for next to current hit
     double        deltaZ         = filterZ - referenceZ;
 
     // Get current state vector and covariance matrix
@@ -508,7 +597,7 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
         curStateVec = m_KalmanFit->StateVecFilter();
         curCovMat   = m_KalmanFit->CovMatFilter();
 
-        // Update the hit information (measured, predicted and filtered) for this plane
+        // Update the hit information (measured, predicted and filtered) for this hit
         filterHit.setTrackParams(measPar, Event::TkrTrackHit::MEASURED);
         filterHit.setTrackParams(measCov, Event::TkrTrackHit::MEASURED);
 
@@ -565,14 +654,13 @@ double KalmanTrackFitTool::doSmoother(Event::TkrTrack& track)
     Event::TkrTrackHitVecItr prevIter   = --smoothIter;   // The last valid hit
     smoothIter--;                                         // The hit to "smooth"
 
-    // Find last used plane on the track
+    // Find last used hit on the track
     for( ; prevIter != track.begin(); smoothIter--, prevIter--) 
     {
         Event::TkrTrackHit& hit = **prevIter;
         if(hit.getStatusBits() & Event::TkrTrackHit::HITONFIT) break;
     }
 
-    //Event::TkrTrackHit& prvPlane = *track[last_used_plane];
     Event::TkrTrackHit& prvPlane = **prevIter;
     idents::TkrId       tkrId    = prvPlane.getTkrId();
     TkrTrkParams        fitPar   = prvPlane.getTrackParams(Event::TkrTrackHit::FILTERED);
@@ -590,7 +678,8 @@ double KalmanTrackFitTool::doSmoother(Event::TkrTrack& track)
     KFvector measVec    = H(tkrId) * KFvector(prvPlane.getTrackParams(Event::TkrTrackHit::MEASURED));
     KFmatrix measCovMat = H(tkrId) * KFmatrix(prvPlane.getTrackParams(Event::TkrTrackHit::MEASURED)) * H(tkrId).T();
 
-    double chiSqSmooth = m_KalmanFit->chiSqFilter(measVec, measCovMat, H(tkrId));
+    //double chiSqSmooth = m_KalmanFit->chiSqFilter(measVec, measCovMat, H(tkrId));
+    double chiSqSmooth = prvPlane.getChiSquareFilter();
     prvPlane.setChiSquareSmooth(chiSqSmooth);
 
     KFvector prvStateVec(fitPar);
@@ -631,7 +720,7 @@ double KalmanTrackFitTool::doSmoothStep(Event::TkrTrackHit& referenceHit, Event:
     curStateVec  = m_KalmanFit->StateVecSmooth();
     curCovMat    = m_KalmanFit->CovMatSmooth();
 
-    // Update the smoothed hit at this plane
+    // Update the smoothed hit at this hit
     smoothHit.setTrackParams(curStateVec, Event::TkrTrackHit::SMOOTHED);
     smoothHit.setTrackParams(curCovMat, Event::TkrTrackHit::SMOOTHED);
 
