@@ -27,20 +27,21 @@ TkrCandidate3DRep::TkrCandidate3DRep(IDataProviderSvc* dataProviderSvc, ITkrGeom
 void TkrCandidate3DRep::update()
 //##############################################
 {
-    Event::TkrPatCandCol* pTkrCandidates = SmartDataPtr<Event::TkrPatCandCol>(dps,EventModel::TkrRecon::TkrPatCandCol);
+    Event::TkrTrackCol* pTkrCandidates = SmartDataPtr<Event::TkrTrackCol>(dps,EventModel::TkrRecon::TkrTrackCol);
 
     //Now see if we can do the drawing
     if (pTkrCandidates)
     {
+        /*
         int                     numCandTracks = pTkrCandidates->size();
-        Event::TkrPatCandColPtr cands         = pTkrCandidates->begin();
+        Event::TkrTrackColPtr cands         = pTkrCandidates->begin();
         int                     colorIdx      = 0;
 
     //        gui::DisplayRep* pDisplay = this;
 
         while(numCandTracks--)
         {
-            Event::TkrPatCand* pTkrCand = *cands++;
+            Event::TkrTrack* pTkrCand = *cands++;
 
             //Put a marker at the start of the candidate
             Point  strtPoint = pTkrCand->getPosition();
@@ -57,7 +58,7 @@ void TkrCandidate3DRep::update()
 
             while(numHits--)
             {
-                Event::TkrPatCandHit* pHitCand = *hitPtr++;
+                Event::TkrTrackHit* pHitCand = *hitPtr++;
                 Point                 hitCoord = pHitCand->Position();
 
                 if (pHitCand->View() == idents::TkrId::eMeasureX) x = hitCoord.x();
@@ -81,6 +82,7 @@ void TkrCandidate3DRep::update()
         }
 
         setColor("blue");
+    */
     }
 
     return;

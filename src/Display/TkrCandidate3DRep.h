@@ -2,7 +2,7 @@
 #ifndef __TKRCANDIDATE3DDREP_H
 #define __TKRCANDIDATE3DREP_H
 
-#include "Event/Recon/TkrRecon/TkrPatCand.h"
+#include "Event/Recon/TkrRecon/TkrTrack.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "gui/DisplayRep.h"
 #include "GaudiKernel/IDataProviderSvc.h"

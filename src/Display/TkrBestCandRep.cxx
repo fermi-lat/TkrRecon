@@ -17,7 +17,7 @@ TkrBestCandRep::TkrBestCandRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySv
 void TkrBestCandRep::update()
 //##############################################
 {
-    TkrPatCandCol* pTkrCandidates = SmartDataPtr<TkrPatCandCol>(dps,EventModel::TkrRecon::TkrPatCandCol);
+    TkrTrackCol* pTkrCandidates = SmartDataPtr<TkrTrackCol>(dps,EventModel::TkrRecon::TkrTrackCol);
 
     if (pTkrCandidates)
     {
@@ -58,7 +58,7 @@ const char bstcol_aquamarine[] = "aquamarine";
 const char* pBstColors[] = {bstcol_blue,   bstcol_violet, bstcol_turquoise,
                             bstcol_orange, bstcol_maroon, bstcol_aquamarine};
 
-void TkrBestCandRep::TkrDrawBestCand(TkrPatCandCol* pTkrCandidates, TkrPlaneType plane)
+void TkrBestCandRep::TkrDrawBestCand(TkrTrackCol* pTkrCandidates, TkrPlaneType plane)
 {
     TkrLinkAndTree* pTkrCands      = dynamic_cast<TkrLinkAndTree*>(pTkrCandidates);
 

@@ -28,7 +28,7 @@ public:
     void update();
 
 private:
-    void TkrDrawBestCand(TkrPatCandCol* pTkrCands, TkrPlaneType plane);
+    void TkrDrawBestCand(TkrTrackCol* pTkrCands, TkrPlaneType plane);
     void drawLinkNode(TkrLinkNode* pTkrNode);
 
     IDataProviderSvc* dps;
