@@ -3,6 +3,7 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v8r12p26 31-Aug-2004  LSR  Got it right this time
   v8r12p25 31-Aug-2004  LSR  Remove assumption that bottom tray is Y-measuring
                              correct use of new numPlanes/numLayers distinction
   v8r12p24 25-Aug-2004  LSR  Fix jobOptions for test program

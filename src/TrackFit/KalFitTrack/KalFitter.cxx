@@ -308,14 +308,18 @@ void KalFitter::findHits()
                 }
             }
         }
-        // Check if there are any planes left.... Last plane is a Y plane, #17
-        // better to check for plane==0
+        // Check for plane==0, means we're at the bottom
         int tray, botTop;
         m_tkrGeo->layerToTray(m_tkrGeo->reverseLayerNumber(kplane), (int)nextKplane.getProjection(), tray, botTop);
         if(m_tkrGeo->trayToPlane(tray, botTop)==0) {
-            std::cout << "we will be breaking here" << std::endl;
+            //std::cout << "we should be breaking here" << std::endl;
+            break;
         }
-        if(kplane == m_tkrGeo->numLayers()-1 && nextKplane.getProjection()==TkrCluster::Y) break; 
+        // this depended on the bottom plane being a Y
+        //if(kplane == m_tkrGeo->numLayers()-1 && nextKplane.getProjection()==TkrCluster::Y) {
+        //    std::cout << "yup, we break" << std::endl;
+        //    break; 
+        //}
     }
 }
 
