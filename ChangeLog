@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Oct 12 12:03:37 PDT 2004
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	NeuralNetFindTrackTool.cxx 
+Log Message:
+change to m_tkrGeom throughout
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Oct 12 12:03:36 PDT 2004
 TkrRecon/src/PatRec/MonteCarlo
 
