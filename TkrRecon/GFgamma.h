@@ -3,6 +3,7 @@
 #define __GFGAMMA_H 1
 
 #include <math.h>
+#include "Gaudi/MessageSvc/MsgStream.h"
 #include "TkrRecon/GFparticle.h"
 
 //#############################################################
@@ -27,7 +28,7 @@ public:
 	bool empty() const;
 	bool accept() const;
 	void clear();
-//	void writeOut(std::ostream& out=std::cout) const; 
+	void writeOut(MsgStream& log) const; 
 	//--
 
     // access 
@@ -146,7 +147,7 @@ public:
 	bool empty() const;
 	bool accept() const;
 	void clear();
-//	void writeOut(std::ostream& out=std::cout) const; 
+	void writeOut(MsgStream& log) const; 
 	//--
 
 	// Access

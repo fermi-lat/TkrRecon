@@ -7,6 +7,7 @@
 
 #include "data/SiData.h"
 #include "Gaudi/Algorithm/Algorithm.h"
+#include "TkrRecon/TkrGeometrySvc.h"
 
 class SiClusters;
 class TdSiData;
@@ -41,6 +42,7 @@ private:
 
 private:
 
+	TkrGeometrySvc* pTrackerGeo;
 	SiClusters* m_SiClusters;
 	const SiData* m_SiData; //Interface of the former TdSiData;
 };

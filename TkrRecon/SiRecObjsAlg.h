@@ -15,8 +15,9 @@
 #include "geometry/Point.h"
 #include "Gaudi/Algorithm/Algorithm.h"
 
-class SiClusters;
-class SiRecObjs;
+#include "TkrRecon/SiClusters.h"
+#include "TkrRecon/SiRecObjs.h"
+#include "TkrRecon/TkrGeometrySvc.h"
 
 //----------------------------------------------
 //
@@ -48,6 +49,9 @@ private:
 	void searchParticles();
 	
 private:
+
+	// Geometry information
+	TkrGeometrySvc* pTrackerGeo;
 	
 	// clusters information
 	SiClusters* m_SiClusters;

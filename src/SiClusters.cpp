@@ -14,10 +14,8 @@ SiCluster::SiCluster(int id, int v, int ilayer,
 
 	m_id = id;
 	m_view = intToView(v);
-	// planes are ordered from 0-top to 15-bottom   - used by the recostruction
-	// layers are ordered from 15-top to 0-bottom   - used by the geometry
 	
-	m_plane = trackerGeo::numLayers()-ilayer-1;
+	m_plane = ilayer;
 
 	m_strip0 = istrip0;
 	m_stripf = istripf;
@@ -31,30 +29,25 @@ SiCluster::SiCluster(int id, int v, int ilayer,
 }
 
 //######################################################
-void SiCluster::writeOut() const
+void SiCluster::writeOut(MsgStream& log) const
 //######################################################
 {
-	
 
-//	out << "ID     " << m_id    << " Flag   " << m_flag  << "\n";
-//	out << "tower  " << m_tower << " plane  " << m_plane << " view  " << m_view << " chip " << m_chip << "\n";
-//	out << "strip0 " << m_strip0<< " stripf " << m_stripf<< " strip " << m_strip<< " size " << m_size << "\n"; 
-
-	std::cout << " plane " << m_plane << " XY " << m_view;
-        std::cout << " xpos  " << m_position.x()  << " ypos   " << m_position.y();
-        std::cout << " zpos  " << m_position.z();
-        std::cout << " i0-if " << m_strip0 <<"-"<< m_stripf;
-        std::cout <<"\n";
+	log << MSG::DEBUG << " plane " << m_plane << " XY " << m_view;
+    log << MSG::DEBUG << " xpos  " << m_position.x()  << " ypos   " << m_position.y();
+    log << MSG::DEBUG << " zpos  " << m_position.z();
+    log << MSG::DEBUG << " i0-if " << m_strip0 <<"-"<< m_stripf;
+    log << MSG::DEBUG <<endreq;
 }
 //######################################################
-void SiCluster::draw(gui::DisplayRep& v)
+void SiCluster::draw(gui::DisplayRep& v, double stripPitch, double trayWidth)
 //######################################################
 {
 	int nstrips = (int) m_size;
-	double distance = trackerGeo::siStripPitch();
+	double distance = stripPitch;
 	
 	double delta = 1.2;
-	double Offset = -0.5*trackerGeo::trayWidth();
+	double Offset = -0.5*trayWidth;
 	
 	for (int istrip = m_strip0; istrip <= m_stripf; istrip++) {
 		double x = m_position.x();
@@ -115,6 +108,16 @@ int SiCluster::viewToInt(SiCluster::view v)
 //       SiClusterS
 //---------------------------------------------------
 
+SiClusters::SiClusters(int nViews, int nPlanes, double stripPitch, double trayWidth)
+{
+	m_stripPitch = stripPitch;
+	m_trayWidth  = trayWidth;
+	numViews     = nViews;
+	numPlanes    = nPlanes;
+
+	ini();
+}
+
 //######################################################
 void SiClusters::addCluster(SiCluster* cl)
 //######################################################
@@ -138,8 +141,8 @@ void SiClusters::ini()
 //###################################################
 {
 	m_clustersList.clear();
-	for (int iview = 0; iview < trackerGeo::numViews(); iview++) {
-		for (int iplane = 0; iplane < trackerGeo::numPlanes(); iplane++) {
+	for (int iview = 0; iview < numViews; iview++) {
+		for (int iplane = 0; iplane < numPlanes; iplane++) {
 			m_clustersByPlaneList[iview][iplane].clear();
 		}
 	}
@@ -230,13 +233,13 @@ void SiClusters::flagHitsInPlane(SiCluster::view v, int iplane)
 		AuxList[ihit]->flag();
 }
 //######################################################
-void SiClusters::writeOut() const
+void SiClusters::writeOut(MsgStream& log) const
 //######################################################
 {
 	if (nHits()<=0) return;
 
 	for (int ihit = 0; ihit < nHits(); ihit++) {
-		m_clustersList[ihit]->writeOut();
+		m_clustersList[ihit]->writeOut(log);
 	}
 }
 //######################################################
@@ -246,6 +249,6 @@ void SiClusters::draw(gui::DisplayRep& v)
 	v.setColor("black");
 
 	for (int ihit = 0; ihit < nHits(); ihit++) {
-		m_clustersList[ihit]->draw(v);
+		m_clustersList[ihit]->draw(v, m_stripPitch, m_trayWidth);
 	}
 }

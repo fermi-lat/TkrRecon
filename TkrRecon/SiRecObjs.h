@@ -3,6 +3,7 @@
 #define __SIRECOBJS_H 1
 
 #include <vector>
+#include "Gaudi/MessageSvc/MsgStream.h"
 #include "Gaudi/Kernel/DataObject.h"
 #include "TkrRecon/GFcandidates.h"
 
@@ -10,12 +11,12 @@
 
 //----------------------------------------------
 //
-//   SiRecObhs
+//   SiRecObjs
 //
 //   Transient Storage Data
 //----------------------------------------------
 //   It contains the high level recostructed objects
-//  of the tracker (gammas and tracks)
+//   of the tracker (gammas and tracks)
 //----------------------------------------------
 //             J.A Hernando, Santa Cruz 02/29/00
 //----------------------------------------------
@@ -64,7 +65,7 @@ public:
 	//! empty method
 	virtual void make() {}
 	//! write out the information of the SiRecObjs
-	virtual void writeOut() const;
+	virtual void writeOut(MsgStream& log) const;
 
 private:
 

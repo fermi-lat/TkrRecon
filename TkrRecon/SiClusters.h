@@ -6,6 +6,7 @@
 #define __SICLUSTERS_H 1
 
 #include <vector>
+#include "Gaudi/MessageSvc/MsgStream.h"
 #include "Gaudi/Kernel/DataObject.h"
 #include "geometry/Point.h"
 
@@ -80,10 +81,10 @@ public:
 	inline double size()   const {return m_size;}
 
 	//! write out the information of the cluster
-	void writeOut() const;
+	void writeOut(MsgStream& log) const;
 	//! draws the clusters (each strips)
 	// void draw(GraphicsRep& v);
-	void draw(gui::DisplayRep& v);
+	void draw(gui::DisplayRep& v, double pitch, double trayWidth);
 
 protected:
 
@@ -137,7 +138,7 @@ class SiClusters : public DataObject
 public:
 
 	//! default constructor (ini the container)
-	SiClusters()    {ini();}
+	SiClusters(int nViews, int nPlanes, double stripPitch, double trayWidth);
 	//! destructor (delete the siclusters in the lists)
 	virtual ~SiClusters()   {clear();}
 
@@ -167,6 +168,11 @@ public:
 	//! returns size of the cluster with id (view obsolete)
 	double const size(SiCluster::view v, int id)      {return getHit(v,id)->size();}     
 
+	//! Returns the strip pitch stored from geometry file
+	double const stripPitch() {return m_stripPitch;}
+	//! Returns the tray width stored from geometry file
+	double const trayWidth()  {return m_trayWidth;}
+
 	/*! returns a reference to a vector of SiClusters pointer with the list of SiClusters pointer
 	that belong to a given view and plane */
 	std::vector<SiCluster*>& getHits(SiCluster::view v, int iplane)
@@ -185,7 +191,7 @@ public:
 	virtual void make() {}
 
 	//! write out the information of the SiLayers
-	void writeOut() const;
+	void writeOut(MsgStream& log) const;
 	//! draws the SiClusters
 	void update(gui::DisplayRep& v)  {draw(v);}
 
@@ -208,11 +214,18 @@ private:
 	void draw(gui::DisplayRep& v);
 
 private:
+
+	//! Strip pitch
+	double m_stripPitch;
+	//! Tray width
+	double m_trayWidth;
 	
 	/*! the clusters are organized in two lists: a) One containes the list of all clusters,
 	b) the other one has them ordered by plane and view to facilitate access to Pattern Recognition functions.
 	This needs to be change into vectors<vector<T>> and not use NVIEWs and NPLANES!
 	*/
+	int numViews;
+	int numPlanes;
 	std::vector<SiCluster*> m_clustersList;
 	std::vector<SiCluster*> 
 		m_clustersByPlaneList[NVIEWS][NPLANES]; 

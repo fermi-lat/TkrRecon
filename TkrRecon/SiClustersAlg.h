@@ -5,11 +5,10 @@
 #include <vector>
 #include "geometry/Point.h"
 #include "TkrRecon/SiLayers.h"
-//#include "instrument/SiCalibLayers.h"
 #include "TkrRecon/SiClusters.h"
+#include "TkrRecon/TkrGeometrySvc.h"
 
 #include "Gaudi/Algorithm/Algorithm.h"
-//#include "Event/defineVI.h"
 
 class SiLayers;
 
@@ -42,12 +41,13 @@ protected:
 
 protected:
 
-	static Point position(int ilayer, SiCluster::view v, double strip);
+	Point position(int ilayer, SiCluster::view v, double strip);
 
 private:
 
-	SiLayers* m_SiLayers;
-//	SiCalibLayers* m_SiCalibLayers;
+	TkrGeometrySvc* pTrackerGeo;
+
+	SiLayers*   m_SiLayers;
 	SiClusters* m_SiClusters;
 };
       

@@ -3,7 +3,7 @@
 #define __GFCONTROL_H 1
 
 #include "TkrRecon/SiClusters.h"
-#include "TkrRecon/trackerGeo.h"
+#include "TkrRecon/TkrGeometrySvc.h"
 
 class GFsegment;
 class GFtrack;
@@ -27,7 +27,7 @@ public:
 	friend class GFbase;
 	friend class KalPlane;
 
-	static void GFtutor::load(SiClusters* scl);
+	static void GFtutor::load(SiClusters* scl, TkrGeometrySvc* pTrkGeo);
 	static void GFtutor::setVeto(bool vt) {CUT_veto = vt;}
 
 protected:
@@ -57,6 +57,8 @@ protected:
     static bool neighbourTowers(int itower, int jtower);
 
 private:
+
+	static TkrGeometrySvc* pTrackerGeo;
 
 	static int m_numPlanes;
 	

@@ -7,6 +7,7 @@
 #ifndef __GLASTFIT_H
 #define __GLASTFIT_H 1
 
+#include "Gaudi/MessageSvc/MsgStream.h"
 #include "geometry/Ray.h"
 #include "TkrRecon/GFcontrol.h"
 
@@ -44,7 +45,7 @@ public:
 	// operations
 	void ini();
 	bool empty() const;
-	void writeOut(std::ostream& out=std::cout) const;
+	void writeOut(MsgStream& log) const;
 
 	// utilities
     static Point doVertex(const Ray&, const  Ray& );
