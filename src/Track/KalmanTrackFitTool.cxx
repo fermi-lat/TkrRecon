@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.24 2004/12/13 23:50:41 atwood Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.25 2005/01/25 20:04:49 lsrea Exp $
  */
 
 // to turn one debug variables
@@ -61,7 +61,7 @@ public:
     KalmanTrackFitTool(const std::string& type, const std::string& name, const IInterface* parent);
     virtual ~KalmanTrackFitTool();
 
-	/// @brief Intialization of the tool
+    /// @brief Intialization of the tool
     StatusCode initialize();
 
     /// @brief Method to fit a single candidate track. Will retrieve any extra info 
@@ -182,7 +182,7 @@ KalmanTrackFitTool::~KalmanTrackFitTool()
 //
 
 StatusCode KalmanTrackFitTool::initialize()
-{	
+{   
     StatusCode sc   = StatusCode::SUCCESS;
 
     //Set the properties
@@ -378,17 +378,14 @@ void KalmanTrackFitTool::doKalmanFit(Event::TkrTrack& track)
     // Dependencies: None
     // Restrictions and Caveats:  None
 
-    int nplanes = track.getNumHits();
-
-    // Set the initial hit for this track
-    //getInitialFitHit(track);
+    int nHits = track.getNumHits();
     
     // Run the filter and follow with the smoother
     double chiSqFit    = doFilter(track);
     double chiSqSmooth = doSmoother(track);
 
     // Number of degrees of freedom for the final chi-square
-    int    numDegFree  = m_nMeasPerPlane * nplanes - m_nParams;
+    int    numDegFree  = m_nMeasPerPlane * nHits - m_nParams;
     
     // Compute the normalized chi-square
     chiSqFit    /= numDegFree;
@@ -400,8 +397,8 @@ void KalmanTrackFitTool::doKalmanFit(Event::TkrTrack& track)
     track.setNDegreesOfFreedom(numDegFree);
     track.setStatusBit(Event::TkrTrack::FILTERED);
     track.setStatusBit(Event::TkrTrack::SMOOTHED);
-	if( m_HitEnergyType=="eRadLoss")  track.setStatusBit(Event::TkrTrack::RADELOSS);
-	if( m_HitEnergyType=="MuRadLoss") track.setStatusBit(Event::TkrTrack::MIPELOSS);
+    if( m_HitEnergyType=="eRadLoss")  track.setStatusBit(Event::TkrTrack::RADELOSS);
+    if( m_HitEnergyType=="MuRadLoss") track.setStatusBit(Event::TkrTrack::MIPELOSS);
     
     return;
 }
@@ -421,7 +418,7 @@ void KalmanTrackFitTool::doFinalFitCalculations(Event::TkrTrack& track)
 
         //Add the track to the collection in the TDS
         Event::TkrTrackCol* pFitTracks = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol); 
-		if(!pFitTracks) return;
+        if(!pFitTracks) return;
 
         //Flag the hits
   //      trackUtils.flagAllHits(track);
@@ -437,20 +434,19 @@ double KalmanTrackFitTool::doFilter(Event::TkrTrack& track)
 {
     double chiSqInc = 0.;
     double chiSqFit = 0.;
-    int    nplanes  = track.getNumHits();
 
-    //IKalmanFilterMatrix& F = *m_Tmat;
-    //IKalmanFilterMatrix& H = *m_Hmat;
+    // Set up a pair of iterators to go through the track hits
+    Event::TkrTrackHitVecItr filtIter = track.begin();
+    Event::TkrTrackHitVecItr refIter  = filtIter++;
     
-    //  Filter Step 
-    //------------
-    for (int iplane = 0 ; iplane < nplanes - 1; iplane++) 
+    // Loop over the track hits running the filter 
+    for( ; filtIter != track.end(); filtIter++, refIter++)
     {
         // The current plane
-        Event::TkrTrackHit& referenceHit = *track[iplane];
+        Event::TkrTrackHit& referenceHit = **refIter;
 
         // The plane to fit (the next plane)
-        Event::TkrTrackHit& filterHit    = *track[iplane+1];
+        Event::TkrTrackHit& filterHit    = **filtIter;
 
         // Update energy at the current hit
         m_HitEnergy->initialHitEnergy(track, referenceHit, referenceHit.getEnergy());
@@ -561,21 +557,24 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
 
 double KalmanTrackFitTool::doSmoother(Event::TkrTrack& track)
 {
-    // Smoother
-    //---------
-    int nplanes  = track.getNumHits();
+    //
+    // This runs the smoother on an input track
+    //
+    // Set up a pair of reverse iterators
+    Event::TkrTrackHitVecItr smoothIter = track.end();    // The "end" of the vector
+    Event::TkrTrackHitVecItr prevIter   = --smoothIter;   // The last valid hit
+    smoothIter--;                                         // The hit to "smooth"
 
-	// Find last used plane on the track
-	int last_used_plane = nplanes-1; 
-	for( int i = nplanes -1 ; i >= 0 ; i--) {
-		Event::TkrTrackHit& hit = *track[i];
-		if(hit.getStatusBits() & Event::TkrTrackHit::HITONFIT) break;
-		last_used_plane--;
-	}
+    // Find last used plane on the track
+    for( ; prevIter != track.begin(); smoothIter--, prevIter--) 
+    {
+        Event::TkrTrackHit& hit = **prevIter;
+        if(hit.getStatusBits() & Event::TkrTrackHit::HITONFIT) break;
+    }
 
-    Event::TkrTrackHit& prvPlane = *track[last_used_plane];
+    //Event::TkrTrackHit& prvPlane = *track[last_used_plane];
+    Event::TkrTrackHit& prvPlane = **prevIter;
     idents::TkrId       tkrId    = prvPlane.getTkrId();
-    //double              prevZ    = prvPlane.getZPlane();
     TkrTrkParams        fitPar   = prvPlane.getTrackParams(Event::TkrTrackHit::FILTERED);
     TkrCovMatrix        fitCov   = prvPlane.getTrackParams(Event::TkrTrackHit::FILTERED);
 
@@ -597,10 +596,11 @@ double KalmanTrackFitTool::doSmoother(Event::TkrTrack& track)
     KFvector prvStateVec(fitPar);
     KFmatrix prvCovMat(fitCov);
 
-    for (int iplane=last_used_plane-1; iplane >= 0; iplane--) 
+    // Loop through the track hits and run the smoother
+    for( ; prevIter != track.begin(); smoothIter--, prevIter--) 
     {
-        Event::TkrTrackHit& prevPlane    = *track[iplane+1];
-        Event::TkrTrackHit& currentPlane = *track[iplane];
+        Event::TkrTrackHit& prevPlane    = **prevIter;
+        Event::TkrTrackHit& currentPlane = **smoothIter;
 
         double chiSqKF = doSmoothStep(prevPlane, currentPlane);
 
