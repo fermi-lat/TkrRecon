@@ -347,17 +347,21 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
             if(act_dist < 0.) continue; 
             if (m_tkrFail) {
                 //get the tower from the position... not the best!
-                int xTower = floor(x0.x() +towerPitch*(0.5*numX))/towerPitch;
-                int yTower = floor(x0.y() +towerPitch*(0.5*numY))/towerPitch;
+                int xTower = (int) floor(x0.x()/towerPitch + 0.5*numX + 0.001);
+                int yTower = (int) floor(x0.y()/towerPitch + 0.5*numY + 0.001);
                 int nextTower = idents::TowerId(xTower,yTower).id();
 
-                int nextLayer = m_tkrGeo->reverseLayerNumber(nextKplane.getIDPlane());
-                int nextView  = nextKplane.getProjection();
-                bool failed = m_tkrFail->isFailed(nextTower, nextLayer, nextView);
-                //std::cout << "KalFitTrack: Failed: " << failed << " " 
-                //    " act_dist " << act_dist << " id "
-                //    << nextTower << " " << nextLayer
-                //    << " " << nextView << std::endl;
+                int nextLayer = m_tkrGeo->reverseLayerNumber(kplane);
+
+                bool failed = m_tkrFail->isFailed(nextTower, nextLayer, nextProj);
+				/*
+				if (failed) {
+                std::cout << "KalFitTrack: Failed: " << failed << " " 
+                    " act_dist " << act_dist << " id "
+                    << nextTower << " " << nextLayer
+                    << " " << nextProj << std::endl;
+				}
+				*/
                 if (failed) continue;
             }
                 
