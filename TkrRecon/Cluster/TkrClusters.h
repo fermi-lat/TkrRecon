@@ -29,22 +29,15 @@ extern const CLID& CLID_TkrClusters;
  *
  * The methods take into account the bad strips.
  *
- * The strategy for finding clusters is to merge the list of hits in a layer with the list of known bad strips. 
- * The good and bad hits are marked so they can be recognized, but the mechanism is (mostly) hidden in
- * the TkrBadStripsSvc.
- *  
- * What constititutes a gap and a good cluster is defined by the code in isGap and
- * isGoodCluster, respectively.
- *    
- * A set of adjacent hits followed by a gap is a potential cluster. A gap may be a non-hit strip, or 
- * the space between ladders. For each potential cluster, 
- * we ask if it contains any good hits.  If so, the cluster is added, if not, it is dropped. There
- * may be other criteria for dropping a cluster, such as too many hits.
- *      
- * What constititutes a gap and a good cluster is defined by the code in 
- * isGapBetweem and isGoodCluster, respectively.
+ * Some questions:
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrClusters.h,v 1.3 2002/02/23 07:03:14 lsrea Exp $
+ * 1) Clusters are referenced by location in the TkrClusters vector, so what is the "id" for?
+ *
+ * 2) If TkrClusters actually makes the clusters, how do I implement an alternate algorithm?
+ *
+ * 3) Where is the separation of data and algorithm, ala Gaudi?
+ *
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrClusters.h,v 1.4 2002/02/25 06:37:46 lsrea Exp $
  */
 
 class TkrClusters : public DataObject
@@ -53,6 +46,22 @@ class TkrClusters : public DataObject
 public:
 
 	/// default constructor: passes pointers to services and classes, and makes the clusters
+ 
+	/** The strategy for finding clusters is to merge the list of hits in a layer with the list of known bad strips. 
+     * The good and bad hits are marked so they can be recognized, but the mechanism is (mostly) hidden in
+     * the TkrBadStripsSvc.
+     *  
+     * What constititutes a gap and a good cluster is defined by the code in isGap and
+     * isGoodCluster, respectively.
+     *    
+     * A set of adjacent hits followed by a gap is a potential cluster. A gap may be a non-hit strip, or 
+     * the space between ladders. For each potential cluster, 
+     * we ask if it contains any good hits.  If so, the cluster is added, if not, it is dropped. There
+     * may be other criteria for dropping a cluster, such as too many hits.
+     *      
+     * What constititutes a gap and a good cluster is defined by the code in 
+     * isGapBetweem and isGoodCluster, respectively.
+     */
     TkrClusters(ITkrGeometrySvc* pTkrGeo, ITkrBadStripsSvc* pBadStrips, TkrDigiCol* pTkrDigiCol);
 	/// destructor: also deletes the clusters in the list
 	virtual ~TkrClusters();
@@ -69,9 +78,9 @@ public:
 	/// flags ith TkrCluster (view obsolete)
 	void flagHit(TkrCluster::view v, int i, int iflag=1)   {getHit(v,i)->flag(iflag);}
 	/// unflag ith TkrCluster (view obsolete)
-	void unflagHit(TkrCluster::view v, int id)  {getHit(v,id)->unflag();}
+	void unflagHit(TkrCluster::view v, int i)  {getHit(v,i)->unflag();}
 	/// returns true if the ith TkrCluster is flagged (view obsolete)
-     bool hitFlagged(TkrCluster::view v, int id) {return getHit(v,id)->hitFlagged();}
+     bool hitFlagged(TkrCluster::view v, int i) {return getHit(v,i)->hitFlagged();}
 
 	/// returns pointer to the ith TkrCluster 
 	TkrCluster* getHit(int i) const {return m_clustersList[i];}
@@ -108,11 +117,13 @@ public:
 	 * in the measurement view, and within one tower in the other view.
 	 */
 	Point meanHitInside(TkrCluster::view v, int iplane, double size, Point Pini);
-	/** returns the nearest point outside of a distance "inRadius" of a point "centerX" in the measured view, 
+	/** returns the nearest point outside of a distance "inRadius" of a point "Pini" in the measured view, 
 	 * within one tower in the other view, and a ref. to the id
+	 *
+	 * "inRadius" is misleading, since the search area is actually a rectangle, not a circle.
 	 */
 	Point nearestHitOutside(TkrCluster::view v, int iplane, double inRadius, 
-		Point centerX, int& id);
+		Point Pini, int& id);
 
     /** Finds the number of clusters within a given distance in x and y of a point in a bilayer.
 	 */   
@@ -152,7 +163,6 @@ private:
 	std::vector<TkrCluster*> m_clustersList;
 	/// cluster list by plane and view
 	std::vector<TkrCluster*> m_clustersByPlaneList[NVIEWS][NPLANES]; 
-	//@}
 };
 
 #endif // TKRCLUSTERS

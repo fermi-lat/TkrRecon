@@ -1,6 +1,6 @@
 
-#ifndef __TKRCLUSTERALG_H
-#define __TKRCLUSTERALG_H 1
+#ifndef TKRCLUSTERALG_H
+#define TKRCLUSTERALG_H 
 
 #include <vector>
 #include "geometry/Point.h"
@@ -13,36 +13,45 @@
 
 #include "GaudiKernel/Algorithm.h"
 
-//----------------------------------------------
-//
-//   TkrClusterAlg
-//
-//   Algorithm Data constructor of TkrClusterAlg
-//----------------------------------------------
-//   Tracy Usher 11/06/01
-//----------------------------------------------
-//##########################################################
+
+/** 
+* @class TkrClusterAlg
+*
+* @brief Algorithm to construct TkrClusters/TkrCluster
+*
+* Adapted from SiCluster of Jose Hernando. 
+*
+* Handles bad strips
+*
+* @author Tracy Usher, Leon Rochester
+*
+* $Header$
+*/
+
 class TkrClusterAlg : public Algorithm
-//##########################################################
+
 {
 public:
-    //! Constructor of this form must be provided
+    /// constructor for algorithm
     TkrClusterAlg(const std::string& name, ISvcLocator* pSvcLocator); 
     virtual ~TkrClusterAlg() {}
-    //! mandatory
+    /// Looks for the geometry service (required) and the bad strips service (optional)
     StatusCode initialize();
-    //! mandatory
+    /// Recovers pointer to Tkr digis, makes TkrClusters/TkrCluster
     StatusCode execute();
-    //! mandatory
     StatusCode finalize();
     
 private:
     
+	/// pointer to geometry service
     ITkrGeometrySvc*  pTkrGeo;
+	/// pointer to bad strips service
     ITkrBadStripsSvc* pBadStrips;
     
+	/// pointer to Tkr digis
     TkrDigiCol*       m_TkrDigis;
+	/// pointer to generated TkrClusters
     TkrClusters*      m_TkrClusters;
 };
 
-#endif
+#endif //  TKRCLUSTERALG_H
