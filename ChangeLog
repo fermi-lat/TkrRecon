@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Oct  9 16:44:12 PDT 2002
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	ComboVtxTool.cxx TkrComboVtxRecon.h 
+Log Message:
+Modifications for TkrPatCandCol typedef (now a Contained Object Vector, hence change to stl like references)
+    *
+------------------------------------------------------------
 User: usher  Wed Oct  9 16:44:11 PDT 2002
 TkrRecon/src/PatRec/NeuralNet
 
