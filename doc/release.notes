@@ -3,6 +3,7 @@
  * Package TkrRecon
  * Manager: Leon Rochester 
  * 
+ * v8r3    09-oct-2002  LSR   RelTables, new TkrPatCand.h
  * v8r2    30-sep-2002  LSR   add TkrMeritTool 
  * v8r1     8-sep-2002  LSR   Update requirements file
  * v8r0     7-sep-2002  LSR   Rationalize geometry... new version so as not to confuse Gleam, etc.
