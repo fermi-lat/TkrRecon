@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Sun Aug 17 10:39:47 PDT 2003
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrDisplayAlg.cxx 
+Log Message:
+fix relative path of one include
+    *
+------------------------------------------------------------
 User: lsrea  Sat Aug  9 08:36:23 PDT 2003
 TkrRecon/src/Track
 
