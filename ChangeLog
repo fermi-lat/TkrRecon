@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Mon Apr 29 22:02:31 PDT 2002
+TkrRecon/src/Cluster
+
+Added Files:
+	TkrMakeClusters.h 
+Log Message:
+header file doesn't need to be public.
+
+    *
+------------------------------------------------------------
+User: lsrea  Mon Apr 29 22:02:31 PDT 2002
 TkrRecon/TkrRecon/Cluster
 
 Removed Files:
