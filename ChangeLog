@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: burnett  Mon Jul  2 14:01:28 PDT 2001
+TkrRecon/src McReconAlg.cxx
+
+Modified Files:
+	McReconAlg.cxx 
+Log Message:
+
+change so that MC_X0 etc. refer to the conversion point.
+    *
+------------------------------------------------------------
 User: lsrea  Mon Jul  2 11:00:01 PDT 2001
 TkrRecon/src/Dll TkrRecon_load.cpp
 
