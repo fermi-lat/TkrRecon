@@ -23,6 +23,7 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int &
                            double &arc_min)
 {
     // Extrapolate the hit to the next SSD layer - maybe an X or a Y
+    //     Note: distance will be > arc_min - arc_len used returned as arc_min
     // Returns (nlayers)  the number of GLAST Planes crossed 
     // Note: nlayers = 0 for crossing between X and Y in same plane
 
@@ -45,34 +46,30 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int &
 
     double       down    = nsteps < 0 ? +1. : -1.;
 
-    double       arc_len = nlayers * 32.6/fabs(dir_ini.z()); //mm
-
     IKalmanParticle* TkrFitPart = TkrReconAlg::m_KalParticle;
     TkrFitPart->setStepStart(x_ini, dir_ini, arc_min);
-    if(TkrFitPart->trackToNextPlane()) 
+    if(TkrFitPart->trackToNextPlane()) //This is bad? - need to swim by Delta-Z
     {
         AXIS planeProjection = TkrCluster::Y;
         if(TkrFitPart->isXPlane()) planeProjection = TkrCluster::X; 
 
         start.setNextProj(planeProjection);
 
-        arc_len = TkrFitPart->arcLength();
-        nlayers = arc_len*fabs(dir_ini.z())/29.0; //mm
+        arc_min = TkrFitPart->arcLength();
+        nlayers = arc_min*fabs(dir_ini.z())/29.0; //mm
     }
     else 
     {
         nlayers = -1;
         return TkrFitHit(); 
-    }
+   }
     
     zend    = TkrFitPart->position().z(); 
-    arc_min = arc_len;
-
-    double relDeltaZ = down*fabs(arc_len*dir_ini.z());
+    double relDeltaZ = down*fabs(arc_min*dir_ini.z());
 
     TkrFitMatrix F(relDeltaZ);
 	                      
-    m_Qmaterial = TkrFitPart->mScat_Covr(ene, arc_len); 
+    m_Qmaterial = TkrFitPart->mScat_Covr(ene, arc_min); 
     pp = F*pp;
     if (down == -1.)     Ck=(F*(Ck*F.T()))+m_Qmaterial;
     else if (down == +1) Ck=(F*(Ck+m_Qmaterial)*F.T());
@@ -85,45 +82,48 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int &
     return hitpred;
 } 
 
-TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int nsteps)
+TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int klayer, double &zend,
+                           double &arc_min)
 {
-    // Extrapolate the hit to the plane (delta)
-    // Note that GLAST trajectory evolutes along negative z values.
-    
+    // Extrapolate by arc_min
+    // Returns (nlayers)  the number of GLAST Planes crossed 
+    // Note: nlayers = 0 for crossing between X and Y in same plane
+
     TkrFitHit    hit     = start.getHit(typ);
     
     TkrFitPar    pp      = hit.getPar();
     TkrFitMatrix Ck      = hit.getCov();
     
     double       ene     = start.getEnergy();
-    double       x_slope = pp.getXSlope(); 
+    double       x_slope = pp.getXSlope();   
     double       y_slope = pp.getYSlope(); 
     Vector       dir_ini = Vector(-x_slope, -y_slope, -1.).unit();
 
     double       x0      = pp.getXPosition();
     double       y0      = pp.getYPosition();
     double       z0      = start.getZPlane();
-    Point        x_ini(x0,y0,z0); 
+    Point        x_ini(x0,y0,z0);
 
-    int          iplane  = start.getIDPlane();
     double       down    = -1.;
-    if (nsteps <0 ) 
-    {
-        down = +1.; // going up;
-        dir_ini = -dir_ini;
-    }
-    
-    double       deltaZ  = down*fabs(nsteps)*32.575; //mm and also Very Bad ... need to re-engineer
-    double       arc_len = fabs(deltaZ/dir_ini.z()); 
 
     IKalmanParticle* TkrFitPart = TkrReconAlg::m_KalParticle;
-    TkrFitPart->setStepStart(x_ini, dir_ini, arc_len);
-
-    double relDeltaZ = down * deltaZ;
+    TkrFitPart->setStepStart(x_ini, dir_ini, arc_min);
+    if(arc_min >= 0) {
+        AXIS planeProjection = TkrCluster::Y;
+        if(TkrFitPart->isXPlane()) planeProjection = TkrCluster::X; 
+        start.setNextProj(planeProjection);
+    }
+    else 
+    {
+        return TkrFitHit(); 
+    }
+    
+    zend    = TkrFitPart->position().z(); 
+    double relDeltaZ = down*fabs(arc_min*dir_ini.z());
 
     TkrFitMatrix F(relDeltaZ);
 	                      
-    m_Qmaterial = TkrFitPart->mScat_Covr(ene, arc_len); 
+    m_Qmaterial = TkrFitPart->mScat_Covr(ene, arc_min); 
     pp = F*pp;
     if (down == -1.)     Ck=(F*(Ck*F.T()))+m_Qmaterial;
     else if (down == +1) Ck=(F*(Ck+m_Qmaterial)*F.T());
@@ -134,7 +134,6 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int n
     m_activeDist = TkrFitPart->insideActArea(); 
     
     return hitpred;
-   
 } 
 
 TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitPlane& kplaneNext) 
@@ -197,8 +196,7 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitPlane& kplaneNext)
 
 TkrFitHit KalmanFilter::filter(TkrFitPlane& filterPlane)
 {
-    // Weight the hits with their cov matricex
-    
+    // Weight the hits with their cov matricex   
     TkrFitHit    hit1      = filterPlane.getHit(TkrFitHit::MEAS);
     TkrFitPar    pmeas     = hit1.getPar();
     double       sigXX     = hit1.getCov().getcovX0X0();
@@ -216,10 +214,8 @@ TkrFitHit KalmanFilter::filter(TkrFitPlane& filterPlane)
     Ckpredinv.invert(i_error); 
     TkrFitPar ppred=hit2.getPar();
     
-
     TkrFitMatrix Ck        = (Ckpredinv+H*(G*H));  
     Ck.invert(i_error);
-//    TkrFitPar pk=((Ck*Ckpredinv)*ppred)+((Ck*G)*pmeas);
     TkrFitPar pk=((Ck*Ckpredinv)*ppred)+((Ck*(H*G))*pmeas);
 
     TkrFitHit hitfit(TkrFitHit::FIT, pk, Ck);
@@ -236,13 +232,7 @@ TkrFitHit KalmanFilter::smoother(TkrFitPlane& start, const TkrFitPlane& kplaneLa
     TkrFitHit    hitpred  = kplaneLast.getHit(TkrFitHit::PRED);
     TkrFitHit    hitsm    = kplaneLast.getHit(TkrFitHit::SMOOTH);
     
-    // double distance=abs(kplaneLast.getZPlane()-getZPlane());
-
-    // double distance=isteps*GFtutor::traySpacing();
-    // TkrFitMatrix F(1.,-1.*abs(distance),0.,1.);
- 
-    double       distance = +kplaneLast.getZPlane()-start.getZPlane();
-    // double distance=isteps*GFtutor::traySpacing();
+    double       distance = kplaneLast.getZPlane() - start.getZPlane();
     TkrFitMatrix F(distance);
 
     TkrFitMatrix Ck       = hitf0.getCov();
@@ -262,9 +252,9 @@ TkrFitHit KalmanFilter::smoother(TkrFitPlane& start, const TkrFitPlane& kplaneLa
     TkrFitPar    psm=pk+A*(pk1sm-pk1pred);
     TkrFitMatrix Csm=Ck+A*((Ck1sm-Ck1pred)*A.T());
     
-    TkrFitHit newhitsm(TkrFitHit::SMOOTH,psm,Csm);
+    TkrFitHit new_hit_sm(TkrFitHit::SMOOTH,psm,Csm);
     
-    return newhitsm;
+    return new_hit_sm;
 }
 
 //-------------------------------------------
