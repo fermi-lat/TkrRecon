@@ -15,6 +15,8 @@ macro TkrRecon_stamps
 
 set   TkrReconShr           "${TKRRECONROOT}/${DEBUGDIR}/libTkrRecon"
 
+path_append LD_LIBRARY_PATH "${TKRRECONROOT}/${DEBUGDIR}/"
+
 # have a seperate library to export the tracker recon data classes 
 library TkrReconData -no_share detGeo.cpp SiClusters.cpp SiLayers.cpp KalFit.cxx GFcontrol.cpp trackerGeo.cpp
 
