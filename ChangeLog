@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon Feb  7 12:38:26 PST 2005
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+changes for TkrCluster, put tracks back into old event display
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon Feb  7 12:38:25 PST 2005
 TkrRecon/cmt
 
