@@ -1,5 +1,18 @@
 ------------------------------------------------------------
 User: usher  Wed Feb  6 14:00:17 PST 2002
+TkrRecon/src/Dll
+
+Modified Files:
+	TkrRecon_load.cpp 
+Log Message:
+1) All display routines updated to do their own retrieval of data from the TDS
+(instead of storing an internal pointer to a pointer to the data!)
+2) Updates to recon algorithms to allow for use of initialization service to
+choose what type of recon to perform.
+
+    *
+------------------------------------------------------------
+User: usher  Wed Feb  6 14:00:17 PST 2002
 TkrRecon/src/Display
 
 Modified Files:
