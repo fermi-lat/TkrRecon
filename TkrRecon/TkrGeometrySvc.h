@@ -5,8 +5,9 @@
 #include "Gaudi/Kernel/Service.h"
 
 #include "TkrRecon/TkrAxis.h"
-#include "TkrRecon/detGeo.h"
+#include "src/tkrDetGeo.h"
 
+#include <string>
 
 //----------------------------------------------
 //
@@ -66,10 +67,10 @@ public:
     // planes and layers differ in the ordering
     int ilayer(int iplane)   {return numPlanes()-iplane-1;}
     
-    detGeo getSiLayer(int ilayer, axis a, int tower = 0);
-    detGeo getPbLayer(int ilayer, int tower = 0);
-    detGeo getSiLadder(int ilayer, axis a, int iladder, int tower = 0);
-    detGeo getSiDice(int ilayer, axis a, int iladder, int idice, int tower = 0);
+    tkrDetGeo getSiLayer(int ilayer, axis a, int tower = 0);
+    tkrDetGeo getPbLayer(int ilayer, int tower = 0);
+    tkrDetGeo getSiLadder(int ilayer, axis a, int iladder, int tower = 0);
+    tkrDetGeo getSiDice(int ilayer, axis a, int iladder, int idice, int tower = 0);
     
     // geometry related access
     double pbRadLen(int ilayer);
@@ -79,6 +80,8 @@ public:
     int    nDices(int ilayer, axis a, int iladder);
     
 private:
+
+	std::string m_xmlFile;  // File name for constants
 
     int    m_geomType;
     
