@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Thu Apr 11 12:22:17 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrFindAlg.cxx TkrReconAlg.cxx 
+Log Message:
+consolidating all the minEnergy's: now all come from GFcontrol.h
+
+    *
+------------------------------------------------------------
 User: lsrea  Thu Apr 11 12:22:16 PDT 2002
 TkrRecon/TkrRecon/TrackFit
 
