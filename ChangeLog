@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Tue Aug 20 12:54:32 PDT 2002
+TkrRecon/TkrRecon/Track
+
+Added Files:
+	ITkrFitTool.h 
+Removed Files:
+	GFcontrol.h GFtutor.h TkrBase.h TkrPoint.h TkrPoints.h 
+	TkrTrackFit.h 
+Log Message:
+Modifications primarily for using Gaudi Tools to drive reconstruction
+
+    *
+------------------------------------------------------------
 User: usher  Tue Aug 20 12:54:31 PDT 2002
 TkrRecon/TkrRecon/Services
 
