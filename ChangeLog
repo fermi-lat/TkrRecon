@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Fri May 11 13:33:55 PDT 2001
+TkrRecon/TkrRecon ITkrGeometrySvc.h TkrGeometrySvc.h
+
+Modified Files:
+	ITkrGeometrySvc.h TkrGeometrySvc.h 
+Log Message:
+Fix for bug found when z0 != 0... also, Flight xml file made closer to instrument.xml
+
+    *
+------------------------------------------------------------
 User: lsrea  Thu May 10 17:14:47 PDT 2001
 TkrRecon/xml Tkr_Flight.xml
 
