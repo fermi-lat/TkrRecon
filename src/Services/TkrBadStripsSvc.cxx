@@ -157,9 +157,9 @@ void TkrBadStripsSvc::readFromFile(std::ifstream* file)
                 nStrips++;
             }
             
-            // sort strips in ascending order after each line is read in
-            if (makestrips) std::sort(v->begin(), v->end());
-            
+            // sort strips in ascending order of strip number 
+            // after each line is read in
+            if (makestrips) sortTaggedStrips(v);           
         }  
         return;
     }
@@ -302,7 +302,7 @@ int TkrBadStripsSvc::swapForSort( const int strip)
     return ((strip&stripMask)<< tagShift) | (strip>>tagShift); 
 }
 
-void TkrBadStripsSvc::sortTaggedHits(std::vector<int> *list) 
+void TkrBadStripsSvc::sortTaggedStrips(std::vector<int> *list) 
 {
     // Purpose: sort the input list by strip number
     // Method: do swapForSort, then sort, then unswap
