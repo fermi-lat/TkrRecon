@@ -121,8 +121,8 @@ TkrTupleValues::TkrTupleValues()
     Tkr_Fit_ydir = 0;
     Tkr_Fit_zdir = 0;
     Tkr_Fit_x0 = 0;
-    Tkr_Fit_x0 = 0;
-    Tkr_Fit_x0 = 0;
+    Tkr_Fit_y0 = 0;
+    Tkr_Fit_z0 = 0;
     Tkr_Pair_xdir = 0;
     Tkr_Pair_ydir = 0;
     Tkr_Pair_zdir = 0;
