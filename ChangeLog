@@ -1,5 +1,18 @@
 ------------------------------------------------------------
 User: lsrea  Thu Sep  9 13:39:54 PDT 2004
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Prepare for tag v9r0p2
+Change error default to slope-dependent errors
+Move energy-loss calculation out of TkrFitPlane
+Add muon Bethe-Bloch calculation: activate with TkrInitSvc.TkrHitEnergyType = "MuRadLoss";
+
+    *
+------------------------------------------------------------
+User: lsrea  Thu Sep  9 13:39:54 PDT 2004
 TkrRecon/TkrRecon/Services
 
 Modified Files:
