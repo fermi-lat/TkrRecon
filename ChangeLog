@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Tue Mar  6 11:57:16 PST 2001
+TkrRecon/TkrRecon TkrDisplayAlg.h
+
+Added Files:
+	TkrDisplayAlg.h 
+Log Message:
+Class definition for tracker display. Creates the "reps" for drawing the
+Si cluster hits and the resulting tracks. 
+
+    *
+------------------------------------------------------------
 User: usher  Tue Mar  6 11:53:46 PST 2001
 TkrRecon/src trackerGeo.cpp
 
