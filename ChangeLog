@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Sun May 12 14:41:40 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrClusterAlg.cxx 
+Log Message:
+fixed the name used to get the pointer to the digis
+
+    *
+------------------------------------------------------------
 User: burnett  Sun May 12 09:11:56 PDT 2002
 TkrRecon/cmt
 
