@@ -19,7 +19,9 @@ const ISvcFactory& TkrGeometrySvcFactory = s_factory;
 TkrGeometrySvc::TkrGeometrySvc(const std::string& name, ISvcLocator* pSvcLocator) :
 Service(name, pSvcLocator)
 {   
-    return;	
+    declareProperty("reverseY", m_reverseY = false);
+
+	return;	
 }
 
 StatusCode TkrGeometrySvc::initialize()
@@ -117,12 +119,10 @@ StatusCode TkrGeometrySvc::initialize()
 		double z2 = (T2.getTranslation()).z();
 		double trayPitch = z1 - z2;
 		if (trayPitch<m_trayHeight) { m_trayHeight = trayPitch;}
-		/*
-		std::cout << "layer " << ilayer << " x " << x1 << " z1/2 " 
-		       << z1 <<" "<< z2 <<" trayPitch " << trayPitch << std::endl;
-		std::cout << " angle " << angle << " axis " << axis.x() 
-		       << " " << axis.y() << " " << axis.z << std::endl;
 		
+		std::cout << "layer " << ilayer << " z1/2 " 
+		       << z1 <<" "<< z2 <<" trayPitch " << trayPitch << std::endl;
+		/*		
 		double x1 = (T1.getTranslation()).x();
 		HepDouble angle;
 		Hep3Vector axis;
@@ -159,6 +159,8 @@ HepPoint3D TkrGeometrySvc::getDoubleStripPosition(int tower, int layer, int view
 	StatusCode sc = p_GlastDetSvc->getTransform3DByID(volId, &volTransform);
 	double stripLclX = p_GlastDetSvc->stripLocalXDouble(stripid);
 	HepPoint3D p(stripLclX,0.,0.);
+	// turn kludge on with m_reverseY flag, which is set in jobOptions
+	if(m_reverseY && view==1) p = -p;
 	p = volTransform*p;
 	return p;
 }

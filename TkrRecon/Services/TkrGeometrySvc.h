@@ -114,6 +114,8 @@ private:
     double m_siThickness;
     double m_siDeadDistance;
 
+	bool   m_reverseY;
+
 	IGlastDetSvc * p_GlastDetSvc;
 
 	// room for maximum number of idents, by [tower]  and [layer][view]
