@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: lsrea  Fri Jan 10 11:43:25 PST 2003
+TkrRecon/src/Track
+
+Modified Files:
+	TkrComboFitTool.cxx TkrComboFitTool.h 
+	TkrLinkAndTreeFitTool.cxx TkrLinkAndTreeFitTool.h 
+	TkrNeuralNetFitTool.cxx TkrNeuralNetFitTool.h 
+Log Message:
+Prepare for tag v8r6p1: move TkrGeometrySvc to Tkrutil
+
+    *
+------------------------------------------------------------
+User: lsrea  Fri Jan 10 11:43:25 PST 2003
 TkrRecon/src/Services
 
 Removed Files:
