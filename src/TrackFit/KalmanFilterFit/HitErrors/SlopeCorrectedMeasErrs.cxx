@@ -8,7 +8,7 @@
  *
  * @author Tracy Usher (editor) from version implemented by Leon Rochester (due to Bill Atwood)
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.2 2004/06/17 18:27:36 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.3 2004/10/01 19:49:08 usher Exp $
  */
 
 #include "SlopeCorrectedMeasErrs.h"
@@ -21,9 +21,9 @@ SlopeCorrectedMeasErrs::SlopeCorrectedMeasErrs(ITkrGeometrySvc* tkrGeo) :
 
 const double oneOverSqrt12 = 1. / sqrt(12.);
 
-Event::TkrFitMatrix SlopeCorrectedMeasErrs::computeMeasErrs(const Event::TkrFitPar& newPars, 
-                                                            const Event::TkrFitMatrix& oldCovMat, 
-                                                            const Event::TkrCluster& cluster)
+TkrCovMatrix SlopeCorrectedMeasErrs::computeMeasErrs(const Event::TkrTrackParams& newPars, 
+                                                     const TkrCovMatrix&          oldCovMat, 
+                                                     const Event::TkrCluster&     cluster)
 {
     enum paramIndex {XPOS=1, XSLOPE=2, YPOS=3, YSLOPE=4};
 
@@ -34,33 +34,30 @@ Event::TkrFitMatrix SlopeCorrectedMeasErrs::computeMeasErrs(const Event::TkrFitP
     // and the cluster over sqrt(12). It protects against getting
     // too small.
 
-    Event::TkrFitMatrix newCov(1);
+    TkrCovMatrix newCov(4,4,1);
 
     double clusWid = const_cast<Event::TkrCluster&>(cluster).size();
 
     int measured, other;
-    double covOther;
     double slope;
 
-    if(cluster.v()==Event::TkrCluster::X) 
+    if(cluster.getTkrId().getView() == idents::TkrId::eMeasureX) 
     {
-        slope    = newPars.getXSlope();
+        slope    = newPars.getxSlope();
         measured = XPOS;
         other    = YPOS;
-        covOther = oldCovMat.getcovY0Y0();
     } 
     else 
     {
-        slope    = newPars.getYSlope();
+        slope    = newPars.getySlope();
         measured = YPOS;
         other    = XPOS;
-        covOther = oldCovMat.getcovX0X0();
     }
 
     double error = getError(clusWid, slope);
     
     newCov(measured, measured) = error*error;
-    newCov(other, other)       = covOther;
+    newCov(other, other)       = oldCovMat(other,other);
 
     return newCov;
 }
