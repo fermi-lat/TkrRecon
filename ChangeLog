@@ -1,4 +1,20 @@
 ------------------------------------------------------------
+User: usher  Wed Nov  7 21:24:25 PST 2001
+TkrRecon/src
+
+Modified Files:
+	RecNtupleAlg.cpp 
+Removed Files:
+	GFcandidates.cpp GFcontrol.cpp GFdata.cxx GFgamma.cpp 
+	GFparticle.cpp GFsegment.cpp KalFit.cxx SiClusters.cpp 
+	SiClustersAlg.cxx SiRecObjs.cpp SiRecObjsAlg.cxx 
+	TkrBadStripsSvc.cxx TkrClustersRep.cxx TkrDetGeo.cpp 
+	TkrDetGeo.h TkrDisplayAlg.cxx TkrGeometrySvc.cxx 
+	TkrNtupleAlg.cpp TkrRecObjsRep.cxx 
+Log Message:
+Clearing main folders before adding subfolders
+    *
+------------------------------------------------------------
 User: usher  Wed Nov  7 21:24:24 PST 2001
 TkrRecon/mgr
 
