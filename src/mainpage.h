@@ -25,10 +25,15 @@ In order to simplify the interface to the casual user, the Tracker
 reconstruction chain is controlled by a top level algorithm, TkrReconAlg, 
 which treats the major driver algorithms as Gaudi subalgorithms. 
  *
-The following attempts to illustrate the above
+The diagram below attempts to illustrate this procedure:
  *
- \image html ../images/Tkr_diagram.gif
+ \image html Tkr_diagram.gif
  *
+Here is an example of a reconstructed gamma. The blue lines represent the fit
+tracks found from the pattern recognition. The yellow line is the resultant direction
+from the vertexing algorithm.
+ *
+ \image html Event1.gif
  *
 @section algorithms Major algorithms
 
@@ -91,6 +96,10 @@ also be used by other algorithms.
  *
 TkrInitSvc: Used to initialize the TkrControl object which provides 
 parameters for controlling the TkrRecon reconstruction process. 
+ *
+@section More Information
+ *
+For more information, please see the Tracker Recon Group <A HREF="http://www-glast.slac.stanford.edu/software/TKR/NewTracker/TrkRecon.htm"> website. </A>
  *
 @authors Tracy Usher, Leon Rochester (SLAC) <br>
 Bill Atwood, Brandon Allgood(UC Santa Cruz) <br>
