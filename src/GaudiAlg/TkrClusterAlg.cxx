@@ -10,14 +10,10 @@
 
 #include "TkrRecon/GaudiAlg/TkrClusterAlg.h"
 
+// Needed for Gaudi
 static const AlgFactory<TkrClusterAlg>  Factory;
 const IAlgFactory& TkrClusterAlgFactory = Factory;
 
-//------------------------------------------------------------------------------
-/// Algorithm parameters which can be set at run time must be declared.
-/// This should be done in the constructor.
-
-    
 
 TkrClusterAlg::TkrClusterAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator)  { }
@@ -25,6 +21,13 @@ Algorithm(name, pSvcLocator)  { }
 
 StatusCode TkrClusterAlg::initialize()
 {
+
+    // Purpose and Method:  initializes TkrClusterAlg
+    // Inputs:  None
+    // Outputs:  A StatusCode which denotes success or failure.
+    // Dependencies: TkrGeometrySvc must be created
+    // Restrictions and Caveats:  None
+
     MsgStream log(msgSvc(), name());
     
     //Look for the geometry service
@@ -33,11 +36,11 @@ StatusCode TkrClusterAlg::initialize()
         log << MSG::ERROR << "TkrGeometrySvc is required for this algorithm." << endreq;
         return sc;
     }
-    //TkrBadStripsSvc is not required for this algorithm
-    //There are some shenanigans below to ensure that the algorithm runs without it.
+    // TkrBadStripsSvc is not required for this algorithm
+    // There are some shenanigans below to ensure that the algorithm runs without it.
     sc = service("TkrBadStripsSvc", pBadStrips, false);
     if (sc.isFailure()) {
-        log << MSG::INFO << "algorithm will not filter bad hits." << endreq;   
+        log << MSG::INFO << "Algorithm will not filter bad hits." << endreq;   
     }
     
     //Initialize the rest of the data members
@@ -50,6 +53,13 @@ StatusCode TkrClusterAlg::initialize()
 
 StatusCode TkrClusterAlg::execute()
 {
+    // Purpose and Method: makes TkrClusters
+    // Inputs:  None
+    // Outputs:  A StatusCode which denotes success or failure.
+    // Dependencies: Requires TkrDigis
+    // Restrictions and Caveats:  None
+
+
     StatusCode sc = StatusCode::SUCCESS;
     
     MsgStream log(msgSvc(), name());
@@ -69,12 +79,12 @@ StatusCode TkrClusterAlg::execute()
         }
     }
     
-    //Recover a pointer to the raw digi objects
+    // Recover a pointer to the raw digi objects
     m_TkrDigis   = SmartDataPtr<TkrDigiCol>(eventSvc(),"/Event/TkrRecon/TkrDigis");
     
-    //Create the TkrClusters TDS object
+    // Create the TkrClusters TDS object
     m_TkrClusters = new TkrClusters(pTkrGeo, pBadStrips, m_TkrDigis);
-
+    // Register the object in the TDS
     sc = eventSvc()->registerObject("/Event/TkrRecon/TkrClusters",m_TkrClusters);
     
     if (m_TkrClusters == 0 || m_TkrDigis ==0) sc = StatusCode::FAILURE;
