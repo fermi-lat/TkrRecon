@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusterTable.cxx,v 1.4 2002/10/10 21:18:24 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusterTable.cxx,v 1.5 2002/10/10 21:23:42 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusterTable has the methods for making the clusters, 
@@ -47,9 +47,15 @@ TkrMakeClusterTable::TkrMakeClusterTable(const TkrClusterCol* pClus,
         while(highStrip.size()<4) { highStrip = " "+highStrip;}
         TkrDigi* p_digi = *itD;
         int order = digiOrder(p_clu);
+             //std::cout << "Before loop (o/d) " << order << " " 
+             //   << (int) *p_digi << std::endl;
         while (order!=*p_digi && itD!=pDigi->end()) {
-            p_digi = (*itD++);
+             //std::cout << "In     loop (o/d) " << order << " " 
+             //   << (int) *p_digi << std::endl;
+            p_digi = *(++itD);
         }
+             //std::cout << "After  loop (o/d) " << order << " " 
+             //   << (int) *p_digi << std::endl;
         if (itD==pDigi->end()) return;
         // cluster and digi match; get the McHits
         std::vector<Relation<TkrDigi, McPositionHit> *> relsByDigi = digiHitsTab.getRelByFirst(p_digi);
