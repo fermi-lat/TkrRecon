@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Wed Nov 27 15:31:05 PST 2002
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx 
+Log Message:
+fixes for gcc 3.2: distinguish pointers from iterators
+
+    *
+------------------------------------------------------------
+User: lsrea  Wed Nov 27 15:31:05 PST 2002
 TkrRecon/src/PatRec/Combo
 
 Modified Files:
