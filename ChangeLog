@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Thu Aug 29 14:14:36 PDT 2002
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx KalFitTrack.h 
+Log Message:
+Added D'Oxigen documentation
+    *
+------------------------------------------------------------
 User: atwood  Thu Aug 29 14:12:31 PDT 2002
 TkrRecon/src/PatRec/Combo
 
