@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrQueryClusters.cxx,v 1.8 2002/06/05 20:13:25 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrQueryClusters.cxx,v 1.9 2002/06/05 21:56:08 usher Exp $
 //
 // Description:
 //      TkrQueryClusters is a container for Tkr clusters, and has the methods
@@ -196,7 +196,7 @@ int TkrQueryClusters::numberOfHitsNear( int iPlane, double dX, double dY, Point&
 	
     // Look for hits in the Y view of desired layer
     clusterList = m_pClus->getHits(Event::TkrCluster::Y, iPlane);
-    nHitsInPlane = m_pClus->nHits();
+    nHitsInPlane = clusterList.size();
 	
     while(nHitsInPlane--)
     {
