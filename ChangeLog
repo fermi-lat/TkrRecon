@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: lsrea  Tue Aug 31 16:58:08 PDT 2004
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx KalFitter.cxx 
+Log Message:
+Prepare for tag v8r12p25
+   Remove hardwired assumption that bottom tray is Y-measuring
+   Correct use of new numPlanes/numLayers distinction
+
+    *
+------------------------------------------------------------
+User: lsrea  Tue Aug 31 16:58:08 PDT 2004
 TkrRecon/src/Track
 
 Modified Files:
