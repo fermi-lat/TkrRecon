@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Fri Nov  5 10:28:56 PST 2004
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx ComboFindTrackTool.h 
+Log Message:
+second  pass at adding control parameters via tool properties
+    *
+------------------------------------------------------------
 User: lsrea  Wed Nov  3 12:17:22 PST 2004
 TkrRecon/src/Utilities
 
