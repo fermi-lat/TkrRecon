@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Aug 21 10:10:50 PDT 2002
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Include the new PatRec\Utilities folder and its files
+
+    *
+------------------------------------------------------------
 User: usher  Wed Aug 21 08:45:10 PDT 2002
 TkrRecon/src/Track
 
