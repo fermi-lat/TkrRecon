@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Mon Jun  3 12:27:10 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	TkrComboFit.cxx TkrLinkAndTreeFit.cxx TkrNeuralNetFit.cxx 
+Log Message:
+Modifications made necessary by the change in the structure of the TDS classes.
+Code now compiles and TkrRecon builds but needs to be tested
+
+    *
+------------------------------------------------------------
 User: usher  Mon Jun  3 12:27:09 PDT 2002
 TkrRecon/src/PatRec/Combo
 
