@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrQueryClusters.cxx,v 1.7 2002/06/05 17:07:06 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrQueryClusters.cxx,v 1.8 2002/06/05 20:13:25 usher Exp $
 //
 // Description:
 //      TkrQueryClusters is a container for Tkr clusters, and has the methods
@@ -130,10 +130,7 @@ Point TkrQueryClusters::nearestHitOutside(Event::TkrCluster::view v, int iplane,
 
         // Kludge to prevent crashes when z plane incorrect
         double zDistance   = fabs(Pini.z() - Pcenter.z());
-        if (zDistance > .1) 
-        {
-            if (zDistance > .6) continue;
-        }
+        if (zDistance > .3) continue;
 		
         double hitDistance = fabs(Pini.x() - Pcenter.x());
         double twrDistance = fabs(Pini.y() - Pcenter.y());
