@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Jun 14 16:31:24 PDT 2004
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+Fix bug in MC pattern recognition energy assignment (I think)
+
+    *
+------------------------------------------------------------
 User: usher  Mon Jun 14 13:45:20 PDT 2004
 TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy
 
