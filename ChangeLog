@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon Jan  3 15:36:21 PST 2005
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+prepare for tag v10r1p2: remove 'use xml *' from req. file
+
+    *
+------------------------------------------------------------
 User: usher  Mon Jan  3 13:43:01 PST 2005
 TkrRecon/src/GaudiAlg
 
