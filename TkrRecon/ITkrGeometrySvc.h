@@ -41,10 +41,13 @@ public:
     virtual int    numViews()=0;
     virtual int    numLayers()=0;
 
-    virtual int    indMixed()=0;
+    /*
+	virtual int    indMixed()=0;
     virtual int    viewMixed()=0;
     virtual int    ladderMixed()=0;
     virtual int    isizeMixed()=0;
+	*/
+
     virtual int    numPlanes()=0;
 
     virtual double towerPitch()=0;
@@ -66,10 +69,12 @@ public:
 	virtual HepPoint3D getStripPosition( int tower, int layer, int view, int stripid) = 0;
 	virtual HepPoint3D getDoubleStripPosition( int tower, int layer, int view, double stripid) = 0;
         
-    // geometry related access
+    /*
+	// geometry related access
     virtual int    nLadders(int ilayer, axis a)=0;
     virtual double diceSize(int ilayer, axis a, int iladder)=0;	
     virtual int    nDices(int ilayer, axis a, int iladder)=0;
+	*/
 };
 
 #endif
