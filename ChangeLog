@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Mar 12 15:35:01 PST 2003
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	ComboVtxTool.cxx TkrComboVtxRecon.cxx TkrComboVtxRecon.h 
+Log Message:
+Changes to accomodate relational tables and new method for accessing propagator
+
+    *
+------------------------------------------------------------
 User: usher  Wed Mar 12 15:35:00 PST 2003
 TkrRecon/src/TrackFit/KalmanFilter
 
