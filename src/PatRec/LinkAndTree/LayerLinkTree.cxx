@@ -1,6 +1,6 @@
 /*
-	Code to implement the LayerLinkTree class
-	Tracy Usher Dec 4, 2000
+    Code to implement the LayerLinkTree class
+    Tracy Usher Dec 4, 2000
 */
 
 #include "src/PatRec/LinkAndTree/LayerLinkTree.h"
@@ -11,13 +11,13 @@ int maxNodes = 3;
 //This is the do nothing constructor
 LayerLinkTree::LayerLinkTree()
 {
-	marked           =  false;
-	nPrimaryBranches =  0;
-	nLeaves          =  0;
-	treeHeight       =  0;
-	pHeadNode        =  0;
+    marked           =  false;
+    nPrimaryBranches =  0;
+    nLeaves          =  0;
+    treeHeight       =  0;
+    pHeadNode        =  0;
 
-	return;
+    return;
 }
 
 
@@ -26,53 +26,53 @@ LayerLinkTree::LayerLinkTree()
 //tree of possible links
 LayerLinkTree::LayerLinkTree(layerLinkListPtr pLinkList, LayerLinkNode* pNode)
 {
-	//Initialize the class members
-	marked    = false;
-	pHeadNode = pNode;
-	
-	//Build the tree
-	//treeHeight = fndNextNode(pLinkList, pHeadNode);
+    //Initialize the class members
+    marked    = false;
+    pHeadNode = pNode;
+    
+    //Build the tree
+    //treeHeight = fndNextNode(pLinkList, pHeadNode);
     treeHeight = fndLeanNodes(pLinkList, pHeadNode);
 
-	//Clear out the dead branches
-	remDeadBranches(pNode);
+    //Clear out the dead branches
+    remDeadBranches(pNode);
 
-	//How lush is our tree?
-	nPrimaryBranches = pHeadNode->getNumKids();
-	nLeaves          = fndNumLeaves(pHeadNode);
-	treeHeight       = fndTreeHeight(pHeadNode);
+    //How lush is our tree?
+    nPrimaryBranches = pHeadNode->getNumKids();
+    nLeaves          = fndNumLeaves(pHeadNode);
+    treeHeight       = fndTreeHeight(pHeadNode);
 
-	//Trees must have some height to be real
-	if (treeHeight < 1)
-	{
-		nPrimaryBranches = 0;
-		nLeaves          = 0;
-		treeHeight       = 0;
-	}
+    //Trees must have some height to be real
+    if (treeHeight < 1)
+    {
+        nPrimaryBranches = 0;
+        nLeaves          = 0;
+        treeHeight       = 0;
+    }
 
-	return;
+    return;
 }
 
 //Copy constructor
 LayerLinkTree::LayerLinkTree(const LayerLinkTree& oldTree)
 {
-	marked           = oldTree.marked;
-	nPrimaryBranches = oldTree.nPrimaryBranches;
-	nLeaves          = oldTree.nLeaves;
-	treeHeight       = oldTree.treeHeight;
-	pHeadNode        = oldTree.pHeadNode;
+    marked           = oldTree.marked;
+    nPrimaryBranches = oldTree.nPrimaryBranches;
+    nLeaves          = oldTree.nLeaves;
+    treeHeight       = oldTree.treeHeight;
+    pHeadNode        = oldTree.pHeadNode;
 
-	return;
+    return;
 }
 
 
 //Function to mark all the links from given node and below
 void LayerLinkTree::markTreeLinks(LayerLinkNode* pNode, layerLinkListPtr pLinkList)
 {
-	int        nChildren = pNode->getNumKids();
-	LayerLink* pLink     = pNode->getThisLayerLink();
+    int        nChildren = pNode->getNumKids();
+    LayerLink* pLink     = pNode->getThisLayerLink();
 
-	pLink->setInUse();
+    pLink->setInUse();
 
     //Attempt to also mark links which share the same bottom cluster
     layerLinkVector*   pLayerLinkVector = *pLinkList++;
@@ -87,47 +87,47 @@ void LayerLinkTree::markTreeLinks(LayerLinkNode* pNode, layerLinkListPtr pLinkLi
     }
 
 
-	if (nChildren)
-	{
-	    while(nChildren--) {markTreeLinks(pNode->getThisKid(nChildren),pLinkList);}
-	}
+    if (nChildren)
+    {
+        while(nChildren--) {markTreeLinks(pNode->getThisKid(nChildren),pLinkList);}
+    }
 
-	return;
+    return;
 }
 
 //Sets all links in tree to in use
 void LayerLinkTree::setLinksInUse(layerLinkListPtr pLinkList)
 {
-	markTreeLinks(pHeadNode, pLinkList);
+    markTreeLinks(pHeadNode, pLinkList);
 
-	marked = true;
-	
-	return;
+    marked = true;
+    
+    return;
 }
 
 
 //Function to build a tree
 int LayerLinkTree::fndNextNode(layerLinkListPtr pLinkList, LayerLinkNode* pNode)
 {
-	int maxHeight = 0;
+    int maxHeight = 0;
 
-	//Retrieve pointer to the link for this node
-	LayerLink* pLink = pNode->getThisLayerLink();
+    //Retrieve pointer to the link for this node
+    LayerLink* pLink = pNode->getThisLayerLink();
 
-	if (!pLink->linkInUse())
-	{
-		//Retrieve pointer to cluster links for this new layer
-		layerLinkVector*   pLinkVector = *pLinkList++;
+    if (!pLink->linkInUse())
+    {
+        //Retrieve pointer to cluster links for this new layer
+        layerLinkVector*   pLinkVector = *pLinkList++;
 
-		//Figure out which layer this is and get number of links it has
-		int                nLinks      = pLinkVector->size();
+        //Figure out which layer this is and get number of links it has
+        int                nLinks      = pLinkVector->size();
 
-		//Set up for links in the new layer
-		layerLinkVectorPtr pLinkIter   = pLinkVector->begin();
+        //Set up for links in the new layer
+        layerLinkVectorPtr pLinkIter   = pLinkVector->begin();
 
-		//Loop over the number of links in the new layer
-		while(nLinks--)
-		{
+        //Loop over the number of links in the new layer
+        while(nLinks--)
+        {
             LayerLinkNode* pNewNode = pNode->doLinksMatch(*pLinkIter++);
 
             //Does this link match (and pass angle cut)?
@@ -143,37 +143,37 @@ int LayerLinkTree::fndNextNode(layerLinkListPtr pLinkList, LayerLinkNode* pNode)
                 }
                 else delete pNewNode;
             }
-		}
-	}
+        }
+    }
 
-	return maxHeight + 1;
+    return maxHeight + 1;
 }
 
 //Function to build a lean tree and return height
 int LayerLinkTree::fndLeanNodes(layerLinkListPtr pLinkList, LayerLinkNode* pNode)
 {
-	int maxHeight = 0;
+    int maxHeight = 0;
 
-	//Retrieve pointer to the link for this node
-	LayerLink* pLink = pNode->getThisLayerLink();
+    //Retrieve pointer to the link for this node
+    LayerLink* pLink = pNode->getThisLayerLink();
 
-	if (!pLink->linkInUse())
-	{
-		//Retrieve pointer to cluster links for this new layer
-		layerLinkVector*   pLinkVector = *pLinkList++;
+    if (!pLink->linkInUse())
+    {
+        //Retrieve pointer to cluster links for this new layer
+        layerLinkVector*   pLinkVector = *pLinkList++;
 
-		//Figure out which layer this is and get number of links it has
-		int                nLinks      = pLinkVector->size();
+        //Figure out which layer this is and get number of links it has
+        int                nLinks      = pLinkVector->size();
 
-		//Set up for links in the new layer
-		layerLinkVectorPtr pLinkIter   = pLinkVector->begin();
+        //Set up for links in the new layer
+        layerLinkVectorPtr pLinkIter   = pLinkVector->begin();
 
         //Keep a list of candidate nodes which "match" the current link
         linkNodeVector     candNodes;
 
-		//Loop over the number of links in the new layer and find
-		//the links which match this link
-		while(nLinks--) 
+        //Loop over the number of links in the new layer and find
+        //the links which match this link
+        while(nLinks--) 
         {
             //If the links "match" then a new candidate node will be returned
             LayerLinkNode* pNewNode = pNode->doLinksMatch(*pLinkIter++);
@@ -221,89 +221,89 @@ int LayerLinkTree::fndLeanNodes(layerLinkListPtr pLinkList, LayerLinkNode* pNode
                 }
                 else delete pNewNode;
             }
-		}
-	}
+        }
+    }
 
-	return maxHeight + 1;
+    return maxHeight + 1;
 }
 
 //Count the number of leaves in the tree
 int LayerLinkTree::fndNumLeaves(LayerLinkNode* pNode)
 {
-	int childIdx = pNode->getNumKids();
-	int nCount   = childIdx ? 0 : 1; 
+    int childIdx = pNode->getNumKids();
+    int nCount   = childIdx ? 0 : 1; 
 
-	while(childIdx--) nCount += fndNumLeaves(pNode->getThisKid(childIdx));
+    while(childIdx--) nCount += fndNumLeaves(pNode->getThisKid(childIdx));
 
-	return nCount;
+    return nCount;
 }
 
 
 //How tall is the tree?
 int LayerLinkTree::fndTreeHeight(LayerLinkNode* pNode)
 {
-	int childIdx  = pNode->getNumKids();
-	int maxHeight = 0;
+    int childIdx  = pNode->getNumKids();
+    int maxHeight = 0;
 
-	while(childIdx--)
-	{
-		int newHeight = fndTreeHeight(pNode->getThisKid(childIdx));
+    while(childIdx--)
+    {
+        int newHeight = fndTreeHeight(pNode->getThisKid(childIdx));
 
-		if (newHeight > maxHeight) maxHeight = newHeight;
-	}
+        if (newHeight > maxHeight) maxHeight = newHeight;
+    }
 
-	return maxHeight + 1;
+    return maxHeight + 1;
 }
 
 //Recursive routine to clear nodes marked as "dead" in the tree
 bool LayerLinkTree::remDeadBranches(LayerLinkNode* pNode)
 {
-	bool deadNode = false;
+    bool deadNode = false;
 
-	//Make sure we haven't gone past the end of the branch
-	if (pNode)
-	{
-		int numKids = pNode->getNumKids();
+    //Make sure we haven't gone past the end of the branch
+    if (pNode)
+    {
+        int numKids = pNode->getNumKids();
 
-		//Loop over children of the node to see if there are dead branches below
-		while(numKids--)
-		{
-			LayerLinkNode* pChild = pNode->getThisKid(numKids);
+        //Loop over children of the node to see if there are dead branches below
+        while(numKids--)
+        {
+            LayerLinkNode* pChild = pNode->getThisKid(numKids);
 
-			//Check for the deadwood below
-			if (remDeadBranches(pChild))
-			{
-				pNode->remThisKid(pChild);
-				deleteNodes(pChild);
-			}
-		}
+            //Check for the deadwood below
+            if (remDeadBranches(pChild))
+            {
+                pNode->remThisKid(pChild);
+                deleteNodes(pChild);
+            }
+        }
 
-		//Check to see if current node is dead
-		if (!pNode->keepThisNode()) deadNode = true;
-	}
+        //Check to see if current node is dead
+        if (!pNode->keepThisNode()) deadNode = true;
+    }
 
-	return deadNode;
+    return deadNode;
 }
 
 
 //Recursive routine to delete all nodes below the current one
 void LayerLinkTree::deleteNodes(LayerLinkNode* pCurNode)
 {
-	if (pCurNode)
-	{
-		//Make sure link is made available again
-		LayerLink* pLink = pCurNode->getThisLayerLink();
-		pLink->setLinkNode(0);
+    if (pCurNode)
+    {
+        //Make sure link is made available again
+        LayerLink* pLink = pCurNode->getThisLayerLink();
+        pLink->setLinkNode(0);
 
-		//Go through and get rid of the kids
-		int nKids = pCurNode->getNumKids();
+        //Go through and get rid of the kids
+        int nKids = pCurNode->getNumKids();
 
-		while(nKids--) deleteNodes(pCurNode->getThisKid(nKids));
+        while(nKids--) deleteNodes(pCurNode->getThisKid(nKids));
 
-		delete pCurNode;
-	}
+        delete pCurNode;
+    }
 
-	return;
+    return;
 }
 
 //stl won't let me sort a vector of pointers. Here is my attempt
@@ -363,9 +363,9 @@ bool LayerLinkTree::bestNode(LayerLinkNode* pLhs, LayerLinkNode* pRhs)
 //Hopefully clean up the mess we have created
 LayerLinkTree::~LayerLinkTree()
 {
-//	deleteNodes(pHeadNode);
+//  deleteNodes(pHeadNode);
 
-	pHeadNode  = 0;
+    pHeadNode  = 0;
 
-	return;
+    return;
 }

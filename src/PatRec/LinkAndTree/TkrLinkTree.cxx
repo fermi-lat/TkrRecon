@@ -1,6 +1,6 @@
 /*
-	Code to implement the TkrLinkTree class
-	Tracy Usher Nov 29, 2000
+    Code to implement the TkrLinkTree class
+    Tracy Usher Nov 29, 2000
 */
 
 #include "src/PatRec/LinkAndTree/TkrLinkTree.h"
@@ -9,10 +9,10 @@
 //This is the do nothing constructor
 TkrLinkTree::TkrLinkTree()
 {
-	firstLayer = -1;
-	pNodeVector.clear();
+    firstLayer = -1;
+    pNodeVector.clear();
 
-	return;
+    return;
 }
 
 
@@ -22,22 +22,22 @@ TkrLinkTree::TkrLinkTree()
 TkrLinkTree::TkrLinkTree(layerLinkListPtr pLinkList, LayerLinkNode* pNode) : 
              LayerLinkTree(pLinkList, pNode)
 {
-	//Retrieve the layer number of first node
-	LayerLink*      pLink     = pNode->getThisLayerLink();
+    //Retrieve the layer number of first node
+    LayerLink*      pLink     = pNode->getThisLayerLink();
     TkrClusterLink* pClusLink = dynamic_cast<TkrClusterLink*>(pLink);
 
-	firstLayer = pClusLink->getLayer();
-	
-	//Now search for the list of best nodes for this tree
-//	pNodeList = new BestNodeList(this);
+    firstLayer = pClusLink->getLayer();
+    
+    //Now search for the list of best nodes for this tree
+//  pNodeList = new BestNodeList(this);
 
-	return;
+    return;
 }
 
 //Copy constructor
 TkrLinkTree::TkrLinkTree(const TkrLinkTree& oldTree) : LayerLinkTree(oldTree)
 {
-	firstLayer     = oldTree.firstLayer;
+    firstLayer     = oldTree.firstLayer;
     pNodeVector    = oldTree.pNodeVector;
 
     return;
@@ -46,7 +46,7 @@ TkrLinkTree::TkrLinkTree(const TkrLinkTree& oldTree) : LayerLinkTree(oldTree)
 
 TkrLinkTree::~TkrLinkTree()
 {
-	firstLayer = -1;
+    firstLayer = -1;
 
     int            numBestNodes = getNumBestVectors();
     bestNodeVecPtr bestNodePtr  = pNodeVector.begin();
@@ -58,6 +58,6 @@ TkrLinkTree::~TkrLinkTree()
         delete pBest;
     }
 
-	return;
+    return;
 }
 

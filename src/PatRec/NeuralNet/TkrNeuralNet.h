@@ -13,7 +13,7 @@
 * @todo Impliment graph searching function to better pick out candidate tracks.
 * @todo Move global parameter definitions to joboptions file
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/TkrNeuralNet.h,v 1.8 2002/08/20 19:23:57 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/TkrNeuralNet.h,v 1.9 2002/08/22 21:04:55 usher Exp $
 */
 
 #ifndef __TKR_NEURALNET_H
@@ -31,26 +31,26 @@ class TkrNeuralNet : public TkrPatCandCol
 {
 public:
 
-	// definitions
-	typedef TkrBase Candidate;
+    // definitions
+    typedef TkrBase Candidate;
     typedef std::vector<Candidate> CandidateList; 
     typedef std::vector<Candidate>::const_iterator const_iterator;
-	typedef std::vector<TkrNeuron> TkrNeuronList;
+    typedef std::vector<TkrNeuron> TkrNeuronList;
     typedef std::vector<TkrNeuron>::const_iterator neuron_const_iterator;
-	typedef std::vector<TkrPoint> TkrPointList;
+    typedef std::vector<TkrPoint> TkrPointList;
 
 
-	// constructor
-	TkrNeuralNet(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters,
-		double calEne = 0., Point calHit = Point(0.,0.,0.));
+    // constructor
+    TkrNeuralNet(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters,
+        double calEne = 0., Point calHit = Point(0.,0.,0.));
 
-	// destructor
-	~TkrNeuralNet() {}
+    // destructor
+    ~TkrNeuralNet() {}
 
-	/** @name access methods
-	*/
-	//@{
-	unsigned int numNeurons()         const {return m_numNeurons;}
+    /** @name access methods
+    */
+    //@{
+    unsigned int numNeurons()         const {return m_numNeurons;}
     const CandidateList& candidates() const {return m_candidates;}
     const_iterator begin()            const {return m_candidates.begin();}
     const_iterator end()              const {return m_candidates.end();}
@@ -60,7 +60,7 @@ public:
 
 private:
 
-	/** @name inner methods
+    /** @name inner methods
     */
     //@{
 
@@ -74,7 +74,7 @@ private:
      * We may want to have this use randSvc() from Gaudi?  This returns
      * the total number of neurons created.
      */
-	unsigned int generateNeurons();
+    unsigned int generateNeurons();
 
     /**
      * buildNet()
@@ -83,7 +83,7 @@ private:
      * synapse lists contains pointers to other neurons sharing the same end
      * points and the wieghts associated with that connection.
      */
-	void buildNet();
+    void buildNet();
 
     /**
      * relax()
@@ -94,7 +94,7 @@ private:
      * difference in activity of the last two update rounds is less then some
      * convergence value.
      */
-	void relax();
+    void relax();
 
     /**
      * buildCand()
@@ -115,7 +115,7 @@ private:
      * T_{ijk} = \frac{\cos^{\lambda}\psi_{ijk}}{d^{\mu}_{ij} + d^{\mu}_{jk}}
      * \f]
      */
-	float calcWieght(TkrNeuron* neuron1, TkrNeuron* neuron2);
+    float calcWieght(TkrNeuron* neuron1, TkrNeuron* neuron2);
 
     /**
      * updateNeurons()
@@ -133,20 +133,20 @@ private:
     void updateNeuron(TkrNeuron* neuron,float temp);
     //@}
 
-	//data members
+    //data members
 
     /// list of candidate tracks to be passed to the Kalman fit.
-	CandidateList  m_candidates;
+    CandidateList  m_candidates;
     /// list of tracks to be used with Kalman fit.
-	TkrFitTrackCol      m_tracks;
+    TkrFitTrackCol      m_tracks;
     /// list of all neurons
-	TkrNeuronList  m_neuronList;
+    TkrNeuronList  m_neuronList;
     /// list of all (x,y,z) points (not all are used in neurons)
-	TkrPointList   m_pointList;
+    TkrPointList   m_pointList;
     /// number of neurons in m_neuronList
-	unsigned int   m_numNeurons;
+    unsigned int   m_numNeurons;
     /// number of points in m_pointList
-	unsigned int   m_numPoints;
+    unsigned int   m_numPoints;
     /// position of cal hit
     Point          m_Pcal;
     /// energy for the event

@@ -23,51 +23,51 @@
 class TkrLinkAndTree : public TkrPatCandCol 
 {
 public:
-	TkrLinkAndTree(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus);
+    TkrLinkAndTree(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus);
    ~TkrLinkAndTree();
 
         //Return information
-	TkrLinkForest*      getForest(TkrPlaneType plane);
-	int                 getNumTrees(TkrPlaneType plane);
+    TkrLinkForest*      getForest(TkrPlaneType plane);
+    int                 getNumTrees(TkrPlaneType plane);
 
 private:
-	//Cluster hit information
-	void                setNumClusters(int nClus) {numClusters = nClus;};
-	int                 getNumClusters()          {return numClusters;};
+    //Cluster hit information
+    void                setNumClusters(int nClus) {numClusters = nClus;};
+    int                 getNumClusters()          {return numClusters;};
 
-	//Links information
-	void                setLinkList(TkrClusterLinkList* pLinks, TkrPlaneType plane);
-	TkrClusterLinkList* getLinkList(TkrPlaneType plane);
-	int                 getNumLinks(TkrPlaneType plane);
+    //Links information
+    void                setLinkList(TkrClusterLinkList* pLinks, TkrPlaneType plane);
+    TkrClusterLinkList* getLinkList(TkrPlaneType plane);
+    int                 getNumLinks(TkrPlaneType plane);
 
-	//Forest information
-	void                setForest(TkrLinkForest* pForest, TkrPlaneType plane);
+    //Forest information
+    void                setForest(TkrLinkForest* pForest, TkrPlaneType plane);
 
     //Method to build 3D track candidates
     void                buildCand3D();
 
-	//Overide virtual functions in trsDataVI
+    //Overide virtual functions in trsDataVI
 
-	void               ini();
-	void               clear();
-	void               make()     {return;};
-	//void               writeOut() const;
-	//void               update(GraphicsRep& v);
+    void               ini();
+    void               clear();
+    void               make()     {return;};
+    //void               writeOut() const;
+    //void               update(GraphicsRep& v);
 
         //Data members
-	int                 numClusters;
+    int                 numClusters;
 
-	TkrClusterLinkList* pLinkListX;
-	int                 numLinksX;
+    TkrClusterLinkList* pLinkListX;
+    int                 numLinksX;
 
-	TkrClusterLinkList* pLinkListY;
-	int                 numLinksY;
+    TkrClusterLinkList* pLinkListY;
+    int                 numLinksY;
 
-	TkrLinkForest*      pForestX;
-	int                 numTracksX;
+    TkrLinkForest*      pForestX;
+    int                 numTracksX;
 
-	TkrLinkForest*      pForestY;
-	int                 numTracksY;
+    TkrLinkForest*      pForestY;
+    int                 numTracksY;
 };
 
 #endif

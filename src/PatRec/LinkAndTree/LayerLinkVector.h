@@ -1,11 +1,11 @@
 /*
-	Base class definition for keeping track of links in a given 
-	layer.
-	Tracy Usher Dec 4, 2000
+    Base class definition for keeping track of links in a given 
+    layer.
+    Tracy Usher Dec 4, 2000
 */
 
 #ifndef C_LAYERLINKVECTOR
-#define	C_LAYERLINKVECTOR
+#define C_LAYERLINKVECTOR
 
 #include <vector>
 #include "src/PatRec/LinkAndTree/LayerLink.h"
@@ -17,7 +17,7 @@ typedef std::vector<LayerLink*>::iterator layerLinkVectorPtr;
 class LayerLinkVector : public layerLinkVector
 {
 public:
-	virtual ~LayerLinkVector() = 0;
+    virtual ~LayerLinkVector() = 0;
 };
 
 #endif

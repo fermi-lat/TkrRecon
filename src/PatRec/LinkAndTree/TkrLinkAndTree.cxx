@@ -1,89 +1,89 @@
 /*
-	Code to implement the PatRecTracks class
-	Tracy Usher Nov 27, 2000
+    Code to implement the PatRecTracks class
+    Tracy Usher Nov 27, 2000
 */
 
 #include "src/PatRec/LinkAndTree/TkrLinkAndTree.h"
 
 TkrLinkAndTree::TkrLinkAndTree(ITkrGeometrySvc* /*pTkrGeo*/, TkrClusterCol* pTkrClus)
 {
-	ini();
+    ini();
 
-	//How many clusters are we dealing with?
-	setNumClusters(pTkrClus->nHits());
+    //How many clusters are we dealing with?
+    setNumClusters(pTkrClus->nHits());
 
-	//Build the links in the X view
-	setLinkList(new TkrClusterLinkList(pTkrClus, X), X);
+    //Build the links in the X view
+    setLinkList(new TkrClusterLinkList(pTkrClus, X), X);
 
-	//Build the trees from this
-	setForest(new TkrLinkForest(getLinkList(X)), X);
-	
-	//Build the links in the Y view
-	setLinkList(new TkrClusterLinkList(pTkrClus, Y), Y);
+    //Build the trees from this
+    setForest(new TkrLinkForest(getLinkList(X)), X);
+    
+    //Build the links in the Y view
+    setLinkList(new TkrClusterLinkList(pTkrClus, Y), Y);
 
-	//Build the trees from this
-	setForest(new TkrLinkForest(getLinkList(Y)), Y);
+    //Build the trees from this
+    setForest(new TkrLinkForest(getLinkList(Y)), Y);
 
     //Now build the 3-D track candidates from this
     buildCand3D();
 
 
-	return;
+    return;
 }
 
 
 TkrLinkAndTree::~TkrLinkAndTree()
 {
-	clear();
+    clear();
 
-	return;
+    return;
 }
 
 void TkrLinkAndTree::setLinkList(TkrClusterLinkList* pLinks, TkrPlaneType plane)
 {
-	if (plane == X)
-	{
-		pLinkListX = pLinks;
-		numLinksX  = pLinks->getNumLinksTotal();
-	}
-	else
-	{
-		pLinkListY = pLinks;
-		numLinksY  = pLinks->getNumLinksTotal();
-	}
+    if (plane == X)
+    {
+        pLinkListX = pLinks;
+        numLinksX  = pLinks->getNumLinksTotal();
+    }
+    else
+    {
+        pLinkListY = pLinks;
+        numLinksY  = pLinks->getNumLinksTotal();
+    }
 
-	return;
+    return;
 }
 
 TkrClusterLinkList* TkrLinkAndTree::getLinkList(TkrPlaneType plane)
 {
-	return plane == X ? pLinkListX : pLinkListY;
+    return plane == X ? pLinkListX : pLinkListY;
 }
 
 int TkrLinkAndTree::getNumLinks(TkrPlaneType plane)
 {
-	return plane == X ? numLinksX : numLinksY;
+    return plane == X ? numLinksX : numLinksY;
 }
 
 void TkrLinkAndTree::setForest(TkrLinkForest* pForest, TkrPlaneType plane)
 {
-	if (plane == X)
-	{
-		pForestX   = pForest;
-		numTracksX = pForest->getNumTrees();
-	}
-	else
-	{
-		pForestY   = pForest;
-		numTracksY = pForest->getNumTrees();
-	}
+    if (plane == X)
+    {
+        pForestX   = pForest;
+        numTracksX = pForest->getNumTrees();
+    }
+    else
+    {
+        pForestY   = pForest;
+        numTracksY = pForest->getNumTrees();
+    }
 
-	return;
+    return;
 }
 
 TkrLinkForest* TkrLinkAndTree::getForest(TkrPlaneType plane)
 {
-	return plane == X ? pForestX : pForestY;
+    return plane == X ? pForestX : pForestY;
 }
 
 void TkrLinkAndTree::buildCand3D()
@@ -148,11 +148,11 @@ void TkrLinkAndTree::buildCand3D()
             TkrLinkNode*    TkrNodeX     = dynamic_cast<TkrLinkNode*>(*nodePtrX);
             TkrLinkNode*    TkrNodeY     = dynamic_cast<TkrLinkNode*>(*nodePtrY);
 
-	        TkrClusterLink* pClusLinkX   = dynamic_cast<TkrClusterLink*>(TkrNodeX->getThisLayerLink());
+            TkrClusterLink* pClusLinkX   = dynamic_cast<TkrClusterLink*>(TkrNodeX->getThisLayerLink());
             TkrCluster*     pTopClusterX = pClusLinkX->pTopClus();
             TkrCluster*     pBotClusterX = pClusLinkX->pBotClus();
 
-	        TkrClusterLink* pClusLinkY   = dynamic_cast<TkrClusterLink*>(TkrNodeY->getThisLayerLink());
+            TkrClusterLink* pClusLinkY   = dynamic_cast<TkrClusterLink*>(TkrNodeY->getThisLayerLink());
             TkrCluster*     pTopClusterY = pClusLinkY->pTopClus();
             TkrCluster*     pBotClusterY = pClusLinkY->pBotClus();
 
@@ -251,7 +251,7 @@ void TkrLinkAndTree::buildCand3D()
             while(nNodesX--)
             {
                 TkrNodeX     = dynamic_cast<TkrLinkNode*>(*nodePtrX++);
-	            pClusLinkX   = dynamic_cast<TkrClusterLink*>(TkrNodeX->getThisLayerLink());
+                pClusLinkX   = dynamic_cast<TkrClusterLink*>(TkrNodeX->getThisLayerLink());
                 
                 newTrack->addCandHit(pClusLinkX->pBotClus());
             }
@@ -259,7 +259,7 @@ void TkrLinkAndTree::buildCand3D()
             while(nNodesY--)
             {
                 TkrNodeY     = dynamic_cast<TkrLinkNode*>(*nodePtrY++);
-	            pClusLinkY   = dynamic_cast<TkrClusterLink*>(TkrNodeY->getThisLayerLink());
+                pClusLinkY   = dynamic_cast<TkrClusterLink*>(TkrNodeY->getThisLayerLink());
                 
                 newTrack->addCandHit(pClusLinkY->pBotClus());
             }
@@ -276,38 +276,38 @@ void TkrLinkAndTree::buildCand3D()
 
 int TkrLinkAndTree::getNumTrees(TkrPlaneType plane)
 {
-	return plane == X ? numTracksX : numTracksY;
+    return plane == X ? numTracksX : numTracksY;
 }
 
 void TkrLinkAndTree::ini()
 {
-	numClusters = 0;
-	pLinkListX  = 0;
-	numLinksX   = 0;
-	pLinkListY  = 0;
-	numLinksY   = 0;
-	pForestX    = 0;
-	numTracksX  = 0;
-	pForestY    = 0;
-	numTracksY  = 0;
+    numClusters = 0;
+    pLinkListX  = 0;
+    numLinksX   = 0;
+    pLinkListY  = 0;
+    numLinksY   = 0;
+    pForestX    = 0;
+    numTracksX  = 0;
+    pForestY    = 0;
+    numTracksY  = 0;
 
-	return;
+    return;
 }
 
 void TkrLinkAndTree::clear()
 {
-	//Make sure we clean things up before departing
-	if (pForestX)   delete pForestX;
-	if (pForestY)   delete pForestY;
-	if (pLinkListX) delete pLinkListX;
-	if (pLinkListY) delete pLinkListY;
+    //Make sure we clean things up before departing
+    if (pForestX)   delete pForestX;
+    if (pForestY)   delete pForestY;
+    if (pLinkListX) delete pLinkListX;
+    if (pLinkListY) delete pLinkListY;
 
-	numLinksX  = 0;
-	numLinksY  = 0;
-	numTracksX = 0;
-	numTracksY = 0;
+    numLinksX  = 0;
+    numLinksY  = 0;
+    numTracksX = 0;
+    numTracksY = 0;
 
-	return;
+    return;
 }
 
 /*
@@ -315,26 +315,26 @@ void TkrLinkAndTree::clear()
 void TkrLinkAndTree::writeOut() const
 //########################################################
 {
-	if (numTracksX <=0 && numTracksY <=0) return;
-	
-	std::ostream& out = messageManager::instance()->out();
-	if (!messageManager::instance()->acceptLevel("DEBUG")) return;
+    if (numTracksX <=0 && numTracksY <=0) return;
+    
+    std::ostream& out = messageManager::instance()->out();
+    if (!messageManager::instance()->acceptLevel("DEBUG")) return;
 
-	out << " --- TkrLinkAndTree ---- " << "\n";
-	out << " num Tracks X = " << numTracksX << "\n";
-	out << " num Tracks Y = " << numTracksY << "\n";
-//	if (numGammas()>0) {
-//		for (int ig=0; ig < numGammas(); ig++) {
-//			m_GFgammaList[ig]->GFdata::writeOut(out);
-//		}
-//	}
-//	out << " num Particles = " << numParticles() << "\n";
-//	if (numParticles()>0) {
-//		for (int ip=0; ip < numParticles(); ip++) { 
-//			m_GFparticleList[ip]->GFdata::writeOut(out);
-//		}
-//	}
-	return;
+    out << " --- TkrLinkAndTree ---- " << "\n";
+    out << " num Tracks X = " << numTracksX << "\n";
+    out << " num Tracks Y = " << numTracksY << "\n";
+//  if (numGammas()>0) {
+//      for (int ig=0; ig < numGammas(); ig++) {
+//          m_GFgammaList[ig]->GFdata::writeOut(out);
+//      }
+//  }
+//  out << " num Particles = " << numParticles() << "\n";
+//  if (numParticles()>0) {
+//      for (int ip=0; ip < numParticles(); ip++) { 
+//          m_GFparticleList[ip]->GFdata::writeOut(out);
+//      }
+//  }
+    return;
 }
 */
 /*
@@ -342,22 +342,22 @@ void TkrLinkAndTree::writeOut() const
 void TkrLinkAndTree::update(GraphicsRep& v)
 //########################################################
 {
-	//Draw the links for the "best" track
-	if (numTracksX > 0)
-	{
-		v.setColor("green");
-		pForestX->draw(v);
-	}
+    //Draw the links for the "best" track
+    if (numTracksX > 0)
+    {
+        v.setColor("green");
+        pForestX->draw(v);
+    }
 
-	//Draw the links for the "best" track
-	if (numTracksY > 0)
-	{
-		v.setColor("aquamarine");
-		pForestY->draw(v);
-	}
+    //Draw the links for the "best" track
+    if (numTracksY > 0)
+    {
+        v.setColor("aquamarine");
+        pForestY->draw(v);
+    }
 
-	v.setColor("blue");
+    v.setColor("blue");
 
-	return;
+    return;
 }
 */
