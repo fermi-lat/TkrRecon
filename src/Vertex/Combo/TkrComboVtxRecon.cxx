@@ -12,6 +12,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrTracks* pTracks,
     //Define a vector to contain a list of "isolated" tracks
     int   numTracks = pTracks->getNumTracks();
     bool* unused    = new bool[numTracks];
+	double docaLimit = 10.0;  //mm
 
     while(numTracks--) unused[numTracks] = true;
 
@@ -37,7 +38,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrTracks* pTracks,
             trk2Idx++;
 
             //Check that doca not too big and that vertex starts before or at first hit
-            if (doca.docaRay1Ray2() < 1. && (doca.arcLenRay1() <= 0. || doca.arcLenRay2() <= 0.))
+            if (doca.docaRay1Ray2() < docaLimit && (doca.arcLenRay1() <= 0. || doca.arcLenRay2() <= 0.))
             {
                 Point  gamPos;
                 Vector gamDir;
@@ -46,7 +47,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrTracks* pTracks,
                 //Ok, check if first track vertex's with second before first hit
                 if      (doca.arcLenRay1() > 0.)
                 {
-                    if (doca.docaRay1Point2() > 1.) continue;
+                    if (doca.docaRay1Point2() > docaLimit) continue; 
 
                     gamPos = track1->position();
                     gamDir = track1->direction();
@@ -54,7 +55,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrTracks* pTracks,
                 //Same check for track 2
                 else if (doca.arcLenRay2() > 0.)
                 {
-                    if (doca.docaPoint1Ray2() > 1.) continue;
+                    if (doca.docaPoint1Ray2() > docaLimit) continue; 
 
                     gamPos = track2->position();
                     gamDir = track2->direction();
