@@ -1,5 +1,19 @@
 ------------------------------------------------------------
 User: usher  Mon Apr 29 20:58:07 PDT 2002
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	TkrNeuralNet.cxx 
+Log Message:
+Modifications to files for:
+1) updating to use TkrRecInfo abstract class
+2) Include more comments in header files
+3) Incorporate new cluster class definitions
+4) Separate track fit display from output class
+
+    *
+------------------------------------------------------------
+User: usher  Mon Apr 29 20:58:07 PDT 2002
 TkrRecon/src/PatRec/LinkAndTree
 
 Modified Files:
