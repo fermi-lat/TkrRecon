@@ -38,17 +38,17 @@ class ComboVtxTool : public AlgTool, virtual public IVtxBaseTool
     /// vertexing routine
     ITkrGeometrySvc*  m_tkrGeom;
     IDataProviderSvc* m_dataSvc;
-	/// Pointer to the G4 propagator
+    /// Pointer to the G4 propagator
     IPropagator*      m_propagatorTool;
 
 private:
-	double m_maxDOCA;   /// Max. accepted DOCA separation for which to make vertex
-	double m_minQuality;/// Min. accepted VTX quality
+    double m_maxDOCA;   /// Max. accepted DOCA separation for which to make vertex
+    double m_minQuality;/// Min. accepted VTX quality
 
-	double m_chisq;     /// Internal transport for Chi-Square
+    double m_chisq;     /// Internal transport for Chi-Square
 
-	Event::TkrTrackParams& getParamAve(Event::TkrTrackParams& params1, 
-									   Event::TkrTrackParams& params2);
+    Event::TkrTrackParams getParamAve(Event::TkrTrackParams& params1, 
+                                      Event::TkrTrackParams& params2);
 
 };
 #endif
