@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: burnett  Mon Jun 11 10:37:03 PDT 2001
+TkrRecon/src McReconAlg.cxx
+
+Modified Files:
+	McReconAlg.cxx 
+Log Message:
+fix MC direction
+    *
+------------------------------------------------------------
 User: burnett  Mon Jun 11 10:37:02 PDT 2001
 TkrRecon/mgr requirements
 
