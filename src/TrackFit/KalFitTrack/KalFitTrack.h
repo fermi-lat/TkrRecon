@@ -13,9 +13,6 @@ class KalFitTrack: public TkrFitTrack
 public:
     KalFitTrack(int layer, int tower, double sigmaCut, double energy, const Ray& testRay);
    ~KalFitTrack() {}
-    
-    /// Utilities 
-    bool empty() const;
 
     // Hit Finding & Fitting
     void          findHits();
@@ -28,6 +25,16 @@ public:
     inline int    numSegmentPoints()         const{return m_numSegmentPoints;}
     inline double chiSquareSegment(double penaltyGap = 0.)  
                                              const{return m_chisqSegment + penaltyGap*getNumGaps();}
+
+    /// Access errors at track start
+    double        getErrorXPosition()      const;
+    double        getErrorXSlope()         const;
+    double        getErrorYPosition()      const;
+    double        getErrorYSlope()         const;
+
+    /// Access to derived information on kinks
+    double        getKink(int iplane)      const;
+    double        getKinkNorma(int iplane) const;
         
     // Operations
     void          flagAllHits(int iflag=1);

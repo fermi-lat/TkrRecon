@@ -227,8 +227,10 @@ void TkrLinkAndTree::buildCand3D()
                         pBotClusterY->position().y()-y,
                         pBotClusterX->position().z()-z);
             Ray    initDir(start,vDir.unit());
+            double quality = TkrNodeX->getQuality()->getAngleRMS()
+                           + TkrNodeY->getQuality()->getAngleRMS();
 
-            TkrPatCand* newTrack = new TkrPatCand(pTopClusterX->plane(),pTopClusterX->tower(),initDir);
+            TkrPatCand* newTrack = new TkrPatCand(pTopClusterX->plane(),pTopClusterX->tower(),0.,quality,initDir);
 
             newTrack->addCandHit(pTopClusterX);
             newTrack->addCandHit(pTopClusterY);

@@ -1,6 +1,12 @@
-
 #ifndef PatRecTracks_h
 #define PatRecTracks_h
+/** 
+* @class TkrCandidates
+*
+* @brief TDS Container class to hold the list of candidate tracks
+*
+* @author The Tracking Software Group
+*/
 
 #include <vector>
 #include "GaudiKernel/MsgStream.h"
@@ -8,16 +14,6 @@
 #include "GaudiKernel/DataObject.h"
 
 extern const CLID& CLID_TkrCandidates;
-
-//
-//------------------------------------------------------------------------
-//
-// TkrCandidates
-//
-// Transient Data Object for the Pattern Recognition state of Tracker Reconstruction
-//
-//------------------------------------------------------------------------
-//
 
 class TkrCandidates : public DataObject
 {

@@ -1,14 +1,20 @@
 //---------------------------------------------------------------
 // Implementation for TkrBase - a base Class for Track objects 
 //
-//      W. Atwood, T. Usher
-//           Nov., 2001
+//      W. Atwood, Tracking Software Group
+// 
 //---------------------------------------------------------------
 
 #include "TkrRecon/Track/TkrBase.h"
 
 TkrBase::TkrBase()
 {
+  // Purpose and Method: Null constructor for the class
+  // Inputs:  None
+  // Outputs:  None
+  // Dependencies: None
+  // Restrictions and Caveats:  None
+
     ini();
 }
 
@@ -18,7 +24,17 @@ TkrBase::TkrBase(int firstLayer, int tower, double energy, Point x, Vector t):
         ,m_direction(t.unit())
         ,m_position(x)
         ,m_energy(energy)
-{ }
+{
+  // Purpose and Method: Constructs the class from a starting point and direction
+  // Inputs:  firstLayer: The layer number of the supplied coordinates
+  //          tower:      The tower number of the supplied coordinates
+  //          energy:     The energy assigned to this track (or vertex)
+  //          x:          The track starting point
+  //          t:          The direction of the track
+  // Outputs:  None
+  // Dependencies: None
+  // Restrictions and Caveats:  None
+}
 
 void TkrBase::ini()
 {
@@ -29,8 +45,14 @@ void TkrBase::ini()
     m_itower =-1;
 }
 
+
 bool TkrBase::empty() const
 {
+  // Purpose and Method: Determines if valid data exists in the class
+  // Inputs:  None
+  // Outputs:  a bool which is true if there exists a valid layer number
+  // Dependencies: None
+  // Restrictions and Caveats:  None
     bool empty = false;
     if (m_firstLayer < 0) empty = true;
     return empty;
@@ -38,6 +60,11 @@ bool TkrBase::empty() const
 
 void TkrBase::writeOut(MsgStream& log) const
 {
+  // Purpose and Method: Output information in the class
+  // Inputs:  None
+  // Outputs:  None
+  // Dependencies: None
+  // Restrictions and Caveats:  None
     log << MSG::DEBUG << " --- TkrBase::writeOut --- " << endreq;
     log << MSG::DEBUG << " Position      = " << position().x() << " " <<position().y() << " " << position().z() << endreq;
     log << MSG::DEBUG << " Direction     = " << direction().x() << " " << direction().y() << " " << direction().z() << endreq;

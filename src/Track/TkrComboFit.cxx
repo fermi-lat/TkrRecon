@@ -19,7 +19,7 @@ TkrComboFit::TkrComboFit(ITkrGeometrySvc* pTkrGeo, TkrClusters* pTkrClus, TkrCan
         TkrPatCand* pCand = *cands++;
 
                 
-        int    iniLayer = pCand->firstLayer();
+        int    iniLayer = pCand->layer();
         int    iniTower = pCand->tower();
         Ray    testRay  = pCand->ray();
         double energy   = pCand->energy();

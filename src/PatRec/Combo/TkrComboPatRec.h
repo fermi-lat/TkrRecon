@@ -10,6 +10,7 @@
 #include "TkrRecon/Cluster/TkrClusters.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "src/TrackFit/KalFitTrack/KalFitTrack.h"
+#include "TkrRecon/Track/TkrBase.h"
 #include "geometry/Ray.h"
 
 #include <vector>
@@ -38,12 +39,13 @@ private:
         float  quality()       const {return m_qual;}
         int    gap()           const {return m_gap;} 
         
-    private:	
+    private:    
         float m_deflection;    // End point deflection of line of 1st two hits
         float m_sigma;         // Number of sigma deflection corresponds to
         float m_qual;          // Resulting track Quality
         int m_gap;             // Size of gap (hopefully zero!) 
     };
+
 
     // Access methods for getting the individual candidate tracks
     typedef std::vector<Candidate> CandidateList; 
