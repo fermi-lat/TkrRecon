@@ -1,6 +1,9 @@
 package TkrRecon
 version v8r12p1
 
+author Tracy Usher    <usher@slac.stanford.edu>
+author Leon Rochester <lsrea@slac.stanford.edu>
+
 branches src mgr doc
 
 use GlastPolicy
@@ -39,22 +42,22 @@ macro TkrRecon_headers   "" WIN32 "\
  ../TkrRecon/Cluster/*.h\
  ../TkrRecon/PatRec/*.h\
  ../TkrRecon/Track/*.h ../TkrRecon/TrackFit/*.h \
- ../TkrRecon/Vertex/*.h \
+ ../TkrRecon/Vertex/*.h  \
  ../TkrRecon/GaudiAlg/*.h ../TkrRecon/Display/*.h ../TkrRecon/Services/*.h"
 
 macro source "*.cxx" WIN32 "*.h *.cxx"
 
 library TkrRecon  $(TkrRecon_headers)  \
   -s=Dll *.cxx\
-  -s=GaudiAlg TkrClusterAlg.cxx  TkrDisplayAlg.cxx  TkrFindAlg.cxx  TkrReconAlg.cxx  TkrTrackFitAlg.cxx  TkrVertexAlg.cxx\
-  -s=Display TkrCandidate3DRep.cxx  TkrClustersRep.cxx    TkrDispCompleteNet.cxx  TkrPatCandRep.cxx  TkrRecObjsRep.cxx\
-             TkrBestCandRep.cxx  TkrCandidatesRep.cxx   TkrDispActiveNet.cxx  TkrPatCandRep.h    TkrTracksRep.cxx \
+  -s=GaudiAlg $(source)\
+  -s=Display $(source)\
   -s=Services $(source)\
   -s=Cluster $(source)\
   -s=PatRec $(source)\
   -s=PatRec/LinkAndTree $(source)\
   -s=PatRec/Combo $(source)\
   -s=PatRec/NeuralNet $(source)\
+  -s=PatRec/MonteCarlo $(source)\	 
   -s=PatRec/Utilities $(source)\
   -s=Track $(source)\
   -s=TrackFit $(source)\

@@ -21,7 +21,6 @@ DECLARE_FACTORY_ENTRIES(TkrRecon)
     DECLARE_ALGORITHM( TkrTrackFitAlg          );
     DECLARE_ALGORITHM( TkrVertexAlg            );
     DECLARE_ALGORITHM( TkrDisplayAlg           );
-//    DECLARE_ALGORITHM( TkrBuildMcRelationsAlg  );
 
     DECLARE_SERVICE(   TkrInitSvc              );
 
@@ -34,8 +33,7 @@ DECLARE_FACTORY_ENTRIES(TkrRecon)
     DECLARE_TOOL(      ComboFindTrackTool      );
     DECLARE_TOOL(      LinkAndTreeFindTrackTool);
     DECLARE_TOOL(      NeuralNetFindTrackTool  );
-//    DECLARE_TOOL(      MonteCarloFindTrackTool );
+    DECLARE_TOOL(      MonteCarloFindTrackTool );
     DECLARE_TOOL(      TkrTrackEnergyTool      );
-//    DECLARE_TOOL(      TkrMcPatCandTool        );
 } 
 
