@@ -1,0 +1,8 @@
+package GlastSvc
+
+package manager:T.Burnett
+
+! 20000829 THB: use new class instrument/Instrument for GlastDetector stuff.
+! 20000701  Created by HSG.
+
+!======================================================================

@@ -1,0 +1,48 @@
+//##############################################################
+//
+// Job options file for CalRecon test
+//
+
+
+ApplicationMgr.ExtSvc   = { "GlastDetSvc", "EventSelector" , "EventCnvSvc" };
+
+ApplicationMgr.DLLs   = { "GlastSvc", "TkrRecon" };
+
+//--------------------------------------------------------------
+// Private Application Configuration options
+//--------------------------------------------------------------
+GlastDetSvc.IRFFile = "/Gaudi2/instrument/v2r2/src/test/muontest.irf";
+
+ApplicationMgr.TopAlg = { "TkrRecoAlg" };
+
+// Set output level threshold (2=DEBUG, 3=INFO, 4=WARNING, 5=ERROR, 6=FATAL )
+
+MessageSvc.OutputLevel      = 2;
+
+//=========================================================================
+// Persistency service setup:
+EventPersistencySvc.CnvServices = {"EventCnvSvc"};
+
+//--------------------------------------------------------------
+// Algorithms Private Options
+//--------------------------------------------------------------
+// Number of events to be processed (default is 10)
+//EventSelector.EvtMax = 20;
+
+// Print event number every event
+EventSelector.PrintFreq = 1;
+
+ApplicationMgr.EvtSel = "IRFFILE /Gaudi2/instrument/v2r2/src/test/muontest.irf";
+
+// Selection file - must be included - or else Gaudi will search for its file by default
+//ApplicationMgr.EvtSel = "NONE";
+ApplicationMgr.EvtMax = 20;
+
+
+
+//==============================================================
+//
+// End of job options file
+//
+//##############################################################
+

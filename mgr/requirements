@@ -1,0 +1,36 @@
+package TkrRecon
+version v1
+
+branches src mgr doc
+
+use GlastSvc
+
+use reconstruction v3r1
+
+library TkrRecon  *.cxx ../TkrRecon/*.h  Dll/*.cpp
+
+macro TkrRecon Dir  "$(TKRRECONROOT)/$(DEBUGDIR)"
+
+macro TkrRecon_linkopts   " " 
+macro TkrRecon_stamps     
+
+set   TkrReconShr           "${TKRRECONROOT}/${DEBUGDIR}/libTkrRecon"
+
+include_path $(TKRRECONROOT)
+
+private
+
+# this for MSVCC, to fix incompatibilities, turn off warnings
+macro_append cppflags ""\
+       VisualC " /FI$(ntconfigfile)" 
+
+# note that the debug versions of the used libraries are inserted below
+
+macro TkrRecon_shlibflags   "$(componentshr_linkopts) $(use_linkopts) $(Win32Debug)"
+
+# build this for testing
+
+application test \
+        test/*.cxx test/*.h test/*.txt
+
+
