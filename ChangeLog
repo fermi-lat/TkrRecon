@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Thu May  2 16:51:09 PDT 2002
+TkrRecon/src/PatRec/LinkAndTree
+
+Modified Files:
+	TkrLinkAndTree.cxx 
+Log Message:
+Modifications:
+1) Fix bug in KalFitTrack associated with incorrect initial layer and tower
+2) Modify Link And Tree to make 3D candidates of tracks with 3 hits
+3) Updates to Vertex algorithm to further rationalize its vertex choice
+
+    *
+------------------------------------------------------------
 User: lsrea  Thu May  2 06:55:15 PDT 2002
 TkrRecon/cmt
 
