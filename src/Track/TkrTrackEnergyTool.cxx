@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.22 2005/02/04 00:56:22 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.23 2005/03/01 00:55:50 lsrea Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -145,17 +145,47 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
     StatusCode sc = StatusCode::SUCCESS;
 
     // Find the collection of candidate tracks
-    Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol);
+    Event::TkrTrackCol* trackCol = 
+        SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol);
+    Event::CalClusterCol* pCalClusters = 
+        SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
 
     //If candidates, then proceed
     if (trackCol->size() > 0)
     {
-	    // Get the first track to find out the energy option used and execute default (LATENERGY)
-	    Event::TkrTrack* firstTrack = *trackCol->begin();
-	    if(firstTrack->getStatusBits() & Event::TkrTrack::LATENERGY) 
+	    // Get the first track to find out the energy option used 
+        // execute default (LATENERGY) if appropriate
+        //Event::TkrTrack* firstTrack = *trackCol->begin();
+        Event::TkrTrack* firstCandTrk = trackCol->front();
+        int num_hits1 = firstCandTrk->getNumFitHits();
+        Event::TkrTrack* secndCandTrk = 0;
+        int num_hits2 = 0;
+        if (trackCol->size() > 1) {
+            int num_hits2 = secndCandTrk->getNumFitHits();
+            Event::TkrTrack* secndCandTrk = (*trackCol)[1];
+        }
+        
+	    if(firstCandTrk->getStatusBits() & Event::TkrTrack::LATENERGY) 
         {
-            // Recover pointer to Cal Cluster info  
-            Event::CalClusterCol* pCalClusters = SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
+            if (!pCalClusters) {
+                // no cal info... set track energies to MS energies if possible.
+                if (num_hits1>7) {
+                    double msEnergy = firstCandTrk->getKalEnergy();
+                    firstCandTrk->setInitialEnergy(msEnergy);
+                    // change the hit energy on first track
+                    (*firstCandTrk)[0]->setEnergy(msEnergy); 
+                }
+                if (num_hits2>7) {
+                    double msEnergy = secndCandTrk->getKalEnergy();
+                    secndCandTrk->setInitialEnergy(msEnergy);
+                    // change the hit energy on first track
+                    (*secndCandTrk)[0]->setEnergy(msEnergy); 
+                }
+                // and return
+                return sc;
+            }
+            // Cal info exists, proceed as usual
+
             double CalEnergy   = pCalClusters->front()->getEnergyCorrected(); 
             double CalSumEne   = pCalClusters->front()->getEnergySum();
             double totalEnergy = std::max(CalEnergy, CalSumEne);  
@@ -179,11 +209,8 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
                 }
                 else                // Divide up the energy between the first two tracks
                 {
-                    Event::TkrTrack* secndCandTrk = (*trackCol)[1];
         
 			        // Need to use Hits-on-Fits until tracks are truncated to last real SSD hit
-                    int num_hits1 = firstCandTrk->getNumFitHits();
-                    int num_hits2 = secndCandTrk->getNumFitHits();
                     double e1 = firstCandTrk->front()->getEnergy();
                     double e2 = secndCandTrk->front()->getEnergy();
                     double e1_min = 2.*num_hits1;        //Coefs are MeV/Hit
