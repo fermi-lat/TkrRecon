@@ -1,13 +1,13 @@
 #ifndef __TKRTRACKFITALG_H
 #define __TKRTRACKFITALG_H 1
-
+/*
 #include "GaudiKernel/Algorithm.h"
 
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrRecon/Track/ITkrFitTool.h"
 
 #include "GlastSvc/Reco/IKalmanParticle.h"
-
+*/
 /** 
  * @class TkrTrackFitAlg
  *
@@ -20,9 +20,9 @@
  * 
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrTrackFitAlg.h,v 1.3 2002/09/05 16:42:29 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrTrackFitAlg.h,v 1.4 2003/03/12 23:34:59 usher Exp $
  */
-
+/*
 class TkrTrackFitAlg : public Algorithm
 {
 public:
@@ -46,5 +46,5 @@ private:
     /// Always use Sears Craftsmen tools for the job
     ITkrFitTool* m_FitTool;
 };
-
+*/
 #endif

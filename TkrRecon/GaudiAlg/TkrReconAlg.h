@@ -1,11 +1,11 @@
 #ifndef __TKRRECONALG_H
 #define __TKRRECONALG_H 1
-
+/*
 #include "GaudiKernel/Algorithm.h"
 
 #include "Event/Recon/TkrRecon/TkrFitTrack.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
-
+*/
 /** 
  * @class TkrReconAlg
  *
@@ -16,9 +16,9 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrReconAlg.h,v 1.14 2002/09/05 16:42:29 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrReconAlg.h,v 1.15 2003/03/12 23:34:59 usher Exp $
  */
-
+/*
 class TkrReconAlg : public Algorithm
 {
 public:
@@ -47,5 +47,5 @@ private:
     Algorithm*  m_TkrTrackFitAlg;
     Algorithm*  m_TkrVertexAlg;
 };
-
+*/
 #endif // __TKRRECONALG_H

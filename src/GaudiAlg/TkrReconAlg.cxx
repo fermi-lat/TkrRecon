@@ -1,18 +1,59 @@
-// File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.21 2003/01/29 23:20:26 lsrea Exp $
-//
-// Description:
-//      Contains the implementation of the methods for controlling the tracker reconstruction
-//
-// Author:
-//      Tracy Usher       
+
+/** 
+ * @class TkrReconAlg
+ *
+ * @brief TkrRecon Gaudi Algorithm 
+ *        Main algorithm for driving the tracker reconstruction. 
+ *        Operates in two modes:
+ *        1) First pass - does the full reconstruction including clustering and track finding
+ *        2) Iteration - allows a second (or more) pass for refitting tracks and vertexing
+ *
+ * 03-27-2003 
+ *
+ *
+ * @author The Tracking Software Group
+ *
+ * File and Version Information:
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.22 2003/03/12 23:32:20 usher Exp $
+ */
 
 
 #include <vector>
-#include "TkrRecon/GaudiAlg/TkrReconAlg.h"
+
+#include "Event/Recon/TkrRecon/TkrFitTrack.h"
+#include "Event/Recon/TkrRecon/TkrPatCand.h"
+
 #include "TkrRecon/Services/TkrInitSvc.h"
+
+#include "GaudiKernel/Algorithm.h"
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/AlgFactory.h"
+
+// Class defintion...
+class TkrReconAlg : public Algorithm
+{
+public:
+
+    // Standard Gaudi Algorithm constructor format
+    TkrReconAlg(const std::string& name, ISvcLocator* pSvcLocator); 
+    virtual ~TkrReconAlg() {}
+
+    // The thee phases in the life of a Gaudi Algorithm
+    StatusCode initialize();
+    StatusCode execute();
+    StatusCode finalize();
+    
+private:
+    
+    // Input parameter which determines the type of reconstruction to run
+    std::string m_TrackerReconType;
+
+    // Pointers to the four main TkrRecon Gaudi Algorithms
+    Algorithm*  m_TkrClusterAlg;
+    Algorithm*  m_TkrFindAlg;
+    Algorithm*  m_TkrTrackFitAlg;
+    Algorithm*  m_TkrVertexAlg;
+};
 
 // Definitions for use within Gaudi
 static const AlgFactory<TkrReconAlg>  Factory;
@@ -41,39 +82,67 @@ StatusCode TkrReconAlg::initialize()
 
     setProperties();
 
-    // Clustering algorithm
-    if( createSubAlgorithm("TkrClusterAlg", "TkrClusterAlg", m_TkrClusterAlg).isFailure() ) 
+    // Initialization will depend on whether this is initial or iteration pass version
+    // If first pass then we do full reconstruction
+    if (name() != "Iteration")
     {
-        log << MSG::ERROR << " could not open TkrClusterAlg " << endreq;
-        return StatusCode::FAILURE;
+        // Clustering algorithm
+        if( createSubAlgorithm("TkrClusterAlg", "TkrClusFirst", m_TkrClusterAlg).isFailure() ) 
+        {
+            log << MSG::ERROR << " could not open TkrClusterAlg " << endreq;
+            return StatusCode::FAILURE;
+        }
+
+        // Track finding algorithm
+        if( createSubAlgorithm("TkrFindAlg", "TkrFindFirst", m_TkrFindAlg).isFailure() ) 
+        {
+            log << MSG::ERROR << " could not open TkrFindAlg " << endreq;
+            return StatusCode::FAILURE;
+        }
+
+        // Set the property controlling the type of track finding to perform
+        m_TkrFindAlg->setProperty("TrackFindType", m_TrackerReconType);
+
+        // Track Fitting algorithm
+        if( createSubAlgorithm("TkrTrackFitAlg", "TkrFitFirst", m_TkrTrackFitAlg).isFailure() ) 
+        {
+            log << MSG::ERROR << " could not open TkrTrackFitAlg " << endreq;
+            return StatusCode::FAILURE;
+        }
+
+        // Vertex finding and fitting algorithm
+        if( createSubAlgorithm("TkrVertexAlg", "TkrVertexFirst", m_TkrVertexAlg).isFailure() ) 
+        {
+            log << MSG::ERROR << " could not open TkrVertexAlg " << endreq;
+            return StatusCode::FAILURE;
+        }
+    }
+    else
+    {
+        // No Clustering algorithm on iteration
+        m_TkrClusterAlg = 0;
+
+        // No Track finding algorithm on iteration
+        m_TkrFindAlg = 0;
+
+        // Track Fitting algorithm
+        if( createSubAlgorithm("TkrTrackFitAlg", "TkrFitIter", m_TkrTrackFitAlg).isFailure() ) 
+        {
+            log << MSG::ERROR << " could not open TkrTrackFitAlg " << endreq;
+            return StatusCode::FAILURE;
+        }
+
+        // Vertex finding and fitting algorithm
+        if( createSubAlgorithm("TkrVertexAlg", "TkrVertexIter", m_TkrVertexAlg).isFailure() ) 
+        {
+            log << MSG::ERROR << " could not open TkrVertexAlg " << endreq;
+            return StatusCode::FAILURE;
+        }
     }
 
-    // Track finding algorithm
-    if( createSubAlgorithm("TkrFindAlg", "TkrFindAlg", m_TkrFindAlg).isFailure() ) 
-    {
-        log << MSG::ERROR << " could not open TkrFindAlg " << endreq;
-        return StatusCode::FAILURE;
-    }
-
-    // Set the property controlling the type of track finding to perform
-    m_TkrFindAlg->setProperty("TrackFindType", m_TrackerReconType);
-
-    // Track Fitting algorithm
-    if( createSubAlgorithm("TkrTrackFitAlg", "TkrTrackFitAlg", m_TkrTrackFitAlg).isFailure() ) 
-    {
-        log << MSG::ERROR << " could not open TkrTrackFitAlg " << endreq;
-        return StatusCode::FAILURE;
-    }
 
     // Set the property controlling the type of track fitting to perform
     m_TkrTrackFitAlg->setProperty("TrackFitType", m_TrackerReconType);
-
-    // Vertex finding and fitting algorithm
-    if( createSubAlgorithm("TkrVertexAlg", "TkrVertexAlg", m_TkrVertexAlg).isFailure() ) 
-    {
-        log << MSG::ERROR << " could not open TkrVertexAlg " << endreq;
-        return StatusCode::FAILURE;
-    }
 
     // Set the property controlling the type of track fitting to perform
     m_TkrVertexAlg->setProperty("VertexerType", "DEFAULT");
@@ -93,33 +162,40 @@ StatusCode TkrReconAlg::execute()
     StatusCode sc = StatusCode::SUCCESS;
 
     log << MSG::DEBUG;
-    if (log.isActive()) {
-        log << "------- Recon of new Event --------";
-    }
+    if (name() != "Iteration") log << "------- Tkr Recon of new Event --------";
+    else                       log << "-------   Tkr Recon iteration  --------";
     log << endreq;
-    
-    if(m_TkrClusterAlg->execute() == StatusCode::FAILURE)
+
+    // Call clustering if in first pass mode
+    if (m_TkrClusterAlg) sc = m_TkrClusterAlg->execute();
+    if (sc.isFailure())
     {
         log << MSG::ERROR << " TkrClusterAlg FAILED to execute!" << endreq;
-        return StatusCode::FAILURE;
+        return sc;
     }
- 
-    if( m_TkrFindAlg->execute() == StatusCode::FAILURE)
+
+    // Call track finding if in first pass mode
+    if (m_TkrFindAlg) sc = m_TkrFindAlg->execute();
+    if (sc.isFailure())
     {
         log << MSG::ERROR << " TkrFindAlg FAILED to execute!" << endreq;
-        return StatusCode::FAILURE;
+        return sc;
     }
-  
-    if( m_TkrTrackFitAlg->execute() == StatusCode::FAILURE)
+
+    // Call track fit
+    sc = m_TkrTrackFitAlg->execute();
+    if (sc.isFailure())
     {
         log << MSG::ERROR << " TkrReconAlg FAILED to execute!" << endreq;
-        return StatusCode::FAILURE;
+        return sc;
     }
   
-    if( m_TkrVertexAlg->execute() == StatusCode::FAILURE)
+    // Call vertexing
+    sc = m_TkrVertexAlg->execute();
+    if (sc.isFailure())
     {
         log << MSG::ERROR << " TkrVertexAlg FAILED to execute!" << endreq;
-        return StatusCode::FAILURE;
+        return sc;
     }
 
     return sc;

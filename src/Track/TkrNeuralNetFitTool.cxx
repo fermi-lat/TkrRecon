@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetFitTool.cxx,v 1.5 2003/01/10 19:43:25 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetFitTool.cxx,v 1.6 2003/03/13 19:13:24 lsrea Exp $
 //
 // Description:
 //      Tool for performing the fit of Neural Net Pat Rec candidate tracks
@@ -7,16 +7,48 @@
 // Author:
 //      The Tracking Software Group  
 
-#include "src/Track/TkrNeuralNetFitTool.h"
 #include "GaudiKernel/ToolFactory.h"
 #include "GaudiKernel/SmartDataPtr.h"
+#include "GaudiKernel/AlgTool.h"
+#include "GaudiKernel/DataSvc.h"
 
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "Event/TopLevel/EventModel.h"
-
+#include "Event/Recon/TkrRecon/TkrTrackTab.h"
 #include "Event/Recon/TkrRecon/TkrKalFitTrack.h"
+
 #include "src/TrackFit/KalFitTrack/KalFitter.h"
 #include "src/Track/TkrControl.h"   
+
+#include "TkrRecon/Track/ITkrFitTool.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrFailureModeSvc.h"
+
+class TkrNeuralNetFitTool : public AlgTool, virtual public ITkrFitTool
+{
+public:
+    /// Standard Gaudi Tool interface constructor
+    TkrNeuralNetFitTool(const std::string& type, const std::string& name, const IInterface* parent);
+    virtual ~TkrNeuralNetFitTool() {}
+
+    /// @brief Method to fit a single candidate track. Will retrieve any extra info 
+    ///        needed from the TDS, then create and use a new KalFitTrack object to 
+    ///        fit the track via a Kalman Filter. Successfully fit tracks are then 
+    ///        added to the collection in the TDS.
+    StatusCode doTrackFit(Event::TkrPatCand* patCand);
+
+    /// @brief Method to re-fit a single candidate track. 
+    StatusCode doTrackReFit(Event::TkrPatCand* patCand);
+
+private:
+    /// Pointer to the local Tracker geometry service
+    ITkrGeometrySvc* m_geoSvc;
+    /// Pointer to failure mode service
+    ITkrFailureModeSvc* pTkrFail;
+
+    /// Pointer to the Gaudi data provider service
+    DataSvc*        pDataSvc;
+};
 
 static ToolFactory<TkrNeuralNetFitTool> s_factory;
 const IToolFactory& TkrNeuralNetFitToolFactory = s_factory;
@@ -34,7 +66,7 @@ TkrNeuralNetFitTool::TkrNeuralNetFitTool(const std::string& type, const std::str
     IService*   iService = 0;
     StatusCode  sc       = serviceLocator()->getService("TkrGeometrySvc", iService, true);
 
-    pTkrGeoSvc = dynamic_cast<ITkrGeometrySvc*>(iService);
+    m_geoSvc = dynamic_cast<ITkrGeometrySvc*>(iService);
 
     //Locate and store a pointer to the data service
     sc         = serviceLocator()->getService("EventDataSvc", iService);
@@ -62,7 +94,7 @@ StatusCode TkrNeuralNetFitTool::doTrackFit(Event::TkrPatCand* patCand)
         
     Event::TkrKalFitTrack* track  = new Event::TkrKalFitTrack();
     Event::KalFitter*      fitter = new Event::KalFitter(
-        pTkrClus, pTkrGeoSvc, track, iniLayer, iniTower, 
+        pTkrClus, m_geoSvc, track, iniLayer, iniTower, 
         control->getSigmaCut(), energy, testRay);                 
         
     //track->findHits(); Using PR Solution to save time
@@ -86,6 +118,51 @@ StatusCode TkrNeuralNetFitTool::doTrackFit(Event::TkrPatCand* patCand)
     else  {
         delete track;
     }
+
+    return sc;
+}
+
+
+StatusCode TkrNeuralNetFitTool::doTrackReFit(Event::TkrPatCand* patCand)
+{
+    //Always believe in success
+    StatusCode sc = StatusCode::SUCCESS;
+
+    //Retrieve the pointer to the reconstructed clusters
+    Event::TkrClusterCol* pTkrClus = SmartDataPtr<Event::TkrClusterCol>(pDataSvc,EventModel::TkrRecon::TkrClusterCol); 
+
+    // Recover the pat track - fit track relational table
+    SmartDataPtr<Event::TkrFitTrackTab> trackRelTab(pDataSvc,EventModel::TkrRecon::TkrTrackTab);
+
+    // Make sure we have some tracks to work with here!
+    if (trackRelTab->getAllRelations())
+    {
+        Event::TkrFitTrackBase* baseFitTrack = trackRelTab->getRelByFirst(patCand)[0]->getSecond();
+
+        // Does fit track really exist?
+        if (baseFitTrack)
+        {
+            Event::TkrKalFitTrack*  kalFitTrack  = dynamic_cast<Event::TkrKalFitTrack*>(baseFitTrack);
+
+            // Is the fit track really a TkrKalFitTrack?
+            if (kalFitTrack)
+            {
+                TkrControl* control = TkrControl::getPtr();   
+
+                // Use KalFitter to refit the track
+                Event::KalFitter* fitter = new Event::KalFitter(pTkrClus, 
+                                                                m_geoSvc, 
+                                                                kalFitTrack, 
+                                                                control->getSigmaCut(), 
+                                                                patCand->getEnergy()); 
+
+                fitter->doFit();
+            
+                delete fitter;
+            }
+        }
+    }
+
 
     return sc;
 }

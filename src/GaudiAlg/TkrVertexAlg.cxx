@@ -1,16 +1,28 @@
-// File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.15 2003/01/29 23:20:26 lsrea Exp $
-//
-// Description:
-//      Handles the Gaudi part of the vertex reconstruction
-//
-//      Adapted and augmented from code by Atwood/Hernando
-//
-// Author
-//      Tracy Usher        
+
+/** 
+ * @class TkrVertexAlg
+ *
+ * @brief TkrRecon Gaudi Algorithm for controlling the search for and fitting
+ *        of all possible vertices from the collection of fit tracks. 
+ *        Gaudi Tools are used to implement a particular type of vertex algorithm, 
+ *        and this algorithm controls their creation and use. 
+ *        The algorithm depends upon input from the track finding and fitting
+ *        stages of TkrRecon. Results are output to the TDS class TkrVertex
+ *        Algorithm has two modes: First Pass and Iteration
+ *
+ * 03-27-2003 
+ *
+ * Adapted and augmented from vertex finding code in Atwood/Hernando code
+ *
+ * @author The Tracking Software Group
+ *
+ * File and Version Information:
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.16 2003/03/12 23:32:21 usher Exp $
+ */
 
 #include "GaudiKernel/IToolSvc.h"
 
+#include "GaudiKernel/Algorithm.h"
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/AlgFactory.h"
 #include "GaudiKernel/IDataProviderSvc.h"
@@ -22,11 +34,31 @@
 
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 
+#include "src/Vertex/IVtxBaseTool.h"
+
 #include "gui/DisplayControl.h"
 #include "GuiSvc/IGuiSvc.h"
 #include "gui/GuiMgr.h"
 
-#include "TkrRecon/GaudiAlg/TkrVertexAlg.h"
+class TkrVertexAlg : public Algorithm
+{
+public:
+    // Standard Gaudi Algorithm constructor format
+    TkrVertexAlg(const std::string& name, ISvcLocator* pSvcLocator); 
+    virtual ~TkrVertexAlg() {}
+
+    // The thee phases in the life of a Gaudi Algorithm
+    StatusCode initialize();
+    StatusCode execute();
+    StatusCode finalize();
+    
+private:
+    // Type of vertexing algorithm to run
+    std::string   m_VertexerType;
+
+    // Yet another fine tool from Sears
+    IVtxBaseTool* m_VtxTool;
+};
 
 // Used by Gaudi for identifying this algorithm
 static const AlgFactory<TkrVertexAlg>  Factory;
@@ -77,12 +109,52 @@ StatusCode TkrVertexAlg::execute()
   
     // Recover the collection of Fit tracks
     Event::TkrFitTrackCol* pTkrTracks = SmartDataPtr<Event::TkrFitTrackCol>(eventSvc(),EventModel::TkrRecon::TkrFitTrackCol);
+    //Event::TkrFitTrackCol* pTkrTracks = dynamic_cast<Event::TkrFitTrackCol*>(&tkrTracks);
+    
+    // Retrieve the information on vertices
+    SmartDataPtr<Event::TkrVertexCol> pVtxCol(eventSvc(), EventModel::TkrRecon::TkrVertexCol);
 
-    // Create a vertex collection class
-    Event::TkrVertexCol*   pVtxCol = new Event::TkrVertexCol(); 
+    // Do vertices already exist?
+    if (pVtxCol)
+    {
+        //Iterative recon, need to also delete entries in relational table
+        SmartDataPtr<Event::TkrVertexTabList> vtxTable(eventSvc(),EventModel::TkrRecon::TkrVertexTab);
+
+        Event::TkrVertexTabList::iterator vtxRelIter = vtxTable->begin();
+
+        // Loop over TDS relational table
+        for (int idx = 0; idx < vtxTable->size(); idx++) 
+        {
+            Event::TkrVertexRel*  relation  = *vtxRelIter;
+            Event::TkrVertex*     tkrVertex = relation->getFirst();
+
+            delete tkrVertex;
+            vtxTable->erase(vtxRelIter++);
+        }
+
+        int tabSize = vtxTable->size();
+        int vtxSize = pVtxCol->size();
+    }
+    else  
+    {
+        //Create a new object container
+        pVtxCol = new Event::TkrVertexCol(); 
+
+        //Register the vertex collection object in the TDS
+        sc = eventSvc()->registerObject("/Event/TkrRecon/TkrVertexCol",pVtxCol);
+
+        if (sc.isSuccess())
+        {
+            // Create a new relational table for pattern recognition and fit tracks
+            Event::TkrVertexTab vertexRelTab;
+            vertexRelTab.init();
+
+            sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrVertexTab, vertexRelTab.getAllRelations());
+        }
+    }
 
     // If we have fit tracks then proceed with the vertexing
-    if(pTkrTracks->size() > 0)
+    if(sc.isSuccess() && pTkrTracks->size() > 0)
     {
         std::string VtxToolName;
 
@@ -114,24 +186,11 @@ StatusCode TkrVertexAlg::execute()
         // Look up (and instantiate if necessary) a private version of the tool
         sc = toolSvc()->retrieveTool(VtxToolName.c_str(), m_VtxTool, this);
 
-
-        // Create a new relational table for pattern recognition and fit tracks
-        Event::TkrVertexTab vertexRelTab;
-        vertexRelTab.init();
-
-        sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrVertexTab, vertexRelTab.getAllRelations());
-
-        if (sc.isSuccess())
-        {
-            // This tells the tool to perform the vertexing
-            sc = m_VtxTool->retrieveVtxCol(*pVtxCol);
-        }
+        // This tells the tool to perform the vertexing
+        sc = m_VtxTool->retrieveVtxCol(*pVtxCol);
     }
-
-    //Register the vertex collection object in the TDS
-    sc = eventSvc()->registerObject("/Event/TkrRecon/TkrVertexCol",pVtxCol);
   
-  return sc;
+    return sc;
 }
 
 
