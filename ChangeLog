@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Wed Oct 20 11:20:35 PDT 2004
+TkrRecon/src/Track
+
+Modified Files:
+      Tag: GlastRelease-v4r5
+	TkrComboFitTool.cxx 
+Log Message:
+Prepare for tag v9r0p2gr6; add <stdexecpt> for safety
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Oct 20 11:20:34 PDT 2004
 TkrRecon/src/PatRec/Combo
 
