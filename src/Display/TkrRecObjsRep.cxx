@@ -5,24 +5,26 @@
 /// This should be done in the constructor.
 
 //#############################################################################
-TkrRecObjsRep::TkrRecObjsRep(SiRecObjs** ppObjs)
+TkrRecObjsRep::TkrRecObjsRep(/*SiRecObjs** ppObjs*/)
 //#############################################################################
 {
-	ppRecObjs = ppObjs;
+	//ppRecObjs = ppObjs;
 }
 //-------------------- private ----------------------
 //##############################################
 void TkrRecObjsRep::update()
 //##############################################
 {
-    SiRecObjs* pRecObjs = *ppRecObjs;
+//    SiRecObjs* pRecObjs = *ppRecObjs;
 
     //Zero out the pointer so we don't accidentally try to draw the event
-    *ppRecObjs = 0;
+//    *ppRecObjs = 0;
 
 	//Now see if we can do the drawing
-	if (pRecObjs)
-	{/*
+//	if (pRecObjs)
+//	{
+
+/*
 		gui::DisplayRep* pDisplay = this;
 //		pRecObjs->update(*pDisplay);
 
@@ -43,9 +45,9 @@ void TkrRecObjsRep::update()
 		}
                 
                */
-            gui::DisplayRep* pDisplay = this;
-            pRecObjs->draw(*pDisplay);
-	}
+//            gui::DisplayRep* pDisplay = this;
+//            pRecObjs->draw(*pDisplay);
+//	}
 
     return;
 }

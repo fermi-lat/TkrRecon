@@ -74,9 +74,9 @@ StatusCode RecNtupleAlg::execute()
     //Retrieve pointers to the data stored in the TDS
     ICsIClusterList* pCalClusters = SmartDataPtr<ICsIClusterList>(eventSvc(),"/Event/CalRecon/CsIClusterList");
 	TkrClusters*     pTkrClusters = SmartDataPtr<TkrClusters>(eventSvc(),"/Event/TkrRecon/TkrClusters");
-    SiRecObjs*       pSiRecObjs   = SmartDataPtr<SiRecObjs>(eventSvc(),"/Event/TkrRecon/SiRecObjs");
+    //SiRecObjs*       pSiRecObjs   = SmartDataPtr<SiRecObjs>(eventSvc(),"/Event/TkrRecon/SiRecObjs");
 
-    if ((sc = nTuple.calcTupleValues(pCalClusters, pTkrClusters, pSiRecObjs, pGeometry)).isFailure()) return sc;
+    //if ((sc = nTuple.calcTupleValues(pCalClusters, pTkrClusters, pSiRecObjs, pGeometry)).isFailure()) return sc;
 
     return nTuple.fillTupleValues(ntupleWriteSvc, m_tupleName.c_str());
 }
@@ -119,6 +119,7 @@ RecTupleValues::RecTupleValues()
     Rec_CsI_Corr_Energy = 0;
 };
 
+/*
 //################################
 StatusCode RecTupleValues::calcTupleValues(ICsIClusterList* pCalClusters, TkrClusters* pTkrClusters, SiRecObjs* pRecObjs, ITkrGeometrySvc* pGeom)
 //################################
@@ -158,6 +159,7 @@ StatusCode RecTupleValues::calcTupleValues(ICsIClusterList* pCalClusters, TkrClu
     
     return sc;
 }
+*/
 
 //################################
 StatusCode RecTupleValues::fillTupleValues(INTupleWriterSvc* pSvc, const char* pName)
@@ -185,7 +187,7 @@ StatusCode RecTupleValues::fillTupleValues(INTupleWriterSvc* pSvc, const char* p
     return sc;
 }
 
-
+/*
 //########################################################
 void RecTupleValues::calcSkirtVars(GFgamma* pGamma)
 //########################################################
@@ -269,7 +271,10 @@ void RecTupleValues::calcSkirtVars(GFgamma* pGamma)
 
     return;    
 }
-    
+*/
+
+
+/*    
 //########################################################
 void RecTupleValues::calcTowerBoundaries(GFgamma* pGamma, ITkrGeometrySvc* pGeom)
 //########################################################
@@ -293,13 +298,14 @@ void RecTupleValues::calcTowerBoundaries(GFgamma* pGamma, ITkrGeometrySvc* pGeom
     
     return;
 }
+*/
 
 
 //########################################################
-void RecTupleValues::calcActiveDistance(GFgamma* pGamma, ITkrGeometrySvc* pGeom)
+//void RecTupleValues::calcActiveDistance(GFgamma* pGamma, ITkrGeometrySvc* pGeom)
 //########################################################
-{  
-    Rec_Active_Dist  = -20.;    
+//{  
+//   Rec_Active_Dist  = -20.;    
 
 /* //THB: This depends on simulation environment, functionality needs to be restored
     Point firstHit = pGamma->getFirstHit();
@@ -344,14 +350,14 @@ void RecTupleValues::calcActiveDistance(GFgamma* pGamma, ITkrGeometrySvc* pGeom)
         }
     }
 */    
-    return;
-}
+//    return;
+//}
 
 
 //########################################################
-void RecTupleValues::calcExtraHits(TkrClusters* pTkrClusters, GFgamma* pGamma, ITkrGeometrySvc* pGeom)
+//void RecTupleValues::calcExtraHits(TkrClusters* pTkrClusters, GFgamma* pGamma, ITkrGeometrySvc* pGeom)
 //########################################################
-{ 
+//{ 
     /*
     // Initialization    
     double norma = 1.;
@@ -475,13 +481,13 @@ void RecTupleValues::calcExtraHits(TkrClusters* pTkrClusters, GFgamma* pGamma, I
 
     return;
     */
-}
+//}
 
 
 //########################################################
-void RecTupleValues::calcEnergyCorrection(GFgamma* pGamma)
+//void RecTupleValues::calcEnergyCorrection(GFgamma* pGamma)
 //########################################################
-{ 
+//{ 
     /*
     Rec_CsI_Corr_Energy = Rec_CsI_Energy;
 
@@ -508,7 +514,7 @@ void RecTupleValues::calcEnergyCorrection(GFgamma* pGamma)
 
     return;
     */
-}
+//}
 
 
 

@@ -17,7 +17,6 @@
 
 #include "TkrRecon/Track/TkrTrackFit.h"
 #include "TkrRecon/Cluster/TkrClusters.h"
-#include "TkrRecon/Track/SiRecObjs.h"
 #include "GlastSvc/Reco/IRecoSvc.h"
 
 //----------------------------------------------

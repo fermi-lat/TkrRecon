@@ -2,7 +2,6 @@
 #ifndef __TKRRECOBJSREP_H
 #define __TKRRECOBJSREP_H
 
-#include "TkrRecon/Track/SiRecObjs.h"
 #include "gui/DisplayRep.h"
 
 //----------------------------------------------
@@ -19,13 +18,13 @@ class TkrRecObjsRep : public gui::DisplayRep
 {
 public:
 	//! Constructor of this form must be provided
-	TkrRecObjsRep(SiRecObjs** pClus);
+	TkrRecObjsRep(/*SiRecObjs** pClus*/);
 	virtual ~TkrRecObjsRep() {}
 
 	void update();
 
 private:
-	SiRecObjs** ppRecObjs;
+	//SiRecObjs** ppRecObjs;
 };
       
 #endif
