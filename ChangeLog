@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Mon Feb  3 14:54:13 PST 2003
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+preparing for tag v8r8; introducing alignment service
+    *
+------------------------------------------------------------
 User: atwood  Fri Jan 31 13:27:40 PST 2003
 TkrRecon/src/TrackFit/KalFitTrack
 
