@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: burnett  Thu Jul 25 02:12:24 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrVertexAlg.cxx TkrnewVertexAlg.cxx 
+Log Message:
+remove obsolete Event includes
+    *
+------------------------------------------------------------
+User: burnett  Thu Jul 25 02:12:24 PDT 2002
 TkrRecon/TkrRecon/GaudiAlg
 
 Modified Files:
