@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Apr 19 15:42:05 PDT 2004
+TkrRecon/src/TrackFit/KalmanFilterFit
+
+Added Files:
+	KalmanFilterInit.cxx KalmanFilterInit.h 
+Log Message:
+Add new visitor class for track fit initialization
+
+    *
+------------------------------------------------------------
 User: usher  Mon Apr 19 15:40:31 PDT 2004
 TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy
 
