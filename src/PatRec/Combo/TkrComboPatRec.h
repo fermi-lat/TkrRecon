@@ -15,7 +15,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/TkrComboPatRec.h,v 1.20 2003/01/10 19:43:24 lsrea Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/TkrComboPatRec.h,v 1.21 2003/03/13 19:13:23 lsrea Exp $
 */
 
 #ifndef __TKRCOMBOPATREC_H
@@ -39,7 +39,6 @@ class TkrComboPatRec : public TkrPatCandCol
 {
 public:
     TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, 
-        ITkrFailureModeSvc* pTkrFail,
         TkrClusterCol* pClusters, double CalEnergy, Point CalPosition);
         ~TkrComboPatRec() {};
 
@@ -49,7 +48,6 @@ private:
     public:
         Candidate(TkrClusterCol* clusters,
                   ITkrGeometrySvc* geometry,
-                  ITkrFailureModeSvc* failure,
                   int layer, int twr, double e, 
                   Point x, Vector t, float d, float s, int g, int top);
         ~Candidate();
