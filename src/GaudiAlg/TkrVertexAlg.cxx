@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.4 2002/05/10 21:53:56 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.5 2002/05/12 05:53:00 usher Exp $
 //
 // Description:
 //      Handles the Gaudi part of the vertex reconstruction
@@ -17,6 +17,7 @@
 #include "GaudiKernel/DataObject.h"
 
 #include "Event/Recon/ICsIClusters.h"
+#include "Event/TopLevel/EventModel.h"
 
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 
@@ -67,10 +68,10 @@ StatusCode TkrVertexAlg::execute()
     MsgStream log(msgSvc(), name());
 
     //Find the pattern recon tracks
-    TkrPatCandCol*  pTkrCands  = SmartDataPtr<TkrPatCandCol>(eventSvc(),"/Event/TkrRecon/TkrPatCandCol");
+    TkrPatCandCol*  pTkrCands  = SmartDataPtr<TkrPatCandCol>(eventSvc(),EventModel::TkrRecon::TkrPatCandCol);
 
     //Find the pattern recon tracks
-    TkrFitTrackCol* pTkrTracks = SmartDataPtr<TkrFitTrackCol>(eventSvc(),"/Event/TkrRecon/TkrFitTrackCol");
+    TkrFitTrackCol* pTkrTracks = SmartDataPtr<TkrFitTrackCol>(eventSvc(),EventModel::TkrRecon::TkrFitTrackCol);
 
     //Create the TkrCandidates TDS object
     TkrVertexCol*   pVtxCol    = pFindVertex->doVertexRecon(pTkrTracks, pTkrCands);

@@ -1,3 +1,4 @@
+#include "Event/TopLevel/EventModel.h"
 #include "TkrRecon/Display/TkrCandidate3DRep.h"
 
 //------------------------------------------------------------------------------
@@ -26,7 +27,7 @@ TkrCandidate3DRep::TkrCandidate3DRep(IDataProviderSvc* dataProviderSvc, ITkrGeom
 void TkrCandidate3DRep::update()
 //##############################################
 {
-    Event::TkrPatCandCol* pTkrCandidates = SmartDataPtr<Event::TkrPatCandCol>(dps,"/Event/TkrRecon/TkrPatCandCol");
+    Event::TkrPatCandCol* pTkrCandidates = SmartDataPtr<Event::TkrPatCandCol>(dps,EventModel::TkrRecon::TkrPatCandCol);
 
 	//Now see if we can do the drawing
 	if (pTkrCandidates)

@@ -1,4 +1,5 @@
 #include "TkrRecon/Display/TkrTracksRep.h"
+#include "Event/TopLevel/EventModel.h"
 
 //------------------------------------------------------------------------------
 /// Algorithm parameters which can be set at run time must be declared.
@@ -17,7 +18,7 @@ TkrTracksRep::TkrTracksRep(IDataProviderSvc* dataProviderSvc)
 void TkrTracksRep::update()
 //##############################################
 {
-    TkrFitTrackCol* pTracks = SmartDataPtr<TkrFitTrackCol>(dps,"/Event/TkrRecon/TkrFitTrackCol");
+    TkrFitTrackCol* pTracks = SmartDataPtr<TkrFitTrackCol>(dps,EventModel::TkrRecon::TkrFitTrackCol);
 
 	//Now see if we can do the drawing
 	if (pTracks)

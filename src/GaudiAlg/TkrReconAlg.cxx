@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.12 2002/05/10 21:53:56 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.13 2002/05/12 05:53:00 usher Exp $
 //
 // Description:
 //      Controls the track fitting
@@ -18,6 +18,7 @@
 #include "TkrRecon/Track/GFcontrol.h"
 
 #include "Event/Recon/ICsIClusters.h"
+#include "Event/TopLevel/EventModel.h"
 
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/AlgFactory.h"
@@ -89,10 +90,10 @@ StatusCode TkrReconAlg::execute()
 	log << MSG::DEBUG << "------- Recon of new Event --------" << endreq;
 
     // Recover pointer to the reconstructed clusters
-    m_TkrClusters = SmartDataPtr<TkrClusterCol>(eventSvc(),"/Event/TkrRecon/TkrClusterCol"); 
+    m_TkrClusters = SmartDataPtr<TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol); 
 
     // Find the patter recon tracks
-    TkrPatCandCol* pTkrCands = SmartDataPtr<TkrPatCandCol>(eventSvc(),"/Event/TkrRecon/TkrPatCandCol");
+    TkrPatCandCol* pTkrCands = SmartDataPtr<TkrPatCandCol>(eventSvc(),EventModel::TkrRecon::TkrPatCandCol);
 
     // Recover pointer to Cal Cluster info    
     ICsIClusterList* pCalClusters = SmartDataPtr<ICsIClusterList>(eventSvc(),"/Event/CalRecon/CsIClusterList");
@@ -120,7 +121,7 @@ StatusCode TkrReconAlg::execute()
     // Reconstruct the pattern recognized tracks
     TkrFitTrackCol* tracks = m_TrackFit->doTrackFit(m_TkrClusters, pTkrCands, CalEnergy);
 
-    sc = eventSvc()->registerObject("/Event/TkrRecon/TkrFitTrackCol", tracks);
+    sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrFitTrackCol, tracks);
 
     tracks->writeOut(log);
 

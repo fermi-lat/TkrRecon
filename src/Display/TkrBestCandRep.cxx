@@ -1,5 +1,5 @@
 #include "TkrRecon/Display/TkrBestCandRep.h"
-
+#include "Event/TopLevel/EventModel.h"
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 //------------------------------------------------------------------------------
 /// Algorithm parameters which can be set at run time must be declared.
@@ -17,7 +17,7 @@ TkrBestCandRep::TkrBestCandRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySv
 void TkrBestCandRep::update()
 //##############################################
 {
-    TkrPatCandCol* pTkrCandidates = SmartDataPtr<TkrPatCandCol>(dps,"/Event/TkrRecon/TkrPatCandCol");
+    TkrPatCandCol* pTkrCandidates = SmartDataPtr<TkrPatCandCol>(dps,EventModel::TkrRecon::TkrPatCandCol);
 
     if (pTkrCandidates)
     {

@@ -8,6 +8,7 @@
 //------------------------------------------------------------------------------
 
 #include "TkrRecon/Display/TkrDispCompleteNet.h"
+#include "Event/TopLevel/EventModel.h"
 
 //------------------------------------------------------------------------------
 /// Algorithm parameters which can be set at run time must be declared.
@@ -24,7 +25,7 @@ TkrDispCompleteNet::TkrDispCompleteNet(IDataProviderSvc* dataProviderSvc,
 
 void TkrDispCompleteNet::update()
 {
-    TkrPatCandCol* pTkrPatCandCol = SmartDataPtr<TkrPatCandCol>(dps,"/Event/TkrRecon/TkrPatCandCol");
+    TkrPatCandCol* pTkrPatCandCol = SmartDataPtr<TkrPatCandCol>(dps,EventModel::TkrRecon::TkrPatCandCol);
 
 	//Now see if we can do the drawing
 	if (pTkrPatCandCol)
