@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sun Feb 20 10:37:19 PST 2005
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx 
+Log Message:
+Fix another source of a memory leak
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r3p9, operation: add
 Package: TkrRecon
