@@ -8,7 +8,7 @@
  *
  * @author Tracy Usher (editor) from version implemented by Leon Rochester (due to Bill Atwood)
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.4 2004/10/01 21:02:05 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.5 2004/10/12 19:03:39 lsrea Exp $
  */
 
 #include "SlopeCorrectedMeasErrs.h"
@@ -25,8 +25,7 @@ TkrCovMatrix SlopeCorrectedMeasErrs::computeMeasErrs(const Event::TkrTrackParams
                                                      const TkrCovMatrix&          oldCovMat, 
                                                      const Event::TkrCluster&     cluster)
 {
-    enum paramIndex {XPOS=1, XSLOPE=2, YPOS=3, YSLOPE=4};
-
+ 
     // Compute the Measurement covariance taking into account the 
     // Local track slope
 
@@ -38,22 +37,15 @@ TkrCovMatrix SlopeCorrectedMeasErrs::computeMeasErrs(const Event::TkrTrackParams
 
     double clusWid = const_cast<Event::TkrCluster&>(cluster).size();
 
-    int measured, other;
-    double slope;
 
-    if(cluster.getTkrId().getView() == idents::TkrId::eMeasureX) 
-    {
-        slope    = newPars.getxSlope();
-        measured = XPOS;
-        other    = YPOS;
-    } 
-    else 
-    {
-        slope    = newPars.getySlope();
-        measured = YPOS;
-        other    = XPOS;
+    int measured = Event::TkrTrackParams::xPosIdx;
+    int other    = Event::TkrTrackParams::yPosIdx;
+
+    if(cluster.getTkrId().getView() == idents::TkrId::eMeasureY) {
+        std::swap(measured, other);
     }
 
+    double slope = newPars(measured);
     double error = getError(clusWid, slope);
     
     newCov(measured, measured) = error*error;

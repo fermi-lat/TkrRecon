@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/NoProcNoiseMatrix.cxx,v 1.3 2004/10/12 19:03:39 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/NoProcNoiseMatrix.cxx,v 1.4 2004/11/09 21:27:45 usher Exp $
  */
 
 #include "NoProcNoiseMatrix.h"
@@ -20,7 +20,7 @@ NoProcNoiseMatrix::NoProcNoiseMatrix(IPropagator* propagator) :
 
 KFmatrix& NoProcNoiseMatrix::operator()(const KFvector& stateVec, 
                                          const double&   zStart, 
-                                         const double&   eStart, 
+                                         const double&   /* eStart */, 
                                          const double&   zStop, 
                                          bool            forward)
 {

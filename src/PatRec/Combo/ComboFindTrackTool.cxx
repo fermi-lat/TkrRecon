@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.33 2005/02/04 22:29:25 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.34 2005/02/05 07:13:51 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -871,7 +871,7 @@ bool ComboFindTrackTool::incorporate(Candidate* trial)
     } 
 
     // we're full up... one of these candidates has got to go...
-    if(m_candidates.size()==m_maxCandidates) {
+    if(m_candidates.size()==(unsigned int)m_maxCandidates) {
         iterator last = --end();
         Candidate* lastCand = *last;
         // just skip it if it's no better than the last one

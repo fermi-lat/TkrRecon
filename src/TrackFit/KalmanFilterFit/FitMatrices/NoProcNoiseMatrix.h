@@ -6,7 +6,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/NoProcNoiseMatrix.h,v 1.4 2004/10/12 19:03:39 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/NoProcNoiseMatrix.h,v 1.5 2004/11/09 21:27:45 usher Exp $
  */
 
 #ifndef NoProcNoiseMatrix_h
@@ -28,8 +28,8 @@ public:
     KFmatrix& operator()(const KFvector& stateVec, const double& zStart, 
                          const double& eStart, const double& zStop, bool forward = true);
 
-    KFmatrix& operator()(const double &deltaZ)        {return m_none;}
-    KFmatrix& operator()(const idents::TkrId &id)     {return m_none;}
+    KFmatrix& operator()(const double& /* deltaZ */)        {return m_none;}
+    KFmatrix& operator()(const idents::TkrId& /* id */)     {return m_none;}
 
     const double    getLastStepRadLen()  {return m_LastStepRadLen;}
     const double    getLastStepActDist() {return m_LastStepActDist;}

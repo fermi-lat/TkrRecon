@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.20 2005/02/01 19:18:05 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.21 2005/02/08 23:07:33 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -147,7 +147,7 @@ StatusCode MonteCarloFindTrackTool::findTracks()
     // If the primary is charged then it is the first track
     if (mcEvent->getClassificationBits() & Event::McEventStructure::CHARGED) 
     {
-        Event::TkrTrack* candTrack = buildTrack(mcEvent->getPrimaryParticle());
+        /*Event::TkrTrack* candTrack = */ buildTrack(mcEvent->getPrimaryParticle());
     }
 
     // Now build the secondaries
@@ -155,13 +155,13 @@ StatusCode MonteCarloFindTrackTool::findTracks()
 
     for(partIter = mcEvent->beginSecondaries(); partIter != mcEvent->endSecondaries(); partIter++)
     {
-        Event::TkrTrack* candTrack = buildTrack(*partIter);
+        /*Event::TkrTrack* candTrack = */ buildTrack(*partIter);
     }
 
     // Finally, any associated tracks
     for(partIter = mcEvent->beginAssociated(); partIter != mcEvent->endAssociated(); partIter++)
     {
-        Event::TkrTrack* candTrack = buildTrack(*partIter);
+        /* Event::TkrTrack* candTrack = */ buildTrack(*partIter);
     }
 
     // Complete the MC relational tables

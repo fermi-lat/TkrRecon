@@ -237,8 +237,8 @@ void TkrLinkAndTree::buildCand3D()
 
             double z            = zTopX > zTopY ? zTopX : zTopY;
 
-            int layerX          = m_tkrGeom->getPlane(pTopClusterX->getTkrId());
-            int layerY          = m_tkrGeom->getPlane(pTopClusterY->getTkrId());
+            //int layerX          = m_tkrGeom->getPlane(pTopClusterX->getTkrId());
+            //int layerY          = m_tkrGeom->getPlane(pTopClusterY->getTkrId());
             //int    layer        = std::min(layerX, layerY);
 
             xTopX += xSlope * (z - zTopX);

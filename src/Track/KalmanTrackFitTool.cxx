@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.29 2005/02/04 21:35:04 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.30 2005/02/06 23:16:10 lsrea Exp $
  */
 
 // to turn one debug variables
@@ -474,7 +474,7 @@ int KalmanTrackFitTool::doSmootherMemory(Event::TkrTrack* track)
 
     myTrack->clear();
 
-    int numHits = 0;
+    //int numHits = 0;
 
     Event::TkrTrackParams& trackPrms = (*track)[0]->getTrackParams(Event::TkrTrackHit::SMOOTHED);
     TkrTrkParams           trackVec  = TkrTrkParams(trackPrms);
@@ -493,7 +493,7 @@ int KalmanTrackFitTool::doSmootherMemory(Event::TkrTrack* track)
         if (++numSegmentHits > m_MinSegmentHits)
         {
             // Run the smoother
-            double chiSq = doSmoother(*myTrack);
+            /* double chiSq = */ doSmoother(*myTrack);
             
             Event::TkrTrackParams myParams = (*myTrack)[0]->getTrackParams(Event::TkrTrackHit::SMOOTHED);
             TkrTrkParams          myTrkVec = TkrTrkParams(myParams);

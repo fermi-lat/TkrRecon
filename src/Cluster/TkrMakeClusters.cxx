@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.26 2005/01/25 20:04:47 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.27 2005/02/07 20:38:26 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, 
@@ -62,7 +62,6 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
         m_tkrGeom->layerToTray(layer, view, tray, botTop);
 
         idents::TkrId hitId(towerX, towerY, tray, (botTop==1), measure);
-
                
         // debug: std::cout << "digi t/l/v " << tower << " " << layer << " " << view << std::endl;
         // copy the hits, and make them into TaggedStrips

@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxSingleTrkTool.cxx,v 1.6 2004/09/23 21:30:32 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxSingleTrkTool.cxx,v 1.7 2004/12/13 23:50:42 atwood Exp $
 // Description:
 //      Simple vertexing tool for single track event
 //
@@ -18,7 +18,7 @@ static ToolFactory<VtxSingleTrkTool> s_factory;
 const IToolFactory& VtxSingleTrkToolFactory = s_factory;
 
 
-StatusCode VtxSingleTrkTool::doVtxFit(Event::TkrVertexCol& theVtxCol)
+StatusCode VtxSingleTrkTool::doVtxFit(Event::TkrVertexCol& /*theVtxCol*/)
 {
 // Purpose and Method: Vertex is created for every track separately, located 
 //                     at first hit.
