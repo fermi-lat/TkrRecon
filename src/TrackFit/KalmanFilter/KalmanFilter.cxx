@@ -11,8 +11,6 @@
 //-----------------------------------------------------------------------
 
 #include "KalmanFilter.h"
-#include "TkrRecon/GaudiAlg/TkrTrackFitAlg.h"
-#include "GlastSvc/Reco/IKalmanParticle.h"
 
 using namespace Event;
 
@@ -56,7 +54,7 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int &
 
     double       down    = nsteps < 0 ? +1. : -1.;
 
-    IKalmanParticle* TkrFitPart = TkrTrackFitAlg::m_KalParticle;
+    IKalmanParticle* TkrFitPart = m_tkrGeo->getPropagator();
     TkrFitPart->setStepStart(x_ini, dir_ini, arc_min);
     if(TkrFitPart->trackToNextPlane()) 
     {
@@ -116,7 +114,7 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int /
 
     double       down    = -1.;
 
-    IKalmanParticle* TkrFitPart = TkrTrackFitAlg::m_KalParticle;
+    IKalmanParticle* TkrFitPart = m_tkrGeo->getPropagator();
     TkrFitPart->setStepStart(x_ini, dir_ini, arc_min);
     if(arc_min >= 0) {
         AXIS planeProjection = TkrCluster::Y;
@@ -180,7 +178,7 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitPlane& kplaneNext)
     double       deltaZ  = kplaneNext.getZPlane() - start.getZPlane();
     double       arc_len = fabs(deltaZ/dir_ini.z()); 
 
-    IKalmanParticle* TkrFitPart = TkrTrackFitAlg::m_KalParticle;
+    IKalmanParticle* TkrFitPart = m_tkrGeo->getPropagator();
     TkrFitPart->setStepStart(x_ini, dir_ini, arc_len);
 
     double relDeltaZ = down * fabs(deltaZ);

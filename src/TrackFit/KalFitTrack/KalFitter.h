@@ -13,7 +13,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease/TkrRecon/src/TrackFit/KalFitTrack/KalFitter.h,v 1.21 2002/11/27 20:17:31 atwood Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitter.h,v 1.1 2002/12/19 21:59:19 usher Exp $
 */
 
 #ifndef __KalFitter_H
@@ -34,6 +34,7 @@ class KalFitter
 {    
 public:
     KalFitter(TkrClusterCol* clusters, ITkrGeometrySvc* geo, TkrKalFitTrack* track, int layer, int tower, double sigmaCut, double energy, const Ray& testRay);
+    KalFitter(TkrClusterCol* clusters, ITkrGeometrySvc* geo, TkrKalFitTrack* track, double sigmaCut, double energy);
    ~KalFitter() {}
 
     /// Hit Finding & Fitting

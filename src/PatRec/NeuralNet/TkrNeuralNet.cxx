@@ -242,7 +242,7 @@ void TkrNeuralNet::buildCand()
 
                     //Keep this track (but as a candidate)
                     TkrPatCand* newTrack = new TkrPatCand(_track->getLayer(),
-                        _track->getTower(),energy,_track->getQuality(),_track->getRay());
+                        _track->getTower(),energy,1.,_track->getQuality(),_track->getRay());
 
                     push_back(newTrack);
 

@@ -243,7 +243,7 @@ void TkrLinkAndTree::buildCand3D()
             double quality = TkrNodeX->getQuality()->getAngleRMS()
                            + TkrNodeY->getQuality()->getAngleRMS();
 
-            TkrPatCand* newTrack = new TkrPatCand(layer,pTopClusterX->tower(),0.,quality,initDir);
+            TkrPatCand* newTrack = new TkrPatCand(layer,pTopClusterX->tower(),0.,1.,quality,initDir);
 
             newTrack->addCandHit(pTopClusterX);
             newTrack->addCandHit(pTopClusterY);

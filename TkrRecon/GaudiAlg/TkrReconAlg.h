@@ -3,6 +3,9 @@
 
 #include "GaudiKernel/Algorithm.h"
 
+#include "Event/Recon/TkrRecon/TkrFitTrack.h"
+#include "Event/Recon/TkrRecon/TkrPatCand.h"
+
 /** 
  * @class TkrReconAlg
  *
@@ -13,7 +16,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrReconAlg.h,v 1.13 2002/08/28 22:55:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrReconAlg.h,v 1.14 2002/09/05 16:42:29 lsrea Exp $
  */
 
 class TkrReconAlg : public Algorithm
@@ -30,6 +33,10 @@ public:
     StatusCode finalize();
     
 private:
+
+    // Internal reconstruction methods
+    StatusCode doFirstPassRecon();
+    StatusCode doSecondPassRecon(Event::TkrPatCandCol* tkrCands);
     
     // Input parameter which determines the type of reconstruction to run
     std::string m_TrackerReconType;
