@@ -5,21 +5,16 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/Event/Event/MonteCarlo/KalmanFilter.h,v 1.2 2004/02/18 18:54:27 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterUtils/KalmanFilterUtils.cxx,v 1.1 2004/03/24 00:05:28 usher Exp $
  */
 
 //Include class definition
 #include "KalmanFilterUtils.h"
 
-//Include the definition of the interface classes
-#include "TransportMatrix.h"
-#include "ProcNoiseMatrix.h"
-#include "ProjectionMatrix.h"
-
 //Exception handler
 #include "Utilities/TkrException.h"
 
-KalmanFilterUtils::KalmanFilterUtils(TransportMatrix& tMat, ProjectionMatrix& pMat, ProcNoiseMatrix& qMat) :
+KalmanFilterUtils::KalmanFilterUtils(IKalmanFilterMatrix& tMat, IKalmanFilterMatrix& pMat, IKalmanFilterMatrix& qMat) :
                    m_F(tMat), m_H(pMat), m_Q(qMat)
 {
     return;
@@ -63,7 +58,7 @@ void KalmanFilterUtils::Predict(const KFvector& stateVeck1, const KFmatrix& covM
     // Predicted covariance matrix
     // NOTE: If k > k1 then we are predicting new value
     //       If k < k1 then we are smoothing
-    KFmatrix Q = m_Q.Q(stateVeck1, k, k1);
+    KFmatrix Q = m_Q(stateVeck1, k, k1);
     if (k > k1)
     {
         // Prediction (going forwards) leads to increases in process noise errors
@@ -167,7 +162,10 @@ void KalmanFilterUtils::Smooth(const KFvector& fStateVeck,  const KFmatrix& fSta
     KFmatrix A = fStateCovMatk * m_F(k1,k).T() * predCovMatInv;
 
     // Now calculated the smoothed covariance matrix 
-    m_smoothCovMat = fStateCovMatk + A * (sStateCovMatk1 - m_predCovMat) * A.T();
+    //m_smoothCovMat = fStateCovMatk + A * (sStateCovMatk1 - m_predCovMat) * A.T();
+    KFmatrix A1 = sStateCovMatk1 - m_predCovMat;
+    KFmatrix A2 = A * (A1 * A.T());
+    m_smoothCovMat  = fStateCovMatk + A2;
 
     // And now the smoothed state vector  
     m_smoothStateVec = fStateVeck + A * (sStateVeck1 - m_predStateVec);
