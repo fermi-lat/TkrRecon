@@ -6,6 +6,9 @@ branches src mgr doc
 use GlastSvc
 use gui
 use GuiSvc
+use GaudiKernel
+use ntupleWriterSvc
+
 
 use ntupleWriterSvc 
 

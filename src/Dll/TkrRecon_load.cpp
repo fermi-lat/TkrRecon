@@ -26,7 +26,9 @@ void TkrRecon_load() {
     DLL_DECL_ALGORITHM( SiClustersAlg  );
     DLL_DECL_ALGORITHM( SiRecObjsAlg   );
     DLL_DECL_ALGORITHM( TkrDisplayAlg  );
+	DLL_DECL_ALGORITHM( McReconAlg     );
     DLL_DECL_ALGORITHM( TkrNtupleAlg  );
+
 } 
 
 extern "C" void TkrRecon_loadRef()    {
