@@ -8,6 +8,8 @@
 #include "TkrRecon/Services/TkrAxis.h"
 #include "src/Services/TkrDetGeo.h"
 
+#include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
+
 #include "xml/IFile.h"
 
 #include <string>
@@ -136,6 +138,8 @@ private:
     double m_siResolution;
     double m_siThickness;
     double m_siDeadDistance;
+
+	IGlastDetSvc * p_GlastDetSvc;
 
     /*  Obsolete -- use m_radthickness below...
     double m_thinConvHeight;    // height of thin converter
