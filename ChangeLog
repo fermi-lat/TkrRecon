@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Nov  7 21:54:15 PST 2001
+TkrRecon/src/Cluster
+
+Added Files:
+	TkrCluster.cpp TkrClusterAlg.cxx TkrClusters.cpp 
+Log Message:
+Add source code to subfolders for implementing the TkrRecon classes
+    *
+------------------------------------------------------------
 User: usher  Wed Nov  7 21:46:52 PST 2001
 TkrRecon/src/TrackFit
 
