@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Thu Oct 10 11:56:07 PDT 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrGeometrySvc.cxx 
+Log Message:
+add layerZ, and some spiffing up
+    *
+------------------------------------------------------------
 User: lsrea  Thu Oct 10 11:56:06 PDT 2002
 TkrRecon/TkrRecon/Services
 
