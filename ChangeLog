@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: tlindner  Thu Mar  1 13:29:32 PST 2001
+TkrRecon/mgr requirements
+
+Modified Files:
+	requirements 
+Log Message:
+created seperate library, which exports only the tracker recon data classes
+    *
+------------------------------------------------------------
 User: igable  Wed Feb 21 12:19:17 PST 2001
 TkrRecon/src/test TBIOTest.cxx tbsim_test_r4.root
 
