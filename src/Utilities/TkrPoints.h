@@ -1,12 +1,19 @@
-//---------------------------------------------------
-//   TkrPoints
-//
-//     Provides X-Y space points from the same tower.
-//     Points may be cycled through or points can
-//     be searched for near a specified point
-//
-//     W. B. Atwood, SCIPP/UCSC,  Nov. 2001
-//----------------------------------------------------
+/**
+ * @class TkrPoints
+ *
+ * @brief Provides X-Y space points from the same tower from TkrClusterCol
+ *
+ * 1-Dec-2001
+ *  This class provides an easy way to cycle over allowed XY pairs
+ *  in a given GLAST paired layer.  The ordering can be either 
+ *  combinatoric or based on nearest, next nearest, etc. to a given
+ *  point in that plane
+ *
+ * @authors Bill Atwood
+ *
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoint.h,v 1.1 2002/08/22 21:07:18 usher Exp $
+ *
+*/
 
 #ifndef __TkrPoints_H
 #define __TkrPoints_H 1
@@ -23,28 +30,37 @@ class TkrPoints
     
 public:
     
-    // construction
+    /// Construction - Destruction
     TkrPoints(int ini_layer, Event::TkrClusterCol* clusters);
     ~TkrPoints() {}
     
+    /// Combinatoric access
     Point getSpacePoint();
+
+    /// Sequential access by closest to x0 outside but farther 
+    /// then dist
     Point getNearestPointOutside(Point x0, double &dist); 
-    bool finished() const {return m_end;}
+
+    /// Access to details of Clusters used
     int tower() const     {return m_tower;}
     int xID() const       {return m_xID;}
     int yID() const       {return m_yID;}
     double xSize() const  {return m_xSize;}
     double ySize() const  {return m_ySize;}
     bool x_Layer() const  {return m_isX;}
+
+    /// Utitilies
+    bool finished() const {return m_end;}
     
-	std::vector<TkrPoint> getAllLayerPoints();
+    std::vector<TkrPoint> getAllLayerPoints();
 
 private:
     
-    // internal drivers
+    /// Internal drivers
     void ini();
-
-	std::vector<TkrPoint> m_pointList;
+    
+    /// Data 
+    std::vector<TkrPoint> m_pointList;
     std::vector<Event::TkrCluster*> m_xHitList;
     std::vector<Event::TkrCluster*> m_yHitList;  
     bool m_end;
