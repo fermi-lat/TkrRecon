@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue May 27 11:24:55 PDT 2003
+TkrRecon/src/Track
+
+Modified Files:
+	TkrComboFitTool.cxx TkrNeuralNetFitTool.cxx 
+Log Message:
+work to make work "properly" but should now at least run.
+
+    *
+------------------------------------------------------------
 User: usher  Tue May 27 11:24:54 PDT 2003
 TkrRecon/src/PatRec/NeuralNet
 
