@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrQueryClusters.cxx,v 1.14 2002/09/02 17:31:53 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrQueryClusters.cxx,v 1.15 2002/09/02 23:30:30 lsrea Exp $
 //
 // Description:
 //      TkrQueryClusters is a container for Tkr clusters, and has the methods
@@ -40,7 +40,8 @@ Point TkrQueryClusters::meanHit(Event::TkrCluster::view v, int layer)
 }
 
 Point TkrQueryClusters::meanHitInside(Event::TkrCluster::view v, int layer, 
-                                      double inDistance, Point Pcenter)
+                                      double inDistance, 
+                                      const Point& Pcenter) const
 {
     // Purpose and Method: Returns mean position of hits
     //    within a distance of a point in the measured dimension,
@@ -98,7 +99,7 @@ Point TkrQueryClusters::meanHitInside(Event::TkrCluster::view v, int layer,
 
 Point TkrQueryClusters::nearestHitOutside(Event::TkrCluster::view v, 
                                           int layer, double inDistance, 
-                                          Point Pcenter, int& id)
+                                          const Point& Pcenter, int& id) const
 {
     // Purpose and Method: returns the position of the closest cluster
     //    outside of a given distance from a point in the measured direction,
@@ -157,7 +158,8 @@ Point TkrQueryClusters::nearestHitOutside(Event::TkrCluster::view v,
     return Pnear;
 }
 
-int TkrQueryClusters::numberOfHitsNear(int layer, double inDistance, Point& x0)
+int TkrQueryClusters::numberOfHitsNear(int layer, double inDistance, 
+                                       const Point& x0) const
 {
     // Purpose and Method: counts the number of hits in a bilayer 
     //       within a square of side 2*inDistance
@@ -170,7 +172,7 @@ int TkrQueryClusters::numberOfHitsNear(int layer, double inDistance, Point& x0)
 }
 
 int TkrQueryClusters::numberOfHitsNear( int layer, double dX, double dY, 
-                                       Point& x0)
+                                       const Point& x0) const
 {
     // Purpose and Method: counts the number of hits in a bilayer 
     //      within a rectangle of sides 2*dX, 2*dY
@@ -212,7 +214,7 @@ int TkrQueryClusters::numberOfHitsNear( int layer, double dX, double dY,
 }
 
 int TkrQueryClusters::numberOfHitsNear( Event::TkrCluster::view v, int layer, 
-                                       double inDistance, Point& x0)
+                                       double inDistance, const Point& x0) const
 {
     // Purpose and Method: counts the number of hits within a distance 
     //     "inDistance" in the measurement direction, and within one tower 
@@ -227,7 +229,7 @@ int TkrQueryClusters::numberOfHitsNear( Event::TkrCluster::view v, int layer,
     if (!validLayer(layer)) return numHits;
     
     // Look for hits in the desired view of the given layer
-    std::vector<Event::TkrCluster*> clusterList = m_pClus->getHits(v, layer);
+    const std::vector<Event::TkrCluster*> & clusterList = m_pClus->getHits(v, layer);
     int nHitsInPlane = clusterList.size();
     
     while(nHitsInPlane--)

@@ -12,7 +12,7 @@
 *
 * @authors Bill Atwood, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.12 2002/09/02 23:29:52 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.13 2002/09/11 21:18:37 atwood Exp $
 */
 
 #include <vector>
@@ -26,7 +26,7 @@ class TkrQueryClusters
 {
 public:
     
-    TkrQueryClusters(Event::TkrClusterCol* pClus):m_pClus(pClus) {};
+    TkrQueryClusters(const Event::TkrClusterCol* pClus):m_pClus(pClus) {};
     ~TkrQueryClusters() {};
 
     /// returns the mean space point in for a given view and layer
@@ -36,36 +36,36 @@ public:
     * one tower in the other view.
     */
     Point meanHitInside (Event::TkrCluster::view v, int layer, 
-        double inDistance, Point Pini);
+        double inDistance, const Point& Pini) const ;
     /** returns the nearest point outside of "inDistance" of a point "Pini"
     * in the measured view, within one tower in the other view, and a ref. 
     * to the id
     */
     Point nearestHitOutside(Event::TkrCluster::view v, int layer, 
-        double inDistance, Point Pini, int& id);
+        double inDistance, const Point& Pini, int& id) const;
     
     /// Finds the number of clusters with measured distances 
     /// inside a square of side 2*inDistance of a point
-    int numberOfHitsNear( int layer, double inDistance, Point& x0);
+    int numberOfHitsNear( int layer, double inDistance, const Point& x0) const;
     /// Finds the number of clusters with measured distances 
     /// inside a rectangle of side 2*dX by 2*dY of a point
-    int numberOfHitsNear( int layer, double dX, double dY, Point& x0);
+    int numberOfHitsNear( int layer, double dX, double dY, const Point& x0) const;
     /// Finds the number of clusters within "inDistance" of a point 
     /// and within one tower.
     int numberOfHitsNear( Event::TkrCluster::view v, int layer, 
-        double inDistance, Point& x0);
+        double inDistance, const Point& x0) const;
 
     void setTowerPitch(int pitch) { s_towerPitch = pitch;}
     void setNumLayers(int num)    { s_numLayers = num;}
 
     /// Checks that a layer number is in the correct range
-    bool validLayer(int layer) {return (layer>=0 && layer < s_numLayers);};
+    bool validLayer(int layer) const {return (layer>=0 && layer < s_numLayers);};
 
     
 
 private:
     /// pointer to the TkrClusterCol
-    Event::TkrClusterCol* m_pClus;
+    const Event::TkrClusterCol* m_pClus;
 
     /// gets filled with towerPitch     
     static double s_towerPitch;
