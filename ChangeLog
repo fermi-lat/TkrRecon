@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Mon Feb 23 13:41:01 PST 2004
+TkrRecon/src/Utilities
+
+Modified Files:
+	TkrPoints.cxx 
+Log Message:
+fix a bug for the NeuralNet
+    *
+------------------------------------------------------------
 User: usher  Thu Feb 19 14:52:44 PST 2004
 TkrRecon/src/PatRec/MonteCarlo
 
