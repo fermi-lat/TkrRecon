@@ -35,8 +35,10 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrTracks* pTracks,
             RayDoca doca = RayDoca(Ray(track1->position(),track1->direction()),
                                    Ray(track2->position(),track2->direction()));
 
+            double  dist = doca.docaRay1Ray2();
+
             //Check that doca not too big and that vertex starts before or at first hit
-            if (doca.docaRay1Ray2() < docaLimit && (doca.arcLenRay1() <= 0. || doca.arcLenRay2() <= 0.) && (doca.arcLenRay1() > -500. && doca.arcLenRay2() > -500.))
+            if (dist < docaLimit && (doca.arcLenRay1() <= 0. || doca.arcLenRay2() <= 0.) && (doca.arcLenRay1() > -500. && doca.arcLenRay2() > -500.))
             {
                 Point  gamPos;
                 Vector gamDir;
@@ -77,7 +79,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrTracks* pTracks,
                 }
 
                 Ray        gamma  = Ray(gamPos,gamDir);
-                TkrVertex* vertex = new TkrVertex(track1->firstLayer(),track1->tower(),gamEne,gamma);
+                TkrVertex* vertex = new TkrVertex(track1->layer(),track1->tower(),gamEne,dist,gamma);
 
                 vertex->addTrack(track1);
                 vertex->addTrack(track2);
@@ -104,7 +106,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrTracks* pTracks,
         {
             TkrFitTrack* track1 = pTracks->getTrack(numTracks);
 
-            TkrVertex* vertex = new TkrVertex(track1->firstLayer(),track1->tower(),track1->energy(),Ray(track1->position(),track1->direction()));
+            TkrVertex* vertex = new TkrVertex(track1->layer(),track1->tower(),track1->energy(),0.,Ray(track1->position(),track1->direction()));
 
             vertex->addTrack(track1);
 

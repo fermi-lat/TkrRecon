@@ -15,6 +15,8 @@
 #include <time.h>
 #include <stdlib.h>
 
+#include <algorithm>
+
 
 // I would like these to be passed from the joboptions file.
 #define MAX_LAYER_SEPERATION 3
@@ -237,10 +239,8 @@ void TkrNeuralNet::buildCand()
                     m_tracks.push_back(_track);
 
                     //Keep this track (but as a candidate)
-                    TkrPatCand* newTrack = new TkrPatCand(_track->firstLayer(),
-                        _track->tower(),_track->ray());
-
-                    newTrack->setEnergy(energy);
+                    TkrPatCand* newTrack = new TkrPatCand(_track->layer(),
+                        _track->tower(),energy,_track->getQuality(),_track->ray());
 
                     addTrack(newTrack);
 

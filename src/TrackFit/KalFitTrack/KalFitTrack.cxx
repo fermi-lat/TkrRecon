@@ -27,14 +27,12 @@
 //
 //-----------------------------------------------------
 
-KalFitTrack::KalFitTrack(int ilyr, int itwr, double sigmaCut,double energy, const Ray& testRay)
-               : TkrFitTrack(ilyr, itwr, energy, testRay),
+KalFitTrack::KalFitTrack(int ilyr, int itwr, double sigmaCut,double energy, const Ray& testRay) :
                              m_status(EMPTY),
                              m_sigma(sigmaCut),
                              m_ray(testRay)
 {
     // Initialization for KalFitTrack
-    m_energy  = energy;
     m_energy0 = energy;
     m_status  = EMPTY;
 
@@ -75,17 +73,6 @@ void KalFitTrack::unFlagHit(int num)
 
     GFtutor::_DATA->unflagHit(hitplane.getProjection(), hitplane.getIDHit());
 }  
-
-bool KalFitTrack::empty() const
-{
-    bool empty = false;
-    if (firstLayer()   < 0)                         empty = true;
-    if (getNumHits()   < GFcontrol::minSegmentHits) empty = true;
-    if (getChiSquare() < 0.)                        empty = true;
-
-    return empty;
-}
-
 
 void KalFitTrack::clear()
 {   
@@ -131,7 +118,7 @@ void KalFitTrack::findHits()
         TkrFitPlane prevKplane;
         TkrFitPlane nextKplane;
         if (getNumHits() == 0) prevKplane = oriKplane; 
-        else                   prevKplane = getLastPlane();
+        else                   prevKplane = getFoLPlane(TkrRecInfo::End);
         
         if (step_counter > 1) type = TkrFitHit::FIT;
         statushit = nextKPlane(prevKplane, kplane, nextKplane, type); 
@@ -351,7 +338,7 @@ double KalFitTrack::sigmaFoundHit(const TkrFitPlane& previousKplane, const TkrFi
     // Must be inside Glast
     bool done = false;
     while (!done) {
-		TkrQueryClusters query(GFtutor::_DATA);
+                TkrQueryClusters query(GFtutor::_DATA);
         nearHit = query.nearestHitOutside(m_axis, klayer, inerRadius, center, indexhit);
         done = foundHit(indexhit, inerRadius, outRadius, center, nearHit);
     }
@@ -405,6 +392,9 @@ void KalFitTrack::ini()
     m_KalThetaMS   = 0.;
     m_numSegmentPoints = 0;
     m_chisqSegment = 1e6;
+    
+    m_Xgaps        = m_Ygaps = 0;
+    m_XistGaps     = m_YistGaps= 0;
 
     TkrFitPlaneColPtr hitPtr = m_hits.begin();
 
@@ -545,12 +535,12 @@ void KalFitTrack::loadTkrBase()
     double factor = -1.;
 
     // Output Data
-    m_position   = getPosAtZ(0.);
-    m_direction  = getDirection();
-    m_energy     = m_energy0;
+    //m_position   = getPosAtZ(0.);
+    //m_direction  = getDirection();
+    //m_energy     = m_energy0;
     m_Q          = computeQuality();
-    m_firstLayer = m_hits[0].getIDPlane();
-    m_itower     = m_hits[0].getIDTower();
+    //m_firstLayer = m_hits[0].getIDPlane();
+    //m_itower     = m_hits[0].getIDTower();
 } 
 
 double KalFitTrack::computeQuality() const
@@ -619,7 +609,7 @@ TkrFitPlane KalFitTrack::originalKPlane() const
     TkrFitHit hitfit(TkrFitHit::FIT, pfit, covfit);
     TkrFitHit hitmeas(TkrFitHit::MEAS, pfit, covfit); 
     
-    TkrFitPlane kp(0,-1,m_energy, x_ini.z(), hitfit, m_axis);
+    TkrFitPlane kp(0,-1,m_energy0, x_ini.z(), hitfit, m_axis);
     kp.setHit(hitmeas);
     
     return kp;

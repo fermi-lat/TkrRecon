@@ -41,27 +41,6 @@ void TkrTracks::writeOut(MsgStream& log) const
     return;
 }
 
-void TkrTracks::draw(gui::DisplayRep& v)
-{
-    v.setColor("blue");
-
-    int numTracks = getNumTracks();
-
-    if (numTracks > 0) 
-    {
-        int trkIdx = 0;
-
-        while(trkIdx < numTracks)
-        {
-            TkrFitTrack* track = getTrack(trkIdx++);
-
-            track->draw(v);
-        }
-    }
-
-    return;
-}
-
 void TkrTracks::addTrack(TkrFitTrack* Track)
 {
     m_Tracks.push_back(Track);

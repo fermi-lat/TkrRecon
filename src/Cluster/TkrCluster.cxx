@@ -33,6 +33,7 @@ TkrCluster::TkrCluster(int id, int ilayer, int v,
 	m_ToT    = ToT;
     m_tower  = tower;
 	
+    m_flag   = false;
 }
 
 void TkrCluster::writeOut(MsgStream& log) const

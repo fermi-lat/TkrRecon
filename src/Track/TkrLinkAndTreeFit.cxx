@@ -40,7 +40,7 @@ TkrLinkAndTreeFit::TkrLinkAndTreeFit(ITkrGeometrySvc* pTkrGeo, TkrClusters* pTkr
         TkrPatCand* pCand = *cands++;
 
                 
-        int    iniLayer = pCand->firstLayer();
+        int    iniLayer = pCand->layer();
         int    iniTower = pCand->tower();
         Ray    testRay  = pCand->ray();
         double eneFrac  = (double)(pCand->numPatCandHits())/totalTrackLength;
@@ -51,17 +51,25 @@ TkrLinkAndTreeFit::TkrLinkAndTreeFit(ITkrGeometrySvc* pTkrGeo, TkrClusters* pTkr
         //Now fill the hits from the pattern track
 //        int              numHits = pCand->numPatCandHits();
 //        CandHitVectorPtr candPtr = pCand->getCandHitPtr();
-//
+
 //        while(numHits--)
 //        {
 //            TkrPatCandHit candHit = *candPtr++;
-//
+
 //            track->addMeasHit(candHit);
 //        }
         track->findHits();
 
-        //Now do the track fit
+        //Fit the hits we have loaded
         track->doFit();
+
+        //Try letting the Kalman Filter look for more hits...
+//        numHits = track->getNumHits();
+
+//        track->findHits();
+
+        //If some new hits have been added, redo the fit
+//        if (numHits < track->getNumHits()) track->doFit();
         
         if (!track->empty()) 
         {
