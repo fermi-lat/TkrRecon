@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.2 2003/03/13 19:13:24 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.3 2003/04/30 00:42:20 lsrea Exp $
  */
 #include "src/Track/TkrTrackEnergyTool.h"
 
@@ -214,10 +214,10 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrPatCand* track, double CalEn
     int num_last_hits = 0; 
     double arc_len    = 5./fabs(dir_ini.z()); 
 
-    // these vars are not currently used, but I'm leaving them in to avoid pitfalls later
-    double rad_thick = 0.;
-    double rad_thin  = 0.;
-    double rad_last  = 0.; 
+    // these vars are not currently used
+    //double rad_thick = 0.;
+    //double rad_thin  = 0.;
+    //double rad_last  = 0.; 
     
     int top_plane     = track->getLayer(); 
     
