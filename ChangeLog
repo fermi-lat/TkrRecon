@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue May 27 11:24:54 PDT 2003
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrTrackFitAlg.cxx 
+Log Message:
+work to make work "properly" but should now at least run.
+
+    *
+------------------------------------------------------------
 User: usher  Tue May 13 13:19:19 PDT 2003
 TkrRecon/src/Vertex/Combo
 
