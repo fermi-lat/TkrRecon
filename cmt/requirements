@@ -16,7 +16,6 @@ use TkrUtil    v1r*
 
 use G4Propagator v*
 
-set JOBOPTIONS ${TKRRECONROOT}/src/test/jobOptions.txt
 
 private 
 #-----------------------
@@ -26,70 +25,49 @@ use RootIo v*
 use RootPolicy v2r*
 
 #the following prepend makes the includes folder available locally: avoid the package_include
-#apply_pattern package_include
 macro_prepend includes "-I $(TKRRECONROOT) " WIN32 "/I $(TKRRECONROOT) "
 
 macro TkrRecon_stamps     
 
 apply_pattern package_Cshlibflags 
 
-apply_pattern package_headers
 
-macro_append TkrCluster_headers   "" WIN32 " ../TkrRecon/Cluster/*.h ../src/Cluster/*.h"
-macro_append TkrPatRec_headers    "" WIN32 " ../TkrRecon/PatRec/*.h ../src/PatRec/LinkAndTree/*.h ../src/PatRec/Combo/*.h ../src/PatRec/NeuralNet/*.h"
-macro_append TkrTrack_headers     "" WIN32 " ../TkrRecon/Track/*.h ../TkrRecon/TrackFit/*.h ../src/Track/*.h ../src/TrackFit/*.h ../src/TrackFit/KalmanFilter/*.h ../src/TrackFit/KalFitTrack/*.h"
-macro_append TkrVertex_headers    "" WIN32 " ../TkrRecon/Vertex/*.h ../src/Vertex/*.h ../src/Vertex/Combo/*.h"
-macro_append TkrUtilities_headers "" WIN32 " ../src/Utilities/*.h "
-macro_append TkrGaudiAlgs_headers "" WIN32 " ../TkrRecon/GaudiAlg/*.h ../TkrRecon/Display/*.h ../TkrRecon/Services/*.h "
+macro TkrRecon_headers   "" WIN32 "\
+ ../TkrRecon/Cluster/*.h\
+ ../TkrRecon/PatRec/*.h\
+ ../TkrRecon/Track/*.h ../TkrRecon/TrackFit/*.h \
+ ../TkrRecon/Vertex/*.h\
+ ../TkrRecon/GaudiAlg/*.h ../TkrRecon/Display/*.h ../TkrRecon/Services/*.h"
 
-# have a seperate libraries to divide into manageable sub projects
+macro source "*.cxx" WIN32 "*.h *.cxx"
 
+library TkrRecon  $(TkrRecon_headers)  \
+  -s=Dll *.cxx\
+  -s=GaudiAlg $(source)\
+  -s=Display $(source)\
+  -s=Services $(source)\
+  -s=Cluster $(source)\
+  -s=PatRec $(source)\
+  -s=PatRec/LinkAndTree $(source)\
+  -s=PatRec/Combo $(source)\
+  -s=PatRec/NeuralNet $(source)\
+  -s=PatRec/Utilities $(source)\
+  -s=Track $(source)\
+  -s=TrackFit $(source)\
+  -s=TrackFit/KalmanFilter $(source)\
+  -s=TrackFit/KalFitTrack $(source)\
+  -s=Utilities $(source)\
+  -s=Vertex  $(source)\
+  -s=Vertex/Combo $(source)\
+  -s=Vertex/DocaVtx $(source)
 
-library TkrCluster   -no_share Cluster/*.cxx                   \
-                               ${TkrCluster_headers}
-
-library TkrGaudiAlgs -no_share GaudiAlg/*.cxx                  \
-                               Display/*.cxx                   \
-                               Services/*.cxx                  \
-                               ${TkrGaudiAlgs_headers}
-
-library TkrPatRec    -no_share PatRec/*.cxx                    \
-                               PatRec/LinkAndTree/*.cxx        \
-                               PatRec/Combo/*.cxx              \
-                               PatRec/NeuralNet/*.cxx          \
-                               PatRec/Utilities/*.cxx          \
-                               ${TkrPatRec_headers}
-
-library TkrTrack     -no_share Track/*.cxx                     \
-                               TrackFit/*.cxx                  \
-                               TrackFit/KalmanFilter/*.cxx     \
-                               TrackFit/KalFitTrack/*.cxx      \
-                               ${TkrTrack_headers}
-
-library TkrUtilities -no_share Utilities/*.cxx                 \
-                               ${TkrUtilities_headers}
-
-library TkrVertex    -no_share Vertex/*.cxx                    \
-                               Vertex/Combo/*.cxx              \
-                               Vertex/DocaVtx/*.cxx            \
-                               ${TkrVertex_headers}
-
-macro libs ""   WIN32   "$(TkrReconDir)/TkrGaudiAlgs.lib \
-                         $(TkrReconDir)/TkrCluster.lib   \
-                         $(TkrReconDir)/TkrPatRec.lib    \
-                         $(TkrReconDir)/TkrTrack.lib     \
-                         $(TkrReconDir)/TkrUtilities.lib \
-                         $(TkrReconDir)/TkrVertex.lib"
-
-macro TkrRecon_linkopts "-L $(TkrReconDir) -lTkrGaudiAlgs -lTkrCluster -lTkrPatRec -lTkrTrack -lTkrVertex -lTkrUtilities" \
-                      WIN32 ""
+  
 
 
-library TkrRecon               Dll/*.cxx $(libs)
 
 # build this for testing
 
+public set JOBOPTIONS ${TKRRECONROOT}/src/test/jobOptions.txt
 application test_TkrRecon ${GuiMain} test/*.cxx ${Win32Resource}
 
-make_fragment library_no_share
 
