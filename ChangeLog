@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Tue Aug 20 12:20:06 PDT 2002
+TkrRecon/src/PatRec/LinkAndTree
+
+Added Files:
+	LinkAndTreeFindTrackTool.cxx LinkAndTreeFindTrackTool.h 
+Removed Files:
+	TkrLinkAndTreePR.cxx TkrLinkAndTreePR.h 
+Log Message:
+Changes for using Gaudi Tools to drive the reconstruction
+
+    *
+------------------------------------------------------------
 User: usher  Tue Aug 20 12:17:35 PDT 2002
 TkrRecon/src/PatRec/Combo
 
