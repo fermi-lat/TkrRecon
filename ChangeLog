@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Thu Aug 29 12:18:47 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	TkrComboFitTool.cxx TkrComboFitTool.h TkrControl.cxx 
+	TkrControl.h TkrLinkAndTreeFitTool.cxx TkrLinkAndTreeFitTool.h 
+	TkrNeuralNetFitTool.cxx TkrNeuralNetFitTool.h 
+Log Message:
+Upgrade documentation before big review
+
+    *
+------------------------------------------------------------
 User: cohen  Thu Aug 29 10:28:59 PDT 2002
 TkrRecon/src/Vertex
 
