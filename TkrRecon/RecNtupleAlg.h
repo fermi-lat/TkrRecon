@@ -10,8 +10,8 @@
 #include "ntupleWriterSvc/INTupleWriterSvc.h"
 
 #include "TkrRecon/ITkrGeometrySvc.h"
-#include "TkrRecon/SiClusters.h"
-#include "TkrRecon/SiRecObjs.h"
+#include "TkrRecon/Cluster/TkrClusters.h"
+#include "TkrRecon/Track/SiRecObjs.h"
 
 #include "GlastEvent/Recon/ICsIClusters.h"
 
@@ -59,7 +59,7 @@ public:
     RecTupleValues();
    ~RecTupleValues() {return;}
 
-    StatusCode calcTupleValues(ICsIClusterList* pCalClusters, SiClusters* pSiClusters, SiRecObjs* pRecObjs, ITkrGeometrySvc* pGeom);
+    StatusCode calcTupleValues(ICsIClusterList* pCalClusters, TkrClusters* pTkrClusters, SiRecObjs* pRecObjs, ITkrGeometrySvc* pGeom);
     StatusCode fillTupleValues(INTupleWriterSvc* pSvc, const char* pName);
 
 private:
@@ -67,7 +67,7 @@ private:
     void calcSkirtVars(GFgamma* pGamma);
     void calcTowerBoundaries(GFgamma* pGamma, ITkrGeometrySvc* pGeom);
     void calcActiveDistance(GFgamma* pGamma, ITkrGeometrySvc* pGeom);
-    void calcExtraHits(SiClusters* pSiClusters, GFgamma* pGamma, ITkrGeometrySvc* pGeom);
+    void calcExtraHits(TkrClusters* pTkrClusters, GFgamma* pGamma, ITkrGeometrySvc* pGeom);
     void calcEnergyCorrection(GFgamma* pGamma);
 
     //Calculated in calcSkirtVars

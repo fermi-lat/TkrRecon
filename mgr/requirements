@@ -23,13 +23,27 @@ private
 apply_pattern package_Cshlibflags 
 apply_pattern package_headers
 
-
+macro_append TkrRecon_headers "" WIN32 " ../TkrRecon/Cluster/*.h ../TkrRecon/Display/*.h ../TkrRecon/Services/*.h ../TkrRecon/Track/*.h ../TkrRecon/TrackFit/*.h"
 
 # have a seperate library to export the tracker recon data classes 
 
-library TkrReconData -no_share GFgamma.cpp GFdata.cxx GFparticle.cpp GFcontrol.cpp GFsegment.cpp SiRecObjs.cpp SiClusters.cpp KalFit.cxx
+library TkrReconData -no_share Track/*.cpp             \
+                               Track/*.cxx             \
+                               Cluster/TkrClusters.cpp \
+                               TrackFit/KalFit.cxx
 
-library TkrRecon  *.cpp *.cxx Dll/*.cpp ${TkrRecon_headers}
+library TkrRecon  *.cpp \
+                  *.cxx    \
+                  Cluster/*.cpp  \
+                  Cluster/*.cxx  \
+                  Display/*.cxx  \
+                  Services/*.cpp \
+                  Services/*.cxx \
+                  Track/*.cpp    \
+                  Track/*.cxx    \
+                  TrackFit/*.cxx \
+                  Dll/*.cpp      \
+                  ${TkrRecon_headers}
 
 # build this for testing
 
