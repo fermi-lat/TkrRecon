@@ -47,6 +47,35 @@ LayerLink::~LayerLink()
 	return;
 }
 
+bool TkrClusterLink::sameTopCluster(LayerLink* pLink)
+{
+    TkrClusterLink* pTkrLink = dynamic_cast<TkrClusterLink*>(pLink);
+
+    return pTopCluster == pTkrLink->pTopClus();
+}
+
+bool TkrClusterLink::sameBotCluster(LayerLink* pLink)
+{
+    TkrClusterLink* pTkrLink = dynamic_cast<TkrClusterLink*>(pLink);
+
+    return pBotCluster == pTkrLink->pBotClus();
+}
+
+
+//(signed) angle between links
+double TkrClusterLink::angleWith(LayerLink* pLink)
+{
+    TkrClusterLink* pTestLink = dynamic_cast<TkrClusterLink*>(pLink);
+
+    double cosAngle = linkDot(pTestLink->pLink());
+	double newAngle = acos(cosAngle);
+
+    if (getLinkAngle()-pTestLink->getLinkAngle() < 0) newAngle = -newAngle;
+
+    return newAngle;
+}
+
+
 /*
 void TkrClusterLink::draw(GraphicsRep& v)
 {

@@ -56,6 +56,7 @@ bool BestNodeList::findBestNodes(LayerLinkNode* pNode)
 	int  nKids   = pNode->getNumKids();
 
     //Go no further if this node is used on a track already
+    //if (pNode->getNodeDepth() > 2 && pNode->getLinkUsedList() > 0) return bestOne;
     if (pNode->getLinkUsedList() > 0) return bestOne;
 
 	//If we have children then we need to search deeper in the tree
@@ -77,7 +78,7 @@ bool BestNodeList::findBestNodes(LayerLinkNode* pNode)
 	{
 		LayerLinkNode* pOldNode = getLastNode();
 
-		if (pOldNode->isPathStraighter(pNode))
+        if (!pNode->isOldPathStraighter(pOldNode))
 		{
 			setBottom(pNode);
 			bestOne = true;

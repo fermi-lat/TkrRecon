@@ -4,7 +4,7 @@
 */
 
 #include "TkrRecon/PatRec/TkrLinkForest.h"
-//#include "Event/messageManager.h"
+//#include <algorithm>
 
 //This is the do nothing constructor
 TkrLinkForest::TkrLinkForest()
@@ -26,8 +26,10 @@ TkrLinkForest::TkrLinkForest(TkrClusterLinkList* pLinksList)
 	//So, task is to loop through the items -> loop through the layers
 	while(nListElems--)
 	{
+        layerLinkListPtr   pLinkListCopy    = pLinkList;
 		layerLinkVector*   pLayerLinkVector = *pLinkList++;
 		layerLinkVectorPtr pLinkVector      = pLayerLinkVector->begin();
+        int                nTreesNow        = linkTreeList.size();
 		
 		int nLinks = pLayerLinkVector->size();
 
@@ -43,35 +45,32 @@ TkrLinkForest::TkrLinkForest(TkrClusterLinkList* pLinksList)
 
 			//Build the tree starting with this link
 			linkTreeList.push_back(TkrLinkTree(pLinkList, pNode));
-//			TkrLinkTree* pSiTree = new TkrLinkTree(pLinkList, pNode);
+			//TkrLinkTree* pSiTree = new TkrLinkTree(pLinkList, pNode);
 
-			//Save trees with height of more than one vector
-//			if (pSiTree->getTreeHeight() > 2)
-//			{
-//				linkTreeList.push_back(*pSiTree);
-//			}
-
-			//Delete the now unused tree
-//			delete pSiTree;
 		}
 
 		//Ok, now go through and mark all links beginning in this layer as in use
-		int         nTrees    = linkTreeList.size();
-		treeListPtr pTreeList = linkTreeList.begin();
+		int         nTreesNew = linkTreeList.size() - nTreesNow;
+        treeListPtr pTreeList = linkTreeList.begin();
 
-		while(nTrees--)
+        //Don't look at the trees which have already been looked at
+        while(nTreesNow--) pTreeList++;
+
+		while(nTreesNew--)
 		{
 			TkrLinkTree&    curTree = *pTreeList;
 
+            //If a real tree then get the best node lists
 			if (curTree.getTreeHeight() > 1)
 			{
 				if (!curTree.isTreeMarked())
 				{
-                    int nBranches = curTree.getNumPrimBrnchs();
+                    bool findBestNodes = true;
+                    int  bestNodeCnt   = 0;
 
-                    while(nBranches--)
+                    while(findBestNodes)
                     {
-                        BestNodeList* pBestList = new BestNodeList(&curTree, nBranches+1);
+                        BestNodeList* pBestList = new BestNodeList(&curTree, ++bestNodeCnt);
 
                         if (pBestList->getNumNodes() > 1)
                         {
@@ -80,15 +79,19 @@ TkrLinkForest::TkrLinkForest(TkrClusterLinkList* pLinksList)
                         else
                         {
                             delete pBestList;
+
+                            findBestNodes = false;
                         }
                     }
 
-                    if (curTree.getNumBestVectors() > 0) curTree.setLinksInUse();
+                    if (curTree.getNumBestVectors() > 0) curTree.setLinksInUse(pLinkListCopy);
 				}
-
-				pTreeList++;
 			}
-			else
+
+            //If best node list complete then increment to next tree
+			if (curTree.getNumBestVectors() > 0) pTreeList++;
+            //Otherwise, delete this tree
+            else
 			{
 				deleteTrees(pTreeList);
 				pTreeList = linkTreeList.erase(pTreeList);
@@ -98,6 +101,7 @@ TkrLinkForest::TkrLinkForest(TkrClusterLinkList* pLinksList)
 
 	//Sort the list of trees
 	linkTreeList.sort();
+    //std::sort(linkTreeList.begin(),linkTreeList.end());
 
 	return;
 }
@@ -153,54 +157,11 @@ void TkrLinkForest::deleteNodes(LayerLinkNode* pCurNode)
 	return;
 }
 
-/*
-const char color_blue[]       = "blue";
-const char color_violet[]     = "violet";
-const char color_turquoise[]  = "turquoise";
-const char color_orange[]     = "orange";
-const char color_maroon[]     = "maroon";
-const char color_aquamarine[] = "aquamarine";
-
-const char* pColors[] = {color_blue,   color_violet, color_turquoise,
-                         color_orange, color_maroon, color_aquamarine};
-
-
-void TkrLinkForest::draw(GraphicsRep& v)
-{
-	int         numTrees = getNumTrees();
-	int         colorIdx = 0;
-	treeListPtr treePtr  = getListStart();
-	bool        fullTree = true;
-
-	messageManager::instance()->message(" ****************************************");
-	messageManager::instance()->message(" Number of trees found:", numTrees);
-
-	//Only plot two longest, straightest trees
-	if (numTrees > 2) numTrees = 2;
-
-	while(numTrees--)
-	{
-		TkrLinkTree* pTree = &(*treePtr++);
-
-		messageManager::instance()->message(" Tree Height:", pTree->getTreeHeight());
-		pTree->draw(pColors[colorIdx], fullTree, v);
-
-		fullTree = false;
-
-		colorIdx = ++colorIdx % 6;
-	}
-
-	return;
-}
-*/
-
-//bool TkrLinkForest::compareTrees(TkrLinkTree* pLhs, TkrLinkTree* pRhs)
-//{
-//	bool pFirstOne = true;
-//	return pFirstOne;
-//}
-
-
+//For sorting the lists of trees
+//We do this by:
+// 1) Starting layer number
+// 2) Longest tracks first
+// 3) Straightness
 bool operator<(TkrLinkTree& lhs, TkrLinkTree& rhs)
 {
 	bool lessThan    = false;
@@ -210,66 +171,41 @@ bool operator<(TkrLinkTree& lhs, TkrLinkTree& rhs)
     BestNodeList* pBestLhs = 0;
     BestNodeList* pBestRhs = 0;
 
-    if (lhs.getNumBestVectors() > 0)
+    //If we have the same starting layer number, then check length
+    if (lhs.getFirstLayer() == rhs.getFirstLayer())
     {
-      pBestLhs    = lhs.getBestNodeList(0);
-      numLhsNodes = pBestLhs->getNumNodes();
-    }
+        if (lhs.getNumBestVectors() > 0)
+        {
+            pBestLhs    = lhs.getBestNodeList(0);
+            numLhsNodes = pBestLhs->getNumNodes();
+        }
 
-    if (rhs.getNumBestVectors() > 0)
-    {
-      pBestRhs    = rhs.getBestNodeList(0);
-      numRhsNodes = pBestRhs->getNumNodes();
-    }
-	
-	if (numLhsNodes > 0 && numLhsNodes == numRhsNodes)
-	{
-		LayerLinkNode* pLhsNode = pBestLhs->getLastNode();
+        if (rhs.getNumBestVectors() > 0)
+        {
+            pBestRhs    = rhs.getBestNodeList(0);
+            numRhsNodes = pBestRhs->getNumNodes();
+        }
 
-		if (!pLhsNode->isNodeBetter(pBestRhs->getLastNode()))
-		{
-			lessThan = true;
+        //If tracks are the same length then test straightness
+        if (numLhsNodes > 0 && numLhsNodes == numRhsNodes)
+        {
+		    LayerLinkNode* pLhsNode = pBestLhs->getLastNode();
+
+            //Straightest tracks first
+		    if (!pLhsNode->isOldNodeBetter(pBestRhs->getLastNode()))
+		    {
+			    lessThan = true;
+            }
 		}
+        //Longest tracks first
+        else if (numLhsNodes > numRhsNodes)
+        {
+            lessThan = true;
+        }
 	}
-	else if (numLhsNodes > numRhsNodes)
-	{
-		lessThan = true;
-	}
-    else
-    {
-        lessThan = false;
-    }
+    //Lower layer number first
+    else if (lhs.getFirstLayer() < rhs.getFirstLayer()) lessThan = true;
 
 	return lessThan;
 }
-
-/*
-bool operator>(TkrLinkTree& lhs, TkrLinkTree& rhs)
-{
-	bool moreThan = false;
-
-	BestNodeList* pBestLhs = lhs.getBestNodeList();
-	BestNodeList* pBestRhs = rhs.getBestNodeList();
-
-	int           numLhsNodes = pBestLhs->getNumNodes();
-	int           numRhsNodes = pBestRhs->getNumNodes();
-	
-	if (numLhsNodes == numRhsNodes)
-	{
-		LayerLinkNode* pLhsNode = pBestLhs->getLastNode();
-
-		if (!pLhsNode->isNodeBetter(pBestRhs->getLastNode()))
-		{
-			moreThan = true;
-		}
-	}
-	else if (numLhsNodes < numRhsNodes)
-	{
-		moreThan = true;
-	}
-
-	return moreThan;
-}
-
-*/
 
