@@ -25,12 +25,17 @@ EventSelector.Input = "NONE";
 // ----------------------------
 //  Geometry definition
 //
-ApplicationMgr.DLLs += {"GlastSvc"};
+
+ApplicationMgr.DLLs += {"GlastSvc", "G4Propagator", "G4Generator" };
 ApplicationMgr.ExtSvc += { "GlastDetSvc"};
+ApplicationMgr.ExtSvc += { "GlastPropagatorSvc", "G4GeometrySvc"}; 
+
 GlastDetSvc.topVolume="LAT"; 
 
 GlastDetSvc.xmlfile="$(XMLGEODBSROOT)/xml/flight/flightSegVols.xml";
 //GlastDetSvc.visitorMode="recon";
+
+ApplicationMgr.ExtSvc += { "TkrGeometrySvc", "TkrInitSvc" };
 
 // ----------------------------
 //  topalg
@@ -43,7 +48,7 @@ ApplicationMgr.TopAlg = {
     "test_TkrRecon"
     };
 
-ApplicationMgr.ExtSvc += { "TkrGeometrySvc", "TkrInitSvc" };
+ApplicationMgr.ExtSvc += { "TkrGeometrySvc", "TkrInitSvc" };                        
 
 // filters some random badStrips
 ApplicationMgr.ExtSvc += { "TkrBadStripsSvc" };
@@ -60,4 +65,3 @@ digiRootReaderAlg.digiRootFile="$(TKRRECONROOT)/src/test/muon_digi.root";
 // End of job options file
 //
 //##############################################################
-
