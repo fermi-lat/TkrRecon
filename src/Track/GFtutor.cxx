@@ -42,15 +42,6 @@ void GFtutor::load(TkrClusters* scl, ITkrGeometrySvc* pTrkGeo)
 
 }
 //------------- protected --------------------------------
-//########################################################
-double GFtutor::convRadLen(int iplane)			 
-//########################################################
-{
-	// plane and layers differ in the order
-	// int jplane = pTrackerGeo->numPlanes()-iplane-1;
-	return pTrackerGeo->pbRadLen(pTrackerGeo->ilayer(iplane));
-}
-//########################################################
 int GFtutor::okClusterSize(TkrCluster::view axis, int indexhit, 
 						   double slope)			 
 //########################################################

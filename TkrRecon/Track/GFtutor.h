@@ -52,8 +52,6 @@ protected:
 
 protected:
 
-	static double convRadLen(int iplane);
-
     static int  okClusterSize(TkrCluster::view axis, int indexhit, double slope);	
     static bool neighbourTowers(int itower, int jtower);
 
