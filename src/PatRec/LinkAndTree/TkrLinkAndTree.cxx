@@ -4,7 +4,7 @@
 */
 
 #include "src/PatRec/LinkAndTree/TkrLinkAndTree.h"
-#include "Geometry/Ray.h"
+#include "geometry/Ray.h"
 
 TkrLinkAndTree::TkrLinkAndTree(ITkrGeometrySvc* /*tkrGeom*/, ITkrQueryClustersTool* clusTool, double energy)
 {
