@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Tue Nov 16 15:48:40 PST 2004
+TkrRecon/src/Utilities
+
+Modified Files:
+	TkrPoint.cxx 
+Log Message:
+changed starting point to z of first cluster
+    *
+------------------------------------------------------------
 User: atwood  Tue Nov 16 10:48:58 PST 2004
 TkrRecon/src/Track
 
