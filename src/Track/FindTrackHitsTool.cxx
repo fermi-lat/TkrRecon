@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.24 2005/02/11 07:14:52 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.25 2005/02/19 07:03:54 usher Exp $
  */
 
 // to turn one debug variables
@@ -739,7 +739,12 @@ int FindTrackHitsTool::addLeadingHits(TkrTrack* track)
 		planes_crossed++;
 
 		// If this is the second plane, it must have a valid cluster
-		if(planes_crossed > 1 && !trackHit->validCluster()) break;
+		if(planes_crossed > 1 && !trackHit->validCluster()) 
+        {
+            // delete the track hit given us
+            delete trackHit;
+            break;
+        }
 	
 		trackHit->setEnergy(cur_energy);
 
