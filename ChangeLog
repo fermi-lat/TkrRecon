@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Fri Oct 22 11:21:40 PDT 2004
+TkrRecon/src/PatRec/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx 
+Log Message:
+unfix the "fix"...
+
+    *
+------------------------------------------------------------
 User: usher  Fri Oct 22 10:52:42 PDT 2004
 TkrRecon/src/GaudiAlg
 
