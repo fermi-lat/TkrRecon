@@ -23,6 +23,9 @@ void TkrClustersRep::update()
 	//Recover pointer to the data
     SiClusters* pClusters = *ppClusters;
 
+    //Zero out the pointer so we don't accidentally try to redraw the event
+    *ppClusters = 0;
+
 	//Make sure pointer is valid before trying to draw anything
 	if (pClusters)
 	{
