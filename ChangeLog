@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon Sep 30 10:55:34 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Added Files:
+	TkrMeritTool.cxx 
+Log Message:
+Calculates variables needed outside TkrRecon, notably Merit
+
+    *
+------------------------------------------------------------
 User: lsrea  Sun Sep 22 13:32:48 PDT 2002
 TkrRecon/src/Cluster
 
