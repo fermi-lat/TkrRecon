@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Aug  4 13:18:50 PDT 2003
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+modifications to requirements to include new Monte Carlo stuff
+
+    *
+------------------------------------------------------------
 User: usher  Mon Aug  4 13:17:35 PDT 2003
 TkrRecon/src/PatRec/MonteCarlo
 
