@@ -12,6 +12,16 @@
 #include "TkrRecon/Display/TkrClustersRep.h"
 #include "TkrRecon/Display/TkrTracksRep.h"
 
+#include "TkrRecon/Display/TkrCandidatesRep.h"
+#include "TkrRecon/Display/TkrBestCandRep.h"
+#include "TkrRecon/Display/TkrCandidate3DRep.h"
+
+// Display stuff for NeuralNet PatRec Alg
+#include "TkrRecon/Display/TkrDispCompleteNet.h"
+#include "TkrRecon/Display/TkrDispActiveNet.h"
+
+#include "src/Vertex/Combo/TkrComboVtxRep.h"
+
 #include "TkrRecon/Services/TkrInitSvc.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 
@@ -28,7 +38,8 @@ TkrDisplayAlg::TkrDisplayAlg(const std::string& name, ISvcLocator* pSvcLocator) 
 Algorithm(name, pSvcLocator) 
 //#############################################################################
 {
-    
+    // Variable to select reconstruction type
+    declareProperty("TrackerReconType", m_TrackerReconType="Combo");
 }
 
 //##############################################
@@ -59,11 +70,37 @@ StatusCode TkrDisplayAlg::initialize()
         tkrmenu.add(p_clRep, "Clusters");
         p_clRep->setTkrGeo(pTkrGeo);
         
-        //This call sets up recon specific display routines
-        pTkrInitSvc->setDisplayRtns(tkrmenu, eventSvc());
+        //Link and Tree display routines
+        if (m_TrackerReconType == "LinkAndTree")
+        {
+            //Set up the display rep for the reconstructed objects
+            tkrmenu.add(new TkrCandidatesRep(eventSvc(), pTkrGeo), "PatRec: Trees");
+        
+            //Set up the display rep for the reconstructed objects
+            tkrmenu.add(new TkrBestCandRep(eventSvc(), pTkrGeo), "PatRec: Best");
+        
+            //Set up the display rep for the reconstructed objects
+            tkrmenu.add(new TkrCandidate3DRep(eventSvc(), pTkrGeo), "PatRec: 3D Cands");
+        }
+        //TkrCombo display routines
+        else if (m_TrackerReconType == "Combo")
+        {
+        }
+        //Neural Net display routines
+        else if (m_TrackerReconType == "NeuralNet")
+        {
+            //Set up the display rep for the complete Neural Network
+            tkrmenu.add(new TkrDispCompleteNet(eventSvc(), pTkrGeo), "PatRec: Complete NN");
+        
+            tkrmenu.add(new TkrDispActiveNet(eventSvc(), pTkrGeo), "PatRec: Active NN");
+        
+        }
         
         //Set up the display rep for the reconstructed tracks
         tkrmenu.add(new TkrTracksRep(eventSvc()), "Tracks");
+    
+        //Vertex display routines
+        tkrmenu.add(new TkrComboVtxRep(eventSvc(), pTkrGeo), "Gamma Vertex");
     }
     
     return sc;

@@ -24,20 +24,29 @@
 
 //! Load all  services: 
 void TkrRecon_load() {
-    DLL_DECL_SERVICE(   TkrGeometrySvc  );
-    DLL_DECL_SERVICE(   TkrInitSvc      );
-    DLL_DECL_SERVICE(   TkrBadStripsSvc );
-    DLL_DECL_ALGORITHM( TkrClusterAlg   );
-    DLL_DECL_ALGORITHM( TkrFindAlg      );
-    DLL_DECL_ALGORITHM( TkrReconAlg     );
-    DLL_DECL_ALGORITHM( TkrVertexAlg    );
-    DLL_DECL_ALGORITHM( TkrDisplayAlg   );
-//    DLL_DECL_ALGORITHM( McReconAlg      );
-//    DLL_DECL_ALGORITHM( TkrNtupleAlg    );
-//    DLL_DECL_ALGORITHM( RecNtupleAlg    );
-    DLL_DECL_TOOL( VtxSingleTrkTool   );
-    DLL_DECL_TOOL( VtxComboTrkTool   );
-    DLL_DECL_TOOL( VtxKalFitTool   );
+    DLL_DECL_SERVICE(   TkrGeometrySvc     );
+    DLL_DECL_SERVICE(   TkrInitSvc         );
+    DLL_DECL_SERVICE(   TkrBadStripsSvc    );
+    DLL_DECL_ALGORITHM( TkrReconAlg        );
+    DLL_DECL_ALGORITHM( TkrClusterAlg      );
+    DLL_DECL_ALGORITHM( TkrFindAlg         );
+    DLL_DECL_ALGORITHM( TkrTrackFitAlg     );
+    DLL_DECL_ALGORITHM( TkrVertexAlg       );
+    DLL_DECL_ALGORITHM( TkrDisplayAlg      );
+//    DLL_DECL_ALGORITHM( McReconAlg       );
+//    DLL_DECL_ALGORITHM( TkrNtupleAlg     );
+//    DLL_DECL_ALGORITHM( RecNtupleAlg     );
+    DLL_DECL_TOOL( VtxSingleTrkTool        );
+    DLL_DECL_TOOL( VtxComboTrkTool         );
+    DLL_DECL_TOOL( VtxKalFitTool           );
+    DLL_DECL_TOOL( ComboVtxTool            );
+    DLL_DECL_TOOL( TkrComboFitTool         );
+    DLL_DECL_TOOL( TkrLinkAndTreeFitTool   );
+    DLL_DECL_TOOL( TkrNeuralNetFitTool     );
+    DLL_DECL_TOOL( ComboFindTrackTool      );
+    DLL_DECL_TOOL( LinkAndTreeFindTrackTool);
+    DLL_DECL_TOOL( NeuralNetFindTrackTool  );
+
 } 
 
 extern "C" void TkrRecon_loadRef()    {

@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.7 2002/07/22 13:45:53 cohen Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.8 2002/07/25 09:12:24 burnett Exp $
 //
 // Description:
 //      Handles the Gaudi part of the vertex reconstruction
@@ -56,11 +56,7 @@ StatusCode TkrVertexAlg::initialize()
     if (sc.isFailure()) {
         log << MSG::ERROR << "TkrInitSvc is required for this algorithm." << endreq;
         return sc;
-    }
-
-    //Set pointer to the concrete implementation of the vertex finding
-    pFindVertex = pTkrInitSvc->setVertexing();
-    
+    }    
 
     return StatusCode::SUCCESS;
 }
@@ -68,72 +64,52 @@ StatusCode TkrVertexAlg::initialize()
 
 StatusCode TkrVertexAlg::execute()
 {
-  StatusCode sc = StatusCode::SUCCESS;
+    StatusCode sc = StatusCode::SUCCESS;
   
-  MsgStream log(msgSvc(), name());
-  log << MSG::DEBUG << "Executing TkrVertexAlg"<<endreq;
+    MsgStream log(msgSvc(), name());
+    log << MSG::DEBUG << "Executing TkrVertexAlg"<<endreq;
   
-  //Find the pattern recon tracks
-  TkrPatCandCol*  pTkrCands  = SmartDataPtr<TkrPatCandCol>(eventSvc(),EventModel::TkrRecon::TkrPatCandCol);
-  
-  //Find the pattern recon tracks
-  TkrFitTrackCol* pTkrTracks = SmartDataPtr<TkrFitTrackCol>(eventSvc(),EventModel::TkrRecon::TkrFitTrackCol);
+    //Find the pattern recon tracks
+    TkrFitTrackCol* pTkrTracks = SmartDataPtr<TkrFitTrackCol>(eventSvc(),EventModel::TkrRecon::TkrFitTrackCol);
 
-  TkrVertexCol*   pVtxCol = new TkrVertexCol(); 
+    TkrVertexCol*   pVtxCol = new TkrVertexCol(); 
 
-  if(pTkrTracks->size()==0)
+    if(pTkrTracks->size() > 0)
     {
-      log<<MSG::INFO<<"No tracks to vertex..."<<endreq;
-      //I find that a bit sad....
-      sc = eventSvc()->registerObject("/Event/TkrRecon/TkrVertexCol",pVtxCol);
-      return sc;
-    }
+        std::string VtxToolName;
   
-  
-  std::string VtxToolName;
-  
-  if(m_VertexerType == std::string("DEFAULT"))
-    {
-      VtxToolName = std::string("TkrComboVtxRecon(not a tool)");
-    }
-  else if(m_VertexerType == std::string("COMBO"))
-    { 
-      if(pTkrTracks->size() == 1) { VtxToolName = std::string("VtxSingleTrkTool");}
-      else                        { VtxToolName = std::string("VtxComboTrkTool");}
-    }
-  else if(m_VertexerType == std::string("KALMAN"))
-    {
-      if(pTkrTracks->size() == 1) { VtxToolName = std::string("VtxSingleTrkTool");}
-      else                        { VtxToolName = std::string("VtxKalFitTool");}
-    }
-  else
-    {
-      //For now....
-      VtxToolName = std::string("TkrComboVtxRecon(not a tool)");
+        if(m_VertexerType == std::string("DEFAULT"))
+        {
+            VtxToolName = std::string("ComboVtxTool");
+        }
+        else if(m_VertexerType == std::string("COMBO"))
+        { 
+            if(pTkrTracks->size() == 1) { VtxToolName = std::string("VtxSingleTrkTool");}
+            else                        { VtxToolName = std::string("VtxComboTrkTool");}
+        }
+        else if(m_VertexerType == std::string("KALMAN"))
+        {
+            if(pTkrTracks->size() == 1) { VtxToolName = std::string("VtxSingleTrkTool");}
+            else                        { VtxToolName = std::string("VtxKalFitTool");}
+        }
+        else
+        {
+            //For now....
+            VtxToolName = std::string("TkrComboVtxRecon(not a tool)");
+        }
+
+        log << MSG::INFO << "Vertexing performed with: "<< VtxToolName.c_str() <<endreq;
+
+        sc = toolSvc()->retrieveTool(VtxToolName.c_str(), m_VtxTool, this);
+
+        if (sc.isSuccess())
+        {
+            sc = m_VtxTool->retrieveVtxCol(*pVtxCol);
+        }
     }
 
-  log << MSG::INFO << "Vertexing performed with: "<< VtxToolName.c_str() <<endreq;
-
-
-  if(m_VertexerType != std::string("COMBO")
-     && m_VertexerType != std::string("KALMAN")) //will disappear with TkrComboVtxRecon
-    {
-      pVtxCol    = pFindVertex->doVertexRecon(pTkrTracks, pTkrCands);
-    }
-  else
-    { 
-      sc = toolSvc()->retrieveTool(VtxToolName.c_str(), m_VtxTool, this);
-      if( sc.isFailure() ) 
-	{
-	  log << MSG::FATAL << " Unable to load " << VtxToolName.c_str() <<"!"<< endreq;
-	  return sc;
-	}
-      sc = m_VtxTool->retrieveVtxCol(*pVtxCol);	
-    }
-
-  
-  //Register this object in the TDS
-  sc = eventSvc()->registerObject("/Event/TkrRecon/TkrVertexCol",pVtxCol);
+    //Register this object in the TDS
+    sc = eventSvc()->registerObject("/Event/TkrRecon/TkrVertexCol",pVtxCol);
   
   return sc;
 }
