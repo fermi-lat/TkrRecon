@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 13:51:12 PST 2001
+TkrRecon/src/TrackFit
+
+Added Files:
+	KalHit.cxx KalPar.cxx KalPlane.cxx KalTrack.cxx 
+Log Message:
+Source code to implement the new Kalman Filter track fit code which uses 
+KalParticle (ie RCparticle) to transport the track error matrix, and does
+the fit in 3-D. This version provided by Bill Atwood.
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 13:49:52 PST 2001
 TkrRecon/src/TrackFit
 
