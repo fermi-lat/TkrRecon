@@ -830,6 +830,7 @@ bool ComboFindTrackTool::incorporate(Candidate* trial)
     // Need to protect short tracks since first 2 hits can be shared
     int min_unique_hits = std::min((int)(.67*numTrialHits), m_minUniHits);
 
+    //std::cout << std::endl;
     iterator cand = begin();
     for (; cand!=end(); cand++) {
         Candidate* thisCand = *cand;
@@ -841,15 +842,18 @@ bool ComboFindTrackTool::incorporate(Candidate* trial)
         int numUniqueFound = m_fitUtils->numUniqueHits(
             *(thisCand->track()), *(trial->track()), min_unique_hits);
         bool unique = (numUniqueFound>=min_unique_hits);
-
-        if (numUniqueFound<min_unique_hits) {
+        //std::cout << minLen << " hits " << numUniqueFound << "unique; ";
+        //if (unique) std::cout << "track is unique " << std::endl;
+        if (!unique) {
             if(*trial >= *thisCand) {
                 delete trial;
+                //std::cout << " delete trial" << std::endl;
                 return added; 
             }
             else {
                 delete thisCand;  
                 m_candidates.erase(cand); 
+                //std::cout << "delete existing cand" << std::endl;
                 break;
             }      
         }
