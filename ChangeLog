@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Thu Aug 29 12:21:26 PDT 2002
+TkrRecon/src/TrackFit/KalFitTrack
+
+Removed Files:
+	GFcontrol.cxx GFcontrol.h 
+Log Message:
+GFcontrol is no longer used or needed
+
+    *
+------------------------------------------------------------
 User: usher  Thu Aug 29 12:18:47 PDT 2002
 TkrRecon/src/Track
 
