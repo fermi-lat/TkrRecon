@@ -12,20 +12,20 @@ SiCluster::SiCluster(int id, int v, int ilayer,
 {
 	ini();
 
-	m_id = id;
-	m_view = intToView(v);
+	m_id     = id;
+	m_view   = intToView(v);
 	
-	m_plane = ilayer;
+	m_plane  = ilayer;
 
 	m_strip0 = istrip0;
 	m_stripf = istripf;
-	m_chip = (int) m_strip0/64;
+	m_chip   = (int) m_strip0/64;
 
-	m_strip = 0.5*(m_strip0+m_stripf);
-	m_size = fabs(m_stripf-m_strip0+1);
+	m_strip  = 0.5*(m_strip0+m_stripf);
+	m_size   = fabs(m_stripf-m_strip0+1);
 	
-	m_ToT = ToT;
-        m_tower = tower;
+	m_ToT    = ToT;
+    m_tower  = tower;
 	
 }
 
@@ -175,7 +175,7 @@ Point SiClusters::meanHit(SiCluster::view v, int iplane)
 }
 
 //######################################################
-Point SiClusters::meanHitInside(SiCluster::view v, int iplane, double radius,
+Point SiClusters::meanHitInside(SiCluster::view v, int iplane, double inRadius,
 								Point Pcenter)
 //######################################################
 {
@@ -184,21 +184,42 @@ Point SiClusters::meanHitInside(SiCluster::view v, int iplane, double radius,
 	int nhits = AuxList.size();
 	if (nhits == 0) return P;
 
-	int nsum =0;
+	double nsum = 0.;
 	double xsum = 0.;
 	double ysum = 0.;
 	double zsum = 0.;
-	for (int ihit=0; ihit<nhits; ihit++){
+
+	for (int ihit=0; ihit<nhits; ihit++)
+    {
 		P = AuxList[ihit]->position();
-		if ((P-Pcenter).mag() < radius) {
-			nsum++;
-			xsum+=P.x();
-			ysum+=P.y();
-			zsum+=P.z();
+
+        double hitRadius = fabs(P.x() - Pcenter.x());
+        double twrRadius = fabs(P.y() - Pcenter.y());
+
+		if      (v == SiCluster::Y) 
+        {
+            hitRadius = fabs(P.y() - Pcenter.y());
+            twrRadius = fabs(P.x() - Pcenter.x());
+        }
+        else if (v != SiCluster::X) 
+        {
+            hitRadius = (P-Pcenter).mag();
+            twrRadius = 0.;
+        }
+
+        //Check that hit is close and within one tower
+        if (hitRadius < inRadius && twrRadius < 1.1 * m_towerPitch) 
+        {
+			nsum += 1.;
+			xsum += P.x();
+			ysum += P.y();
+			zsum += P.z();
 		}
 	}
-	Point Pini(xsum/(1.*nsum),ysum/(1.*nsum),zsum/(1.*nsum));
-	return Pini;
+
+    if (nsum > 0.) P = Point(xsum/nsum, ysum/nsum, zsum/nsum);
+
+    return P;
 }
 
 //####################################################################
@@ -218,16 +239,32 @@ Point SiClusters::nearestHitOutside(SiCluster::view v, int iplane,
 	double minRadius = inRadius;
 	double maxRadius = 1e6;
 	Point Pini(0.,0.,0.);
-	for (int ihit = 0; ihit< nhits; ihit++) {
+	for (int ihit = 0; ihit< nhits; ihit++) 
+    {
+        if (AuxList[ihit]->hitFlagged()) continue;
+
 		Pini = AuxList[ihit]->position();
-		double radius; 
-		if (v == SiCluster::X) radius = fabs(Pini.x()-Pcenter.x());
-		else if (v == SiCluster::Y) radius = fabs(Pini.y()-Pcenter.y());
-		else radius = (Pini-Pcenter).mag();
-		if ( radius > minRadius && radius < maxRadius ) {
-			maxRadius = radius;
-			Pnear = Pini;
-			id = AuxList[ihit]->id();
+
+
+        double hitRadius = fabs(Pini.x() - Pcenter.x());
+        double twrRadius = fabs(Pini.y() - Pcenter.y());
+
+		if      (v == SiCluster::Y) 
+        {
+            hitRadius = fabs(Pini.y() - Pcenter.y());
+            twrRadius = fabs(Pini.x() - Pcenter.x());
+        }
+        else if (v != SiCluster::X) 
+        {
+            hitRadius = (Pini-Pcenter).mag();
+            twrRadius = 0.;
+        }
+        
+        if ( hitRadius >= minRadius && hitRadius < maxRadius && twrRadius < 1.1*m_towerPitch) 
+        {
+			maxRadius = hitRadius;
+			Pnear     = Pini;
+			id        = AuxList[ihit]->id();
 		}
 	}
 	return Pnear;

@@ -1,17 +1,15 @@
 #include "TkrRecon/GFcandidates.h"
 
 //###########################################################
-GFcandidates::GFcandidates(enum GFcandidates::type t, double ene,
+GFcandidates::GFcandidates(enum GFcandidates::type t, double ene, double sigmaCut,
 						   Point Pend, Point Pini):m_type(t),
-						   m_eneCandidate(ene),m_Pend(Pend),m_Pini(Pini)
+						   m_eneCandidate(ene),m_sigmaCut(sigmaCut),m_Pend(Pend),m_Pini(Pini)
 //###########################################################
 {
 	ini();
 
-	bool okX = findSeedCandidates(m_Xcandidates,m_seedtype,SiCluster::X, 
-		m_eneCandidate);
-	bool okY = findSeedCandidates(m_Ycandidates,m_seedtype,SiCluster::Y, 
-		m_eneCandidate);
+	bool okX = findSeedCandidates(m_Xcandidates,m_seedtype,SiCluster::X);
+	bool okY = findSeedCandidates(m_Ycandidates,m_seedtype,SiCluster::Y);
 
 	if (m_type != m_seedtype) findCandidates();
 
@@ -27,32 +25,28 @@ void GFcandidates::clear()
 }
 
 //###########################################################
-GFdata GFcandidates::GFconstructor(enum GFcandidates::type type, double ene,
+GFdata GFcandidates::GFconstructor(enum GFcandidates::type type, double ene, double sigmaCut,
 								   int ilayer,const Ray testRay, SiCluster::view axis)
 //###########################################################
 {
     GFdata data;
 
     if (type == GFcandidates::PARTICLE) {
-        GFparticle* _par = new GFparticle(GFcontrol::sigmaCut,	
-			ene, ilayer, testRay);
+        GFparticle* _par = new GFparticle(sigmaCut,	ene, ilayer, testRay);
         if (!_par->empty() && _par->accept()) data = _par->getGFdata();
         delete _par;
     } else if (type == GFcandidates::GAMMA) {
-        GFgamma* _gamma = new GFgamma(GFcontrol::FEne, GFcontrol::sigmaCut,
-            ene, ilayer, testRay);
+        GFgamma* _gamma = new GFgamma(GFcontrol::FEne, sigmaCut, ene, ilayer, testRay);
         if (!_gamma->empty() && _gamma->accept()) {
             data = _gamma->getGFdata();
         }
         delete _gamma;
     } else if (type == GFcandidates::TRACK) {
-        GFtrack* _track = new GFtrack(axis, GFcontrol::sigmaCut,
-            ene, ilayer, testRay);
+        GFtrack* _track = new GFtrack(axis, sigmaCut, ene, ilayer, testRay);
         if (!_track->empty() && _track->accept()) data = _track->getGFdata();
         delete _track;
     } else if (type == GFcandidates::PAIR) {
-        GFpair* _pair = new GFpair(GFcontrol::FEne, axis, GFcontrol::sigmaCut,
-            ene, ilayer, testRay);
+        GFpair* _pair = new GFpair(GFcontrol::FEne, axis, sigmaCut, ene, ilayer, testRay);
         if (!_pair->empty()) {
             if (_pair->accept()) {
                 data = _pair->getBest()->getGFdata();
@@ -98,7 +92,7 @@ bool  GFcandidates::findCandidates(std::vector<GFdata>& candidates,
 
     for (int ilayer = iniLayer ; ilayer <= lastLayer; ilayer++) {
 
-        GFdata candidateGFdata = GFconstructor(typ, ene, ilayer, testRay);
+        GFdata candidateGFdata = GFconstructor(typ, m_eneCandidate, m_sigmaCut, ilayer, testRay);
         if (candidateGFdata.Q() > GFcontrol::minQ) {
             ok = true;
             naccepted++;
@@ -112,13 +106,12 @@ bool  GFcandidates::findCandidates(std::vector<GFdata>& candidates,
 
 //###########################################################
 bool GFcandidates::findSeedCandidates(std::vector<GFdata>& candidates, 
-									  GFcandidates::type typ, SiCluster::view axis,
-									  double ene)
+									  GFcandidates::type typ, SiCluster::view axis)
 //###########################################################
 {
     bool OK = false;
     for (int iplane = 0 ; iplane < GFtutor::numPlanes() - 2; iplane++){
-        bool ok = findSeedCandidates(candidates, typ, axis, ene, iplane);
+        bool ok = findSeedCandidates(candidates, typ, axis, iplane);
         OK = OK || ok;
     }
     return OK;
@@ -127,7 +120,7 @@ bool GFcandidates::findSeedCandidates(std::vector<GFdata>& candidates,
 //###########################################################
 bool GFcandidates::findSeedCandidates(std::vector<GFdata>& candidates, 
 									  GFcandidates::type typ, SiCluster::view axis,
-									  double ene, int ilayer, int itower)
+									  int ilayer, int itower)
 //###########################################################
 {
     //unused:	int nconstructed = 0;
@@ -159,7 +152,7 @@ bool GFcandidates::findSeedCandidates(std::vector<GFdata>& candidates,
         Vector VDir(Pend.x()-Pini.x(),Pend.y()-Pini.y(),Pend.z()-Pini.z());
         Ray testRay = Ray(Pini, VDir.unit());
 
-        GFdata candidateGFdata = GFconstructor(typ, ene, ilayer, testRay, axis);
+        GFdata candidateGFdata = GFconstructor(typ, m_eneCandidate, m_sigmaCut, ilayer, testRay, axis);
 
         if (candidateGFdata.Q() > GFcontrol::minQ) {
             ok = true;
@@ -203,10 +196,18 @@ Point GFcandidates::createPend(SiCluster::view axis,int ilayer, const Point& Pin
 
     if (m_eneCandidate < GFcontrol::minEnergy) weight = 1.;
     if (PCal.mag() == 0) weight = 1.;
-	double side = GFtutor::trayWidth();
+	//double side = GFtutor::trayWidth();
+    //I think the above is too big and causing problems... 
+    //Look in a region below the current hit which is within a cone slightly 
+    //larger than 45 degrees (arbitrary!) of the current hit.
+    //double side = 2.5 * GFtutor::trayGap();
+    //double side = 3.5 * GFtutor::trayGap();
+    double side = 5.0 * GFtutor::trayGap();
     Point PTrk = GFtutor::_DATA -> meanHitInside(axis, ilayer+1,0.5*side, Pini);
 
-    if (PTrk.mag() == 0.) {
+    if (PTrk.mag() == 0.) 
+    {
+        side = 2 * side;
         PTrk = GFtutor::_DATA -> meanHitInside(axis, ilayer+2,0.5*side, Pini);
     }
 	
@@ -217,14 +218,26 @@ Point GFcandidates::createPend(SiCluster::view axis,int ilayer, const Point& Pin
 
     Point PRef(x,y,z);
 
-    if (PRef.mag() != 0.) {
-        if (axis == SiCluster::X ) y = Pini.y();
-        else x = Pini.x();
-    } else {
+    if (PRef.mag() != 0.) 
+    {
+        //Add an offset to the mean position to prevent deadlock when only two hits used
+        if (axis == SiCluster::X ) 
+        {
+            //x += 0.5 * GFtutor::siResolution();
+            y  = Pini.y();
+        }
+        else 
+        {
+            x  = Pini.x();
+            //y += 0.5 * GFtutor::siResolution();
+        }
+    } else 
+    {
         x = Pini.x();
         y = Pini.y();
         z = Pini.z()-GFtutor::trayGap();
     }
+
     PRef = Point(x,y,z);
 
     return PRef;
@@ -260,8 +273,7 @@ bool GFcandidates::findCandidates()
         candidates.clear();
         GFtutor::CUT_veto = false;
 
-        findSeedCandidates(candidates, m_seedtype, SiCluster::Y,m_eneCandidate,
-			Xcandidate.firstLayer(),Xcandidate.tower());
+        findSeedCandidates(candidates, m_seedtype, SiCluster::Y, Xcandidate.firstLayer(), Xcandidate.tower());
         for (int iy =0 ; iy < candidates.size(); iy++) {
             GFtutor::CUT_veto = save_veto;
             GFdata Ycandidate = candidates[iy];
@@ -277,8 +289,7 @@ bool GFcandidates::findCandidates()
         candidates.clear();
         GFtutor::CUT_veto = false;
 
-        findSeedCandidates(candidates, m_seedtype, SiCluster::X,m_eneCandidate,
-			Ycandidate.firstLayer(),Ycandidate.tower());
+        findSeedCandidates(candidates, m_seedtype, SiCluster::X, Ycandidate.firstLayer(), Ycandidate.tower());
         for (ix =0 ; ix < candidates.size(); ix++) {
             GFtutor::CUT_veto = save_veto;
             GFdata Xcandidate = candidates[ix];

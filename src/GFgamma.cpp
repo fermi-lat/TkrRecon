@@ -152,10 +152,10 @@ void GFpair::ini()
     
     Ray testRay(m_inVertex,m_inDirection);	
 
-    _mGFbest = new GFtrack(m_axis, GFcontrol::sigmaCut, 
+    _mGFbest = new GFtrack(m_axis, sigmaCut(), 
 		GFcontrol::FEne*m_iniEnergy, m_iniLayer, testRay, false);
     
-    _mGFpair = new GFtrack(m_axis, GFcontrol::sigmaCut,
+    _mGFpair = new GFtrack(m_axis,  sigmaCut(),
 		(1.-GFcontrol::FEne)*m_iniEnergy, m_iniLayer, testRay, false);
     
     GFdata::ini();
@@ -385,7 +385,7 @@ void GFpair::stepTogether(int klayer)
     
     _mGFbest->_mGFsegment->flagUsedHits(klayer);
     _mGFpair->_mGFsegment->best(klayer);
-    _mGFbest->_mGFsegment->unFlagAllHits();
+    _mGFbest->_mGFsegment->unFlagUsedHits(klayer);
     
     bool split = _mGFpair->_mGFsegment->accept();
     if (split && _mGFpair->numDataPoints() == 0 ) {
@@ -493,7 +493,7 @@ void GFpair::removeWorseStep(GFtrack* _GFtrack1, GFtrack* _GFtrack2)
 	}
     } 
 
-    if (chi2 >= chi1) {
+    if (nhits2 < nhits1 || chi2 >= chi1) {
         _GFtrack2->removeStep();
     } else {
         _GFtrack1->removeStep();

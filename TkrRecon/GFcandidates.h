@@ -21,7 +21,7 @@ public:
 public:
 
 	// construction
-	GFcandidates(type t, double ene, Point Pend = Point(0.,0.,0.), Point Pini = Point(0.,0.,0.));
+	GFcandidates(type t, double ene, double sigmaCut, Point Pend = Point(0.,0.,0.), Point Pini = Point(0.,0.,0.));
 	~GFcandidates() {}
 	void clear();
 
@@ -33,8 +33,7 @@ public:
     std::vector<GFdata> m_candidates;
 
 	// utilities
-	static GFdata GFconstructor(GFcandidates::type , double ene, int ilayer, 
-		const Ray testRay, SiCluster::view v = SiCluster::X);
+	static GFdata GFconstructor(GFcandidates::type , double ene, double sigmaCut, int ilayer, const Ray testRay, SiCluster::view v = SiCluster::X);
 	
 private:
 
@@ -47,10 +46,8 @@ private:
 		const GFdata& Xcandidate, const GFdata& Ycandidate, 
 		double ene, GFcandidates::type);
 
-    bool findSeedCandidates(std::vector<GFdata>& candidates, 
-		GFcandidates::type , SiCluster::view, double ene); 
-    bool findSeedCandidates(std::vector<GFdata>& candidates, 
-		GFcandidates::type , SiCluster::view, double ene, int iplane, int itower = 0);
+    bool findSeedCandidates(std::vector<GFdata>& candidates, GFcandidates::type , SiCluster::view); 
+    bool findSeedCandidates(std::vector<GFdata>& candidates, GFcandidates::type , SiCluster::view, int iplane, int itower = 0);
 
 	// internal utilities
 	static void incorporate(std::vector<GFdata>& candidates, const GFdata);
@@ -65,6 +62,7 @@ private:
 	Point m_Pend;
 
 	double m_eneCandidate;
+    double m_sigmaCut;
 
 };
 

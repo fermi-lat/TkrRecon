@@ -99,17 +99,18 @@ private:
 
     // Status
 	StatusHit m_status;
-	int m_lstGaps;
+	int    m_lstGaps;
+    double m_runChiSquare;
 
 	// Output Data
 	double m_qbest;
 
 	// contability
-    int m_gaps; 
-    int m_istGaps;
-    int m_lstLayer;
-    int m_noisyHits;
-    int m_istNoisyHits;
+    int    m_gaps; 
+    int    m_istGaps;
+    int    m_lstLayer;
+    int    m_noisyHits;
+    int    m_istNoisyHits;
 };
 
 //##############################################

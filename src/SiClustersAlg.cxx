@@ -237,7 +237,7 @@ bool SiClustersAlg::isGapBetween(const int lowStrip, const int highStrip)
     // gap between hits
     if (highHit > (lowHit + 1)) { return true; }
     
-    //edge of chip -- hardwired number may come back to plague us...
+    //edge of chip
     int nStrips = pTkrGeo->ladderNStrips();
     if((lowHit/nStrips) < (highHit/nStrips)) {return true; }
     

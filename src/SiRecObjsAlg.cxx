@@ -14,7 +14,8 @@
 //#include "Event/dataManager.h"
 //#include "Event/messageManager.h"
 #include "TkrRecon/GFcandidates.h"
-//#include "TkrRecon/CsIClusters.h"
+
+#include "GlastEvent/Recon/ICsIClusters.h"
 
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/AlgFactory.h"
@@ -133,10 +134,31 @@ StatusCode SiRecObjsAlg::retrieve()
     }
     */
     //! for the moment use:
-    double MINENE = 0.03;
-    m_CsIEnergy = MINENE;
-    m_CsIPosition = Point(0.,0.,0.);
+    //double MINENE = 0.03;
+    //m_CsIEnergy = MINENE;
+    //m_CsIPosition = Point(0.,0.,0.);    
     
+    ICsIClusterList* pCalClusters = SmartDataPtr<ICsIClusterList>(eventSvc(),"/Event/CalRecon/CsIClusterList");
+
+    m_CsIEnergy   = 0.03;
+    m_CsIPosition = Point(0.,0.,0.);
+
+    if (pCalClusters)
+    {
+        ICsICluster* pCalClus = pCalClusters->Cluster(0);
+        m_CsIEnergy          = pCalClus->energySum() / 1000; //GeV for now
+        m_CsIPosition        = pCalClus->position();
+    }
+
+    //Provide for some lower cutoff energy...
+    if (m_CsIEnergy < 0.03)
+    {
+        //! for the moment use:
+        double MINENE = 0.03;
+        m_CsIEnergy = MINENE;
+        m_CsIPosition = Point(0.,0.,0.);
+    }
+
     if (m_SiClusters == 0 || m_SiRecObjs ==0) sc = StatusCode::FAILURE; 
     return sc;
 }
@@ -150,13 +172,15 @@ void SiRecObjsAlg::searchGammas()
 	double factor = 1.;
 	bool end = false;
 	
-	while (ntries < GFcontrol::gammaTries && !end) {
+	while (ntries < GFcontrol::gammaTries && !end) 
+    {
+        double sigmaCut = 3.* GFcontrol::sigmaCut;
 		
 		double ene = m_CsIEnergy*factor;
 		if (ene <= GFcontrol::minEnergy) ene = GFcontrol::minEnergy;
 		
 		GFcandidates* gamma = 
-			new GFcandidates(GFcandidates::GAMMA, ene ,m_CsIPosition);
+            new GFcandidates(GFcandidates::GAMMA, ene , sigmaCut, m_CsIPosition);
 		
 		if (gamma->numCandidates() > 0) {
 			ntries++;
@@ -167,7 +191,7 @@ void SiRecObjsAlg::searchGammas()
 			int iniLayer = gammaCandidate.firstLayer();
 			Ray testRay = gammaCandidate.ray();
 			
-			GFgamma* _GFgamma = new GFgamma(GFcontrol::FEne, GFcontrol::sigmaCut,
+			GFgamma* _GFgamma = new GFgamma(GFcontrol::FEne, sigmaCut,
 				ene, iniLayer, testRay);
 			
 			if (!_GFgamma->empty()) {
@@ -197,7 +221,7 @@ void SiRecObjsAlg::searchParticles()
 		double ene = GFcontrol::FEneParticle*m_CsIEnergy*factor;
 		if (ene <= GFcontrol::minEnergy) ene = GFcontrol::minEnergy;
 		GFcandidates* tracks = 
-			new GFcandidates(GFcandidates::PARTICLE, ene, m_CsIPosition);
+            new GFcandidates(GFcandidates::PARTICLE, ene, GFcontrol::sigmaCut, m_CsIPosition);
 		
 		if (tracks->numCandidates() > 0) {
 			ntries++;

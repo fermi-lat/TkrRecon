@@ -36,6 +36,7 @@ protected:
 	bool accept() const;
 
 	void flagUsedHits(int kplane);
+	void unFlagUsedHits(int kplane);
 	void unFlagAllHits();
 
 private:
@@ -52,7 +53,7 @@ private:
 	// Selecting the Hit
     double sigmaFoundHit(const KalPlane& previous, const KalPlane& next, int& indexhit, double& radius) const; // returns also indexhit and radius
 	void incorporateFoundHit(KalPlane& next, int indexhit) const; // modifies next
-    bool foundHit(int& indexhit, double& inerRadius, double outRadius,
+    bool foundHit(int& indexhit, double& inerRadius, double outRadius, double twrRadius,
 			const Point& CenterX, const Point& nearHit, double slope) const;
 
     // Utilities

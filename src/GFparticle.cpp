@@ -1,4 +1,4 @@
-// $Id: GFparticle.cpp,v 1.1 2001/02/05 19:05:54 hernando Exp $
+// $Id: GFparticle.cpp,v 1.2 2001/03/06 20:22:50 usher Exp $
 //------------------------------------------------------------------------------
 //
 //     GlastFit
@@ -94,14 +94,15 @@ void GFtrack::clear()
     
     KalTrack::clear();
     
-    m_lstGaps = 0;
-    m_gaps   = 0;
-    m_istGaps= 0;
-    m_lstLayer = 0;
-    m_noisyHits = 0;
+    m_lstGaps      = 0;
+    m_runChiSquare = 0.;
+    m_gaps         = 0;
+    m_istGaps      = 0;
+    m_lstLayer     = 0;
+    m_noisyHits    = 0;
     m_istNoisyHits = 0;
     
-    m_status = EMPTY;
+    m_status       = EMPTY;
 
     if (_mGFsegment) _mGFsegment->clear();
     
@@ -173,12 +174,13 @@ void GFtrack::ini()
 {
     m_status = EMPTY;
 
-    m_gaps   = 0;
-    m_istGaps= 0;
-    m_lstGaps = 0; 
-    m_noisyHits = 0;
-    m_istNoisyHits   = 0;
-    m_lstLayer = 0;
+    m_gaps         = 0;
+    m_istGaps      = 0;
+    m_runChiSquare = 0.;
+    m_lstGaps      = 0; 
+    m_noisyHits    = 0;
+    m_istNoisyHits = 0;
+    m_lstLayer     = 0;
     
     KalTrack::clear();
     
@@ -198,15 +200,37 @@ void GFtrack::step(int kplane)
     if (!alive()) return;
     
     m_status = EMPTY;
+
     if (kplane > GFtutor::numPlanes()-1) return;
     
-    if (numDataPoints() == 0) _mGFsegment->best(kplane);
-    else {
+    if (numDataPoints() == 0)
+    {
+        _mGFsegment->best(kplane);
+    }
+    else 
+    {
         _mGFsegment->next(kplane);
     }
     
     m_status = _mGFsegment->status();
-    if (m_status == FOUND) kplanelist.push_back(_mGFsegment->getKPlane());
+
+    if (m_status == FOUND) 
+    {
+        double segChiSquare = _mGFsegment->chiSquare();
+
+        //Don't add the new hit if it makes the track chi**2 lots worse
+        //But below will add hit if first two hits on track or very 
+        //straight track
+        if (numDataPoints() < 4 || segChiSquare < 1. || segChiSquare < 10. * m_runChiSquare)
+        {
+            kplanelist.push_back(_mGFsegment->getKPlane());
+            if (numDataPoints() > 2) m_runChiSquare += segChiSquare;
+        }
+        else 
+        {
+            setStatus(EMPTY);
+        }
+    }
     
 }
 
@@ -421,7 +445,7 @@ KalPlane GFtrack::originalKPlane() const
     
     KalHit hitfit(KalHit::FIT, pfit, covfit);
     
-    KalPlane kp(0,m_iniLayer-1,m_iniEnergy, z0, porth, hitfit);
+    KalPlane kp(-1,m_iniLayer-1,m_iniEnergy, z0, porth, hitfit);
     
     return kp;
 }

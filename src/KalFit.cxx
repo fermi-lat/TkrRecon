@@ -1,5 +1,5 @@
 
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/KalFit.cxx,v 1.1 2001/02/05 19:05:54 hernando Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/KalFit.cxx,v 1.2 2001/02/13 01:50:34 igable Exp $
 
 //----------------------------------------------------------------------
 //    
@@ -252,7 +252,8 @@ double KalTrack::doFit()
     //  Filter 
     //------------
     int iplane = 0;  // to be compatible with new scoping rules for (MSC_VER)
-    for (iplane = 0 ; iplane<nplanes-1;iplane++){
+    for (iplane = 0 ; iplane<nplanes-1;iplane++)
+    {
 		filterStep(iplane);
         if(iplane > 0) m_chisq+=kplanelist[iplane+1].getDeltaChiSq(KalHit::FIT);
     }
@@ -263,10 +264,11 @@ double KalTrack::doFit()
     kplanelist[nplanes-1].setHit(hitsm);
     m_chisqSmooth=kplanelist[nplanes-1].getDeltaChiSq(KalHit::SMOOTH);
     
-    for (iplane=nplanes-2; iplane>=0;iplane--){
-	KalHit hitsm=kplanelist[iplane].smoother(kplanelist[iplane+1]);
+    for (iplane=nplanes-2; iplane>=0;iplane--)
+    {
+        KalHit hitsm=kplanelist[iplane].smoother(kplanelist[iplane+1]);
         kplanelist[iplane].setHit(hitsm);
-	m_chisqSmooth+=kplanelist[iplane].getDeltaChiSq(KalHit::SMOOTH);                
+        m_chisqSmooth+=kplanelist[iplane].getDeltaChiSq(KalHit::SMOOTH);                
     }
    
     // End the Calculations
@@ -578,8 +580,8 @@ void KalPlane::writeOut(std::ostream& out) const
 void KalPlane::removeHit()
 //#####################################
 {
-	m_IDHit = 0;
-	m_IDTower = 0;
+	m_IDHit = -1;
+	m_IDTower = -1;
 	KalPar pnull(0.,0.);
 	KalMatrix covnull(0.,0.,0.);
 	setHit(KalHit(KalHit::MEAS,pnull,covnull));
