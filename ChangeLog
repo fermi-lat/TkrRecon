@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Sat Mar 30 00:34:40 PST 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrGeometrySvc.cxx 
+Log Message:
+Removed last references to private TkrRecon geometry
+
+    *
+------------------------------------------------------------
+User: lsrea  Sat Mar 30 00:34:40 PST 2002
 TkrRecon/TkrRecon/Services
 
 Modified Files:
