@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: lsrea  Mon Feb  3 14:54:13 PST 2003
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrClusterAlg.cxx 
+Log Message:
+preparing for tag v8r8; introducing alignment service
+    *
+------------------------------------------------------------
+User: lsrea  Mon Feb  3 14:54:13 PST 2003
 TkrRecon/doc
 
 Modified Files:
