@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: usher  Tue May 27 11:24:54 PDT 2003
+TkrRecon/src/PatRec/LinkAndTree
+
+Modified Files:
+	LinkAndTreeFindTrackTool.cxx TkrLinkAndTree.cxx 
+	TkrLinkAndTree.h 
+Log Message:
+work to make work "properly" but should now at least run.
+
+    *
+------------------------------------------------------------
+User: usher  Tue May 27 11:24:54 PDT 2003
 TkrRecon/src/GaudiAlg
 
 Modified Files:
