@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Nov 10 14:19:39 PST 2004
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx 
+Log Message:
+remove KalFitTrack  - implement TkrTrack for candidates
+    *
+------------------------------------------------------------
 User: atwood  Wed Nov 10 14:17:18 PST 2004
 TkrRecon/src/Dll
 
