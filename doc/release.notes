@@ -3,6 +3,7 @@
  * Package TkrRecon
  * Manager: Leon Rochester 
  * 
+ * v8r5    30-Oct-2002  LSR   fix bug in TkrComboPatRec, and new code from Bill for TkrComboVtxRecon
  * v8r4p4  16-oct-2002  LSR   fix overrunning loop in TkrMakeClusters
  * v8r4p3  11-Oct-2002  LSR   first iteration on TkrComboPatRec
  * v8r4p2  11-Oct-2002  LSR   get the documentation right
