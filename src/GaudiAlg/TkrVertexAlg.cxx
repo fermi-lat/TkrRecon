@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.10 2002/08/28 22:55:48 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.11 2002/08/29 16:45:34 cohen Exp $
 //
 // Description:
 //      Handles the Gaudi part of the vertex reconstruction
@@ -89,12 +89,6 @@ StatusCode TkrVertexAlg::execute()
         {
             // Use the "Combo" vertexing
             VtxToolName = std::string("ComboVtxTool");
-        }
-        else if(m_VertexerType == std::string("COMBO"))
-        { 
-            // Alternate implementation of the "Combo" vertexing
-            if(pTkrTracks->size() == 1) { VtxToolName = std::string("VtxSingleTrkTool");}
-            else                        { VtxToolName = std::string("VtxComboTrkTool");}
         }
         else if(m_VertexerType == std::string("KALMAN"))
         {
