@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Tue Mar  1 20:37:18 PST 2005
+TkrRecon/src/Track
+
+Modified Files:
+	KalmanTrackFitTool.cxx TrackFitUtils.cxx 
+Log Message:
+Modifications to speed up code: 1) Pat Rec now does partial fit (doSmootherFit and calculate quality), 2) calculation of active distance removed from Process Noise matrix calculation and 3) moved to TrackFitUtils as an end of track fit processing task
+    *
+------------------------------------------------------------
+User: usher  Tue Mar  1 20:37:18 PST 2005
 TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices
 
 Modified Files:
