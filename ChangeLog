@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Tue Jul 16 08:47:17 PDT 2002
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+should provide automatic deletion of shared library when .a are more recent (Linux systems)
+    *
+------------------------------------------------------------
 User: cohen  Tue Jul 16 08:45:07 PDT 2002
 TkrRecon/cmt/fragments
 
