@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: cohen  Fri May 31 16:38:38 PDT 2002
+TkrRecon/src/Vertex/DocaVtx
+
+Modified Files:
+	DocaVtxAlg.cxx 
+Log Message:
+STL Compliance of TkrFitTrackCol
+    *
+------------------------------------------------------------
+User: cohen  Fri May 31 16:38:38 PDT 2002
 TkrRecon/src/Vertex/Combo
 
 Modified Files:
