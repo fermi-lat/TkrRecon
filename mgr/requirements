@@ -29,7 +29,7 @@ apply_pattern package_Cshlibflags
 apply_pattern package_headers
 
 macro_append TkrRecon_headers     "" WIN32 " ../TkrRecon/GaudiAlg/*.h ../TkrRecon/Display/*.h ../TkrRecon/Services/*.h "
-macro_append TkrReconData_headers "" WIN32 " ../src/PatRec/Combo/*.h ../TkrRecon/Track/*.h ../TkrRecon/Cluster/TkrClusters.h ../TkrRecon/TrackFit/*.h "
+macro_append TkrReconData_headers "" WIN32 " ../src/PatRec/Combo/*.h ../TkrRecon/Track/T*.h ../TkrRecon/Cluster/TkrClusters.h ../TkrRecon/TrackFit/*.h "
 macro_append TkrCluster_headers   "" WIN32 " ../TkrRecon/Cluster/*.h"
 macro_append TkrPatRec_headers    "" WIN32 " ../TkrRecon/PatRec/*.h ../src/PatRec/LinkAndTree/*.h ../src/PatRec/Combo/*.h"
 macro_append TkrTrack_headers     "" WIN32 " ../TkrRecon/Track/*.h ../TkrRecon/TrackFit/*.h"
@@ -37,10 +37,14 @@ macro_append TkrTrack_headers     "" WIN32 " ../TkrRecon/Track/*.h ../TkrRecon/T
 # have a seperate library to export the tracker recon data classes 
 
 library TkrReconData -no_share Cluster/*.cpp                 \
+                               PatRec/*.cxx                  \
                                PatRec/Combo/*.cxx            \
+                               PatRec/LinkAndTree/*.cxx      \
                                Track/*.cxx                   \
                                TrackFit/*.cxx                \
-                               GaudiAlg/TkrReconAlg.cxx      \
+                               Services/*.cxx                \
+                               GaudiAlg/*.cxx                \
+                               Display/*.cxx                 \
                                ${TkrReconData_headers}
 
 library TkrCluster   -no_share Cluster/*.cpp                 \
