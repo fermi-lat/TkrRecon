@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.5 2002/10/09 23:44:09 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.6 2003/01/23 21:55:35 usher Exp $
 //
 // Description:
 //      Controls the track fitting
@@ -113,7 +113,11 @@ StatusCode TkrTrackFitAlg::execute()
     MsgStream log(msgSvc(), name());
     StatusCode sc = StatusCode::SUCCESS;
 
-    log << MSG::DEBUG << "------- Recon of new Event --------" << endreq;
+    log << MSG::DEBUG; 
+    if (log.isActive()) {
+        log << "------- Recon of new Event --------";
+    }
+    log << endreq;
 
     // Recover pointer to the reconstructed clusters NOT USED
     //    Event::TkrClusterCol* TkrClusters = SmartDataPtr<Event::TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol); 

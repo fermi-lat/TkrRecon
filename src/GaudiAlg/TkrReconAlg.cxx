@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.19 2002/08/28 22:55:48 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.20 2002/09/05 16:42:30 lsrea Exp $
 //
 // Description:
 //      Contains the implementation of the methods for controlling the tracker reconstruction
@@ -93,10 +93,15 @@ StatusCode TkrReconAlg::execute()
     MsgStream log(msgSvc(), name());
     StatusCode sc = StatusCode::SUCCESS;
 
-    log << MSG::DEBUG << "------- Recon of new Event --------" << endreq;
+    log << MSG::DEBUG;
+    if (log.isActive()) {
+        log << "------- Recon of new Event --------";
+    }
+    log << endreq;
 
     // Call the four main algorithms in order
 
+    
     if(m_TkrClusterAlg->execute() == StatusCode::FAILURE)
     {
         log << MSG::ERROR << " TkrClusterAlg FAILED to execute!" << endreq;

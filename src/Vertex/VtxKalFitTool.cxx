@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.16 2002/09/05 12:44:21 cohen Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.17 2002/12/19 21:59:19 usher Exp $
 // Description:                                                  
 //      Implementation of the Kalman vertexer
 //
@@ -73,7 +73,11 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
   // (ie the daughters)
   std::vector<Event::TkrFitTrack*> usedTracks;
 
-  log<<MSG::DEBUG<<"NUMBER OF TRACKS TO VERTEX: "<<theTracks->size()<<endreq;
+  log<<MSG::DEBUG;
+  if (log.isActive() ) {
+      log <<"NUMBER OF TRACKS TO VERTEX: "<<theTracks->size();
+  }
+  log <<endreq;
   //***********************
   //FILTER STEP:
   //***********************
@@ -155,7 +159,11 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       // chi2f = r.T()*G*r + dx.T()*C*dx SCALAR
       double chi2f = G.similarity(r) + invC.similarity(dx);
       
-      log<<MSG::DEBUG<<"chi2f= "<<chi2f<<", and chi2max= "<<m_chi2max<<endreq;
+      log<<MSG::DEBUG;
+      if (log.isActive() ) {
+          log <<"chi2f= "<<chi2f<<", and chi2max= "<<m_chi2max;
+      }
+      log << endreq;
       if(chi2f < m_chi2max) 
         {
           totalChi2 += chi2f;
@@ -177,7 +185,11 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
     }
 
       
-  log<<MSG::DEBUG<<"Number of tracks used: "<<usedTracks.size()<<endreq;
+  log<<MSG::DEBUG;
+  if (log.isActive() ) {
+      log <<"Number of tracks used: "<<usedTracks.size();
+  }
+  log << endreq;
   //**************************
   //SMOOTHER STEP:
   //**************************
