@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Tue Nov 16 10:48:58 PST 2004
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx 
+Log Message:
+Added the z plane for gap hits
+    *
+------------------------------------------------------------
 User: atwood  Tue Nov 16 10:48:18 PST 2004
 TkrRecon/src/Track
 
