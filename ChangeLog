@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Fri Oct 11 12:29:59 PDT 2002
+TkrRecon/TkrRecon/Services
+
+Modified Files:
+	TkrGeometrySvc.h 
+Log Message:
+add getReconLayeZ() to TkrGeometrySvc
+    *
+------------------------------------------------------------
 User: lsrea  Fri Oct 11 12:29:58 PDT 2002
 TkrRecon/TkrRecon
 
