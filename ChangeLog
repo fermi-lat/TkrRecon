@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue Jun 11 12:45:52 PDT 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrGeometrySvc.cxx 
+Log Message:
+Leon's modifications to get the correct cluster positions
+
+    *
+------------------------------------------------------------
 User: usher  Mon Jun 10 16:28:38 PDT 2002
 TkrRecon/src/Vertex/Combo
 
