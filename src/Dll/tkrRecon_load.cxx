@@ -22,9 +22,7 @@ DECLARE_FACTORY_ENTRIES(TkrRecon)
     DECLARE_ALGORITHM( TkrVertexAlg            );
     DECLARE_ALGORITHM( TkrDisplayAlg           );
 
-    //DECLARE_SERVICE(   TkrGeometrySvc          );
     DECLARE_SERVICE(   TkrInitSvc              );
-    //DECLARE_SERVICE(   TkrBadStripsSvc         );
 
     DECLARE_TOOL(      VtxSingleTrkTool        );
     DECLARE_TOOL(      VtxKalFitTool           );
@@ -35,6 +33,5 @@ DECLARE_FACTORY_ENTRIES(TkrRecon)
     DECLARE_TOOL(      ComboFindTrackTool      );
     DECLARE_TOOL(      LinkAndTreeFindTrackTool);
     DECLARE_TOOL(      NeuralNetFindTrackTool  );
-    DECLARE_TOOL(      TkrMeritTool            );
 } 
 
