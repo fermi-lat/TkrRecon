@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.11 2003/05/27 18:24:54 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.12 2003/05/27 22:23:31 usher Exp $
  */
 
 #include <vector>
@@ -101,7 +101,7 @@ StatusCode TkrTrackFitAlg::initialize()
         // Set up for the track fit using Combo candidate tracks as input
         sc = toolSvc()->retrieveTool("TkrComboFitTool", m_FitTool);
     }
-    else if (m_TrackFitType == "LinkAndTree")
+    else if (m_TrackFitType == "LinkAndTree" || m_TrackFitType == "MonteCarlo")
     {
         // Set up for the track fit using Link And Tree candidate tracks as input
         sc = toolSvc()->retrieveTool("TkrLinkAndTreeFitTool", m_FitTool);

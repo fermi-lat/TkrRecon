@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.14 2002/08/28 22:55:48 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.15 2002/09/05 16:42:30 lsrea Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -74,6 +74,11 @@ StatusCode TkrFindAlg::initialize()
     {
         // Neural Net Pat Rec
         sc = toolSvc()->retrieveTool("NeuralNetFindTrackTool", m_findTool);
+    }
+    else if (m_TrackFindType == "MonteCarlo")
+    {
+        // Neural Net Pat Rec
+        sc = toolSvc()->retrieveTool("MonteCarloFindTrackTool", m_findTool);
     }
     else
     {
