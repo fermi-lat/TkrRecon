@@ -81,7 +81,7 @@ StatusCode TkrReconAlg::execute()
     //Recover pointer to Cal Cluster info    
     ICsIClusterList* pCalClusters = SmartDataPtr<ICsIClusterList>(eventSvc(),"/Event/CalRecon/CsIClusterList");
 
-    double CalEnergy   = 0.03;
+    double CalEnergy   = 30.0; // MeV
     Point  CalPosition = Point(0.,0.,0.);
 
     //If clusters, then retrieve estimate for the energy
@@ -96,7 +96,7 @@ StatusCode TkrReconAlg::execute()
     if (CalEnergy < 0.03)
     {
         //! for the moment use:
-        double MINENE = 0.03;
+        double MINENE = 30.0;  //MeV
         CalEnergy     = MINENE;
         CalPosition   = Point(0.,0.,0.);
     }

@@ -6,8 +6,8 @@
 #include "src/PatRec/LinkAndTree/TkrClusterLinkList.h"
 
 //Ugliness that will need to be dealt with
-#define NLAYERS     18
-#define NLINKLAYERS 17
+#define NLAYERS     18  //fix
+#define NLINKLAYERS 17  //fix
 
 
 TkrClusterLinkList::TkrClusterLinkList()

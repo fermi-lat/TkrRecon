@@ -141,7 +141,7 @@ void TkrComboPatRec::findBlindCandidates()
 {   // Method to generate track hypothesis from just the hits in the
     // tracker.
     
-    for (int ilayer = 0 ; ilayer < 16; ilayer++)
+    for (int ilayer = 0 ; ilayer < 16; ilayer++) //fix
     { // Create space point loops and check for hits
         TkrPoints first_Hit(ilayer);
         if(first_Hit.finished()) continue;
@@ -186,7 +186,7 @@ void TkrComboPatRec::findCalCandidates()
     // energy centroid as a seed. Allow a gap between first two
     // hits but none between next two if first two had a gap
     
-    for (int ilayer = 0 ; ilayer < 16; ilayer++)
+    for (int ilayer = 0 ; ilayer < 16; ilayer++) //fix
     { // Create space point loop and check for hits
         TkrPoints first_Hit(ilayer);
         if(first_Hit.finished()) continue;
@@ -207,9 +207,9 @@ void TkrComboPatRec::findCalCandidates()
             int gap;
             float deflection; 
              float sigma = findNextHit(ilayer, 0.0, testRay, deflection, gap);
-            if( gap > 1 || deflection > 10.) { // give it a second try...
+            if( gap > 1 || deflection > 100.) { //mm give it a second try...
                 sigma = findNextHit(ilayer+1, m_arclen, testRay, deflection, gap);
-                if( gap > 1 || deflection > 10.) continue;
+                if( gap > 1 || deflection > 100.) continue; //mm
                 gap = 1; 
             }
                 
@@ -238,18 +238,18 @@ float TkrComboPatRec::findNextHit(int layer, float arc_len, Ray& traj, float &de
     // Extrapolate the next paired x-y space point from layer. 
 
     gap = 0;
-    deflection = 1000.;
+    deflection = 10000.; //mm
     int nlayers = 0;
 
     Point x_ini = traj.position();
     Vector dir_ini = traj.direction();
 
-    float arc_min = .3/fabs(dir_ini.z()) + arc_len; 
+    float arc_min = 3.0/fabs(dir_ini.z()) + arc_len; //mm
     std::auto_ptr<IKalmanParticle> 
             kalPart(TkrReconAlg::m_gismoSvc->kalmanParticle(x_ini, dir_ini, arc_min));
     if(kalPart->trackToNextPlane()) {
         m_arclen = kalPart->arcLength();
-        nlayers = (m_arclen - arc_len)*fabs(dir_ini.z())/2.9;
+        nlayers = (m_arclen - arc_len)*fabs(dir_ini.z())/29.0; //mm
         if(nlayers < 1) nlayers =1;
         gap = nlayers-1;
     }

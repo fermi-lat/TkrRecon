@@ -13,11 +13,11 @@ double    GFcontrol::sigmaCut            = 6.;
 int	  GFcontrol::error	         = 0;
 int	  GFcontrol::maxConsecutiveGaps  = 6;	    // max consecutive Gaps - Stop
 int	  GFcontrol::minSegmentHits      = 6;	    // min number of hits for segment
-double	  GFcontrol::minEnergy	         = 0.03;     // min tracking energy GeV
+double	  GFcontrol::minEnergy	         = 30.0;  //MeV  min tracking energy GeV
 double	  GFcontrol::XEne 	         = 0.50;    // initial sharing of the energy
 
 double	  GFcontrol::iniErrorSlope       = 0.17;    // 10 deg
-double	  GFcontrol::iniErrorPosition    = 0.010;   // 0.1 mm
+double	  GFcontrol::iniErrorPosition    = 0.10;   //mm
 
 double	  GFcontrol::maxChiSqSegment     = 200.;    // max chi2 of the initial segment
 int       GFcontrol::maxGapsSegment      = 1;       // gaps allowed in the initial segment
