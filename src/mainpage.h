@@ -8,13 +8,14 @@
  * hit strips in the TKR.
  * 
  * It's organized a a series of algorithms that act
- * successively, taking input from and sending output to
+ * successively, taking input from, and sending output to
  * the Transient Data Store.
  * 
  * The major driver algorithms are written to support multiple 
  * implementations. 
- * For example, TkrFindAlg currently has two implementations:
- * ComboPR and LinkAndTreePR.
+ * For example, TkrFindAlg currently has three implementations
+ * in various stages of development:
+ * ComboPR, LinkAndTreePR and NeuralNetPR.
  *
  * A diagram of the program flow can be seen
  * <A href= "../images/Tkr_diagram.gif>here</A>.
@@ -23,27 +24,31 @@
  * 
  * The algorithms are:
  *
- * TkrClusterAlg: Groups hits into clusters. Takes as input the digitized hits in TkrDigi,
- * and fills TkrClusters
+ * TkrClusterAlg: Groups hits into clusters. Takes as input 
+ * the digitized hits in TkrDigi, and fills TkrClusters
  *
- * TkrFindAlg: Finds possible tracks. Takes the list of clusters as input and fills TkrCandidates. 
+ * TkrFindAlg: Finds possible tracks. Takes the list of clusters as input 
+ * and fills TkrCandidates. 
  *
- * TkrReconAlg: (bad name! It's called TkrFitAlg in the diagram.) Fits the candidate tracks and fills TkrTracks.
+ * TkrReconAlg: (bad name! It's called TkrFitAlg in the diagram.) 
+ * Fits the candidate tracks and fills TkrTracks.
  *
- * TkrVertexAlg: Tries to find vertices among the TkrTracks, to produce TkrVertices. (not yet implemented)
+ * TkrVertexAlg: Tries to find vertices among the TkrTracks, 
+ * to produce TkrVertices. A simple implementation based on 
+ * the original Atwood/Hernando code as been installed.
  *
  * @section services Services
  * 
- * TkrGeometrySvc: supplies the geometry constants 
+ * TkrGeometrySvc: an interface to GlastDetSvc, it supplies the geometry constants. 
  *
  * TkrBadStripsSvc: manages the list of bad strips.
- * this service currently interacts with TkrClusterAlg, but 
+ * This service currently interacts with TkrClusterAlg, but 
  * ultimately will also be used by other algorithms.
  *
  * TkrInitSvc: allows for loading of code required by the
  * various specific implementations of the algorithms.
- * This service will probably no longer be necessary after
- * the algorithms are taught about sub-algorithms.
+ * This service may go away if we can teach
+ * the algorithms about sub-algorithms.
  *
  * @authors Tracy Usher, Bill Atwood, Leon Rochester
  * <hr>

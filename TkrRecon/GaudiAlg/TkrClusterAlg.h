@@ -25,14 +25,13 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header$
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrClusterAlg.h,v 1.2 2002/02/26 01:50:54 lsrea Exp $
 */
 
 class TkrClusterAlg : public Algorithm
 
 {
 public:
-    /// constructor for algorithm
     TkrClusterAlg(const std::string& name, ISvcLocator* pSvcLocator); 
     virtual ~TkrClusterAlg() {}
     /// Looks for the geometry service (required) and the bad strips service (optional)

@@ -41,7 +41,7 @@ void TkrCluster::writeOut(MsgStream& log) const
 {
     // Purpose: writes out debug info
 	// Inputs:  message stream
-	// Outputs: none
+	// Outputs: data written to message stream
 	
 	log << MSG::DEBUG << " plane " << m_plane << " XY " << m_view;
     log << MSG::DEBUG << " xpos  " << m_position.x()  << " ypos   " << m_position.y();
@@ -54,23 +54,29 @@ void TkrCluster::writeOut(MsgStream& log) const
 
 int TkrCluster::chip()     
 { 
+	// Purpose: returns chip number of this cluster
+	// Method: calculated from the strip number
 	return m_strip0/64;
 }
 
 double TkrCluster::strip() 
 { 
+	// Purpose: return the center strip number
+	// Method: average of first and last strip
+	// Caveat: may be half-integer
 	return 0.5*(m_strip0+m_stripf);
 }
 
 double TkrCluster::size()  
 { 
+	// Purpose: returns number of strips in the cluster
 	return fabs(m_stripf-m_strip0) + 1.;
 }
 
 TkrCluster::view TkrCluster::intToView(int iv)
 
 {
-	// Purpose: converts a number to an enum
+	// Purpose: converts a view number to an enum
 	
 	TkrCluster::view v = XY;
 	if (iv == 0) v = X;
