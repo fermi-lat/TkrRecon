@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: lsrea  Tue Oct 19 21:03:28 PDT 2004
+TkrRecon/doc
+
+Modified Files:
+      Tag: GlastRelease-v4r5
+	release.notes 
+Log Message:
+Prepare for tag v9r0p2gr4
+protect against zero radiation length steps
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Oct 19 21:03:27 PDT 2004
 TkrRecon/cmt
 
