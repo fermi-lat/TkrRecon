@@ -17,6 +17,9 @@ void TkrRecObjsRep::update()
 {
     SiRecObjs* pRecObjs = *ppRecObjs;
 
+    //Zero out the pointer so we don't accidentally try to draw the event
+    *ppRecObjs = 0;
+
 	//Now see if we can do the drawing
 	if (pRecObjs)
 	{
