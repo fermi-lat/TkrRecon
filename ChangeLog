@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Jan 25 12:04:46 PST 2005
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Prepare for tag v10r3: updates for TkrCluster, and start working on unix warnings
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r2p2, operation: add
 Package: TkrRecon
