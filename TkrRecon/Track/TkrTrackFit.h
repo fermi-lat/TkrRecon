@@ -2,8 +2,8 @@
 #ifndef TKRTRACKFIT_H
 #define TKRTRACKFIT_H
 
-#include "TkrRecon/Track/TkrTracks.h"
-#include "TkrRecon/PatRec/TkrCandidates.h"
+#include "GlastEvent/Recon/TkrRecon/TkrFitTrackCol.h"
+#include "GlastEvent/Recon/TkrRecon/TkrPatCandCol.h"
 #include "geometry/Ray.h"
 
 //
@@ -20,10 +20,14 @@
 //-------------------------------------------------------
 //
 
+namespace TkrRecon { //Namespace
+
 class TkrTrackFit
 {
 public:
-    virtual TkrTracks* doTrackFit(TkrClusters* pTkrClus, TkrCandidates* pTkrCand, double CalEnergy) = 0;
+    virtual TkrFitTrackCol* doTrackFit(TkrClusterCol* pTkrClus, TkrPatCandCol* pTkrCand, double CalEnergy) = 0;
+};
+
 };
 
 #endif

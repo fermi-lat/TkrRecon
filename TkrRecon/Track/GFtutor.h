@@ -2,8 +2,10 @@
 #ifndef __GFTUTOR_H
 #define __GFTUTOR_H 1
 
-#include "TkrRecon/Cluster/TkrClusters.h"
+#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
+
+namespace TkrRecon { //Namespace
 
 //############################################
 class GFtutor
@@ -11,15 +13,11 @@ class GFtutor
 {
 public:
 
-	friend class KalPlane;
-    friend class TkrFitTrack;
     friend class KalFitTrack;
-    friend class KalFindFitTrack;
-    friend class TkrFitPlane;
 
-	static void GFtutor::load(TkrClusters* scl, ITkrGeometrySvc* pTrkGeo);
+    static void GFtutor::load(TkrClusterCol* scl, ITkrGeometrySvc* pTrkGeo);
 	static void GFtutor::setVeto(bool vt) {CUT_veto = vt;}
-	static TkrClusters* _DATA;
+	static TkrClusterCol* _DATA;
 
 protected:
 
@@ -59,5 +57,7 @@ private:
 
 	static bool m_storedVeto;
 }; 
+
+}; //namespace
 
 #endif
