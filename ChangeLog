@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+User: usher  Tue Aug 20 12:21:39 PDT 2002
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	TkrNeuralNet.cxx TkrNeuralNet.h TkrNeuron.h 
+Added Files:
+	NeuralNetFindTrackTool.cxx NeuralNetFindTrackTool.h 
+Removed Files:
+	TkrNeuralNetPR.cxx TkrNeuralNetPR.h 
+Log Message:
+Changes for using Gaudi Tools to drive reconstruction
+
+    *
+------------------------------------------------------------
 User: usher  Tue Aug 20 12:20:06 PDT 2002
 TkrRecon/src/PatRec/LinkAndTree
 
