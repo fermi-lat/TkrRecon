@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon Jul  2 11:00:00 PDT 2001
+TkrRecon/TkrRecon ITkrBadStripsSvc.h SiClustersAlg.h TkrBadStripsSvc.h
+
+Modified Files:
+	ITkrBadStripsSvc.h SiClustersAlg.h TkrBadStripsSvc.h 
+Log Message:
+Fix BadStrips code, and connect to SiClustersAlg
+
+    *
+------------------------------------------------------------
 User: usher  Fri Jun 22 09:15:59 PDT 2001
 TkrRecon/src TkrClustersRep.cxx TkrRecObjsRep.cxx
 
