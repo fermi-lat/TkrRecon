@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Thu Dec 18 16:43:16 PST 2003
+TkrRecon/src/Track
+
+Modified Files:
+	TkrTrackEnergyTool.cxx 
+Log Message:
+Changed energy setting algor. to use QED constraint and reciprocal errors
+    *
+------------------------------------------------------------
 User: atwood  Thu Dec 18 16:41:53 PST 2003
 TkrRecon/src/PatRec/Combo
 
