@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Wed Dec 17 17:01:46 PST 2003
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx KalFitter.cxx 
+Log Message:
+Fix odd-even in KatFitter (same problem as in KalFitTrack)
+remove a couple of "18"s and "751"s
+
+    *
+------------------------------------------------------------
 User: atwood  Wed Dec 17 09:05:05 PST 2003
 TkrRecon/src/TrackFit/KalFitTrack
 
