@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Fri Aug 30 08:43:38 PDT 2002
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+Fixed bug in setEnergies
+    *
+------------------------------------------------------------
 User: cohen  Fri Aug 30 05:14:20 PDT 2002
 TkrRecon/src/Vertex
 
