@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: cohen  Tue Jul 29 06:08:59 PDT 2003
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	NeuralNetFindTrackTool.cxx NeuralNetFindTrackTool.h 
+	TkrNeuralNet.cxx 
+Log Message:
+creation of a base class for PatRec. For now only NeuralNet makes use of it.
+    *
+------------------------------------------------------------
+User: cohen  Tue Jul 29 06:08:59 PDT 2003
 TkrRecon/src/PatRec
 
 Added Files:
