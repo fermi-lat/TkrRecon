@@ -14,6 +14,8 @@
 #include "TkrRecon/Display/TkrRecObjsRep.h"
 #include "TkrRecon/Display/TkrCandidatesRep.h"
 #include "TkrRecon/Display/TkrBestCandRep.h"
+#include "TkrRecon/Display/TkrCandidate3DRep.h"
+#include "TkrRecon/Display/TkrTracksRep.h"
 
 #include "TkrRecon/ITkrGeometrySvc.h"
 
@@ -38,10 +40,12 @@ StatusCode TkrDisplayAlg::initialize()
 //##############################################
 {
 	//Zero the data members to insure they don't get used accidentally
-	m_TkrClusters   = 0;
-    m_TkrCandidates = 0;
-    m_TkrBestCands  = 0;
-	m_SiRecObjs     = 0;
+	m_TkrClusters    = 0;
+    m_TkrCandidates  = 0;
+    m_TkrBestCands   = 0;
+    m_TkrCandidate3D = 0;
+	m_SiRecObjs      = 0;
+    m_Tracks         = 0;
 
 	//Look for the gui service
 	IGuiSvc* guiSvc = 0;
@@ -64,7 +68,13 @@ StatusCode TkrDisplayAlg::initialize()
 		(guiSvc->guiMgr())->display().add(new TkrBestCandRep(&m_TkrBestCands, pTkrGeo), "PatRec: Best");
 
 		//Set up the display rep for the reconstructed objects
-		(guiSvc->guiMgr())->display().add(new TkrRecObjsRep(&m_SiRecObjs), "Tracks");
+		(guiSvc->guiMgr())->display().add(new TkrCandidate3DRep(&m_TkrCandidate3D, pTkrGeo), "PatRec: 3D Cands");
+
+		//Set up the display rep for the reconstructed objects
+		(guiSvc->guiMgr())->display().add(new TkrRecObjsRep(&m_SiRecObjs), "RecObjs");
+
+		//Set up the display rep for the reconstructed tracks
+		(guiSvc->guiMgr())->display().add(new TkrTracksRep(&m_Tracks), "Tracks");
 	}
 
 	return sc;
@@ -110,10 +120,12 @@ StatusCode TkrDisplayAlg::retrieve()
         }
     }
     
-    m_TkrClusters   = SmartDataPtr<TkrClusters>(eventSvc(),"/Event/TkrRecon/TkrClusters");
-    m_TkrCandidates = SmartDataPtr<TkrCandidates>(eventSvc(),"/Event/TkrRecon/TkrCandidates");
-    m_TkrBestCands  = m_TkrCandidates;
-    m_SiRecObjs     = SmartDataPtr<SiRecObjs>(eventSvc(),"/Event/TkrRecon/SiRecObjs");
+    m_TkrClusters    = SmartDataPtr<TkrClusters>(eventSvc(),"/Event/TkrRecon/TkrClusters");
+    m_TkrCandidates  = SmartDataPtr<TkrCandidates>(eventSvc(),"/Event/TkrRecon/TkrCandidates");
+    m_TkrBestCands   = m_TkrCandidates;
+    m_TkrCandidate3D = m_TkrCandidates;
+    m_SiRecObjs      = SmartDataPtr<SiRecObjs>(eventSvc(),"/Event/TkrRecon/SiRecObjs");
+    m_Tracks         = SmartDataPtr<TkrTracks>(eventSvc(),"/Event/TkrRecon/TkrTracks");
     
     return sc;
 }
