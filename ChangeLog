@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: atwood  Tue Nov 23 11:23:16 PST 2004
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrTrackFitAlg.cxx 
+Log Message:
+This is the first version with a full set of TkrTrack status bits. 
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v9r0p2gr8, operation: mov
 Package: TkrRecon
