@@ -10,7 +10,7 @@
 * @author Leon Rochester
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.cxx,v 1.15 2003/08/04 20:04:40 usher Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.cxx,v 1.1 2004/09/08 00:35:41 lsrea Exp $
 */
 
 #include "src/Track/TkrAlignHitsTool.h"
@@ -182,7 +182,7 @@ StatusCode TkrAlignHitsTool::alignHits(const Event::TkrKalFitTrack* track,
 
         HepVector3D deltaPos;
         //bool rotate = false;
-        deltaPos = m_alignSvc->deltaReconPoint(hitPoint, hitSlope, digiLayer, view, tower);
+        deltaPos = m_alignSvc->deltaReconPoint(hitPoint, hitSlope, digiLayer, view);
 
         // store the delta
         alignVec.push_back(deltaPos[view]);
