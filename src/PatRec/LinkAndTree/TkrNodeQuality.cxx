@@ -9,7 +9,7 @@
 static const double  nRMS      = 4.;
 //static const double  scatAngle = 0.25;          //Multiple Scattering at around 20-30 MeV
 static const double  scatAngle = 0.40;          //Multiple Scattering at around 20-30 MeV
-static const double  minAngle  = 0.0140/nRMS;   //Strip spacing 
+static const double  minAngle  = 0.0140/nRMS;   //from Strip spacing 
 
 
 TkrNodeQuality::TkrNodeQuality()

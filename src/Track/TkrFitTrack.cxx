@@ -1,4 +1,4 @@
-// $Id: TkrFitTrack.cxx,v 1.2 2002/01/27 19:45:11 usher Exp $
+// $Id: TkrFitTrack.cxx,v 1.3 2002/03/07 17:33:08 usher Exp $
 //------------------------------------------------------------------------------
 //
 //     TkrFitTrack
@@ -278,7 +278,7 @@ void TkrFitTrack::incorporateFoundHit(KalPlane& nextKplane, int indexhit)
     KalPar measpar(x0,0.,y0,0.);
     
     double sigma = GFtutor::siResolution();
-    double sigma_alt = 10.3; // 36/sqrt(12)... not really important to have prescise
+    double sigma_alt = GFtutor::trayWidth()/sqrt(12.); //mm before not really important to have prescise
     double size  = GFtutor::_DATA->size(m_axis,indexhit);
     
  //   double factor = 1.;
@@ -471,12 +471,14 @@ KalPlane TkrFitTrack::originalKPlane() const
     double sigma2Slope = GFcontrol::iniErrorSlope * GFcontrol::iniErrorSlope;
     double sigma2Position = GFcontrol::iniErrorPosition * GFcontrol::iniErrorPosition;
     KalMatrix covfit(1);
+
+	double sigma_alt = GFtutor::trayWidth()/sqrt(12.); //mm before
     if(m_axis == TkrCluster::X) {
         covfit(1,1) = sigma2Position;
-        covfit(3,3) = 10.3 * 10.3;
+        covfit(3,3) = sigma_alt*sigma_alt;
     }
     else {
-        covfit(1,1) = 10.3 * 10.3;
+        covfit(1,1) = sigma_alt*sigma_alt;
         covfit(3,3) = sigma2Position;
     }
     covfit(2,2) = covfit(4,4) = sigma2Slope; 
