@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: burnett  Tue Jan 13 12:15:55 PST 2004
+TkrRecon/src/Dll
+
+Modified Files:
+	tkrRecon_load.cxx 
+Log Message:
+remove MC-spedcific toolsf
+    *
+------------------------------------------------------------
 User: lsrea  Mon Jan 12 22:51:49 PST 2004
 TkrRecon/src/GaudiAlg
 
