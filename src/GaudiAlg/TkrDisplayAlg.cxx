@@ -1,3 +1,12 @@
+// File and Version Information:
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.14 2002/08/28 22:55:48 usher Exp $
+//
+// Description:
+//      Contains the implementation of the methods for setting up the TkrRecon display
+//
+// Author:
+//      Tracy Usher       
+
 
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/AlgFactory.h"
