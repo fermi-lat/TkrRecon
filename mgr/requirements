@@ -5,6 +5,7 @@ branches src mgr doc
 
 use GlastSvc
 use gui
+use GuiSvc
 
 macro TkrReconDir  "$(TKRRECONROOT)/$(DEBUGDIR)"
 
