@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Mon Apr  2 15:34:58 PDT 2001
+TkrRecon/src TkrGeometrySvc.cxx
+
+Modified Files:
+	TkrGeometrySvc.cxx 
+Log Message:
+
+Obtains the input geometry from an xml file specified in the job options file, 
+and uses TkrDetGeo instead of DetGeo.
+
+
+    *
+------------------------------------------------------------
 User: usher  Mon Apr  2 15:33:13 PDT 2001
 TkrRecon/TkrRecon TkrGeometrySvc.h
 
