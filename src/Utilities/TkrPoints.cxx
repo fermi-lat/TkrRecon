@@ -1,141 +1,83 @@
+/// @file TkrPoints.cxx
+/**
+ * @brief Provides X-Y space points from the same tower from TkrClusterCol
+ *
+ * 1-Dec-2001
+ *  This class provides an easy way to cycle over allowed XY pairs
+ *  in a given GLAST paired layer.  The ordering can be either 
+ *  combinatoric or based on nearest, next nearest, etc. to a given
+ *  point in that plane
+ 
+ * 11/01/2004
+ *  Rewritten for new scheme
+ *  LSR
+ *
+ * @authors Bill Atwood, Brian Algood
+ *
+ * $Header:$
+ *
+*/
+
 #include "src/Utilities/TkrPoints.h"
 #include <iostream>
 
-TkrPoints::TkrPoints(int iniLayer, ITkrQueryClustersTool* clusTool)
+TkrPoints::TkrPoints(int layer, ITkrQueryClustersTool* clusTool)
 {
-    m_layer    = iniLayer;
+    m_layer    = layer;
     m_clusTool = clusTool;
-    ini();  
+    ini();
 }
 
 void TkrPoints::ini()
 {
-       // Initialize loop indices...   
-    m_itry = 0;
-    m_itot = 0;
-    m_end = false;
+    this->clear();
 
-    m_xHitList = m_clusTool->getClusters(idents::TkrId::eMeasureX,m_layer);
-    m_xHits    = m_xHitList.size();
-    //int test;
-    //std::cout << "x hits" << std::endl;
-    //for (test=0;test<m_xHits;++test) {
-    //    std::cout << m_xHitList[test]->tower() << " " << std::endl;
-    //}
+    Event::TkrClusterVec xHitList 
+        = m_clusTool->getClusters(idents::TkrId::eMeasureX,m_layer);
 
-    m_yHitList = m_clusTool->getClusters(idents::TkrId::eMeasureY,m_layer);
-    m_yHits    = m_yHitList.size();
+    Event::TkrClusterVec yHitList 
+        = m_clusTool->getClusters(idents::TkrId::eMeasureY,m_layer);
 
-    m_end = false;
-    if (m_xHits == 0 || m_yHits == 0) {
-        m_end = true;
-        return;
+    Event::TkrClusterVecConItr itX = xHitList.begin();
+    for (; itX!=xHitList.end(); ++itX) {
+        const Event::TkrCluster* clX = *itX;
+        Event::TkrClusterVecConItr itY = yHitList.begin();
+        for (; itY!=yHitList.end(); ++itY) {
+            const Event::TkrCluster* clY = *itY;
+            if(clX->tower()!=clY->tower()) continue;
+            TkrPoint* point = new TkrPoint(m_layer, clX, clY);  
+                //const_cast<Event::TkrCluster*>(clX), 
+                //const_cast<Event::TkrCluster*>(clY));
+            this->push_back(point);
+            TkrPointListConItr iPt1 = this->begin();
+        }
     }
-
-    // Which comes first X or Y? 
-    m_isX = false;
-    if(m_xHitList[0]->position().z() > m_yHitList[0]->position().z()) {
-        m_isX = true;
-    }
-
-    m_itot = m_xHits*m_yHits; 
 }
 
-Point TkrPoints::getNearestPointOutside(Point x0, double & dist_min)
+TkrPoint* TkrPoints::getNearestPointOutside(Point x0, double & dist_min) const
 {
     // Searches out the nearest space point to x0 which lies
     // outside a distance d
+    // returns distance to this point, negative if no point is found
 
     double x_min=0, y_min=0, z_min=0;
-    double dist_best = 10000.;
-    double dist_min2 = dist_min*dist_min; 
+    double dist_best = 1000000.;
+    double dist_min2 = dist_min*dist_min;
+    bool found = false;
+    TkrPoint* ret;
 
-    for(int itry = 0; itry<m_itot; ++itry){
-        int ix = itry%m_xHits;
-        int iy = itry/m_xHits; 
-
-        if(m_xHitList[ix]->hitFlagged()) continue;
-        if(m_yHitList[iy]->hitFlagged()) continue;
-
-        int x_tower = m_xHitList[ix]->tower();
-        int y_tower = m_yHitList[iy]->tower();
-        if(x_tower != y_tower) continue;
-        m_tower = x_tower;
-
-        Point xX(m_xHitList[ix]->position());
-        Point xY(m_yHitList[iy]->position());
-        double x = xX.x();
-        double y = xY.y();
-        double z = (xX.z()+xY.z())/2.;
-
-        double dist = (x0.x()-x)*(x0.x()-x) + (x0.y()-y)*(x0.y()-y);
+    TkrPointListConItr iPt = this->begin();
+    for (; iPt!=this->end(); ++iPt) {
+        if ((*iPt)->flagged()) continue;
+        Point test = (*iPt)->getPosition();
+        double dist = (test-x0).mag2();
         if(dist < dist_min2 || dist > dist_best) continue; 
-
+        found = true;
         dist_best = dist;
-        x_min = x;
-        y_min = y;
-        z_min = z;
-        m_pClusterX = &*m_xHitList[ix];
-        m_pClusterY = &*m_yHitList[iy];
-        m_xSize = m_xHitList[ix]->size();
-        m_ySize = m_yHitList[iy]->size();
+        ret = *iPt;
     }
 
     dist_min = sqrt(dist_best);
-    return Point(x_min,y_min,z_min); 
-}
-
-Point TkrPoints::getSpacePoint()
-{
-    // Sequential algorithm due to Brandon Allgood
-    double x=0, y=0, z=0;
-
-    for(; m_itry<m_itot; ++m_itry){
-        int ix = m_itry%m_xHits;
-        int iy = m_itry/m_xHits; 
-
-        if(m_xHitList[ix]->hitFlagged()) continue;
-        if(m_yHitList[iy]->hitFlagged()) continue;
-
-        int x_tower = m_xHitList[ix]->tower();
-        int y_tower = m_yHitList[iy]->tower();
-        if(x_tower != y_tower) continue;
-        m_tower = x_tower;
-
-        Point xX(m_xHitList[ix]->position());
-        Point xY(m_yHitList[iy]->position());
-        x = xX.x();
-        y = xY.y();
-        z = (xX.z()+xY.z())/2.;  // Average the z coordinates 
-        m_pClusterX = &*m_xHitList[ix];
-        m_pClusterY = &*m_yHitList[iy];
-        m_xSize = m_xHitList[ix]->size();
-        m_ySize = m_yHitList[iy]->size();
-        m_itry++;
-        break;
-    }
-    if(m_itry >= m_itot) m_end = true;
-    else                 m_end = false; 
-    return Point(x,y,z); 
-}
-
-std:: vector<TkrPoint> TkrPoints::getAllLayerPoints()
-{
-    
-    while(!finished()) {
-        
-        Point tmpPoint(getSpacePoint());
-	if(tmpPoint.x()==0 &&
-	   tmpPoint.y()==0 &&
-	   tmpPoint.z()==0)
-	  {
-	    continue;
-	  }else{
-	    
-	    TkrPoint point(tmpPoint,tower(),m_layer, getClusterX(), getClusterY());
-	    
-	    m_pointList.push_back(point);
-	  }
-    }
-    return m_pointList;
+    if (!found) dist_min = -1.0;
+    return ret;
 }

@@ -16,7 +16,8 @@ TkrNeuron::TkrNeuron(TkrPoint* pnt0, TkrPoint* pnt1, float act=0.0):
   m_pnt0(pnt0),m_pnt1(pnt1)
 {
     m_l = pnt1->getLayer() - pnt0->getLayer();
-    m_direction = (pnt0->getPoint() - pnt1->getPoint()).unit();
+    Ray tempRay = pnt1->getRayTo(pnt0);
+    m_direction = tempRay.direction();
     m_bias = 0.0;
     m_activity = act;
 
