@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Mon Aug  4 13:11:24 PDT 2003
+TkrRecon/src/MonteCarlo
+
+Added Files:
+	McBuildPatCandTab.cxx McBuildPatCandTab.h McBuildTracks.cxx 
+	McBuildTracks.h McEventStructure.cxx McLayerHit.cxx 
+	McPatCand.cxx TkrEventModel.cxx 
+Log Message:
+Source code and auxiliary classes for building tracker Monte Carlo comparisons
+
+    *
+------------------------------------------------------------
 User: usher  Mon Aug  4 13:09:21 PDT 2003
 TkrRecon/src/MonteCarlo
 
