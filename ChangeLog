@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Thu Feb  3 16:56:22 PST 2005
+TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy
+
+Modified Files:
+	BetheBlockHitEnergy.cxx BetheBlockHitEnergy.h IFitHitEnergy.h 
+	MonteCarloHitEnergy.cxx MonteCarloHitEnergy.h 
+	RadLossHitEnergy.cxx RadLossHitEnergy.h 
+Log Message:
+Also add a methods to Kalman Fit for recursive iterative fitting
+    *
+------------------------------------------------------------
 User: usher  Thu Feb  3 16:56:21 PST 2005
 TkrRecon/TkrRecon/Track
 
