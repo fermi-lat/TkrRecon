@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.15 2005/01/02 23:53:47 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.16 2005/01/25 20:04:49 lsrea Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -62,7 +62,11 @@ private:
     TkrControl*            m_control;
 
     /// Pointer to the Gaudi data provider service
-    DataSvc*         m_dataSvc;
+    DataSvc*               m_dataSvc;
+
+    /// Flag for using Kalman Energies when no Cal available
+    bool                   m_useKalmanEnergy;
+
 };
 
 static ToolFactory<TkrTrackEnergyTool> s_factory;
@@ -92,6 +96,8 @@ TkrTrackEnergyTool::TkrTrackEnergyTool(const std::string& type, const std::strin
 {
     //Declare the additional interface
     declareInterface<TkrTrackEnergyTool>(this);
+
+    declareProperty("UseKalmanEnergy", m_useKalmanEnergy=true);
 
     return;
 }
@@ -156,67 +162,89 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies(double totalEnergy)
     //If candidates, then proceed
     if (trackCol->size() > 0)
     {
-        double cal_Energy = std::max(totalEnergy, 0.5*m_control->getMinEnergy());
+        if (totalEnergy > 0.)
+        {
+            double cal_Energy = std::max(totalEnergy, 0.5*m_control->getMinEnergy());
 
-        // TOTAL KULDGE HERE - Cal Energies are found to be too low by ~20%
-        //  This should be removed when the CAL is calibrated!!!!!!  
-        // TU: We PRESUME that the second pass through energy recon has fixed this problem
-        //cal_Energy *= _calKludge; 
+            // TOTAL KULDGE HERE - Cal Energies are found to be too low by ~20%
+            //  This should be removed when the CAL is calibrated!!!!!!  
+            // TU: We PRESUME that the second pass through energy recon has fixed this problem
+            //cal_Energy *= _calKludge; 
 
-        // Get best track ray
-        Event::TkrTrack* firstCandTrk = trackCol->front();
+            // Get best track ray
+            Event::TkrTrack* firstCandTrk = trackCol->front();
 
-        double ene_total = getTotalEnergy(firstCandTrk, cal_Energy);
+            double ene_total = getTotalEnergy(firstCandTrk, cal_Energy);
 
-        // Now constrain the energies of the first 2 tracks. 
-        //    This isn't valid for non-gamma conversions
+            // Now constrain the energies of the first 2 tracks. 
+            //    This isn't valid for non-gamma conversions
  
 
-        if(trackCol->size() == 1) { // One track - it gets it all - not right but what else?
-            firstCandTrk->setInitialEnergy(ene_total);
+            if(trackCol->size() == 1)  // One track - it gets it all - not right but what else?
+            {
+                firstCandTrk->setInitialEnergy(ene_total);
+            }
+            else                // Divide up the energy between the first two tracks
+            {
+                Event::TkrTrack* secndCandTrk = (*trackCol)[1];
+        
+			    // Need to use Hits-on-Fits until tracks are truncated to last real SSD hit
+                int num_hits1 = firstCandTrk->getNumFitHits();
+                int num_hits2 = secndCandTrk->getNumFitHits();
+                double e1 = firstCandTrk->front()->getEnergy();
+                double e2 = secndCandTrk->front()->getEnergy();
+                double e1_min = 2.*num_hits1;        //Coefs are MeV/Hit
+                double e2_min = 2.*num_hits2;
+        
+                e1 = std::max(e1, e1_min);
+                e2 = std::max(e2, e2_min); 
+                double de1 = firstCandTrk->getKalEnergyError();
+                double de2 = secndCandTrk->getKalEnergyError();
+                double w1  = (e1/de1)*(e1/de1); //Just the number of kinks contributing
+                double w2  = (e2/de2)*(e2/de2);
+
+                // Trap short-straight track events - no info.in KalEnergies
+                double e1_con, e2_con;
+                if(num_hits1 < 8 && num_hits2 < 8 && e1 > 80. && e2 > 80.) 
+                {
+                    e1_con = .75*ene_total; 
+                    e2_con = .25*ene_total; // 75:25 split
+                }
+                else  // Compute spliting to min. Chi_Sq. and constrain to ~ QED pair energy
+                {
+                    double logETotal = log(ene_total)/2.306; 
+                    double eQED = ene_total*(.72+.04*(std::min((logETotal-2.),2.))); //Empirical - from observation
+                    double wQED = 10.*logETotal*logETotal;//Strong constrain as Kal. energies get bad with large E
+                    e1_con = e1 - ((e1+e2-ene_total)*w2 + (e1-eQED)*wQED)/(w1+w2+wQED); 
+                    if(e1_con < .5*ene_total)  e1_con = .5*ene_total; 
+                    if(e1_con > .98*ene_total) e1_con = .98*ene_total; 
+                    e2_con = ene_total - e1_con;
+                }
+
+                if(e1_con < e1_min) // Don't let energies get too small
+                {
+                    e1_con = e1_min; 
+                }
+                if(e2_con < e2_min) 
+                {
+                    e2_con = e2_min; 
+                }
+                //firstCandTrk->setInitialEnergy(e1_con); 
+                (*firstCandTrk)[0]->setEnergy(e1_con);       // change the hit energy on first track
+                //secndCandTrk->setInitialEnergy(e2_con);
+                (*secndCandTrk)[0]->setEnergy(e1_con);       // change the hit energy on second track
+            }
         }
-        else {               // Divide up the energy between the first two tracks
-            Event::TkrTrack* secndCandTrk = (*trackCol)[1];
-        
-			// Need to use Hits-on-Fits until tracks are truncated to last real SSD hit
-            int num_hits1 = firstCandTrk->getNumFitHits();
-            int num_hits2 = secndCandTrk->getNumFitHits();
-            double e1 = firstCandTrk->front()->getEnergy();
-            double e2 = secndCandTrk->front()->getEnergy();
-            double e1_min = 2.*num_hits1;        //Coefs are MeV/Hit
-            double e2_min = 2.*num_hits2;
-        
-            e1 = std::max(e1, e1_min);
-            e2 = std::max(e2, e2_min); 
-            double de1 = firstCandTrk->getKalEnergyError();
-            double de2 = secndCandTrk->getKalEnergyError();
-            double w1  = (e1/de1)*(e1/de1); //Just the number of kinks contributing
-            double w2  = (e2/de2)*(e2/de2);
+        else if (m_useKalmanEnergy)
+        {
+            for(Event::TkrTrackColPtr trackIter = trackCol->begin(); trackIter != trackCol->end(); trackIter++)
+            {
+                Event::TkrTrack* track     = *trackIter;
+                double           kalEnergy = track->getKalEnergy();
+                double           trkEnergy = std::min(kalEnergy, 2.*m_control->getMinEnergy());
 
-            // Trap short-straight track events - no info.in KalEnergies
-            double e1_con, e2_con;
-            if(num_hits1 < 8 && num_hits2 < 8 && e1 > 80. && e2 > 80.) {
-                e1_con = .75*ene_total; 
-                e2_con = .25*ene_total; // 75:25 split
+                (*track)[0]->setEnergy(trkEnergy);
             }
-            else { // Compute spliting to min. Chi_Sq. and constrain to ~ QED pair energy
-                double logETotal = log(ene_total)/2.306; 
-                double eQED = ene_total*(.72+.04*(std::min((logETotal-2.),2.))); //Empirical - from observation
-                double wQED = 10.*logETotal*logETotal;//Strong constrain as Kal. energies get bad with large E
-                e1_con = e1 - ((e1+e2-ene_total)*w2 + (e1-eQED)*wQED)/(w1+w2+wQED); 
-                if(e1_con < .5*ene_total)  e1_con = .5*ene_total; 
-                if(e1_con > .98*ene_total) e1_con = .98*ene_total; 
-                e2_con = ene_total - e1_con;
-            }
-
-            if(e1_con < e1_min) {// Don't let energies get too small
-                e1_con = e1_min; 
-            }
-            if(e2_con < e2_min) {
-                e2_con = e2_min; 
-            }
-            firstCandTrk->setInitialEnergy(e1_con);
-            secndCandTrk->setInitialEnergy(e2_con);
         }
     }
 
