@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 14:06:24 PST 2001
+TkrRecon/TkrRecon/GaudiAlg
+
+Added Files:
+	RecNtupleAlg.h TkrClusterAlg.h TkrDisplayAlg.h TkrFindAlg.h 
+	TkrNtupleAlg.h TkrReconAlg.h 
+Log Message:
+Class definitions for Gaudi Algorithms. All interfacing to Gaudi done through
+the algorithms defined in this folder.
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 14:03:46 PST 2001
 TkrRecon/TkrRecon/PatRec
 
