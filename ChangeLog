@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Fri Jan  9 12:50:38 PST 2004
+TkrRecon/TkrRecon/MonteCarlo
+
+Removed Files:
+	ITkrMcTracksTool.h McEventStructure.h McLayerHit.h 
+Log Message:
+Delete Monte Carlo related objects and tools which have been moved to other packages
+
+    *
+------------------------------------------------------------
 User: usher  Fri Jan  9 12:36:07 PST 2004
 TkrRecon/src/PatRec/MonteCarlo
 
