@@ -90,9 +90,10 @@ StatusCode TkrClusterAlg::execute()
 	// make the clusters
     TkrMakeClusters maker(m_TkrClusterCol, pTkrGeo, pBadStrips, m_TkrDigis);
 
-	//initialize the cluster query class
-	TkrQueryClusters query(0);
-	query.s_towerPitch = pTkrGeo->towerPitch();
+    // This call is to initialize the static variables in TkrQueryClusters
+	TkrQueryClusters query(m_TkrClusterCol);
+	query.setTowerPitch(pTkrGeo->towerPitch());
+    query.setNumLayers(pTkrGeo->numLayers());
 
 	if (m_TkrClusterCol == 0 || m_TkrDigis ==0) sc = StatusCode::FAILURE;
     return sc;
