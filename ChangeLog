@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Thu Aug 29 14:15:15 PDT 2002
+TkrRecon/src/TrackFit/KalmanFilter
+
+Modified Files:
+	KalmanFilter.cxx KalmanFilter.h 
+Log Message:
+Added D'Oxigen documentation
+    *
+------------------------------------------------------------
 User: atwood  Thu Aug 29 14:14:36 PDT 2002
 TkrRecon/src/TrackFit/KalFitTrack
 
