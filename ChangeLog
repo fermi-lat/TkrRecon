@@ -1,4 +1,22 @@
 ------------------------------------------------------------
+User: lsrea  Mon Aug 26 14:57:43 PDT 2002
+TkrRecon/src/test
+
+Modified Files:
+	jobOptions.txt 
+Added Files:
+	muon_digi.root muon_mc.root test_TkrRecon.cxx 
+	test_TkrRecon_load.cxx 
+Removed Files:
+	BFEMBadStrips.txt BFEM_test.txt TkrTest.cxx 
+	badchannellist_nsbf53_10sigma_recon.dat 
+	badchannellist_nsbf54_10sigma_recon.dat 
+	badchannellist_nsbf55_10sigma_recon.dat tb_runs149-264.txt 
+Log Message:
+Get a working test program... runs off of mc and digi root files
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon Aug 26 14:57:42 PDT 2002
 TkrRecon/cmt
 
