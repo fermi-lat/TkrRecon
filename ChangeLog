@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Thu Aug 29 12:39:50 PDT 2002
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	NeuralNetFindTrackTool.cxx NeuralNetFindTrackTool.h 
+Log Message:
+
+    *
+------------------------------------------------------------
+User: usher  Thu Aug 29 12:39:50 PDT 2002
 TkrRecon/src/PatRec/LinkAndTree
 
 Modified Files:
