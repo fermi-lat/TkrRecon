@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Thu May 10 17:14:47 PDT 2001
+TkrRecon/src TkrGeometrySvc.cxx
+
+Modified Files:
+	TkrGeometrySvc.cxx 
+Log Message:
+Fix bugs in TkrGeometrySvc.cxx which affect flight instrument
+Modify Tkr_Flight.xml to better reflect current instrument.xml
+
+    *
+------------------------------------------------------------
 User: usher  Wed May  9 11:33:32 PDT 2001
 TkrRecon/TkrRecon SiClusters.h
 
