@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Thu Oct 23 10:46:16 PDT 2003
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+Don't call findBlindCandidates when findCalCandidates is successful (see SearchCandidates)
+
+    *
+------------------------------------------------------------
 User: burnett  Sat Oct  4 01:00:48 PDT 2003
 TkrRecon/doc
 
