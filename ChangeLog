@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Dec 15 07:26:49 PST 2004
+TkrRecon/src/Track
+
+Modified Files:
+	TrackFitUtils.cxx TrackFitUtils.h 
+Log Message:
+Implemented first track kink method
+    *
+------------------------------------------------------------
 User: atwood  Wed Dec 15 07:25:06 PST 2004
 TkrRecon/src/PatRec/Combo
 
