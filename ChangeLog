@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon Apr 23 14:58:47 PDT 2001
+TkrRecon/xml Tkr_Flight.xml
+
+Added Files:
+	Tkr_Flight.xml 
+Log Message:
+local xml file for flight geometry
+
+    *
+------------------------------------------------------------
 User: tlindner  Tue Apr 10 18:51:03 PDT 2001
 TkrRecon/TkrRecon TkrClustersRep.h TkrRecObjsRep.h
 
