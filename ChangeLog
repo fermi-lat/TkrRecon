@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: lsrea  Mon Apr 29 18:35:50 PDT 2002
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	TkrNeuralNet.cxx 
+Log Message:
+Breaking up clustering into smaller parts: TDS classes, MakeClusters, and QueryClusters
+   some changes to the display and  
+   a small change in KalFitTrack to accommodate this
+
+    *
+------------------------------------------------------------
+User: lsrea  Mon Apr 29 18:35:50 PDT 2002
 TkrRecon/src/GaudiAlg
 
 Modified Files:
