@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Fri May 31 16:31:24 PDT 2002
+TkrRecon/TkrRecon/Display
+
+Modified Files:
+	TkrTracksRep.h 
+Log Message:
+STL Compliance of TkrFitTrackCol
+    *
+------------------------------------------------------------
 User: burnett  Fri May 31 12:24:37 PDT 2002
 TkrRecon/src/Vertex/Combo
 
