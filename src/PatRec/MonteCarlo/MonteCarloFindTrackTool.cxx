@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.2 2004/09/08 15:32:44 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.15 2004/09/23 21:30:28 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -190,7 +190,7 @@ private:
 class CompareTrackHits
 {
   public:
-      bool operator()(Event::TkrTrackHit* patHitLeft, Event::TkrTrackHit* patHitRight)
+      bool operator()(SmartRef<Event::TkrTrackHit> patHitLeft, SmartRef<Event::TkrTrackHit> patHitRight)
     {
         return patHitLeft->getZPlane() >  patHitRight->getZPlane();;
     }
@@ -336,7 +336,7 @@ Event::TkrTrackHit* MonteCarloFindTrackTool::newTkrTrackHit(const idents::TkrId 
     const double oneOverSqrt12 = 1./sqrt(12.);
 
     // Get a new instance of a TkrTrackHit object
-    Event::TkrTrackHit* hit = new Event::TkrTrackHit(cluster, idents::TkrId(tkrId), cluster->position().z(), 0., 0., 0., 0., 0.);
+    Event::TkrTrackHit* hit = new Event::TkrTrackHit(const_cast<Event::TkrCluster*>(cluster), idents::TkrId(tkrId), cluster->position().z(), 0., 0., 0., 0., 0.);
 
     // Retrieve a reference to the measured parameters (for setting)
     Event::TkrTrackParams& params = hit->getTrackParams(Event::TkrTrackHit::MEASURED);
