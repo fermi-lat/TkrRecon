@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/IProcNoiseMatrix.h,v 1.3 2004/10/01 21:07:39 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/IProcNoiseMatrix.h,v 1.4 2004/11/09 21:27:45 usher Exp $
  */
 
 #ifndef IProcNoiseMatrix_h
@@ -22,7 +22,6 @@ public:
 
     //virtual const double    getEnergy(int i) = 0;
     virtual const double    getLastStepRadLen() = 0;
-    virtual const double    getLastStepActDist()= 0;
     virtual const KFmatrix& getLastStepQ()= 0;
 };
 

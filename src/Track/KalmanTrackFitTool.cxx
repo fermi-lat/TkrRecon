@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.34 2005/02/22 00:00:23 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.35 2005/03/01 00:55:50 lsrea Exp $
  */
 
 // to turn one debug variables
@@ -71,32 +71,33 @@ public:
     ///        needed from the TDS, then create and use a new KalFitTrack object to 
     ///        fit the track via a Kalman Filter. Successfully fit tracks are then 
     ///        added to the collection in the TDS.
-    StatusCode doTrackFit(Event::TkrTrack* patCand);
+    StatusCode doTrackFit(Event::TkrTrack* track);
 
     /// @brief Method to re-fit a single candidate track. Re-uses the existing fit track
-    StatusCode doTrackReFit(Event::TkrTrack* patCand);
+    StatusCode doTrackReFit(Event::TkrTrack* track);
 
     /// @brief Method to set type of hit energy loss for a track
     void       setHitEnergyLoss(const std::string& energyLossType);
-
-    /// @brief Method to set method for determing cluster errors in fit
+    /// @brief Method to set method for determing cluster errors in fit 
     void       setClusErrCompType(const std::string& clusErrorType);
-
     /// @brief Method to set multiple scattering matrix computation
     void       setMultipleScatter(const bool doMultScatComp);
-
     /// @brief Method to set Kalman Filter projection matrix type
     void       setProjectionMatrix(const bool measOnly);
 
+    /// @brief This method does a "Filter" fit only - sets Filtered Chi-Square in track
+    void       doFilterFit(Event::TkrTrack& track);
+    /// @brief This method does a "Smoother" fit only - sets Smoothed Chi-Square in track
+    void       doSmootherFit(Event::TkrTrack& track);
+
     /// @brief This method runs the filter for the next hit
     double     doFilterStep(Event::TkrTrackHit& referenceHit, Event::TkrTrackHit& filterHit);
-
     /// @brief This method runs the smoother for the next hit
     double     doSmoothStep(Event::TkrTrackHit& referenceHit, Event::TkrTrackHit& smoothHit);
 
 private:
     /// Actual track fit methods
-    void       doKalmanFit(Event::TkrTrack& track);
+    void       doFullKalmanFit(Event::TkrTrack& track);
     double     doFilter(Event::TkrTrack& track);
     double     doSmoother(Event::TkrTrack& track);
     void       getInitialFitHit(Event::TkrTrack& track);
@@ -309,7 +310,7 @@ void KalmanTrackFitTool::setHitEnergyLoss(const std::string& energyLossType)
         {
             m_HitEnergy = new MonteCarloHitEnergy(m_dataSvc, partSvc);
         }
-        else if (m_HitEnergyType == "BetheBlock")
+        else if (m_HitEnergyType == "BetheBloch")
         {
             m_HitEnergy = new BetheBlockHitEnergy(partProp->mass());
         }
@@ -394,7 +395,7 @@ StatusCode KalmanTrackFitTool::doTrackFit(Event::TkrTrack* track)
     StatusCode sc = StatusCode::SUCCESS;
 
     // Run the Kalman Filter to do the track fit
-    doKalmanFit(*track);
+    doFullKalmanFit(*track);
 
     // Now determine Track values with completed fit using the Track Fit Utilities
     TrackFitUtils trackUtils(m_tkrGeom, m_HitEnergy);
@@ -428,7 +429,7 @@ StatusCode KalmanTrackFitTool::doTrackReFit(Event::TkrTrack* track)
         int numIterations = 0;
 
         // Do first fit to take into acount energy re-apportionment 
-        doKalmanFit(*track);
+        doFullKalmanFit(*track);
 
         // Now recursively fit to "improve" the energy determination
         numIterations = doRecursiveFit(numIterations, *track);
@@ -437,7 +438,7 @@ StatusCode KalmanTrackFitTool::doTrackReFit(Event::TkrTrack* track)
         if (m_RunResidualsFit)
         {
             doResidualsCalc(*track);
-            doKalmanFit(*track);
+            doFullKalmanFit(*track);
         }
     }
     else
@@ -446,7 +447,7 @@ StatusCode KalmanTrackFitTool::doTrackReFit(Event::TkrTrack* track)
         if (m_RunResidualsFit) doResidualsCalc(*track);
 
         // Run the Kalman Filter to do the track fit
-        doKalmanFit(*track);
+        doFullKalmanFit(*track);
     }
 
     // Now determine Track values with completed fit
@@ -620,7 +621,7 @@ int KalmanTrackFitTool::doRecursiveFit(int numIterations, Event::TkrTrack& track
         track[0]->setEnergy(finalTrkEnergy);
 
         // Run the Kalman Filter to do the track fit
-        doKalmanFit(track);
+        doFullKalmanFit(track);
 
         double fracDiff = fabs((track.getChiSquareSmooth() - initialChiSquare) / initialChiSquare);
 
@@ -630,7 +631,7 @@ int KalmanTrackFitTool::doRecursiveFit(int numIterations, Event::TkrTrack& track
     return numIterations;
 }
 
-void KalmanTrackFitTool::doKalmanFit(Event::TkrTrack& track)
+void KalmanTrackFitTool::doFullKalmanFit(Event::TkrTrack& track)
 {
     // Purpose and Method: Does the formal Kalman process
     //         First - the Filter step then the (reverse) Smoothing
@@ -659,8 +660,66 @@ void KalmanTrackFitTool::doKalmanFit(Event::TkrTrack& track)
     track.setNDegreesOfFreedom(numDegFree);
     track.setStatusBit(Event::TkrTrack::FILTERED);
     track.setStatusBit(Event::TkrTrack::SMOOTHED);
-    if( m_HitEnergyType=="eRadLoss")  track.setStatusBit(Event::TkrTrack::RADELOSS);
-    if( m_HitEnergyType=="MuRadLoss") track.setStatusBit(Event::TkrTrack::MIPELOSS);
+    if      ( m_HitEnergyType=="eRadLoss")   track.setStatusBit(Event::TkrTrack::RADELOSS);
+    else if ( m_HitEnergyType=="BetheBloch") track.setStatusBit(Event::TkrTrack::MIPELOSS);
+    
+    return;
+}
+
+void KalmanTrackFitTool::doFilterFit(Event::TkrTrack& track)
+{
+    // Purpose and Method: This runs only the Filter stage of the track fit
+    // Inputs: None
+    // Outputs: None
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
+    int nHits = track.getNumHits();
+    
+    // Run the filter and follow with the smoother
+    double chiSqFit = doFilter(track);
+
+    // Number of degrees of freedom for the final chi-square
+    int    numDegFree = m_nMeasPerPlane * nHits - m_nParams;
+    
+    // Compute the normalized chi-square
+    chiSqFit /= numDegFree;
+
+    // Set chi-square and status bits
+    track.setChiSquareFilter(chiSqFit);
+    track.setNDegreesOfFreedom(numDegFree);
+    track.setStatusBit(Event::TkrTrack::FILTERED);
+    if      ( m_HitEnergyType=="eRadLoss")   track.setStatusBit(Event::TkrTrack::RADELOSS);
+    else if ( m_HitEnergyType=="BetheBloch") track.setStatusBit(Event::TkrTrack::MIPELOSS);
+    
+    return;
+}
+
+void KalmanTrackFitTool::doSmootherFit(Event::TkrTrack& track)
+{
+    // Purpose and Method: This runs only the Smoother stage of the track fit
+    // Inputs: None
+    // Outputs: None
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
+    int nHits = track.getNumHits();
+    
+    // Run the filter and follow with the smoother
+    double chiSqSmooth = doSmoother(track);
+
+    // Number of degrees of freedom for the final chi-square
+    int    numDegFree  = m_nMeasPerPlane * nHits - m_nParams;
+    
+    // Compute the normalized chi-square
+    chiSqSmooth /= numDegFree;
+
+    // Set chi-square and status bits
+    track.setChiSquareSmooth(chiSqSmooth);
+    track.setNDegreesOfFreedom(numDegFree);
+    track.setStatusBit(Event::TkrTrack::SMOOTHED);
+    if      ( m_HitEnergyType=="eRadLoss")   track.setStatusBit(Event::TkrTrack::RADELOSS);
+    else if ( m_HitEnergyType=="BetheBloch") track.setStatusBit(Event::TkrTrack::MIPELOSS);
     
     return;
 }
@@ -791,7 +850,6 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
     filterHit.setTrackParams(qMat, Event::TkrTrackHit::QMATERIAL);
 
     filterHit.setRadLen(m_Qmat->getLastStepRadLen());
-    filterHit.setActiveDist(m_Qmat->getLastStepActDist());
 
     // Change energy on the condition it is not negative...
     double newEnergy = m_HitEnergy->updateHitEnergy(referenceHit.getEnergy(),m_Qmat->getLastStepRadLen());

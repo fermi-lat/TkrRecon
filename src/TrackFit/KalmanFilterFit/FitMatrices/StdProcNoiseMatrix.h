@@ -8,7 +8,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/StdProcNoiseMatrix.h,v 1.5 2004/11/09 21:27:45 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/StdProcNoiseMatrix.h,v 1.6 2005/02/11 07:14:53 lsrea Exp $
  */
 
 #ifndef StdProcNoiseMatrix_h
@@ -36,14 +36,12 @@ public:
     KFmatrix& operator()(const idents::TkrId& /* id */)     {return m_none;}
 
     const double    getLastStepRadLen()  {return m_LastStepRadLen;}
-    const double    getLastStepActDist() {return m_LastStepActDist;}
     const KFmatrix& getLastStepQ()       {return m_LastStepQ;}
 
 private:
     IPropagator*        m_propagator;
 
     double              m_LastStepRadLen;
-    double              m_LastStepActDist;
     KFmatrix            m_LastStepQ;
 
     KFmatrix            m_none;
