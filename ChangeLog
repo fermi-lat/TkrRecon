@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Tue Mar  6 12:22:50 PST 2001
+TkrRecon/src GFcontrol.cpp GFdata.cxx GFgamma.cpp GFparticle.cpp SiClusters.cpp SiClustersAlg.cxx SiClustersIRFAlg.cxx SiLayersIRFAlg.cpp SiRecObjs.cpp SiRecObjsAlg.cxx
+
+Modified Files:
+	GFcontrol.cpp GFdata.cxx GFgamma.cpp GFparticle.cpp 
+	SiClusters.cpp SiClustersAlg.cxx SiClustersIRFAlg.cxx 
+	SiLayersIRFAlg.cpp SiRecObjs.cpp SiRecObjsAlg.cxx 
+Log Message:
+General cleanup of code to support output, display, etc.
+
+    *
+------------------------------------------------------------
 User: usher  Tue Mar  6 12:22:25 PST 2001
 TkrRecon/TkrRecon GFcontrol.h GFdata.h GFgamma.h GFparticle.h SiClusters.h SiClustersAlg.h SiClustersIRFAlg.h SiLayersIRFAlg.h SiRecObjs.h SiRecObjsAlg.h
 
