@@ -64,4 +64,7 @@ private:
 	Point m_CsIPosition;
 };
 
+
+
+
 #endif

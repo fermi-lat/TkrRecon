@@ -1,6 +1,7 @@
 // Implements ntuple writing algorithm
 
 #include "TkrRecon/RecNtupleAlg.h"
+//#include "GlastEvent/Recon/ICsIClusters.h"
 
 #include <algorithm>
 inline static double sqr(double x) {return x*x;}
@@ -67,7 +68,7 @@ StatusCode RecNtupleAlg::execute()
     RecTupleValues nTuple;
     
     //Retrieve pointers to the data stored in the TDS
-    CsIClusterList* pCalClusters = SmartDataPtr<CsIClusterList>(eventSvc(),"/Event/CalRecon/CsIClusterList");
+    ICsIClusterList* pCalClusters = SmartDataPtr<ICsIClusterList>(eventSvc(),"/Event/CalRecon/CsIClusterList");
 	SiClusters*     pSiClusters  = SmartDataPtr<SiClusters>(eventSvc(),"/Event/TkrRecon/SiClusters");
     SiRecObjs*      pSiRecObjs   = SmartDataPtr<SiRecObjs>(eventSvc(),"/Event/TkrRecon/SiRecObjs");
 
@@ -111,7 +112,7 @@ RecTupleValues::RecTupleValues()
 };
 
 //################################
-StatusCode RecTupleValues::calcTupleValues(CsIClusterList* pCalClusters, SiClusters* pSiClusters, SiRecObjs* pRecObjs, ITkrGeometrySvc* pGeom)
+StatusCode RecTupleValues::calcTupleValues(ICsIClusterList* pCalClusters, SiClusters* pSiClusters, SiRecObjs* pRecObjs, ITkrGeometrySvc* pGeom)
 //################################
 {
 	StatusCode sc = StatusCode::SUCCESS;
@@ -126,7 +127,7 @@ StatusCode RecTupleValues::calcTupleValues(CsIClusterList* pCalClusters, SiClust
         // Extract the total energy from the calorimeter
         if (pCalClusters)
         {
-            CsICluster* pCalClus = pCalClusters->Cluster(0);
+            ICsICluster* pCalClus = pCalClusters->Cluster(0);
             Rec_CsI_Energy       = pCalClus->energySum() / 1000; //GeV for now
             if (Rec_CsI_Energy < 0.001) Rec_CsI_Energy = 0.3;
         }
@@ -412,84 +413,3 @@ void RecTupleValues::calcEnergyCorrection(GFgamma* pGamma)
 
 
 
-//***********************************************************************
-//***********************************************************************
-//***********************************************************************
-//***********************************************************************
-//***********************************************************************
-// Attach below a local copy of CsIClusters so that TkrRecon (the 
-// temporary home of RecNtupleAlg) does not directly depend on CalRecon.
-//***********************************************************************
-//
-
-//----------------- CsICluster ------------------
-
-//################################################
-CsICluster::CsICluster(double e,Point p)
-//################################################
-{ 
-	int nl = 8;
-	m_eneLayer.resize(nl);	
-	m_pLayer.resize(nl);	
-	ini();
-	m_energySum = e;
-	m_energyCorrected = m_energySum;
-	m_position = p;
-}
-//################################################
-void CsICluster::writeOut() const
-//################################################
-{
-
-	std::cout << "Energy " << m_energySum << " Corrected " << m_energyCorrected;
-	std::cout << " " << position().x() << " " << position().y() << " " << position().z();
-	std::cout << " " << direction().x() << " " << direction().y() << " " << direction().z();
-	std::cout<<"\n";
-}
-//------------- private --------------------------
-//################################################
-void CsICluster::ini()
-//################################################
-{
-	m_energySum       = 0.;
-	m_energyCorrected = 0.;
-
-	m_position = Point(0.,0.,0.);
-	m_direction = Vector(0.,0.,0);
-	int nLayers = m_eneLayer.size();
-	for(int i = 0; i<nLayers; i++){
-		m_eneLayer[i]=0.;
-		m_pLayer[i]=Vector(0.,0.,0.);
-	}
-}
-//----------------- CsIClusterList -----------------
-
-//################################################
-void CsIClusterList::clear()
-//################################################
-{
-	int nClusters = num();
-	for (int icl = 0; icl < nClusters; icl++) {
-		delete m_CsIClustersList[icl];
-	}
-	m_CsIClustersList.clear();
-}
-
-//------------ private ---------------------------
-//################################################
-void CsIClusterList::ini()
-//################################################
-{
-	m_CsIClustersList.clear();
-}
-//################################################
-void CsIClusterList::writeOut() const
-//################################################
-{
-	if (m_CsIClustersList.size()<=0) return;
-	
-	std::cout << " --- CsIClusterList  --- " << m_CsIClustersList.size() <<"\n";
-	for (int i = 0; i < m_CsIClustersList.size();i++) {
-		m_CsIClustersList[i]->writeOut();
-	}
-}
