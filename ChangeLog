@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Thu Oct 10 01:43:11 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrVertexAlg.cxx 
+Log Message:
+request from Toby: limit INFO output
+    *
+------------------------------------------------------------
 User: cohen  Thu Oct 10 00:57:12 PDT 2002
 TkrRecon/src/test
 
