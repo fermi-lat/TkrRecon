@@ -792,6 +792,14 @@ void GFgamma::draw(gui::DisplayRep& v)
 {
 	_mXpair->draw(v);
 	_mYpair->draw(v);
+
+    // draw reconstructed gamma
+    v.setColor("yellow");
+    v.moveTo(this->vertex());
+    v.lineTo(this->vertex()-300.*this->direction());
+    v.setColor("black");
+
+
 }
 //#########################################################################
 bool GFgamma::veto() const
