@@ -6,7 +6,7 @@
 *
 * @authors b. allgood, w. atwood and l. rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoint.cxx,v 1.6 2004/11/03 20:17:22 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoint.cxx,v 1.7 2004/11/16 23:48:40 atwood Exp $
 */
 
 #include "src/Utilities/TkrPoint.h"
@@ -55,7 +55,7 @@ Ray TkrPoint::getRayTo(const TkrPoint* point) const
         y1 += (z0 - z1y)*slopeY;
 	}
 	else { //Reverse direction
-		double z0 = std::min(z1x,z1y);
+		z0 = std::min(z1x,z1y);
 	    x1 += (z0 - z1x)*slopeX;
         y1 += (z0 - z1y)*slopeY;
 	}
