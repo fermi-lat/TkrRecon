@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Fri Oct  1 14:07:40 PDT 2004
+TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy
+
+Modified Files:
+	BetheBlockHitEnergy.cxx BetheBlockHitEnergy.h IFitHitEnergy.h 
+	MonteCarloHitEnergy.cxx MonteCarloHitEnergy.h 
+	RadLossHitEnergy.cxx RadLossHitEnergy.h 
+Log Message:
+Modifications needed to reflect new form of TkrCluster and use of TkrId's
+(these somehow got lost in the first checkin)
+
+    *
+------------------------------------------------------------
 User: usher  Fri Oct  1 14:07:39 PDT 2004
 TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices
 
