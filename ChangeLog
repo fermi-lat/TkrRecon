@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Oct  2 10:48:30 PDT 2001
+TkrRecon/TkrRecon SiClusters.h
+
+Modified Files:
+	SiClusters.h 
+Log Message:
+add methods to retrieve first and last hit in cluster
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Sep 21 16:08:35 PDT 2001
 TkrRecon/src SiClustersAlg.cxx TkrBadStripsSvc.cxx
 
