@@ -9,7 +9,6 @@
 #include "Gui/GuiMgr.h"
 
 #include "TkrRecon/SiClustersAlg.h"
-#include "TkrRecon/SiLayers.h"
 
 
 const int bigStripNum = 0x7FFFFFF;
@@ -39,7 +38,7 @@ StatusCode SiClustersAlg::initialize()
     
     //Initialize the rest of the data members
     m_SiClusters = 0;
-    m_SiLayers   = 0; 
+    m_TkrDigis   = 0; 
     
     return sc;
 }
@@ -52,15 +51,17 @@ StatusCode SiClustersAlg::execute()
     StatusCode sc = retrieve();
     
     // loop in number of layers - conversion to planes!
+    TkrDigiCol::iterator pDigiIter = m_TkrDigis->begin();
     int nclusters = 0;
-    int nlayers = m_SiLayers->num();
+    int nlayers = m_TkrDigis->size();
+
     for (int ilayer = 0; ilayer < nlayers; ilayer++) {
-        SiLayer* layer  = m_SiLayers->Layer(ilayer);
+        TkrDigi* layer  = pDigiIter[ilayer];
         
-        int      klayer = layer->layer();
-        int      iview  = layer->view();
-        int      nHits  = layer->nstrips();
-        int      tower  = 0;
+        int     klayer = layer->layer();
+        int     iview  = layer->view();
+        int     nHits  = layer->num();
+        int     tower  = layer->tower();
         
         //Copy the hit strip numbers into a local list
         std::list<int> stripHits;
@@ -68,7 +69,7 @@ StatusCode SiClustersAlg::execute()
         //This copies the hit strips into a list
         while(nHits--)
         {
-            int stripId = layer->idstrip(nHits);
+            int stripId = layer->hit(nHits);
             
             //Ok, only keep the not bad strips
             //if (!m_SiCalibLayers->isBadStrip(klayer, iview, stripId))
@@ -99,7 +100,7 @@ StatusCode SiClustersAlg::execute()
                 // planes are ordered from 0-top to 15-bottom   - used by the recostruction
                 // layers are ordered from 15-top to 0-bottom   - used by the geometry
                 SiCluster* cl = new SiCluster(nclusters, iview,     pTrackerGeo->numLayers()-klayer-1,
-                    stripIdxL, stripIdxH, layer->ToT(), tower);
+                    stripIdxL, stripIdxH, layer->ToT(0), tower);
                 cl->setPosition(position(cl->plane(),cl->v(),cl->strip(),cl->tower()));
                 m_SiClusters->addCluster(cl);
                 nclusters++;
@@ -148,9 +149,9 @@ StatusCode SiClustersAlg::retrieve()
     m_SiClusters = new SiClusters(pTrackerGeo->numViews(), pTrackerGeo->numLayers(), pTrackerGeo->siStripPitch(), pTrackerGeo->trayWidth());
     sc = eventSvc()->registerObject("/Event/TkrRecon/SiClusters",m_SiClusters);
     
-    m_SiLayers   = SmartDataPtr<SiLayers>(eventSvc(),"/Event/TkrRecon/SiLayers");
+    m_TkrDigis  = SmartDataPtr<TkrDigiCol>(eventSvc(),"/Event/TkrRecon/TkrDigis");
     
-    if (m_SiClusters == 0 || m_SiLayers ==0) sc = StatusCode::FAILURE;
+    if (m_SiClusters == 0 || m_TkrDigis ==0) sc = StatusCode::FAILURE;
     return sc;
 }
 
@@ -161,14 +162,14 @@ Point SiClustersAlg::position(int iplane, SiCluster::view v, double strip, int t
     int iladder = (int) strip / pTrackerGeo->ladderNStrips();
     double stripInLadder = strip - iladder*pTrackerGeo->ladderNStrips();
     
-    detGeo::axis a = detGeo::X;
-    if (v == SiCluster::Y) a = detGeo::Y;
+    tkrDetGeo::axis a = tkrDetGeo::X;
+    if (v == SiCluster::Y) a = tkrDetGeo::Y;
     
     // note the differences between layers and planes - ordering!
     int ilayer = pTrackerGeo->numPlanes()-iplane-1;
     // trackerDetGeo*   trkGeo   = dataManager::instance()->geo()->tracker();
     
-    detGeo ladder = pTrackerGeo->getSiLadder(ilayer, a, iladder, tower);
+    tkrDetGeo ladder = pTrackerGeo->getSiLadder(ilayer, a, iladder, tower);
     // Point ladder = pTrackerGeo->ladderGap(ilayer,a,iladder);
     
     //!
