@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.24 2004/10/12 19:03:33 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.25 2004/12/26 23:30:04 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, 
@@ -19,7 +19,6 @@ using namespace Event;
 TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* clusMap,
                                  ITkrGeometrySvc* tkrGeom, 
                                  TkrDigiCol* pTkrDigiCol,
-                                 /*std::set<idents::TkrId>* tkrIds,*/
                                  ITkrBadStripsSvc::clusterType type)
 {
     // Purpose: Makes Clusters from TkrDigis
@@ -29,13 +28,15 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
     // Dependencies: None
     // Restrictions and Caveats:  None
 
-    m_tkrGeom    = tkrGeom;
-    
+    m_tkrGeom    = tkrGeom;  
     m_pBadStrips = m_tkrGeom->getTkrBadStripsSvc();
+    m_pToT       = m_tkrGeom->getTkrToTSvc();
+    m_type       = type;
+    m_lastStrip  = TaggedStrip::makeLastStrip();
 
-    unsigned int status = m_tkrGeom->getDefaultClusterStatus();
+    unsigned int defaultStatus = m_tkrGeom->getDefaultClusterStatus();
 
-    m_type = type;
+
     
     //Initialize the cluster lists...
     pClus->clear();
@@ -47,7 +48,7 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
         // each digi contains the digitized hits from one layer of one tower
         TkrDigi* pDigi = *ppDigi;
 
-        int digiLayer  =  pDigi->getBilayer();
+        int layer      =  pDigi->getBilayer();
         int view       =  pDigi->getView();
         int tower      = (pDigi->getTower()).id();
 
@@ -58,12 +59,12 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
         int  measure   = view == idents::GlastAxis::X 
                        ? idents::TkrId::eMeasureX : idents::TkrId::eMeasureY;
 
-        m_tkrGeom->layerToTray(digiLayer, view, tray, botTop);
+        m_tkrGeom->layerToTray(layer, view, tray, botTop);
 
         idents::TkrId hitId(towerX, towerY, tray, (botTop==1), measure);
 
                
-        // debug: std::cout << "digi t/l/v " << tower << " " << digiLayer << " " << view << std::endl;
+        // debug: std::cout << "digi t/l/v " << tower << " " << layer << " " << view << std::endl;
         // copy the hits, and make them into TaggedStrips
         
         int nHits = pDigi->getNumHits();
@@ -75,7 +76,7 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
         std::sort(stripHits.begin(), stripHits.end()); //paranoia
 
         // get the list of bad strips; pointer is zero if no list or empty list
-        const stripCol* badStrips = getBadStrips(tower, digiLayer, view);
+        const stripCol* badStrips = getBadStrips(tower, layer, view);
         int badStripsSize = 0;
         if (badStrips) badStripsSize = badStrips->size();
         
@@ -88,7 +89,7 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
         } else {
             std::copy(stripHits.begin(), stripHits.end(), mergedHits.begin());
         }
-        mergedHits[nHits] = TaggedStrip::makeLastStrip(); // big and bad; end of loop
+        mergedHits[nHits] = m_lastStrip; // big and bad; end of loop
 
         // the first strip of the current potential cluster
         TaggedStrip lowStrip  = *mergedHits.begin();  
@@ -120,15 +121,22 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
                 // there's a gap... see if the current cluster is good...
 				    // debug: std::cout << std::endl << "Test Cluster: " << lowStrip.getStripNumber() << " "
                     //       << highStrip.getStripNumber() << " " << nBad ;
-                if (kept = (isGoodCluster(lowStrip, highStrip, nBad) || 
-                    (m_type==ITkrBadStripsSvc::BADCLUSTERS && highStrip!=mergedHits[nHits]))) {
+                if (kept = (isGoodCluster(lowStrip, highStrip, nBad))) {
                     // debug: std::cout << "good!" << std::endl;
                     // it's good... make a new cluster
                     int strip0 = lowStrip.getStripNumber();
                     int stripf = highStrip.getStripNumber();
-                    Point pos = position(digiLayer, view, strip0, stripf, tower);
+                    Point pos = position(tower, layer, view, strip0, stripf);
+
+                    // code to generate 1st order corrected ToT
+                   int end;
+                   int rawToT;
+                   float ToT = calculateMips(pDigi, strip0, stripf, rawToT, end);
+                   unsigned int status = defaultStatus | TkrCluster::setStatus(rawToT, end);
+
                     TkrCluster* cl = new TkrCluster(hitId, strip0, stripf, 
-                        pos, pDigi->getToTForStrip(stripf), status /*, nclusters*/);
+                        pos, 0.0, status, nBad);
+                    cl->setMips(ToT);
                     pClus->push_back(cl);
                     nclusters++;
                     (*clusMap)[hitId].push_back(cl);
@@ -142,10 +150,61 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
     }
 }
 
+float TkrMakeClusters::calculateMips(
+    TkrDigi* pDigi, int strip0, int stripf, int& rawToT, int& end) const
+{
+    int layer      =  pDigi->getBilayer();
+    int view       =  pDigi->getView();
+    int tower      = (pDigi->getTower()).id();
 
-Point TkrMakeClusters::position(const int digiLayer, int v,
-                                const int strip0, const int stripf, 
-                                const int tower) const
+    int lastStrip = pDigi->getLastController0Strip();
+    if(strip0<=lastStrip) {
+        if (stripf<=lastStrip) end = 0; else end = 2;
+    } else end = 1;
+
+    if (end<2) { 
+        rawToT = pDigi->getToT(end);
+    } else {
+        // bit of a kludge for when the cluster overlaps the splitPoint
+        rawToT = (pDigi->getToT(0)*(lastStrip-strip0+1)
+            + pDigi->getToT(1)*(stripf-lastStrip))/(stripf-strip0+1);
+    }
+
+    typedef std::vector<double> mipsVec;
+    typedef mipsVec::const_iterator mIter;
+    unsigned int size = stripf-strip0+1;
+    mipsVec totVec(size);                   
+    double mips;
+    int strip, i=0;                   
+    // what is the flag for an invalid ToT?
+    // could use bad strip, but ToTSvc should know too
+
+    for (strip=strip0; strip<=stripf; ++strip, ++i) {
+        int rawToT = pDigi->getToTForStrip(strip);
+        mips = m_pToT->getMipsFromToT(rawToT, 
+            tower, layer, view, strip);              
+        totVec[i] = mips;
+    }
+
+    // now pick the answer
+    // 1 strip is easy, for 2, pick the lowest, otherwise pick lowest of 
+    // the interior strips
+    // We'll do better when we do this for real
+
+    double ToT;
+    if (stripf==strip0) {
+        ToT = totVec[0];
+    } else if (stripf-strip0==1) {                       
+        ToT = std::min(totVec[0], totVec[1] );
+    } else {
+        ToT = *std::min_element(++totVec.begin(), --totVec.end() );
+    }
+    return ToT;
+}
+
+Point TkrMakeClusters::position(int tower, int layer, int v,
+                                int strip0, int stripf) const
+
 {
     // Purpose and Method: returns the position of a cluster
     // Inputs:  layer, view, first and last strip and tower
@@ -159,10 +218,10 @@ Point TkrMakeClusters::position(const int digiLayer, int v,
        
     double firstStrip = strip0;
     double lastStrip  = stripf;
-    HepPoint3D p = m_tkrGeom->getStripPosition(tower, digiLayer, 
-        (int) v, firstStrip);
-    p += m_tkrGeom->getStripPosition(tower, digiLayer, 
-        (int) v, lastStrip);
+    HepPoint3D p = m_tkrGeom->getStripPosition(tower, layer, 
+        v, firstStrip);
+    p += m_tkrGeom->getStripPosition(tower, layer, 
+        v, lastStrip);
     p *= 0.5;
     Point p1(p.x(), p.y(), p.z());
     return p1;
@@ -203,7 +262,11 @@ bool TkrMakeClusters::isGoodCluster(const TaggedStrip &lowStrip,
     // Outputs:  yes or no
     // Dependencies: None
     // Restrictions and Caveats:  None
-    
+
+    // always keep the cluster if we're constructing the bad clusters
+    if (m_type==ITkrBadStripsSvc::BADCLUSTERS && highStrip!=m_lastStrip) {
+        return true;
+    }
     //Get the actual hit strip number from the tagged strips
     int lowHit  = lowStrip.getStripNumber();
     int highHit = highStrip.getStripNumber();

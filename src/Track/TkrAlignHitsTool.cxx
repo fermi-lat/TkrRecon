@@ -10,7 +10,7 @@
 * @author Leon Rochester
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.cxx,v 1.5 2004/12/16 05:04:23 usher Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.cxx,v 1.6 2005/01/02 23:53:47 lsrea Exp $
 */
 
 #include "src/Track/TkrAlignHitsTool.h"
@@ -57,8 +57,8 @@ StatusCode TkrAlignHitsTool::alignHits(const Event::TkrTrack* track,
    if(!m_alignSvc || !m_alignSvc->alignRec()) {return sc;}
 
     // get the clusterCol
-    Event::TkrClusterCol* m_clusCol = 
-        SmartDataPtr<Event::TkrClusterCol>(m_dataSvc,EventModel::TkrRecon::TkrClusterCol); 
+    //Event::TkrClusterCol* m_clusCol = 
+    //    SmartDataPtr<Event::TkrClusterCol>(m_dataSvc,EventModel::TkrRecon::TkrClusterCol); 
 
 // Don't forget to fix all this
     // loop over the planes
@@ -99,7 +99,7 @@ StatusCode TkrAlignHitsTool::alignHits(const Event::TkrTrack* track,
         //check the view;
         HitStuff* hit0 = *it;
         int view0  = hit0->view;
-        int layer0 = hit0->layer;
+        //int layer0 = hit0->layer;
         // loop over the layers
         HitStuff* hit1 = 0;
         HitStuff* hit2 = 0;
@@ -169,9 +169,9 @@ StatusCode TkrAlignHitsTool::alignHits(const Event::TkrTrack* track,
         HepPoint3D  hitPoint = hit->newPos;
         HepVector3D hitSlope = hit->slope;
         //need the digiLayer for Alignment!!!
-        int digiLayer = hit->layer;
+        //int digiLayer = hit->layer;
         int view  = hit->view;
-        int tower = hit->tower;
+        //int tower = hit->tower;
         int layer = hit->layer;
 
         HepVector3D deltaPos;
@@ -209,7 +209,7 @@ void TkrAlignHitsTool::findNearestLayers(HitStuff* hit0,
     HitStuff* hit;
     int view0   = hit0->view;
     int layer0  = hit0->layer;
-    int planeNumber0 = hit0->planeNumber;
+    //int planeNumber0 = hit0->planeNumber;
     for (; jt!=m_hitVec.end(); ++jt) {
         hit = *jt;
         // we never need to go back more than 10 planes so...

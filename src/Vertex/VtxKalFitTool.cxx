@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.23 2004/12/16 05:04:24 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.24 2004/12/26 23:30:05 lsrea Exp $
 // Description:                                                  
 //      Implementation of the Kalman vertexer
 //
@@ -78,9 +78,9 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       log <<"NUMBER OF TRACKS TO VERTEX: "<<theTracks->size();
   }
   log <<endreq;
-  //***********************
+
   //FILTER STEP:
-  //***********************
+
 
   sc = StatusCode::FAILURE;
 
@@ -190,9 +190,9 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       log <<"Number of tracks used: "<<usedTracks.size();
   }
   log << endreq;
-  //**************************
+
   //SMOOTHER STEP:
-  //**************************
+
 
   //Final estimates:
   HepVector Vtx      = m_VtxEstimates.back();
@@ -233,9 +233,9 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       i++;
     }
 
-  //**************************
+
   // Physical Momentum and Cov
-  //**************************
+
   Vector totP;
   HepSymMatrix totCovP(3,0);
   HepMatrix totCovXP(3,3,0);
@@ -294,9 +294,9 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
     }
     log << endreq;
   
-  //********************************
+
   //Creating the TkrVertex instance:
-  //********************************
+
   Point Pt(Vtx[0],Vtx[1],Vtx[2]);
   double totE = totP.magnitude();
   Ray theRay(Pt,totP);

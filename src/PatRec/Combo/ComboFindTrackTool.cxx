@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.29 2005/01/20 01:39:21 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.30 2005/01/20 05:39:01 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -425,7 +425,7 @@ void ComboFindTrackTool::loadOutput()
     // Restrictions and Caveats:  None.
 
     // use this for errors
-    const double oneOverSqrt12 = 1./sqrt(12.);
+    //const double oneOverSqrt12 = 1./sqrt(12.);
 
     // Retrieve a pointer (if it exists) to existing fit track collection
     Event::TkrTrackCol* trackCol =
@@ -520,7 +520,7 @@ void ComboFindTrackTool::findBlindCandidates()
 
     MsgStream msgLog(msgSvc(), name());
 
-    int maxLayers = m_tkrGeom->numLayers();
+    //int maxLayers = m_tkrGeom->numLayers();
     // maximum number of hits on any downward track so far
     int localBestHitCount = 0; 
     int trials            = 0; 
@@ -617,7 +617,7 @@ void ComboFindTrackTool::findCalCandidates()
 
     MsgStream msgLog(msgSvc(), name());
 
-    int maxLayers = m_tkrGeom->numLayers();
+    //int maxLayers = m_tkrGeom->numLayers();
     int localBestHitCount = 0; // maximum number of hits on any track so far
     int trials = 0;
     int  ilayer     = m_topLayerWithPoints;
@@ -839,8 +839,8 @@ bool ComboFindTrackTool::incorporate(Candidate* trial)
     for (; cand!=end(); cand++) {
         Candidate* thisCand = *cand;
 
-        int numHits = thisCand->track()->getNumHits();
-        int minLen = std::min(numHits, numTrialHits);
+        //int numHits = thisCand->track()->getNumHits();
+        //int minLen = std::min(numHits, numTrialHits);
         //int numTest = minLen - min_unique_hits;
 
         int numUniqueFound = m_fitUtils->numUniqueHits(
@@ -1019,7 +1019,7 @@ bool ComboFindTrackTool::terminateAfterThisCandidate(int firstLayer, int& trials
         trackFound = m_upwardTrackFound;
     }
     bool qualifies = 
-        (trackFound ? true : firstLayer==layerFound);
+        (trackFound ? firstLayer==layerFound : true );
     bool leadingHits = m_leadingHits && qualifies;
     Candidate *trial = new Candidate(this, testRay.position(),
         testRay.direction(), leadingHits); 

@@ -10,7 +10,7 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.20 2004/10/12 19:03:34 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.21 2004/12/26 23:30:04 lsrea Exp $
 */
 
 #include "GaudiKernel/Algorithm.h"
@@ -104,9 +104,9 @@ StatusCode TkrClusterAlg::initialize()
             TkrMakeClusters maker(
                 pClusters, pMap, m_tkrGeom, pDigis, ITkrBadStripsSvc::BADCLUSTERS);
             pBadStrips->setBadClusterCol(pClusters);
-            int clustSize = pClusters->size();
+            //int clustSize = pClusters->size();
             pBadStrips->setBadIdClusterMap(pMap);
-            int mapSize = pMap->size();
+            //int mapSize = pMap->size();
         }
     }
     

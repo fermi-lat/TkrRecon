@@ -28,7 +28,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.23 2004/10/12 19:03:33 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.24 2004/12/26 23:30:04 lsrea Exp $
 */
 
 #include <vector>
@@ -41,6 +41,8 @@
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrBadStripsSvc.h"
 #include "TkrUtil/ITkrAlignmentSvc.h"
+#include "TkrUtil/ITkrToTSvc.h"
+#include "Event/Digi/TkrDigi.h"
 
 #include <map>
 #include <set>
@@ -58,7 +60,7 @@ public:
     TkrMakeClusters(Event::TkrClusterCol* pClus, Event::TkrIdClusterMap* clusMap,
         ITkrGeometrySvc* m_tkrGeom, 
         Event::TkrDigiCol* pTkrDigiCol,
-        /*std::set<idents::TkrId>* tkrIds, */
+
         ITkrBadStripsSvc::clusterType clType=ITkrBadStripsSvc::STANDARDCLUSTERS);
     
     ~TkrMakeClusters() { }
@@ -67,8 +69,8 @@ private:
     
     /// gets the position of a cluster
     //Point position(int ilayer, Event::TkrCluster::view v, 
-    Point position(int ilayer, int v, 
-        int strip0, int stripf, int tower = 0) const;
+    Point position(int tower, int ilayer, int v, 
+        int strip0, int stripf) const;
     /// returns true if the two hits have a gap between them
     bool isGapBetween(const TaggedStrip &lowHit, const TaggedStrip &highHit) const;
     /// returns true if the cluster is "good"
@@ -78,16 +80,21 @@ private:
     /// get the list of bad strips
     const stripCol* getBadStrips(int tower, int digiLayer, 
         int view) const;
+    /// makes a first guess at the corrected ToT for a cluster
+    float calculateMips(Event::TkrDigi* pDigi, int strip0, int stripf, 
+        int& rawToT, int& end) const;
            
 //private:
     
     /// Keep pointer to the geometry service
-    ITkrGeometrySvc*  m_tkrGeom;
-    
+    ITkrGeometrySvc*  m_tkrGeom;  
     /// Keep pointer to the bad strip service
     ITkrBadStripsSvc* m_pBadStrips;
-
+    /// Keep pointer to the ToT service
+    ITkrToTSvc* m_pToT;
+    /// if STANDARDCLUSTERS, usual clustering; if BADCLUSTERS, construct bad-cluster list
     ITkrBadStripsSvc::clusterType m_type;
+    TaggedStrip m_lastStrip;
 };
 
 #endif // TKRMAKECLUSTERS

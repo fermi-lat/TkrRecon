@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.19 2004/12/26 23:30:05 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.20 2005/01/03 21:16:57 usher Exp $
  */
 
 // to turn one debug variables
@@ -365,7 +365,7 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrackHit* last_hit,
 	else                   m_propagatorTool->setStepStart(last_params, start_pos.z(), false);
 
 	m_propagatorTool->step(arc_len);
-	double rad_len = m_propagatorTool->getRadLength(arc_len);
+	//double rad_len = m_propagatorTool->getRadLength(arc_len);
 	double cur_energy = last_hit->getEnergy();
 	Event::TkrTrackParams next_params = m_propagatorTool->getTrackParams(arc_len, cur_energy, true);
 
@@ -491,7 +491,7 @@ Event::TkrTrackHit* FindTrackHitsTool::setFirstHit(Event::TkrTrack* track)
 	if(!m_tkrGeom->isInActiveLAT(start_pos)) return trackHit;
 
 	// Find the delta(z) for this step
-	int num_planes    = m_tkrGeom->numPlanes();
+	//int num_planes    = m_tkrGeom->numPlanes();
     int nearest_plane = m_tkrGeom->getPlane(start_pos.z());
 
 	// Find the closest plane in z and use it irrespective of track direction
@@ -615,8 +615,9 @@ Event::TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, Event::TkrTr
     
     // Must be inside Glast
     double min_dist = -1.;
-    bool done = false;
-	int indexHit = -1; 
+    // no longer used...
+    //bool done = false;
+	//int indexHit = -1; 
     while (Event::TkrCluster* cluster = m_clusTool->nearestClusterOutside(view, layer, min_dist, center)) 
     {
         Point nearHit = cluster->position();
@@ -641,7 +642,7 @@ Event::TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, Event::TkrTr
         int    meas_cluster_size = (int) cluster->size();
 
         double num_strips_hit    = m_tkrGeom->siThickness()*fabs(slope)/m_tkrGeom->siStripPitch();
-	    int    pred_cluster_size = std::max(num_strips_hit - 1., 1.);
+	    int    pred_cluster_size = (int) std::max(num_strips_hit - 1., 1.);
             
 		// Only care if meas. cluster size is too small
         if (meas_cluster_size < pred_cluster_size) continue; // look for another one
@@ -699,7 +700,7 @@ int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
 
 	// Loop until no more track hits found
 	int  planes_crossed  = 0;
-	int  added_hits      = 0.; 
+	int  added_hits      = 0; 
     while(Event::TkrTrackHit* trackHit = findNextHit(lastHit, true))
     {
 		// Check to see that a SSD cluster was found

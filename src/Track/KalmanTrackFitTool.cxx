@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.23 2004/11/23 19:23:17 atwood Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.24 2004/12/13 23:50:41 atwood Exp $
  */
 
 // to turn one debug variables
@@ -212,7 +212,7 @@ StatusCode KalmanTrackFitTool::initialize()
     }
 
     //Locate a pointer to the G4Propagator
-    IPropagator* propagatorTool = 0;
+    //IPropagator* propagatorTool = 0;
     if( (sc = toolSvc()->retrieveTool("G4PropagationTool", m_propagator)).isFailure() )
     {
         throw GaudiException("ToolSvc could not find G4PropagationTool", name(), sc);
@@ -439,8 +439,8 @@ double KalmanTrackFitTool::doFilter(Event::TkrTrack& track)
     double chiSqFit = 0.;
     int    nplanes  = track.getNumHits();
 
-    IKalmanFilterMatrix& F = *m_Tmat;
-    IKalmanFilterMatrix& H = *m_Hmat;
+    //IKalmanFilterMatrix& F = *m_Tmat;
+    //IKalmanFilterMatrix& H = *m_Hmat;
     
     //  Filter Step 
     //------------
@@ -575,7 +575,7 @@ double KalmanTrackFitTool::doSmoother(Event::TkrTrack& track)
 
     Event::TkrTrackHit& prvPlane = *track[last_used_plane];
     idents::TkrId       tkrId    = prvPlane.getTkrId();
-    double              prevZ    = prvPlane.getZPlane();
+    //double              prevZ    = prvPlane.getZPlane();
     TkrTrkParams        fitPar   = prvPlane.getTrackParams(Event::TkrTrackHit::FILTERED);
     TkrCovMatrix        fitCov   = prvPlane.getTrackParams(Event::TkrTrackHit::FILTERED);
 
@@ -584,7 +584,7 @@ double KalmanTrackFitTool::doSmoother(Event::TkrTrack& track)
     prvPlane.setTrackParams(fitCov, Event::TkrTrackHit::SMOOTHED);
 
     // Reference to our projection matrix
-    IKalmanFilterMatrix& F = *m_Tmat;
+    //IKalmanFilterMatrix& F = *m_Tmat;
     IKalmanFilterMatrix& H = *m_Hmat;
 
     // Extract measured values at last hit to get initial smoothed chisquare
@@ -700,7 +700,7 @@ void KalmanTrackFitTool::getInitialFitHit(Event::TkrTrack& track)
     trackHit.setTrackParams(stateCovMat, Event::TkrTrackHit::FILTERED);
     trackHit.setTrackParams(stateCovMat, Event::TkrTrackHit::PREDICTED);
 
-    int i = 0;
+    //int i = 0;
 
     return;
 }
