@@ -13,14 +13,14 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrClusterAlg.h,v 1.8 2002/08/31 21:30:49 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrClusterAlg.h,v 1.9 2002/09/02 17:30:49 lsrea Exp $
 */
 
 #include <vector>
 #include "geometry/Point.h"
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
-#include "TkrRecon/ITkrBadStripsSvc.h"
+#include "TkrUtil/ITkrBadStripsSvc.h"
 
 #include "Event/Digi/TkrDigi.h"
 
