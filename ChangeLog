@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Thu Oct 10 14:18:24 PDT 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusterTable.cxx 
+Log Message:
+comment out debug cout
+    *
+------------------------------------------------------------
 User: atwood  Thu Oct 10 12:50:43 PDT 2002
 TkrRecon/src/Vertex/Combo
 
