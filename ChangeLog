@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 14:34:41 PST 2001
+TkrRecon/mgr
+
+Modified Files:
+	requirements 
+Log Message:
+Ok, new requirements file to complete the upgrade of TkrRecon to the new
+pattern recognition and track fitting.
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 14:32:29 PST 2001
 TkrRecon/src
 
