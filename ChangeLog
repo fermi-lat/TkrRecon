@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Fri Mar 29 18:52:03 PST 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrClusters.cxx 
+Log Message:
+allow for non-integer strip positions in cluster alg
+KalTrack: associate the segments on a track
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Mar 29 18:52:02 PST 2002
 TkrRecon/TkrRecon/Services
 
