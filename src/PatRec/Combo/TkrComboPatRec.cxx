@@ -21,12 +21,35 @@ Implementation of a Combinatoric Pattern recognition for GLAST
 
 //#include <fstream>
 
-//#include <algorithm>
+#include <algorithm>
 
 //static std::ofstream m_out("Energies.txt");
 
-using namespace Event;
+// constants defined at file scope
 
+namespace {
+
+    // Some constants collected from the file:
+
+    const        _thinCoeff      = 0.61;
+    const        _thickCoeff     = 1.97;
+    const        _noradCoeff     = 0.35;
+
+    const int    _lastThickLayer = 6; 
+    const int    _lastThinLayer  = 2;
+
+    const double _thinConvRadLen  = 0.03;
+    const double _thickConvRadLen = 0.18;
+    const double _trayRadLen      = 0.015;
+
+    double       _calKludge       = 1.2;
+
+    int          _maxTrials       = 30;
+
+
+}
+
+using namespace Event;
 
 
 TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters, double CalEnergy, Point CalPosition)
@@ -83,13 +106,14 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
     double ene    = m_control->getFEneParticle()*CalEnergy;
     m_energy = ene; //for testing 2000.; //
     
-    if (ene <= m_control->getMinEnergy()) ene = m_control->getMinEnergy();
+    ene = std::max(ene, m_control->getMinEnergy());
     
     //Clear the candidate track list
     m_candidates.clear();
     
     //Set the parameters for the search
-    if (m_energy <= m_control->getMinEnergy()) m_energy = m_control->getMinEnergy();
+    m_energy = std::max(m_energy, m_control->getMinEnergy());
+
     m_cut    = m_control->getSigmaCut(); 
     m_Pcal   = CalPosition;
     
@@ -163,9 +187,8 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
         hypo++;
         if(hypo != m_candidates.end()) m_candidates.erase(hypo, m_candidates.end()); 
         
-        // Now with these hits "off the table" lower then energy & find other tracks
-        m_energy = (m_control->getFEneParticle()*m_energy > m_control->getMinEnergy()) ?
-                    m_control->getFEneParticle()*m_energy : m_control->getMinEnergy();
+        // Now with these hits "off the table" lower the energy & find other tracks
+        m_energy = std::max(m_control->getFEneParticle()*m_energy, m_control->getMinEnergy());
 
         findBlindCandidates();
     }
@@ -237,12 +260,12 @@ void TkrComboPatRec::setEnergies(double calEnergy)
    // Restrictions and Caveats:  None.
 
     // Use hit counting + CsI energies to compute Event Energy 
-    double cal_Energy = (calEnergy > m_control->getMinEnergy()/2.) ? 
-                         calEnergy : m_control->getMinEnergy()/2.;
+
+    double cal_Energy = std::max(calEnergy, 0.5*m_control->getMinEnergy());
 
     // TOTAL KULDGE HERE - Cal Energies are found to be too low by ~20%
     //  This should be removed when the CAL is calibrated!!!!!!  
-    cal_Energy *= 1.2; 
+    cal_Energy *= _calKludge; 
 
     // Get best track ray
     KalFitTrack*  first_track = m_candidates[0]->track();              
@@ -285,11 +308,12 @@ void TkrComboPatRec::setEnergies(double calEnergy)
         Point x_hit = first_track->getPosAtZ(arc_len);
         int numHits = TkrQueryClusters(m_clusters).
                                        numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
-        if(iplane < 12)   {//Hardwire where thick planes start
+        // assumes 2-4-n structure
+        if(iplane < m_tkrGeo->numLayers()-_lastThickLayer)   { 
             num_thin_hits += numHits; 
             rad_thin  = arc_len;
         }
-        else if(iplane < 16) {
+        else if(iplane < m_tkrGeo->numLayers()-_lastThinLayer) {
             num_thck_hits += numHits;
             rad_thick  = arc_len;
         }
@@ -299,22 +323,33 @@ void TkrComboPatRec::setEnergies(double calEnergy)
         }
         
         // Increment arc-length
-        arc_len += m_tkrGeo->trayHeight()/fabs(dir_ini.z()); 
+        //arc_len += m_tkrGeo->trayHeight()/fabs(dir_ini.z());
+        int nextPlane = iplane+1;
+        if (iplane==max_planes-1) nextPlane--;
+        double deltaZ = m_tkrGeo->getReconLayerZ(iplane)-m_tkrGeo->getReconLayerZ(nextPlane);
+        arc_len += fabs( deltaZ/dir_ini.z()); 
     }
     
- //   double ene_trks   = .4*num_thin_hits + 1.7*num_thck_hits; // Coefs are MeV/hit
- //   double ene_xing   = 1.6*(max_planes-top_plane+1);       // Coef is MeV/plane
+    //double ene_trks   = .4*num_thin_hits + 1.7*num_thck_hits; // Coefs are MeV/hit
+    //double ene_xing   = 1.6*(max_planes-top_plane+1);       // Coef is MeV/plane
     // Optimized Coefs = .6 , 1.85, and .32
-    double ene_trks   = .61*num_thin_hits + 1.97*num_thck_hits +
-                        .35*num_last_hits; // Coefs are MeV/hit - 2nd Round optimization
+
+    double ene_trks   = _thinCoeff*num_thin_hits + _thickCoeff*num_thck_hits +
+        _noradCoeff*num_last_hits; // Coefs are MeV/hit - 2nd Round optimization
  
-    double thin_planes = 12 - top_plane;
-    if(thin_planes < 0.) thin_planes = 0.;
-    double thick_planes = max_planes - top_plane - thin_planes-2;
-    double rad_nom  = .03*thin_planes + .18*thick_planes; //Just the radiators
-    double rad_swim = kalPart->radLength();                 //The "real" rad- len                
-    double rad_min  = (thin_planes+thick_planes+2)*.015/fabs(dir_ini.z()); //The non-radiator
-    if(rad_swim < rad_nom) rad_swim = rad_nom + rad_min;    //Must be bigger then rad_nom? 
+    int thin_planes  = std::max(0, m_tkrGeo->numLayers()-_lastThickLayer - top_plane);
+    int thick_planes = std::max(0, max_planes - top_plane - thin_planes-_lastThinLayer);
+    int norad_planes = std::max(0, max_planes - top_plane - thick_planes - thin_planes);
+
+    //Just the radiators
+    double rad_nom  = _thinConvRadLen*thin_planes 
+        + _thickConvRadLen*thick_planes; // why no costheta? LSR
+    //The "real" rad- len 
+    double rad_swim = kalPart->radLength();                 
+    //The non-radiator
+    double rad_min  = 
+        (thin_planes+thick_planes+norad_planes)*_trayRadLen/fabs(dir_ini.z()); 
+    rad_swim = std::max(rad_swim, rad_nom + rad_min); 
     double ene_total  =  ene_trks * rad_swim/rad_nom + cal_Energy; //Scale and add cal. energy
  /*   
     kalPart->setStepStart(x_ini, dir_ini, rad_thin);
@@ -339,9 +374,10 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     int num_cands = m_candidates.size();
     for(int i=0; i<num_cands; i++) {
         KalFitTrack* track = m_candidates[i]->track();
-        double kal_energy = track->getKalEnergy();
-        if(kal_energy > 5000.) kal_energy = 5000.; // Limit this
-        double energy = (m_energy > kal_energy) ? m_energy : kal_energy;
+        // limit on high side
+        double kal_energy = std::min(5000., track->getKalEnergy());
+
+        double energy = std::max(m_energy, kal_energy);
         if(energy == m_energy) {
             m_candidates[i]->adjustType(10);
         }
@@ -365,8 +401,8 @@ void TkrComboPatRec::setEnergies(double calEnergy)
         double e1_min = 2.*num_hits1;        //Coefs are MeV/Hit
         double e2_min = 2.*num_hits2;
         
-        if(e1 < e1_min) e1 = e1_min;
-        if(e2 < e2_min) e2 = e2_min; 
+        e1 = std::max(e1, e1_min);
+        e2 = std::max(e2, e2_min); 
         double de1 = first_track->getKalEnergyError();
         double de2 = secnd_track->getKalEnergyError();
 
@@ -419,7 +455,7 @@ void TkrComboPatRec::findBlindCandidates()
     
     for (int ilayer = m_firstLayer; ilayer < max_planes-2; ilayer++) { 
         // Termination Criterion
-        if(trials > 30) break; 
+        if(trials > _maxTrials) break; 
         if(localBestHitCount > m_control->getMinTermHitCount() && 
                                      ilayer - m_firstLayer > 1) break;
         
@@ -439,13 +475,13 @@ void TkrComboPatRec::findBlindCandidates()
             //allows up to 2 blank layers
             for(int igap=1; igap<3 && ilayer+igap <max_planes; igap++) {
                 // Tests for terminating gap loop
-                if(trials >30) break; 
+                if(trials >_maxTrials) break; 
                 if(localBestHitCount > 0 && igap > 1 &&
                   (localBestHitCount+2 > (max_planes-(ilayer+igap)-2)*2)) break;
                 
                 TkrPoints secnd_Hit(ilayer+igap, m_clusters);               
                 while(!secnd_Hit.finished()) {
-                    if(trials > 30) break; 
+                    if(trials > _maxTrials) break; 
                     Point x2(secnd_Hit.getSpacePoint());
                     if(x2.x()==0.) continue; //Flagged Hits can mask the true finish.
                     
@@ -472,7 +508,7 @@ void TkrComboPatRec::findBlindCandidates()
                     //See if there is a third hit - 
                     //      Allow up to 2 blank layers depending on 1st 2 hits
                     int gap_max  = 3-igap;
-                    if(gap_max < 1) gap_max = 1;
+                    gap_max = std::max(gap_max, 1);
                     for(gap = 0; gap < gap_max; gap++) {
                         sigma = findNextHit(ilayer+igap+gap, testRay, deflection);
 
@@ -525,7 +561,7 @@ void TkrComboPatRec::findCalCandidates()
     for (int ilayer = 0 ; ilayer < max_planes-2; ilayer++)
     { 
         // Should we continue? 
-        if(trials > 30) break; 
+        if(trials > _maxTrials) break; 
         if(localBestHitCount > m_control->getMinTermHitCount() && 
                                      ilayer - m_TopLayer > 1) break;
         
@@ -533,7 +569,7 @@ void TkrComboPatRec::findCalCandidates()
         TkrPoints first_Hit(ilayer, m_clusters);
         
         while(!first_Hit.finished()) {
-            if(trials > 30) break; 
+            if(trials > _maxTrials) break; 
             Point x1(first_Hit.getSpacePoint());
             if(x1.mag() < .001) continue;
             if(m_firstLayer == 0 && !valid_hits) {
@@ -556,12 +592,17 @@ void TkrComboPatRec::findCalCandidates()
             int max_layer = ilayer+3; // allows up to 1 gaps
             if(max_layer > max_planes-1) max_layer =max_planes-1;
             for(int klayer=ilayer+1; klayer < max_layer; klayer++) {
-                if(trials > 30) break; 
+                if(trials > _maxTrials) break; 
                 TkrPoints secnd_Hit(klayer, m_clusters);
                 if(secnd_Hit.finished()) continue;
                 
                 //Try the first 3 closest hits to 1st-hit - cal-hit line
-                double pred_dist = (klayer-ilayer)*(m_tkrGeo->trayHeight())/fabs(t1.z()); 
+                double pred_dist = 
+                    fabs((m_tkrGeo->getReconLayerZ(klayer)
+                    - m_tkrGeo->getReconLayerZ(ilayer))
+                    /t1.z());
+
+                //double pred_dist = (klayer-ilayer)*(m_tkrGeo->trayHeight())/fabs(t1.z()); 
                 Point x_pred = x1 + pred_dist*t1;
                 double resid_min = 0.; 
                 double resid_max = 30./fabs(t1.z()); //Max resid: 30 mm hardwired in 
@@ -604,7 +645,8 @@ void TkrComboPatRec::findCalCandidates()
                     if(!incorporate(trial)) break;
                     trials++; 
                     int new_top = trial->track()->getLayer();
-                    if(new_top < m_TopLayer) m_TopLayer = new_top;                }
+                    m_TopLayer = std::min(m_TopLayer, new_top);
+                }
             }
         }
     }
@@ -618,6 +660,7 @@ float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
    // Outputs: The sigma (std. dev.) for the "found" and the deflection angle
    // Dependencies: None
    // Restrictions and Caveats:  None.
+
     deflection = 0.;
     int nlayers = 0;
     
@@ -638,8 +681,10 @@ float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
     
     deflection = traj.direction() * ((m_nextHit-traj.position()).unit());
     
-    
-    double rad_len = (layer < 12) ? .045:.183; //Hardwire in rad. lengths
+    //Hardwire in rad. lengths
+    double rad_len = 
+        (layer < m_tkrGeo->numLayers() - _lastThickLayer) ?
+        _thinConvRadLen+_trayRadLen : _thickConvRadLen+_trayRadLen ; 
     rad_len /= costh; 
     double theta_MS = 13.6/m_energy * sqrt(rad_len)*(1+.038*log(rad_len));
     double dist_MS  = m_arclen *theta_MS/1.72/costh; 
@@ -668,7 +713,7 @@ bool TkrComboPatRec::incorporate(Candidate* trial)
         int numHitsOverLapped = 
             (m_candidates[i]->track())->compareFits( *trial->track()); 
         int numHits = m_candidates[i]->track()->getNumHits();
-        int numTest = (numHits < numTrialHits) ? numHits : numTrialHits;
+        int numTest = std::min(numHits, numTrialHits);
         if (numHitsOverLapped > numTest - 4) {// must have > 4 unique hits
             if(trial->quality() > m_candidates[i]->quality()) {
                 delete m_candidates[i];  
