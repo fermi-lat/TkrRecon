@@ -1,4 +1,19 @@
 ------------------------------------------------------------
+User: usher  Tue Apr 23 09:28:40 PDT 2002
+TkrRecon/TkrRecon/TrackFit
+
+Added Files:
+	TkrFitHit.h TkrFitMatrix.h TkrFitPar.h TkrFitPlane.h 
+Removed Files:
+	KalHit.h KalMatrix.h KalPar.h KalPlane.h KalTrack.h 
+Log Message:
+
+Reorganization of the TkrFitTrack class. Goal was to move the actual 
+method of fitting the tracks out of the TkrFitTrack class itself in
+order to make it a "true" TDS class. 
+
+    *
+------------------------------------------------------------
 User: usher  Tue Apr 23 09:28:39 PDT 2002
 TkrRecon/TkrRecon/Track
 
