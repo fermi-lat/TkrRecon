@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 14:24:00 PST 2001
+TkrRecon/src/PatRec
+
+Added Files:
+	BestNodeList.cxx LayerLink.cxx LayerLinkTree.cxx 
+	TkrCandidates.cxx TkrClusterLink.cxx TkrClusterLinkList.cxx 
+	TkrClusterLinkVector.cxx TkrLinkForest.cxx TkrLinkNode.cxx 
+	TkrLinkTree.cxx TkrNodeQuality.cxx 
+Log Message:
+Source code to implement the "simple" version of the link and tree algorithm
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 14:21:25 PST 2001
 TkrRecon/src/GaudiAlg
 
