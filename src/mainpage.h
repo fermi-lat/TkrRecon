@@ -111,15 +111,59 @@ For more information, please see the Tracker Recon Group
 <A HREF="http://www-glast.slac.stanford.edu/software/TKR/NewTracker/TrkRecon.htm"> 
 website. </A>
  *
-@authors Tracy Usher, Leon Rochester (SLAC) <br>
+@author Tracy Usher, Leon Rochester (SLAC) <br>
 Bill Atwood, Brandon Allgood(UC Santa Cruz) <br>
 Michael Kuss, Johann Cohen-Tanugi (INFN Pisa) <br>
 emeritus: Jose Angel Hernando Morata (Santiago de Compostela)
+
 <hr>
+
+@section jobOptions jobOptions
+
+  Note: for options with a default of "Combo", this is the only available option so far.
+
+  @param TkrDisplayAlg.TrackerReconType
+  sets recon type (default = "Combo")
+
+  @param TkrFindAlg.TrackerReconType
+  sets recon type (default = "Combo")
+
+  @param TkrReconAlg.TrackerReconType
+  sets recon type (default = "Combo")
+
+  @param TkrTrackFitAlg.PropagatorType
+  obsolete, now set in GlastPropagatorSvc
+  @param TkrTrackFitAlg.TrackFitType
+  sets track fit type (default = "Combo")
+
+  @param TkrVertexAlg.VertexerType
+  sets vertex algorithm. Default ("DEFAULT") sets simple combinatoric algorithm;
+  "KALMAN" sets Kalman filter algorithm.
+
+The following are technical and should not ordinarily be set by the casual user:
+
+  The defaults for the TkrInitSvc parameters are set in TkrControl.cxx.
+
+  @param TkrInitSvc.TkrMaxCandidates
+  @param TkrInitSvc.TkrMinTermHitCount
+  @param TkrInitSvc.TkrFEneParticle
+  @param TkrInitSvc.TkrSigmaCut
+  @param TkrInitSvc.TkrMinEnergy
+  @param TkrInitSvc.TkrMaxConsecutiveGaps
+  @param TkrInitSvc.TkrMinSegmentHits
+  @param TkrInitSvc.TkrMaxChiSqCut
+  @param TkrInitSvc.TkrIniErrorSlope
+  @param TkrInitSvc.TkrIniErrorPosition
+  @param TkrInitSvc.TkrPlaneEnergies
+
+  @param VtxKalFitTool.maxChi2Contrib Default: 10.0
+
+<hr>
+
 @section requirements CMT Requirements
 @verbinclude requirements
 <hr>
-@section notes Release notes
+@section notes release.notes
 release.notes
 <hr>
 @todo
@@ -127,9 +171,7 @@ Develop mechanism to handle constants required by code. Current plan
 is to put the constants in an xml file, and to make them properties 
 as well, so that they can be over-written from the jobOptions.
  *
-Consolidate references to geometry - remove from GFtutor and other places
- *
-Root out last hardwired numbers
+Root out remaining hardwired numbers
  *
 Doxygenate remainder of code
  */
