@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: hernando  Mon Feb  5 11:05:09 PST 2001
+TkrRecon/TkrRecon detGeo.h GFcandidates.h GFcontrol.h GFdata.h GFgamma.h GFparticle.h GFsegment.h KalFit.h SiClusters.h SiClustersAlg.h SiClustersIRFAlg.h SiLayers.h SiLayersIRFAlg.h SiRecObjs.h SiRecObjsAlg.h TkrAxis.h trackerGeo.h
+
+Added Files:
+	detGeo.h GFcandidates.h GFcontrol.h GFdata.h GFgamma.h 
+	GFparticle.h GFsegment.h KalFit.h SiClusters.h SiClustersAlg.h 
+	SiClustersIRFAlg.h SiLayers.h SiLayersIRFAlg.h SiRecObjs.h 
+	SiRecObjsAlg.h TkrAxis.h trackerGeo.h 
+Log Message:
+tb recon data and algorithm classes imported to TkrRecon
+    *
+------------------------------------------------------------
 User: burnett  Tue Jan 23 16:57:15 PST 2001
 TkrRecon/src/test jobOptions.txt
 
