@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Wed Jul 21 20:41:38 PDT 2004
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+fix req. file; prepare for tag v8r12p23
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Jul 21 18:49:24 PDT 2004
 TkrRecon/src/Dll
 
