@@ -3,6 +3,8 @@
  * Package TkrRecon
  * Manager: Leon Rochester 
  *
+ * v6r2    13-May-2002  TU    Final DSTF rec changes, prepend "get" to methods, consistent iters
+ * v6r1    13-May-2002  TU    Cleanup from TDS move, TDS path names changed to string versions
  * v6r0    10-May-2002  THB   Now consistent with new Event
  * v5r7    08-May-2002  TU    Tagged just after movement of TDS output classes to GlastEvent
  * v5r6    01-May-2002  LSR   Tagged changes for DSTF meeting
