@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Thu Mar 25 14:20:47 PST 2004
+TkrRecon/src/Track
+
+Modified Files:
+	KalmanTrackFitTool.cxx 
+Log Message:
+fix comipilation error and a bug in l.413
+    *
+------------------------------------------------------------
 User: cohen  Thu Mar 25 14:20:11 PST 2004
 TkrRecon/src/TrackFit/KalmanFilterFit
 
