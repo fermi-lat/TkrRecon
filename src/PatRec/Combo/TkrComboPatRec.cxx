@@ -236,6 +236,8 @@ void TkrComboPatRec::loadOutput()
         }
         
         TkrComboPatRec::iterator hypo;
+        int nCands = m_candidates.size();
+        //std::cout << "TkrComboPatRec::loadOutput: " << nCands << " tracks found " << std::endl;
         
         for(hypo  = m_candidates.begin(); hypo != m_candidates.end();   hypo++)
         {
