@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Sat Aug 31 13:14:56 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrClusterAlg.cxx 
+Log Message:
+More cleanup
+
+    *
+------------------------------------------------------------
+User: lsrea  Sat Aug 31 13:14:56 PDT 2002
 TkrRecon/src/Cluster
 
 Modified Files:
