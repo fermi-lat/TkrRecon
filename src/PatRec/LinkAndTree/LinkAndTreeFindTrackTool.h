@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/LinkAndTree/LinkAndTreeFindTrackTool.h,v 1.2 2002/08/29 19:39:50 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/LinkAndTree/LinkAndTreeFindTrackTool.h,v 1.3 2003/01/10 19:43:24 lsrea Exp $
  */
 
 #ifndef LINKANDTREEFINDTRACKTOOL_H
@@ -28,14 +28,17 @@ public:
     ///        the TDS, including calorimeter energy, and then use TkrLinkAndTree to find all
     ///        possible track candidates. The resulting track candidate collection is then 
     ///        stored in the TDS for the next stage.
+	StatusCode initialize();
     StatusCode findTracks();
 
 private:
     /// Pointer to the local Tracker geometry service
     ITkrGeometrySvc* m_tkrGeo;
+	///
+	ITkrFailureModeSvc* m_tkrFail;
 
     /// Pointer to the Gaudi data provider service (interface to the TDS)
-    DataSvc*        m_dataSvc;
+    IDataProviderSvc*        m_dataSvc;
 };
 
 #endif

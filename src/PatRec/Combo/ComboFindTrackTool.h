@@ -7,7 +7,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.h,v 1.4 2003/01/10 19:43:24 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.h,v 1.5 2003/03/13 19:13:23 lsrea Exp $
  */
 
 #ifndef COMBOFINDTRACKTOOL_H
@@ -30,6 +30,10 @@ public:
     ///        the TDS, including calorimeter energy, and then use TkrComboPatRec to find all
     ///        possible track candidates. The resulting track candidate collection is then 
     ///        stored in the TDS for the next stage.
+	
+	/// put actual init stuff here
+	StatusCode initialize();
+	/// does the work
     StatusCode findTracks();
 
 private:
@@ -39,7 +43,7 @@ private:
     ITkrFailureModeSvc* m_tkrFail;
 
     /// Pointer to the Gaudi data provider service (interface to the TDS)
-    DataSvc*        m_dataSvc;
+    IDataProviderSvc*        m_dataSvc;
 };
 
 #endif
