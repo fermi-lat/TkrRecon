@@ -8,9 +8,10 @@
 //------------------------------------------------------------------------------
 
 #include "src/PatRec/NeuralNet/TkrNeuralNet.h"
-#include "TkrRecon/Track/GFtutor.h"
-#include "TkrRecon/Track/GFcontrol.h"
-#include "TkrRecon/GaudiAlg/TkrReconAlg.h"
+#include "src/PatRec/Utilities/GFtutor.h"
+#include "src/TrackFit/KalFitTrack/GFcontrol.h"
+#include "src/PatRec/Utilities/TkrPoints.h"
+#include "src/PatRec/Utilities/TkrPoint.h"
 #include <math.h>
 #include <time.h>
 #include <stdlib.h>
@@ -32,7 +33,7 @@
 // Right now it doesn't use calEne, but in the future it might.
 TkrNeuralNet::TkrNeuralNet(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters, 
                            double calEne,  Point calHit):m_energy(calEne),
-                           m_Pcal(calHit)
+                           m_Pcal(calHit), m_tkrGeo(pTkrGeo), m_clusters(pClusters)
 {  	   
 	// load the cluster info
  	GFtutor::load(pClusters, pTkrGeo);
@@ -228,7 +229,7 @@ void TkrNeuralNet::buildCand()
                 float energy   = (*hypo).energy();
                 
 
-                KalFitTrack* _track = new KalFitTrack(iniLayer, iniTower, GFcontrol::sigmaCut, energy, testRay); 
+                KalFitTrack* _track = new KalFitTrack(m_clusters, m_tkrGeo, iniLayer, iniTower, GFcontrol::sigmaCut, energy, testRay); 
 
                 _track->findHits();
                 _track->doFit();
