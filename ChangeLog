@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: burnett  Sat Sep 27 11:53:27 PDT 2003
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrReconAlg.cxx 
+Log Message:
+Implement exception, use to protect against bad energy, by rejecting the event
+    *
+------------------------------------------------------------
 User: usher  Wed Aug 20 19:42:32 PDT 2003
 TkrRecon/src/MonteCarlo
 
