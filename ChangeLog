@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: kyoung  Wed Jun 20 15:12:51 PDT 2001
+TkrRecon/src RecNtupleAlg.cpp
+
+Modified Files:
+	RecNtupleAlg.cpp 
+Log Message:
+Changed backslash to slash
+    *
+------------------------------------------------------------
 User: lsrea  Mon Jun 18 12:54:06 PDT 2001
 TkrRecon/src/test BFEMBadStrips.txt BFEM_test.txt
 
