@@ -14,24 +14,22 @@ apply_pattern package_include
 
 macro TkrRecon_stamps     
 
-# have a seperate library to export the tracker recon data classes 
+apply_pattern packageShr
 
-
-
-library TkrRecon  *.cpp *.cxx ../TkrRecon/*.h  Dll/*.cpp
-
-library TkrReconData -no_share *.cpp *.cxx
 
 macro TkrRecon_linkopts   "$(TkrReconDir)/libTkrReconData.a  " \
       VisualC             "$(TkrReconDir)/TkrReconData.lib  " 
 
 private 
 
-apply_pattern packageShr
-
-# note that the debug versions of the used libraries are inserted below
-
 apply_pattern package_Cshlibflags 
+
+library TkrRecon  *.cpp *.cxx ../TkrRecon/*.h  Dll/*.cpp
+
+# have a seperate library to export the tracker recon data classes 
+
+library TkrReconData -no_share *.cpp *.cxx
+
 
 # build this for testing
 
