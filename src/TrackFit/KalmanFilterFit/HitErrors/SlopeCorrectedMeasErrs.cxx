@@ -8,7 +8,7 @@
  *
  * @author Tracy Usher (editor) from version implemented by Leon Rochester (due to Bill Atwood)
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.7 2005/02/15 20:34:25 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.8 2005/02/17 17:27:12 lsrea Exp $
  */
 
 #include "SlopeCorrectedMeasErrs.h"
@@ -19,8 +19,6 @@ SlopeCorrectedMeasErrs::SlopeCorrectedMeasErrs(ITkrGeometrySvc* tkrGeom) :
     return;
 }
 
-const double oneOverSqrt12 = 1. / sqrt(12.);
-
 TkrCovMatrix SlopeCorrectedMeasErrs::computeMeasErrs(const Event::TkrTrackParams& newPars, 
                                                      const TkrCovMatrix&          oldCovMat, 
                                                      const Event::TkrCluster&     cluster)
@@ -28,10 +26,6 @@ TkrCovMatrix SlopeCorrectedMeasErrs::computeMeasErrs(const Event::TkrTrackParams
  
     // Compute the Measurement covariance taking into account the 
     // Local track slope
-
-    // The following sets the error to the slop between the track 
-    // and the cluster over sqrt(12). It protects against getting
-    // too small.
 
     TkrCovMatrix newCov(4,4,1);
 
@@ -58,18 +52,13 @@ TkrCovMatrix SlopeCorrectedMeasErrs::computeMeasErrs(const Event::TkrTrackParams
 
 double SlopeCorrectedMeasErrs::getError(double strips, double slope) const 
 {
-    // Kludgey code that returns the error, depending on errorType
-    // 0 -> same as before
-    // 1 -> first attempt at slope-dependent errors
-    // 2 -> second attempt
-
     // strips is the number of strips in the cluster
     // slope is the slope of the track in the measuring view
 
     double stripAspect = m_tkrGeom->siThickness()/m_tkrGeom->siStripPitch();
     double projectedStrips = fabs(slope*stripAspect);
 
-    // calculation below is done in units of strips
+    // calculation below is done in units of strip widths
     // projectedStrips = 1 is the slope that crosses one strip exactly
 
     double error;
@@ -82,8 +71,30 @@ double SlopeCorrectedMeasErrs::getError(double strips, double slope) const
 
     double eps0 = -0.1; // use this to extent or restrict the valid range for 1-strip clusters
     double eps1 = -0.1; // ditto for the rest of the clusters
-    double loSlope, hiSlope, peakSlope;
+    double minStrips, maxStrips, peakStrips;
     double loPar1, hiPar1, peakDev;
+
+    /*
+    Here's the idea: for a given number of strips in the cluster, there is a limited range of
+    slopes (projectedStrips) that is allowed by geometry. Naively, for an n-strip cluster, it
+    should be between n-2 and n. 
+    
+    Hits at the extremes are in principle measured with zero error, whereas
+    those halfway between typically can be anywhere in the strip, and so are measured
+    with the precision of siResolution (stripWidth/sqrt(12)).
+
+    In practice, because of thresholds, and other effects, the actual parameters differ.
+
+    In the code below, cluster widths between 1 and 11 are handled explicitly by calculating
+    a triangular error function whose parameters have been determined from the simulation by
+    plotting the deviation of the measured position from the MC position.
+
+    The range of validity for each case has been determined by examining the MC plots, and
+    noting where the "real" hits stop.
+
+    For cluster widths greater than 11, and for those <= 11, but outside the range of validity,
+    a conservative error assignment is made, never less than minError (currently siResolution).
+    */
 
     if (nStrips==1) 
     {
@@ -93,37 +104,37 @@ double SlopeCorrectedMeasErrs::getError(double strips, double slope) const
     {
         if (nStrips==2) 
         {
-            loSlope = .4 ; hiSlope = 2.5; peakSlope = 1.61;
+            minStrips = .4 ; maxStrips = 2.5; peakStrips = 1.61;
             peakDev = 0.97; loPar1 = .613; hiPar1 = .697;
         } 
         else if (nStrips==3) 
         {
-            loSlope = 1.8 ; hiSlope = 3.5; peakSlope = 2.78;
+            minStrips = 1.8 ; maxStrips = 3.5; peakStrips = 2.78;
             peakDev = 0.97; loPar1 = .600; hiPar1 = .759;
         } 
         else if (nStrips==4) 
         {
-            loSlope = 3.0 ; hiSlope = 4.6; peakSlope = 3.80;
+            minStrips = 3.0 ; maxStrips = 4.6; peakStrips = 3.80;
             peakDev = 0.90; loPar1 = .691; hiPar1 = .755;
         } 
         else if (nStrips==5) 
         {
-            loSlope = 4.2 ; hiSlope = 5.6; peakSlope = 4.83;
+            minStrips = 4.2 ; maxStrips = 5.6; peakStrips = 4.83;
             peakDev = 0.94; loPar1 = .769; hiPar1 = .819;
         } 
         else if (nStrips>=6) 
         {
             double nm6 = 1.03*(nStrips - 6);
-            loSlope = 5.0 + nm6 ; hiSlope = 6.6 + nm6; peakSlope = 5.88 + nm6;
+            minStrips = 5.0 + nm6 ; maxStrips = 6.6 + nm6; peakStrips = 5.88 + nm6;
             peakDev = 0.96; loPar1 = .714; hiPar1 = .851;
         }
-        if (projectedStrips>loSlope-eps1 && projectedStrips < peakSlope) 
+        if (projectedStrips>minStrips-eps1 && projectedStrips < peakStrips) 
         {
-            factor = peakDev - loPar1*(peakSlope - projectedStrips);
+            factor = peakDev - loPar1*(peakStrips - projectedStrips);
         } 
-        else if (projectedStrips>peakSlope && projectedStrips < hiSlope + eps1 ) 
+        else if (projectedStrips>peakStrips && projectedStrips < maxStrips + eps1 ) 
         {
-            factor = peakDev - hiPar1*(projectedStrips - peakSlope);
+            factor = peakDev - hiPar1*(projectedStrips - peakStrips);
         }
     }
     if (factor==0) // no factor assigned yet!
