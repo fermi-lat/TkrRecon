@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: igable  Wed Apr 25 10:37:59 PDT 2001
+TkrRecon/mgr requirements
+
+Modified Files:
+	requirements 
+Log Message:
+Move to Gaudi v7. Still having some problems. The TkrReconData.lib
+does not build as a part of the all project.This can be temporarily
+solved by explicitly building the library.
+
+    *
+------------------------------------------------------------
 User: igable  Wed Apr 25 10:37:58 PDT 2001
 TkrRecon/TkrRecon GFdata.h GFgamma.h GFparticle.h SiClusters.h SiClustersAlg.h SiRecObjs.h SiRecObjsAlg.h TkrDisplayAlg.h TkrGeometrySvc.h
 
