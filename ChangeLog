@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Aug  6 09:42:23 PDT 2003
+TkrRecon/src/PatRec/MonteCarlo
+
+Modified Files:
+	MonteCarloFindTrackTool.cxx MonteCarloFindTrackTool.h 
+Log Message:
+Clean up comments, explicit call to TkrPatCand sort method
+
+    *
+------------------------------------------------------------
 User: usher  Wed Aug  6 09:41:49 PDT 2003
 TkrRecon/src/PatRec/NeuralNet
 
