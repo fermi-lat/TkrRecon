@@ -13,6 +13,7 @@ Implementation of a Combinatoric Pattern recognition for GLAST
       Author: Bill Atwood, UCSC Dec. 2001
 */
 
+
 #include "src/PatRec/Combo/TkrComboPatRec.h"
 #include "src/Utilities/TkrPoints.h"
 #include "GaudiKernel/SmartDataPtr.h"
@@ -510,6 +511,8 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     }
 }
 
+
+/*
 void TkrComboPatRec::findBlindCandidates()
 {   
    // Purpose and Method: Does a combinatoric search for tracks. Assumes
@@ -616,6 +619,9 @@ void TkrComboPatRec::findBlindCandidates()
     }
     return;
 }
+*/
+
+/*
 
 void TkrComboPatRec::findCalCandidates()
 {   
@@ -731,7 +737,9 @@ void TkrComboPatRec::findCalCandidates()
     }
     return;   
 }
+*/
 
+/*
 float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
 {
    // Purpose and Method: Finds the 3rd hit for findBlindCandidates()
@@ -772,6 +780,7 @@ float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
     if(denom > 25.) denom = 25.;   // Hardwire in max Error of 25 mm
     return resid/denom;  
 } 
+*/
 
 bool TkrComboPatRec::incorporate(Candidate* trial)
 {

@@ -54,12 +54,13 @@ unsigned int TkrNeuralNet::generateNeurons()
 
   for (int ilayer = 0 ; ilayer < 18; ilayer++)
     {
-      TkrPoints tempTkrPoints(ilayer, m_clusTool);
-      if(!tempTkrPoints.finished())
-	{
-	  TkrPointList tmpList = tempTkrPoints.getAllLayerPoints();
-	  m_pointList.insert(m_pointList.end(),tmpList.begin(),tmpList.end());
-	}
+      TkrPoints tkrPoints(ilayer, m_clusTool);
+      TkrPoints::const_iterator itP = tkrPoints.begin();
+      for (; itP!=tkrPoints.end(); ++itP) {
+          TkrPoint* pt = *itP;
+          TkrPoint point = *pt;
+          m_pointList.push_back(point);
+      }
     }
   
   unsigned int numPoints = m_pointList.size();
