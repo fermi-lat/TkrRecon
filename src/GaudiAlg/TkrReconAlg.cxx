@@ -14,6 +14,7 @@
 #include "TkrRecon/Services/TkrInitSvc.h"
 #include "TkrRecon/Track/TkrTracks.h"
 #include "src/Track/TkrLinkAndTreeTrackFit.h"
+#include "TkrRecon/Track/GFcontrol.h"
 
 #include "GlastEvent/Recon/ICsIClusters.h"
 
@@ -81,7 +82,8 @@ StatusCode TkrReconAlg::execute()
     //Recover pointer to Cal Cluster info    
     ICsIClusterList* pCalClusters = SmartDataPtr<ICsIClusterList>(eventSvc(),"/Event/CalRecon/CsIClusterList");
 
-    double CalEnergy   = 30.0; // MeV
+    double minEnergy = GFcontrol::minEnergy;
+	double CalEnergy   = minEnergy;
     Point  CalPosition = Point(0.,0.,0.);
 
     //If clusters, then retrieve estimate for the energy
@@ -93,11 +95,10 @@ StatusCode TkrReconAlg::execute()
     }
 
     //Provide for some lower cutoff energy...
-    if (CalEnergy < 30.0) //MeV
+    if (CalEnergy < minEnergy)
     {
         //! for the moment use:
-        double MINENE = 30.0;  //MeV
-        CalEnergy     = MINENE;
+        CalEnergy     = minEnergy;
         CalPosition   = Point(0.,0.,0.);
     }
 

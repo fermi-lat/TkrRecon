@@ -16,6 +16,7 @@
 #include "TkrRecon/GaudiAlg/TkrFindAlg.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
 #include "TkrRecon/Cluster/TkrClusters.h"
+#include "TkrRecon/Track/GFcontrol.h"
 //#include "src/PatRec/LinkAndTree/TkrLinkAndTreePR.h"
 //#include "src/PatRec/Combo/TkrComboPR.h"
 
@@ -83,23 +84,23 @@ StatusCode TkrFindAlg::execute()
     //But, for now allow this option to help some pattern rec algorithms
     ICsIClusterList* pCalClusters = SmartDataPtr<ICsIClusterList>(eventSvc(),"/Event/CalRecon/CsIClusterList");
 
-    double CalEnergy   = 30.0; //MeV
+    double minEnergy = GFcontrol::minEnergy;
+	double CalEnergy   = minEnergy;
     Point  CalPosition = Point(0.,0.,0.);
 
     //If clusters, then retrieve estimate for the energy
     if (pCalClusters)
     {
         ICsICluster* pCalClus = pCalClusters->Cluster(0);
-        CalEnergy             = pCalClus->energySum(); //MeV
+        CalEnergy             = pCalClus->energySum();
         CalPosition           = pCalClus->position();
     }
 
     //Provide for some lower cutoff energy...
-    if (CalEnergy < 30.0)  // MeV
+    if (CalEnergy < minEnergy) 
     {
         //! for the moment use:
-        double MINENE = 30.0;  // MeV
-        CalEnergy     = MINENE;
+        CalEnergy     = minEnergy;
         CalPosition   = Point(0.,0.,0.);
     }
 
