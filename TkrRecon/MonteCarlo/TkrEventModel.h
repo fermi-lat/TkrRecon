@@ -39,6 +39,9 @@
             _EXTERN_ std::string McClusToLyrHitTab;
             _EXTERN_ std::string McLyrToHitTab;
             _EXTERN_ std::string McLayerHitCol;
+            _EXTERN_ std::string PatHitToLyrHit;
+            _EXTERN_ std::string PatCandToMcCand;
+            _EXTERN_ std::string McPatCandCol;
         }
     }
 
