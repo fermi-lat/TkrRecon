@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 13:56:22 PST 2001
+TkrRecon/TkrRecon/Display
+
+Added Files:
+	TkrBestCandRep.h TkrCandidatesRep.h 
+Log Message:
+Add display code for the pattern recognition tracks. These two classes work
+for the link and tree pattern recognition, TkrCandidatesRep displays the full
+tree, TkrBestCandRep displays the best track in a tree.
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 13:51:12 PST 2001
 TkrRecon/src/TrackFit
 
