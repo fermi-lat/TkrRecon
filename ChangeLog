@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Mon Oct 14 11:51:28 PDT 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrGeometrySvc.cxx 
+Log Message:
+remove extraneous printout
+    *
+------------------------------------------------------------
 User: als  Fri Oct 11 16:07:15 PDT 2002
 TkrRecon/src/GaudiAlg
 
