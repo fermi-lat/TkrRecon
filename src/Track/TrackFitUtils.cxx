@@ -129,8 +129,8 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
         track.setInitialDirection(dir);
         track.setScatter(0.);
         
-        int    last_Xplane      = -1; 
-        int    last_Yplane      = -1;
+        int    last_XLayer      = -1; 
+        int    last_YLayer     = -1;
         int    num_xPlanes      =  0;
         int    num_yPlanes      =  0;
         int    Xgaps            =  0;
@@ -169,21 +169,24 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
                     double x  = hit->getMeasuredPosition(Event::TkrTrackHit::SMOOTHED);
                     double xm = hit->getMeasuredPosition(Event::TkrTrackHit::MEASURED);
 
+					int this_layer, view;
+					m_tkrGeom->planeToLayer(this_plane, this_layer, view);  
+
                     if (xPlane) {
                         num_xPlanes++;
-                        if(last_Xplane > 0) {
-                            Xgaps += last_Xplane - this_plane - 1; 
+                        if(last_XLayer >= 0) {
+                            Xgaps += last_XLayer - this_layer - 1; 
                             if(num_xPlanes < 3 || !quit_first) track.setNumXFirstGaps(Xgaps);
                         }
-                        last_Xplane = this_plane; 
+                        last_XLayer = this_layer; 
                     }
                     else {
                         num_yPlanes++; 
-                        if(last_Yplane >= 0) {
-                            Ygaps += last_Yplane - this_plane - 1;
+                        if(last_YLayer>= 0) {
+                            Ygaps += last_YLayer- this_layer - 1;
                             if(num_yPlanes < 3 || !quit_first) track.setNumYFirstGaps(Ygaps);
                         } 
-                    last_Yplane = this_plane;
+                    last_YLayer= this_layer;
                     }
                     rmsResid+= (x-xm)*(x-xm);
 					plane_count++; 
