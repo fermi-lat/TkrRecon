@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Tue Apr 30 16:18:07 PDT 2002
+TkrRecon/TkrRecon/GaudiAlg
+
+Modified Files:
+	TkrClusterAlg.h 
+Log Message:
+update documentation
+
+    *
+------------------------------------------------------------
+User: lsrea  Tue Apr 30 16:18:07 PDT 2002
 TkrRecon/TkrRecon/Cluster
 
 Modified Files:
