@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Wed Feb  6 14:02:58 PST 2002
+TkrRecon/TkrRecon/Services
+
+Added Files:
+	TkrInitSvc.h 
+Log Message:
+TkrInitSvc.h - defines the TkrRecon initialization service
+TkrTrackFit.h - drives the fitting of pattern recognition tracks
+
+    *
+------------------------------------------------------------
 User: usher  Wed Feb  6 14:00:18 PST 2002
 TkrRecon/src/TrackFit
 
