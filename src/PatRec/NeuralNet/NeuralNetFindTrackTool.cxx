@@ -1,3 +1,12 @@
+// File and Version Information:
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.2 2002/08/29 19:18:47 usher Exp $
+//
+// Description:
+//      Tool for find candidate tracks via the Neural Net approach
+//
+// Author:
+//      The Tracking Software Group  
+
 #include "src/PatRec/NeuralNet/NeuralNetFindTrackTool.h"
 #include "GaudiKernel/ToolFactory.h"
 #include "GaudiKernel/SmartDataPtr.h"
