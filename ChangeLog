@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Tue Oct  8 15:30:18 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrClusterAlg.cxx 
+Log Message:
+Mods for relational tables:
+TkrClusterAlg: call TkrMakeClusterTable
+TkrMakeClusterTable: new--makes hit<->cluster relation
+    *
+------------------------------------------------------------
 User: lsrea  Tue Oct  8 15:30:17 PDT 2002
 TkrRecon/src/Cluster
 
