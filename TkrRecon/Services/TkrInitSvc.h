@@ -17,7 +17,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.7 2002/08/20 19:54:31 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.8 2002/09/05 16:51:32 lsrea Exp $
  */
 
 
@@ -50,21 +50,21 @@ private:
     ITkrGeometrySvc* pTkrGeo;
 
     /// Variables which can be changed in TkrControl
-    int              m_MaxCandidates;
-    int              m_MinTermHitCount;
+    int              m_maxCandidates;
+    int              m_minTermHitCount;
 
-    double           m_FEneParticle;
+    double           m_fEneParticle;
 
-    double           m_SigmaCut;
-    double           m_MinEnergy;
+    double           m_sigmaCut;
+    double           m_minEnergy;
 
-    int              m_MaxConsecutiveGaps;
-    int              m_MinSegmentHits;
-    double           m_MaxChiSqCut;
-    double           m_IniErrorSlope;
-    double           m_IniErrorPosition;
+    int              m_maxConsecutiveGaps;
+    int              m_minSegmentHits;
+    double           m_maxChiSqCut;
+    double           m_iniErrorSlope;
+    double           m_iniErrorPosition;
 
-    bool             m_PlaneEnergies;
+    bool             m_planeEnergies;
 };
 
 #endif // __TKRINITSVC_H

@@ -1,8 +1,9 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrControl.cxx,v 1.4 2002/08/29 19:18:47 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrControl.cxx,v 1.5 2002/09/05 17:56:02 lsrea Exp $
 //
 // Description:
-//      Implements singleton class for storing and retrieving tracker recon control parameters.
+//      Implements singleton class for storing and retrieving 
+//      tracker recon control parameters.
 //
 // Author:
 //      The Tracking Software Group  
@@ -14,21 +15,21 @@ TkrControl* TkrControl::m_this = 0;
 
 TkrControl::TkrControl()
 {
-    m_MaxCandidates      = 10;   // Max number of Candidates 
-    m_MinTermHitCount    = 10;   // Number of hits to terminate Combo PR
+    m_maxCandidates      = 10;   // Max number of Candidates 
+    m_minTermHitCount    = 10;   // Number of hits to terminate Combo PR
 
-    m_FEneParticle       = .8;   // Fraction of Cal energy to use in PR.
-    m_SigmaCut           = 9.0;  // PR search window (in  sigmas)
-    m_MaxChiSqCut        = 20.0; // Max allow PR Chisq. 
+    m_fEneParticle       = .8;   // Fraction of Cal energy to use in PR.
+    m_sigmaCut           = 9.0;  // PR search window (in  sigmas)
+    m_maxChiSqCut        = 20.0; // Max allow PR Chisq. 
 
-    m_MaxConsecutiveGaps = 6;    // Max consecutive Gaps - Stop
-    m_MinSegmentHits     = 6;    // Min number of hits for segment
-    m_MinEnergy          = 30.0; // Min tracking energy (MeV)
+    m_maxConsecutiveGaps = 6;    // Max consecutive Gaps - Stop
+    m_minSegmentHits     = 6;    // Min number of hits for segment
+    m_minEnergy          = 30.0; // Min tracking energy (MeV)
 
-    m_IniErrorSlope      = 0.17; // First Hit error in Kalman: 10 deg 
-    m_IniErrorPosition   = 0.10; // First Hit error in Kalman: .1 mm
+    m_iniErrorSlope      = 0.17; // First Hit error in Kalman: 10 deg 
+    m_iniErrorPosition   = 0.10; // First Hit error in Kalman: .1 mm
 
-    m_PlaneEnergies      = true; // Decrease particle energies by exp(-rad_len)
+    m_planeEnergies      = true; // Decrease particle energies by exp(-rad_len)
 
     return;
 }

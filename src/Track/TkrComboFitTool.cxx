@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.4 2002/08/29 19:18:47 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.5 2002/08/30 18:34:39 atwood Exp $
 //
 // Description:
 //      Tool for performing the fit of Combo Pat Rec candidate tracks
@@ -109,7 +109,7 @@ StatusCode TkrComboFitTool::doTrackFit(Event::TkrPatCand* patCand)
                     slope = tkr_par.getXSlope();
                 }        
                 int hit_Id = plane.getIDHit();;
-                double cls_size = pTkrClus->size(hit_proj, hit_Id);        
+                double cls_size = pTkrClus->size(hit_Id);        
                 double prj_size = 400.*fabs(slope)/228. + 1.;
                 if(cls_size> prj_size) {
                     track->unFlagHit(i_Hit);

@@ -293,7 +293,7 @@ void KalmanFilter::computeMeasCov(TkrFitPlane& plane, TkrFitPar pred_pars)
     double min_err = m_tkrGeo->siResolution();   
 
     if(plane.getProjection()==TkrCluster::X) {
-        double size_Cls = m_clusters->size(TkrCluster::X,id_Cls);
+        double size_Cls = m_clusters->size(id_Cls);
         double x_slope = pred_pars.getXSlope();
         double wid_proj = fabs(x_slope*m_tkrGeo->siThickness());
         double wid_cls  = size_Cls*m_tkrGeo->siStripPitch();
@@ -303,7 +303,7 @@ void KalmanFilter::computeMeasCov(TkrFitPlane& plane, TkrFitPar pred_pars)
         newCov(3,3) = meas_hit.getCov().getcovY0Y0();
     }
     else {
-        double size_Cls = m_clusters->size(TkrCluster::Y,id_Cls);
+        double size_Cls = m_clusters->size(id_Cls);
         double y_slope = pred_pars.getYSlope();
         double wid_proj = fabs(y_slope*m_tkrGeo->siThickness());
         double wid_cls  = size_Cls*m_tkrGeo->siStripPitch();

@@ -39,7 +39,7 @@ TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pCluster
 
      //Clear all flag hits
     int num_hits = pClusters->nHits();
-    for(int i=0; i<num_hits; i++) pClusters->unflagHit(TkrCluster::X,i);
+    for(int i=0; i<num_hits; i++) pClusters->unflagHit(i);
     
     // Internal init's 
     m_clusters     = pClusters;
@@ -135,7 +135,7 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
                 slope = tkr_par.getXSlope();
             }        
             int hit_Id = plane.getIDHit();;
-            double cls_size = m_clusters->size(hit_proj, hit_Id); 
+            double cls_size = m_clusters->size(hit_Id); 
             double prj_size = m_tkrGeo->siThickness()*fabs(slope)/
                               m_tkrGeo->siStripPitch()             + 1.;
             if(cls_size> prj_size) {
@@ -725,7 +725,7 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
             slope = tkr_par.getXSlope();
         }        
         int    hit_Id    = plane.getIDHit();;
-        double cls_size  = clusters->size(hit_proj, hit_Id);        
+        double cls_size  = clusters->size(hit_Id);        
         double prj_size  = geometry->siThickness()*fabs(slope)/
                            geometry->siStripPitch() + 2.;
         double over_size = cls_size - prj_size;
