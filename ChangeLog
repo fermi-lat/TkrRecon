@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Jan 25 12:04:47 PST 2005
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusters.cxx TkrMakeClusters.h 
+Log Message:
+Prepare for tag v10r3: updates for TkrCluster, and start working on unix warnings
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Jan 25 12:04:46 PST 2005
 TkrRecon/doc
 
