@@ -51,6 +51,8 @@ Point TkrPoints::getSpacePoint()
 
             Point xY(m_yHitList[m_iy]->position());
             m_tower = x_tower;
+            m_xID = m_xHitList[m_ix]->id();
+            m_yID = m_yHitList[m_iy]->id();
             y = xY.y();
             z = (m_isX) ? xX.z(): xY.z();
             m_iy++;
@@ -61,4 +63,21 @@ Point TkrPoints::getSpacePoint()
         }
     }
     return Point(0., 0., 0.);
+}
+
+std:: vector<TkrPoint> TkrPoints::getAllLayerPoints()
+{
+
+	while(!finished()) {
+		
+			Point tmpPoint(getSpacePoint());
+
+			if(finished()) break;
+
+			TkrPoint point(tmpPoint,tower(),m_layer,xID(),yID());
+
+			m_pointList.push_back(point);
+	}
+
+	return m_pointList;
 }
