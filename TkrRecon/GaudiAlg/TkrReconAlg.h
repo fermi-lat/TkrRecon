@@ -17,7 +17,7 @@
 
 #include "TkrRecon/Track/TkrTrackFit.h"
 #include "TkrRecon/Cluster/TkrClusters.h"
-#include "GlastSvc/Reco/IRecoSvc.h"
+#include "GlastSvc/Reco/IKalmanParticle.h"
 
 //----------------------------------------------
 //
@@ -43,7 +43,7 @@ public:
 	StatusCode execute();
 	StatusCode finalize();
 
-    static IRecoSvc* m_gismoSvc; 
+    static IKalmanParticle* m_KalParticle;
 	
 private:
 	
@@ -52,6 +52,9 @@ private:
 
     // Fit control information
     TkrTrackFit* m_TrackFit;
+
+    // Propagator type
+    int    m_PropagatorType;
 
     // calorimter TDS
 	// m_cal

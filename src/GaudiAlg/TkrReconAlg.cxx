@@ -25,6 +25,9 @@
 
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 
+#include "GlastSvc/Reco/IRecoSvc.h"
+#include "GlastSvc/Reco/IPropagatorSvc.h"
+
 static const AlgFactory<TkrReconAlg>  Factory;
 const IAlgFactory& TkrReconAlgFactory = Factory;
 
@@ -32,13 +35,15 @@ const IAlgFactory& TkrReconAlgFactory = Factory;
 /// Algorithm parameters which can be set at run time must be declared.
 /// This should be done in the constructor.
 
-IRecoSvc* TkrReconAlg::m_gismoSvc; 
+IKalmanParticle* TkrReconAlg::m_KalParticle = 0;
 
 //#############################################################################
 TkrReconAlg::TkrReconAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator) 
 //#############################################################################
 {
+    //Variable to switch propagators
+    declareProperty("PropagatorType", m_PropagatorType=0);
 }
 
 //###################################################
@@ -53,8 +58,23 @@ StatusCode TkrReconAlg::initialize()
     TkrInitSvc* pTkrInitSvc = 0;
     StatusCode  sc          = service("TkrInitSvc", pTkrInitSvc);
 
-    // Look for GismoGenerator Service
-    sc = service("RecoSvc", m_gismoSvc);
+    // Which propagator to use?
+    if (m_PropagatorType == 0)
+    {
+        // Look for the G4PropagatorSvc service
+        IPropagatorSvc* propSvc = 0;
+        sc = service("G4PropagatorSvc", propSvc, true);
+        m_KalParticle = propSvc->getPropagator();
+	    log << MSG::INFO << "Using Geant4 Particle Propagator" << endreq;
+    }
+    else
+    {
+        // Look for GismoGenerator Service
+        IRecoSvc* gismoSvc = 0;
+        sc = service("RecoSvc", gismoSvc, true);
+        m_KalParticle = gismoSvc->getPropagator();
+	    log << MSG::INFO << "Using Gismo Particle Propagator" << endreq;
+    }
 
     //Track fit information
     m_TrackFit = pTkrInitSvc->setTrackFit();
