@@ -8,6 +8,9 @@ TkrPoints::TkrPoints(int iniLayer)
 
 void TkrPoints::ini()
 {
+       // Initialize loop indices... 
+    m_itry = 0;
+    m_itot = 0;
     m_end = false;
 
     m_xHits = Event::GFtutor::_DATA->nHits(Event::TkrCluster::X,m_layer);
@@ -27,8 +30,7 @@ void TkrPoints::ini()
     if(m_xHitList[0]->position().z() > m_yHitList[0]->position().z()) {
         m_isX = true;
     }
-   // Initialize loop indices... 
-    m_itry = 0;
+
     m_itot = m_xHits*m_yHits; 
 }
 
@@ -38,7 +40,8 @@ Point TkrPoints::getNearestPointOutside(Point x0, double & dist_min)
     // outside a distance d
 
     double x_min=0, y_min=0, z_min=0;
-    double dist_best = 1000.;
+    double dist_best = 10000.;
+    double dist_min2 = dist_min*dist_min; 
 
     for(int itry = 0; itry<m_itot; itry++){
         int ix = itry%m_xHits;
@@ -50,16 +53,16 @@ Point TkrPoints::getNearestPointOutside(Point x0, double & dist_min)
         int x_tower = m_xHitList[ix]->tower();
         int y_tower = m_yHitList[iy]->tower();
         if(x_tower != y_tower) continue;
+        m_tower = x_tower;
 
         Point xX(m_xHitList[ix]->position());
-        double x = xX.x();
         Point xY(m_yHitList[iy]->position());
-        m_tower = x_tower;
+        double x = xX.x();
         double y = xY.y();
-        double z = (m_isX) ? xX.z(): xY.z();
+        double z = (xX.z()+xY.z())/2.;
 
         double dist = (x0.x()-x)*(x0.x()-x) + (x0.y()-y)*(x0.y()-y);
-        if(dist < dist_min || dist > dist_best) continue; 
+        if(dist < dist_min2 || dist > dist_best) continue; 
 
         dist_best = dist;
         x_min = x;
@@ -67,9 +70,11 @@ Point TkrPoints::getNearestPointOutside(Point x0, double & dist_min)
         z_min = z;
         m_xID = m_xHitList[ix]->id();
         m_yID = m_yHitList[iy]->id();
+        m_xSize = m_xHitList[ix]->size();
+        m_ySize = m_yHitList[iy]->size();
     }
 
-    dist_min = dist_best;
+    dist_min = sqrt(dist_best);
     return Point(x_min,y_min,z_min); 
 }
 
@@ -88,15 +93,17 @@ Point TkrPoints::getSpacePoint()
         int x_tower = m_xHitList[ix]->tower();
         int y_tower = m_yHitList[iy]->tower();
         if(x_tower != y_tower) continue;
+        m_tower = x_tower;
 
         Point xX(m_xHitList[ix]->position());
-        x = xX.x();
         Point xY(m_yHitList[iy]->position());
-        m_tower = x_tower;
+        x = xX.x();
         y = xY.y();
         z = (xX.z()+xY.z())/2.;  // Average the z coordinates 
         m_xID = m_xHitList[ix]->id();
         m_yID = m_yHitList[iy]->id();
+        m_xSize = m_xHitList[ix]->size();
+        m_ySize = m_yHitList[iy]->size();
         m_itry++;
         break;
     }
