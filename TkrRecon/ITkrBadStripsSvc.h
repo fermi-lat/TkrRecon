@@ -31,10 +31,6 @@ public:
 
     static const InterfaceID& interfaceID() { return IID_ITkrBadStripsSvc; }
    
-    //virtual StatusCode initialize() = 0;
-    //virtual StatusCode finalize() = 0;
-    
-
     virtual int getIndex(const int tower, const int layer, const idents::GlastAxis::axis axis) = 0;
     virtual v_strips* getBadStrips(const int tower, const int layer, 
         const idents::GlastAxis::axis axis) = 0;
@@ -43,10 +39,10 @@ public:
         const idents::GlastAxis::axis axis, const int strip) = 0;
     virtual bool isBadStrip(const v_strips* v, const int strip) = 0;
     virtual bool isTaggedBad(const int taggedStrip) = 0;
-    virtual int tagBad(const int strip) = 0;
-    virtual int tagGood(const int strip) = 0;
+    virtual int tagField(const int strip) = 0;
     virtual int untag(const int strip) = 0;
-
+    virtual int swapForSort(const int strip) = 0;
+    virtual int lastStrip() = 0;
  };
 
 #endif
