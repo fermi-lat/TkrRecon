@@ -32,7 +32,17 @@ TkrComboFit::TkrComboFit(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus, TkrP
         
         KalFitTrack* track = new KalFitTrack(iniLayer, iniTower, GFcontrol::sigmaCut, energy, testRay);                 
         
-        track->findHits();
+        //track->findHits();
+        
+        //Now fill the hits from the pattern track
+        int              numHits = pCand->numPatCandHits();
+   //     CandHitVectorPtr candPtr = pCand->getCandHitPtr();
+        CandHitVectorPtr candPtr = pCand->getHitIterBegin();
+        while(numHits--){
+            TkrPatCandHit candHit = *candPtr++;
+            track->addMeasHit(candHit);
+        }
+        
         track->doFit();
         
         if (!track->empty(GFcontrol::minSegmentHits)) 
