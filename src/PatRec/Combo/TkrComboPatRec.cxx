@@ -191,7 +191,8 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
 class candTrackHitSort
 {
   public:
-      bool operator()(Event::TkrTrackHit* patHitLeft, Event::TkrTrackHit* patHitRight)
+      //bool operator()(Event::TkrTrackHit* patHitLeft, Event::TkrTrackHit* patHitRight)
+      bool operator()(SmartRef<Event::TkrTrackHit> patHitLeft, SmartRef<Event::TkrTrackHit> patHitRight)
     {
         return patHitLeft->getZPlane() >  patHitRight->getZPlane();;
     }
