@@ -1,5 +1,25 @@
 ------------------------------------------------------------
 User: atwood  Mon Jun  3 16:40:32 PDT 2002
+TkrRecon/src/TrackFit/KalmanFilter
+
+Modified Files:
+	KalmanFilter.cxx KalmanFilter.h 
+Log Message:
+
+TrkPoints - replaced search alg. with a sequential one due to Allgood
+
+TkrComboPatRec - Major re-work of alg's and updated to new Gleam model
+
+KalFitTrack - re-work of alg's to use rad-len of energy calc. active_dist to veto bad tracks
+
+KalmanFilter - re-work to load rad_len and active_dist after propagations into TkrFitPlanes
+
+test_sources  - added 100 MeV gammas
+
+
+    *
+------------------------------------------------------------
+User: atwood  Mon Jun  3 16:40:32 PDT 2002
 TkrRecon/src/TrackFit/KalFitTrack
 
 Modified Files:
