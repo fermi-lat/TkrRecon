@@ -22,8 +22,6 @@ void TkrComboVtxRep::update()
   //Now see if we can do the drawing
   if (pVertices)
     {
-      int numVertices = pVertices->size();
-      
       gui::DisplayRep* pDisplay = this;
       
       Event::TkrVertexCol::const_iterator it;
