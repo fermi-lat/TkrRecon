@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Aug 21 15:03:43 PDT 2002
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx TkrComboPatRec.cxx TkrComboPatRec.h 
+Log Message:
+Change over to TkrControl from the GFXXXXX classes
+    *
+------------------------------------------------------------
 User: usher  Wed Aug 21 10:10:50 PDT 2002
 TkrRecon/cmt
 
