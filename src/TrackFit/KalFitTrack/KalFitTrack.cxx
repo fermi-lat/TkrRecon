@@ -620,7 +620,7 @@ TkrFitPlane KalFitTrack::originalKPlane() const
 {
     // Back off incoming vertex to cause the first hit to be picked up
     Ray testRay(m_ray.position(),m_ray.direction());
-    Point x_ini = testRay.position(-1.);
+    Point x_ini = testRay.position(-10.); // 10 mm back-up -Should be adequit
     double x_slope = m_ray.direction().x()/m_ray.direction().z();
     double y_slope = m_ray.direction().y()/m_ray.direction().z();
     TkrFitPar pfit(x_ini.x(), x_slope, x_ini.y(), y_slope);

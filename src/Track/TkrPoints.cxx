@@ -94,7 +94,7 @@ Point TkrPoints::getSpacePoint()
         Point xY(m_yHitList[iy]->position());
         m_tower = x_tower;
         y = xY.y();
-        z = (m_isX) ? xX.z(): xY.z();
+        z = (xX.z()+xY.z())/2.;  // Average the z coordinates 
         m_xID = m_xHitList[ix]->id();
         m_yID = m_yHitList[iy]->id();
         m_itry++;

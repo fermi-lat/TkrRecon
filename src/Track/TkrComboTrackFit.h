@@ -10,7 +10,7 @@
 //
 // TkrCandidates
 //
-// Class definition for the Link and Tree Pattern Recognition Transient Data
+// Class definition for the Combo Recognition Transient Data
 // Object. Created by the TkrFindAlg called by GAUDI.
 //
 // Tracy Usher 11/08/01

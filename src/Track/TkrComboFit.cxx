@@ -4,7 +4,7 @@
 #include "TkrRecon/Track/GFtutor.h"
 
 //
-// Feeds Link and Tree pattern recognition tracks to Kalman Filter
+// Feeds Combo pattern recognition tracks to Kalman Filter
 //
 
 using namespace Event;
