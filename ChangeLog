@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Jun  5 13:13:25 PDT 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrQueryClusters.cxx 
+Log Message:
+This time the bounds checking is correct... 
+
+    *
+------------------------------------------------------------
 User: usher  Wed Jun  5 13:11:40 PDT 2002
 TkrRecon/src/PatRec/LinkAndTree
 
