@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Tue Nov  9 13:27:45 PST 2004
+TkrRecon/src/TrackFit/KalmanFilterFit
+
+Modified Files:
+	KalmanFilterInit.cxx 
+Log Message:
+Modifications to the generic fit to remove dependences on "plane id" and allow for interchanging fit matrix, energy loss, etc., classes during the fit
+    *
+------------------------------------------------------------
+User: usher  Tue Nov  9 13:27:45 PST 2004
 TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices
 
 Modified Files:
