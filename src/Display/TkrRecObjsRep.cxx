@@ -22,7 +22,7 @@ void TkrRecObjsRep::update()
 
 	//Now see if we can do the drawing
 	if (pRecObjs)
-	{
+	{/*
 		gui::DisplayRep* pDisplay = this;
 //		pRecObjs->update(*pDisplay);
 
@@ -41,6 +41,10 @@ void TkrRecObjsRep::update()
 
 			pTrack->draw(*pDisplay);
 		}
+                
+               */
+            gui::DisplayRep* pDisplay = this;
+            pRecObjs->draw(*pDisplay);
 	}
 
     return;
