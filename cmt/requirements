@@ -7,15 +7,15 @@ use GlastPolicy
 
 apply_pattern packageShr
 
+use GlastSvc
+use GuiSvc
+use ntupleWriterSvc
 
 private 
 #-----------------------
 # everything below here is private
 
 
-use GlastSvc
-use GuiSvc
-use ntupleWriterSvc
 
 
 apply_pattern package_include
