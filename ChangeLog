@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: lsrea  Tue Mar 29 17:56:05 PST 2005
+TkrRecon/src/Track
+
+Modified Files:
+	TkrTrackEnergyTool.cxx 
+Log Message:
+Fix for when there is no CAL. Track energies are set to Kalman energy if possible.
+This process occurs during iteration
+
+
+    *
+------------------------------------------------------------
+User: lsrea  Tue Mar 29 17:56:05 PST 2005
 TkrRecon/doc
 
 Modified Files:
