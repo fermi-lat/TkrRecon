@@ -824,7 +824,7 @@ int KalFitTrack::addLeadingHits(int top_layer)
     while(next_layer >= 0 && top_layer-next_layer < 2) {   // Limit additions to 2 layers
         //Check that there are hits to here
         if((m_clusters->nHits(TkrCluster::X, next_layer) + 
-            m_clusters->nHits(TkrCluster::X, next_layer)) < 1) {
+            m_clusters->nHits(TkrCluster::Y, next_layer)) < 1) {
             next_layer--;
             continue;
         }
