@@ -15,7 +15,7 @@ typedef v_strips::const_iterator v_strips_it;
 //
 //   TkrBadStripsSvc
 //
-//	 Tracker BadStrips Service. Supplies the bad strips 
+//   Tracker BadStrips Service. Supplies the bad strips 
 //   for use by SiClustersAlg, for example
 //----------------------------------------------
 //             Leon Rochester, 3-June-2001
@@ -31,7 +31,8 @@ public:
 
     static const InterfaceID& interfaceID() { return IID_ITkrBadStripsSvc; }
    
-    virtual int getIndex(const int tower, const int layer, const idents::GlastAxis::axis axis) = 0;
+    virtual int getIndex(const int tower, const int layer, 
+        const idents::GlastAxis::axis axis) = 0;
     virtual v_strips* getBadStrips(const int tower, const int layer, 
         const idents::GlastAxis::axis axis) = 0;
     virtual v_strips* getBadStrips(const int index)= 0;

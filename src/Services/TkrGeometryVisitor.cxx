@@ -6,8 +6,12 @@ TkrGeometryVisitor::TkrGeometryVisitor() : m_mode("propagate") {}
 
 
 IGeometry::VisitorRet
-TkrGeometryVisitor::pushShape(ShapeType s, const UintVector& idvec, string name, 
-                              string material, const DoubleVector& params, VolumeType type)
+TkrGeometryVisitor::pushShape(ShapeType s, 
+                              const UintVector& idvec, 
+                              string name, 
+                              string material, 
+                              const DoubleVector& params, 
+                              VolumeType type)
 {
     // Purpose:  returns at each node of the geometry
     // Parameters:  s -- type of shape
@@ -25,7 +29,7 @@ TkrGeometryVisitor::pushShape(ShapeType s, const UintVector& idvec, string name,
     //
     // For each volume, idvec[0] is that volume's piece of 
     // the volume identifier. For the tray, the view is stored in idvec[1].
-    //	
+    //  
     // For a box, there are 9 parameters. the first 3 are the rotation 
     // from the local frame to the mother frame, the next three the 
     // translation, and the last three, the (half) dimensions of the box.
@@ -55,7 +59,7 @@ TkrGeometryVisitor::pushShape(ShapeType s, const UintVector& idvec, string name,
             cout << "Tower " << m_tower.id() << endl;
         } else {
             return AbortSubtree;
-        }	
+        }   
     }
     
     //these are all the tray names.
