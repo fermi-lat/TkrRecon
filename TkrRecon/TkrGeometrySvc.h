@@ -81,7 +81,7 @@ public:
     int ilayer(int iplane)   {return numPlanes()-iplane-1;}
     
     tkrDetGeo getSiLayer(int ilayer, axis a, int tower = 0);
-    tkrDetGeo getPbLayer(int ilayer, int tower = 0);
+    //tkrDetGeo getPbLayer(int ilayer, int tower = 0);
     tkrDetGeo getSiLadder(int ilayer, axis a, int iladder, int tower = 0);
     tkrDetGeo getSiDice(int ilayer, axis a, int iladder, int idice, int tower = 0);
     

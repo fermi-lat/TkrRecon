@@ -34,19 +34,24 @@ public:
     //Retrieve stored information
     virtual int    geomType()=0;
     
+    virtual int    numXTowers()=0;
     virtual int    numYTowers()=0;
     virtual int    numViews()=0;
     virtual int    numLayers()=0;
     //virtual int    numPbLayers()=0;
     //virtual int    numSuperGLayers()=0;
+
     virtual int    indMixed()=0;
+    virtual int    viewMixed()=0;
+    virtual int    ladderMixed()=0;
+    virtual int    isizeMixed()=0;
     virtual int    numPlanes()=0;
 
     virtual double Z0()=0; 
-    virtual double footHeight()=0;
     virtual double towerPitch()=0;
     virtual double trayWidth()=0;
     virtual double trayHeight()=0;
+    virtual double footHeight()=0;
     
     virtual double ladderWidth()=0;
     virtual double ladderLength()=0;
@@ -79,8 +84,6 @@ public:
     virtual int    nLadders(int ilayer, axis a)=0;
     virtual double diceSize(int ilayer, axis a, int iladder)=0;	
     virtual int    nDices(int ilayer, axis a, int iladder)=0;
-    
-
 };
 
 #endif
