@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Mon Jun 14 13:45:20 PDT 2004
+TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy
+
+Modified Files:
+	BetheBlockHitEnergy.cxx BetheBlockHitEnergy.h IFitHitEnergy.h 
+	MonteCarloHitEnergy.cxx MonteCarloHitEnergy.h 
+	RadLossHitEnergy.cxx RadLossHitEnergy.h 
+Log Message:
+Modifications to improve Monte Carlo pattern recognition
+
+    *
+------------------------------------------------------------
 User: usher  Mon Jun 14 13:45:19 PDT 2004
 TkrRecon/src/Track
 
