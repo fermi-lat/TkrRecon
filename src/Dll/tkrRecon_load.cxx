@@ -13,12 +13,14 @@
 #include "GaudiKernel/ICnvFactory.h"
 #include "GaudiKernel/ISvcFactory.h"
 #include "GaudiKernel/IAlgFactory.h"
+#include "GaudiKernel/IToolFactory.h"
 
 
 #define DLL_DECL_SERVICE(x)    extern const ISvcFactory& x##Factory; x##Factory.addRef();
 #define DLL_DECL_CONVERTER(x)  extern const ICnvFactory& x##Factory; x##Factory.addRef();
 #define DLL_DECL_ALGORITHM(x)  extern const IAlgFactory& x##Factory; x##Factory.addRef();
 #define DLL_DECL_OBJECT(x)     extern const IFactory& x##Factory; x##Factory.addRef();
+#define DLL_DECL_TOOL(x)       extern const IToolFactory& x##Factory; x##Factory.addRef();
 
 //! Load all  services: 
 void TkrRecon_load() {
@@ -33,6 +35,9 @@ void TkrRecon_load() {
 //    DLL_DECL_ALGORITHM( McReconAlg      );
 //    DLL_DECL_ALGORITHM( TkrNtupleAlg    );
 //    DLL_DECL_ALGORITHM( RecNtupleAlg    );
+    DLL_DECL_TOOL( VtxSingleTrkTool   );
+    DLL_DECL_TOOL( VtxComboTrkTool   );
+    DLL_DECL_TOOL( VtxKalFitTool   );
 } 
 
 extern "C" void TkrRecon_loadRef()    {

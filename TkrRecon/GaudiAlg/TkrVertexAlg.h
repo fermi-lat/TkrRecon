@@ -5,6 +5,7 @@
 #include "TkrRecon/Vertex/TkrFindVertex.h"
 
 #include "GaudiKernel/Algorithm.h"
+#include "src/Vertex/IVtxBaseTool.h"
 
 
 /** 
@@ -18,10 +19,8 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrVertexAlg.h,v 1.3 2002/05/07 22:45:12 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrVertexAlg.h,v 1.4 2002/05/12 05:52:58 usher Exp $
 */
-
-
 
 class TkrVertexAlg : public Algorithm
 {
@@ -33,7 +32,8 @@ public:
     StatusCode finalize();
     
 private:
-    
+    std::string m_VertexerType;
+    IVtxBaseTool* m_VtxTool;
     Event::TkrFindVertex* pFindVertex;
 };
 
