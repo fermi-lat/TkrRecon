@@ -10,7 +10,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrControl.h,v 1.8 2004/04/13 18:33:55 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrControl.h,v 1.9 2004/06/01 22:04:15 lsrea Exp $
  */
 
 
@@ -39,7 +39,7 @@ public:
     const double getIniErrPosition()     {return m_iniErrorPosition;  }
     const bool   getPlaneEnergies()      {return m_planeEnergies;     }
     const int    getErrorType()          {return m_errorType;         }
-    const int    trackAcrossTowers()     {return m_trackAcrossTowers; }
+    const bool   trackAcrossTowers()     {return m_trackAcrossTowers; }
 
 
     /// Allow for control variables to be set at initialization

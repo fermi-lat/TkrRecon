@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.5 2003/12/19 00:43:15 atwood Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.6 2004/02/18 20:49:12 usher Exp $
  */
 #include "src/Track/TkrTrackEnergyTool.h"
 
@@ -205,7 +205,7 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrPatCand* track, double CalEn
     // Set up parameters for KalParticle swim through entire tracker
     Point x_ini    = getPosAtZ(track, -2.); // Backup to catch first Radiator
     Vector dir_ini = track->getDirection(); 
-    double arc_totold = x_ini.z() / fabs(dir_ini.z()); // z=0 at top of grid
+    //double arc_totold = x_ini.z() / fabs(dir_ini.z()); // z=0 at top of grid
     double arc_tot = (x_ini.z() - m_tkrGeo->calZTop()) / fabs(dir_ini.z()); // to z at top of cal
     
     IKalmanParticle* kalPart = m_tkrGeo->getPropagator();

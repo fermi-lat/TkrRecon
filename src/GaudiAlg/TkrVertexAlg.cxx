@@ -17,7 +17,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.21 2004/02/17 18:19:39 cohen Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.22 2004/02/17 23:04:43 usher Exp $
  */
 
 #include "GaudiKernel/IToolSvc.h"
@@ -126,7 +126,7 @@ StatusCode TkrVertexAlg::execute()
         //do the same for all relations between the vertices and tracks
         //since we delete all of them, don't worry about "erase"ing properly
         SmartDataPtr<Event::TkrVertexTabList> vtxTable(eventSvc(),EventModel::TkrRecon::TkrVertexTab);
-        Event::TkrVertexTab                   tkrVertexTab(vtxTable);
+        //Event::TkrVertexTab                   tkrVertexTab(vtxTable);
         int                                   relTabSize = vtxTable->size();
 
         while(relTabSize--)

@@ -9,8 +9,11 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.6 2004/04/20 22:03:39 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.7 2004/05/13 22:26:01 usher Exp $
  */
+
+// to turn one debug variables
+// #define DEBUG
 
 // Tool and Gaudi related stuff
 #include "GaudiKernel/ToolFactory.h"
@@ -118,10 +121,11 @@ const IToolFactory& KalmanTrackFitToolFactory = s_factory;
 // Feeds Combo pattern recognition tracks to Kalman Filter
 //
 
-KalmanTrackFitTool::KalmanTrackFitTool(const std::string& type, const std::string& name, const IInterface* parent) :
-                    AlgTool(type, name, parent), m_Qmat(0), m_Hmat(0), m_Tmat(0), m_KalmanFit(0), 
-                                                 m_nMeasPerPlane(0), m_nParams(0), m_fitErrs(0),
-                                                 m_HitEnergy(0)
+KalmanTrackFitTool::KalmanTrackFitTool(const std::string& type, 
+                                       const std::string& name, 
+                                       const IInterface* parent) :
+AlgTool(type, name, parent), m_HitEnergy(0), m_Qmat(0), m_Hmat(0), m_Tmat(0), 
+m_KalmanFit(0), m_nMeasPerPlane(0), m_nParams(0), m_fitErrs(0)
 {
     //Declare the additional interface
     declareInterface<ITkrFitTool>(this);
@@ -448,7 +452,9 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrKalFitTrack& track, Event::Tkr
         trackUtils.updateMaterials(nextPlane, lastStepQ, m_Qmat->getLastStepRadLen(), 
                                    m_Qmat->getLastStepActDist(), currentPlane.getEnergy());
 
+#ifdef DEBUG
         double chiSqOld = nextPlane.getDeltaChiSq(Event::TkrFitHit::FIT);
+#endif
         chiSqInc  = m_KalmanFit->chiSqFilter(measVec, measCovMat, iplane+1);
 
         chiSqFit += chiSqInc;
@@ -493,9 +499,11 @@ double KalmanTrackFitTool::doSmoothStep(Event::TkrKalFitTrack& track, Event::Tra
         curStateVec  = m_KalmanFit->StateVecSmooth();
         curCovMat    = m_KalmanFit->CovMatSmooth();
 
+#ifdef DEBUG
         double diagsxx = curCovMat(2,2);
         double diagsyy = curCovMat(4,4);
         double diagsxy = curCovMat(2,4);
+#endif
 
         // Update the smoothed hit at this plane
 	    Event::TkrFitPar    curPar = Event::TkrFitPar(curStateVec);
@@ -508,7 +516,10 @@ double KalmanTrackFitTool::doSmoothStep(Event::TkrKalFitTrack& track, Event::Tra
         measCovMat = Hmat(iplane) * KFmatrix(curPlane.getHit(Event::TkrFitHit::MEAS).getCov()) * Hmat(iplane).T();
 
         double chiSqKF = m_KalmanFit->chiSqSmooth(measVec, measCovMat, iplane);
+
+#ifdef DEBUG
         double chisq   = curPlane.getDeltaChiSq(Event::TkrFitHit::SMOOTH);
+#endif
 
         chiSqSmooth += chiSqKF;
 
@@ -606,12 +617,13 @@ void KalmanTrackFitTool::getInitialFitHit(Event::TkrKalFitTrack& track, Event::T
     Vector              trackDir(track.getInitialDirection());
     Event::TkrFitPar    stateFitPar(track.getInitialPosition().x(), trackDir.x()/trackDir.z(),
                                     track.getInitialPosition().y(), trackDir.y()/trackDir.z());
-
+#ifdef DEBUG
     double initPosX = lineFitX.getPosAt(0.) + initPosition.x();
     double initPosY = lineFitY.getPosAt(0.) + initPosition.y();
 
     Event::TkrFitPar stateFitPar1(initPosition.x(), lineFitX.getFitSlope(),
                                   initPosition.y(), lineFitY.getFitSlope());
+#endif
 
     // Based on these parameters, compute the "new" measured covariance matrix
 ///    Event::TkrFitMatrix newMeasCov  = trackUtils.computeMeasCov(stateFitPar, 

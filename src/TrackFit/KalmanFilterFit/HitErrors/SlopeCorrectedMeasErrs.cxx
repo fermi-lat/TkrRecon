@@ -8,7 +8,7 @@
  *
  * @author Tracy Usher (editor) from version implemented by Leon Rochester (due to Bill Atwood)
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/SlopeCorrectedMeasErrs.cxx,v 1.1 2004/03/24 00:03:27 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.1 2004/04/19 22:48:05 usher Exp $
  */
 
 #include "SlopeCorrectedMeasErrs.h"
@@ -92,7 +92,7 @@ double SlopeCorrectedMeasErrs::getError(double strips, double slope) const
     double minErr = m_tkrGeo->siResolution(); 
     double clusterWidth  = strips*m_tkrGeo->siStripPitch();
     double projectedWidth = fabs(slope)*m_tkrGeo->siThickness();
-    int    nStrips = floor(strips+.01);  // just to be safe
+    int    nStrips = (int) strips+.01;  // just to be safe
 
 
     double eps0 = -0.1; // use this to extent or restrict the valid range for 1-strip clusters
