@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: lsrea  Thu Sep  5 23:59:53 PDT 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrInitSvc.cxx 
+Log Message:
+use new form of TkrClusterCol methods (no view)
+    *
+------------------------------------------------------------
+User: lsrea  Thu Sep  5 23:59:53 PDT 2002
 TkrRecon/src/PatRec/Combo
 
 Modified Files:
