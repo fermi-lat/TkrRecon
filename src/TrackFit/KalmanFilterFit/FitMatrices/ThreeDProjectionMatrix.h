@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/ThreeDProjectionMatrix.h,v 1.1 2004/03/24 00:03:26 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/ThreeDProjectionMatrix.h,v 1.1 2004/04/19 22:44:22 usher Exp $
  */
 
 #ifndef ThreeDProjectionMatrix_h
@@ -21,7 +21,7 @@ public:
 
     // Constructor 
     ThreeDProjectionMatrix();
-    ~ThreeDProjectionMatrix() {};
+    virtual ~ThreeDProjectionMatrix() {};
 
     void     trackInit(const std::vector<int> projection);
     void     accept(const KalmanFilterInit& initObj);

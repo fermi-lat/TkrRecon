@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/GlastVector.h,v 1.1 2004/03/24 00:03:26 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/GlastVector.h,v 1.2 2004/03/25 21:45:05 cohen Exp $
  */
 
 #ifndef GlastVector_h
@@ -45,3 +45,4 @@ GlastVector::GlastVector(const Event::TkrFitPar& m1) : HepVector(4)
     (*this)(4) = m1(4);
 }
 #endif
+

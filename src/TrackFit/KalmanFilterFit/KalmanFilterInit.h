@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/KalmanFilterInit.h,v 1.1 2004/03/24 00:03:26 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/KalmanFilterInit.h,v 1.1 2004/04/19 22:42:05 usher Exp $
  */
 
 #ifndef KalmanFilterInit_h

@@ -6,7 +6,7 @@ author Leon Rochester <lsrea@slac.stanford.edu>
 
 branches src mgr doc
 
-use GlastPolicy
+use GlastPolicy v*
 
 apply_pattern packageShr
 

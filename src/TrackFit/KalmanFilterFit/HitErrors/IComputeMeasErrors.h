@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/IComputeMeasErrors.h,v 1.1 2004/03/24 00:04:01 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/IComputeMeasErrors.h,v 1.1 2004/04/19 22:48:05 usher Exp $
  */
 
 #ifndef IComputeMeasErrors_h

@@ -6,7 +6,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/NoProcNoiseMatrix.h,v 1.1 2004/03/24 00:03:27 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/NoProcNoiseMatrix.h,v 1.1 2004/04/19 22:44:21 usher Exp $
  */
 
 #ifndef NoProcNoiseMatrix_h
@@ -23,7 +23,7 @@ public:
 
     // Constructor needs the matrices that transform state vector, covariance matrix
     NoProcNoiseMatrix(ITkrGeometrySvc* tkrGeo);
-    ~NoProcNoiseMatrix() {};
+    virtual ~NoProcNoiseMatrix() {};
 
     void     trackInit(const std::vector<double> zCoords, const std::vector<double> energy);
     void     accept(const KalmanFilterInit& initObj);
