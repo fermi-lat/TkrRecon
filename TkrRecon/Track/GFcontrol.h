@@ -2,7 +2,7 @@
 #ifndef __GFCONTROL_H
 #define __GFCONTROL_H 1
 
-#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrRecon/Track/GFtutor.h"
 
 //############################################

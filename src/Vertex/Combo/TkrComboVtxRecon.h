@@ -2,9 +2,9 @@
 #ifndef TkrComboVtxRecon_H
 #define TkrComboVtxRecon_H
 
-#include "GlastEvent/Recon/TkrRecon/TkrVertexCol.h"
-#include "GlastEvent/Recon/TkrRecon/TkrPatCandCol.h"
-#include "GlastEvent/Recon/TkrRecon/TkrFitTrackCol.h"
+#include "Event/Recon/TkrRecon/TkrVertexCol.h"
+#include "Event/Recon/TkrRecon/TkrPatCandCol.h"
+#include "Event/Recon/TkrRecon/TkrFitTrackCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 
 //

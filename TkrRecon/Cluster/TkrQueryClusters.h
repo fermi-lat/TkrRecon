@@ -5,8 +5,8 @@
 #include "GaudiKernel/MsgStream.h"
 #include "geometry/Point.h"
 #include "gui/DisplayRep.h"
-#include "GlastEvent/Recon/TkrRecon/TkrCluster.h"
-#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
+#include "Event/Recon/TkrRecon/TkrClusterCol.h"
 
 /** 
 * @class TkrQueryClusters
@@ -16,7 +16,7 @@
 * Only one of the methods in this class is currently being used, but I'm keeping the others
 * they would be tedious to re-code.
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.4 2002/05/02 04:39:10 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.5 2002/05/07 22:43:39 usher Exp $
 */
 
 class TkrQueryClusters

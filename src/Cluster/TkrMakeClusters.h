@@ -6,9 +6,9 @@
 #include "GaudiKernel/DataObject.h"
 #include "geometry/Point.h"
 #include "gui/DisplayRep.h"
-#include "GlastEvent/Digi/TkrDigi.h"
-#include "GlastEvent/Recon/TkrRecon/TkrCluster.h"
-#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Digi/TkrDigi.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
+#include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "TkrRecon/ITkrBadStripsSvc.h"
 
@@ -23,7 +23,7 @@ enum {bigStripNum = 0x7FFFFF};
 *
 * The methods take into account the bad strips.
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.4 2002/05/02 04:39:10 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.5 2002/05/07 22:53:06 usher Exp $
 */
 
 namespace TkrRecon { //Namespace

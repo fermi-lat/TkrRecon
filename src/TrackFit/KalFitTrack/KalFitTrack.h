@@ -4,9 +4,9 @@
 
 #include <vector>
 #include "GaudiKernel/MsgStream.h"
-#include "GlastEvent/Recon/TkrRecon/TkrFitTrack.h"
-#include "GlastEvent/Recon/TkrRecon/TkrPatCandHit.h"
-#include "GlastEvent/Recon/TkrRecon/TkrCluster.h"
+#include "Event/Recon/TkrRecon/TkrFitTrack.h"
+#include "Event/Recon/TkrRecon/TkrPatCandHit.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
 
 namespace TkrRecon {
 

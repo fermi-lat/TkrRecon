@@ -10,8 +10,8 @@
 #ifndef _KALMANFILTER_H
 #define _KALMANFILTER_H 
 
-#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
-#include "GlastEvent/Recon/TkrRecon/TkrFitPlane.h"
+#include "Event/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrFitPlane.h"
 #include "TkrRecon/Track/GFcontrol.h"
 
 namespace TkrRecon {

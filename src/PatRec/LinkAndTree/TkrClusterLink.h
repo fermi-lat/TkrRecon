@@ -8,7 +8,7 @@
 #ifndef __TKRCLUSTERLINK_H
 #define __TKRCLUSTERLINK_H
 
-#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "geometry/Point.h"
 #include "src/PatRec/LinkAndTree/LayerLink.h"
 
