@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon Apr  8 08:40:42 PDT 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrGeometrySvc.cxx 
+Log Message:
+Removed "-y" kludge, after Riccardo fixed G4Geometry... works!
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon Apr  8 08:24:02 PDT 2002
 TkrRecon/src/Services
 
