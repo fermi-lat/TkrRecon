@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 14:21:25 PST 2001
+TkrRecon/src/GaudiAlg
+
+Added Files:
+	McReconAlg.cxx RecNtupleAlg.cxx TkrClusterAlg.cxx 
+	TkrDisplayAlg.cxx TkrFindAlg.cxx TkrNtupleAlg.cxx 
+	TkrReconAlg.cxx 
+Log Message:
+Source code for implementing all the Gaudi Algorithms used by TkrRecon
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 14:20:37 PST 2001
 TkrRecon/src/PatRec
 
