@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: burnett  Sat Jun  2 16:31:47 PDT 2001
+TkrRecon/mgr requirements
+
+Modified Files:
+	requirements 
+Log Message:
+clean up, put share public
+    *
+------------------------------------------------------------
 User: burnett  Fri Jun  1 23:03:04 PDT 2001
 TkrRecon/src TkrGeometrySvc.cxx TkrNtupleAlg.cpp
 
