@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Nov 10 14:14:01 PST 2004
+TkrRecon/TkrRecon/Track
+
+Modified Files:
+	IFindTrackHitsTool.h 
+Log Message:
+added "addLeadingHits" method
+    *
+------------------------------------------------------------
 User: usher  Tue Nov  9 15:21:03 PST 2004
 TkrRecon/src/Track
 
