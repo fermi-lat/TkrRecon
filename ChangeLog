@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Fri Jan 31 13:27:40 PST 2003
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitter.cxx 
+Log Message:
+Increased KalEnergy limit to 100 GeV
+    *
+------------------------------------------------------------
 User: lsrea  Wed Jan 29 15:20:27 PST 2003
 TkrRecon/src/Vertex
 
