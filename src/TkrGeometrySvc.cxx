@@ -20,8 +20,6 @@ Service(name, pSvcLocator)
 	//Name of the xml file to get data from
 	declareProperty("xmlFile", m_xmlFile);
 
-    // = "C:/GLAST/ground/Projects/TkrRecon/v1r2/xml/Tkr_TestBeam.xml"
-
     return;	
 }
 
@@ -31,6 +29,7 @@ StatusCode TkrGeometrySvc::initialize()
 {
     StatusCode sc = StatusCode::SUCCESS;
 
+	Service::initialize();
 	setProperties();
     
 	xml::IFile xmlFile(m_xmlFile.c_str());
