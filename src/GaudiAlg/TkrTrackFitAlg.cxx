@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.20 2004/12/01 01:44:48 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.21 2004/12/16 05:04:21 usher Exp $
  */
 
 #include <vector>
@@ -223,7 +223,7 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
 
         double CalEnergy = pCalClusters->front()->getEnergyCorrected(); 
         double CalSumEne = pCalClusters->front()->getEnergySum();
-
+/*
         if (CalEnergy > CalSumEne)
         {
             // Get the energy calculation tool
@@ -232,6 +232,14 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
 
             TrackEnergyTool->SetTrackEnergies(CalEnergy);
 		}
+*/
+		/// THIS IS A BIG CHANGE ///   
+		double cal_energy = std::max(CalEnergy, CalSumEne); // need to protect against CalEnergy = 0.   
+        // Get the energy calculation tool
+        TkrTrackEnergyTool* TrackEnergyTool = 0;
+        sc = toolSvc()->retrieveTool("TkrTrackEnergyTool", TrackEnergyTool);
+
+        TrackEnergyTool->SetTrackEnergies(cal_energy);
 	}
 
     // Ok, now set up to loop over candidate tracks
