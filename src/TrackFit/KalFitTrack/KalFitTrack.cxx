@@ -545,7 +545,7 @@ double KalFitTrack::sigmaFoundHit(const TkrFitPlane& /*previousKplane*/, const T
 }
 
 double KalFitTrack::sigmaFoundHit(Point center, int nextLayer, int prevLayer, 
-                                  int& indexhit, double& radiushit)
+                                  int& indexhit, double& /*radiushit*/)
 {
    // Purpose and Method: Does the actual hit finding. Calls TkrQueryClusters. 
    //          Similar to last method - used to add leading hits to the track

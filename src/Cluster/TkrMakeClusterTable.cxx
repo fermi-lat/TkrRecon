@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusterTable.cxx,v 1.5 2002/10/10 21:23:42 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusterTable.cxx,v 1.6 2002/10/11 16:44:21 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusterTable has the methods for making the clusters, 
@@ -61,7 +61,8 @@ TkrMakeClusterTable::TkrMakeClusterTable(const TkrClusterCol* pClus,
         std::vector<Relation<TkrDigi, McPositionHit> *> relsByDigi = digiHitsTab.getRelByFirst(p_digi);
         // collect the corresponding hits
         std::vector<McPositionHit*> mcHits;
-        for(int irel=0;irel<relsByDigi.size();irel++) {
+        int relSize = relsByDigi.size();
+        for(int irel=0;irel<relSize;irel++) {
             McPositionHit* theHit = relsByDigi[irel]->getSecond();
             // is this hit already in the list?
             if(std::find(mcHits.begin(),mcHits.end(), theHit)==mcHits.end()) {

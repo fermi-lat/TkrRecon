@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrMeritTool.cxx,v 1.1 2002/09/30 17:55:33 lsrea Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrMeritTool.cxx,v 1.2 2002/10/17 02:40:50 lsrea Exp $
 
 // Include files
 
@@ -369,7 +369,7 @@ void TkrMeritTool::doExtraHits(const Event::TkrVertex& vertex,
     // have very small lever arm for separating!
     double Rec_Sum_Hits = query.numberOfHitsNear(firstLayer, 
         .5*dltX, .5*dltY, firstHit);
-    double RSH1= Rec_Sum_Hits;
+    //double RSH1= Rec_Sum_Hits;
     
     double Rec_showerHits1 = Rec_Sum_Hits;
     double Rec_showerHits2 = 0;
@@ -396,7 +396,7 @@ void TkrMeritTool::doExtraHits(const Event::TkrVertex& vertex,
     xFact *= sqrt(t0.z() *t0.z() + t0.x()*t0.x());
     yFact *= sqrt(t0.z() *t0.z() + t0.y()*t0.y());
     
-    double RSH2= Rec_Sum_Hits;
+    //double RSH2= Rec_Sum_Hits;
     
     // now do the rest
     
@@ -430,7 +430,7 @@ void TkrMeritTool::doExtraHits(const Event::TkrVertex& vertex,
     norma = lastLayer - firstLayer;
     
     m_surplus_hit_ratio = Rec_Sum_Hits / norma;
-    double Rec_Outside_Hit_Ratio = outHits / norma;
+    //double Rec_Outside_Hit_Ratio = outHits / norma;
     
     /*
     std::cout << "en " << CsICorrEnergy 
