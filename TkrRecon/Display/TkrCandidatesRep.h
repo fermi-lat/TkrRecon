@@ -2,7 +2,8 @@
 #ifndef __TKRCANDIDATESREP_H
 #define __TKRCANDIDATESREP_H
 
-#include "TkrRecon/PatRec/TkrCandidates.h"
+//#include "TkrRecon/PatRec/TkrCandidates.h"
+#include "TkrRecon/PatRec/TkrLinkAndTreePR.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "gui/DisplayRep.h"
 
@@ -20,6 +21,7 @@ class TkrCandidatesRep : public gui::DisplayRep
 {
 public:
 	//! Constructor of this form must be provided
+	//TkrCandidatesRep(TkrCandidates** pTkrCandidates, ITkrGeometrySvc* pTkrGeo);
 	TkrCandidatesRep(TkrCandidates** pTkrCandidates, ITkrGeometrySvc* pTkrGeo);
 	virtual ~TkrCandidatesRep() {}
 
