@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Fri Jan 10 11:43:25 PST 2003
+TkrRecon/src/Services
+
+Removed Files:
+	TkrGeometrySvc.cxx 
+Log Message:
+Prepare for tag v8r6p1: move TkrGeometrySvc to Tkrutil
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Jan 10 11:43:24 PST 2003
 TkrRecon/src/PatRec/NeuralNet
 
