@@ -46,6 +46,8 @@ StatusCode TkrReconAlg::initialize()
 {
     MsgStream log(msgSvc(), name());
 
+	log << MSG::INFO << "TkrReconAlg Initialization" << endreq;
+
     //Initialization service
     TkrInitSvc* pTkrInitSvc = 0;
     StatusCode  sc          = service("TkrInitSvc", pTkrInitSvc);
@@ -56,21 +58,6 @@ StatusCode TkrReconAlg::initialize()
     //Track fit information
     m_TrackFit = pTkrInitSvc->setTrackFit();
 
-    // Here we retrieve the sub directory
-    DataObject* pnode = 0;
-
-    sc = eventSvc()->retrieveObject( "/Event/TkrRecon", pnode );
-    
-    if( sc.isFailure() ) {
-        sc = eventSvc()->registerObject("/Event/TkrRecon",new DataObject);
-        if( sc.isFailure() ) {
-            
-            log << MSG::ERROR << "Could not create Raw directory" << endreq;
-            return sc;
-        }
-    }   
-
-	m_SiRecObjs   = 0;
 	m_TkrClusters = 0;
 
 	return sc;
