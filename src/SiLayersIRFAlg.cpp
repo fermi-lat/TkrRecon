@@ -7,7 +7,7 @@
 #include "TkrRecon/SiLayersIRFAlg.h"
 #include "TkrRecon/SiLayers.h"
 #include "TkrRecon/trackerGeo.h"
-#include "GlastEvent/data/TdSiData.h"
+#include "GlastEvent/data/TdGlastData.h"
 
 static const AlgFactory<SiLayersIRFAlg>  Factory;
 const IAlgFactory& SiLayersIRFAlgFactory = Factory;
@@ -93,10 +93,13 @@ StatusCode SiLayersIRFAlg::retrieve()
     sc = eventSvc()->registerObject( "/Event/TkrRecon/SiLayers", m_SiLayers );
 
 
-    
-    
+    /*! Instead of loading the object directly we load a TdGlastData object
+        and get the part important to the Tkr.
+    */
+
+    SmartDataPtr<TdGlastData> glastData(eventSvc(),"/Event/Data/TdGlastData");
     // get the rdSiData object from the TDS by a converter
-    m_SiData   = SmartDataPtr<TdSiData>(eventSvc(),"/Event/Raw/TdSiDatas");
+    m_SiData   = glastData->getSiData();
     
     if (m_SiLayers == 0 || m_SiData == 0) sc = StatusCode::FAILURE;
     return sc;
