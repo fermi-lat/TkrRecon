@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: usher  Wed Aug 20 19:42:32 PDT 2003
+TkrRecon/src/MonteCarlo
+
+Modified Files:
+	McBuildTracks.cxx TkrMcTracksTool.cxx 
+Log Message:
+Various small bug fixes
+
+    *
+------------------------------------------------------------
+User: usher  Wed Aug 20 19:42:32 PDT 2003
 TkrRecon/TkrRecon/MonteCarlo
 
 Modified Files:
