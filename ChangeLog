@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: igable  Fri Mar  2 19:34:06 PST 2001
+TkrRecon/TkrRecon SiClustersIRFAlg.h SiLayersIRFAlg.h
+
+Modified Files:
+	SiClustersIRFAlg.h SiLayersIRFAlg.h 
+Log Message:
+Minor changes to the way TdSiData gets loaded.
+
+    *
+------------------------------------------------------------
 User: tlindner  Thu Mar  1 13:29:32 PST 2001
 TkrRecon/mgr requirements
 
