@@ -1,0 +1,29 @@
+------------------------------------------------------------
+User: igable  Mon Dec 18 16:38:50 PST 2000
+TkrRecon - Imported sources
+
+Log Message:
+New Gaudi Wrapper for the TrakerRecon algorithm from reconstruction. Not 
+operational at the moment. Fails in the initialize.
+
+Status:
+
+Vendor Tag:	GLAST
+Release Tags:	v1
+		
+N TkrRecon/.cvsignore
+N TkrRecon/doc/.cvsignore
+N TkrRecon/doc/release.notes
+N TkrRecon/mgr/.cvsignore
+N TkrRecon/mgr/requirements
+N TkrRecon/src/TkrRecoAlg.cxx
+N TkrRecon/src/Dll/TkrRecon_dll.cpp
+N TkrRecon/src/Dll/TkrRecon_load.cpp
+N TkrRecon/src/test/jobOptions.txt
+N TkrRecon/src/test/TkrTest.cxx
+N TkrRecon/TkrRecon/mainpage.h
+N TkrRecon/TkrRecon/TkrRecoAlg.h
+
+No conflicts created by this import
+
+    *
