@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Fri Jul 26 15:42:36 PDT 2002
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx KalFitTrack.h 
+Log Message:
+Added comments.  Added energy range alg for KalEnergy calc.  
+    *
+------------------------------------------------------------
 User: atwood  Fri Jul 26 15:40:59 PDT 2002
 TkrRecon/src/Track
 
