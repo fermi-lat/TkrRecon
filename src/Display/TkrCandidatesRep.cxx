@@ -5,27 +5,25 @@
 /// This should be done in the constructor.
 
 //#############################################################################
-TkrCandidatesRep::TkrCandidatesRep(TkrCandidates** ppCands, ITkrGeometrySvc* pTkrGeometry)
+TkrCandidatesRep::TkrCandidatesRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySvc* pTkrGeometry)
 //#############################################################################
 {
-	ppTkrCandidates = ppCands;
-    pTkrGeo         = pTkrGeometry;
+    dps     = dataProviderSvc;
+    pTkrGeo = pTkrGeometry;
 }
 //-------------------- private ----------------------
 //##############################################
 void TkrCandidatesRep::update()
 //##############################################
 {
-    TkrCandidates*    pTkrCandidates = *ppTkrCandidates;
-    TkrLinkAndTreePR* pTkrCands      = dynamic_cast<TkrLinkAndTreePR*>(pTkrCandidates);
+    TkrCandidates* pTkrCandidates = SmartDataPtr<TkrCandidates>(dps,"/Event/TkrRecon/TkrCandidates");
 
-    //Zero out the pointer so we don't accidentally try to draw the event
-    *ppTkrCandidates = 0;
-
-	//Now see if we can do the drawing
-	if (pTkrCands)
+    //Now see if we can do the drawing
+	if (pTkrCandidates)
 	{
-		gui::DisplayRep* pDisplay = this;
+        TkrLinkAndTree* pTkrCands = dynamic_cast<TkrLinkAndTree*>(pTkrCandidates);
+		gui::DisplayRep*  pDisplay  = this;
+
 	    if (pTkrCands->getNumTrees(X) > 0)
         {
 		    setColor("green");
@@ -58,7 +56,7 @@ const char* pColors[] = {color_blue,   color_violet, color_turquoise,
 
 void TkrCandidatesRep::TkrDrawCandidates(TkrCandidates* pTkrCandidates, TkrPlaneType plane)
 {
-    TkrLinkAndTreePR* pTkrCands      = dynamic_cast<TkrLinkAndTreePR*>(pTkrCandidates);
+    TkrLinkAndTree* pTkrCands      = dynamic_cast<TkrLinkAndTree*>(pTkrCandidates);
 
     //Draw the candidate tracks
     TkrLinkForest* pForest  = pTkrCands->getForest(plane);

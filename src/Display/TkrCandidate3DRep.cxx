@@ -15,21 +15,18 @@ const char* p3dColors[] = {col3d_blue,   col3d_violet, col3d_turquoise,
                            col3d_orange, col3d_maroon, col3d_aquamarine};
 
 //#############################################################################
-TkrCandidate3DRep::TkrCandidate3DRep(TkrCandidates** ppCands, ITkrGeometrySvc* pTkrGeometry)
+TkrCandidate3DRep::TkrCandidate3DRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySvc* pTkrGeometry)
 //#############################################################################
 {
-	ppTkrCandidates = ppCands;
-    pTkrGeo         = pTkrGeometry;
+    dps     = dataProviderSvc;
+    pTkrGeo = pTkrGeometry;
 }
 //-------------------- private ----------------------
 //##############################################
 void TkrCandidate3DRep::update()
 //##############################################
 {
-    TkrCandidates*    pTkrCandidates = *ppTkrCandidates;
-
-    //Zero out the pointer so we don't accidentally try to draw the event
-    *ppTkrCandidates = 0;
+    TkrCandidates* pTkrCandidates = SmartDataPtr<TkrCandidates>(dps,"/Event/TkrRecon/TkrCandidates");
 
 	//Now see if we can do the drawing
 	if (pTkrCandidates)
@@ -80,8 +77,6 @@ void TkrCandidate3DRep::update()
 
             colorIdx = (colorIdx + 1) % 6;
         }
-
-
 
 	    setColor("blue");
     }

@@ -1,5 +1,5 @@
 
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalPlane.cxx,v 1.1 2001/11/26 21:51:11 usher Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalPlane.cxx,v 1.2 2002/01/11 23:50:17 atwood Exp $
 
 //----------------------------------------------------------------------
 //    
@@ -13,7 +13,7 @@
 
 #include "TkrRecon/TrackFit/KalPlane.h"
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
-#include "GismoGenerator/IKalmanParticle.h"
+#include "GlastSvc/Reco/IKalmanParticle.h"
 
 void KalPlane::removeHit()
 {

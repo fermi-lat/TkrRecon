@@ -8,11 +8,10 @@
 //
 //#############################################################################
 //  Constructor for the class
-TkrClustersRep::TkrClustersRep(TkrClusters** ppClus)
+TkrClustersRep::TkrClustersRep(IDataProviderSvc* dataProviderSvc)
 //#############################################################################
 {
-	//Store pointer to the pointer to the SiClusters data
-	ppClusters = ppClus;
+    dps = dataProviderSvc;
 }
 
 //##############################################
@@ -20,18 +19,13 @@ TkrClustersRep::TkrClustersRep(TkrClusters** ppClus)
 void TkrClustersRep::update()
 //##############################################
 {
-	//Recover pointer to the data
-    TkrClusters* pClusters = *ppClusters;
+    TkrClusters* pClusters = SmartDataPtr<TkrClusters>(dps,"/Event/TkrRecon/TkrClusters");
 
-    //Zero out the pointer so we don't accidentally try to redraw the event
-    *ppClusters = 0;
-
-	//Make sure pointer is valid before trying to draw anything
-	if (pClusters)
-	{
+    if (pClusters)
+    {
 		int    nHits      = pClusters->nHits();
 		double stripPitch = pClusters->stripPitch();
-		double towerPitch  = pClusters->towerPitch();
+		double towerPitch = pClusters->towerPitch();
 		
 		setColor("green");
 
