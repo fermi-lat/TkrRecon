@@ -67,7 +67,10 @@ library TkrRecon  $(TkrRecon_headers)  \
 
 # build this for testing
 
-public set JOBOPTIONS ${TKRRECONROOT}/src/test/jobOptions.txt
+public 
+set JOBOPTIONS ${TKRRECONROOT}/src/test/jobOptions.txt
+
+private
 application test_TkrRecon ${GuiMain} test/*.cxx ${Win32Resource}
 
 
