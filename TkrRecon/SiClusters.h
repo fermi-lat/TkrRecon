@@ -13,7 +13,7 @@
 #include "gui/DisplayRep.h"
 
 #define NVIEWS 2
-#define NPLANES 16
+#define NPLANES 18
 
 extern const CLID& CLID_SiClusters;
 
