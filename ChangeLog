@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Dec 17 15:24:04 PST 2004
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+"Standard" set of linux complaints addressed. This builds on noric-new with MRvcmt
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r0p3, operation: add
 Package: TkrRecon
