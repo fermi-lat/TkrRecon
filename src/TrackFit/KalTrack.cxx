@@ -1,5 +1,5 @@
 
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalTrack.cxx,v 1.6 2002/03/30 02:52:03 lsrea Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalTrack.cxx,v 1.7 2002/03/30 20:40:54 lsrea Exp $
 
 //----------------------------------------------------------------------
 //    
@@ -263,8 +263,8 @@ void KalTrack::finish()
         double y_slope =kplanelist[0].getHit(KalHit::SMOOTH).getPar().getYSlope();
         m_dir = Vector(-1.*x_slope,-1.*y_slope,-1.).unit();
         m_rmsResid=-1.;
-        m_chisq=m_chisq/(1.*nplanes-2.);
-        m_chisqSmooth/=(1.*nplanes-2.);
+        m_chisq=m_chisq/(1.*nplanes-4.); // 4 parameters in 3D fit
+        m_chisqSmooth/=(1.*nplanes-4.);  
         m_rmsResid=0.;
         int iplane = 0; 
         double xm; 
