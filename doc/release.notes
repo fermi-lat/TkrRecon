@@ -3,6 +3,7 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v8r10p2 23-Jul-2003  LSR   Retag... I messed up the last tag.
   v8r10p1 22-Jul-2003  LSR   Fixes to requirements file
   v8r10   17-Jul-2003  LSR   Kalman uses new TkrGeometry methods; cleanup of patrec tools
   v8r9p9  16-Jun-2003  TU    Numerous bug fixes on alternate pat recs
