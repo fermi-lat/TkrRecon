@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: igable  Thu Apr 26 11:15:18 PDT 2001
+TkrRecon/TkrRecon TkrGeometrySvc.h
+
+Modified Files:
+	TkrGeometrySvc.h 
+Log Message:
+Finish making the interface for the TkrGeometrySvc.
+
+    *
+------------------------------------------------------------
 User: igable  Wed Apr 25 10:38:00 PDT 2001
 TkrRecon/src/test TkrTest.cxx
 
