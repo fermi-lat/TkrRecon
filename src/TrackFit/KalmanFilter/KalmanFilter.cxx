@@ -12,11 +12,19 @@
 
 #include "KalmanFilter.h"
 #include "Utilities/TkrException.h"
+#include <sstream>
 
 using namespace Event;
 
 namespace {
     enum paramIndex {XPOS=1, XSLOPE=2, YPOS=3, YSLOPE=4};
+
+    std::string doubleToString(double x) {
+        std::ostringstream oStr;
+        oStr.str("");
+        oStr<<x;
+        return oStr.str();
+    }
 }
 
 
@@ -50,8 +58,10 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ,
     TkrFitMatrix Ck      = hit.getCov();
     
     double       ene     = start.getEnergy();
+    //ene = -15.0; //test
         if( ene <=0 || ene > 1e6 ){
-        throw( TkrException("bad energy in KalmanFilter") );
+        std::string errorStr = "bad energy in KalmanFilter: " + doubleToString(ene);
+        throw( TkrException(errorStr) );
     }
 
     double       x_slope = pp.getXSlope();   
@@ -118,8 +128,10 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ,
     TkrFitMatrix Ck      = hit.getCov();
     
     double       ene     = start.getEnergy();
+    //ene = -12.5;  //test
     if( ene <=0 || ene > 1e6 ){
-        throw( TkrException("bad energy in KalmanFilter") );
+        std::string errorStr = "bad energy in KalmanFilter: " + doubleToString(ene);
+        throw( TkrException(errorStr) );
     }
     double       x_slope = pp.getXSlope();   
     double       y_slope = pp.getYSlope(); 
@@ -173,18 +185,11 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitPlane& kplaneNext)
     TkrFitPar    pp      = hit.getPar();
     TkrFitMatrix Ck      = hit.getCov();
     
-//    double       ene     = start.getEnergy();
-//        if( ene <=0 || ene > 1e6 ){
-//        throw( TkrException("bad energy in KalmanFilter") );
-//    }
-    double ene = 0.;
-    try
-    {
-        ene = start.getEnergy();
-    }
-    catch(...)
-    {
-        throw( TkrException("bad energy in KalmanFilter") );
+    double       ene     = start.getEnergy();
+    //ene = -10.;  //test
+    if( ene <=0 || ene > 1e6 ){
+        std::string errorStr = "bad energy in KalmanFilter: " + doubleToString(ene);
+        throw( TkrException(errorStr) );
     }
 
     double       x_slope = pp.getXSlope(); 
