@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Thu Jan 16 15:45:13 PST 2003
+TkrRecon/src/Dll
+
+Modified Files:
+	tkrRecon_load.cxx 
+Log Message:
+Move TkrMeritTool to TkrUtil
+    *
+------------------------------------------------------------
 User: lsrea  Fri Jan 10 12:13:22 PST 2003
 TkrRecon/src/Track
 
