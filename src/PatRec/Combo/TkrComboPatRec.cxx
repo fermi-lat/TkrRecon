@@ -2,13 +2,13 @@
 Implementation of a Combinatoric Pattern recognition for GLAST
 
   This is meant to be close to what has been used historically 
-  to find track in GLAST.  
+                   to find tracks in GLAST.  
   
-    It uses two basic methods: 
+  It uses two basic methods: 
     1) Events seeded with an energy centroid in the Cal and an energy
     2) Events without cal information
-    If the incoming Cal Point is null its assumed that there is no cal 
-    information
+  If the incoming Cal Point is null its assumed that there is no cal 
+  information.
     
       Author: Bill Atwood, UCSC Dec. 2001
 */
@@ -28,6 +28,9 @@ using namespace Event;
 //Constructor emulates the "old" SiRecObjs
 TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters, double CalEnergy, Point CalPosition)
 {
+    //Check on pClusters
+    if(pClusters == 0) return;
+
     //Store the cluster info
     GFtutor::load(pClusters, pTkrGeo);
     
@@ -44,7 +47,10 @@ TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pCluster
     searchCandidates(CalEnergy, CalPosition);
     
     //Set Global Event Energy and constrain individual track energies
-    if(getNumCands() > 0) setEnergies(CalEnergy);
+    if(m_candidates.size() > 0) setEnergies(CalEnergy);
+
+    //Load output PR Candidates
+    loadOutput();
 }
 
 //-----------  Private drivers  ----------------------------- 
@@ -111,8 +117,9 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
                 slope = tkr_par.getXSlope();
             }        
             int hit_Id = plane.getIDHit();;
-            double cls_size = GFtutor::_DATA->size(hit_proj, hit_Id);        
-            double prj_size = 400.*fabs(slope)/228. + 1.;
+            double cls_size = GFtutor::_DATA->size(hit_proj, hit_Id); 
+            double prj_size = GFtutor::siThickness()*fabs(slope)/
+                              GFtutor::siStripPitch()             + 1.;
             if(cls_size> prj_size) {
                 best_tkr->unFlagHit(i_Hit);
                 i_share++; 
@@ -132,12 +139,16 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
         hypo++;
         if(hypo != m_candidates.end()) m_candidates.erase(hypo, m_candidates.end()); 
         
-        // Now with these hits "off the table" find other tracks
-        m_energy = (.7*m_energy > GFcontrol::minEnergy) ? .7*m_energy:GFcontrol::minEnergy;
+        // Now with these hits "off the table" lower then energy & find other tracks
+        m_energy = (GFcontrol::FEneParticle*m_energy > GFcontrol::minEnergy) ?
+                    GFcontrol::FEneParticle*m_energy : GFcontrol::minEnergy;
         int best_first_layer = best_tkr->getLayer();
         findBlindCandidates();
     }
-    
+}
+
+void TkrComboPatRec::loadOutput()
+{
     // Load Track Candidates into output class TkrCandidates
     if (m_candidates.size() > 0) {
         
@@ -148,7 +159,7 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
             int   iniLayer = (*hypo)->track()->getLayer();
             int   iniTower = (*hypo)->track()->getTower();
             Ray   testRay  = (*hypo)->track()->getRay();
-            float energy   = (*hypo)->track()->getKalEnergy(); // Which energy to use?  
+            float energy   = (*hypo)->conEnergy(); // Which energy to use?  
             float quality  = (*hypo)->track()->getQuality();
             
             //Keep this track (but as a candidate)
@@ -188,20 +199,20 @@ void TkrComboPatRec::setEnergies(double calEnergy)
 {
     // Use hit counting + CsI energies
     //if(calEnergy <= GFcontrol::minEnergy) return; //May not be a good idea
-    double cal_Energy = (calEnergy > GFcontrol::minEnergy) ? 
-                         calEnergy : GFcontrol::minEnergy;
+    double cal_Energy = (calEnergy > GFcontrol::minEnergy/2.) ? 
+                         calEnergy : GFcontrol::minEnergy/2.;
 
     // Get best track ray
-    TkrPatCand*  first_track = getTrack(0);              
-    Ray r1 = first_track->getRay();
+    KalFitTrack*  first_track = m_candidates[0]->track();              
     
     // Set up parameters for KalParticle swim through entire tracker
-    Point x_ini = r1.position(); 
-    Vector dir_ini = r1.direction(); 
+    Point x_ini    = first_track->getPosAtZ(0.); 
+    Vector dir_ini = first_track->getDirection(); 
     double arc_tot = x_ini.z() / fabs(dir_ini.z()); // z=0 at top of grid
     
     IKalmanParticle* kalPart = TkrReconAlg::m_KalParticle;
     kalPart->setStepStart(x_ini, dir_ini, arc_tot);
+
     // Setup summed var's and loop over all layers between x_ini & cal
     int num_thin_hits = 0;
     int num_thck_hits = 0;
@@ -219,50 +230,56 @@ void TkrComboPatRec::setEnergies(double calEnergy)
             xms = Q.getcovX0X0();
             yms = Q.getcovY0Y0();
         }
-        double xSprd = sqrt(1.+xms*6.25); // 2.5 sigma 
-        double ySprd = sqrt(1.+yms*6.25);
-        if(xSprd > 500.) xSprd = GFtutor::trayWidth();
-        if(ySprd > 500.) ySprd = GFtutor::trayWidth();
-        Point x_hit = r1.position(arc_len);
-        int numHits = TkrQueryClusters(GFtutor::_DATA).numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
-        if(iplane > 12) num_thck_hits += numHits; //Hardwire # thin planes
-        else            num_thin_hits += numHits;
+        double xSprd = sqrt(1.+xms*6.25); // 2.5 sigma and not smaller then 1
+        double ySprd = sqrt(1.+yms*6.25); // Limit to a tower... 
+        if(xSprd > GFtutor::trayWidth()) xSprd = GFtutor::trayWidth();
+        if(ySprd > GFtutor::trayWidth()) ySprd = GFtutor::trayWidth();
+
+        // Assume location of shower center in given by 1st track
+        Point x_hit = first_track->getPosAtZ(arc_len);
+        int numHits = TkrQueryClusters(GFtutor::_DATA).
+                         numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
+        if(iplane >= 12) num_thck_hits += numHits; //Hardwire where thick planes start
+        else             num_thin_hits += numHits;
         
+        // Increment arc-length
         arc_len += GFtutor::trayGap()/fabs(dir_ini.z()); 
     }
     
-    double ene_trks   = .3*num_thin_hits + 1.3*num_thck_hits; // Coefs are MeV/hit
-    double ene_xing   = 1.6*(max_planes-top_plane+1);                 // Coef is MeV/plane
+    double ene_trks   = .4*num_thin_hits + 1.7*num_thck_hits; // Coefs are MeV/hit
+    double ene_xing   = 1.6*(max_planes-top_plane+1);         // Coef is MeV/plane
     
     double ene_total  =  (ene_trks + ene_xing)/fabs(dir_ini.z()) + cal_Energy;
     
     // Now constrain the energies of the first 2 tracks. 
     //    This isn't valid for non-gamma conversions
-    int num_cands = getNumCands(); 
-    if(num_cands == 1) {
-        first_track->setEnergy(ene_total);
+
+    int num_cands = m_candidates.size(); 
+    if(num_cands == 1) { // One track - it gets it all - not right but what else?
+        m_candidates[0]->setConEnergy(ene_total);
     }
     else {
-        TkrPatCand*  secnd_track = getTrack(1);
+        KalFitTrack*  secnd_track = m_candidates[1]->track();
         
-        int num_hits1 = first_track->numPatCandHits();
-        int num_hits2 = secnd_track->numPatCandHits();
-        double e1 = first_track->getEnergy();
-        double e2 = secnd_track->getEnergy();
+        int num_hits1 = first_track->getNumHits();
+        int num_hits2 = secnd_track->getNumHits();
+        double e1 = first_track->getKalEnergy();
+        double e2 = secnd_track->getKalEnergy();
         double e1_min = 2.*num_hits1;        //Coefs are MeV/Hits
         double e2_min = 2.*num_hits2;
         
         if(e1 < e1_min) e1 = e1_min;
         if(e2 < e2_min) e2 = e2_min; 
-        double de1 = e1/sqrt(num_hits1/2.);
-        double de2 = e2/sqrt(num_hits2/2.); 
+        double de1 = first_track->getKalEnergyError();
+        double de2 = secnd_track->getKalEnergyError();
         double detot = ene_total - (e1+e2);
         
         double x1 = detot*de1/(de1*de1+de2*de2);
         double x2 = detot*de2/(de1*de1+de2*de2);
         double e1_con = e1 + x1*de1;
         double e2_con = e2 + x2*de2;
-        if(e1_con < e1_min) {
+
+        if(e1_con < e1_min) {// Don't let energies get too small
             e1_con = e1_min; 
             e2_con = ene_total - e1_con;
         }
@@ -270,8 +287,9 @@ void TkrComboPatRec::setEnergies(double calEnergy)
             e2_con = e2_min; 
             e1_con = ene_total - e2_con;
         }
-        first_track->setEnergy(e1_con);
-        secnd_track->setEnergy(e2_con);
+        // Set the energies 
+        m_candidates[0]->setConEnergy(e1_con);
+        m_candidates[1]->setConEnergy(e2_con);
     }
 }
 
@@ -284,8 +302,7 @@ void TkrComboPatRec::findBlindCandidates()
     int localBestHitCount = 0; 
     bool valid_hits = false;
     
-    for (int ilayer = m_firstLayer; ilayer < max_planes-2; ilayer++)
-    { 
+    for (int ilayer = m_firstLayer; ilayer < max_planes-2; ilayer++) { 
         // Termination Criterion
         if(localBestHitCount > GFcontrol::minTermHitCount && 
                                      ilayer - m_TopLayer > 1) break;
@@ -334,11 +351,14 @@ void TkrComboPatRec::findBlindCandidates()
                     int gap;
                     float deflection, sigma; 
                     
-                    //Allow up to 2 blank layers depending on 1st 2 hits
+                    //See if there is a third hit - 
+                    //      Allow up to 2 blank layers depending on 1st 2 hits
                     int gap_max  = 3-igap;
                     if(gap_max < 1) gap_max = 1;
                     for(gap = 0; gap < gap_max; gap++) {
                         sigma = findNextHit(ilayer+igap+gap, testRay, deflection);
+
+                        // If good hit found: make a trial fit & store it away
                         if(sigma < m_cut && deflection > .7) {        
                             Candidate* trial = new Candidate(ilayer, itwr, m_energy, x1, VDir, 
                                 deflection, m_cut, gap); 
