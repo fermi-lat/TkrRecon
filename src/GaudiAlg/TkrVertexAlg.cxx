@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.6 2002/05/13 15:54:29 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.7 2002/07/22 13:45:53 cohen Exp $
 //
 // Description:
 //      Handles the Gaudi part of the vertex reconstruction
@@ -17,7 +17,6 @@
 #include "GaudiKernel/SmartDataPtr.h"
 #include "GaudiKernel/DataObject.h"
 
-#include "Event/Recon/ICsIClusters.h"
 #include "Event/TopLevel/EventModel.h"
 
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"

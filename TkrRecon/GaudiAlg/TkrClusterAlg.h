@@ -4,7 +4,6 @@
 
 #include <vector>
 #include "geometry/Point.h"
-#include "Event/Hits/SiLayers.h"
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "TkrRecon/ITkrBadStripsSvc.h"
@@ -25,7 +24,7 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrClusterAlg.h,v 1.5 2002/05/10 21:53:54 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrClusterAlg.h,v 1.6 2002/05/12 05:52:58 usher Exp $
 */
 
 class TkrClusterAlg : public Algorithm
