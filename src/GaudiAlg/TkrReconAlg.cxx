@@ -11,6 +11,7 @@
 
 #include <vector>
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
+#include "TkrRecon/Track/TkrLinkAndTreeFit.h"
 
 #include "GlastEvent/Recon/ICsIClusters.h"
 
@@ -78,7 +79,10 @@ StatusCode TkrReconAlg::execute()
     
     //Recover pointer to the reconstructed clusters
     m_TkrClusters = SmartDataPtr<TkrClusters>(eventSvc(),"/Event/TkrRecon/TkrClusters"); 
-    
+
+    //Find the patter recon tracks
+    TkrCandidates* pTrkCands = SmartDataPtr<TkrCandidates>(eventSvc(),"/Event/TkrRecon/TkrCandidates");
+
     //Recover pointer to Cal Cluster info    
     ICsIClusterList* pCalClusters = SmartDataPtr<ICsIClusterList>(eventSvc(),"/Event/CalRecon/CsIClusterList");
 
@@ -101,11 +105,18 @@ StatusCode TkrReconAlg::execute()
         CalEnergy     = MINENE;
         CalPosition   = Point(0.,0.,0.);
     }
+
+    //Reconstruct the pattern recognized tracks
+    TkrLinkAndTreeFit* tracks = new TkrLinkAndTreeFit(pTrackerGeo, m_TkrClusters, pTrkCands, CalEnergy);
+
+    sc = eventSvc()->registerObject("/Event/TkrRecon/TkrTracks", tracks);
+
+    tracks->writeOut(log);
     
     //Now reconstruct any tracks the event might have. 
     m_SiRecObjs = new SiRecObjs(pTrackerGeo, m_TkrClusters, CalEnergy, CalPosition);
 
-    sc = eventSvc()->registerObject("/Event/TkrRecon/SiRecObjs",m_SiRecObjs);
+    //sc = eventSvc()->registerObject("/Event/TkrRecon/SiRecObjs",m_SiRecObjs);
 
     //Let the world know what has happened...
     m_SiRecObjs->writeOut(log);

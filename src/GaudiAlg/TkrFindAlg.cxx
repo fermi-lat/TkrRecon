@@ -13,7 +13,7 @@
 
 #include "TkrRecon/GaudiAlg/TkrFindAlg.h"
 #include "TkrRecon/Cluster/TkrClusters.h"
-#include "TkrRecon/PatRec/TkrCandidates.h"
+#include "TkrRecon/PatRec/TkrLinkAndTreePR.h"
 
 static const AlgFactory<TkrFindAlg>  Factory;
 const IAlgFactory& TkrFindAlgFactory = Factory;
@@ -67,7 +67,9 @@ StatusCode TkrFindAlg::execute()
     TkrClusters* pTkrClus = SmartDataPtr<TkrClusters>(eventSvc(),"/Event/TkrRecon/TkrClusters");
     
     //Create the TkrCandidates TDS object
-    TkrCandidates* pTkrCands = new TkrCandidates(pTkrGeo, pTkrClus);
+    TkrLinkAndTreePR* pTkrPatRec = new TkrLinkAndTreePR(pTkrGeo, pTkrClus);
+
+    TkrCandidates*    pTkrCands  = pTkrPatRec;
 
     //Register this object in the TDS
     sc = eventSvc()->registerObject("/Event/TkrRecon/TkrCandidates",pTkrCands);
