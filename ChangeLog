@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: usher  Tue Aug 20 12:35:10 PDT 2002
+TkrRecon/src/TrackFit/KalmanFilter
+
+Modified Files:
+	KalmanFilter.cxx KalmanFilter.h 
+Log Message:
+First changes to remove/lessen dependence on GFtutor and GFcontrol and move
+to new system for managing control parameters
+
+    *
+------------------------------------------------------------
+User: usher  Tue Aug 20 12:35:10 PDT 2002
 TkrRecon/src/TrackFit/KalFitTrack
 
 Modified Files:
