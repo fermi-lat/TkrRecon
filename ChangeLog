@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+User: usher  Mon Apr 19 15:44:22 PDT 2004
+TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices
+
+Added Files:
+	IProcNoiseMatrix.h NoProcNoiseMatrix.cxx NoProcNoiseMatrix.h 
+	StdProcNoiseMatrix.cxx StdProcNoiseMatrix.h 
+	StdProjectionMatrix.cxx StdProjectionMatrix.h 
+	StdTransportMatrix.cxx StdTransportMatrix.h 
+	ThreeDProjectionMatrix.cxx ThreeDProjectionMatrix.h 
+Log Message:
+These files implement the Kalman Filter matrices for the generic track fit
+
+    *
+------------------------------------------------------------
 User: usher  Mon Apr 19 15:42:05 PDT 2004
 TkrRecon/src/TrackFit/KalmanFilterFit
 
