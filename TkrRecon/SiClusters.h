@@ -140,7 +140,7 @@ public:
 	//! default constructor (ini the container)
 	SiClusters(int nViews, int nPlanes, double stripPitch, double trayWidth);
 	//! destructor (delete the siclusters in the lists)
-	virtual ~SiClusters()   {clear();}
+	virtual ~SiClusters();
 
 	//! GAUDI members to be use by the converters
 	static const CLID& classID() {return CLID_SiClusters;}
