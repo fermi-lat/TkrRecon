@@ -17,7 +17,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.18 2003/04/10 17:35:40 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.21 2004/02/17 18:19:39 cohen Exp $
  */
 
 #include "GaudiKernel/IToolSvc.h"
@@ -109,30 +109,29 @@ StatusCode TkrVertexAlg::execute()
   
     // Recover the collection of Fit tracks
     Event::TkrFitTrackCol* pTkrTracks = SmartDataPtr<Event::TkrFitTrackCol>(eventSvc(),EventModel::TkrRecon::TkrFitTrackCol);
-    //Event::TkrFitTrackCol* pTkrTracks = dynamic_cast<Event::TkrFitTrackCol*>(&tkrTracks);
     
     // Retrieve the information on vertices
     SmartDataPtr<Event::TkrVertexCol> pVtxCol(eventSvc(), EventModel::TkrRecon::TkrVertexCol);
 
-    // Do vertices already exist?
+    // If vertices already exist then we need to delete them
     if (pVtxCol)
     {
-        //Iterative recon, need to also delete entries in relational table
-        SmartDataPtr<Event::TkrVertexTabList> vtxTable(eventSvc(),EventModel::TkrRecon::TkrVertexTab);
-
-        Event::TkrVertexTabList::iterator vtxRelIter = vtxTable->begin();
-
-        // Loop over TDS relational table
-        Event::TkrVertex* lastVertex = 0;
-        int               tabSize    = vtxTable->size();
-        for (int idx = 0; idx < tabSize; idx++) 
+        //Loop through and delete all TkrVertex contained objects in the collection
+        int colSize = pVtxCol->size();
+        while(colSize--)
         {
-            Event::TkrVertexRel*  relation  = *vtxRelIter;
-            Event::TkrVertex*     tkrVertex = relation->getFirst();
+            pVtxCol->pop_back();
+        }
 
-            if (tkrVertex != lastVertex) delete tkrVertex;
-            lastVertex = tkrVertex;
-            vtxTable->erase(vtxRelIter++);
+        //do the same for all relations between the vertices and tracks
+        //since we delete all of them, don't worry about "erase"ing properly
+        SmartDataPtr<Event::TkrVertexTabList> vtxTable(eventSvc(),EventModel::TkrRecon::TkrVertexTab);
+        Event::TkrVertexTab                   tkrVertexTab(vtxTable);
+        int                                   relTabSize = vtxTable->size();
+
+        while(relTabSize--)
+        {
+            vtxTable->pop_back();
         }
     }
     else  
