@@ -513,8 +513,8 @@ int TrackFitUtils::numUniqueHits(Event::TkrTrack& track1,
     // This one counts unique hits on the shorter track, 
     // by looking at each layer (once!)
 
-    int size = m_hitVec.size();
-    m_hitVec.resize(size, 0);
+    unsigned int i = m_hitVec.size();
+    while (--i) {m_hitVec[i] = 0;}
 
     int nHit1 = track1.getNumFitHits();
     int nHit2 = track2.getNumFitHits();
