@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Jun 17 15:20:41 PDT 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrQueryClusters.cxx 
+Log Message:
+Bug fix in numberOfHitsNear from Bill Atwood
+
+    *
+------------------------------------------------------------
 User: usher  Thu Jun 13 16:33:34 PDT 2002
 TkrRecon/doc
 
