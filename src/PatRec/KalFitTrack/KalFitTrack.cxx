@@ -588,9 +588,8 @@ double KalFitTrack::sigmaFoundHit(const TkrFitPlane& /*previousKplane*/, const T
     double min_dist = -1.;
     bool done = false;
     while (!done) {
-		nearHit = m_clusTool->nearestHitOutside(m_axis,klayer,min_dist, center, indexhit);
- //       nearHit = m_clusTool->nearestHitOutside(m_axis, m_tkrGeom->reverseLayerNumber(klayer), 
- //           min_dist, center, indexhit);
+        nearHit = m_clusTool->nearestHitOutside(m_axis, m_tkrGeom->reverseLayerNumber(klayer), 
+            min_dist, center, indexhit);
         done = foundHit(indexhit, min_dist, max_dist, rError, center, nearHit);
     }
     
