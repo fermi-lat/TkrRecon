@@ -349,15 +349,6 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
 
             if(pos_err < .25) pos_err = .25;  // Does this need to be a formal parameter?
             if(act_dist/pos_err > 3. && m_nxHits+m_nyHits > 6) break;  // 3 sig. : formal parameter here
-            
-            if(nextKplane.getProjection() == TkrCluster::X) {
-                m_Xgaps++;
-                if(m_nxHits < 3 ) m_XistGaps++;
-            }
-            else {
-                m_Ygaps++;
-                if(m_nyHits < 3 ) m_YistGaps++;
-            }
             continue; 
         }
     }
@@ -705,17 +696,58 @@ void KalFitTrack::finish()
 
         TkrFitPlaneColPtr hitPtr = m_hits.begin();
 
+        int last_Xplane = -1; 
+        int last_Yplane = -1;
+        int num_xPlanes = 0;
+        int num_yPlanes = 0; 
+        double start_energy = getEnergy(); 
+        double cos_inv = 1./fabs(getDirection().z()); 
+        double z0 = 0; 
+        double rad_len  = 0.; 
+        int plane_count = 0; 
+        m_numSegmentPoints = 0; 
+        bool quit_first  = false; 
         while(hitPtr < m_hits.end()) {
+            plane_count++; 
             TkrFitPlane* hit = hitPtr++;
-            double       xm; 
+ 
+            if(plane_count > 2 && !quit_first) {
+                if(plane_count == 3) z0 = hit->getZPlane();
+                rad_len += hit->getRadLen(); 
+                double arc_len  = (z0- hit->getZPlane())*cos_inv; 
+                double theta_ms = 13.6/start_energy * sqrt(rad_len) *
+                                  (1. + .038*log(rad_len));
+                double plane_err = cos_inv*arc_len*theta_ms/1.7321; 
+                quit_first  = plane_err > 2.*m_tkrGeo->siStripPitch();
+            }
+            if(!quit_first) m_numSegmentPoints++;
 
-            if (hit->getProjection() == TkrCluster::X) {
+            int this_plane = hit->getIDPlane();
+            bool xPlane = (hit->getProjection() == TkrCluster::X); 
+            double xm; 
+            if (xPlane) {
+                num_xPlanes++;
                 x  = hit->getHit(TkrFitHit::SMOOTH).getPar().getXPosition();
                 xm = hit->getHit(TkrFitHit::MEAS).getPar().getXPosition();
+                if(last_Xplane > 0) {
+                    m_Xgaps += this_plane-last_Xplane-1; 
+                    if(num_xPlanes < 3 || !quit_first) {
+                        m_XistGaps = m_Xgaps;
+                    }
+                }
+                last_Xplane = this_plane; 
             }
             else {
+                num_yPlanes++; 
                 x  = hit->getHit(TkrFitHit::SMOOTH).getPar().getYPosition();
                 xm = hit->getHit(TkrFitHit::MEAS).getPar().getYPosition();
+                if(last_Yplane >= 0) {
+                    m_Ygaps += this_plane-last_Yplane-1;
+                    if(num_yPlanes < 3 || !quit_first) {
+                        m_YistGaps = m_Ygaps;
+                    }
+                } 
+                last_Yplane = this_plane;
             }
             m_rmsResid+= (x-xm)*(x-xm);
         }
@@ -727,7 +759,6 @@ void KalFitTrack::finish()
     
     // Segment Calculation
     if (m_chisq>=0) {
-        m_numSegmentPoints = computeNumSegmentPoints();
         m_chisqSegment     = computeChiSqSegment(m_numSegmentPoints);
         m_Q                = computeQuality();
     }   
@@ -1283,18 +1314,6 @@ double KalFitTrack::getKinkNorma(int kplane) const
     return sigma_kink;
 }
 
-int KalFitTrack::computeNumSegmentPoints(TkrFitHit::TYPE /*typ*/)
-{
-   unsigned int num_ist=0;
-    
-    num_ist = m_energy0>0? static_cast<unsigned int>( .25*sqrt(m_energy0)): 36;
-    
-    if (num_ist <= 6) num_ist = 6;
-    if (num_ist > m_hits.size()) num_ist = m_hits.size(); 
-    
-    return num_ist;    
-}
-
 double KalFitTrack::computeChiSqSegment(int nhits, TkrFitHit::TYPE typ)
 {
   // Purpose and Method: Computes the chisquared for the first
@@ -1309,7 +1328,7 @@ double KalFitTrack::computeChiSqSegment(int nhits, TkrFitHit::TYPE typ)
     for (ihit =0; ihit < nhits; ihit++) {
         chi2 += m_hits[ihit].getDeltaChiSq(typ);
     }
-    chi2 /= (nhits-4.);
+    chi2 /= (1.*nhits);
     return chi2;
 }
 
