@@ -20,20 +20,20 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTr
     int   trk1Idx = 0;
 
     //Loop over the number of Fit tracks
-    TkrFitColPtr pTrack1 = pTracks->getTrackPtr();
+    TkrFitColPtr pTrack1 = pTracks->getTrackIterBegin();
 
-    while(pTrack1 < pTracks->getTrackEnd() && unused[trk1Idx])
+    while(pTrack1 < pTracks->getTrackIterEnd() && unused[trk1Idx])
     {
         TkrFitTrack* track1  = *pTrack1++;
         TkrFitColPtr pTrack2 = pTrack1;
         int          trk2Idx = trk1Idx + 1;
 
-        while(pTrack2 < pTracks->getTrackEnd() && unused[trk2Idx])
+        while(pTrack2 < pTracks->getTrackIterEnd() && unused[trk2Idx])
         {
             TkrFitTrack* track2 = *pTrack2++;
 
-            RayDoca doca    = RayDoca(Ray(track1->position(),track1->direction()),
-                                      Ray(track2->position(),track2->direction()));
+            RayDoca doca    = RayDoca(Ray(track1->getPosition(),track1->getDirection()),
+                                      Ray(track2->getPosition(),track2->getDirection()));
             double  dist    = doca.docaRay1Ray2();
 
             //Arc length to doca from track start
@@ -41,8 +41,8 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTr
             double  arcLen2 = doca.arcLenRay2();
 
             //Length of the track
-            double  trkLen1 = (track1->position(TkrRecInfo::Start) - track1->position(TkrRecInfo::End)).mag();
-            double  trkLen2 = (track2->position(TkrRecInfo::Start) - track2->position(TkrRecInfo::End)).mag();
+            double  trkLen1 = (track1->getPosition(TkrRecInfo::Start) - track1->getPosition(TkrRecInfo::End)).mag();
+            double  trkLen2 = (track2->getPosition(TkrRecInfo::Start) - track2->getPosition(TkrRecInfo::End)).mag();
 
             //Keep the candidate vertex if 1) doca is not too big
             bool    keepIt  = dist < docaLimit;
@@ -58,7 +58,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTr
             {
                 Point  gamPos;
                 Vector gamDir;
-                double gamEne = track1->energy() + track2->energy();
+                double gamEne = track1->getEnergy() + track2->getEnergy();
 
                 //Ok, check if first track vertex's with second before first hit
                 if      (arcLen1 > 0. && arcLen2 < 1.)
@@ -66,8 +66,8 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTr
                     //Ok, make sure end of track 2 close to track 1
                     if (doca.docaRay1Point2() > docaLimit) continue; 
 
-                    gamPos = track1->position();
-                    gamDir = track1->direction();
+                    gamPos = track1->getPosition();
+                    gamDir = track1->getDirection();
                 }
                 //Same check for track 2
                 else if (arcLen2 > 0. && arcLen1 < 1.)
@@ -75,17 +75,17 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTr
                     //Make sure end of track 1 is close to track 2
                     if (doca.docaPoint1Ray2() > docaLimit) continue; 
 
-                    gamPos = track2->position();
-                    gamDir = track2->direction();
+                    gamPos = track2->getPosition();
+                    gamDir = track2->getDirection();
                 }
                 //Else both tracks make good vertex
                 else
                 {
-                    Vector trk1Dir = track1->direction();
-                    Vector trk2Dir = track2->direction();
+                    Vector trk1Dir = track1->getDirection();
+                    Vector trk2Dir = track2->getDirection();
 
-                    trk1Dir.setMag(track1->energy());
-                    trk2Dir.setMag(track2->energy());
+                    trk1Dir.setMag(track1->getEnergy());
+                    trk2Dir.setMag(track2->getEnergy());
 
                     gamDir  = trk1Dir + trk2Dir;
 
@@ -97,7 +97,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTr
                 }
 
                 Ray        gamma  = Ray(gamPos,gamDir);
-                TkrVertex* vertex = new TkrVertex(track1->layer(),track1->tower(),gamEne,dist,gamma);
+                TkrVertex* vertex = new TkrVertex(track1->getLayer(),track1->getTower(),gamEne,dist,gamma);
 
                 vertex->addTrack(track1);
                 vertex->addTrack(track2);
@@ -124,7 +124,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTr
         {
             TkrFitTrack* track1 = pTracks->getTrack(numTracks);
 
-            TkrVertex* vertex = new TkrVertex(track1->layer(),track1->tower(),track1->energy(),0.,Ray(track1->position(),track1->direction()));
+            TkrVertex* vertex = new TkrVertex(track1->getLayer(),track1->getTower(),track1->getEnergy(),0.,Ray(track1->getPosition(),track1->getDirection()));
 
             vertex->addTrack(track1);
 
