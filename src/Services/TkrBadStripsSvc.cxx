@@ -11,7 +11,7 @@
 static const SvcFactory<TkrBadStripsSvc> s_factory;
 const ISvcFactory& TkrBadStripsSvcFactory = s_factory;
 
-//------------------------------------------------------------------------------
+
 /// Service parameters which can be set at run time must be declared.
 /// This should be done in the constructor.
 
@@ -24,12 +24,13 @@ Service(name, pSvcLocator)
     return;	
 }
 
-
 StatusCode TkrBadStripsSvc::initialize()
 {
-    bool debug = false;
+    // Purpose: reads in bad strips and constructs in-memory bad strip vectors
+	// Inputs:  None
+	// Outputs: Status code (Success/Failure)
 
-    MsgStream log(msgSvc(), name());
+	MsgStream log(msgSvc(), name());
     StatusCode sc = StatusCode::SUCCESS;
        
     Service::initialize();
@@ -38,24 +39,30 @@ StatusCode TkrBadStripsSvc::initialize()
 
     setProperties();
 
-    //int size = 0;
+    // commented code in this routine was the original attempt to implement
+	//  the bad strips as a vector of vectors.
+	
+	//int size = 0;
     //makeCol(size); //make sure that Collection is sensibly initialized
 
-    if (m_badStripsFile=="") {        
+    // If there is no bad strips file, service will do nothing
+	if (m_badStripsFile=="") {        
         log << MSG::INFO << "No bad strips file was requested." << endreq;
         log << MSG::INFO << "  No strip filtering will be done." << endreq;
         return sc;
     }
 
-	//test 1
+	// this is a test of the message service.  Some of these messages don't get logged
 	log << MSG::DEBUG << "Test 1"<< endreq;
 
-    xml::IFile::extractEnvVar(&m_badStripsFile);    
+    // this method resolves environmental variables in the file name
+	xml::IFile::extractEnvVar(&m_badStripsFile);    
     log << MSG::INFO << "Input file for bad strips: " << m_badStripsFile << endreq;
 
-	//test 2
+	// another test
 	log << MSG::DEBUG << "Test 2"<< endreq;
 
+    // open bad strips file
     std::ifstream file;
 	file.open( m_badStripsFile.c_str());
 	
@@ -73,6 +80,7 @@ StatusCode TkrBadStripsSvc::initialize()
     m_nviews  = pTkrGeom->numViews();
 
     //This is to test that TkrGeometrySvc is initialized... is there a better way?
+	// or is this needed at all?
 	
     if ((m_ntowers<1) || (m_ntowers>25) || (m_nlayers<1) 
         || (m_nlayers>20) || (m_nviews != 2)) { 
@@ -89,30 +97,17 @@ StatusCode TkrBadStripsSvc::initialize()
 	file.close();
 	
 	//log << MSG::DEBUG<< "m_stripsCol has " << 
-		//m_stripsCol.size() << " elements" << endreq;
+	    //m_stripsCol.size() << " elements" << endreq;
 	log << MSG::DEBUG<< "m_stripsCol has " << 
 		576 << " elements" << endreq;
-    /*
-	for (int i = 0; i < m_stripsCol.size(); i++) {
-		log << "Element " << i << ": " ;
-		v_strips v = m_stripsCol[i];
-		log << MSG::DEBUG << v.size() << " strips" << endreq;
-		for (int j = 0; j < v.size(); j++) {
-			log << v[j] << " " ;
-		}
-		log << MSG::DEBUG << endreq;
-	}
-	*/
            
     return sc;
 }
-
 
 StatusCode TkrBadStripsSvc::finalize()
 {
     return StatusCode::SUCCESS;
 }
-
 
 /*void TkrBadStripsSvc::makeCol(const int size)
 {
@@ -121,19 +116,33 @@ StatusCode TkrBadStripsSvc::finalize()
 }
 */
 
-
 void TkrBadStripsSvc::readFromFile(std::ifstream* file)
 {    
-    bool debug = false;
-	bool read = true;
-	bool makestrips = true;
+	// Purpose: read bad strips from file and make in-memory vectors
+	// Inputs:  File name
+	// Outputs: None
+    // Dependencies: None
+	// Caveats: None
+
+	bool read = true;           // for testing
+	bool makestrips = true;     // for testing
 
     MsgStream log(msgSvc(), name());
     
     int nStrips = 0;
 	std::string junk;
 
-    while(read && !file->eof()) {
+    // format of file:
+	//
+	// -1 at beginning of line is a comment
+	// 
+	// for each layer with bad strips:
+	// tower# sequence#  [strip#] [strip#] ...  -1
+	// all whitespace is ignored, so data for a layer may span lines
+	//
+	// 
+
+	while(read && !file->eof()) {
         int tower;
 		int sequence;
 
@@ -145,6 +154,7 @@ void TkrBadStripsSvc::readFromFile(std::ifstream* file)
         if (file->eof()) break;
         *file >> sequence;
         // kludge until the geometry supplies this info
+		// converts layer (0...35) to bilayer and view
 		int layer = sequence/2;
 		int element = (sequence+3)%4;
 		int view = element/2;
@@ -159,7 +169,8 @@ void TkrBadStripsSvc::readFromFile(std::ifstream* file)
             nStrips++;
         }
 
-        if (makestrips) std::sort(v->begin(), v->end());
+        // sort strips in ascending order after each line is read in
+		if (makestrips) std::sort(v->begin(), v->end());
         
     }
     log << MSG::INFO << nStrips << " bad strips read from file" << endreq;
@@ -167,10 +178,13 @@ void TkrBadStripsSvc::readFromFile(std::ifstream* file)
     return;
 }
 
-
 int TkrBadStripsSvc::getIndex(const int tower, const int layer, const TkrAxis::axis axis) 
 {
-    int view; 
+    // Purpose:  calculate index into array of vectors
+	// Inputs:   tower, bilayer, axis
+	// Outputs:  index
+
+	int view; 
     // this is to decouple the store from the current definition of axes
     // not that it will ever change
     if (axis==TkrAxis::X)  {view = 0;}
@@ -179,19 +193,24 @@ int TkrBadStripsSvc::getIndex(const int tower, const int layer, const TkrAxis::a
     return view + m_nviews*(layer + m_nlayers*tower);
 }
 
+void TkrBadStripsSvc::addStrip(v_strips* v, const int strip) 
+{
+	// Purpose: add a bad strip to the list, already tagged bad
+	// Inputs:  strip number
+	// Outputs: None
 
-void TkrBadStripsSvc::addStrip(v_strips* v, const int strip) {
     int tagged_strip = tagBad(strip);
     v->push_back(tagged_strip);
-    int size = v->size();
-    int capa = v->capacity();
     return;
 }
 
-
 v_strips* TkrBadStripsSvc::getBadStrips(const int tower, const int layer, const TkrAxis::axis axis)
 {
-    int index = getIndex(tower, layer, axis);
+    // Purpose:  return pointer to a bad strip vector
+	// Inputs:   tower, layer, axis
+	// Outputs:  pointer to that vector
+
+	int index = getIndex(tower, layer, axis);
 
     return getBadStrips(index);
 }
@@ -199,6 +218,10 @@ v_strips* TkrBadStripsSvc::getBadStrips(const int tower, const int layer, const 
 
 v_strips* TkrBadStripsSvc::getBadStrips(const int index)
 {
+    // Purpose:  return pointer to a bad strip vector
+	// Inputs:   index
+	// Outputs:  pointer to that vector
+
     //int ind = (m_stripsCol.size()==0) ? m_stripsCol.size() : index;
     int ind = (index<0 || index>575) ? 0 : index;
     return &m_stripsCol[ind];
@@ -207,36 +230,54 @@ v_strips* TkrBadStripsSvc::getBadStrips(const int index)
 
 int TkrBadStripsSvc::tagBad(const int strip) 
 {
-    return (strip << 1) | 1;
+    // Purpose: tag a strip bad
+
+	return (strip << 1) | 1;
 }
 
 
 int TkrBadStripsSvc::tagGood(const int strip) 
 {
-    return (strip << 1);
+    // Purpose: tag a strip good
+
+	return (strip << 1);
 }
 
 
 int TkrBadStripsSvc::untag(const int strip) 
 {
-    return (strip >> 1);
+    // Purpose:  untage a tagged strip
+	return (strip >> 1);
 }
 
 
-bool TkrBadStripsSvc::isTaggedBad(const int taggedStrip) {
-    return ((taggedStrip & 1) != 0);
+bool TkrBadStripsSvc::isTaggedBad(const int taggedStrip) 
+{
+    // Purpose: return status of tagged strip
+	// Input:   tagged strip
+	// Output:  true if strip is tagged bad
+
+	return ((taggedStrip & 1) != 0);
 }
 
 
 bool TkrBadStripsSvc::isBadStrip(const int tower, const int layer, 
                                  const TkrAxis::axis axis, const int strip) 
 {
-    v_strips* v = getBadStrips(tower, layer, axis);
+    // Purpose: determine if a given strip is bad
+	// Inputs:  tower, bilayer, axis, strip#
+	// Output:  true if strip is in the list ( that is, is bad)
+
+	v_strips* v = getBadStrips(tower, layer, axis);
     return isBadStrip(v, strip);
 }
 
 bool TkrBadStripsSvc::isBadStrip(const v_strips* v, const int strip)
 {
+    // Purpose: determine if a given strip is bad
+	// Inputs:  index, strip#
+	// Output:  true if strip is in the list ( that is, is bad)
+
     v_strips_it it = std::find(v->begin(), v->end(), tagBad(strip));
     return (it!=v->end());
 }
@@ -253,7 +294,6 @@ StatusCode  TkrBadStripsSvc::queryInterface (const IID& riid, void **ppvIF)
     else {
         return Service::queryInterface (riid, ppvIF);
     }
-    //addRef(); 
     return StatusCode::SUCCESS;
 }
 

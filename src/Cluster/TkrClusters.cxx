@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrClusters.cxx,v 1.3 2002/02/23 07:03:14 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrClusters.cxx,v 1.4 2002/02/25 06:37:47 lsrea Exp $
 //
 // Description:
 //      TkrClusters is a container for Tkr clusters, and has the methods
@@ -19,7 +19,7 @@ TkrClusters::TkrClusters(ITkrGeometrySvc* pTkrGeoSvc, ITkrBadStripsSvc* pBadStri
     pBadStrips = pBadStripsSvc;
 	numViews     = pTkrGeo->numViews();
 	numPlanes    = pTkrGeo->numLayers();
-
+	
     //Initialize the cluster lists...
     ini();
     
@@ -28,6 +28,7 @@ TkrClusters::TkrClusters(ITkrGeometrySvc* pTkrGeoSvc, ITkrBadStripsSvc* pBadStri
     int ndigis = pTkrDigiCol->size();
     
     for (int idigi = 0; idigi < ndigis ; idigi++) {
+		// each digi contains the digitized hits from one layer of one tower
         TkrDigi* pDigi = pTkrDigi[idigi];
         
         int layer  = pDigi->layer();
@@ -35,7 +36,7 @@ TkrClusters::TkrClusters(ITkrGeometrySvc* pTkrGeoSvc, ITkrBadStripsSvc* pBadStri
         int tower  = pDigi->tower();
         
         int nHits  = pDigi->num();
-
+		
         // the list of bad strips
         v_strips* badStrips = 0;
         int badStripsSize = 0;
@@ -44,7 +45,7 @@ TkrClusters::TkrClusters(ITkrGeometrySvc* pTkrGeoSvc, ITkrBadStripsSvc* pBadStri
             if (badStrips) badStripsSize = badStrips->size();
             int sizex = badStrips->size();
         }
-
+		
         //Make a local vector big enough to hold everything
         int hitsSize = nHits + badStripsSize + 1;
         std::vector<int> stripHits(hitsSize);
@@ -63,7 +64,7 @@ TkrClusters::TkrClusters(ITkrGeometrySvc* pTkrGeoSvc, ITkrBadStripsSvc* pBadStri
         }
         // add the sentinel -- guaranteed to make a gap, and it's bad
         stripHits[running_index] = tagBad(bigStripNum);
-
+		
         std::sort(stripHits.begin(), stripHits.end()); 
         
         int lowStrip  = stripHits[0];  // the first strip of the current potential cluster
@@ -71,10 +72,10 @@ TkrClusters::TkrClusters(ITkrGeometrySvc* pTkrGeoSvc, ITkrBadStripsSvc* pBadStri
         int nextStrip = lowStrip;      // the next strip
         int nBad = 0;
         bool kept;  // for debugging
-                
-        //Loop over the rest of the strips building clusters enroute.
-        //Keep track of bad strips.
-        //Loop over all hits, except the sentinel, which is there to provide a gap
+		
+        // Loop over the rest of the strips building clusters enroute.
+        // Keep track of bad strips.
+        // Loop over all hits, except the sentinel, which is there to provide a gap
         
         for (ihit = 0; ihit < hitsSize-1; ihit++) {
             if(pBadStrips) nBad += pBadStrips->isTaggedBad(nextStrip);
@@ -106,8 +107,10 @@ TkrClusters::TkrClusters(ITkrGeometrySvc* pTkrGeoSvc, ITkrBadStripsSvc* pBadStri
 
 TkrClusters::~TkrClusters()
 {
-    clear();
-
+    // This deletes all the clusters; They aren't DataObjects, but they're *in*
+	//     a DataObject.  Is this a problem?
+	clear();
+	
     return;
 }
 
@@ -115,9 +118,6 @@ void TkrClusters::addCluster(TkrCluster* cl)
 {
     // Purpose and Method: Adds a cluster to the cluster list
     // Inputs:  cl is the cluster to be added
-    // Outputs:  None
-    // Dependencies: None
-    // Restrictions and Caveats:  None
 	m_clustersList.push_back(cl);
 	int iview = TkrCluster::viewToInt(cl->v());
 	m_clustersByPlaneList[iview][cl->plane()].push_back(cl);
@@ -125,11 +125,7 @@ void TkrClusters::addCluster(TkrCluster* cl)
 
 void TkrClusters::clear()
 {
-    // Purpose and Method: Clears the cluster list, that is, removes the clusters
-    // Inputs:  None
-    // Outputs:  None
-    // Dependencies: None
-    // Restrictions and Caveats:  None
+    // Purpose and Method: deletes the clusters
 	int nhits = m_clustersList.size();
 	for (int ihit = 0; ihit < nhits; ihit++) {
 		delete m_clustersList[ihit];
@@ -140,9 +136,6 @@ void TkrClusters::ini()
 {
     // Purpose and Method: clears all the cluster lists
     // Inputs:  None
-    // Outputs:  None
-    // Dependencies: None
-    // Restrictions and Caveats:  None
 	
     // this "clear" is the clear method of std::vector
     //   not TkrClusters::clear!
@@ -153,8 +146,9 @@ void TkrClusters::ini()
 		}
 	}
 }
+
 //------------  Operations ---------------------------
-  
+
 Point TkrClusters::meanHit(TkrCluster::view v, int iplane)
 {
     // Purpose and Method: Returns the mean position of all clusters in a layer
@@ -162,12 +156,12 @@ Point TkrClusters::meanHit(TkrCluster::view v, int iplane)
     // Outputs:  mean position of all the clusters in the layer
     // Dependencies: None
     // Restrictions and Caveats:  None
-
+	
 	Point Pini(0.,0.,0);
-
+	
 	int nhits = nHits(v,iplane);
 	if (nhits == 0) return Pini;
-
+	
 	std::vector<TkrCluster*> AuxList = getHits(v,iplane);
 	for (int ihit=0; ihit<nhits; ihit++){
 		Pini += AuxList[ihit]->position();	
@@ -177,7 +171,7 @@ Point TkrClusters::meanHit(TkrCluster::view v, int iplane)
 }
 
 Point TkrClusters::meanHitInside(TkrCluster::view v, int iplane, double inRadius,
-								Point Pcenter)
+								 Point Pcenter)
 {
     // Purpose and Method: Returns mean position of hits
     //    within a distance of a point in the measured dimension,
@@ -186,24 +180,24 @@ Point TkrClusters::meanHitInside(TkrCluster::view v, int iplane, double inRadius
     // Outputs:  mean position of clusters satisfying criterion
     // Dependencies: None
     // Restrictions and Caveats:  None
-
+	
 	Point P(0.,0.,0);
 	std::vector<TkrCluster*> AuxList = getHits(v,iplane);
 	int nhits = AuxList.size();
 	if (nhits == 0) return P;
-
+	
 	double nsum = 0.;
 	double xsum = 0.;
 	double ysum = 0.;
 	double zsum = 0.;
-
+	
 	for (int ihit=0; ihit<nhits; ihit++)
     {
 		P = AuxList[ihit]->position();
-
+		
         double hitRadius = fabs(P.x() - Pcenter.x());
         double twrRadius = fabs(P.y() - Pcenter.y());
-
+		
 		if      (v == TkrCluster::Y) 
         {
             hitRadius = fabs(P.y() - Pcenter.y());
@@ -214,8 +208,8 @@ Point TkrClusters::meanHitInside(TkrCluster::view v, int iplane, double inRadius
             hitRadius = (P-Pcenter).mag();
             twrRadius = 0.;
         }
-
-        //Check that hit is close and within one tower
+		
+        // Check that hit is close and within one tower
         if (hitRadius < inRadius && twrRadius < 1.1 * pTkrGeo->towerPitch()) 
         {
 			nsum += 1.;
@@ -224,14 +218,14 @@ Point TkrClusters::meanHitInside(TkrCluster::view v, int iplane, double inRadius
 			zsum += P.z();
 		}
 	}
-
+	
     if (nsum > 0.) P = Point(xsum/nsum, ysum/nsum, zsum/nsum);
-
+	
     return P;
 }
 
 Point TkrClusters::nearestHitOutside(TkrCluster::view v, int iplane, 
-								 double inRadius, Point Pcenter, int& id)
+									 double inRadius, Point Pcenter, int& id)
 {
     // Purpose and Method: returns the position of the closest cluster
     //    outside of a given distance from a point in the measured direction,
@@ -240,29 +234,29 @@ Point TkrClusters::nearestHitOutside(TkrCluster::view v, int iplane,
     // Outputs:  Position of nearest cluster
     // Dependencies: None
     // Restrictions and Caveats:  None
-
+	
 	Point Pnear(0.,0.,0.);
 	id = -1;
-
+	
 	int nhits = nHits(v,iplane);
 	if (nhits == 0) return Pnear;
-
+	
 	std::vector<TkrCluster*> AuxList;
 	AuxList = getHits(v,iplane);
-
+	
 	double minRadius = inRadius;
 	double maxRadius = 1e6;
 	Point Pini(0.,0.,0.);
 	for (int ihit = 0; ihit< nhits; ihit++) 
     {
         if (AuxList[ihit]->hitFlagged()) continue;
-
+		
 		Pini = AuxList[ihit]->position();
-
-
+		
+		
         double hitRadius = fabs(Pini.x() - Pcenter.x());
         double twrRadius = fabs(Pini.y() - Pcenter.y());
-
+		
 		if      (v == TkrCluster::Y) 
         {
             hitRadius = fabs(Pini.y() - Pcenter.y());
@@ -284,89 +278,90 @@ Point TkrClusters::nearestHitOutside(TkrCluster::view v, int iplane,
 	return Pnear;
 }
 
-// Several methods follow, which perform similar functions with 
-//     different input arguments.
-//
-// Purpose and Method: counts the number of hits within a certain distance 
-//     in X and Y.
-// Inputs:  various
-// Outputs:  the number of hits that satisfy the criteria
-// Dependencies: None
-// Restrictions and Caveats:  None
-
 int TkrClusters::numberOfHitsNear( int iPlane, double inRadius, Point& x0)
 {
+	// Purpose and Method: counts the number of hits in a bilayer 
+	//       within a square of side 2*inRadius
+	// Inputs:  plane number, distance, central point
+	// Outputs:  the number of hits that satisfy the criteria
+	// Dependencies: None
+	// Restrictions and Caveats:  None
+	
     return numberOfHitsNear(iPlane, inRadius, inRadius, x0);
 }
 
 int TkrClusters::numberOfHitsNear( int iPlane, double dX, double dY, Point& x0)
 {
+	// Purpose and Method: counts the number of hits in a bilayer 
+	//      within a rectangle of sides 2*dX, 2*dY
+	// Inputs:  plane number, dx, dy, central point
+	// Outputs:  the number of hits that satisfy the criteria
+	// Dependencies: None
+	// Restrictions and Caveats:  None
+	
     int numHits = 0;
-
+	
     //Look for hits in the X view of desired layer
     std::vector<TkrCluster*> clusterList = getHits(TkrCluster::X, iPlane);
     int nHitsInPlane = clusterList.size();
-
+	
     while(nHitsInPlane--)
     {
         double hitDiffX = x0.x() - clusterList[nHitsInPlane]->position().x();
         double hitDiffY = x0.y() - clusterList[nHitsInPlane]->position().y();
-
+		
         if (fabs(hitDiffX < dX) && fabs(hitDiffY) < pTkrGeo->towerPitch()) numHits++;
     }
-
-    //Look for hits in the Y view of desired layer
+	
+    // Look for hits in the Y view of desired layer
     clusterList = getHits(TkrCluster::Y, iPlane);
     nHitsInPlane = clusterList.size();
-
+	
     while(nHitsInPlane--)
     {
         double hitDiffX = x0.x() - clusterList[nHitsInPlane]->position().x();
         double hitDiffY = x0.y() - clusterList[nHitsInPlane]->position().y();
-
+		
         if (fabs(hitDiffX) < pTkrGeo->towerPitch() && fabs(hitDiffY) < dY) numHits++;
     }
-
+	
     return numHits;
 }
 
 int TkrClusters::numberOfHitsNear( TkrCluster::view v, int iPlane, double inRadius, Point& x0)
 {
+    // Purpose and Method: counts the number of hits within a distance "inRadius" in the 
+    //     measurement direction, and within one tower in the other direction
+    // Inputs:  plane number, dx, dy, central point
+    // Outputs:  the number of hits that satisfy the criteria
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+	
     int numHits = 0;
-
-    //Look for hits in the desired view of the given layer
+	
+    // Look for hits in the desired view of the given layer
     std::vector<TkrCluster*> clusterList = getHits(v, iPlane);
     int nHitsInPlane = clusterList.size();
-
+	
     while(nHitsInPlane--)
     {
         double hitDiffV = v == TkrCluster::X 
-                        ? x0.x() - clusterList[nHitsInPlane]->position().x()
-                        : x0.y() - clusterList[nHitsInPlane]->position().y();
+			? x0.x() - clusterList[nHitsInPlane]->position().x()
+			: x0.y() - clusterList[nHitsInPlane]->position().y();
         double hitDiffO = v == TkrCluster::X 
-                        ? x0.y() - clusterList[nHitsInPlane]->position().y()
-                        : x0.x() - clusterList[nHitsInPlane]->position().x();
-
+			? x0.y() - clusterList[nHitsInPlane]->position().y()
+			: x0.x() - clusterList[nHitsInPlane]->position().x();
+		
         if (fabs(hitDiffV) < inRadius && fabs(hitDiffO) < pTkrGeo->towerPitch()) numHits++;
     }
-
+	
     return numHits;
 }
-
-// This doesn't do anything!!
-/*
-void TkrClusters::flagHitsInPlane(TkrCluster::view v, int iplane)
-{
-	std::vector<TkrCluster*> AuxList = getHits(v,iplane);
-	for (int ihit = 0; ihit< AuxList.size(); ihit++)
-		AuxList[ihit]->flag();
-}
-*/
 
 void TkrClusters::writeOut(MsgStream& log) const
 {
 	if (nHits()<=0) return;
-
+	
 	for (int ihit = 0; ihit < nHits(); ihit++) {
 		m_clustersList[ihit]->writeOut(log);
 	}
@@ -379,7 +374,7 @@ Point TkrClusters::position(const int plane, TkrCluster::view v, const double st
     // Outputs:  position
     // Dependencies: None
     // Restrictions and Caveats:  None
-
+	
     int iladder = strip / pTkrGeo->ladderNStrips();
     double stripInLadder = strip - iladder*pTkrGeo->ladderNStrips();
     
@@ -392,7 +387,7 @@ Point TkrClusters::position(const int plane, TkrCluster::view v, const double st
     
     double Dstrip = (v==TkrCluster::X) ? 
         ladder.position().x()-ladder.size().x() :
-        ladder.position().y()-ladder.size().y();
+	ladder.position().y()-ladder.size().y();
     
     Dstrip += pTkrGeo->siDeadDistance();
     Dstrip += (stripInLadder+0.5)*pTkrGeo->siStripPitch();
@@ -401,7 +396,7 @@ Point TkrClusters::position(const int plane, TkrCluster::view v, const double st
     double x = (v==TkrCluster::X) ? Dstrip : P.x();
     double y = (v==TkrCluster::Y) ? Dstrip : P.y();
     double z = P.z();
-
+	
     P = Point(x,y,z);
     return P;
 }
@@ -413,15 +408,15 @@ bool TkrClusters::isGapBetween(const int lowStrip, const int highStrip)
     // Outputs:  yes or no
     // Dependencies: None
     // Restrictions and Caveats:  None
-
+	
     //Get the actual hit strip number from the tagged strips
     int lowHit  = untag(lowStrip);
     int highHit = untag(highStrip);
-
+	
     // gap between hits
     if (highHit > (lowHit + 1)) { return true; }
     
-    //edge of chip
+    // edge of chip
     int nStrips = pTkrGeo->ladderNStrips();
     if((lowHit/nStrips) < (highHit/nStrips)) {return true; }
     
@@ -436,17 +431,14 @@ bool TkrClusters::isGoodCluster(const int lowStrip, const int highStrip, const i
     // Outputs:  yes or no
     // Dependencies: None
     // Restrictions and Caveats:  None
-   
+	
     //Get the actual hit strip number from the tagged strips
     int lowHit  = untag(lowStrip);
     int highHit = untag(highStrip);
-
+	
     // for now, just require at least 1 good hit in the cluster
     // later maybe cut on number of strips < some maximum
-	    //if (nBad>0 && highHit-lowHit+1>nBad) {
-		    //std::cout << "cluster with some bad hits "<<
-			//highHit-lowHit+1 << " " << nBad << std::endl;
-	    //}
+	
     return ((highHit-lowHit+1)>nBad);
 }
 
@@ -457,7 +449,7 @@ int TkrClusters::tagBad(const int strip)
     // Outputs:  tagged strip, or raw strip if there is no BadStripsSvc
     // Dependencies: None
     // Restrictions and Caveats:  None
-
+	
     if (pBadStrips) return pBadStrips->tagBad(strip);
     else return strip;
 }
@@ -470,8 +462,8 @@ int TkrClusters::tagGood(const int strip)
     // Outputs:  tagged strip, or raw strip if there is no BadStripsSvc
     // Dependencies: None
     // Restrictions and Caveats:  None
-
-   if (pBadStrips) return pBadStrips->tagGood(strip);
+	
+	if (pBadStrips) return pBadStrips->tagGood(strip);
     else return strip;
 }
 
@@ -483,7 +475,7 @@ int TkrClusters::untag(const int strip)
     // Outputs:  raw strip
     // Dependencies: None
     // Restrictions and Caveats:  None
-
+	
     if (pBadStrips) return pBadStrips->untag(strip);
     else return strip;
 }

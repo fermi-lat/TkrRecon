@@ -15,12 +15,12 @@
 /** 
 * @class TkrCluster
 *
-* @brief Contains the data members which specify a Tkr cluster, and access methods
+* @brief Contains the data members which specify a TKR cluster, and access methods
 *
 * Adapted from SiCluster of Jose Hernando
 *
 * @author Tracy Usher, Leon Rochester
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrCluster.h,v 1.3 2002/02/23 07:03:14 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrCluster.h,v 1.4 2002/02/25 06:37:46 lsrea Exp $
 */
 
 class TkrCluster
@@ -43,7 +43,7 @@ public:
     /// Constructor with arguments
     /**
     * Construct a cluster with all of its private members set
-    * @param id Sequential ID of cluster
+    * @param id Sequential ID of cluster (Why?)
     * @param v  View of cluster (x=0, y=1)
     * @param istrip0  first strip
     * @param istripf  last strip
@@ -55,18 +55,14 @@ public:
     virtual ~TkrCluster() {}
     
     
-    
-    /// @name  Set methods
-    //@{
+    // set methods
     inline void setPosition(Point p)    {m_position = p;}
     inline void setID(int id)    {m_id = id;}
     inline void flag(int flag=1) {m_flag = flag;}
     inline void unflag()         {m_flag = 0;}
-    //@}
-    
-    /// @name  Get methods
-    //@{
-    inline int tower()     const {return m_tower;}
+	
+    // get methods
+	inline int tower()     const {return m_tower;}
     inline int id()        const {return m_id;}
     inline int plane()     const {return m_plane;}
     inline view v()        const {return m_view;}
@@ -77,7 +73,6 @@ public:
     
     Point position()       const {return m_position;}
     inline double size()   const {return m_size;}
-    //@}
     
     /// returns true if the cluster has been flagged
     bool hitFlagged()      const {return (m_flag!=0);}
