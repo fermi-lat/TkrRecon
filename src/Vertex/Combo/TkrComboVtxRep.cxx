@@ -36,7 +36,7 @@ void TkrComboVtxRep::update()
 	        setColor("yellow");
 	        markerAt(startPoint);
 	        moveTo(startPoint);
-	        lineTo(startPoint + 1000.*pVertex.getDirection());
+	        lineTo(startPoint - 1000.*pVertex.getDirection());
 	        setColor("black");
 	    }
     }
