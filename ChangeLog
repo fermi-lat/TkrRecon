@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+User: usher  Mon Mar  4 11:17:05 PST 2002
+TkrRecon/src/Vertex
+
+Added Files:
+	TkrVertex.cxx TkrVertexCol.cxx 
+Log Message:
+Added subfolder TkrVertex to contain source code for implementing 
+Tkr vertexing methods. An initial shell for vertexing code has been
+added as well. 
+Also modified code for initialization service and included entry 
+point for windows Dll.
+
+    *
+------------------------------------------------------------
 User: usher  Mon Mar  4 11:17:04 PST 2002
 TkrRecon/src/Services
 
