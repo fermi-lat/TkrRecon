@@ -15,7 +15,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/TkrComboPatRec.h,v 1.17 2002/09/05 16:25:32 lsrea Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/TkrComboPatRec.h,v 1.18 2002/10/09 23:44:10 usher Exp $
 */
 
 #ifndef __TKRCOMBOPATREC_H
@@ -27,6 +27,8 @@
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "src/TrackFit/KalFitTrack/KalFitTrack.h"
 #include "geometry/Ray.h"
+
+#include <iostream>
 
 #include <vector>
 

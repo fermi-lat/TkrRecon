@@ -19,9 +19,15 @@ Implementation of a Combinatoric Pattern recognition for GLAST
 #include "TkrRecon/GaudiAlg/TkrTrackFitAlg.h"
 #include "GlastSvc/Reco/IKalmanParticle.h"
 
-#include <algorithm>
+//#include <fstream>
+
+//#include <algorithm>
+
+//static std::ofstream m_out("Energies.txt");
 
 using namespace Event;
+
+
 
 TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters, double CalEnergy, Point CalPosition)
 {
@@ -234,11 +240,15 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     double cal_Energy = (calEnergy > m_control->getMinEnergy()/2.) ? 
                          calEnergy : m_control->getMinEnergy()/2.;
 
+    // TOTAL KULDGE HERE - Cal Energies are found to be too low by ~20%
+    //  This should be removed when the CAL is calibrated!!!!!!  
+    cal_Energy *= 1.2; 
+
     // Get best track ray
     KalFitTrack*  first_track = m_candidates[0]->track();              
     
     // Set up parameters for KalParticle swim through entire tracker
-    Point x_ini    = first_track->getPosAtZ(0.); 
+    Point x_ini    = first_track->getPosAtZ(-2.); // Backup to catch first Radiator
     Vector dir_ini = first_track->getDirection(); 
     double arc_tot = x_ini.z() / fabs(dir_ini.z()); // z=0 at top of grid
     
@@ -248,7 +258,11 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     // Setup summed var's and loop over all layers between x_ini & cal
     int num_thin_hits = 0;
     int num_thck_hits = 0;
-    double arc_len    = 0.; 
+    int num_last_hits = 0; 
+    double arc_len    = 5./fabs(dir_ini.z()); 
+    double rad_thick = 0.;
+    double rad_thin  = 0.;
+    double rad_last  = 0.; 
     int top_plane     = first_track->getLayer(); 
     
     int max_planes = m_tkrGeo->numLayers();
@@ -262,33 +276,66 @@ void TkrComboPatRec::setEnergies(double calEnergy)
             xms = Q.getcovX0X0();
             yms = Q.getcovY0Y0();
         }
-        double xSprd = sqrt(1.+xms*6.25); // 2.5 sigma and not smaller then 1
-        double ySprd = sqrt(1.+yms*6.25); // Limit to a tower... 
-        if(xSprd > m_tkrGeo->trayWidth()) xSprd = m_tkrGeo->trayWidth();
-        if(ySprd > m_tkrGeo->trayWidth()) ySprd = m_tkrGeo->trayWidth();
+        double xSprd = sqrt(2.+xms*16.); // 4.0 sigma and not smaller then 2mm (was 2.5 sigma)
+        double ySprd = sqrt(2.+yms*16.); // Limit to a tower... 
+        if(xSprd > m_tkrGeo->trayWidth()/2.) xSprd = m_tkrGeo->trayWidth()/2.;
+        if(ySprd > m_tkrGeo->trayWidth()/2.) ySprd = m_tkrGeo->trayWidth()/2.;
 
         // Assume location of shower center in given by 1st track
         Point x_hit = first_track->getPosAtZ(arc_len);
         int numHits = TkrQueryClusters(m_clusters).
-                         numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
-        if(iplane >= 12) num_thck_hits += numHits; //Hardwire where thick planes start
-        else             num_thin_hits += numHits;
+                                       numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
+        if(iplane < 12)   {//Hardwire where thick planes start
+            num_thin_hits += numHits; 
+            rad_thin  = arc_len;
+        }
+        else if(iplane < 16) {
+            num_thck_hits += numHits;
+            rad_thick  = arc_len;
+        }
+        else {
+            num_last_hits += numHits;
+            rad_last  = arc_len;
+        }
         
         // Increment arc-length
         arc_len += m_tkrGeo->trayHeight()/fabs(dir_ini.z()); 
     }
     
-    double ene_trks   = .4*num_thin_hits + 1.7*num_thck_hits; // Coefs are MeV/hit
-    double ene_xing   = 1.6*(max_planes-top_plane+1);         // Coef is MeV/plane
-    
-    double ene_total  =  (ene_trks + ene_xing)/fabs(dir_ini.z()) + cal_Energy;
-    
+ //   double ene_trks   = .4*num_thin_hits + 1.7*num_thck_hits; // Coefs are MeV/hit
+ //   double ene_xing   = 1.6*(max_planes-top_plane+1);       // Coef is MeV/plane
+    // Optimized Coefs = .6 , 1.85, and .32
+    double ene_trks   = .61*num_thin_hits + 1.97*num_thck_hits +
+                        .35*num_last_hits; // Coefs are MeV/hit - 2nd Round optimization
+ 
+    double thin_planes = 12 - top_plane;
+    if(thin_planes < 0.) thin_planes = 0.;
+    double thick_planes = max_planes - top_plane - thin_planes-2;
+    double rad_nom  = .03*thin_planes + .18*thick_planes; //Just the radiators
+    double rad_swim = kalPart->radLength();                 //The "real" rad- len                
+    double rad_min  = (thin_planes+thick_planes+2)*.015/fabs(dir_ini.z()); //The non-radiator
+    if(rad_swim < rad_nom) rad_swim = rad_nom + rad_min;    //Must be bigger then rad_nom? 
+    double ene_total  =  ene_trks * rad_swim/rad_nom + cal_Energy; //Scale and add cal. energy
+ /*   
+    kalPart->setStepStart(x_ini, dir_ini, rad_thin);
+    rad_thin = kalPart->radLength();
+    kalPart->setStepStart(x_ini, dir_ini, rad_thick);
+    rad_thick = kalPart->radLength()-rad_thin;
+    kalPart->setStepStart(x_ini, dir_ini, rad_last);
+    rad_last = kalPart->radLength()-rad_thin-rad_thick;
+
+    m_out<<num_thin_hits<<'\t'<<num_thck_hits<<'\t'<<num_last_hits<<'\t';
+    m_out<<rad_thin<<'\t'<<rad_thick<<'\t'<<rad_last<<'\t';
+    m_out<<rad_swim<<'\t'<<rad_nom<<'\t'<<'\t';
+    m_out<<cal_Energy<<'\t'<<ene_total<<'\n';
+*/
     // Now constrain the energies of the first 2 tracks. 
     //    This isn't valid for non-gamma conversions
 
  
     // Initialize all candidate track energies -
     // Max of either the Pat. Rec. min. or the derived Kalman energy
+  
     int num_cands = m_candidates.size();
     for(int i=0; i<num_cands; i++) {
         KalFitTrack* track = m_candidates[i]->track();
@@ -315,7 +362,7 @@ void TkrComboPatRec::setEnergies(double calEnergy)
         int num_hits2 = secnd_track->getNumHits();
         double e1 = first_track->getKalEnergy();
         double e2 = secnd_track->getKalEnergy();
-        double e1_min = 2.*num_hits1;        //Coefs are MeV/Hits
+        double e1_min = 2.*num_hits1;        //Coefs are MeV/Hit
         double e2_min = 2.*num_hits2;
         
         if(e1 < e1_min) e1 = e1_min;
@@ -354,7 +401,7 @@ void TkrComboPatRec::setEnergies(double calEnergy)
 
 void TkrComboPatRec::findBlindCandidates()
 {   
-   // Purpose and Method: Does a combinator search for tracks. Assumes
+   // Purpose and Method: Does a combinatoric search for tracks. Assumes
    //                     tracks start in layer furthest from the calorimeter
    //                     First finds 3 (x,y) pairs which line up and then does
    //                     first KalFitTrack fit using the "findHits method to fill in 
@@ -514,7 +561,7 @@ void TkrComboPatRec::findCalCandidates()
                 if(secnd_Hit.finished()) continue;
                 
                 //Try the first 3 closest hits to 1st-hit - cal-hit line
-                double pred_dist = (klayer-ilayer)*m_tkrGeo->trayHeight()/fabs(t1.z()); 
+                double pred_dist = (klayer-ilayer)*(m_tkrGeo->trayHeight())/fabs(t1.z()); 
                 Point x_pred = x1 + pred_dist*t1;
                 double resid_min = 0.; 
                 double resid_max = 30./fabs(t1.z()); //Max resid: 30 mm hardwired in 
