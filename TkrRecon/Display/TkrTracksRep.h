@@ -27,8 +27,8 @@ public:
 	void update();
 
 private:
-    void drawChiSq(Event::TkrFitTrack& track);
-    void drawTrack(Event::TkrFitTrack& track);
+    void drawChiSq(const Event::TkrFitTrack& track);
+    void drawTrack(const Event::TkrFitTrack& track);
 
     IDataProviderSvc* dps;
 };

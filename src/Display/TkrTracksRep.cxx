@@ -32,10 +32,12 @@ void TkrTracksRep::update()
         if (numTracks > 0) 
         {
             int trkIdx = 0;
-	    TkrFitTrackCol::const_iterator it;
-            for(it = pTracks->begin(); it != pTracks->end(); ++it)
+	        TkrFitTrackCol::const_iterator it = pTracks->begin();
+
+            //for(it = pTracks->begin(); it != pTracks->end(); ++it)
+            while(it < pTracks->end())
             {
-                const TkrFitTrack& track = **it;
+                const TkrFitTrack& track = **it++;
 
                 pDisplay->markerAt(track.getPosition());
 
@@ -48,7 +50,7 @@ void TkrTracksRep::update()
     return;
 }
 
-void TkrTracksRep::drawChiSq(TkrFitTrack& track)
+void TkrTracksRep::drawChiSq(const TkrFitTrack& track)
 {
     gui::DisplayRep* pDisplay = this;
     TkrFitHit::TYPE  fit      = TkrFitHit::SMOOTH;
@@ -88,7 +90,7 @@ void TkrTracksRep::drawChiSq(TkrFitTrack& track)
     }
 }
 
-void TkrTracksRep::drawTrack(TkrFitTrack& track)
+void TkrTracksRep::drawTrack(const TkrFitTrack& track)
 {
     gui::DisplayRep* pDisplay = this;
     TkrFitHit::TYPE  fit      = TkrFitHit::SMOOTH;

@@ -47,7 +47,7 @@ TkrNeuralNetFit::TkrNeuralNetFit(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrCl
         
         if (!track->empty(GFcontrol::minSegmentHits)) 
         {
-            addTrack(track);
+            push_back(track);
             track->flagAllHits();
 
             if(++trkCount==1) 
