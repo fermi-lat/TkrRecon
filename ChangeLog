@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Sun Mar 31 22:55:57 PST 2002
+TkrRecon/src/TrackFit
+
+Modified Files:
+	KalTrack.cxx 
+Log Message:
+Fixed number of degrees of freedom in calculation of chisquared.
+
+    *
+------------------------------------------------------------
 User: lsrea  Sat Mar 30 12:40:54 PST 2002
 TkrRecon/src/TrackFit
 
