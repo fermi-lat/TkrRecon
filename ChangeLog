@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Jul 21 16:50:17 PDT 2003
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Fix "public" in order to get job options file correctly defined for test program
+
+    *
+------------------------------------------------------------
 User: usher  Mon Jul 21 15:24:24 PDT 2003
 TkrRecon/cmt
 
