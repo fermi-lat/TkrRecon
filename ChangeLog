@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Fri May 10 20:48:12 PDT 2002
+TkrRecon/src/test
+
+Added Files:
+	test_sources.xml 
+Log Message:
+move test sources to TkrRecon package and change cm to mm (but not GeV to MeV!!)
+
+    *
+------------------------------------------------------------
 User: kyoung  Fri May 10 16:46:43 PDT 2002
 TkrRecon/cmt
 
