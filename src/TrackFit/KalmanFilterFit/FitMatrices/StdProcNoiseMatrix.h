@@ -8,47 +8,45 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/StdProcNoiseMatrix.h,v 1.3 2004/10/01 21:07:39 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/StdProcNoiseMatrix.h,v 1.4 2004/10/12 19:03:39 lsrea Exp $
  */
 
 #ifndef StdProcNoiseMatrix_h
 #define StdProcNoiseMatrix_h
 
 #include "IProcNoiseMatrix.h"
-#include "TkrUtil/ITkrGeometrySvc.h"
+#include "GlastSvc/Reco/IPropagator.h"
+
+#include <vector>
 
 class StdProcNoiseMatrix : public IProcNoiseMatrix
 {
 public:
 
     // Constructor needs the matrices that transform state vector, covariance matrix
-    StdProcNoiseMatrix(ITkrGeometrySvc* tkrGeo);
+    StdProcNoiseMatrix(IPropagator* propagator);
     virtual ~StdProcNoiseMatrix() {};
 
-    void     trackInit(const std::vector<double> zCoords, const std::vector<double> energy);
-    void     accept(const KalmanFilterInit& initObj);
+    // Implement method to determine the process noise matrix
+    KFmatrix& operator()(const KFvector& stateVec, const double& zStart, 
+                         const double& eStart, const double& zStop, bool forward = true);
 
-    KFmatrix operator()(const KFvector& stateVec, const int &i, const int &j);
-    KFmatrix operator()(const int &i, const int &j)  {return m_unit;}
-    KFmatrix operator()(const int &i)                {return m_unit;}
+    // Remaining methods return a zero matrix 
+    KFmatrix& operator()(const double &deltaZ)        {return m_none;}
+    KFmatrix& operator()(const idents::TkrId &id)     {return m_none;}
 
-    void   setEnergy(double energy, int i);
-
-    const double    getEnergy(int i)     {return m_energy[i];}
     const double    getLastStepRadLen()  {return m_LastStepRadLen;}
     const double    getLastStepActDist() {return m_LastStepActDist;}
     const KFmatrix& getLastStepQ()       {return m_LastStepQ;}
 
 private:
-    ITkrGeometrySvc*    m_tkrGeom;
-    std::vector<double> m_zCoords;
-    std::vector<double> m_energy;
+    IPropagator*        m_propagator;
 
     double              m_LastStepRadLen;
     double              m_LastStepActDist;
     KFmatrix            m_LastStepQ;
 
-    KFmatrix            m_unit;
+    KFmatrix            m_none;
 };
 
 

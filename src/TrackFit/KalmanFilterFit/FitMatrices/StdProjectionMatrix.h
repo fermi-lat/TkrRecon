@@ -8,7 +8,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/StdProjectionMatrix.h,v 1.2 2004/09/08 15:32:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/StdProjectionMatrix.h,v 1.3 2004/10/01 21:07:39 usher Exp $
  */
 
 #ifndef StdProjectionMatrix_h
@@ -25,15 +25,21 @@ public:
     StdProjectionMatrix();
     virtual ~StdProjectionMatrix() {};
 
-    void     trackInit(const std::vector<int> projection);
-    void     accept(const KalmanFilterInit& initObj);
+    // Implement the actual projection method defined in the abstract interface 
+    KFmatrix& operator()(const idents::TkrId &id);
 
-    KFmatrix operator()(const  KFvector& stateVec, const int &i, const int &j);
-    KFmatrix operator()(const int &i, const int &j);
-    KFmatrix operator()(const int &i);
+    // For the remaining methods return "none" 
+    KFmatrix& operator()(const double &deltaZ)  {return m_none;}
+    KFmatrix& operator()(const KFvector& stateVec, const double& zStart, 
+                         const double& eStart, const double& zStop, bool forward = true)
+                                                {return m_none;}
 
 private:
-    std::vector<int> m_projection;
+    //std::vector<int> m_projection;
+
+    KFmatrix m_none;
+    KFmatrix m_projX;
+    KFmatrix m_projY;
 };
 
 

@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/KalmanFilterInit.cxx,v 1.2 2004/09/08 15:32:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/KalmanFilterInit.cxx,v 1.2 2004/09/23 21:30:29 usher Exp $
  */
 
 #include "KalmanFilterInit.h"
@@ -23,35 +23,35 @@ KalmanFilterInit::KalmanFilterInit(std::vector<double>& zCoords, std::vector<int
 
 void KalmanFilterInit::init(StdTransportMatrix& matrix) const
 {
-    matrix.trackInit(m_zCoords);
+    //matrix.trackInit(m_zCoords);
 
     return;
 }
 
 void KalmanFilterInit::init(StdProjectionMatrix& matrix) const 
 {
-    matrix.trackInit(m_projection);
+    //matrix.trackInit(m_projection);
 
     return;
 }
 
 void KalmanFilterInit::init(ThreeDProjectionMatrix& matrix) const 
 {
-    matrix.trackInit(m_projection);
+    //matrix.trackInit(m_projection);
 
     return;
 }
 
 void KalmanFilterInit::init(StdProcNoiseMatrix& matrix) const 
 {
-    matrix.trackInit(m_zCoords, m_energy);
+    //matrix.trackInit(m_zCoords, m_energy);
 
     return;
 }
 
 void KalmanFilterInit::init(NoProcNoiseMatrix& matrix) const
 {
-    matrix.trackInit(m_zCoords, m_energy);
+    //matrix.trackInit(m_zCoords, m_energy);
 
     return;
 }
