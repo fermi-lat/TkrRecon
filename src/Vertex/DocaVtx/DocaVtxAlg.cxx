@@ -33,7 +33,7 @@ StatusCode DocaVtxAlg::initialize()
 
 StatusCode DocaVtxAlg::execute()
 {
-  m_VtxCol = new TkrVertexCol();
+  m_VtxCol = new TkrVertexCol;
   
   //Find the recon tracks
   TkrFitTrackCol* pTracks = 
@@ -134,7 +134,7 @@ StatusCode DocaVtxAlg::execute()
                 vertex->addTrack(track1);
                 vertex->addTrack(track2);
 
-                m_VtxCol->addVertex(vertex);
+                m_VtxCol->push_back(vertex);
 
                 unused[trk1Idx] = false;
                 unused[trk2Idx] = false;
@@ -160,7 +160,7 @@ StatusCode DocaVtxAlg::execute()
 
             vertex->addTrack(track1);
 
-            m_VtxCol->addVertex(vertex);
+            m_VtxCol->push_back(vertex);
         }
     }
 
@@ -181,7 +181,7 @@ StatusCode DocaVtxAlg::finalize()
 
 TkrVertexCol* DocaVtxAlg::getTkrVertexCol()
 {
-  if(m_VtxCol->getNumVertices()==0) //empty?
+  if(m_VtxCol->size()==0) //empty?
     {
       MsgStream log(msgSvc(), name());
       log << MSG::WARNING << "Vertex Collection empty!" << endreq;
