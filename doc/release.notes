@@ -3,6 +3,7 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v8r9p2  21-Mar-2003  LSR   Generalize tests for EM silicon
   v8r9p1  20-Mar-2003  TU    Modifications to fit classes for new TkrFitPlane constructors
   v8r9    13-mar-2003  LSR   Use new TkrUtil; FailureModeSvc->recon; prepare for iterative recon
   v8r8p3  10-mar-2003  LSR   Use GlastPropagatorSvc
