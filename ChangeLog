@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Wed Dec 15 21:04:21 PST 2004
+TkrRecon/src/Dll
+
+Modified Files:
+	tkrRecon_load.cxx 
+Log Message:
+1)  Updated Event TDS classes
+2)  Remove classes which use the now obsolete TDS classes
+3) Expect fallout...
+    *
+------------------------------------------------------------
 User: usher  Wed Dec 15 21:04:20 PST 2004
 TkrRecon/src/Display
 
