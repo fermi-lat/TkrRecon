@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Thu Aug 22 10:44:53 PDT 2002
+TkrRecon/src/Vertex
+
+Modified Files:
+	VtxKalFitTool.cxx VtxKalFitTool.h 
+Log Message:
+lots of changes: clean up code, added documentation, added subroutines, most important: added Energy as a measurement parameter, even if it is completely decorrelated for now... Final cov matrix of physical momentum (Eux,Euy,Euz) seems buggy though
+    *
+------------------------------------------------------------
 User: atwood  Wed Aug 21 15:13:03 PDT 2002
 TkrRecon/src/TrackFit/KalFitTrack
 
