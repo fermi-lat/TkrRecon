@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: lsrea  Mon Jan 17 11:16:44 PST 2005
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Major refactoring of ComboFindTrackTool, with bug fixes
+add method numUniqueHits() to TrackFitUtils... more efficient version of compareTracks()
+use new geomSvc methods in ComboVtxTool
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v9r0p2gr10, operation: add
 Package: TkrRecon
