@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.2 2003/08/06 16:42:23 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.3 2003/08/06 21:55:18 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -193,7 +193,6 @@ Event::TkrPatCand* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* 
         // Start to fill the hits
         Event::McPartToHitRel*         mcHitRel = hitVec.front();
         Event::McLayerHit*             lyrHit   = mcHitRel->getSecond();
-        const Event::TkrCluster*       cluster  = lyrHit->getTkrCluster();
         const idents::VolumeIdentifier volId    = lyrHit->getVolumeIdent();
         const HepPoint3D&              partPos  = mcPart->initialPosition();
         const HepLorentzVector&        part4mom = mcPart->initialFourMomentum();
@@ -203,8 +202,8 @@ Event::TkrPatCand* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* 
         double                         energy   = part4mom.e();      //Is this right for this test?
         double                         enErr    = 0.01 * energy;     // Gotta have something here...
         double                         type     = 0.;
-        int                            iniLayer = cluster->plane();
-        int                            iniTower = cluster->tower();
+        int                            iniLayer = 2 * volId[4] + volId[6] - 1;
+        int                            iniTower = 4 * volId[1] + volId[2];
         
         patCand = new Event::TkrPatCand(iniLayer,iniTower,energy,enErr,type,testRay);
         patCand->setEnergy(energy);
