@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Fri Feb 28 18:17:41 PST 2003
+TkrRecon/src/Display
+
+Modified Files:
+	TkrCandidate3DRep.cxx 
+Log Message:
+clean up unix warnings
+
+    *
+------------------------------------------------------------
 User: usher  Wed Feb  5 09:52:14 PST 2003
 TkrRecon/src/TrackFit/KalFitTrack
 
