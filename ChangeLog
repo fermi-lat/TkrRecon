@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Mon Sep  2 14:55:03 PDT 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusters.cxx 
+Log Message:
+fixed a problem I just introduced
+    *
+------------------------------------------------------------
 User: usher  Mon Sep  2 14:51:06 PDT 2002
 TkrRecon/src
 
