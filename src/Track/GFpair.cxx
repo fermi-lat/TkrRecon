@@ -5,7 +5,6 @@
 //-------------------------------------------------------------------------
 
 #include "TkrRecon/Track/GFpair.h"
-#include "TkrRecon/Track/GFtutor.h"
 
 //#########################################################################
 GFpair::GFpair(double xene, enum TkrCluster::view axis,
@@ -153,10 +152,10 @@ void GFpair::ini()
     
     Ray testRay(m_inVertex,m_inDirection);	
 
-    _mGFbest = new GFtrack(m_axis, sigmaCut(), 
+    _mGFbest = new GFtrack(GFcontrol::sigmaCut, 
 		GFcontrol::FEne*m_iniEnergy, m_iniLayer, testRay, false);
     
-    _mGFpair = new GFtrack(m_axis,  sigmaCut(),
+    _mGFpair = new GFtrack(GFcontrol::sigmaCut,
 		(1.-GFcontrol::FEne)*m_iniEnergy, m_iniLayer, testRay, false);
     
     GFdata::ini();
@@ -294,7 +293,7 @@ void GFpair::loadGFdata()
     if (_mGFpair->empty()) {
 	m_direction = _mGFbest->direction();
 	m_weightBest = 1.;
-	m_errorSlope	 = _mGFbest->errorSlopeAtVertex();
+	m_errorSlope	 = .1;//_mGFbest->errorSlopeAtVertex();
     } else {
 		if (GFcontrol::addTracksChi2) m_direction = doDirection(m_weightBest);
 	else  m_direction = doDirection(_mGFbest, _mGFpair, m_weightBest, m_errorSlope);
@@ -386,7 +385,7 @@ void GFpair::stepTogether(int klayer)
     
     _mGFbest->_mGFsegment->flagUsedHits(klayer);
     _mGFpair->_mGFsegment->best(klayer);
-    _mGFbest->_mGFsegment->unFlagUsedHits(klayer);
+    _mGFbest->_mGFsegment->unFlagAllHits();
     
     bool split = _mGFpair->_mGFsegment->accept();
     if (split && _mGFpair->numDataPoints() == 0 ) {
@@ -484,7 +483,7 @@ void GFpair::removeWorseStep(GFtrack* _GFtrack1, GFtrack* _GFtrack2)
     double chi1 = _GFtrack1->lastKPlane().getDeltaChiSq(KalHit::FIT);
     double chi2 = _GFtrack2->lastKPlane().getDeltaChiSq(KalHit::FIT);
     
-    if (nhits1 < 2 || nhits2 < 2) {
+    if (nhits1 < 4 || nhits2 < 4) {
 	if (_GFtrack1->_mGFsegment->accept() || 
 	    _GFtrack2->_mGFsegment->accept()  ) {
 	    if (_GFtrack1->_mGFsegment->accept()) chi1 = _GFtrack1->_mGFsegment->chiGFSq();
@@ -494,7 +493,7 @@ void GFpair::removeWorseStep(GFtrack* _GFtrack1, GFtrack* _GFtrack2)
 	}
     } 
 
-    if (nhits2 < nhits1 || chi2 >= chi1) {
+    if (chi2 >= chi1) {
         _GFtrack2->removeStep();
     } else {
         _GFtrack1->removeStep();
@@ -510,7 +509,7 @@ bool GFpair::allowedShareHit(const GFtrack* _GFtrack) const
 
     // the size of the cluster is big enough for this slope
     int idhit = _GFtrack->lastKPlane().getIDHit();
-    double slope = _GFtrack->lastKPlane().getHit(KalHit::PRED).getPar().getSlope();
+    double slope = 0.;//_GFtrack->lastKPlane().getHit(KalHit::PRED).getPar().getSlope();
     int value = 2; // more strips than the expected
     if (GFtutor::okClusterSize(m_axis,idhit,slope) >= value) allow = true;
     
@@ -527,11 +526,11 @@ Vector GFpair::doDirection(const GFtrack* _GFtrk1, const GFtrack* _GFtrk2,
     if (_GFtrk1->empty()) return dir;
     
     double xene = _GFtrk1->m_iniEnergy/(_GFtrk1->m_iniEnergy+_GFtrk2->m_iniEnergy);
-    double slopeBest   = _GFtrk1->slope();
-    double slopePair   = _GFtrk2->slope();
-    double errorSQbest = _GFtrk1->errorSlopeAtVertex();
+    double slopeBest   = 0.;//_GFtrk1->slope();
+    double slopePair   = 0.;//_GFtrk2->slope();
+    double errorSQbest = .1;//_GFtrk1->errorSlopeAtVertex();
     errorSQbest *= errorSQbest;
-    double errorSQpair = _GFtrk2->errorSlopeAtVertex();
+    double errorSQpair = .1;//_GFtrk2->errorSlopeAtVertex();
     errorSQpair *= errorSQpair;
     double errorSQ     = errorSQbest*errorSQpair/((1.-xene)*errorSQbest+xene*errorSQpair);
     
@@ -542,10 +541,10 @@ Vector GFpair::doDirection(const GFtrack* _GFtrk1, const GFtrack* _GFtrk2,
     double factor = -1;
     double slopex = 0;
     double slopey =0;
-    if (_GFtrk1->getAxis() == TkrCluster::X) slopex = slope;
-    else slopey = slope;
+//    if (_GFtrk1->getAxis() == TkrCluster::X) slopex = slope;
+//    else slopey = slope;
     
-    dir = Vector(factor*slopex,factor*slopey,factor).unit();
+//    dir = Vector(factor*slopex,factor*slopey,factor).unit();
     return dir;
 } 
 //########################################################
@@ -561,7 +560,7 @@ Vector GFpair::doDirection(double& xFactor)
     Vector t2 = _mGFpair->direction();
     //unused: float sinDLT12 = sqrt(std::max(0.0,(1. - sqr(t1*t2))));
     // if(sinDLT12 < .010/m_iniEnergy) { // only trust small opening angle paris
-    double aveSlope = xFactor*_mGFbest->slope() + (1.-xFactor)*_mGFpair->slope();
+    double aveSlope = 0.;//xFactor*_mGFbest->slope() + (1.-xFactor)*_mGFpair->slope();
     double slopeX = 0.;
     double slopeY = 0.;
     if (m_axis == TkrCluster::X) slopeX = aveSlope;
@@ -582,7 +581,7 @@ Vector GFpair::doDirectionXene(double xene, double& weight)
     float wt2x = ix3/(x3+ix3);
     Vector t1 = _mGFbest->direction();
     Vector t2 = _mGFpair->direction();
-    double aveSlope = wt1x*_mGFbest->slope() + wt2x*_mGFpair->slope();
+    double aveSlope = 0.;//wt1x*_mGFbest->slope() + wt2x*_mGFpair->slope();
     double slopeX = 0.;
     double slopeY = 0.;
     if (m_axis == TkrCluster::X) slopeX = aveSlope;

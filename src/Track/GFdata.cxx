@@ -29,7 +29,7 @@ void GFdata::writeOut(MsgStream& log) const
     log << MSG::DEBUG << " --- GFdata::writeOut --- " << endreq;
     log << MSG::DEBUG << " Quality       = " << Q() << endreq;
     log << MSG::DEBUG << " Vertex        = " << vertex().x() << " " <<	vertex().y() << " " << vertex().z() << endreq;
-    log << MSG::DEBUG << " Direction     = " << direction().x() << " " << direction().y() << " " << direction().z() << endreq;
+//    log << MSG::DEBUG << " Direction     = " << direction().x() << " " << direction().y() << " " << direction().z() << endreq;
     log << MSG::DEBUG << " RCenergy      = " << RCenergy() << endreq;
     log << MSG::DEBUG << " first Layer   = " << firstLayer() << endreq;
     log << MSG::DEBUG << " Tower         = " << tower() << endreq;

@@ -1,3 +1,4 @@
+// $Id: GFparticle.cpp,v 1.2 2001/03/06 20:22:50 usher Exp $
 //------------------------------------------------------------------------------
 //
 //     GlastFit
@@ -14,7 +15,6 @@
 
 
 #include "TkrRecon/Track/GFparticle.h"
-#include "TkrRecon/Track/GFtutor.h"
 //-----------------------------------------------------
 //
 //   GFparticle
@@ -25,39 +25,31 @@ GFparticle::GFparticle(double sigmaCut,
 		       double energy, 
 		       int ist, 
 		       const Ray& testRay,
-		       bool run) : GFbase(sigmaCut,energy,ist,testRay)
+		       bool run) : GFtrack(sigmaCut,energy,ist,testRay)
 		       //#######################################################
 {
-    ini();
-    if (run == true) {
-	doit();
-	fit();
-	if (empty()) clear();
-    }
 }
 
 //##########################################
 void GFparticle::flagAllHits(int iflag)
 //##########################################
 {
-    _mXGFtrack->flagAllHits(iflag);
-    _mYGFtrack->flagAllHits(iflag);
+    GFtrack::flagAllHits(iflag);
+//    _mYGFtrack->flagAllHits(iflag);
 }
 
 //##########################################
 void GFparticle::unFlagAllHits()
 //##########################################
 {
-    _mXGFtrack->unFlagAllHits();
-    _mYGFtrack->unFlagAllHits();
+    GFtrack::unFlagAllHits();
+ //   _mYGFtrack->unFlagAllHits();
 }  
 //########################################################
 bool GFparticle::empty() const
 //########################################################
 {
-    bool empty = GFdata::empty();
-    if (empty) return empty;
-    empty = _mXGFtrack->empty() || _mYGFtrack->empty();
+    bool empty = GFtrack::empty();
     return empty;
 }
 
@@ -75,8 +67,8 @@ bool GFparticle::accept() const
 	double sigmaX = -1.;
 	int idhitY = -1;
 	double sigmaY = -1.;
-	if (_mXGFtrack->veto(idhitX,sigmaX) && 
-	    _mYGFtrack->veto(idhitY,sigmaY)) return valid;
+//	if (_mXGFtrack->veto(idhitX,sigmaX) && 
+//	    _mYGFtrack->veto(idhitY,sigmaY)) return valid;
     }
     
     valid = true;
@@ -86,11 +78,11 @@ bool GFparticle::accept() const
 void GFparticle::clear()
 //##########################################
 {   
-    _mXGFtrack->clear();
-    _mYGFtrack->clear();
+    GFtrack::clear();
+//    _mYGFtrack->clear();
     
-    m_gaps   = 0;
-    m_istGaps= 0;
+//    m_gaps   = 0;
+//    m_istGaps= 0;
     m_noisyHits = 0;
     m_istNoisyHits   = 0;
     m_lstLayer = 0;
@@ -114,8 +106,8 @@ void GFparticle::writeOut(MsgStream& log) const
     log << MSG::DEBUG << " --- GFparticle::writeOut --- " << endreq;
     log << MSG::DEBUG << " Qbest          = " << Qbest() << endreq;
     log << MSG::DEBUG << " last  Layer    = " << lastLayer() << endreq;
-    log << MSG::DEBUG << " num Gaps       = " << numGaps() << endreq;
-    log << MSG::DEBUG << " num First Gaps = " << numFirstGaps() << endreq;
+//    log << MSG::DEBUG << " num Gaps       = " << numGaps() << endreq;
+//    log << MSG::DEBUG << " num First Gaps = " << numFirstGaps() << endreq;
     log << MSG::DEBUG << " num Noise      = " << numNoise() << endreq;
     log << MSG::DEBUG << " num First Noise= " << numFirstNoise() << endreq;
     log << MSG::DEBUG << " last Status    = " << status << endreq; 
@@ -123,9 +115,8 @@ void GFparticle::writeOut(MsgStream& log) const
     GFdata::writeOut(log);
     
     log << MSG::DEBUG << " -->  X - GFtrack : " << endreq;
-    _mXGFtrack->writeOut(log);
+    GFtrack::writeOut(log);
     log << MSG::DEBUG << " -->  Y - GFtrack : " << endreq;
-    _mYGFtrack->writeOut(log);
 }
 
 //########################################################
@@ -133,8 +124,7 @@ void GFparticle::draw(gui::DisplayRep& v)
 //########################################################
 {	
 	v.setColor("black");
-	_mXGFtrack->draw(v);
-	_mYGFtrack->draw(v);
+        GFtrack::draw(v);
 }
 //--------------------------------------------------------
 //  GFparticle - Private 
@@ -144,22 +134,15 @@ void GFparticle::draw(gui::DisplayRep& v)
 void GFparticle::ini()
 //########################################################
 {
-    m_gaps   = 0;
-    m_istGaps= 0;
+//    m_gaps   = 0;
+//    m_istGaps= 0;
     m_noisyHits = 0;
     m_istNoisyHits   = 0;
     m_lstLayer = 0;
     
     m_status = EMPTY;
     m_associate = true;
-    m_conflictPattern = false;
-    
-    Ray testRay(m_inVertex,m_inDirection);	
-    _mXGFtrack = new GFtrack(TkrCluster::X, m_sigmaCut, 
-	m_iniEnergy, m_iniLayer, testRay, false);
-    
-    _mYGFtrack = new GFtrack(TkrCluster::Y, m_sigmaCut,
-	m_iniEnergy, m_iniLayer, testRay, false);
+    m_conflictPattern = false;	
     
     m_qbest = -1e6;
     GFdata::ini();
@@ -174,13 +157,13 @@ void GFparticle::step(int kplane)
     
     if (!alive()) return;
     
-    _mXGFtrack->step(kplane);
-    _mYGFtrack->step(kplane);
+  //  _mGFtrack->step(kplane);
+ //   _mYGFtrack->step(kplane);
     
-    if (m_associate) {		
-	associateStatus();
-	associateStep();
-    }
+//    if (m_associate) {		
+//	associateStatus();
+//	associateStep();
+//    }
 }
 //#########################################################################
 void GFparticle::anastep(int kplane) 
@@ -188,14 +171,14 @@ void GFparticle::anastep(int kplane)
 {
     if (!alive()) return;
     
-    _mXGFtrack->anastep(kplane);
-    _mYGFtrack->anastep(kplane);
+ //  _mGFtrack->anastep(kplane);
+ //   _mYGFtrack->anastep(kplane);
     
     contability(kplane);
     
-    if (m_associate) {
-	associateAnaStep();
-    }
+//    if (m_associate) {
+//	associateAnaStep();
+//   }
     
     if (end()) {
         kill();
@@ -208,15 +191,15 @@ void GFparticle::fit()
 {
     GFdata::ini();
     
-    _mXGFtrack->fit();
-    _mYGFtrack->fit();
+    GFtrack::fit();
+//    _mYGFtrack->fit();
     
-    if (!_mXGFtrack->empty() && !_mYGFtrack->empty()) 
+    if (!empty())// && !_mYGFtrack->empty()) 
 	loadGFdata();
     
-    if (m_associate && 
-	(!_mXGFtrack->empty() && !_mYGFtrack->empty())) 
-	associateFit();
+//    if (m_associate && 
+//	(!_mXGFtrack->empty() && !_mYGFtrack->empty())) 
+//	associateFit();
 }
 
 //#########################################################################
@@ -226,7 +209,7 @@ bool GFparticle::end() const
     bool end = !alive();
     // This comparatios is between different status and makes no sense
     // if (m_status == DONE) return end = true;
-    if (!_mXGFtrack->alive() || !_mYGFtrack->alive()) end = true;
+    if (!GFtrack::alive() ) end = true;
     return end;
 }
 
@@ -235,8 +218,8 @@ void GFparticle::kill()
 //#########################################################################
 {
     m_alive = false;
-    _mXGFtrack->kill();
-    _mYGFtrack->kill();
+    GFtrack::kill();
+//    _mYGFtrack->kill();
     
 }
 //#########################################################################
@@ -244,8 +227,8 @@ void GFparticle::setAlive()
 //#########################################################################
 {
     m_alive = true;
-    _mXGFtrack->setAlive();
-    _mYGFtrack->setAlive();
+    GFtrack::setAlive();
+ //   _mYGFtrack->setAlive();
     
 }
 
@@ -254,26 +237,26 @@ void GFparticle::setAlive()
 void GFparticle::loadGFdata()
 //#########################################################################
 {
-    int ixlayer = _mXGFtrack->firstLayer();
-    int iylayer = _mYGFtrack->firstLayer();
+    int ixlayer = GFtrack::firstLayer();
+//    int iylayer = _mYGFtrack->firstLayer();
     
-    m_firstLayer = (ixlayer <= iylayer? ixlayer : iylayer);
+    m_firstLayer = ixlayer; //(ixlayer <= iylayer? ixlayer : iylayer);
     
-    int ixtower = _mXGFtrack->tower();
+    int ixtower = GFtrack::tower();
     //    int iytower = _mYGFtrack->tower();
     m_itower = ixtower;
     
-    m_nhits = _mXGFtrack->nhits() + _mYGFtrack->nhits();
+    m_nhits = GFtrack::nhits();// + _mYGFtrack->nhits();
     
-    m_quality = _mXGFtrack->Q() + _mYGFtrack->Q();
+    m_quality = GFtrack::Q();// + _mYGFtrack->Q();
     
-    m_RCenergy = 0.5*(_mXGFtrack->RCenergy() + _mYGFtrack->RCenergy());
+    m_RCenergy = GFtrack::RCenergy();// + _mYGFtrack->RCenergy());
     
-    Ray XRay = _mXGFtrack->ray();
-    Ray YRay = _mYGFtrack->ray();
-    m_vertex=GFbase::doVertex(XRay, YRay);
+    Ray XRay = GFtrack::ray();
+
+    m_vertex=XRay.position();
     
-    m_direction = GFbase::doDirection(_mXGFtrack->direction(),_mYGFtrack->direction());  
+    m_direction = XRay.direction();  
 }
 //#########################################################################
 void GFparticle::contability(int kplane) 
@@ -286,11 +269,11 @@ void GFparticle::contability(int kplane)
 void GFparticle::associateStep() 
 //#########################################################################
 {
-    bool ok = false;
-    bool done = false;
+    bool ok = true;
+    bool done = true;
 
-    ok = GFparticle::sameTower(_mXGFtrack,_mYGFtrack);
-    if (!ok) done = GFparticle::removeWorseStep(_mXGFtrack,_mYGFtrack);
+//    ok = GFparticle::sameTower(_mGFtrack,_mGFtrack);
+//    if (!ok) done = GFparticle::removeWorseStep(_mGFtrack,_mGFtrack);
     
     if (!ok && !done) m_conflictPattern = true;
     
@@ -300,7 +283,7 @@ void GFparticle::associateStep()
 void GFparticle::associateStatus() 
 //#########################################################################
 {
-    if (_mXGFtrack->status() == FOUND || _mYGFtrack->status() == FOUND)
+    if (GFtrack::status() == FOUND)
 	m_status = FOUND;
     else m_status = EMPTY;
 }
@@ -309,16 +292,16 @@ void GFparticle::associateStatus()
 void GFparticle::associateAnaStep() 
 //#########################################################################
 {
-    _mXGFtrack->associateOrthStep(_mYGFtrack);	
-    _mYGFtrack->associateOrthStep(_mXGFtrack);
+//    _mXGFtrack->associateOrthStep(_mYGFtrack);	
+//   _mYGFtrack->associateOrthStep(_mXGFtrack);
 }
 
 //#########################################################################
 void GFparticle::associateFit() 
 //#########################################################################
 {
-    _mXGFtrack->associateOrthGFtrack(_mYGFtrack, m_associate, KalHit::SMOOTH);	
-    _mYGFtrack->associateOrthGFtrack(_mXGFtrack, m_associate, KalHit::SMOOTH);
+//    _mXGFtrack->associateOrthGFtrack(_mYGFtrack, m_associate, KalHit::SMOOTH);	
+//    _mYGFtrack->associateOrthGFtrack(_mXGFtrack, m_associate, KalHit::SMOOTH);
 }
 
 //#########################################################################
@@ -366,7 +349,7 @@ bool GFparticle::removeWorseStep(GFtrack* _GFtrack1, GFtrack* _GFtrack2)
     
     double chi1 = _GFtrack1->lastKPlane().getDeltaChiSq(KalHit::FIT);
     double chi2 = _GFtrack2->lastKPlane().getDeltaChiSq(KalHit::FIT);
-    if (nhits1 < 2 || nhits2 < 2) {
+    if (nhits1 < 4 || nhits2 < 4) {
 	if (_GFtrack1->_mGFsegment->accept() || 
 	    _GFtrack2->_mGFsegment->accept()  ) {
 	    if (_GFtrack1->_mGFsegment->accept()) chi1 = _GFtrack1->_mGFsegment->chiGFSq();
