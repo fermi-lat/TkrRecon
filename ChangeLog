@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Thu Jan 16 15:45:14 PST 2003
+TkrRecon/src/GaudiAlg
+
+Removed Files:
+	TkrMeritTool.cxx 
+Log Message:
+Move TkrMeritTool to TkrUtil
+    *
+------------------------------------------------------------
 User: lsrea  Thu Jan 16 15:45:13 PST 2003
 TkrRecon/src/Dll
 
