@@ -1,4 +1,21 @@
 ------------------------------------------------------------
+User: usher  Fri Jan  9 12:36:06 PST 2004
+TkrRecon/TkrRecon/MonteCarlo
+
+Modified Files:
+	McPatCand.h TkrEventModel.h 
+Removed Files:
+      Tag: v8r11p5
+	ITkrMcTracksTool.h McEventStructure.h McLayerHit.h 
+Log Message:
+Modifications related to tracker Monte Carlo code
+1) Move the McEventStructure and McSiLayerHit (nee McLayerHit) objects to Event
+2) Move the TkrMcTracksTool class (for obtaining mc info from the above) to TkrUtil
+3) Modify the remaining Monte Carlo related code to relfect these changes
+
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Jan  6 08:59:32 PST 2004
 TkrRecon/doc
 
