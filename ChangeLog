@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon Apr 29 18:23:59 PDT 2002
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+Forgot to note the tag v5r5 -- mods to make "recon mode" work 
+
+    *
+------------------------------------------------------------
 User: usher  Wed Apr 24 14:22:52 PDT 2002
 TkrRecon/src/TrackFit/KalFitTrack
 
