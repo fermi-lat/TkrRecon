@@ -1,38 +1,43 @@
 package TkrRecon
-version v2r8
+version v4r2p1
 
 branches src mgr doc
+apply_pattern packageShr
+
+private 
+#-----------------------
+# everything below here is private
 
 use GlastSvc
 use GuiSvc
 use ntupleWriterSvc
-use GismoGenerator
 
 
 apply_pattern package_include
 
 macro TkrRecon_stamps     
 
-apply_pattern packageShr
+
 
 
 macro TkrRecon_linkopts   "$(TkrReconDir)/libTkrReconData.a  " \
       VisualC             "$(TkrReconDir)/TkrReconData.lib " 
 
-private 
+
 
 apply_pattern package_Cshlibflags 
 apply_pattern package_headers
 
 macro_append TkrRecon_headers     "" WIN32 " ../TkrRecon/GaudiAlg/*.h ../TkrRecon/Display/*.h ../TkrRecon/Services/*.h "
-macro_append TkrReconData_headers "" WIN32 " ../TkrRecon/Track/*.h ../TkrRecon/Cluster/TkrClusters.h ../TkrRecon/TrackFit/*.h "
+macro_append TkrReconData_headers "" WIN32 " ../src/PatRec/Combo/*.h ../TkrRecon/Track/*.h ../TkrRecon/Cluster/TkrClusters.h ../TkrRecon/TrackFit/*.h "
 macro_append TkrCluster_headers   "" WIN32 " ../TkrRecon/Cluster/*.h"
-macro_append TkrPatRec_headers    "" WIN32 " ../TkrRecon/PatRec/*.h"
+macro_append TkrPatRec_headers    "" WIN32 " ../TkrRecon/PatRec/*.h ../src/PatRec/LinkAndTree/*.h ../src/PatRec/Combo/*.h"
 macro_append TkrTrack_headers     "" WIN32 " ../TkrRecon/Track/*.h ../TkrRecon/TrackFit/*.h"
 
 # have a seperate library to export the tracker recon data classes 
 
 library TkrReconData -no_share Cluster/*.cpp                 \
+                               PatRec/Combo/*.cxx            \
                                Track/*.cxx                   \
                                TrackFit/*.cxx                \
                                GaudiAlg/TkrReconAlg.cxx      \
@@ -41,6 +46,8 @@ library TkrReconData -no_share Cluster/*.cpp                 \
 library TkrCluster   -no_share Cluster/*.cpp                 \
                                ${TkrCluster_headers}
 library TkrPatRec    -no_share PatRec/*.cxx                  \
+                               PatRec/LinkAndTree/*.cxx      \
+                               PatRec/Combo/*.cxx            \
                                ${TkrPatRec_headers}
 
 library TkrTrack     -no_share Track/*.cxx                   \
