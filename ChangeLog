@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: lsrea  Tue Aug 31 16:58:07 PDT 2004
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Prepare for tag v8r12p25
+   Remove hardwired assumption that bottom tray is Y-measuring
+   Correct use of new numPlanes/numLayers distinction
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Aug 25 07:59:25 PDT 2004
 TkrRecon/src/test
 
