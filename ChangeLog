@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Thu Jul 18 14:24:45 PDT 2002
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx 
+Log Message:
+Change energy back to normal from test mode. 
+    *
+------------------------------------------------------------
 User: atwood  Thu Jul 18 14:18:27 PDT 2002
 TkrRecon/TkrRecon/Track
 
