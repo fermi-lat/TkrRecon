@@ -10,7 +10,6 @@ use GaudiKernel
 use ntupleWriterSvc
 
 
-ignore_pattern include_none
 apply_pattern package_include
 
 macro TkrRecon_stamps     
