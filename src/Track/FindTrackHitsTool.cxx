@@ -6,7 +6,7 @@
 * @author Tracking Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.26 2005/02/20 18:37:18 usher Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.27 2005/03/01 00:55:50 lsrea Exp $
 */
 
 // to turn one debug variables
@@ -539,8 +539,8 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
             yPos = end_pos.y() - yTower;
         } else {
             sign = (yWafer>0 ? 1  : -1);
-            double xPos = end_pos.x() - xTower;
-            double yPos = end_pos.y() + sign*yActiveDistWafer;
+            xPos = end_pos.x() - xTower;
+            yPos = end_pos.y() + sign*yActiveDistWafer;
         }
 
         params(xPosIdx) = xPos;

@@ -14,7 +14,7 @@
  *
  * @authors Bill Atwood, Brian Algood
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoints.cxx,v 1.10 2004/11/02 22:55:44 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoints.cxx,v 1.11 2005/02/11 07:14:54 lsrea Exp $
  *
 */
 
@@ -64,7 +64,7 @@ TkrPoint* TkrPoints::getNearestPointOutside(Point x0, double & dist_min) const
     double dist_best = 1000000.;
     double dist_min2 = dist_min*dist_min;
     bool found = false;
-    TkrPoint* ret;
+    TkrPoint* ret = 0;
 
     TkrPointListConItr iPt = this->begin();
     for (; iPt!=this->end(); ++iPt) {
