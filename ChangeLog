@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Feb  5 09:52:14 PST 2003
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx 
+Log Message:
+Fix loop exit test for planes - 1
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon Feb  3 14:54:13 PST 2003
 TkrRecon/src/GaudiAlg
 
