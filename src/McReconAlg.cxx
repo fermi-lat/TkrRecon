@@ -24,8 +24,8 @@
 
 #include "ntupleWriterSvc/INtupleWriterSvc.h"
 
-
-
+#include "TkrRecon/SiClusters.h"
+#include "TkrRecon/SiRecObjs.h"
 
 
 //------------------------------------------------------------------------------
@@ -141,6 +141,58 @@ StatusCode McReconAlg::execute() {
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Y0",pos.y()); 
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Z0",pos.z());
     
+    //The following code is added for providing MC-recon comparisons 
+    //Its not obvious to me that this is where this code should go... 
+    //but for now it goes here - Tracy Usher 13-Jun-2001
+    double     Fit_Xdir_Err   = -9999;
+    double     Fit_Ydir_Err   = -9999;
+    double     Fit_Zdir_Err   = -9999;
+    double     Gamma_Xdir_Err = -9999;
+    double     Gamma_Ydir_Err = -9999;
+    double     Gamma_Err      = -9999;
+
+    SiRecObjs* pSiRecObjs     = SmartDataPtr<SiRecObjs>(eventSvc(),"/Event/TkrRecon/SiRecObjs");
+
+    if (pSiRecObjs)
+    {
+        if (pSiRecObjs->numGammas() > 0) 
+        {
+            // Right now we are assuming that the first gamma is the "right" gamma
+            GFgamma* gamma  = pSiRecObjs->Gamma(0);
+
+            // If the gamma has no tracks then no point in going on 
+            if (!gamma->empty())
+            {
+                //Retrieve vectors for gamma direction, and best fit track direction
+                Vector t0 = gamma->direction();
+                Vector t1 = GFdata::doDirection(gamma->getBest(SiCluster::X)->direction(),
+                                            gamma->getBest(SiCluster::Y)->direction());
+            
+                //Determine difference in best fit direction to MC
+                Fit_Xdir_Err   = t1.x() - dir.x();
+                Fit_Ydir_Err   = t1.y() - dir.y();
+                Fit_Zdir_Err   = t1.z() - dir.z();
+
+                //Determine difference in gamma direction to MC
+                Gamma_Xdir_Err = t0.x() - dir.x();
+                Gamma_Ydir_Err = t0.y() - dir.y();
+    
+                Gamma_Err      = t0 * dir;
+            
+                if      (Gamma_Err >   1.0) Gamma_Err = 1.0;
+                else if (Gamma_Err <= -1.0) Gamma_Err = -0.99999;
+
+                Gamma_Err = acos(Gamma_Err);
+            }
+        }
+    }
+
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(), "MC_Fit_Xdir_Err",   Fit_Xdir_Err);
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(), "MC_Fit_Ydir_Err",   Fit_Ydir_Err);
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(), "MC_Fit_Zdir_Err",   Fit_Zdir_Err);
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(), "MC_Gamma_Xdir_Err", Gamma_Xdir_Err);
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(), "MC_Gamma_Ydir_Err", Gamma_Ydir_Err);
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(), "MC_Gamma_Err",      Gamma_Err);
     
     return sc;
 }
