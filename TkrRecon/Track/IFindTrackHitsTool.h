@@ -31,5 +31,8 @@ class IFindTrackHitsTool : virtual public IAlgTool
 
   /// @brief Given a candidate TkrTrack, find the next hit belonging to this track
   virtual Event::TkrTrackHit* findNextHit(Event::TkrTrack* track)=0;
+
+  /// @brief This method will attempt to find the hits prior to the first hit on track
+  virtual int addLeadingHits(Event::TkrTrack* track)=0;
 };
 #endif
