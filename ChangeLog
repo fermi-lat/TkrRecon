@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: tlindner  Tue Jan 23 15:59:16 PST 2001
+TkrRecon/mgr requirements
+
+Modified Files:
+	requirements 
+Log Message:
+removed explicit version dependence on reconstruction
+    *
+------------------------------------------------------------
 User: tlindner  Thu Jan 11 11:17:59 PST 2001
 TkrRecon/src/test TkrTest.cxx
 
