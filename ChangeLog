@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: atwood  Fri Jan 11 15:50:17 PST 2002
+TkrRecon/src/Display
+
+Modified Files:
+	TkrRecObjsRep.cxx 
+Log Message:
+
+Patches to fix bugs and to display new 3D tracks (TkrRecObjs)
+    *
+------------------------------------------------------------
+User: atwood  Fri Jan 11 15:50:17 PST 2002
 TkrRecon/TkrRecon/TrackFit
 
 Modified Files:
