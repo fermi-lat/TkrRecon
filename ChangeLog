@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 13:49:52 PST 2001
+TkrRecon/src/TrackFit
+
+Removed Files:
+	KalFit.cxx TkrReconAlg.cxx 
+Log Message:
+KalFit.cxx is being deleted to allow for new Kalman Fit code to be introduced
+TkrReconAlg.cxx is moving to a new folder
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 13:48:21 PST 2001
 TkrRecon/TkrRecon/TrackFit
 
