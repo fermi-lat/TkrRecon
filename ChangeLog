@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Thu Mar 13 11:13:22 PST 2003
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusters.cxx TkrMakeClusters.h 
+Log Message:
+lots of changes for new TkrUtil, preparations for iterative recon, hook for failureMode service in patrec
+    *
+------------------------------------------------------------
 User: usher  Wed Mar 12 15:36:36 PST 2003
 TkrRecon/src/Track
 
