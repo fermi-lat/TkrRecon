@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: igable  Fri Jun  8 12:40:03 PDT 2001
+TkrRecon/src McReconAlg.cxx
+
+Modified Files:
+	McReconAlg.cxx 
+Log Message:
+Fix the zero energy for Particle not hitting the insrument. Done by using
+initialFourMomentum rather then final.
+
+Still need MC_SRC_CODE
+
+    *
+------------------------------------------------------------
 User: usher  Fri Jun  8 12:38:17 PDT 2001
 TkrRecon/src RecNtupleAlg.cpp TkrNtupleAlg.cpp
 
