@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Fri Aug  8 13:04:39 PDT 2003
+TkrRecon/src/PatRec/MonteCarlo
+
+Modified Files:
+	MonteCarloFindTrackTool.cxx MonteCarloFindTrackTool.h 
+Log Message:
+Move class definition into MonteCarloFindTrackTool source code file
+
+    *
+------------------------------------------------------------
 User: usher  Fri Aug  8 13:02:41 PDT 2003
 TkrRecon/src/MonteCarlo
 
