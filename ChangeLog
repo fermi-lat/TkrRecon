@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Mon Jul 22 11:56:06 PDT 2002
+TkrRecon/src/Vertex
+
+Modified Files:
+	VtxKalFitTool.cxx 
+Log Message:
+small change to at least use the gain of speed in TkrFitMatrix inversion
+    *
+------------------------------------------------------------
 User: cohen  Mon Jul 22 11:35:59 PDT 2002
 TkrRecon/src/Vertex
 
