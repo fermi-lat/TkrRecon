@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue May  7 17:00:35 PDT 2002
+TkrRecon/src/PatRec/LinkAndTree
+
+Removed Files:
+	TkrCandidates.cxx 
+Log Message:
+Cleaning out some renegade deadwood
+
+    *
+------------------------------------------------------------
 User: usher  Tue May  7 15:59:40 PDT 2002
 TkrRecon/src/Vertex/Combo
 
