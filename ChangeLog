@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Apr 30 21:10:35 PDT 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrGeometrySvc.cxx TkrGeometryVisitor.cxx TkrInitSvc.cxx 
+Log Message:
+more documentation
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Apr 30 21:10:34 PDT 2002
 TkrRecon/src/GaudiAlg
 
