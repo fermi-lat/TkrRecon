@@ -24,7 +24,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.3 2002/05/01 04:10:34 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.4 2002/05/07 22:47:22 usher Exp $
  */
 
 
@@ -41,16 +41,16 @@ public:
     StatusCode       finalize();
 
     /// This for initializing the pattern reconstruction
-    TkrRecon::TkrPatRecon*     setPatRecon();
+    Event::TkrPatRecon*     setPatRecon();
 
     /// This for initializing the particular display routines
-    void             setDisplayRtns(gui::DisplayControl& display, IDataProviderSvc* dps);
+    void                    setDisplayRtns(gui::DisplayControl& display, IDataProviderSvc* dps);
 
     /// This for initializing the track fit algorithm
-    TkrRecon::TkrTrackFit*     setTrackFit();
+    Event::TkrTrackFit*     setTrackFit();
 
     /// This for initializing the vertex finding algorithm
-    TkrRecon::TkrFindVertex*   setVertexing();
+    Event::TkrFindVertex*   setVertexing();
 
     /// This for returning the pointer to the geometry service
     ITkrGeometrySvc* getGeometrySvc() {return pTkrGeo;}

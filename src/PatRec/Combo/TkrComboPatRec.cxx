@@ -15,7 +15,7 @@
 
 #include <algorithm>
 
-using namespace TkrRecon;
+using namespace Event;
 
 //Constructor emulates the "old" SiRecObjs
 TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters, double CalEnergy, Point CalPosition)

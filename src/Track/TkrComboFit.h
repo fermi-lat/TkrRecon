@@ -8,7 +8,7 @@
 #include "Event/Recon/TkrRecon/TkrFitTrackCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 
-namespace TkrRecon { // Namespace
+namespace Event { // Namespace
 
 class TkrComboFit : public TkrFitTrackCol
 {

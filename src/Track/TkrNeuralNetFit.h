@@ -9,7 +9,7 @@
 *
 * @authors b. allgood and w. atwood
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetFit.h,v 1.2 2002/05/07 22:57:20 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetFit.h,v 1.3 2002/05/10 21:53:57 usher Exp $
 */
 
 #ifndef TKRNEURALNETFIT_H
@@ -21,7 +21,7 @@
 #include "Event/Recon/TkrRecon/TkrFitTrackCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 
-namespace TkrRecon { //Namespace
+namespace Event { //Namespace
 
 class TkrNeuralNetFit : public TkrFitTrackCol
 {

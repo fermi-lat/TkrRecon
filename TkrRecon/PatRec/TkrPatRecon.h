@@ -19,7 +19,7 @@
 //-------------------------------------------------------
 //
 
-namespace TkrRecon { //namespace
+namespace Event { //namespace
 
 class TkrPatRecon
 {

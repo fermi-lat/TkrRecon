@@ -14,7 +14,7 @@
 #include "Event/Recon/TkrRecon/TkrFitPlane.h"
 #include "TkrRecon/Track/GFcontrol.h"
 
-namespace TkrRecon {
+namespace Event {
 
 class KalmanFilter
 {

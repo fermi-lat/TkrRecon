@@ -15,7 +15,7 @@
 
 #include <vector>
 
-using namespace TkrRecon;
+using namespace Event;
 
 class TkrComboPatRec : public TkrPatCandCol
 {

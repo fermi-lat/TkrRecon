@@ -19,7 +19,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrReconAlg.h,v 1.9 2002/05/07 22:45:12 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrReconAlg.h,v 1.10 2002/05/10 21:53:54 usher Exp $
  */
 
 class TkrReconAlg : public Algorithm
@@ -38,10 +38,10 @@ public:
 private:
 	
 	/// clusters information
-    TkrRecon::TkrClusterCol* m_TkrClusters;
+    Event::TkrClusterCol* m_TkrClusters;
 
     /// Fit control information
-    TkrRecon::TkrTrackFit* m_TrackFit;
+    Event::TkrTrackFit* m_TrackFit;
 
     /// Propagator type, currently RcParticle or G4Propagator
     int    m_PropagatorType;

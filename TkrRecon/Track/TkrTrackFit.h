@@ -20,7 +20,7 @@
 //-------------------------------------------------------
 //
 
-namespace TkrRecon { //Namespace
+namespace Event { //Namespace
 
 class TkrTrackFit
 {

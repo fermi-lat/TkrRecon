@@ -22,7 +22,7 @@
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
 #include "TkrRecon/Cluster/TkrQueryClusters.h"
 
-using namespace TkrRecon;
+using namespace Event;
 
 //-----------------------------------------------------
 //

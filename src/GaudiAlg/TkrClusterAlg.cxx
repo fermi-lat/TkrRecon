@@ -18,7 +18,7 @@ const IAlgFactory& TkrClusterAlgFactory = Factory;
 TkrClusterAlg::TkrClusterAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator)  { }
 
-using namespace TkrRecon;
+using namespace Event;
 
 StatusCode TkrClusterAlg::initialize()
 {

@@ -13,7 +13,7 @@
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
 #include "GlastSvc/Reco/IKalmanParticle.h"
 
-using namespace TkrRecon;
+using namespace Event;
 
 //-------------------------------------
 //  Kalman Functions

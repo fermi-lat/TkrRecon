@@ -18,7 +18,7 @@
 //------------------------------------------------------------------------
 //
 
-namespace TkrRecon { //Namespace
+namespace Event { //Namespace
 
 class TkrComboTrackFit : public TkrTrackFit
 {

@@ -17,6 +17,7 @@
 //
 //------------------------------------------------------------------------
 //
+namespace Event {
 
 class TkrComboVtx : public TkrFindVertex
 {
@@ -29,6 +30,8 @@ public:
 
 private:
     ITkrGeometrySvc* pGeometry;
+};
+
 };
 
 #endif
