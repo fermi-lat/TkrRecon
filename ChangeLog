@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Wed Mar 27 08:30:30 PST 2002
+TkrRecon/src/Display
+
+Modified Files:
+	TkrCandidate3DRep.cxx 
+Log Message:
+more cm->mm
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Mar 27 07:35:43 PST 2002
 TkrRecon/src/TrackFit
 
