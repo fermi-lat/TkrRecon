@@ -3,6 +3,7 @@
  * Package TkrRecon
  * Manager: Leon Rochester 
  * 
+ * v8r7    16-Jan-2003  LSR   Move TkrQueryClusters, TkrMeritTool to TkrUtil
  * v8r6p1  10-Jan-2003  LSR   Move TkrGeometrySvc to TkrUtil
  * v8r6    10-Jan-2003  LSR   GlastRelease version, including new TDS stuff, and TkrBadStripsSvc to TkrUtil
  * v8r5p1  21-Nov-2002  TU    Patches for "final" Gleam release
