@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: lsrea  Fri Feb  8 15:06:17 PST 2002
+TkrRecon/src/Services
+
+Added Files:
+	TkrDetGeo.cxx 
+Removed Files:
+	TkrDetGeo.cpp 
+Log Message:
+File extensions changed by the maurauding documentarian
+
+    *
+------------------------------------------------------------
+User: lsrea  Fri Feb  8 15:06:17 PST 2002
 TkrRecon/src/Dll
 
 Added Files:
