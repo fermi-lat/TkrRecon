@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.13 2004/11/02 22:55:43 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.14 2004/11/05 18:28:56 atwood Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -21,11 +21,13 @@
 #include "Event/TopLevel/EventModel.h"
 
 #include "TkrRecon/PatRec/ITkrFindTrackTool.h"
+#include "TkrRecon/Track/IFindTrackHitsTool.h"
+#include "TkrRecon/Track/ITkrFitTool.h"
 #include "src/PatRec/PatRecBaseTool.h"
-#include "src/PatRec/KalFitTrack/KalFitTrack.h"
 
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrFailureModeSvc.h"
+#include "src/Track/TrackFitUtils.h"
 
 #include "src/Utilities/TkrPoints.h"
 #include "Utilities/TkrException.h"
@@ -50,47 +52,38 @@ public:
     /// put actual init stuff here
     StatusCode initialize();
     /// does the work
-    StatusCode findTracks();
+    StatusCode findTracks(); 
 
 protected:
 	/// Pointer to TkrClusters - historical and will go. 
     Event::TkrClusterCol*  m_tkrClus;
 
-private:
+	IFindTrackHitsTool *m_findHitTool;
+
+	ITkrFitTool *m_trackFitTool;
+
     class Candidate
     {
+	friend ComboFindTrackTool;
     public:
-		Candidate(Event::TkrClusterCol* clusters,
-                  ITkrGeometrySvc* geometry,
-                  ITkrQueryClustersTool* clusTool,
-                  int layer, int twr, double e, 
-                  Point x, Vector t, float d, float s, int g,
-				  double chi_cut);
+		Candidate(double e, Point x, Vector t, double chi_cut,
+			      IFindTrackHitsTool *hit_finder, ITkrFitTool *fitter, ITkrGeometrySvc* m_tkrGeom);
         ~Candidate();
 
         /// Access
-        void setDeflection(float def) {m_deflection = def;}
-        void setSigma(float sig)      {m_sigma      = sig;}
         void setQuality(float Q)      {m_qual       = Q;}
-        void setGap(int gs)           {m_gap        = gs;}
         void setConEnergy(double e)   {m_ConEnergy  = e;}
         int  adjustType(int incr);
-        float  deflection()    const {return m_deflection;}
-        float  sigma()         const {return m_sigma;}
         float  quality()       const {return m_qual;}
-        int    gap()           const {return m_gap;} 
         int    type()          const {return m_type;}
         double conEnergy()     const {return m_ConEnergy;}
-		Event::KalFitTrack *track()         {return m_track;} 
+		Event::TkrTrack *track()         {return m_track;} 
         
     private:    
-        float m_deflection;    // End point deflection of line of 1st two hits
-        float m_sigma;         // Number of sigma deflection corresponds to
-        float m_qual;          // Resulting track Quality
-        int m_gap;             // Size of gap (hopefully zero!) 
+        float m_qual;          // Resulting track Quality 
         int m_type;            // Track type: 100*PR-Mode + 10*Energy-Mode + Lead_Hits
         double m_ConEnergy;    // Constraind energy results
-		Event::KalFitTrack *m_track;  // The trial track fit
+		Event::TkrTrack *m_track;  // The trial track fit
     };
 
     /// Access methods for getting the individual candidate tracks
@@ -100,7 +93,7 @@ private:
     CandidateList& candidates() {return m_candidates;}
     iterator begin()            {return m_candidates.begin();}
     iterator end()              {return m_candidates.end();}
-
+private:
     /// Major Sub sections 
     void searchCandidates();
     void setEnergies(double CalEnergy); 
@@ -173,6 +166,15 @@ StatusCode ComboFindTrackTool::initialize()
 {	
   PatRecBaseTool::initialize();
   StatusCode sc   = StatusCode::SUCCESS;
+
+  if( (sc = toolSvc()->retrieveTool("FindTrackHitsTool", m_findHitTool)).isFailure() )
+    {
+        throw GaudiException("ToolSvc could not find FindTrackHitsTool", name(), sc);
+    }
+  if( (sc = toolSvc()->retrieveTool("KalmanTrackFitTool", m_trackFitTool)).isFailure() )
+    {
+        throw GaudiException("ToolSvc could not find KalmanTrackFitTool", name(), sc);
+    }
 
   return sc;
 }
@@ -268,47 +270,13 @@ void ComboFindTrackTool::searchCandidates()
         hypo  = m_candidates.begin();
         
         // Flag all hits as used
-		Event::KalFitTrack *best_tkr = (*hypo)->track();
-        best_tkr->flagAllHits();
+		Event::TkrTrack *best_tkr = (*hypo)->track();
+		TrackFitUtils fitUtil(m_tkrGeom, 0);
+		fitUtil.flagAllHits(*best_tkr);
         
         // Hits are shared depending on cluster size 
         // and track direction
-		Event::TkrFitPlaneConPtr pln_pointer = best_tkr->getHitIterBegin();
-        
-        int i_Hit = 0; 
-        int i_share = 0; 
-        int best_first_layer = best_tkr->getLayer();
-        while(pln_pointer != best_tkr->getHitIterEnd() && i_Hit < m_hitShares) {
-			Event::TkrFitPlane plane = *pln_pointer;
-
-            // First hits (x & y) are shared: gamma conversion vertex
-            if(plane.getIDPlane() == best_first_layer) { 
-                best_tkr->unFlagHit(i_Hit);
-                i_Hit++;
-                i_share++;
-                pln_pointer++;
-                continue;
-            }
-            // For the rest - unflag according to Cluster size and Trajectory
-            int hit_proj = plane.getProjection();
-			Event::TkrFitPar tkr_par = plane.getHit(Event::TkrFitHit::FIT).getPar();
-            double slope = tkr_par.getYSlope(); //THIS WILL CHANGE WITH NEW TkrTrack
-			//int    slpIdx   = hit->getParamIndex(true,true);
-            if(hit_proj == idents::TkrId::eMeasureX) {
-                slope = tkr_par.getXSlope();
-            }        
-            int hit_Id = plane.getIDHit();;
-            double cls_size = (*m_tkrClus)[hit_Id]->size(); 
-            double prj_size = m_tkrGeom->siThickness()*fabs(slope)/
-                              m_tkrGeom->siStripPitch()+ 1.;
-            if(cls_size> prj_size) {
-                best_tkr->unFlagHit(i_Hit);
-                i_share++; 
-            }
-            //if(i_share >= 5) break; THIS CAN OVERRIDE THE CONTROL
-            i_Hit++;  //NEEDS MEAS. HIT TO BE PRESENT TO INCREMENT
-            pln_pointer++;
-        }
+        fitUtil.setSharedHitsStatus(*best_tkr);
         
         // Delete the rest of the candidates
         hypo++;
@@ -379,71 +347,19 @@ void ComboFindTrackTool::loadOutput()
         
         for(hypo  = m_candidates.begin(); hypo != m_candidates.end();   hypo++)
         {
-            Ray    testRay  = (*hypo)->track()->getRay();
-            double energy   = (*hypo)->conEnergy(); // Which energy to use?  
-            double enErr    = (*hypo)->track()->getKalEnergyError();
-            double quality  = (*hypo)->track()->getQuality();
-            double type     = (*hypo)->type();
-            
             //Keep this track (but as a candidate)
-            Event::TkrTrack* newTrack = new Event::TkrTrack();
+            Event::TkrTrack* newTrack = (*hypo)->track();
 
             // Add to the TDS collection
             trackCol->push_back(newTrack);
 
-            newTrack->setInitialPosition(testRay.position());
-            newTrack->setInitialDirection(testRay.direction());
-            newTrack->setInitialEnergy(energy);
-            newTrack->setKalEnergyError(enErr);
-            newTrack->setQuality(quality);
             newTrack->setStatusBit(Event::TkrTrack::Found);
+            int  numHits  = newTrack->getNumHits();
 
-            Event::TkrFitPlaneConPtr hitPtr = (*hypo)->track()->getHitIterBegin();
-            for(;hitPtr != (*hypo)->track()->getHitIterEnd(); hitPtr++)
+            for(int i = 0; i<numHits; i++)
             {
-                Event::TkrFitPlane hitPlane = *hitPtr;
-                unsigned int       hit_ID   = hitPlane.getIDHit();
-                //Event::TkrCluster* cluster  = m_tkrClus->getHit(hit_ID);
-                Event::TkrCluster* cluster  = (*m_tkrClus)[hit_ID];
-
-                // Get a new instance of a TkrTrackHit object
-                Event::TkrTrackHit* hit = new Event::TkrTrackHit(cluster, 
-                                                                 cluster->getTkrId(),
-                                                                 cluster->position().z(), 
-                                                                 0., 0., 0., 0., 0.);
-
-                // Retrieve a reference to the measured parameters (for setting)
-                Event::TkrTrackParams& params = hit->getTrackParams(Event::TkrTrackHit::MEASURED);
-
-                // Set measured track parameters
-                params(1) = cluster->position().x();
-                params(2) = 0.;
-                params(3) = cluster->position().y();
-                params(4) = 0.;
-
-                int    measIdx   = hit->getParamIndex(true,false);
-                int    nonmIdx   = hit->getParamIndex(false,false);
-                double sigma     = m_tkrGeom->siResolution();
-                double sigma_alt = m_tkrGeom->trayWidth() * oneOverSqrt12;
-
-                params(measIdx,measIdx) = sigma * sigma;
-                params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
-
-                hit->setEnergy(energy);
-
-                hit->setStatusBit(Event::TkrTrackHit::HASMEASURED);
-
-                // Add this hit to the collection in the TDS 
+                Event::TkrTrackHit* hit = (*newTrack)[i];
                 trackHitCol->push_back(hit);
-
-                // Add this to the track itself
-                newTrack->push_back(hit);
-
-                // Update track counter
-                if (hit->getTkrId().getView() == idents::TkrId::eMeasureX) 
-                    newTrack->setNumXHits(newTrack->getNumXHits()+1);
-                else
-                    newTrack->setNumYHits(newTrack->getNumYHits()+1);
             }
 
             // Finally, sort this track in correct z order (for now)
@@ -455,7 +371,6 @@ void ComboFindTrackTool::loadOutput()
     if (!m_candidates.empty()) {
         ComboFindTrackTool::iterator hypo;    
         for(hypo  = m_candidates.begin(); hypo != m_candidates.end(); hypo++){
-            (*hypo)->track()->unFlagAllHits();
             delete (*hypo);
         }
         m_candidates.clear();
@@ -504,15 +419,16 @@ void ComboFindTrackTool::setEnergies(double calEnergy)
     cal_Energy *= _calKludge; 
 
     // Get best track ray
-	Event::KalFitTrack*  first_track = m_candidates[0]->track();              
+	Event::TkrTrack*  first_track = m_candidates[0]->track();              
     
     // Set up parameters for KalParticle swim through entire tracker
-    Point x_ini    = first_track->getPosAtZ(-2.); // Backup to catch first Radiator
-    Vector dir_ini = first_track->getDirection(); 
-    double arc_tot = x_ini.z() / fabs(dir_ini.z()); // z=0 at top of grid
+    Point x_ini    = first_track->getInitialPosition(); 
+    Vector dir_ini = first_track->getInitialDirection(); 
+	Point x_start = x_ini - 3.5*dir_ini;   //Back up 3.5 mm to catch first radiator
+    double arc_tot = x_start.z() / fabs(dir_ini.z()); // z=0 at top of grid
     
     IKalmanParticle* kalPart = m_tkrGeom->getPropagator();
-    kalPart->setStepStart(x_ini, dir_ini, arc_tot);
+    kalPart->setStepStart(x_start, dir_ini, arc_tot);
 
     // Set up summed var's and loop over all layers between x_ini & cal
     int num_thin_hits = 0;
@@ -520,18 +436,19 @@ void ComboFindTrackTool::setEnergies(double calEnergy)
     int num_last_hits = 0; 
 
     double arc_len    = 5./fabs(dir_ini.z()); 
-    int top_plane     = first_track->getLayer();     
+	int top_plane     = m_tkrGeom->getPlane(x_ini.z());
+    int top_layer     = m_tkrGeom->getLayer(top_plane);     
     int maxLayers    = m_tkrGeom->numLayers();
 
-    int thin_planes  = 0;
-    int thick_planes = 0;
-    int norad_planes = 0;
+    int thin_layers  = 0;
+    int thick_layers = 0;
+    int norad_layers = 0;
     
-    for(int iplane = top_plane; iplane < maxLayers; iplane++) {
+    for(int ilayer = top_layer; ilayer < maxLayers; ilayer++) {
         
         double xms = 0.;
         double yms = 0.;
-        if(iplane > top_plane) {
+        if(ilayer > top_layer) {
 			Event::TkrFitMatrix Q = kalPart->mScat_Covr(cal_Energy/2., arc_len);
             xms = Q.getcovX0X0();
             yms = Q.getcovY0Y0();
@@ -542,34 +459,34 @@ void ComboFindTrackTool::setEnergies(double calEnergy)
         if(ySprd > m_tkrGeom->trayWidth()/2.) ySprd = m_tkrGeom->trayWidth()/2.;
 
         // Assume location of shower center in given by 1st track
-        Point x_hit = first_track->getPosAtZ(arc_len);
+        Point x_hit = x_start + arc_len*dir_ini;
         //int numHits = TkrQueryClusters(m_tkrClus).
         //    numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
-        int numHits = m_clusTool->numberOfHitsNear(m_tkrGeom->reverseLayerNumber(iplane),
+        int numHits = m_clusTool->numberOfHitsNear(m_tkrGeom->reverseLayerNumber(ilayer),
             xSprd, ySprd, x_hit);
 
-        convType type = m_tkrGeom->getReconLayerType(iplane);
+        convType type = m_tkrGeom->getReconLayerType(ilayer);
         switch(type) {
         case NOCONV:
             num_last_hits += numHits;
-            norad_planes++;
+            norad_layers++;
             break;
         case STANDARD:
             num_thin_hits += numHits;
-            thin_planes++;
+            thin_layers++;
             break;
         case SUPER:
             num_thick_hits += numHits;
-            thick_planes++;
+            thick_layers++;
             break;
         default: // shouldn't happen, but I'm being nice to the compiler
             ;
         }
 
         // Increment arc-length
-        int nextPlane = iplane+1;
-        if (iplane==maxLayers-1) nextPlane--;
-        double deltaZ = m_tkrGeom->getReconLayerZ(iplane)-m_tkrGeom->getReconLayerZ(nextPlane);
+        int nextLayer = ilayer+1;
+        if (ilayer==maxLayers-1) nextLayer--;
+        double deltaZ = m_tkrGeom->getReconLayerZ(ilayer)-m_tkrGeom->getReconLayerZ(nextLayer);
         arc_len += fabs( deltaZ/dir_ini.z()); 
     }
     
@@ -578,12 +495,12 @@ void ComboFindTrackTool::setEnergies(double calEnergy)
  
     //Just the radiators -- divide by costheta, just like for rad_min
     double rad_nom  = 
-        (thinConvRadLen*thin_planes + thickConvRadLen*thick_planes)/fabs(dir_ini.z());
+        (thinConvRadLen*thin_layers + thickConvRadLen*thick_layers)/fabs(dir_ini.z());
     //The "real" rad- len 
     double rad_swim = kalPart->radLength();                 
     //The non-radiator
     double rad_min  = 
-        (thin_planes+thick_planes+norad_planes)*trayRadLen/fabs(dir_ini.z()); 
+        (thin_layers+thick_layers+norad_layers)*trayRadLen/fabs(dir_ini.z()); 
     rad_swim = std::max(rad_swim, rad_nom + rad_min); 
     double ene_total  =  ene_trks * rad_swim/rad_nom + cal_Energy; //Scale and add cal. energy
 
@@ -596,7 +513,7 @@ void ComboFindTrackTool::setEnergies(double calEnergy)
   
     ComboFindTrackTool::iterator cand = m_candidates.begin();
     for(; cand!=m_candidates.end(); cand++) {
-		Event::KalFitTrack* track = (*cand)->track();
+		Event::TkrTrack* track = (*cand)->track();
         // limit on high side
         double kal_energy = std::min(5000., track->getKalEnergy());
 
@@ -615,7 +532,7 @@ void ComboFindTrackTool::setEnergies(double calEnergy)
         m_candidates[0]->adjustType(30);
     }
     else {               // Divide up the energy between the first two tracks
-		Event::KalFitTrack*  secnd_track = m_candidates[1]->track();
+		Event::TkrTrack*  secnd_track = m_candidates[1]->track();
         
         int num_hits1 = first_track->getNumHits();
         int num_hits2 = secnd_track->getNumHits();
@@ -722,10 +639,10 @@ void ComboFindTrackTool::findBlindCandidates()
 
                         // If good hit found: make a trial fit & store it away
                         if(sigma < m_sigmaCut && deflection > m_maxDeflect) {        
-                            Candidate* trial = new Candidate(m_tkrClus, m_tkrGeom, m_clusTool,
-                                ilayer, p1->getTower(), m_energy, testRay.position(), 
-                                testRay.direction(), deflection, m_sigmaCut, gap, m_maxChiSqCut); 
-                            if(trial->track()->status() == Event::KalFitTrack::EMPTY) {
+                            Candidate* trial = new Candidate(m_energy, testRay.position(), 
+                                                    testRay.direction(), m_maxChiSqCut,
+													m_findHitTool, m_trackFitTool, m_tkrGeom); 
+                            if(trial->track()->getStatusBits() == 0) {
                                 delete trial;
                                 continue;
                             }
@@ -736,7 +653,9 @@ void ComboFindTrackTool::findBlindCandidates()
                             trial->adjustType(100);
                             if(!incorporate(trial)) break;
                             trials++; 
-                            int new_top = trial->track()->getLayer();
+							Point x_start = trial->track()->getInitialPosition();
+	                        int top_plane     = m_tkrGeom->getPlane(x_start.z());
+                            int new_top     = m_tkrGeom->getLayer(top_plane);    
                             if(new_top < m_TopLayer) m_TopLayer = new_top;
                             break;
                         }
@@ -823,11 +742,10 @@ void ComboFindTrackTool::findCalCandidates()
                     int gap = klayer - (ilayer+1); 
                     double deflection = 1.;
                     
-                    Candidate *trial = new Candidate(m_tkrClus, m_tkrGeom, m_clusTool,
-                                                     ilayer, p1->getTower(), m_energy, testRay.position(),
-                                                     testRay.direction(),
-                                                     deflection, m_sigmaCut, gap, m_maxChiSqCut); 
-                    if(trial->track()->status() == Event::KalFitTrack::EMPTY) {
+                    Candidate *trial = new Candidate(m_energy, testRay.position(),
+                                                     testRay.direction(), m_maxChiSqCut,
+													 m_findHitTool, m_trackFitTool, m_tkrGeom); 
+                    if(trial->track()->getStatusBits() == 0) {
                         delete trial;
                         continue;
                     }
@@ -837,8 +755,10 @@ void ComboFindTrackTool::findCalCandidates()
                     }
                     trial->adjustType(200); 
                     if(!incorporate(trial)) break;
-                    trials++; 
-                    int new_top = trial->track()->getLayer();
+                    trials++;
+					Point x_start = trial->track()->getInitialPosition();
+	                int top_plane     = m_tkrGeom->getPlane(x_start.z());
+                    int new_top     = m_tkrGeom->getLayer(top_plane);    
                     m_TopLayer = std::min(m_TopLayer, new_top);
                 }
             }
@@ -897,13 +817,15 @@ bool ComboFindTrackTool::incorporate(Candidate* trial)
    // Restrictions and Caveats:  None.    
     
     bool added = false;
+    
+	// Setup the utility class to compare tracks
+    TrackFitUtils fitUtil(m_tkrGeom, 0);
 
     // Check if this track duplicates another already present
     int numTrialHits = trial->track()->getNumHits();
     ComboFindTrackTool::iterator cand = m_candidates.begin();
     for (; cand!=m_candidates.end(); cand++) {
-        int numHitsOverLapped = 
-            ((*cand)->track())->compareFits( *trial->track()); 
+        int numHitsOverLapped = fitUtil.compareTracks(*((*cand)->track()), *(trial->track()));
         int numHits = (*cand)->track()->getNumHits();
         int numTest = std::min(numHits, numTrialHits);
         if (numHitsOverLapped > numTest - m_minUniHits) {
@@ -947,16 +869,10 @@ bool ComboFindTrackTool::incorporate(Candidate* trial)
 }
 
 
-ComboFindTrackTool::Candidate::Candidate(Event::TkrClusterCol* clusters,
-                                     ITkrGeometrySvc* geometry,
-                                     ITkrQueryClustersTool* clusTool,
-                                     int layer, int twr, double e, 
-                                     Point x, Vector t, 
-                                     float d, float s, int g, double chi_cut): 
-      m_deflection(d)
-    , m_sigma(s)
-    , m_gap(g)
-    , m_type(0)
+ComboFindTrackTool::Candidate::Candidate(double e, Point x, Vector t, double chi_cut,
+										 IFindTrackHitsTool *hit_finder, ITkrFitTool *fitter,
+										 ITkrGeometrySvc* geometry): 
+      m_type(0)
 {
    // Purpose and Method: Constructor for internal Candidate list. Does a first 
    //                     KalFitTrack fit - to find all the hits, chisq, etc.
@@ -969,46 +885,44 @@ ComboFindTrackTool::Candidate::Candidate(Event::TkrClusterCol* clusters,
    // Dependencies: None
    // Restrictions and Caveats:  None.
   
-    // Do a prelim. Fit using TkrKalTrack to find all the hits
-    Ray testRay(x,t);  
-	m_track = new Event::KalFitTrack(clusters, geometry, clusTool,
-        layer, twr, m_sigma, e, testRay); 
-    m_track->findHits();
-	if(m_track->status()==Event::KalFitTrack::EMPTY) return; 
-    m_track->doFit(); 
-    int more_hits = m_track->addLeadingHits(layer);
-    if(more_hits > 0) m_track->doFit(); 
+    // Make a new track and initialize it 
+	m_track = new Event::TkrTrack();
+	m_track->setInitialPosition(x);
+    m_track->setInitialDirection(t);
+    m_track->setInitialEnergy(e);
+
+	// Find the TkrClusters and gaps along this track
+	hit_finder->findTrackHits(m_track);
+	if(!(m_track->getStatusBits()& Event::TkrTrack::Found)) return;
+
+    fitter->doTrackFit(m_track); 
+    int more_hits = hit_finder->addLeadingHits(m_track);
+    if(more_hits > 0)    fitter->doTrackFit(m_track); 
     m_type = more_hits; 
 
     // Check X**2 for the Track
-	if(m_track->getChiSquare() > chi_cut) {
-		m_track->setStatus(Event::KalFitTrack::EMPTY);
+	if(m_track->getChiSquareSmooth() > chi_cut) {
+		m_track->clearStatusBits();
         return;
     }
     //Angle between 1st 2 segs.
-    m_deflection = m_track->getKink(2); 
-    if(m_deflection > 3.) m_deflection = 0.;
-    else  m_deflection = cos(m_deflection);
-    
-    double sigmas_def = m_track->getKinkNorma(2+more_hits);
-    if(sigmas_def > 9.) sigmas_def = 1.; 
+   // double sigmas_def = m_track->getKinkNorma(2+more_hits);
+   // if(sigmas_def > 9.) sigmas_def = 1.; 
+	double sigmas_def = 0.;
     
     //Set Cluster size penalty
     double size_penalty = 0.; 
-	Event::TkrFitPlaneConPtr pln_pointer = m_track->getHitIterBegin();
-    
+	Event::TkrTrackHitVecItr pln_pointer = m_track->begin();   
     int i_Hit = 0; 
-    while(pln_pointer != m_track->getHitIterEnd()) {
+    while(pln_pointer != m_track->end()) {
         
-		Event::TkrFitPlane plane = *pln_pointer;
-        int hit_proj = plane.getProjection();
-		Event::TkrFitPar tkr_par = plane.getHit(Event::TkrFitHit::FIT).getPar();
-        double slope = tkr_par.getYSlope();
-        if(hit_proj == idents::TkrId::eMeasureX) {
-            slope = tkr_par.getXSlope();
-        }        
-        int    hit_Id    = plane.getIDHit();;
-        double cls_size  = (*clusters)[hit_Id]->size();        
+		Event::TkrTrackHit* plane = *pln_pointer;
+   
+        Event::TkrClusterPtr cluster = plane->getClusterPtr();
+
+        double slope = plane->getMeasuredSlope(Event::TkrTrackHit::FILTERED);
+
+        double cls_size  = cluster->size();        
         double prj_size  = geometry->siThickness()*fabs(slope)/
                            geometry->siStripPitch() + 2.;
         double over_size = cls_size - prj_size;
@@ -1021,7 +935,8 @@ ComboFindTrackTool::Candidate::Candidate(Event::TkrClusterCol* clusters,
         i_Hit++;
         pln_pointer++;
     }
-    int first_layer = m_track->getLayer();
+	int top_plane     = geometry->getPlane(x.z());
+    int first_layer   = geometry->getLayer(top_plane);
 
     // Initial setting of constrained energies
     // This originally in the SetEnergies method, moved here to initialize con energy
@@ -1049,9 +964,6 @@ ComboFindTrackTool::Candidate::~Candidate()
    // Outputs: None
    // Dependencies: None
    // Restrictions and Caveats:  None.
-    if(m_track !=0) {
-        delete m_track;
-    }
 }
 
 int ComboFindTrackTool::Candidate::adjustType(int incr) 
