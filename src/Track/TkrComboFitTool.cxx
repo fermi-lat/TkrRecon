@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.5 2002/08/30 18:34:39 atwood Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.6 2002/09/06 06:59:54 lsrea Exp $
 //
 // Description:
 //      Tool for performing the fit of Combo Pat Rec candidate tracks
@@ -14,7 +14,8 @@
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "Event/TopLevel/EventModel.h"
 
-#include "src/TrackFit/KalFitTrack/KalFitTrack.h"
+#include "Event/Recon/TkrRecon/TkrKalFitTrack.h"
+#include "src/TrackFit/KalFitTrack/KalFitter.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "src/Track/TkrControl.h"
 
@@ -59,8 +60,9 @@ StatusCode TkrComboFitTool::doTrackFit(Event::TkrPatCand* patCand)
     int    type     = (int)(patCand->getQuality()); //New for testing 
         
     TkrControl* control = TkrControl::getPtr();   
-    Event::KalFitTrack* track = new Event::KalFitTrack(pTkrClus, pTkrGeoSvc, iniLayer, iniTower,
-                                       control->getSigmaCut(), energy, testRay);                 
+    Event::TkrKalFitTrack* track  = new Event::TkrKalFitTrack();
+    Event::KalFitter*      fitter = new Event::KalFitter(pTkrClus, pTkrGeoSvc, track, iniLayer, iniTower,
+                                                           control->getSigmaCut(), energy, testRay);                 
         
     //track->findHits(); Using PR Solution to save time
         
@@ -70,31 +72,31 @@ StatusCode TkrComboFitTool::doTrackFit(Event::TkrPatCand* patCand)
     while(numHits--)
     {
         Event::TkrPatCandHit candHit = *candPtr++;
-        track->addMeasHit(candHit);
+        fitter->addMeasHit(candHit);
     }
     track->setType(type);  
-    track->doFit();
+    fitter->doFit();
         
     if (!track->empty(control->getMinSegmentHits())) 
     {
         Event::TkrFitTrackCol* pFitTracks = SmartDataPtr<Event::TkrFitTrackCol>(pDataSvc,EventModel::TkrRecon::TkrFitTrackCol); 
         pFitTracks->push_back(track);
 
-        track->flagAllHits();
+        fitter->flagAllHits();
         if(pFitTracks->size() == 1) 
         {
             // Hits are shared depending on cluster size 
             // and track direction
-            Event::TkrFitPlaneConPtr pln_pointer = track->getHitIterBegin();
+            Event::TkrFitPlaneConPtr pln_pointer = track->begin();
                 
             int i_Hit = 0; 
             int i_share = 0;
-            while(pln_pointer != track->getHitIterEnd() && i_Hit < 6) 
+            while(pln_pointer != track->end() && i_Hit < 6) 
             {
                 // First 2 hits (x & y) are shared
                 if(i_Hit < 2) 
                 { 
-                    track->unFlagHit(i_Hit);
+                    fitter->unFlagHit(i_Hit);
                     i_Hit++;
                     i_share++;
                     pln_pointer++;
@@ -112,7 +114,7 @@ StatusCode TkrComboFitTool::doTrackFit(Event::TkrPatCand* patCand)
                 double cls_size = pTkrClus->size(hit_Id);        
                 double prj_size = 400.*fabs(slope)/228. + 1.;
                 if(cls_size> prj_size) {
-                    track->unFlagHit(i_Hit);
+                    fitter->unFlagHit(i_Hit);
                     i_share++;
                 }
                 if(i_share >= 5) break; 
@@ -124,6 +126,8 @@ StatusCode TkrComboFitTool::doTrackFit(Event::TkrPatCand* patCand)
     else  {
         delete track;
     }
+
+    delete fitter;
 
     return sc;
 }

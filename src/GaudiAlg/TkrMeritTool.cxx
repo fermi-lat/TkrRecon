@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrMeritTool.cxx,v 1.2 2002/10/17 02:40:50 lsrea Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease/TkrRecon/src/GaudiAlg/TkrMeritTool.cxx,v 1.3 2002/11/01 01:01:48 lsrea Exp $
 
 // Include files
 
@@ -15,7 +15,7 @@
 #include "Event/TopLevel/EventModel.h"
 
 #include "Event/Recon/TkrRecon/TkrVertex.h"
-#include "Event/Recon/TkrRecon/TkrFitTrack.h"
+#include "Event/Recon/TkrRecon/TkrFitTrackBase.h"
 #include "Event/Recon/TkrRecon/TkrFitPlane.h"
 #include "Event/Recon/CalRecon/CalCluster.h"
 #include "Event/Recon/CalRecon/CalXtalRecData.h"
@@ -71,7 +71,7 @@ private:
     /// number of vertices in this event
     double m_nVertices; 
     /// best and next-best track in the chosen vertex
-    const Event::TkrFitTrack* m_thePair[2];
+    const Event::TkrFitTrackBase* m_thePair[2];
     
     /// point of intercept with plane of skirt
     Point m_skirtIntercept;     
@@ -248,28 +248,28 @@ void TkrMeritTool::doTracks(Event::TkrVertex& vertex)
     // params of the "best" and "pair" track
     //  best is [0], pair is [1]
     
-    SmartRefVector<Event::TkrFitTrack>::const_iterator tkBegin 
+    SmartRefVector<Event::TkrFitTrackBase>::const_iterator tkBegin 
         = vertex.getTrackIterBegin();
-    SmartRefVector<Event::TkrFitTrack>::const_iterator tkEnd   
+    SmartRefVector<Event::TkrFitTrackBase>::const_iterator tkEnd   
         = vertex.getTrackIterEnd();
-    SmartRefVector<Event::TkrFitTrack>::const_iterator tkIter;
+    SmartRefVector<Event::TkrFitTrackBase>::const_iterator tkIter;
 
     int numTracks = vertex.getNumTracks();
     
-    Event::TkrFitTrack* skip = 0;
+    Event::TkrFitTrackBase* skip = 0;
     for (int pass = 0; pass<std::min(2,numTracks); pass++) {
         m_thePair[pass] = 0;
-        SmartRefVector<Event::TkrFitTrack>::const_iterator trackIter 
+        SmartRefVector<Event::TkrFitTrackBase>::const_iterator trackIter 
             = vertex.getTrackIterBegin();
         double tkrQual = -1;
         for(tkIter=tkBegin; tkIter!=tkEnd; tkIter++)
         {
-            const Event::TkrFitTrack* track = *trackIter;
+            const Event::TkrFitTrackBase* track = *trackIter;
             if (pass==1 && skip==track) continue;// skip the best track 2nd time;
             if (track->getQuality() > tkrQual) {
                 tkrQual = track->getQuality();
             m_thePair[pass] = track;
-            skip = const_cast<Event::TkrFitTrack*> (track);
+            skip = const_cast<Event::TkrFitTrackBase*> (track);
             }
         }
     }
@@ -318,7 +318,7 @@ void TkrMeritTool::doExtraHits(const Event::TkrVertex& vertex,
     
     // get the best track
     
-    const Event::TkrFitTrack* track  = m_thePair[0];
+    const Event::TkrFitTrackBase* track  = m_thePair[0];
     Vector t1 = track->getDirection();
     double tZ = fabs(t1.z());
     
@@ -452,9 +452,9 @@ void TkrMeritTool::doSkirt()
     // top of CsI, as determined from Event Display
     const double _skirtZ = -26.475; // skirt z in mm
     
-    const Event::TkrFitTrack* track = m_thePair[0];
-    Point endPoint = track->getPosition(Event::TkrRecInfo::End);
-    Vector endDir  = track->getDirection(Event::TkrRecInfo::End);
+    const Event::TkrFitTrackBase* track = m_thePair[0];
+    Point endPoint = track->getPosition(Event::TkrFitTrackBase::End);
+    Vector endDir  = track->getDirection(Event::TkrFitTrackBase::End);
     double deltaS  = (endPoint.z() - _skirtZ)/endDir.z();
     m_skirtIntercept = endPoint - deltaS*endDir;
     return;

@@ -1,6 +1,6 @@
 //------------------------------------------------------------------------------
 //
-//     KalFitTrack
+//     KalFitter
 //
 //      Is a Kalman Track Follower class for GLAST
 //
@@ -16,7 +16,7 @@
 //------------------------------------------------------------------------------
 
 
-#include "KalFitTrack.h" 
+#include "KalFitter.h" 
 #include "TkrRecon/GaudiAlg/TkrTrackFitAlg.h"
 #include "GlastSvc/Reco/IKalmanParticle.h"
 #include "src/TrackFit/KalmanFilter/KalmanFilter.h"
@@ -26,49 +26,44 @@
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "src/Track/TkrControl.h"
 
-#include <algorithm>
-
 using namespace Event;
 
 //-----------------------------------------------------
 // 
-//   KalFitTrack
+//   KalFitter
 //
 //-----------------------------------------------------
 
-KalFitTrack::KalFitTrack(Event::TkrClusterCol* clusters, ITkrGeometrySvc* geo, int ilyr, int itwr, double sigmaCut,double energy, const Ray& testRay) :
+KalFitter::KalFitter(Event::TkrClusterCol* clusters, ITkrGeometrySvc* geo, TkrKalFitTrack* track, int ilyr, int itwr, double sigmaCut,double energy, const Ray& testRay) :
                              m_ray(testRay),
-                             m_status(EMPTY),
                              m_iLayer(ilyr),
                              m_iTower(itwr),
                              m_sigma(sigmaCut),
+                             m_nxHits(0),
+                             m_nyHits(0),
+                             m_track(track),
                              m_clusters(clusters),
                              m_tkrGeo(geo)
 {
-   // Purpose and Method: Constructor - Initialization for KalFitTrack
- 
-   // Inputs:  Pointer to Detector Geometery, pointer to TrkClusters, the Cal Energy,
-   //          and Cal Energy Centroid, the first layer on the track
-   //          the tower in which the track starts, the search region cut, the track 
-   //          energy and the starting trajectory. 
-   // Outputs: KalFitTrack
-   // Dependencies: None
-   // Restrictions and Caveats:  None
+    // Purpose and Method: Constructor - Initialization for KalFitter
+  
+    // Inputs:  Pointer to Detector Geometery, pointer to TrkClusters, the Cal Energy,
+    //          and Cal Energy Centroid, the first layer on the track
+    //          the tower in which the track starts, the search region cut, the track 
+    //          energy and the starting trajectory. 
+    // Outputs: KalFitter
+    // Dependencies: None
+    // Restrictions and Caveats:  None
 
-    // Track energy - sets MS errors 
-    m_energy0 = energy;           //"100MeV -> pB = 151.4 1Gev -> 1095.4
-                                 // 10 GeV -> 10104.3 
-    m_status  = EMPTY;      
-
-    m_hits.clear();
-    m_nxHits  = 0;
-    m_nyHits  = 0; 
+    m_track->setStartEnergy(energy);
+    m_track->setInitialPosition(testRay.position());
+    m_track->setInitialDirection(testRay.direction());
 
     // Set up control
     m_control = TkrControl::getPtr();
 }
 
-void KalFitTrack::flagAllHits(int iflag)
+void KalFitter::flagAllHits(int iflag)
 {
    // Purpose and Method: Flag all clusters as having been used
    // Inputs: flag that is passed on the TkrCluster (!= 0 means flagged) 
@@ -76,15 +71,15 @@ void KalFitTrack::flagAllHits(int iflag)
    // Dependencies: None
    // Restrictions and Caveats:  None
 
-    TkrFitPlaneConPtr hitPtr = getHitIterBegin();
+    TkrFitPlaneConPtr hitPtr = m_track->begin();
 
-    while(hitPtr != getHitIterEnd()) {
+    while(hitPtr != m_track->end()) {
         const TkrFitPlane& hitplane = *hitPtr++; 
         m_clusters->flagHit(hitplane.getIDHit(), iflag);
     }
 }
 
-void KalFitTrack::unFlagAllHits()
+void KalFitter::unFlagAllHits()
 {
    // Purpose and Method: Unflag all clusters as having been used
    // Inputs: None
@@ -92,15 +87,15 @@ void KalFitTrack::unFlagAllHits()
    // Dependencies: None
    // Restrictions and Caveats:  None
 
-    TkrFitPlaneConPtr hitPtr = getHitIterBegin();
+    TkrFitPlaneConPtr hitPtr = m_track->begin();
 
-    while(hitPtr != getHitIterEnd()) {
+    while(hitPtr != m_track->end()) {
         const TkrFitPlane& hitplane = *hitPtr++; 
         m_clusters->unflagHit(hitplane.getIDHit());
     }
 }  
 
-void KalFitTrack::unFlagHit(int num)
+void KalFitter::unFlagHit(int num)
 {
    // Purpose and Method: Unflag a specfic cluster
    // Inputs: Index of cluster to unflag
@@ -108,13 +103,13 @@ void KalFitTrack::unFlagHit(int num)
    // Dependencies: None
    // Restrictions and Caveats:  None
 
-    TkrFitPlaneConPtr hitPtr = getHitIterBegin();
+    TkrFitPlaneConPtr hitPtr = m_track->begin();
     hitPtr += num;
     const TkrFitPlane& hitplane     = *hitPtr;
     m_clusters->unflagHit(hitplane.getIDHit());
 }  
 
-void KalFitTrack::clear()
+void KalFitter::clear()
 {   
    // Purpose and Method: Set to NULL all calculated cov. matrices & parameter vecs. 
    // Inputs: None 
@@ -122,13 +117,13 @@ void KalFitTrack::clear()
    // Dependencies: None
    // Restrictions and Caveats:  None
 
-    TkrFitTrack::clear();
+    m_track->clear();
     ini();
 }
 
-void KalFitTrack::addMeasHit(const TkrPatCandHit& candHit)
+void KalFitter::addMeasHit(const TkrPatCandHit& candHit)
 {
-   // Purpose and Method: Add a hit (TkrCluster) to this KalFitTrack
+   // Purpose and Method: Add a hit (TkrCluster) to this KalFitter
    // Inputs: Hit from Pat. Rec. Track
    // Outputs: None
    // Dependencies: None
@@ -136,24 +131,24 @@ void KalFitTrack::addMeasHit(const TkrPatCandHit& candHit)
 
     Point       planePos = candHit.Position();
     int         clusIdx  = candHit.HitIndex();
-    TkrFitPlane newPlane(clusIdx, candHit.PlaneIndex(), getStartEnergy(),
+    TkrFitPlane newPlane(clusIdx, candHit.PlaneIndex(), m_track->getStartEnergy(),
                          planePos.z(), candHit.View());
 
     incorporateFoundHit(newPlane, candHit.HitIndex());
 
-    m_hits.push_back(newPlane);
+    m_track->push_back(newPlane);
 
     if(candHit.View() == TkrCluster::X) m_nxHits++;
     else                                m_nyHits++;
-    if(m_nxHits > 2 && m_nyHits > 2)    m_status = FOUND;
+    if(m_nxHits > 2 && m_nyHits > 2)    m_track->setStatus(TkrKalFitTrack::FOUND);
 
     return;
 }
 
-void KalFitTrack::addMeasHit(int clusIdx, int planeID, TkrCluster::view proj, double zPlane,
+void KalFitter::addMeasHit(int clusIdx, int planeID, TkrCluster::view proj, double zPlane,
                              int before_hit)
 {
-   // Purpose and Method: Added a TkrCluster  to this KalFitTrack
+   // Purpose and Method: Added a TkrCluster  to this KalFitter
    // Inputs: TkrCluster Index, Layer being created, projection (X:Y), 
    //         Z location of Layer, index of layer before which to add
    //         new layer 
@@ -161,46 +156,44 @@ void KalFitTrack::addMeasHit(int clusIdx, int planeID, TkrCluster::view proj, do
    // Dependencies: None
    // Restrictions and Caveats:  None
 
-    TkrFitPlane newPlane(clusIdx, planeID, getStartEnergy(),
-                         zPlane, proj);
+    TkrFitPlane newPlane(clusIdx, planeID, m_track->getStartEnergy(), zPlane, proj);
 
     incorporateFoundHit(newPlane, clusIdx);
 
-    TkrFitPlaneCol::iterator it = m_hits.begin();
-    std::advance(it, before_hit);
-    m_hits.insert(it, newPlane);
-    //    m_hits.insert(&m_hits[before_hit], newPlane);
+    TkrFitPlaneColPtr planeIter = m_track->begin();
+
+    m_track->insert(&planeIter[before_hit], newPlane);
 
     if(proj == TkrCluster::X) m_nxHits++;
     else                      m_nyHits++;
-    if(m_nxHits > 2 && m_nyHits > 2) m_status = FOUND;
+    if(m_nxHits > 2 && m_nyHits > 2) m_track->setStatus(TkrKalFitTrack::FOUND);
 
     return;
 }
 
-int KalFitTrack::compareFits(KalFitTrack& ktrack)
+int KalFitter::compareFits(TkrKalFitTrack& ktrack)
 {
    // Purpose and Method: Compute number of TkrClusters in common with
-   //                     this KalFitTrack
+   //                     this KalFitter
    // Inputs: the KalFitTrack to be compared with 
    // Outputs: Number of shared TkrClusters
    // Dependencies: None
    // Restrictions and Caveats:  None
 
     int numComData=0;
-    if (m_hits.size()==0||m_hits.size()==0) 
+    if (m_track->size()==0||m_track->size()==0) 
         return numComData;
     
-    for (unsigned int i=0;i<m_hits.size();i++){
-        for (unsigned int j=0; j<ktrack.m_hits.size();j++){
-            if (m_hits[i].getIDHit()==ktrack.m_hits[j].getIDHit()) numComData++;
+    for (unsigned int i=0;i<m_track->size();i++){
+        for (unsigned int j=0; j<ktrack.size();j++){
+            if (m_track->at(i).getIDHit()==ktrack.at(j).getIDHit()) numComData++;
         }
     }
     return numComData;
 }
 
 // Drives using the Kalman Filter as pattern rec too
-void KalFitTrack::findHits() 
+void KalFitter::findHits() 
 { 
    // Purpose and Method: Performs a Kalman filter step through the 
    //                     GLAST Tracker.  At each new plane the 
@@ -227,8 +220,8 @@ void KalFitTrack::findHits()
         step_counter++; 
         TkrFitPlane prevKplane;
         TkrFitPlane nextKplane;
-        if (getNumHits() == 0) prevKplane = oriKplane; 
-        else                   prevKplane = getFoLPlane(TkrFitTrackBase::End);
+        if (m_track->getNumHits() == 0) prevKplane = oriKplane; 
+        else                            prevKplane = m_track->getFoLPlane(TkrFitTrackBase::End);
         
         if (step_counter > 1) type = TkrFitHit::FIT;
         statushit = nextKPlane(prevKplane, kplane, nextKplane, type); 
@@ -242,11 +235,11 @@ void KalFitTrack::findHits()
 
         if(nextKplane.getProjection() == TkrCluster::X) m_nxHits++;
         else                                            m_nyHits++;
-        if(m_nxHits > 2 && m_nyHits > 2) m_status = FOUND;
+        if(m_nxHits > 2 && m_nyHits > 2) m_track->setStatus(TkrKalFitTrack::FOUND);
         
-        m_hits.push_back(nextKplane);
+        m_track->push_back(nextKplane);
 
-        int num_planes = getNumHits();
+        int num_planes = m_track->getNumHits();
         if (filter) filterStep(num_planes-2);
         else 
         {
@@ -257,21 +250,22 @@ void KalFitTrack::findHits()
             }
             else 
             {
-                TkrFitHit hitpred = nextKplane.getHit(TkrFitHit::PRED);
-                TkrFitHit hitmeas = nextKplane.getHit(TkrFitHit::MEAS);
+                TkrFitHit         hitpred   = nextKplane.getHit(TkrFitHit::PRED);
+                TkrFitHit         hitmeas   = nextKplane.getHit(TkrFitHit::MEAS);
+
                 if(nextKplane.getProjection() == TkrCluster::X) 
                 {
                     TkrFitPar p(hitmeas.getPar().getXPosition(),hitpred.getPar().getXSlope(),
                         hitpred.getPar().getYPosition(),hitpred.getPar().getYSlope());
                     TkrFitHit hitfit(TkrFitHit::FIT,p,hitpred.getCov());
-                    m_hits[num_planes-1].setHit(hitfit);
+                    m_track->at(num_planes-1).setHit(hitfit);
                 }
                 else 
                 {
                     TkrFitPar p(hitpred.getPar().getXPosition(),hitpred.getPar().getXSlope(),
                         hitmeas.getPar().getYPosition(),hitpred.getPar().getYSlope());
                     TkrFitHit hitfit(TkrFitHit::FIT,p,hitpred.getCov());
-                    m_hits[num_planes-1].setHit(hitfit);
+                    m_track->at(num_planes-1).setHit(hitfit);
                 }
             }
         }
@@ -281,13 +275,13 @@ void KalFitTrack::findHits()
 }
 
 //--------------------------------------------------------
-//  KalFitTrack - Private 
+//  KalFitter - Private 
 //--------------------------------------------------------
 
 
-KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane, 
-                                            int kplane, TkrFitPlane& nextKplane,
-                                            TkrFitHit::TYPE type)
+KalFitter::Status KalFitter::nextKPlane(const TkrFitPlane& previousKplane, 
+                                             int kplane, TkrFitPlane& nextKplane,
+                                             TkrFitHit::TYPE type)
 {
    // Purpose and Method: Projects fit to the next plane and searchs for the 
    //                     the nearest hit within cut limit
@@ -365,7 +359,7 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
 }
 
 
-TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer, double &arc_min, TkrFitHit::TYPE type) 
+TkrFitPlane KalFitter::projectedKPlane(TkrFitPlane prevKplane, int klayer, double &arc_min, TkrFitHit::TYPE type) 
 {
    // Purpose and Method: Porject forwards to the next plane creating the Prediction
    // Inputs: The previous plane and the layer to which to project 
@@ -436,7 +430,7 @@ TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer, dou
     return projectedKplane;
 }
 
-void KalFitTrack::incorporateFoundHit(TkrFitPlane& nextKplane, int indexhit)
+void KalFitter::incorporateFoundHit(TkrFitPlane& nextKplane, int indexhit)
 {
    // Purpose and Method: Added the now found hit to this track - makes the 
    //                     MEASured cov & par. 
@@ -482,7 +476,7 @@ void KalFitTrack::incorporateFoundHit(TkrFitPlane& nextKplane, int indexhit)
 }
 
 
-double KalFitTrack::sigmaFoundHit(const TkrFitPlane& /*previousKplane*/, const TkrFitPlane& nextKplane,
+double KalFitter::sigmaFoundHit(const TkrFitPlane& /*previousKplane*/, const TkrFitPlane& nextKplane,
                                   int& indexhit, double& /*radiushit*/)
 {
    // Purpose and Method: Does the actual hit finding. Calls TkrQueryClusters
@@ -543,7 +537,7 @@ double KalFitTrack::sigmaFoundHit(const TkrFitPlane& /*previousKplane*/, const T
     return sigmahit;
 }
 
-double KalFitTrack::sigmaFoundHit(Point center, int nextLayer, int prevLayer, 
+double KalFitter::sigmaFoundHit(Point center, int nextLayer, int prevLayer, 
                                   int& indexhit, double& /*radiushit*/)
 {
    // Purpose and Method: Does the actual hit finding. Calls TkrQueryClusters. 
@@ -563,7 +557,7 @@ double KalFitTrack::sigmaFoundHit(Point center, int nextLayer, int prevLayer,
     
     double MAX_RADIUS = m_tkrGeo->trayWidth()/4.;
     
-    TkrFitHit hitp = m_hits[prevLayer].getHit(TkrFitHit::SMOOTH);
+    TkrFitHit hitp = m_track->at(prevLayer).getHit(TkrFitHit::SMOOTH);
 
     double tError = 0.;
     double zError = 0.; 
@@ -605,7 +599,7 @@ double KalFitTrack::sigmaFoundHit(Point center, int nextLayer, int prevLayer,
     return sigmahit;
 }
 
-bool KalFitTrack::foundHit(int& indexhit, double& min_dist, double max_dist,
+bool KalFitter::foundHit(int& indexhit, double& min_dist, double max_dist,
                            double error, const Point& centerX, const Point& nearHit)
 {
   // Purpose and Method: Desides whether to keep the hit
@@ -646,7 +640,7 @@ bool KalFitTrack::foundHit(int& indexhit, double& min_dist, double max_dist,
     return done;
 }
 
-void KalFitTrack::ini()
+void KalFitter::ini()
 {
   // Purpose and Method: Initialize Kalman Fit - Sets all cov's & calc.
   //         parameters to NULL
@@ -655,27 +649,19 @@ void KalFitTrack::ini()
   // Dependencies: None
   // Restrictions and Caveats:  None
 
-    m_x0           = Point(0., 0., 0.);
-    m_dir          = Vector(0., 0., 0.);
-    m_rmsResid     = 0.;
-    m_KalEnergy    = 0.;
-    m_chisq        = 1e6;
-    m_chisqSmooth  = 1e6;
-    m_KalThetaMS   = 0.;
-    m_numSegmentPoints = 0;
-    m_chisqSegment = 1e6;
-    
-    m_Xgaps        = m_Ygaps = 0;
-    m_XistGaps     = m_YistGaps= 0;
+    m_track->setInitialPosition(Point(0.,0.,0.));
+    m_track->setInitialDirection(Point(0.,0.,0.));
+    m_track->setNumSegmentPoints(0);
+    m_track->setChiSqSegment(1e6);
 
-    TkrFitPlaneColPtr hitPtr = m_hits.begin();
+    TkrFitPlaneColPtr hitPtr = m_track->begin();
 
-    while(hitPtr != m_hits.end()) hitPtr++->clean();
+    while(hitPtr != m_track->end()) hitPtr++->clean();
 
     return;
 }
 
-void KalFitTrack::finish()
+void KalFitter::finish()
 {
   // Purpose and Method: Kalman clean-up.  Translates fit parameters
   //         back to direction cosines and a point, computes the 
@@ -685,37 +671,47 @@ void KalFitTrack::finish()
   // Dependencies: None
   // Restrictions and Caveats:  None
 
+    // Set number of hits
+    m_track->setNumXHits(m_nxHits);
+    m_track->setNumYHits(m_nyHits);
+
     // Compute the fit variables  
-    if (m_chisq>=0) {
-        int    nplanes = getNumHits();
-        double x       = m_hits[0].getHit(TkrFitHit::SMOOTH).getPar().getXPosition();
-        double y       = m_hits[0].getHit(TkrFitHit::SMOOTH).getPar().getYPosition();
-        double z       = m_hits[0].getZPlane();  
+    if (m_track->getChiSquare() >= 0) 
+    {
+        int          nplanes    = m_track->getNumHits();
+        TkrFitPlane& firstPlane = m_track->at(0);
+        double       x          = firstPlane.getHit(TkrFitHit::SMOOTH).getPar().getXPosition();
+        double       y          = firstPlane.getHit(TkrFitHit::SMOOTH).getPar().getYPosition();
+        double       z          = firstPlane.getZPlane(); 
+        Point        x0         = Point(x,y,z);
 
-        m_x0 = Point(x,y,z);
+        double       x_slope    = firstPlane.getHit(TkrFitHit::SMOOTH).getPar().getXSlope();
+        double       y_slope    = firstPlane.getHit(TkrFitHit::SMOOTH).getPar().getYSlope();
+        Vector       dir        = Vector(-1.*x_slope,-1.*y_slope,-1.).unit();
+        
+        m_track->setInitialPosition(x0);
+        m_track->setInitialDirection(dir);
+        m_track->setChiSquare(m_track->getChiSquare() / (nplanes-4.)); // 1 measurement per plane - 4 parameters in 3D fit
+        m_track->setChiSquareSmooth(m_track->getChiSquareSmooth() / (nplanes-4.));  
+        m_track->setScatter(0.);
 
-        double x_slope = m_hits[0].getHit(TkrFitHit::SMOOTH).getPar().getXSlope();
-        double y_slope = m_hits[0].getHit(TkrFitHit::SMOOTH).getPar().getYSlope();
+        TkrFitPlaneColPtr hitPtr = m_track->begin();
 
-        m_dir          = Vector(-1.*x_slope,-1.*y_slope,-1.).unit();
-        m_chisq       /= (nplanes-4.); // 1 measurement per plane - 4 parameters in 3D fit
-        m_chisqSmooth /= (nplanes-4.);  
-        m_rmsResid     =0.;
-
-        TkrFitPlaneColPtr hitPtr = m_hits.begin();
-
-        int last_Xplane = -1; 
-        int last_Yplane = -1;
-        int num_xPlanes = 0;
-        int num_yPlanes = 0; 
-        double start_energy = getEnergy(); 
-        double cos_inv = 1./fabs(getDirection().z()); 
-        double z0 = 0; 
-        double rad_len  = 0.; 
-        int plane_count = 0; 
-        m_numSegmentPoints = 0; 
-        bool quit_first  = false; 
-        while(hitPtr != m_hits.end()) {
+        int last_Xplane      = -1; 
+        int last_Yplane      = -1;
+        int num_xPlanes      =  0;
+        int num_yPlanes      =  0;
+        int Xgaps            =  0;
+        int Ygaps            =  0;
+        double rmsResid      =  0.;
+        double start_energy  = m_track->getEnergy(); 
+        double cos_inv       = 1./fabs(m_track->getDirection().z()); 
+        double z0            = 0; 
+        double rad_len       = 0.; 
+        int plane_count      = 0; 
+        int numSegmentPoints = 0; 
+        bool quit_first      = false; 
+        while(hitPtr != m_track->end()) {
             plane_count++; 
             const TkrFitPlane& hit = *hitPtr++;
  
@@ -728,7 +724,7 @@ void KalFitTrack::finish()
                 double plane_err = cos_inv*arc_len*theta_ms/1.7321; 
                 quit_first  = plane_err > 2.*m_tkrGeo->siStripPitch();
             }
-            if(!quit_first) m_numSegmentPoints++;
+            if(!quit_first) numSegmentPoints++;
 
             int this_plane = hit.getIDPlane();
             bool xPlane = (hit.getProjection() == TkrCluster::X); 
@@ -738,9 +734,9 @@ void KalFitTrack::finish()
                 x  = hit.getHit(TkrFitHit::SMOOTH).getPar().getXPosition();
                 xm = hit.getHit(TkrFitHit::MEAS).getPar().getXPosition();
                 if(last_Xplane > 0) {
-                    m_Xgaps += this_plane-last_Xplane-1; 
+                    Xgaps += this_plane-last_Xplane-1; 
                     if(num_xPlanes < 3 || !quit_first) {
-                        m_XistGaps = m_Xgaps;
+                        m_track->setNumXFirstGaps(Xgaps);
                     }
                 }
                 last_Xplane = this_plane; 
@@ -750,35 +746,47 @@ void KalFitTrack::finish()
                 x  = hit.getHit(TkrFitHit::SMOOTH).getPar().getYPosition();
                 xm = hit.getHit(TkrFitHit::MEAS).getPar().getYPosition();
                 if(last_Yplane >= 0) {
-                    m_Ygaps += this_plane-last_Yplane-1;
+                    Ygaps += this_plane-last_Yplane-1;
                     if(num_yPlanes < 3 || !quit_first) {
-                        m_YistGaps = m_Ygaps;
+                        m_track->setNumYFirstGaps(Ygaps);
                     }
                 } 
                 last_Yplane = this_plane;
             }
-            m_rmsResid+= (x-xm)*(x-xm);
+            rmsResid+= (x-xm)*(x-xm);
         }
-        m_rmsResid=sqrt(m_rmsResid/(1.*nplanes));
-    }
+        rmsResid=sqrt(rmsResid/(1.*nplanes));
+
+        m_track->setScatter(rmsResid);
+        m_track->setNumSegmentPoints(numSegmentPoints);
+        m_track->setNumXGaps(Xgaps);
+        m_track->setNumYGaps(Ygaps);
+
+// Shouldn't this brace be at the bottom?
+//    }
     
     // Energy calculations
     eneDetermination();
     
     // Segment Calculation
-    if (m_chisq>=0) {
-        m_chisqSegment     = computeChiSqSegment(m_numSegmentPoints);
-        m_Q                = computeQuality();
+    if (m_track->getChiSquare() >= 0) 
+    {
+        m_track->setChiSqSegment(computeChiSqSegment(m_track->getNumSegmentPoints()));
+        m_track->setQuality(computeQuality());
     }   
 
     // Compute the radiation lengths to the calorimeter front face
-    double arc_min = (m_x0.z() + 26.5)/fabs(m_dir.z()); 
+    double arc_min = (m_track->getInitialPosition().z() + 26.5)/fabs(m_track->getInitialDirection().z()); 
     IKalmanParticle* TkrFitPart = TkrTrackFitAlg::m_KalParticle;
-    TkrFitPart->setStepStart(m_x0, m_dir, arc_min);
-    m_TkrCal_radlen = TkrFitPart->radLength(); 
+    TkrFitPart->setStepStart(x0, dir, arc_min);
+    m_track->setTkrCalRadLen(TkrFitPart->radLength()); 
+
+// Move brace down to here
+    }
+
 }
 
-int KalFitTrack::addLeadingHits(int top_layer)
+int KalFitter::addLeadingHits(int top_layer)
 {
   // Purpose and Method: This method projects backwards from 
   //             the start of the track to pick-up possible un-paired x & y hits. 
@@ -793,10 +801,10 @@ int KalFitTrack::addLeadingHits(int top_layer)
     double       arc_min = 0.; 
 
     //Protection
-    if(m_hits[0].getIDPlane() == 0) return added_hit_count;
+    if(m_track->at(0).getIDPlane() == 0) return added_hit_count;
 
     int old_tower  = m_iTower; 
-    double old_z   = m_hits[0].getZPlane();
+    double old_z   = m_track->at(0).getZPlane();
 
     //Setup backward looking search loop
     int next_layer = top_layer-1; 
@@ -819,8 +827,8 @@ int KalFitTrack::addLeadingHits(int top_layer)
             next_layer--;
             continue;
         }
-        arc_x = fabs(d_xz/m_dir.z());
-        arc_y = fabs(d_yz/m_dir.z());
+        arc_x = fabs(d_xz/m_track->getInitialDirection().z());
+        arc_y = fabs(d_yz/m_track->getInitialDirection().z());
         if(arc_x < arc_min+.5 && arc_y < arc_min+.5) {
             next_layer--;
             continue;
@@ -834,7 +842,7 @@ int KalFitTrack::addLeadingHits(int top_layer)
         m_axis = (arc_min==arc_y) ? TkrCluster::Y :TkrCluster::X;
 
         //Project the track to this layer & search for a hit
-        Point predHit = getPosAtZ(-arc_min);
+        Point predHit = m_track->getPosAtZ(-arc_min);
         int indexHit;
         double residual; 
         double sigma  = sigmaFoundHit(predHit, next_layer, 0, indexHit, residual);
@@ -848,7 +856,7 @@ int KalFitTrack::addLeadingHits(int top_layer)
     return added_hit_count; 
 }
 
-void KalFitTrack::doFit()
+void KalFitter::doFit()
 {
   // Purpose and Method: Does the formal Kalman process
   //         First - the Filter step then the (reverse) Smoothing
@@ -860,60 +868,62 @@ void KalFitTrack::doFit()
 
     KalmanFilter KF(m_clusters, m_tkrGeo);
 
-    if (getNumHits() < 3) {
+    if (m_track->getNumHits() < 3) {
         clear();
         return;
     }
 
     ini();
     
-    int nplanes=m_hits.size();
+    int nplanes=m_track->size();
     if (nplanes<=4) return;
       
     // Setup the first hit meas. cov. matrix
     TkrFitPar p_pred = guessParameters();
-    KF.computeMeasCov(m_hits[0], p_pred); 
+    KF.computeMeasCov(m_track->at(0), p_pred); 
 
    // Generate the initial hit to start the Kalman Filter
     TkrFitHit hitf=generateFirstFitHit(p_pred);
     if(hitf.getType() != TkrFitHit::FIT) return; // failure! 
-    m_hits[0].setHit(hitf); 
+    m_track->at(0).setHit(hitf); 
 
-    m_chisq       = 0.;
-    m_chisqSmooth = 0.;
+    double chisq       = 0.;
+    double chisqSmooth = 0.;
     
     //  Filter 
     //------------
     int iplane = 0; 
     for (iplane = 0 ; iplane<nplanes-1;iplane++) {
         filterStep(iplane);
-        if(iplane > 0) m_chisq += m_hits[iplane+1].getDeltaChiSq(TkrFitHit::FIT);
+        if(iplane > 0) chisq += m_track->at(iplane+1).getDeltaChiSq(TkrFitHit::FIT);
     }
     
     // Smoother
     //---------
-    TkrFitHit hitsm = (m_hits[nplanes-1].getHit(TkrFitHit::FIT)).changeType(TkrFitHit::SMOOTH);
-    m_hits[nplanes-1].setHit(hitsm);
-    m_chisqSmooth = m_hits[nplanes-1].getDeltaChiSq(TkrFitHit::SMOOTH);
+    TkrFitHit hitsm = (m_track->at(nplanes-1).getHit(TkrFitHit::FIT)).changeType(TkrFitHit::SMOOTH);
+    m_track->at(nplanes-1).setHit(hitsm);
+    chisqSmooth = m_track->at(nplanes-1).getDeltaChiSq(TkrFitHit::SMOOTH);
     
     for (iplane=nplanes-2; iplane>=0;iplane--) {
-        TkrFitHit hitsm = KF.smoother(m_hits[iplane],m_hits[iplane+1]);
-        m_hits[iplane].setHit(hitsm);
-        m_chisqSmooth += m_hits[iplane].getDeltaChiSq(TkrFitHit::SMOOTH);                
+        TkrFitHit hitsm = KF.smoother(m_track->at(iplane),m_track->at(iplane+1));
+        m_track->at(iplane).setHit(hitsm);
+        chisqSmooth += m_track->at(iplane).getDeltaChiSq(TkrFitHit::SMOOTH);                
     }
     
     // End the Calculations
     //---------------------
+    m_track->setChiSquare(chisq);
+    m_track->setChiSquareSmooth(chisqSmooth);
     finish();
 
     // Final determination of status
-    if(!empty(m_control->getMinSegmentHits())) m_status = FOUND;
-    else                                  clear();
+    if(!m_track->empty(m_control->getMinSegmentHits())) m_track->setStatus(TkrKalFitTrack::FOUND);
+    else                                                clear();
     
     return;
 }
 
-void KalFitTrack::filterStep(int iplane) 
+void KalFitter::filterStep(int iplane) 
 {
   // Purpose and Method: The Filter step for the specified plane
   // Inputs: index of plane to "Filter"
@@ -922,27 +932,27 @@ void KalFitTrack::filterStep(int iplane)
   // Restrictions and Caveats:  None
     KalmanFilter KF(m_clusters, m_tkrGeo);
 
-    TkrFitHit hitp = KF.predicted(m_hits[iplane],m_hits[iplane+1]);
+    TkrFitHit hitp = KF.predicted(m_track->at(iplane),m_track->at(iplane+1));
 
-    m_hits[iplane+1].setHit(hitp);
+    m_track->at(iplane+1).setHit(hitp);
     double radLen  = KF.getRadLength();
     double actDist = KF.getActiveDist();
-    m_hits[iplane+1].setRadLen(radLen);
-    m_hits[iplane+1].setActiveDist(actDist);
+    m_track->at(iplane+1).setRadLen(radLen);
+    m_track->at(iplane+1).setActiveDist(actDist);
 
-    TkrFitHit hitf1 = KF.filter(m_hits[iplane+1]);
+    TkrFitHit hitf1 = KF.filter(m_track->at(iplane+1));
 
-    m_hits[iplane+1].setHit(hitf1);
+    m_track->at(iplane+1).setHit(hitf1);
 
-    double prev_energy = m_hits[iplane].getEnergy();
-    m_hits[iplane+1].setEnergy(prev_energy);
+    double prev_energy = m_track->at(iplane).getEnergy();
+    m_track->at(iplane+1).setEnergy(prev_energy);
     if (m_control->getPlaneEnergies()) {
         if(prev_energy > m_control->getMinEnergy()/2.) 
-            m_hits[iplane+1].setDeltaEne(prev_energy);
+            m_track->at(iplane+1).setDeltaEne(prev_energy);
     }
 }
 
-double KalFitTrack::computeQuality() const
+double KalFitter::computeQuality() const
 { 
   // Purpose and Method: Ascribes a "quality" for each track.
   //         Somewhat arbitrary - main components are number
@@ -967,7 +977,7 @@ double KalFitTrack::computeQuality() const
     float hit_count_factor = (1.*num_Hits)/(1.*num_max);
 
     // Overall factors are to make this ~ match older def's 
-    double quality = 64.*hit_count_factor - 2.*sqrt(m_chisqSmooth); 
+    double quality = 64.*hit_count_factor - 2.*sqrt(m_track->getChiSquareSmooth()); 
 
 
 //    double quality = 4*(m_nxHits+m_nyHits-4. - (m_Xgaps+m_Ygaps)) 
@@ -975,7 +985,7 @@ double KalFitTrack::computeQuality() const
     return quality;
 }
 
-TkrFitPlane KalFitTrack::firstKPlane() const
+TkrFitPlane KalFitter::firstKPlane() const
 {
   // Purpose and Method: Establishes the starting plane for the 
   //          Kalman Filter process
@@ -983,42 +993,42 @@ TkrFitPlane KalFitTrack::firstKPlane() const
   // Outputs: a TkrFitPlane
   // Dependencies: None
   // Restrictions and Caveats:  None
-    if (m_hits.size() == 0) {
-        std::cout << "ERROR KalFitTrack::thisKPlane " << endreq;
+    if (m_track->size() == 0) {
+        std::cout << "ERROR KalFitter::thisKPlane " << endreq;
         return originalKPlane();
     }
-    return m_hits.front();
+    return m_track->front();
 }
 
-TkrFitPlane KalFitTrack::lastKPlane() const
+TkrFitPlane KalFitter::lastKPlane() const
 {
   // Purpose and Method: Returns the last plane (hit) on this track
   // Inputs: None
   // Outputs: a TkrFitPlane
   // Dependencies: None
   // Restrictions and Caveats:  None
-    if (m_hits.size() == 0) return originalKPlane();
+    if (m_track->size() == 0) return originalKPlane();
 
-    return m_hits.back();
+    return m_track->back();
 }
 
-TkrFitPlane KalFitTrack::previousKPlane() const 
+TkrFitPlane KalFitter::previousKPlane() const 
 {
   // Purpose and Method: Returns the previous plane (hit) on this track
   // Inputs: None
   // Outputs: a TkrFitPlane
   // Dependencies: None
   // Restrictions and Caveats:  backs up two planes...     
-    if (m_hits.size() <= 1) {
-        //std::cout << "ERROR KalFitTrack::previousKPlane " << endreq;
+    if (m_track->size() <= 1) {
+        //std::cout << "ERROR KalFitter::previousKPlane " << endreq;
         return originalKPlane();
     }
-    int iprevious = m_hits.size()-2;
+    int iprevious = m_track->size()-2;
     if (iprevious == -1) return originalKPlane();
-    return m_hits[iprevious];
+    return m_track->at(iprevious);
 }
 
-TkrFitPlane KalFitTrack::originalKPlane() const
+TkrFitPlane KalFitter::originalKPlane() const
 {  
   // Purpose and Method: Creates a fake first plane.
   //     Back off incoming vertex to cause the first hit to be picked up
@@ -1052,14 +1062,14 @@ TkrFitPlane KalFitTrack::originalKPlane() const
     TkrFitHit hitfit(TkrFitHit::FIT, pfit, covfit);
     TkrFitHit hitmeas(TkrFitHit::MEAS, pfit, covfit); 
     
-    TkrFitPlane kp(-1,m_iLayer-1,m_energy0, x_ini.z(), hitfit, TkrCluster::XY);
+    TkrFitPlane kp(-1,m_iLayer-1,m_track->getStartEnergy(), x_ini.z(), hitfit, TkrCluster::XY);
     kp.setHit(hitmeas);
     
     return kp;
 }
 
 
-TkrFitHit KalFitTrack::generateFirstFitHit(TkrFitPar parguess)
+TkrFitHit KalFitter::generateFirstFitHit(TkrFitPar parguess)
 {  
   // Purpose and Method: Set parameters for the first hit
   //          Errors are somewhat arbitrary. 
@@ -1068,8 +1078,8 @@ TkrFitHit KalFitTrack::generateFirstFitHit(TkrFitPar parguess)
   // Dependencies: None
   // Restrictions and Caveats:  None
 
-    double energy = m_hits[1].getEnergy();
-    if (energy == 0.) energy = m_energy0;
+    double energy = m_track->at(1).getEnergy();
+    if (energy == 0.) energy = m_track->getStartEnergy();
 
     //  The first error is arbitrary to a degree
     TkrFitMatrix first_errors; 
@@ -1080,12 +1090,12 @@ TkrFitHit KalFitTrack::generateFirstFitHit(TkrFitPar parguess)
         return TkrFitHit();
 
     TkrFitHit hitf(TkrFitHit::FIT, parguess, 
-        (m_hits[0].getHit(TkrFitHit::MEAS)).getCov() + first_errors);
+        (m_track->at(0).getHit(TkrFitHit::MEAS)).getCov() + first_errors);
     
     return hitf;
 }
 
-TkrFitPar KalFitTrack::guessParameters()
+TkrFitPar KalFitter::guessParameters()
 {  
   // Purpose and Method: Makes "guess" for the track 
   //        parameters from the first few hits on the track
@@ -1094,9 +1104,9 @@ TkrFitPar KalFitTrack::guessParameters()
   // Dependencies: None
   // Restrictions and Caveats:  None
 
-    int nplanes=m_hits.size();
+    int nplanes=m_track->size();
     if (nplanes<4) {
-        std::cout << "ERROR - KalFitTrack::guessParameters - too few planes" << '\n';
+        std::cout << "ERROR - KalFitter::guessParameters - too few planes" << '\n';
         return TkrFitPar();
     }
 
@@ -1104,9 +1114,9 @@ TkrFitPar KalFitTrack::guessParameters()
     double x0,x1, y0,y1, zx0, zx1, zy0,zy1; 
     int nx = 0, ny=0;
 
-    TkrFitPlaneColPtr hitPtr = m_hits.begin();
+    TkrFitPlaneColPtr hitPtr = m_track->begin();
 
-    while(hitPtr != m_hits.end()) {
+    while(hitPtr != m_track->end()) {
         TkrFitPlane& hit = *hitPtr++;
         if(hit.getProjection() == TkrCluster::X && nx < 2) {
             nx++;
@@ -1134,7 +1144,7 @@ TkrFitPar KalFitTrack::guessParameters()
     }
 
     if(nx != 2 || ny!=2) {
-        std::cout << "ERROR - KalFitTrack::guessParameters: nx or ny != 2" << '\n';
+        std::cout << "ERROR - KalFitter::guessParameters: nx or ny != 2" << '\n';
         return TkrFitPar();
     }
     double x_slope = (x1-x0)/(zx1-zx0);
@@ -1155,7 +1165,7 @@ TkrFitPar KalFitTrack::guessParameters()
     TkrFitPar parguess(x_ini, x_slope, y_ini, y_slope);
     return parguess;
 }
-void KalFitTrack::eneDetermination()
+void KalFitter::eneDetermination()
 {
   // Purpose and Method:Computes the track energy from the amount
   //     of multiple scattering alongthe track. (refered to as 
@@ -1165,7 +1175,7 @@ void KalFitTrack::eneDetermination()
   // Dependencies: None
   // Restrictions and Caveats:  None
 
-    int nplanes = m_hits.size()-2; // Assume last 2 hits are x,y pair
+    int nplanes = m_track->size()-2; // Assume last 2 hits are x,y pair
                                    // No new info. here - using SMOOTHED
 
     double totalRad  = 0.;
@@ -1181,22 +1191,22 @@ void KalFitTrack::eneDetermination()
     double y_cls_size = 1.;
     
     Vector t0(0.,0.,0.); 
-    int old_Plane_Id = m_hits[0].getIDPlane(); 
+    int old_Plane_Id = m_track->at(0).getIDPlane(); 
    
     for (int iplane = 0; iplane < nplanes; iplane++) { 
        // Get the last cluster size for range estimation
-       TkrCluster::view hit_proj = m_hits[iplane].getProjection();
-       int hit_Id = m_hits[iplane].getIDHit();
+       TkrCluster::view hit_proj = m_track->at(iplane).getProjection();
+       int hit_Id = m_track->at(iplane).getIDHit();
        if(hit_proj == TkrCluster::X) {
            x_cls_size = m_clusters->size(hit_Id);
        }
        else {
            y_cls_size = m_clusters->size(hit_Id);
        }
-        if(m_hits[iplane].getIDPlane() == old_Plane_Id) {
-            sX += m_hits[iplane].getHit(TkrFitHit::SMOOTH).getPar().getXSlope();
-            sY += m_hits[iplane].getHit(TkrFitHit::SMOOTH).getPar().getYSlope();
-            radLen += m_hits[iplane].getRadLen(); 
+        if(m_track->at(iplane).getIDPlane() == old_Plane_Id) {
+            sX += m_track->at(iplane).getHit(TkrFitHit::SMOOTH).getPar().getXSlope();
+            sY += m_track->at(iplane).getHit(TkrFitHit::SMOOTH).getPar().getYSlope();
+            radLen += m_track->at(iplane).getRadLen(); 
             count += 1.; 
             if(iplane != nplanes-1) continue;
         }
@@ -1205,16 +1215,16 @@ void KalFitTrack::eneDetermination()
         
         if(t0.magnitude() < .1) { // Trap for first plane
             t0 = t1; 
-            sX = m_hits[iplane].getHit(TkrFitHit::SMOOTH).getPar().getXSlope();
-            sY = m_hits[iplane].getHit(TkrFitHit::SMOOTH).getPar().getYSlope();
-            radLen = m_hits[iplane].getRadLen();
+            sX = m_track->at(iplane).getHit(TkrFitHit::SMOOTH).getPar().getXSlope();
+            sY = m_track->at(iplane).getHit(TkrFitHit::SMOOTH).getPar().getYSlope();
+            radLen = m_track->at(iplane).getRadLen();
             count =1.;
-            old_Plane_Id = m_hits[iplane].getIDPlane(); 
+            old_Plane_Id = m_track->at(iplane).getIDPlane(); 
             continue; 
         }
         
         double e_factor = exp(-totalRad);        
-        double t0t1 = std::min(t0*t1,1.);
+        double t0t1 = t0*t1;
         double theta = acos(t0t1);
         double rl_factor = radLen;
         
@@ -1224,11 +1234,11 @@ void KalFitTrack::eneDetermination()
         thetaSum += theta * theta /rl_factor; 
         
         // Reset for next X,Y measuring plane
-        old_Plane_Id = m_hits[iplane].getIDPlane(); 
+        old_Plane_Id = m_track->at(iplane).getIDPlane(); 
         t0 = t1; 
-        sX = m_hits[iplane].getHit(TkrFitHit::SMOOTH).getPar().getXSlope();
-        sY = m_hits[iplane].getHit(TkrFitHit::SMOOTH).getPar().getYSlope();
-        radLen = m_hits[iplane].getRadLen();
+        sX = m_track->at(iplane).getHit(TkrFitHit::SMOOTH).getPar().getXSlope();
+        sY = m_track->at(iplane).getHit(TkrFitHit::SMOOTH).getPar().getYSlope();
+        radLen = m_track->at(iplane).getRadLen();
         count =1.;
     }
 
@@ -1238,97 +1248,22 @@ void KalFitTrack::eneDetermination()
                         m_tkrGeo->siStripPitch()             + 1.;
     double prj_size_y = m_tkrGeo->siThickness()*fabs(sY)/
                         m_tkrGeo->siStripPitch()             + 1.;
-    double range_limit = 100000;  // 100 GeV max... 
+    double range_limit = 10000;  // 10 GeV max... 
     if((x_cls_size - prj_size_x) > 2 || (y_cls_size - prj_size_y) > 2) {
-        range_limit = totalRad * 50.; // 10 MeV = 20% rad. len
+        range_limit = totalRad * 50.; // 10 MeV = 15% rad. len
     }
 
-    m_KalThetaMS = sqrt(thetaSum/2./tSumCount);
-    double e_inv = sqrt(eneSum/2./eSumCount); 
-    m_KalEnergy  = 13.6/std::max(e_inv, 1.e-6); //Units:  MeV
+    m_track->setKalThetaMS(sqrt(thetaSum/2./tSumCount));
+    double e_inv = sqrt(eneSum  /2./eSumCount);
+    double kalEnergy = 13.6 / e_inv;
     
-    if(m_KalEnergy < m_control->getMinEnergy()/3.) m_KalEnergy = m_control->getMinEnergy()/3.; 
-    if(m_KalEnergy > range_limit) m_KalEnergy = range_limit;
-    m_KalEnergyErr = m_KalEnergy/sqrt(eSumCount);
+    if(kalEnergy < m_control->getMinEnergy()/3.) kalEnergy = m_control->getMinEnergy()/3.; 
+    if(kalEnergy > range_limit) kalEnergy = range_limit;
+    m_track->setKalEnergy(kalEnergy); //Units MeV
+    m_track->setKalEnergyError(kalEnergy/sqrt(eSumCount));
 }
 
-double KalFitTrack::getKink(int kplane) const
-{
-  // Purpose and Method: Computes the 3D angle between two
-  //         track segments (3 pairs of (x,y) hits)
-  // Inputs: plane where the kink is located
-  // Outputs: the kink angle
-  // Dependencies: None
-  // Restrictions and Caveats:  None
-
-    //Only valid past first 2 planes 
-    if(kplane < 2 )
-        return 10.; // Rogue value  - Invalid arg.
-
-    int nplanes = m_hits.size();
-    if(kplane + 2 > nplanes) //Same deal - last planes not valid
-        return 10.; 
-
-    Vector t0(0.,0.,0.);
-    Vector t1(0.,0.,0.);
-    int old_Plane_Id = m_hits[kplane-2].getIDPlane(); 
-    double sX = 0.;
-    double sY = 0.; 
-    double count = 0.;
-    
-    for (int iplane = kplane-2; iplane < nplanes; iplane++) {
-          
-        if(m_hits[iplane].getIDPlane() == old_Plane_Id) {
-            sX += m_hits[iplane].getHit(TkrFitHit::SMOOTH).getPar().getXSlope();
-            sY += m_hits[iplane].getHit(TkrFitHit::SMOOTH).getPar().getYSlope();
-            count += 1.; 
-            continue; 
-        }    
-        t1 = Vector(-sX/count, -sY/count, -1.).unit();
-        
-        if(t0.magnitude() < .1) { // Trap for first plane
-            t0 = t1; 
-            sX = m_hits[iplane].getHit(TkrFitHit::SMOOTH).getPar().getXSlope();
-            sY = m_hits[iplane].getHit(TkrFitHit::SMOOTH).getPar().getYSlope();
-            count =1.;
-            old_Plane_Id = m_hits[iplane].getIDPlane();           
-            continue;
-        }
-        else break; 
-    }
-        
-    double t0t1 = t0*t1;
-    double kink_theta = acos(t0t1);
-    return kink_theta;
-}
-
-double KalFitTrack::getKinkNorma(int kplane) const
-{
-  // Purpose and Method: Computes the normalized 3D kink angle.
-  //          (see KalFitTrack::kink()). Normalization is based on
-  //          expected multiple scattering
-  // Inputs: plane where kink is located
-  // Outputs: no. of sigmas for the measured kink
-  // Dependencies: None
-  // Restrictions and Caveats:  None
-
-    double kink_angle = getKink(kplane); 
-    if(kink_angle > 3.) return kink_angle;
-
-    double rad_len = m_hits[kplane].getRadLen();
-    if(m_hits[kplane].getIDPlane() == m_hits[kplane-1].getIDPlane()){
-        rad_len += m_hits[kplane-1].getRadLen();
-    } //Assume its the next one
-    else{
-        rad_len += m_hits[kplane+1].getRadLen();
-    }
-    double thetaMS_prj =  13.6/getEnergy() * sqrt(rad_len) * 
-                           (1. + .038*log(rad_len)); 
-    double sigma_kink = kink_angle /(1.414*thetaMS_prj); 
-    return sigma_kink;
-}
-
-double KalFitTrack::computeChiSqSegment(int nhits, TkrFitHit::TYPE typ)
+double KalFitter::computeChiSqSegment(int nhits, TkrFitHit::TYPE typ)
 {
   // Purpose and Method: Computes the chisquared for the first
   //            portion of the track
@@ -1340,14 +1275,14 @@ double KalFitTrack::computeChiSqSegment(int nhits, TkrFitHit::TYPE typ)
     double chi2 = 0;
     int ihit =0;
     for (ihit =0; ihit < nhits; ihit++) {
-        chi2 += m_hits[ihit].getDeltaChiSq(typ);
+        chi2 += m_track->at(ihit).getDeltaChiSq(typ);
     }
     chi2 /= (1.*nhits);
     return chi2;
 }
 
 
-int KalFitTrack::okClusterSize(int indexhit, double slope)            
+int KalFitter::okClusterSize(int indexhit, double slope)            
 {
   // Purpose and Method: Checks on that the size of the cluster
   //          is O.K.
