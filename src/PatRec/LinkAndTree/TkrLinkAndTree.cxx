@@ -5,7 +5,7 @@
 
 #include "src/PatRec/LinkAndTree/TkrLinkAndTree.h"
 
-TkrLinkAndTree::TkrLinkAndTree(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus)
+TkrLinkAndTree::TkrLinkAndTree(ITkrGeometrySvc* /*pTkrGeo*/, TkrClusterCol* pTkrClus)
 {
 	ini();
 
@@ -97,7 +97,7 @@ void TkrLinkAndTree::buildCand3D()
     //the pattern recognition output object
     if (numXcands > 0 && numYcands > 0)
     {
-        int           num3Dtrks = numXcands < numYcands ? numXcands : numYcands;
+      //int           num3Dtrks = numXcands < numYcands ? numXcands : numYcands;
         treeListPtr   xIter     = pForestX->getListStart();
         TkrLinkTree*  pTreeX    = &(*xIter);
         BestNodeList* nodeListX = pTreeX->getBestNodeList(0);

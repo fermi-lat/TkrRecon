@@ -6,12 +6,12 @@ TkrGeometryVisitor::TkrGeometryVisitor() : m_mode("propagate") {}
 
 
 IGeometry::VisitorRet
-TkrGeometryVisitor::pushShape(ShapeType s, 
+TkrGeometryVisitor::pushShape(ShapeType /*s*/, 
                               const UintVector& idvec, 
                               string name, 
-                              string material, 
+                              string /*material*/, 
                               const DoubleVector& params, 
-                              VolumeType type)
+                              VolumeType /*type*/)
 {
     // Purpose:  returns at each node of the geometry
     // Parameters:  s -- type of shape

@@ -33,12 +33,12 @@ void TkrDispCompleteNet::update()
 
 		TkrNeuralNet* pTkrNeuralNet = dynamic_cast<TkrNeuralNet*>(pTkrPatCandCol);
 
-        int numDispNeurons = pTkrNeuralNet->numNeurons();
-        int colorIdx      = 6;
+                //int numDispNeurons = pTkrNeuralNet->numNeurons();
+                //int colorIdx      = 6;
 		const char violet[]     = "violet";
 		setColor(violet);
 
-        gui::DisplayRep* pDisplay = this;
+		//gui::DisplayRep* pDisplay = this;
 
 		TkrNeuralNet::TkrNeuronList tmpList = pTkrNeuralNet->neurons();
 		TkrNeuralNet::TkrNeuronList::const_iterator hypo;

@@ -35,7 +35,7 @@ void TkrCandidate3DRep::update()
         int numCandTracks = pTkrCandidates->getNumCands();
         int colorIdx      = 0;
 
-        gui::DisplayRep* pDisplay = this;
+	//        gui::DisplayRep* pDisplay = this;
 
         while(numCandTracks--)
         {
