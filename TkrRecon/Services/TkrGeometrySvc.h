@@ -15,7 +15,7 @@
  * 
  * @author Leon Rochester
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometrySvc.h,v 1.15 2002/09/02 17:31:26 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometrySvc.h,v 1.16 2002/10/10 18:56:06 lsrea Exp $
  */
 
 #include "GaudiKernel/Service.h"
@@ -68,7 +68,10 @@ public:
     /// return the position of a strip, will accept int or double
     HepPoint3D getStripPosition(int tower, int layer, int view, double stripid);
 
-    double getReconLayerZ(int layer, int view = -1);
+    /// return the z position for a reconLayer and view
+    double getReconLayerZ(int layer, int view);
+    /// return the average z position for a reconLayer
+    double getReconLayerZ(int layer);
 
     /// calculate the tray number, botTop from layer, view
     void layerToTray (int layer, int view, int& tray, int& botTop);
