@@ -90,7 +90,13 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       HepSymMatrix C = m_VtxCovEstimates.back();
 
       //(X,SX,Y,SY) track parameters:
-      Event::TkrFitPar par = theTrack->getTrackPar();
+      Event::TkrFitPar par0 = theTrack->getTrackPar();
+
+      HepVector par(4,0);
+      par(1) = par0.getXPosition();
+      par(2) = par0.getXSlope();
+      par(3) = par0.getYPosition();
+      par(4) = par0.getYSlope();
 
       std::cout<<"INITIAL (UX,UY,UZ) OF TRACK "<<theTrack->getDirection()<<endl;
       // get "momentum" vector of track at ZRef
@@ -134,8 +140,30 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       //NEED FOR PROPAGATION. THIS SHOULD BE HANDLED BY
       //computeQAtZref() OR A PRELIMINARY METHOD TO PERFORM
       // PROPAGATION
-      HepSymMatrix G;
-      G.assign(theTrack->getTrackCov()); 
+      Event::TkrFitMatrix measCov = theTrack->getTrackCov();
+      HepSymMatrix G(4,0);
+      //      G.assign(theTrack->getTrackCov()); 
+      G(1,1) = measCov.getcovX0X0();
+      G(2,2) = measCov.getcovSxSx();
+      G(1,2) = measCov.getcovX0Sx();
+      G(2,1) = measCov.getcovSxX0();
+
+      G(3,3) = measCov.getcovY0Y0();
+      G(4,4) = measCov.getcovSySy();
+      G(3,4) = measCov.getcovY0Sy();
+      G(4,3) = measCov.getcovSyY0();
+
+      G(1,3) = measCov.getcovX0Y0();
+      G(1,4) = measCov.getcovX0Sy();
+      G(4,1) = measCov.getcovSxX0();
+
+      G(3,1) = measCov.getcovY0X0();
+      G(3,2) = measCov.getcovY0Sx();
+      G(2,3) = measCov.getcovSxY0();
+
+      G(2,4) = measCov.getcovSxSy();
+      G(4,2) = measCov.getcovSySx();
+
       G.invert(ifail);
       if(ifail)
         {
@@ -364,6 +392,8 @@ StatusCode  VtxKalFitTool::initVertex(Event::TkrFitTrackCol& theTracks)
   HepSymMatrix Cov0(3,0); //start with 0 matrix
   Cov0(1,1) = trkCov.getcovX0X0();
   Cov0(2,2) = trkCov.getcovY0Y0();
+  Cov0(1,2) = trkCov.getcovX0Y0();
+  Cov0(2,1) = trkCov.getcovX0Y0();
   Cov0(3,3) = 10.; //DUMMY FOR NOW
   //WARNING: FOLLOW UP WITH Bill on X0Y0 terms...
 
