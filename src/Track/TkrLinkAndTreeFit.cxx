@@ -49,15 +49,16 @@ TkrLinkAndTreeFit::TkrLinkAndTreeFit(ITkrGeometrySvc* pTkrGeo, TkrClusters* pTkr
         KalFitTrack* track = new KalFitTrack(iniLayer, iniTower, GFcontrol::sigmaCut, energy, testRay);                 
 
         //Now fill the hits from the pattern track
-        int              numHits = pCand->numPatCandHits();
-        CandHitVectorPtr candPtr = pCand->getCandHitPtr();
-
-        while(numHits--)
-        {
-            TkrPatCandHit candHit = *candPtr++;
-
-            track->addMeasHit(candHit);
-        }
+//        int              numHits = pCand->numPatCandHits();
+//        CandHitVectorPtr candPtr = pCand->getCandHitPtr();
+//
+//        while(numHits--)
+//        {
+//            TkrPatCandHit candHit = *candPtr++;
+//
+//            track->addMeasHit(candHit);
+//        }
+        track->findHits();
 
         //Now do the track fit
         track->doFit();
