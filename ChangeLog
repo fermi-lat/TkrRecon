@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: cohen  Thu Sep  5 05:44:19 PDT 2002
+TkrRecon/src/Display
+
+Modified Files:
+	TkrBestCandRep.cxx TkrCandidate3DRep.cxx TkrCandidatesRep.cxx 
+	TkrDispActiveNet.cxx TkrDispCompleteNet.cxx TkrTracksRep.cxx 
+Log Message:
+a few small fixes to avoid some gcc warnings
+    *
+------------------------------------------------------------
 User: lsrea  Wed Sep  4 21:15:50 PDT 2002
 TkrRecon/src/Track
 
