@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.4 2002/10/10 03:17:44 lsrea Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.5 2002/10/10 07:57:11 cohen Exp $
 // Include files
 // Gaudi system includes
 #include "GaudiKernel/MsgStream.h"
@@ -14,7 +14,6 @@
 #include "Event/Digi/TkrDigi.h"
 
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
-#include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "Event/Recon/TkrRecon/TkrFitTrack.h"
 #include "Event/Recon/TkrRecon/TkrFitPlane.h"
@@ -32,7 +31,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.4 2002/10/10 03:17:44 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.5 2002/10/10 07:57:11 cohen Exp $
 */
 
 class test_TkrRecon : public Algorithm {
@@ -109,7 +108,7 @@ StatusCode test_TkrRecon::execute()
         sc = StatusCode::FAILURE;        
         return sc;}
     else {
-        log << MSG::INFO << clusterData->nHits() << " Tkr clusters found " 
+        log << MSG::INFO << clusterData->size() << " Tkr clusters found " 
             << endreq;
     }
     
