@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: lsrea  Tue Jan 25 12:04:49 PST 2005
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx KalmanTrackFitTool.cxx 
+	TkrAlignHitsTool.cxx TkrTrackEnergyTool.cxx TrackFitUtils.cxx 
+Log Message:
+Prepare for tag v10r3: updates for TkrCluster, and start working on unix warnings
+
+    *
+------------------------------------------------------------
+User: lsrea  Tue Jan 25 12:04:49 PST 2005
 TkrRecon/src/PatRec/NeuralNet
 
 Modified Files:
