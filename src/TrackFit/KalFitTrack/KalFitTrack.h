@@ -13,7 +13,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitTrack.h,v 1.16 2002/08/29 21:14:36 atwood Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitTrack.h,v 1.17 2002/08/30 18:18:31 atwood Exp $
 */
 
 #ifndef __KalFitTrack_H
@@ -77,7 +77,7 @@ public:
     void          setType(int type)        {m_type   = type;}
     Status        status() const           {return m_status;}
     
-private:	
+private:    
     /// Utilities
     void          ini();
     double        computeQuality() const;
@@ -86,7 +86,7 @@ private:
     TkrFitHit     generateFirstFitHit(TkrFitPar pars);
     void          finish();
     void          filterStep(int iplane);
-    int           okClusterSize(TkrCluster::view axis, int indexhit, double slope);	
+    int           okClusterSize(TkrCluster::view axis, int indexhit, double slope); 
        
     /// Finds the next hit layer using particle propagator
     TkrFitPlane   projectedKPlane(TkrFitPlane previous, int klayer, double& arc_min, TkrFitHit::TYPE type = TkrFitHit::FIT);

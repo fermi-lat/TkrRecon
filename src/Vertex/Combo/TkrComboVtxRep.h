@@ -20,11 +20,11 @@ class TkrComboVtxRep : public gui::DisplayRep
 //##########################################################
 {
 public:
-	//! Constructor of this form must be provided
-	TkrComboVtxRep(IDataProviderSvc* dps, ITkrGeometrySvc* pTkrGeo);
-	virtual ~TkrComboVtxRep() {}
+    //! Constructor of this form must be provided
+    TkrComboVtxRep(IDataProviderSvc* dps, ITkrGeometrySvc* pTkrGeo);
+    virtual ~TkrComboVtxRep() {}
 
-	void update();
+    void update();
 
 private:
 

@@ -10,9 +10,9 @@
 //      Can be supplied with a list of hits to fit  
 //        See addMeasHit()
 //
-//	Addapted from GFtrack by JA Hernando  
+//  Addapted from GFtrack by JA Hernando  
 //      W. B. Atwood, SCIPP/UCSC, Nov.,2001  
-//				
+//              
 //------------------------------------------------------------------------------
 
 
@@ -515,7 +515,7 @@ double KalFitTrack::sigmaFoundHit(const TkrFitPlane& /*previousKplane*/, const T
     }
     double rError=sqrt(tError*tError+zError*zError);
     double max_dist=2.*m_sigma*rError;  //Big error as not cov. propagation
-    if (max_dist > MAX_RADIUS ) max_dist = MAX_RADIUS;		
+    if (max_dist > MAX_RADIUS ) max_dist = MAX_RADIUS;      
     
     double x0=hitp.getPar().getXPosition();
     double y0=hitp.getPar().getYPosition();
@@ -582,7 +582,7 @@ double KalFitTrack::sigmaFoundHit(Point center, int nextLayer, int prevLayer,
     }
     double rError=sqrt(tError*tError+zError*zError);
     double max_dist=2.*m_sigma*rError; 
-    if (max_dist > MAX_RADIUS ) max_dist = MAX_RADIUS;		
+    if (max_dist > MAX_RADIUS ) max_dist = MAX_RADIUS;      
     
     Point nearHit(0.,0.,center.z());
     
@@ -730,7 +730,7 @@ void KalFitTrack::finish()
         m_numSegmentPoints = computeNumSegmentPoints();
         m_chisqSegment     = computeChiSqSegment(m_numSegmentPoints);
         m_Q                = computeQuality();
-    }	
+    }   
 }
 
 int KalFitTrack::addLeadingHits(int top_layer)
@@ -1306,7 +1306,7 @@ double KalFitTrack::computeChiSqSegment(int nhits, TkrFitHit::TYPE typ)
 }
 
 
-int KalFitTrack::okClusterSize(TkrCluster::view axis, int indexhit, double slope)			 
+int KalFitTrack::okClusterSize(TkrCluster::view axis, int indexhit, double slope)            
 {
   // Purpose and Method: Checks on that the size of the cluster
   //          is O.K.
@@ -1321,7 +1321,7 @@ int KalFitTrack::okClusterSize(TkrCluster::view axis, int indexhit, double slope
     int size = (int) m_clusters->size(axis,indexhit);
     
     double distance = m_tkrGeo->siThickness()*fabs(slope)/
-		                 m_tkrGeo->siStripPitch();
+                         m_tkrGeo->siStripPitch();
     distance = distance - 1.;
     int idistance = (int) distance;
     if (idistance < 1) idistance = 1;
