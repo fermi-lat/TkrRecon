@@ -1,4 +1,20 @@
 ------------------------------------------------------------
+User: lsrea  Fri Mar  8 16:58:13 PST 2002
+TkrRecon/src/PatRec/Combo
+
+Removed Files:
+	GFbase.cxx GFbase.h GFcandidates.cxx GFcandidates.h GFdata.cxx 
+	GFdata.h GFgamma.cxx GFgamma.h GFpair.cxx GFpair.h 
+	GFparticle.cxx GFparticle.h GFpoints.cxx GFpoints.h 
+	GFsegment.cxx GFsegment.h GFtrack.cxx GFtrack.h 
+Log Message:
+Remove unused GFxxx.h, .cxx and SiRecObjs.h,.cxx files, 
+and comment out references to them in the remaining files.
+These are mainly the ntuple algorithms, which need fixing anyway.
+GFcontrol and GFtutor are still needed.
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Mar  8 16:58:10 PST 2002
 TkrRecon/src/GaudiAlg
 
