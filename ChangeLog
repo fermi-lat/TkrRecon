@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Mar 26 14:09:49 PST 2002
+TkrRecon/src/Dll
+
+Modified Files:
+	tkrRecon_load.cxx 
+Log Message:
+Remove entries to ntuple algorithms
+    *
+------------------------------------------------------------
 User: usher  Tue Mar 26 14:07:58 PST 2002
 TkrRecon/src/GaudiAlg
 
