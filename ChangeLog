@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: usher  Tue May  7 15:58:48 PDT 2002
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx KalFitTrack.h 
+Log Message:
+TDS output classes moved to GlastEVent
+Modify remaining source code to reflect this movement
+
+    *
+------------------------------------------------------------
+User: usher  Tue May  7 15:58:48 PDT 2002
 TkrRecon/src/TrackFit
 
 Removed Files:
