@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Tue Mar  6 12:22:25 PST 2001
+TkrRecon/TkrRecon GFcontrol.h GFdata.h GFgamma.h GFparticle.h SiClusters.h SiClustersAlg.h SiClustersIRFAlg.h SiLayersIRFAlg.h SiRecObjs.h SiRecObjsAlg.h
+
+Modified Files:
+	GFcontrol.h GFdata.h GFgamma.h GFparticle.h SiClusters.h 
+	SiClustersAlg.h SiClustersIRFAlg.h SiLayersIRFAlg.h 
+	SiRecObjs.h SiRecObjsAlg.h 
+Log Message:
+General cleanup of code to support output, display, etc.
+
+    *
+------------------------------------------------------------
 User: usher  Tue Mar  6 12:09:36 PST 2001
 TkrRecon/src TkrGeometrySvc.cxx
 
