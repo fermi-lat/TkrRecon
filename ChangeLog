@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Fri May 24 04:01:29 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Added Files:
+	TkrnewVertexAlg.cxx 
+Log Message:
+a new TkrVertexAlg class for testing new structure. Needs to be uncommented in Gleam/basicoptions to be called
+    *
+------------------------------------------------------------
 User: cohen  Fri May 24 04:01:28 PDT 2002
 TkrRecon/TkrRecon/GaudiAlg
 
