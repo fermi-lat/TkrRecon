@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: tlindner  Fri Mar  2 20:05:05 PST 2001
+TkrRecon/mgr requirements
+
+Modified Files:
+	requirements 
+Log Message:
+for some reason TkrREconShr isn't always sufficient to find the DLL.
+Need to use LD_LIBRARY_PATH on Linux.
+
+    *
+------------------------------------------------------------
 User: igable  Fri Mar  2 19:40:18 PST 2001
 TkrRecon/src TkrRecoAlg.cxx
 
