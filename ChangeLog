@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Sat Apr 20 12:09:30 PDT 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrGeometrySvc.cxx 
+Log Message:
+changes to handle new wafer code
+
+    *
+------------------------------------------------------------
 User: lsrea  Thu Apr 18 12:02:40 PDT 2002
 TkrRecon/doc
 
