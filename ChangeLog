@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: lsrea  Tue Oct 12 12:03:34 PDT 2004
+TkrRecon/src/Display
+
+Modified Files:
+	TkrBestCandRep.cxx TkrBestCandRep.h TkrCandidate3DRep.cxx 
+	TkrCandidate3DRep.h TkrCandidatesRep.cxx TkrCandidatesRep.h 
+	TkrClustersRep.cxx TkrClustersRep.h TkrDispActiveNet.cxx 
+	TkrDispActiveNet.h TkrDispCompleteNet.cxx TkrDispCompleteNet.h 
+Log Message:
+change to m_tkrGeom throughout
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Oct 12 12:03:33 PDT 2004
 TkrRecon/src/Cluster
 
