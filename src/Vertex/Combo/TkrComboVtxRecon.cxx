@@ -10,7 +10,7 @@
 TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTracks, TkrPatCandCol* pCandTracks)
 {
     //Define a vector to contain a list of "isolated" tracks
-    int   numTracks = pTracks->getNumTracks();
+    int   numTracks = pTracks->size();
     bool* unused    = new bool[numTracks];
 	double docaLimit = 10.0;  //mm
 
@@ -20,15 +20,15 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTr
     int   trk1Idx = 0;
 
     //Loop over the number of Fit tracks
-    TkrFitColPtr pTrack1 = pTracks->getTrackIterBegin();
+    TkrFitTrackCol::iterator pTrack1 = pTracks->begin();
 
-    while(pTrack1 < pTracks->getTrackIterEnd() && unused[trk1Idx])
+    while(pTrack1 < pTracks->end() && unused[trk1Idx])
     {
         TkrFitTrack* track1  = *pTrack1++;
-        TkrFitColPtr pTrack2 = pTrack1;
+        TkrFitTrackCol::iterator pTrack2 = pTrack1;
         int          trk2Idx = trk1Idx + 1;
 
-        while(pTrack2 < pTracks->getTrackIterEnd() && unused[trk2Idx])
+        while(pTrack2 < pTracks->end() && unused[trk2Idx])
         {
             TkrFitTrack* track2 = *pTrack2++;
 
@@ -116,13 +116,12 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTr
 
 
     //Go through unused list looking for isolated tracks
-    numTracks = pTracks->getNumTracks();
-
-    while(numTracks--)
+     TkrFitTrackCol::iterator it;
+     for(it=pTracks->begin(); it != pTracks->end(); ++it)
     {
         if (unused[numTracks])
         {
-            TkrFitTrack* track1 = pTracks->getTrack(numTracks);
+            TkrFitTrack* track1 = *it;
 
             TkrVertex* vertex = new TkrVertex(track1->getLayer(),track1->getTower(),track1->getEnergy(),0.,Ray(track1->getPosition(),track1->getDirection()));
 
