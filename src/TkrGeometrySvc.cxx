@@ -9,6 +9,7 @@
 static const SvcFactory<TkrGeometrySvc> s_factory;
 const ISvcFactory& TkrGeometrySvcFactory = s_factory;
 
+
 //------------------------------------------------------------------------------
 /// Service parameters which can be set at run time must be declared.
 /// This should be done in the constructor.
@@ -34,7 +35,7 @@ StatusCode TkrGeometrySvc::initialize()
     setProperties();
     
     xml::IFile xmlFile(m_xmlFile.c_str());
-    
+  
     if (m_xmlFile.c_str() != "")
     {
         m_numX            = xmlFile.getInt(   "tkr", "numXtowers");
@@ -48,8 +49,9 @@ StatusCode TkrGeometrySvc::initialize()
         m_indMixed        = xmlFile.getInt(   "tkr", "indMixed");
         m_viewMixed       = xmlFile.getInt(   "tkr", "viewMixed");
         m_ladderMixed     = xmlFile.getInt(   "tkr", "ladderMixed");
-        m_Z0              = xmlFile.getInt(   "tkr", "Z0");
-        
+
+        m_Z0              = xmlFile.getDouble("tkr", "Z0");      
+        std::cout << "z0 = "  << m_Z0 << std::endl;
         m_towerPitch      = xmlFile.getDouble("tkr", "towerPitch");
         m_trayWidth       = xmlFile.getDouble("tkr", "trayWidth");
         m_trayHeight      = xmlFile.getDouble("tkr", "trayHeight");
@@ -271,10 +273,7 @@ tkrDetGeo TkrGeometrySvc::getSiLadder(int ilayer, tkrDetGeo::axis a, int iladder
     
     double zsize = 2.*layer.size().z();
     
-    xpos += -0.5*m_trayWidth;
-    ypos += -0.5*m_trayWidth;
-
-    double pos = (iladder+0.5)*m_ladderWidth + iladder*m_ladderGap;
+    double pos = -0.5*m_trayWidth + (iladder+0.5)*m_ladderWidth + iladder*m_ladderGap;
     if (fabs(pos) < 1e-5) pos =0.; 
     if (a == tkrDetGeo::X) {
         xpos += pos;

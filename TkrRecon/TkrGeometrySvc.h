@@ -53,8 +53,8 @@ public:
     int    ladderMixed()     {return m_ladderMixed;}
     int    isizeMixed()      {return m_isizeMixed;}
     int    numPlanes()       {return m_nlayers;}
-    int    Z0()              {return m_Z0;}
-    
+
+    double Z0()              {return m_Z0;}
     double towerPitch()      {return m_towerPitch;}
     double trayWidth()       {return m_trayWidth;}
     double trayHeight()      {return m_trayHeight;}
@@ -118,7 +118,7 @@ private:
     int    m_nSuperGLayers; // number of superglast layers (no longer used)
     */
 
-    int    m_Z0;            // Tower coord of the middle of the bottom Si layer
+    double m_Z0;            // Tower coord of the middle of the bottom Si layer
     
     double m_towerPitch;    // Distance between centers of adjacent towers
     double m_trayWidth;
