@@ -36,7 +36,7 @@ macro_append TkrTrack_headers     "" WIN32 " ../TkrRecon/Track/*.h ../TkrRecon/T
 
 # have a seperate library to export the tracker recon data classes 
 
-library TkrReconData -no_share Cluster/*.cpp                 \
+library TkrReconData -no_share Cluster/*.cxx                 \
                                PatRec/*.cxx                  \
                                PatRec/Combo/*.cxx            \
                                PatRec/LinkAndTree/*.cxx      \
@@ -47,7 +47,7 @@ library TkrReconData -no_share Cluster/*.cpp                 \
                                Display/*.cxx                 \
                                ${TkrReconData_headers}
 
-library TkrCluster   -no_share Cluster/*.cpp                 \
+library TkrCluster   -no_share Cluster/*.cxx                 \
                                ${TkrCluster_headers}
 library TkrPatRec    -no_share PatRec/*.cxx                  \
                                PatRec/LinkAndTree/*.cxx      \
@@ -60,9 +60,8 @@ library TkrTrack     -no_share Track/*.cxx                   \
 
 library TkrRecon               GaudiAlg/*.cxx                \
                                Display/*.cxx                 \
-                               Services/*.cpp                \
                                Services/*.cxx                \
-                               Dll/*.cpp                     \
+                               Dll/*.cxx                     \
                                ${TkrRecon_headers}           \
                                $(TkrReconDir)/TkrCluster.lib \
                                $(TkrReconDir)/TkrPatRec.lib  \
