@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Mon Jul 22 13:51:18 PDT 2002
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+Clean-up; Protected Candidate constructor from doing fits with empty tracks
+    *
+------------------------------------------------------------
 User: atwood  Mon Jul 22 13:49:56 PDT 2002
 TkrRecon/src/Track
 
