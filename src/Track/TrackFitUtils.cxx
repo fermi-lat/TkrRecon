@@ -138,65 +138,59 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
         double rmsResid         =  0.;
         double start_energy     = track.getInitialEnergy(); 
         double cos_inv          = 1./fabs(track.getInitialDirection().z()); 
-        double z0               = 0; 
+        double z0               = x0.z(); 
         double rad_len          = 0.; 
-        int    plane_count      = 0; 
+        int    plane_count      = 1; 
         int    numSegmentPoints = 0; 
         bool    quit_first      = false; 
 
-        // Loop over the hits on the track
+        // Loop over the hits on the track. Note planes are layers of SSDs
         for(Event::TkrTrackHitVecItr hitPtr = track.begin(); hitPtr != track.end(); hitPtr++)
         {
-            plane_count++; 
             Event::TkrTrackHit* hit = *hitPtr;
+            rad_len += hit->getRadLen(); 
 
-            if (!(hit->getStatusBits() & Event::TkrTrackHit::HITONFIT)) continue;
+			if ((hit->getStatusBits()& Event::TkrTrackHit::HITONFIT) && hit->validCluster()) { 
             
-            if(plane_count > 2 && !quit_first) 
-            {
-                if(plane_count == 3) z0 = hit->getZPlane();
-                rad_len += hit->getRadLen(); 
-                double arc_len  = (z0- hit->getZPlane())*cos_inv; 
-                double theta_ms = 13.6/start_energy * sqrt(rad_len) *
-                    (1. + .038*log(rad_len));
-                double plane_err = cos_inv*arc_len*theta_ms/1.7321; 
-                quit_first  = plane_err > 2.*m_tkrGeom->siStripPitch();
-            }
-            if(!quit_first) numSegmentPoints++;
-
-            int this_plane = m_tkrGeom->trayToPlane(hit->getTkrId().getTray(),hit->getTkrId().getBotTop());
-            bool xPlane = hit->getTkrId().getView() == idents::TkrId::eMeasureX; 
-
-            double x  = hit->getMeasuredPosition(Event::TkrTrackHit::SMOOTHED);
-            double xm = hit->getMeasuredPosition(Event::TkrTrackHit::MEASURED);
-
-            if (xPlane) 
-            {
-                num_xPlanes++;
-                if(last_Xplane > 0) 
-                {
-                    Xgaps += this_plane-last_Xplane-1; 
-                    if(num_xPlanes < 3 || !quit_first) 
-                    {
-                        track.setNumXFirstGaps(Xgaps);
-                    }
+                if(plane_count > 4 && !quit_first) {
+                    double arc_len  = (z0- hit->getZPlane())*cos_inv; 
+                    double theta_ms = 13.6/start_energy * sqrt(rad_len) *
+                                             (1. + .038*log(rad_len));
+                    double plane_err = cos_inv*arc_len*theta_ms/1.7321; 
+                    quit_first  = plane_err > 2.*m_tkrGeom->siStripPitch();
                 }
-                last_Xplane = this_plane; 
-            }
-            else 
-            {
-                num_yPlanes++; 
-                if(last_Yplane >= 0) {
-                    Ygaps += this_plane-last_Yplane-1;
-                    if(num_yPlanes < 3 || !quit_first) {
-                        track.setNumYFirstGaps(Ygaps);
+
+                if(!quit_first) numSegmentPoints++;
+
+                int this_plane = m_tkrGeom->trayToPlane(hit->getTkrId().getTray(),hit->getTkrId().getBotTop());
+                bool xPlane = hit->getTkrId().getView() == idents::TkrId::eMeasureX; 
+                
+				if(hit->validSmoothedHit()) {
+                    double x  = hit->getMeasuredPosition(Event::TkrTrackHit::SMOOTHED);
+                    double xm = hit->getMeasuredPosition(Event::TkrTrackHit::MEASURED);
+
+                    if (xPlane) {
+                        num_xPlanes++;
+                        if(last_Xplane > 0) {
+                            Xgaps += last_Xplane - this_plane - 1; 
+                            if(num_xPlanes < 3 || !quit_first) track.setNumXFirstGaps(Xgaps);
+                        }
+                        last_Xplane = this_plane; 
                     }
-                } 
-                last_Yplane = this_plane;
-            }
-            rmsResid+= (x-xm)*(x-xm);
+                    else {
+                        num_yPlanes++; 
+                        if(last_Yplane >= 0) {
+                            Ygaps += last_Yplane - this_plane - 1;
+                            if(num_yPlanes < 3 || !quit_first) track.setNumYFirstGaps(Ygaps);
+                        } 
+                    last_Yplane = this_plane;
+                    }
+                    rmsResid+= (x-xm)*(x-xm);
+					plane_count++; 
+				}
+			}
         }
-        rmsResid=sqrt(rmsResid/(1.*nplanes));
+        rmsResid=sqrt(rmsResid/(1.*plane_count));
         
         track.setScatter(rmsResid);
         track.setNumSegmentPoints(numSegmentPoints);
@@ -207,8 +201,7 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
         eneDetermination(track);
         
         // Segment Calculation
-        if (track.getChiSquareFilter() >= 0) 
-        {
+        if (track.getChiSquareFilter() >= 0) {
             track.setChiSqSegment(computeChiSqSegment(track, track.getNumSegmentPoints()));
             track.setQuality(computeQuality(track));
         }   
@@ -219,8 +212,6 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
         TkrFitPart->setStepStart(x0, dir, arc_min);
         track.setTkrCalRadLen(TkrFitPart->radLength()); 
     }
-    
-
 }
 
 double TrackFitUtils::computeQuality(const Event::TkrTrack& track) const
@@ -295,7 +286,7 @@ void TrackFitUtils::eneDetermination(Event::TkrTrack& track)
         // Get the last cluster size for range estimation
         const Event::TkrTrackHit& plane   = **planeIter;
 
-        if (!(plane.getStatusBits() & Event::TkrTrackHit::HITONFIT)) continue;
+        if (!((plane.getStatusBits() & Event::TkrTrackHit::HITONFIT)&& plane.validSmoothedHit())) continue;
 
         // Valid hit, get cluster and id info
         Event::TkrClusterPtr cluster = plane.getClusterPtr();
@@ -433,7 +424,10 @@ void TrackFitUtils::setSharedHitsStatus(Event::TkrTrack& track)
             i_share++;
             continue;
         }
-	    if(!(*plane)->validCluster()) continue;
+	   if(!(*plane)->validCluster()) {
+		   plane++;
+		   continue;
+	   }
 
         // For the rest - unflag according to Cluster size and Trajectory
         Event::TkrClusterPtr cluster = (*plane)->getClusterPtr();
