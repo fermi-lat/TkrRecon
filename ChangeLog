@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Fri Aug  8 13:06:24 PDT 2003
+TkrRecon/src/Dll
+
+Modified Files:
+	tkrRecon_load.cxx 
+Log Message:
+Small modifications for MC/Recon relational table tools
+
+    *
+------------------------------------------------------------
 User: usher  Fri Aug  8 13:05:51 PDT 2003
 TkrRecon/TkrRecon/MonteCarlo
 
