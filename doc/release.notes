@@ -3,6 +3,9 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v9r0p2   09-Sep-2004  LSR  Move energy loss out of TkrFitPlane
+                             Add BetheBlock muon option
+                             Change error default to slope-dependent errors
   v9r0     07-Sep-2004  LSR  changes for alignment, and new alignment service interface
   v8r12p26 31-Aug-2004  LSR  Got it right this time
   v8r12p25 31-Aug-2004  LSR  Remove assumption that bottom tray is Y-measuring

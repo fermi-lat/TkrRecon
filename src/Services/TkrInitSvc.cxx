@@ -19,6 +19,7 @@ Service(name, pSvcLocator)
     declareProperty("TkrFEneParticle",       m_fEneParticle       = control->getFEneParticle()      );
     declareProperty("TkrSigmaCut",           m_sigmaCut           = control->getSigmaCut()          );
     declareProperty("TkrMinEnergy",          m_minEnergy          = control->getMinEnergy()         );
+    declareProperty("TkrHitEnergyType",      m_hitEnergyType      = control->getHitEnergyType()     );
     declareProperty("TkrMaxConsecutiveGaps", m_maxConsecutiveGaps = control->getMaxConsecutiveGaps());
     declareProperty("TkrMinSegmentHits",     m_minSegmentHits     = control->getMinSegmentHits()    );
     declareProperty("TkrMaxChiSqCut",        m_maxChiSqCut        = control->getMaxChisqCut()       );
@@ -51,6 +52,7 @@ StatusCode TkrInitSvc::initialize()
     if (m_fEneParticle       != control->getFEneParticle()      ) control->setFEneParticle(m_fEneParticle);
     if (m_sigmaCut           != control->getSigmaCut()          ) control->setSigmaCut(m_sigmaCut);
     if (m_minEnergy          != control->getMinEnergy()         ) control->setMinEnergy(m_minEnergy);
+    if (m_hitEnergyType      != control->getHitEnergyType()     ) control->setHitEnergyType(m_hitEnergyType);
     if (m_maxConsecutiveGaps != control->getMaxConsecutiveGaps()) control->setMaxConsGaps(m_maxConsecutiveGaps);
     if (m_minSegmentHits     != control->getMinSegmentHits()    ) control->setMinSegmentHits(m_minSegmentHits);
     if (m_maxChiSqCut        != control->getMaxChisqCut()       ) control->setMaxChisqCut(m_maxChiSqCut);

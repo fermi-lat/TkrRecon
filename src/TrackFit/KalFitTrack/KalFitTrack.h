@@ -13,7 +13,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitTrack.h,v 1.22 2003/03/12 23:35:00 usher Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitTrack.h,v 1.23 2003/03/13 19:13:24 lsrea Exp $
 */
 
 #ifndef __KalFitTrack_H
@@ -82,6 +82,7 @@ public:
     Status        status() const           {return m_status;}
 
     void          setEnergy(double energy) {m_energy0 = energy;}
+    void          setDeltaEnergy(TkrFitPlane& plane, double energy = 1.e10);
     
 private:    
     /// Utilities

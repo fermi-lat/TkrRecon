@@ -474,8 +474,11 @@ TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer,
     projectedKplane.setRadLen(radLen); 
     projectedKplane.setQmaterial(Q);
     if (m_control->getPlaneEnergies() && prevKplane.getProjection() != TkrCluster::XY
-        && prev_energy > m_control->getMinEnergy()/2.)  
-        projectedKplane.setDeltaEne(prevKplane.getEnergy());
+        && prev_energy > m_control->getMinEnergy()/2.) { 
+        //projectedKplane.setDeltaEne(prevKplane.getEnergy());
+        // or try
+        setDeltaEnergy(prevKplane);
+        }
    
     return projectedKplane;
 }
@@ -990,8 +993,11 @@ void KalFitTrack::filterStep(int iplane)
     double prev_energy = m_hits[iplane].getEnergy();
     m_hits[iplane+1].setEnergy(prev_energy);
     if (m_control->getPlaneEnergies()) {
-        if(prev_energy > m_control->getMinEnergy()/2.) 
-            m_hits[iplane+1].setDeltaEne(prev_energy);
+        if(prev_energy > m_control->getMinEnergy()/2.) {
+            //m_hits[iplane+1].setDeltaEne(prev_energy);
+            // or try
+            setDeltaEnergy(m_hits[iplane+1], prev_energy);
+        }
     }
 }
 
@@ -1433,3 +1439,31 @@ int KalFitTrack::okClusterSize(int indexhit, double slope)
     
     return icluster;
 }
+
+void KalFitTrack::setDeltaEnergy(TkrFitPlane& plane, double ene)
+{
+    std::string mode = m_control->getHitEnergyType();
+    double radlen = plane.getRadLen();
+    if (ene==1.e10) ene = plane.getEnergy();
+
+    if (mode=="MuRadLoss") {
+        //  Code for muon testing ~ Bethe-Block dE/dx 
+        const double MUMASS = 105.7;
+        double mu_sq     = MUMASS*MUMASS; 
+        double pb_sq     = ene*ene; //Note: for fitting ene = p*Beta
+        double p_sq      = pb_sq*(1.+sqrt(1.+ 4.*mu_sq/pb_sq))/2.;
+        double ke        = sqrt(mu_sq+p_sq) - MUMASS; 
+        double beta_sq   = pb_sq/p_sq; 
+        double d_ke      = radlen*18.3/beta_sq;// const. from wallet card est. 
+        double ke_next   = ke - d_ke;
+        double e_next    = ke_next + MUMASS;
+        double p_next_sq = e_next*e_next - mu_sq; 
+        double pB_next   = p_next_sq/e_next;
+        plane.setEnergy(pB_next);
+    } else {
+        //    Code for e+ & e-: average radiative loss
+        double factor = exp(-1.*radlen);
+        plane.setEnergy(ene*factor);   
+    }
+}
+

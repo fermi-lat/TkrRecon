@@ -17,7 +17,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.11 2004/04/13 18:33:53 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.12 2004/06/01 22:04:14 lsrea Exp $
  */
 
 
@@ -57,6 +57,7 @@ private:
 
     double           m_sigmaCut;
     double           m_minEnergy;
+    std::string      m_hitEnergyType;
 
     int              m_maxConsecutiveGaps;
     int              m_minSegmentHits;
