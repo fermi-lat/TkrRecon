@@ -13,7 +13,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrReconAlg.h,v 1.12 2002/08/20 19:54:31 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrReconAlg.h,v 1.13 2002/08/28 22:55:46 usher Exp $
  */
 
 class TkrReconAlg : public Algorithm
@@ -21,17 +21,17 @@ class TkrReconAlg : public Algorithm
 public:
 
     // Standard Gaudi Algorithm constructor format
-	TkrReconAlg(const std::string& name, ISvcLocator* pSvcLocator); 
-	virtual ~TkrReconAlg() {}
+    TkrReconAlg(const std::string& name, ISvcLocator* pSvcLocator); 
+    virtual ~TkrReconAlg() {}
 
     // The thee phases in the life of a Gaudi Algorithm
-	StatusCode initialize();
-	StatusCode execute();
-	StatusCode finalize();
-	
+    StatusCode initialize();
+    StatusCode execute();
+    StatusCode finalize();
+    
 private:
-	
-	// Input parameter which determines the type of reconstruction to run
+    
+    // Input parameter which determines the type of reconstruction to run
     std::string m_TrackerReconType;
 
     // Pointers to the four main TkrRecon Gaudi Algorithms

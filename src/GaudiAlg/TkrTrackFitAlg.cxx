@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.2 2002/08/28 22:55:48 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.3 2002/09/05 12:44:19 cohen Exp $
 //
 // Description:
 //      Controls the track fitting
@@ -59,7 +59,7 @@ StatusCode TkrTrackFitAlg::initialize()
 
     MsgStream log(msgSvc(), name());
 
-	log << MSG::INFO << "TkrTrackFitAlg Initialization" << endreq;
+    log << MSG::INFO << "TkrTrackFitAlg Initialization" << endreq;
 
     // Which propagator to use?
     if (m_PropagatorType == 0)
@@ -68,7 +68,7 @@ StatusCode TkrTrackFitAlg::initialize()
         IPropagatorSvc* propSvc = 0;
         sc = service("G4PropagatorSvc", propSvc, true);
         m_KalParticle = propSvc->getPropagator();
-	    log << MSG::INFO << "Using Geant4 Particle Propagator" << endreq;
+        log << MSG::INFO << "Using Geant4 Particle Propagator" << endreq;
     }
     else
     {
@@ -76,7 +76,7 @@ StatusCode TkrTrackFitAlg::initialize()
         IRecoSvc* gismoSvc = 0;
         sc = service("RecoSvc", gismoSvc, true);
         m_KalParticle = gismoSvc->getPropagator();
-	    log << MSG::INFO << "Using Gismo Particle Propagator" << endreq;
+        log << MSG::INFO << "Using Gismo Particle Propagator" << endreq;
     }
 
     // Depending upon the value of the m_TrackFitType parameter, set up the 
@@ -102,7 +102,7 @@ StatusCode TkrTrackFitAlg::initialize()
         sc = StatusCode::FAILURE;
     }
 
-	return sc;
+    return sc;
 }
 
 StatusCode TkrTrackFitAlg::execute()
@@ -116,7 +116,7 @@ StatusCode TkrTrackFitAlg::execute()
     MsgStream log(msgSvc(), name());
     StatusCode sc = StatusCode::SUCCESS;
 
-	log << MSG::DEBUG << "------- Recon of new Event --------" << endreq;
+    log << MSG::DEBUG << "------- Recon of new Event --------" << endreq;
 
     // Recover pointer to the reconstructed clusters NOT USED
     //    Event::TkrClusterCol* TkrClusters = SmartDataPtr<Event::TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol); 
@@ -142,11 +142,11 @@ StatusCode TkrTrackFitAlg::execute()
         m_FitTool->doTrackFit(pCand);
     }
 
-	return sc;
+    return sc;
 }
 
 StatusCode TkrTrackFitAlg::finalize()
-{	
-	return StatusCode::SUCCESS;
+{   
+    return StatusCode::SUCCESS;
 }
 

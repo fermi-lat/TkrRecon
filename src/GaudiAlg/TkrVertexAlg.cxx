@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.11 2002/08/29 16:45:34 cohen Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.12 2002/09/01 22:24:59 cohen Exp $
 //
 // Description:
 //      Handles the Gaudi part of the vertex reconstruction
@@ -121,7 +121,7 @@ StatusCode TkrVertexAlg::execute()
 
 
 StatusCode TkrVertexAlg::finalize()
-{	
+{   
     return StatusCode::SUCCESS;
 }
 

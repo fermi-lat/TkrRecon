@@ -20,24 +20,24 @@
  * 
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrTrackFitAlg.h,v 1.1 2002/08/20 19:54:31 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrTrackFitAlg.h,v 1.2 2002/08/28 22:55:46 usher Exp $
  */
 
 class TkrTrackFitAlg : public Algorithm
 {
 public:
     // Standard Gaudi Algorithm constructor format
-	TkrTrackFitAlg(const std::string& name, ISvcLocator* pSvcLocator); 
-	virtual ~TkrTrackFitAlg() {}
+    TkrTrackFitAlg(const std::string& name, ISvcLocator* pSvcLocator); 
+    virtual ~TkrTrackFitAlg() {}
 
     // The thee phases in the life of a Gaudi Algorithm
-	StatusCode initialize();
-	StatusCode execute();
-	StatusCode finalize();
+    StatusCode initialize();
+    StatusCode execute();
+    StatusCode finalize();
 
     // This maintains a pointer to the particular propagator needed by the track fit
     static IKalmanParticle* m_KalParticle;
-	
+    
 private:
 
     /// Type of fit to perform
