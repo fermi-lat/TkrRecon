@@ -119,11 +119,17 @@ std:: vector<TkrPoint> TkrPoints::getAllLayerPoints()
     while(!finished()) {
         
         Point tmpPoint(getSpacePoint());
-             
-        TkrPoint point(tmpPoint,tower(),m_layer,xID(),yID());
-        
-        m_pointList.push_back(point);
+	if(tmpPoint.x()==0 &&
+	   tmpPoint.y()==0 &&
+	   tmpPoint.z()==0)
+	  {
+	    continue;
+	  }else{
+	    
+	    TkrPoint point(tmpPoint,tower(),m_layer,xID(),yID());
+	    
+	    m_pointList.push_back(point);
+	  }
     }
-    
     return m_pointList;
 }
