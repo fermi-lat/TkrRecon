@@ -1,4 +1,19 @@
 ------------------------------------------------------------
+User: usher  Fri Oct  1 14:07:39 PDT 2004
+TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices
+
+Modified Files:
+	IProcNoiseMatrix.h NoProcNoiseMatrix.cxx NoProcNoiseMatrix.h 
+	StdProcNoiseMatrix.cxx StdProcNoiseMatrix.h 
+	StdProjectionMatrix.cxx StdProjectionMatrix.h 
+	StdTransportMatrix.cxx StdTransportMatrix.h 
+	ThreeDProjectionMatrix.cxx ThreeDProjectionMatrix.h 
+Log Message:
+Modifications needed to reflect new form of TkrCluster and use of TkrId's
+(these somehow got lost in the first checkin)
+
+    *
+------------------------------------------------------------
 User: usher  Fri Oct  1 14:02:05 PDT 2004
 TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors
 
