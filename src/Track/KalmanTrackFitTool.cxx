@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.20 2004/11/18 00:34:45 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.21 2004/11/18 22:43:30 usher Exp $
  */
 
 // to turn one debug variables
@@ -562,15 +562,16 @@ double KalmanTrackFitTool::doSmoother(Event::TkrTrack& track)
     // Smoother
     //---------
     int nplanes  = track.getNumHits();
-    Event::TkrTrackHit& prvPlane  = *track[nplanes-1];
 
 	// Find last used plane on the track
 	int last_used_plane = nplanes-1; 
 	for( int i = nplanes -1 ; i >= 0 ; i--) {
-		prvPlane = *track[i];
-		if(prvPlane.getStatusBits() & Event::TkrTrackHit::HITONFIT) break;
+		Event::TkrTrackHit& hit = *track[i];
+		if(hit.getStatusBits() & Event::TkrTrackHit::HITONFIT) break;
 		last_used_plane--;
 	}
+
+    Event::TkrTrackHit& prvPlane = *track[last_used_plane];
     idents::TkrId       tkrId    = prvPlane.getTkrId();
     double              prevZ    = prvPlane.getZPlane();
     TkrTrkParams        fitPar   = prvPlane.getTrackParams(Event::TkrTrackHit::FILTERED);
