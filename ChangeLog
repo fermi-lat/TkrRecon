@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+User: usher  Sun Jan 27 11:49:16 PST 2002
+TkrRecon/TkrRecon/GaudiAlg
+
+Modified Files:
+	TkrDisplayAlg.h TkrReconAlg.h 
+Log Message:
+
+Modifications to allow drawing of candidate and fit 3D tracks with TDS classes,
+and modification to drive the pat rec through fit stage
+
+
+
+    *
+------------------------------------------------------------
 User: usher  Sun Jan 27 11:46:51 PST 2002
 TkrRecon/src/GaudiAlg
 
