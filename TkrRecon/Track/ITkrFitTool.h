@@ -16,7 +16,6 @@
 
 namespace Event
 {
-    class TkrPatCand;
     class TkrTrack;
     class TkrTrackHit;
 }
@@ -30,12 +29,10 @@ class ITkrFitTool : virtual public IAlgTool
     static const InterfaceID& interfaceID() { return IID_ITkrFitTool; }
 
     /// @brief Given a pattern track, perform the track fit
-    virtual StatusCode doTrackFit(Event::TkrPatCand* patCand)=0;
-    virtual StatusCode doTrackFit(Event::TkrTrack*   patCand)=0;
+    virtual StatusCode doTrackFit(Event::TkrTrack* patCand)=0;
 
     /// @brief Given a pattern track, perform the track re-fit
-    virtual StatusCode doTrackReFit(Event::TkrPatCand* patCand)=0;
-    virtual StatusCode doTrackReFit(Event::TkrTrack*   patCand)=0;
+    virtual StatusCode doTrackReFit(Event::TkrTrack* patCand)=0;
 
     /// @brief Method to set type of hit energy loss for a track
     virtual void       setHitEnergyLoss(const std::string& energyLossType)  {return;}

@@ -5,14 +5,14 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/RadLossHitEnergy.cxx,v 1.2 2004/09/08 15:32:47 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/RadLossHitEnergy.cxx,v 1.3 2004/10/01 21:07:40 usher Exp $
  */
 
 #include "RadLossHitEnergy.h"
 #include "Event/Recon/TkrRecon/TkrTrack.h"
 
-RadLossHitEnergy::RadLossHitEnergy() : 
-                  m_control(TkrControl::getPtr())
+RadLossHitEnergy::RadLossHitEnergy(double mass) : 
+                  m_mass(mass), m_control(TkrControl::getPtr())
 {
     return;
 }
@@ -22,6 +22,16 @@ double RadLossHitEnergy::initialHitEnergy(const Event::TkrTrack& patCand,
                                           const double trkEnergy)
 {
     return trkEnergy;
+}
+    
+double RadLossHitEnergy::kinETopBeta(const double energy)
+{
+    return energy;
+}
+    
+double RadLossHitEnergy::pBetaToKinE(const double energy)
+{
+    return energy;
 }
 
 double RadLossHitEnergy::updateHitEnergy(const double curEnergy, const double radLen)
