@@ -16,6 +16,7 @@
 #include "TkrRecon/GaudiAlg/TkrFindAlg.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/TopLevel/EventModel.h"
 #include "TkrRecon/Track/GFcontrol.h"
 
 //#include "src/PatRec/LinkAndTree/TkrLinkAndTreePR.h"
@@ -60,11 +61,11 @@ StatusCode TkrFindAlg::execute()
     /*! Check to see if we can get the subdirectory. If not create it
     */
     DataObject* pnode =0;
-    sc = eventSvc()->retrieveObject("/Event/TkrRecon", pnode);
+    sc = eventSvc()->retrieveObject(EventModel::TkrRecon::Event, pnode);
     
     if( sc.isFailure() ) 
     {
-        sc = eventSvc()->registerObject("/Event/TkrRecon",new DataObject);
+        sc = eventSvc()->registerObject(EventModel::TkrRecon::Event,new DataObject);
         if( sc.isFailure() ) 
         {
             log << MSG::ERROR << "Could not create TkrRecon directory" << endreq;
@@ -73,7 +74,7 @@ StatusCode TkrFindAlg::execute()
     }
     
     //Recover a pointer to the raw digi objects
-    Event::TkrClusterCol* pTkrClus  = SmartDataPtr<Event::TkrClusterCol>(eventSvc(),"/Event/TkrRecon/TkrClusterCol");
+    Event::TkrClusterCol* pTkrClus  = SmartDataPtr<Event::TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol);
 
     //Ultimately we want pattern recognition to be independent of calorimetry.
     //But, for now allow this option to help some pattern rec algorithms
@@ -103,7 +104,7 @@ StatusCode TkrFindAlg::execute()
     Event::TkrPatCandCol* pTkrCands = pPatRecon->doPatRecon(pTkrClus, CalEnergy, CalPosition);
 
     //Register this object in the TDS
-    sc = eventSvc()->registerObject("/Event/TkrRecon/TkrPatCandCol",pTkrCands);
+    sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrPatCandCol,pTkrCands);
     
     if (pTkrClus == 0 || pTkrCands == 0) sc = StatusCode::FAILURE;
     

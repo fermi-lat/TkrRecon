@@ -7,6 +7,7 @@
 #include "gui/DisplayControl.h"
 #include "GuiSvc/IGuiSvc.h"
 #include "gui/GuiMgr.h"
+#include "Event/TopLevel/EventModel.h"
 
 #include "TkrRecon/GaudiAlg/TkrClusterAlg.h"
 #include "src/Cluster/TkrMakeClusters.h"
@@ -69,11 +70,11 @@ StatusCode TkrClusterAlg::execute()
     // Check to see if we can get the subdirectory. If not create it
     
     DataObject* pnode =0;
-    sc = eventSvc()->retrieveObject("/Event/TkrRecon", pnode);
+    sc = eventSvc()->retrieveObject(EventModel::TkrRecon::Event, pnode);
     
     if( sc.isFailure() ) 
     {
-        sc = eventSvc()->registerObject("/Event/TkrRecon",new DataObject);
+        sc = eventSvc()->registerObject(EventModel::TkrRecon::Event,new DataObject);
         if( sc.isFailure() ) 
         {
             log << MSG::ERROR << "Could not create TkrRecon directory" << endreq;
@@ -82,12 +83,12 @@ StatusCode TkrClusterAlg::execute()
     }
     
     // Recover a pointer to the raw digi objects
-    m_TkrDigis   = SmartDataPtr<TkrDigiCol>(eventSvc(),"/Event/Digi/TkrDigiCol");
+    m_TkrDigis   = SmartDataPtr<TkrDigiCol>(eventSvc(),EventModel::Digi::TkrDigiCol);
     
     // Create the TkrClusterCol TDS object
     m_TkrClusterCol = new TkrClusterCol();
     // Register the object in the TDS
-    sc = eventSvc()->registerObject("/Event/TkrRecon/TkrClusterCol",m_TkrClusterCol);
+    sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrClusterCol,m_TkrClusterCol);
     
 	// make the clusters
     TkrMakeClusters maker(m_TkrClusterCol, pTkrGeo, pBadStrips, m_TkrDigis);

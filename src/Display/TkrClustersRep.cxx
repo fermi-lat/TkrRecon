@@ -1,6 +1,6 @@
 #include "TkrRecon/Display/TkrClustersRep.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
-
+#include "Event/TopLevel/EventModel.h"
 
 //------------------------------------------------------------------------------
 //  Code to implement the TkrClustersRep class. 
@@ -20,7 +20,7 @@ TkrClustersRep::TkrClustersRep(IDataProviderSvc* dataProviderSvc)
 void TkrClustersRep::update()
 //##############################################
 {
-    Event::TkrClusterCol* pClusters = SmartDataPtr<Event::TkrClusterCol>(dps,"/Event/TkrRecon/TkrClusterCol");
+    Event::TkrClusterCol* pClusters = SmartDataPtr<Event::TkrClusterCol>(dps,EventModel::TkrRecon::TkrClusterCol);
 
     if (pClusters)
     {
