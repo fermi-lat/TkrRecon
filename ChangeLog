@@ -1,5 +1,19 @@
 ------------------------------------------------------------
 User: usher  Thu Sep 23 14:30:25 PDT 2004
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusterTable.cxx TkrMakeClusterTable.h 
+	TkrMakeClusters.cxx TkrMakeClusters.h 
+Removed Files:
+	TkrQueryClusters.cxx 
+Log Message:
+Significant updates to TkrRecon:
+1) New TkrCluster, TkrTrack, TkrTrackHit and TkrTrackParams usage 
+2) Beginnings of code rearrangement to better reflect usage
+    *
+------------------------------------------------------------
+User: usher  Thu Sep 23 14:30:25 PDT 2004
 TkrRecon/doc/KalVtx
 
 Modified Files:
