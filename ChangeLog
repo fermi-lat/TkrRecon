@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Thu Sep  5 18:41:02 PDT 2002
+TkrRecon/src/Vertex
+
+Modified Files:
+	VtxKalFitTool.h VtxSingleTrkTool.h 
+Log Message:
+replace the version I clobbered
+    *
+------------------------------------------------------------
 User: lsrea  Thu Sep  5 10:56:02 PDT 2002
 TkrRecon/src/Vertex/Combo
 
