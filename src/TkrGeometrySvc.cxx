@@ -199,8 +199,10 @@ tkrDetGeo TkrGeometrySvc::getSiLayer(int ilayer, axis a, int tower)
     
     int nladders = nLadders(ilayer, a);
     double size  = nladders * m_ladderWidth + (nladders-1) * m_ladderGap;
-    double sizeRef  = m_trayWidth;
-    double pos = 0.5 * (size - sizeRef);
+    //double sizeRef  = m_trayWidth;
+    int maxLadders = m_trayWidth/m_ladderWidth; // number of ladders in a full tray
+    double sizeRef = maxLadders * m_ladderWidth + (maxLadders-1) * (m_ladderGap);
+    double pos = 0.5 * (sizeRef - size);
     if (fabs(pos) < 1e-5) pos =0.; 
     
     double xpos = 0.;
