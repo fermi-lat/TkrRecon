@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: burnett  Sat Sep 27 11:53:27 PDT 2003
+TkrRecon/src/TrackFit/KalmanFilter
+
+Modified Files:
+	KalmanFilter.cxx 
+Log Message:
+Implement exception, use to protect against bad energy, by rejecting the event
+    *
+------------------------------------------------------------
+User: burnett  Sat Sep 27 11:53:27 PDT 2003
 TkrRecon/src/GaudiAlg
 
 Modified Files:
