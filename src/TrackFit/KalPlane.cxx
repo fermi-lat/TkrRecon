@@ -1,5 +1,5 @@
 
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/KalFit.cxx,v 1.2 2001/02/13 01:50:34 igable Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalPlane.cxx,v 1.1 2001/11/26 21:51:11 usher Exp $
 
 //----------------------------------------------------------------------
 //    
@@ -161,7 +161,7 @@ KalHit KalPlane::predicted(KalHit::TYPE typ, int &nlayers, int klayer, double &z
     KalMatrix Ck=hit.getCov();
     
     double ene =getEnergy();
-    double x_slope = pp.getXSlope(); 
+    double x_slope = pp.getXSlope();   
     double y_slope = pp.getYSlope(); 
     Vector dir_ini = Vector(-x_slope, -y_slope, -1.).unit();
 
