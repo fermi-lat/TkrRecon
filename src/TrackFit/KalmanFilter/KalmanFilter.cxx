@@ -5,8 +5,9 @@
 //               TkrFitPlane
 //
 //      Original due to Jose Hernando-Angel circa 1997-1999
-//      Re-written to combine both X and Y projections (2001) 
-//      
+//      Re-written to combine both X and Y projections (2001)
+// 
+//      Bill Atwood, SCIPP/UCSC, Nov. 2001
 //-----------------------------------------------------------------------
 
 #include "KalmanFilter.h"
@@ -196,32 +197,41 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitPlane& kplaneNext)
 
 TkrFitHit KalmanFilter::filter(TkrFitPlane& filterPlane)
 {
-    // Weight the hits with their cov matricex   
-    TkrFitHit    hit1      = filterPlane.getHit(TkrFitHit::MEAS);
-    TkrFitPar    pmeas     = hit1.getPar();
-    double       sigXX     = hit1.getCov().getcovX0X0();
-    double       sigYY     = hit1.getCov().getcovY0Y0();
+    // Filter = Weighting the hits & prediction with their cov matrices
 
-    TkrFitMatrix H(1);
-    TkrFitMatrix G(1);
-    G(1,1) = 1./sigXX;
-    G(3,3) = 1./sigYY;
+   // Re-compute the meas. cov. matrix taking into account cls-size and
+    // track slopes
+    TkrFitHit    pred_hit   = filterPlane.getHit(TkrFitHit::PRED);
+    computeMeasCov(filterPlane, pred_hit.getPar());  
     
-    TkrFitHit    hit2      = filterPlane.getHit(TkrFitHit::PRED);
-    TkrFitMatrix Ckpred    = hit2.getCov();
+    TkrFitHit    meas_hit   = filterPlane.getHit(TkrFitHit::MEAS);
+    TkrFitPar    p_meas     = meas_hit.getPar();
+
+    // The following incorporates the meas.projection matrix H
+    TkrFitMatrix G(1); // The meas. weight matrix
+    if(filterPlane.getProjection()==TkrCluster::X) {
+        G(1,1) = 1./meas_hit.getCov().getcovX0X0();
+        G(3,3) = 0.;
+    }
+    else {
+        G(1,1) = 0.;
+        G(3,3) = 1./meas_hit.getCov().getcovY0Y0();
+    }
+
+    TkrFitMatrix Ckpred    = pred_hit.getCov();
     int          i_error;
     TkrFitMatrix Ckpredinv = Ckpred;
     Ckpredinv.invert(i_error); 
-    TkrFitPar ppred=hit2.getPar();
+    TkrFitPar p_pred=pred_hit.getPar();
     
-    TkrFitMatrix Ck        = (Ckpredinv+H*(G*H));  
+ // TkrFitMatrix Ck        = (Ckpredinv+H*(G*H));  
+    TkrFitMatrix Ck        = (Ckpredinv+G);
     Ck.invert(i_error);
-    TkrFitPar pk=((Ck*Ckpredinv)*ppred)+((Ck*(H*G))*pmeas);
-
+ // TkrFitPar pk=((Ck*Ckpredinv)*p_pred)+((Ck*(H*G))*p_meas);
+    TkrFitPar pk=((Ck*Ckpredinv)*p_pred)+((Ck*G)*p_meas);
     TkrFitHit hitfit(TkrFitHit::FIT, pk, Ck);
     
-    return hitfit;
-    
+    return hitfit;   
 }
 
 TkrFitHit KalmanFilter::smoother(TkrFitPlane& start, const TkrFitPlane& kplaneLast)
@@ -254,7 +264,48 @@ TkrFitHit KalmanFilter::smoother(TkrFitPlane& start, const TkrFitPlane& kplaneLa
     
     TkrFitHit new_hit_sm(TkrFitHit::SMOOTH,psm,Csm);
     
-    return new_hit_sm;
+    return new_hit_sm; 
 }
 
+void KalmanFilter::computeMeasCov(TkrFitPlane& plane, TkrFitPar pred_pars)
+{
+    // Compute the Measurement covariance taking into account the 
+    // Local track slope
+
+    // Get the measure hit, the prediction and the cluster
+    TkrFitHit    meas_hit      = plane.getHit(TkrFitHit::MEAS);
+    int id_Cls = plane.getIDHit();
+
+    // The following sets the error to the slop between the track 
+    // and the cluster over sqrt(12). It protects against getting
+    // too small.
+
+    TkrFitMatrix newCov(1);
+    double min_err = GFtutor::siResolution();   
+
+    if(plane.getProjection()==TkrCluster::X) {
+        double size_Cls = GFtutor::_DATA->size(TkrCluster::X,id_Cls);
+        double x_slope = pred_pars.getXSlope();
+        double wid_proj = fabs(x_slope*GFtutor::siThickness());
+        double wid_cls  = size_Cls*GFtutor::siStripPitch();
+        double error    = (wid_cls - wid_proj)/3.4641;
+        error = (error > min_err) ? error : min_err; 
+        newCov(1,1) = error*error;
+        newCov(3,3) = meas_hit.getCov().getcovY0Y0();
+    }
+    else {
+        double size_Cls = GFtutor::_DATA->size(TkrCluster::Y,id_Cls);
+        double y_slope = pred_pars.getYSlope();
+        double wid_proj = fabs(y_slope*GFtutor::siThickness());
+        double wid_cls  = size_Cls*GFtutor::siStripPitch();
+        double error    = (wid_cls - wid_proj)/3.4641;
+        error = (error > min_err) ? error : min_err; 
+        newCov(1,1) = meas_hit.getCov().getcovX0X0();
+        newCov(3,3) = error*error;
+    }
+    TkrFitHit newMeas(TkrFitHit::MEAS, meas_hit.getPar(), newCov);
+    plane.setHit(newMeas);   
+    return;
+    
+}
 //-------------------------------------------
