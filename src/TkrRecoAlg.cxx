@@ -66,8 +66,8 @@ StatusCode TkrRecoAlg::initialize() {
     m_ini = const_cast<xml::IFile*>(m_detSvc->iniFile()); //OOPS!
     int nx = m_ini->getInt("glast", "xNum");
 
-    m_glastData = new GlastRecon;
-    m_recon=new TrackerRecon(m_glastData);
+//    m_glastData = new GlastRecon;
+    m_recon=new TrackerRecon();
 
     // define the tuple
     m_summary = new  SummaryData<GlastTuple>(*new GlastTuple("test cal tuple")) ;
