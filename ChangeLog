@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon Jan 17 13:49:06 PST 2005
+TkrRecon
+
+Modified Files:
+	ChangeLog 
+Log Message:
+clean up changelog... trim massive TAG output
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r2, operation: add
 Package: TkrRecon
