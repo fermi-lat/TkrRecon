@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Tue Oct 12 12:03:36 PDT 2004
+TkrRecon/src/PatRec/LinkAndTree
+
+Modified Files:
+	LinkAndTreeFindTrackTool.cxx TkrLinkAndTree.cxx 
+	TkrLinkAndTree.h 
+Log Message:
+change to m_tkrGeom throughout
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Oct 12 12:03:35 PDT 2004
 TkrRecon/src/PatRec/KalFitTrack
 
