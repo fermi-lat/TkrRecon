@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Mon Jan 10 11:32:06 PST 2005
+TkrRecon/TkrRecon/Cluster
+
+Modified Files:
+      Tag: GlastRelease-v4r5
+	TkrQueryClusters.h 
+Log Message:
+prepare for tag v9r0p2gr10; all the changes necessary for new TkrClusters.h
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r1p3, operation: add
 Package: TkrRecon
