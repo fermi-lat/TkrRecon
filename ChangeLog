@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: atwood  Tue Nov 23 11:23:16 PST 2004
+TkrRecon/src/PatRec/MonteCarlo
+
+Modified Files:
+	MonteCarloFindTrackTool.cxx 
+Log Message:
+This is the first version with a full set of TkrTrack status bits. 
+
+    *
+------------------------------------------------------------
+User: atwood  Tue Nov 23 11:23:16 PST 2004
 TkrRecon/src/PatRec/Combo
 
 Modified Files:
