@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Thu Jun  7 13:22:28 PDT 2001
+TkrRecon/TkrRecon TkrNtupleAlg.h
+
+Modified Files:
+	TkrNtupleAlg.h 
+Log Message:
+The layer hits are added, though in a very ugly fashion... This will at least
+get the pdr on the road...
+
+    *
+------------------------------------------------------------
 User: burnett  Thu Jun  7 09:20:35 PDT 2001
 TkrRecon/mgr requirements
 
