@@ -20,7 +20,7 @@ TkrClustersRep::TkrClustersRep(IDataProviderSvc* dataProviderSvc)
 void TkrClustersRep::update()
 //##############################################
 {
-    TkrRecon::TkrClusterCol* pClusters = SmartDataPtr<TkrRecon::TkrClusterCol>(dps,"/Event/TkrRecon/TkrClusterCol");
+    Event::TkrClusterCol* pClusters = SmartDataPtr<Event::TkrClusterCol>(dps,"/Event/TkrRecon/TkrClusterCol");
 
     if (pClusters)
     {
@@ -33,7 +33,7 @@ void TkrClustersRep::update()
 		//Loop over all cluster hits in the SiClusters vector
 		while(nHits--)
 		{
-			TkrRecon::TkrCluster* pCluster = pClusters->getHit(nHits);
+			Event::TkrCluster* pCluster = pClusters->getHit(nHits);
 			Point                 clusPos  = pCluster->position();
 	 
 			double      x        = clusPos.x();
@@ -44,7 +44,7 @@ void TkrClustersRep::update()
 			double      Offset   = -0.5 * towerPitch;
 
 			//Draw a cross at the position of the cluster center
-			if (pCluster->v() == TkrRecon::TkrCluster::X)
+			if (pCluster->v() == Event::TkrCluster::X)
 			{
                 Offset += y;
                 moveTo(Point(x - delta, Offset, z - delta));
@@ -66,7 +66,7 @@ void TkrClustersRep::update()
 			{
 				double stripWid = 0.5 * pCluster->size() * stripPitch;
 
-				if (pCluster->v() == TkrRecon::TkrCluster::X)
+				if (pCluster->v() == Event::TkrCluster::X)
 				{
 					moveTo(Point(x - stripWid, Offset, z));
 					lineTo(Point(x + stripWid, Offset, z));

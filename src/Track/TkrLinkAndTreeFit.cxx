@@ -7,7 +7,7 @@
 // Feeds Link and Tree pattern recognition tracks to Kalman Filter
 //
 
-using namespace TkrRecon;
+using namespace Event;
 
 TkrLinkAndTreeFit::TkrLinkAndTreeFit(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus, TkrPatCandCol* pTkrCand, double CalEnergy)
 {

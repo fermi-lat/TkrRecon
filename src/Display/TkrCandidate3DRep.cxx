@@ -26,7 +26,7 @@ TkrCandidate3DRep::TkrCandidate3DRep(IDataProviderSvc* dataProviderSvc, ITkrGeom
 void TkrCandidate3DRep::update()
 //##############################################
 {
-    TkrRecon::TkrPatCandCol* pTkrCandidates = SmartDataPtr<TkrRecon::TkrPatCandCol>(dps,"/Event/TkrRecon/TkrPatCandCol");
+    Event::TkrPatCandCol* pTkrCandidates = SmartDataPtr<Event::TkrPatCandCol>(dps,"/Event/TkrRecon/TkrPatCandCol");
 
 	//Now see if we can do the drawing
 	if (pTkrCandidates)
@@ -38,7 +38,7 @@ void TkrCandidate3DRep::update()
 
         while(numCandTracks--)
         {
-            TkrRecon::TkrPatCand* pTkrCand = pTkrCandidates->getTrack(numCandTracks);
+            Event::TkrPatCand* pTkrCand = pTkrCandidates->getTrack(numCandTracks);
 
             //Put a marker at the start of the candidate
             Point  strtPoint = pTkrCand->position();
@@ -51,14 +51,14 @@ void TkrCandidate3DRep::update()
             markerAt(strtPoint);
 
             int                        numHits = pTkrCand->numPatCandHits();
-            TkrRecon::CandHitVectorPtr hitPtr  = pTkrCand->getCandHitPtr();
+            Event::CandHitVectorPtr hitPtr  = pTkrCand->getCandHitPtr();
 
             while(numHits--)
             {
-                TkrRecon::TkrPatCandHit* pHitCand = &(*hitPtr++);
+                Event::TkrPatCandHit* pHitCand = &(*hitPtr++);
                 Point                    hitCoord = pHitCand->Position();
 
-                if (pHitCand->View() == TkrRecon::TkrCluster::X) x = hitCoord.x();
+                if (pHitCand->View() == Event::TkrCluster::X) x = hitCoord.x();
                 else                                             y = hitCoord.y();
  
                 zCur = hitCoord.z();

@@ -18,7 +18,7 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrVertexAlg.h,v 1.2 2002/05/01 04:10:34 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrVertexAlg.h,v 1.3 2002/05/07 22:45:12 usher Exp $
 */
 
 
@@ -34,7 +34,7 @@ public:
     
 private:
     
-    TkrRecon::TkrFindVertex* pFindVertex;
+    Event::TkrFindVertex* pFindVertex;
 };
 
 #endif // __TKRVERTEXALG_H

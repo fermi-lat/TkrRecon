@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.11 2002/05/07 22:54:33 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.12 2002/05/10 21:53:56 usher Exp $
 //
 // Description:
 //      Controls the track fitting
@@ -29,14 +29,14 @@
 #include "GlastSvc/Reco/IRecoSvc.h"
 #include "GlastSvc/Reco/IPropagatorSvc.h"
 
-using namespace TkrRecon;
+using namespace Event;
 
 static const AlgFactory<TkrReconAlg>  Factory;
 const IAlgFactory& TkrReconAlgFactory = Factory;
 
 IKalmanParticle* TkrReconAlg::m_KalParticle = 0;
 
-using namespace TkrRecon;
+using namespace Event;
 
 TkrReconAlg::TkrReconAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator) 

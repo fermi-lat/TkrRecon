@@ -4,7 +4,7 @@
 /// Algorithm parameters which can be set at run time must be declared.
 /// This should be done in the constructor.
 
-using namespace TkrRecon;
+using namespace Event;
 
 //#############################################################################
 TkrTracksRep::TkrTracksRep(IDataProviderSvc* dataProviderSvc)

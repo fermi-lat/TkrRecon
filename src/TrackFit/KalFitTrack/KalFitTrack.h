@@ -8,7 +8,7 @@
 #include "Event/Recon/TkrRecon/TkrPatCandHit.h"
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 
-namespace TkrRecon {
+namespace Event {
 
 class KalFitTrack: public TkrFitTrack
 {    

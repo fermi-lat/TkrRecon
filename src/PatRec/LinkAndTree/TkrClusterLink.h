@@ -12,7 +12,7 @@
 #include "geometry/Point.h"
 #include "src/PatRec/LinkAndTree/LayerLink.h"
 
-using namespace TkrRecon;
+using namespace Event;
 
 class TkrClusterLink : public LayerLink
 {

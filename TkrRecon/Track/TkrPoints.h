@@ -40,8 +40,8 @@ private:
     void ini();
 
 	std::vector<TkrPoint> m_pointList;
-    std::vector<TkrRecon::TkrCluster*> m_xHitList;
-    std::vector<TkrRecon::TkrCluster*> m_yHitList;  
+    std::vector<Event::TkrCluster*> m_xHitList;
+    std::vector<Event::TkrCluster*> m_yHitList;  
     bool m_end;
     bool m_isX;
     int m_layer; 

@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.3 2002/05/07 22:54:33 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.4 2002/05/10 21:53:56 usher Exp $
 //
 // Description:
 //      Handles the Gaudi part of the vertex reconstruction
@@ -27,7 +27,7 @@
 #include "TkrRecon/GaudiAlg/TkrVertexAlg.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
 
-using namespace TkrRecon;
+using namespace Event;
 
 static const AlgFactory<TkrVertexAlg>  Factory;
 const IAlgFactory& TkrVertexAlgFactory = Factory;

@@ -34,7 +34,7 @@
 //------------------------------------------------------------------------
 //
 
-using namespace TkrRecon;
+using namespace Event;
 
 class TkrComboVtxRecon : public TkrVertexCol
 {

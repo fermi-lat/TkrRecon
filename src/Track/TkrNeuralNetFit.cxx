@@ -16,7 +16,7 @@
 // Feeds Neural Net pattern recognition tracks to Kalman Filter
 //
 
-using namespace TkrRecon;
+using namespace Event;
 
 TkrNeuralNetFit::TkrNeuralNetFit(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus,
                                  TkrPatCandCol* pTkrCand, double CalEnergy)

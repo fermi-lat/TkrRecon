@@ -1,7 +1,7 @@
 
 #include "TkrRecon/Track/GFtutor.h"
 
-using namespace TkrRecon;
+using namespace Event;
 
 //-------- GFtutor --------------------------------------
 

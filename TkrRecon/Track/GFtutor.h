@@ -5,7 +5,7 @@
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 
-namespace TkrRecon { //Namespace
+namespace Event { //Namespace
 
 //############################################
 class GFtutor

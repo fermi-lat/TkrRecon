@@ -16,7 +16,7 @@ TkrComboVtxRep::TkrComboVtxRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySv
 void TkrComboVtxRep::update()
 //##############################################
 {
-    TkrRecon::TkrVertexCol* pVertices = SmartDataPtr<TkrRecon::TkrVertexCol>(dps,"/Event/TkrRecon/TkrVertexCol");
+    Event::TkrVertexCol* pVertices = SmartDataPtr<Event::TkrVertexCol>(dps,"/Event/TkrRecon/TkrVertexCol");
 
 	//Now see if we can do the drawing
 	if (pVertices)
@@ -27,7 +27,7 @@ void TkrComboVtxRep::update()
 
         while(numVertices--)
         {
-            TkrRecon::TkrVertex* pVertex = pVertices->getVertex(numVertices);
+            Event::TkrVertex* pVertex = pVertices->getVertex(numVertices);
 
             Point startPoint = Point(pVertex->position());
             Point endPoint   = startPoint;

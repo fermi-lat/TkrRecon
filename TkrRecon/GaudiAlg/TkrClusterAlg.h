@@ -25,7 +25,7 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrClusterAlg.h,v 1.4 2002/05/07 22:45:12 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrClusterAlg.h,v 1.5 2002/05/10 21:53:54 usher Exp $
 */
 
 class TkrClusterAlg : public Algorithm
@@ -48,9 +48,9 @@ private:
     ITkrBadStripsSvc*        pBadStrips;
     
 	/// pointer to Tkr digis
-    TkrDigiCol*              m_TkrDigis;
+    Event::TkrDigiCol*       m_TkrDigis;
 	/// pointer to generated TkrClusterCol
-    TkrRecon::TkrClusterCol* m_TkrClusterCol;
+    Event::TkrClusterCol*    m_TkrClusterCol;
 };
 
 #endif //  TKRCLUSTERALG_H
