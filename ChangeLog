@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Tue Apr 30 16:18:08 PDT 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrCluster.cxx TkrClusters.cxx TkrMakeClusters.cxx 
+	TkrMakeClusters.h TkrQueryClusters.cxx 
+Log Message:
+update documentation
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Apr 30 16:18:07 PDT 2002
 TkrRecon/src
 
