@@ -69,10 +69,6 @@ private:
     double        sigmaFoundHit(const TkrFitPlane& previous, const TkrFitPlane& next, int& indexhit, double& radius); // returns also indexhit and radius
     void          incorporateFoundHit(TkrFitPlane& next, int indexhit); // modifies next
     bool          foundHit(int& indexhit, double& inerRadius, double outRadius, const Point& CenterX, const Point& nearHit);
- 
-     // after the fit load the data
-    void          loadTkrBase();  
-    // ---
     
     // access to the Step Plane 
     TkrFitPlane   firstKPlane() const;
