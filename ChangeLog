@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Aug 28 15:55:47 PDT 2002
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Add "documentation" to the TkrRecon Gaudi Algorithms listed below
+
+    *
+------------------------------------------------------------
 User: usher  Wed Aug 28 15:55:46 PDT 2002
 TkrRecon/TkrRecon/GaudiAlg
 
