@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Aug  6 15:35:47 PDT 2003
+TkrRecon/src/PatRec/MonteCarlo
+
+Modified Files:
+	MonteCarloFindTrackTool.cxx 
+Log Message:
+Fix slight bug with null TkrCluster pointers
+
+    *
+------------------------------------------------------------
 User: usher  Wed Aug  6 14:57:00 PDT 2003
 TkrRecon/TkrRecon/MonteCarlo
 
