@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: atwood  Fri Jan 11 15:40:44 PST 2002
+TkrRecon/TkrRecon/Track
+
+Added Files:
+	TkrPoints.h 
+Log Message:
+
+TkrPoints provides 3d points from clusters
+    *
+------------------------------------------------------------
 User: atwood  Fri Jan 11 15:39:34 PST 2002
 TkrRecon/TkrRecon/Track
 
