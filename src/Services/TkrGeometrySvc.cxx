@@ -82,21 +82,23 @@ StatusCode TkrGeometrySvc::initialize()
         m_volId_tower[tower].append(vId);
     }
     
-    for(int layer=0;layer<m_nlayers;layer++) {
+	int bilayer;
+	for(bilayer=0;bilayer<m_nlayers;bilayer++) {
         for (int view=0; view<2; view++) {
             int tray;
             int botTop;
             
-            layerToTray(layer, view, tray, botTop);
+            layerToTray(bilayer, view, tray, botTop);
             
             idents::VolumeIdentifier vId;
             vId.append(tray);
             vId.append(view);
             vId.append(botTop);
+			// seems that the old silicon plane no longer exists, only wafers now
             vId.append(0); vId.append(0); // add in ladder, wafer--this is all fragile
             
-            m_volId_layer[layer][view].init(0,0);
-            m_volId_layer[layer][view].append(vId);
+            m_volId_layer[bilayer][view].init(0,0);
+            m_volId_layer[bilayer][view].append(vId);
         }
     }	
     
@@ -105,15 +107,16 @@ StatusCode TkrGeometrySvc::initialize()
     HepTransform3D T1, T2;
     m_trayHeight = 10000.0;
     
-    for (int ilayer=1;ilayer<m_nlayers;ilayer++) {
+	
+    for (bilayer=1;bilayer<m_nlayers;bilayer++) {
         
         idents::VolumeIdentifier volId1, volId2;
         
         volId1.append(m_volId_tower[0]);
         volId2.append(m_volId_tower[0]);
         
-        volId1.append(m_volId_layer[ilayer][1-layer%2]);
-        volId2.append(m_volId_layer[ilayer-1][layer%2]);
+        volId1.append(m_volId_layer[bilayer][1-bilayer%2]);
+        volId2.append(m_volId_layer[bilayer-1][bilayer%2]);
         
         sc = p_GlastDetSvc->getTransform3DByID(volId1, &T1);
         if( sc.isFailure()) {
@@ -154,10 +157,8 @@ HepPoint3D TkrGeometrySvc::getDoubleStripPosition(int tower, int layer, int view
     MsgStream log(msgSvc(), name());
 
     // offsets from the corner wafer to the full plane
-    static double ladder_offset = 1.5*(m_siWaferSide + m_ladderGap);
-    static double ssd_offset    = 1.5*(m_siWaferSide + m_ladderInnerGap);
-
-
+    static double ladderOffset = 0.5*(m_numX-1)*(m_siWaferSide + m_ladderGap);
+    static double ssdOffset    = 0.5*(m_numY-1)*(m_siWaferSide + m_ladderInnerGap);
     
     HepTransform3D volTransform;
     idents::VolumeIdentifier volId;
@@ -167,11 +168,14 @@ HepPoint3D TkrGeometrySvc::getDoubleStripPosition(int tower, int layer, int view
     if( sc.isFailure()) {
         log << MSG::WARNING << "Failed to obtain transform for id " << volId.name() << endreq;
     }
+
     double stripLclX = p_GlastDetSvc->stripLocalXDouble(stripid);
-    HepPoint3D p(stripLclX+ladder_offset, ssd_offset, 0.);
-    // for the moment, none of this is needed; will have to be revisited...
-    //p = p_GlastDetSvc->siPlaneCoord(p, volId);
-    //if(view==1 && m_reverseY) p = -p;
+    
+	HepPoint3D p(stripLclX+ladderOffset, ssdOffset, 0.);
+    
+	// y direction not quite sorted out yet!
+	if (view==1) p = HepPoint3D(p.x(), -p.y(), p.z());
+
     p = volTransform*p;
     return p;
 }
