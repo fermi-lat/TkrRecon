@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.18 2004/10/28 22:17:20 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.19 2004/11/23 19:23:16 atwood Exp $
  */
 
 #include <vector>
@@ -214,6 +214,9 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
     // Find the collection of candidate tracks
     Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
     //std::cout << "TkrTrackFitAlg::doTrackFit: " << trackCol->size() << " tracks to refit" << std::endl;
+
+	// Check that there are tracks to fit
+	if(trackCol->size() < 1) return sc;
 
 	// Get the first track to find out the energy option used and execute default (LATENERGY)
 	Event::TkrTrack* firstTrack = *trackCol->begin();
