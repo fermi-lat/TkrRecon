@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Sat Aug 31 14:30:49 PDT 2002
+TkrRecon/TkrRecon/Cluster
+
+Modified Files:
+	TkrQueryClusters.h 
+Log Message:
+fixing up documentation
+
+    *
+------------------------------------------------------------
 User: lsrea  Sat Aug 31 13:14:56 PDT 2002
 TkrRecon/src/GaudiAlg
 
