@@ -36,7 +36,7 @@
  *
  * @author Leon Rochester
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrBadStripsSvc.h,v 1.6 2002/09/02 17:31:26 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrBadStripsSvc.h,v 1.7 2002/09/02 19:40:41 lsrea Exp $
  */
 
 #include "GaudiKernel/Service.h"
@@ -88,8 +88,8 @@ public:
 
     /// returns sentinel strip to TkrMakeClusters
     int lastStrip() {return tooBig;}
-    /// Sorts a list of tagged hits by strip number
-    void sortTaggedHits(std::vector<int>* list);
+    /// Sorts a list of tagged strips by strip number
+    void sortTaggedStrips(std::vector<int>* list);
     /// swaps the possibly tagged strip into sorting order (and back)
     int swapForSort(const int strip);
 
