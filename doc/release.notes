@@ -3,6 +3,7 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v9r0p3   17-Sep-2004  TU   Create patch branch for GlastRelease v4r5
   v9r0p2   09-Sep-2004  LSR  Move energy loss out of TkrFitPlane
                              Add BetheBlock muon option
                              Change error default to slope-dependent errors
