@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Oct  9 16:44:10 PDT 2002
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx TkrComboPatRec.cxx TkrComboPatRec.h 
+Log Message:
+Modifications for TkrPatCandCol typedef (now a Contained Object Vector, hence change to stl like references)
+    *
+------------------------------------------------------------
 User: usher  Wed Oct  9 16:44:09 PDT 2002
 TkrRecon/src/GaudiAlg
 
