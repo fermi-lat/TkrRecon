@@ -57,19 +57,29 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
         RayDoca doca    = RayDoca(Ray(track1->getPosition(),track1->getDirection()),
                                   Ray(track2->getPosition(),track2->getDirection()));
         double dist = doca.docaRay1Ray2();
-        double s1   = doca.arcLenRay1();
-        double s2   = doca.arcLenRay2(); 
+//        double s1   = doca.arcLenRay1();
+//        double s2   = doca.arcLenRay2(); 
         
         double cost1t2 = track1->getDirection()*track2->getDirection();
         double t1t2    = acos(cost1t2);
         
+        double head_sep = (track1->getPosition() - track2->getPosition()).magnitude();
+        if(head_sep > 40.) continue; 
+
         double q2       = track2->getQuality();   
-        double wgt_doca = thrshold((dist-100./gamEne)/root2);  
-        double wgt_s1   = thrshold((s1+.5)/(root2*1.5 * gamEne/100.));     
-        double wgt_t1t2 = thrshold((t1t2-200./gamEne)/(root2*200./gamEne));
-        double wgt_q2   = thrshold((40. - q2)/(root2*20.)); 
+ //       double wgt_doca = thrshold((dist-100./gamEne)/root2);  
+ //       double wgt_s1   = thrshold((s1+.5)/(root2*1.5 * gamEne/100.));
+  //      VTX_DOCA_Wgt = thrshold((dist-50./gamEne)/root2);  
+  //      VTX_S1_Wgt   = thrshold((s1-2.5)/(root2*1.5 * gamEne/100.));     
+  //      VTX_T12_Wgt  = thrshold((.01*t1t2*gamEne -.2)/(root2*.2));
+  //      VTX_T2Q_Wgt  = thrshold((40. - q2)/(root2*20.)); 
+  //    double wgt_t1t2 = thrshold((t1t2-200./gamEne)/(root2*200./gamEne));
+
+        double wgt_t1t2 = thrshold((.01*t1t2*gamEne -.2)/(root2*.2));
+        double wgt_q2   = thrshold((40. - q2)/(root2*20.));
+        double wgt_hs   = thrshold((head_sep - 2.)/(root2*2.));
         
-        double total_wgt = wgt_doca*wgt_s1*wgt_q2*wgt_t1t2; 
+        double total_wgt = wgt_hs*wgt_q2*wgt_t1t2; 
          if(total_wgt > max_wgt) {
             max_wgt = total_wgt;
             best_track2 = track2;
@@ -82,7 +92,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
     }  
     
     //Check the overall weight
-    if (best_track2 != 0 && max_wgt > .0005) {
+    if (best_track2 != 0 && max_wgt > 0.) {
         
 
         Vector gamDir;
@@ -107,15 +117,21 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
         double ty_1 = -sy_1/norm_1;
         double tx_2 = -sx_2/norm_2;
         double ty_2 = -sy_2/norm_2;
+        double tz_1 = -1./norm_1;
+        double tz_2 = -1./norm_2;
         
         double dtx_1_sq = ((1.+sy_1*sy_1)*(1.+sy_1*sy_1)*cov_t1.getcovSxSx() +
-            sx_1*sx_1*sy_1*sy_1*cov_t1.getcovSySy())/pow(norm_1,6);
+                           sx_1*sx_1*sy_1*sy_1*cov_t1.getcovSySy())/pow(norm_1,6);
         double dty_1_sq = ((1.+sx_1*sx_1)*(1.+sx_1*sx_1)*cov_t1.getcovSySy() +
-            sx_1*sx_1*sy_1*sy_1*cov_t1.getcovSxSx())/pow(norm_1,6);
+                           sx_1*sx_1*sy_1*sy_1*cov_t1.getcovSxSx())/pow(norm_1,6);
+        double dtz_1_sq = (tx_1*tx_1/(tz_1*tz_1))*dtx_1_sq + 
+                          (ty_1*ty_1/(tz_1*tz_1))*dty_1_sq;
         double dtx_2_sq = ((1.+sy_2*sy_2)*(1.+sy_2*sy_2)*cov_t2.getcovSxSx() +
-            sx_2*sx_2*sy_2*sy_2*cov_t2.getcovSySy())/pow(norm_2,6);
+                           sx_2*sx_2*sy_2*sy_2*cov_t2.getcovSySy())/pow(norm_2,6);
         double dty_2_sq = ((1.+sx_2*sx_2)*(1.+sx_2*sx_2)*cov_t2.getcovSySy() +
-            sx_2*sx_2*sy_2*sy_2*cov_t2.getcovSxSx())/pow(norm_2,6);
+                           sx_2*sx_2*sy_2*sy_2*cov_t2.getcovSxSx())/pow(norm_2,6);
+        double dtz_2_sq = (tx_2*tx_2/(tz_2*tz_2))*dtx_2_sq + 
+                          (ty_2*ty_2/(tz_2*tz_2))*dty_2_sq;
         
 
         double transistion = 1.; //thrshold((gamEne - 400.)/150.);
@@ -128,12 +144,16 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
         double wt_y2 = 1./(dty_2_sq*transistion + (1. - transistion));  
         double wt_1y  = (e_t1*wt_y1) / (e_t1*wt_y1 + e_t2*wt_y2);
         double wt_2y  = (e_t2*wt_y2) / (e_t1*wt_y1 + e_t2*wt_y2);
+        double wt_z1 = 1./(dtz_1_sq*transistion + (1. - transistion));
+        double wt_z2 = 1./(dtz_2_sq*transistion + (1. - transistion));  
+        double wt_1z  = (e_t1*wt_z1) / (e_t1*wt_z1 + e_t2*wt_z2);
+        double wt_2z  = (e_t2*wt_z2) / (e_t1*wt_z1 + e_t2*wt_z2);
         
         double gam_tx = tx_1*wt_1x + tx_2*wt_2x;
         double gam_ty = ty_1*wt_1y + ty_2*wt_2y;     
-        double gam_tz = sqrt(1. - gam_tx*gam_tx - gam_ty*gam_ty);
+        double gam_tz = tz_1*wt_1z + tz_2*wt_2z;
         
-        gamDir = Vector(gam_tx, gam_ty, -gam_tz).unit();
+        gamDir = Vector(gam_tx, gam_ty, gam_tz).unit();
         
         Ray        gamma  = Ray(gamPos,gamDir);
         TkrVertex* vertex = new TkrVertex(track1->getLayer(),track1->getTower(),gamEne,best_doca,gamma);
@@ -150,7 +170,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
     }
             
             
-            //Go through unused list looking for isolated tracks
+     //Go through unused list looking for isolated tracks
     TkrFitConPtr pTrack = pTracks->begin();
     int          trkIdx = 0;
             
