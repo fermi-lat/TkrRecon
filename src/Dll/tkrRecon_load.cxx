@@ -21,6 +21,7 @@ DECLARE_FACTORY_ENTRIES(TkrRecon)
     DECLARE_ALGORITHM( TkrTrackFitAlg          );
     DECLARE_ALGORITHM( TkrVertexAlg            );
     DECLARE_ALGORITHM( TkrDisplayAlg           );
+    DECLARE_ALGORITHM( TkrBuildMcRelationsAlg  );
 
     DECLARE_SERVICE(   TkrInitSvc              );
 
