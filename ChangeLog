@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 14:32:29 PST 2001
+TkrRecon/src
+
+Removed Files:
+	McReconAlg.cxx RecNtupleAlg.cpp TkrNtupleAlg.cpp 
+Log Message:
+Move these files to the GaudiAlg folder
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 14:30:53 PST 2001
 TkrRecon/src/Dll
 
