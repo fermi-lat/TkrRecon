@@ -1,5 +1,5 @@
 
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalTrack.cxx,v 1.5 2002/03/07 17:33:08 usher Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalTrack.cxx,v 1.6 2002/03/30 02:52:03 lsrea Exp $
 
 //----------------------------------------------------------------------
 //    
@@ -74,7 +74,7 @@ void KalTrack::drawTrack(gui::DisplayRep& v, KalHit::TYPE typ)
 		xtyp = (prj == TkrCluster::X ? typ : fit);
 		ytyp = (prj == TkrCluster::X ? fit : typ);
 
-		// first draw the track segment to the next plane
+		// this sets up the track segment to the next plane
     
         x0 = kplanelist[iplane].getHit(xtyp).getPar().getXPosition();
         y0 = kplanelist[iplane].getHit(ytyp).getPar().getYPosition(); 
@@ -89,13 +89,10 @@ void KalTrack::drawTrack(gui::DisplayRep& v, KalHit::TYPE typ)
         Ray segment(origin,dir);
         double zstep=kplanelist[iplane+1].getZPlane()-z0;
         double cosz=dir.z();
-        v.moveTo(segment.position(0.));
-        v.lineTo(segment.position(zstep/cosz));
 
-        // now draw (an eventually) dotted line from the lower part of the extrapolated track
+        // this sets up the dotted line from the lower part of the extrapolated track
 		//  to the next hit.
 
-        v.moveTo(segment.position(0.8*zstep/cosz));
 
 		prj = kplanelist[iplane].getNextProj();
 
@@ -107,9 +104,16 @@ void KalTrack::drawTrack(gui::DisplayRep& v, KalHit::TYPE typ)
         z0 = kplanelist[iplane+1].getZPlane();
 
         Point p(x0, y0, z0);
-		//v.set_line_style(1);  dotted line doesn't seem to work, use color for now
-		//v.setColor("green");  hmmm... color not working either!
-        v.lineTo(p);        
+
+		// do them in this order, so that the connection doesn't cover the track
+		
+		v.set_line_style(1);
+        v.moveTo(segment.position(0.8*zstep/cosz));
+        v.lineTo(p); 
+
+		v.setColor("blue");
+        v.moveTo(segment.position(0.));
+        v.lineTo(segment.position(zstep/cosz));
     }
 }
 
