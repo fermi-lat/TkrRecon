@@ -11,7 +11,7 @@
 
 #include "TkrRecon/Track/SiRecObjs.h"
 #include "TkrRecon/Track/GFtutor.h"
-#include "TkrRecon/Track/TkrComboPR.h"
+//#include "TkrRecon/Track/TkrComboPR.h"
 
 SiRecObjs::SiRecObjs(ITkrGeometrySvc* pTkrGeo, TkrClusters* pTkrClus, double CalEnergy, Point CalPosition)
 {
@@ -110,7 +110,8 @@ void SiRecObjs::writeOut(MsgStream& log) const
 void SiRecObjs::searchGammas(double CalEnergy, Point CalPosition)
 //##############################################
 {
-   // Other tracks reconstruction
+/*
+    // Other tracks reconstruction
     int ntries = 0;
     double ene = GFcontrol::FEneParticle*CalEnergy;
     if (ene <= GFcontrol::minEnergy) ene = GFcontrol::minEnergy;
@@ -166,13 +167,14 @@ void SiRecObjs::searchGammas(double CalEnergy, Point CalPosition)
         else end = true;
         delete tracks;
     }
-        
+*/        
 }
 
 //###########################################################
 void SiRecObjs::searchParticles(double CalEnergy, Point CalPosition)
 //###########################################################
 {
+/*
     // Other tracks reconstruction
     int ntries = 0;
     double ene = GFcontrol::FEneParticle*CalEnergy;
@@ -230,5 +232,6 @@ void SiRecObjs::searchParticles(double CalEnergy, Point CalPosition)
         
  //       GFtutor::setVeto(true);
     }
+*/
 }
 
