@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Wed Mar 27 13:47:10 PST 2002
+TkrRecon/TkrRecon/TrackFit
+
+Modified Files:
+	KalPlane.h 
+Log Message:
+more Gev->MeV
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Mar 27 12:18:43 PST 2002
 TkrRecon/src/GaudiAlg
 
