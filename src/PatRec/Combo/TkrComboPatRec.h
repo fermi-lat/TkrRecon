@@ -1,16 +1,21 @@
-/*
-    A Combinatoric Pattern recognition for GLAST
-
-    This is meant to be close to what has been used historically 
-    to find track in GLAST.  
-
-    It uses two basic methods: 
-    1) Events seeded with an energy centroid in the Cal and an energy
-    2) Events without cal information
-    If the incoming Cal Point is null its assumed that there is no cal 
-    information
-
-    Author: Bill Atwood, UCSC Dec. 2001
+/**
+  * @class TkrComboPatRec
+  *
+  * @brief A Combinatoric Pattern recognition for GLAST
+  *
+  * 01-Dec-2001
+  * This is meant to be close to what has been used historically 
+  * to find tracks in GLAST.  
+  *
+  * It uses two basic methods: 
+  * 1) Events seeded with an energy centroid in the Cal and an energy
+  * 2) Events without cal information
+  * If the incoming Cal Point is null its assumed that there is no cal 
+  * information
+  *
+  * @author Bill Atwood, SCIPP/UCSC
+  *
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TkrComboPatRec.h,v 1.14$
 */
 
 #ifndef __TKRCOMBOPATREC_H
@@ -40,10 +45,10 @@ private:
         Candidate(TkrClusterCol* clusters,
                   ITkrGeometrySvc* geometry,
                   int layer, int twr, double e, 
-                  Point x, Vector t, float d, float s, int g);
+                  Point x, Vector t, float d, float s, int g, int top);
         ~Candidate();
 
-        // access
+        /// Access
         void setDeflection(float def) {m_deflection = def;}
         void setSigma(float sig)      {m_sigma      = sig;}
         void setQuality(float Q)      {m_qual       = Q;}
@@ -65,7 +70,7 @@ private:
         KalFitTrack *m_track;  // The trial track fit
     };
 
-    // Access methods for getting the individual candidate tracks
+    /// Access methods for getting the individual candidate tracks
     typedef std::vector<Candidate*> CandidateList; 
     typedef std::vector<Candidate*>::iterator iterator;
 
@@ -73,20 +78,20 @@ private:
     iterator begin()            {return m_candidates.begin();}
     iterator end()              {return m_candidates.end();}
 
-    // Major Sub sections 
+    /// Major Sub sections 
     void searchCandidates(double CalEnergy, Point CalPosition);
     void setEnergies(double CalEnergy); 
     void loadOutput(); 
     
-    // internal drivers
+    /// Internal drivers
     void findBlindCandidates();
     void findCalCandidates();
 
-    // internal utilities
+    /// Internal utilities
     float findNextHit(int, Ray&, float&);
-    void  incorporate(Candidate*);
+    bool  incorporate(Candidate*);
     
-    // data members
+    /// Data members
     CandidateList m_candidates;  // Internal list of found hypothesises
 
     Point m_Pcal;      // Calorimeter seed point
@@ -98,7 +103,7 @@ private:
     int m_TopLayer;    // Upper most layer in which a track was found
     int m_firstLayer;  // Find first hit layer once
 
-    // pointers to clusters, geometry, and control parameters
+    /// Pointers to clusters, geometry, and control parameters
     ITkrGeometrySvc* m_tkrGeo;
     TkrClusterCol*   m_clusters;
     TkrControl*      m_control; 
