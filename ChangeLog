@@ -1,4 +1,23 @@
 ------------------------------------------------------------
+User: lsrea  Fri Sep 21 16:08:35 PDT 2001
+TkrRecon/TkrRecon ITkrBadStripsSvc.h TkrBadStripsSvc.h
+
+Modified Files:
+	ITkrBadStripsSvc.h TkrBadStripsSvc.h 
+Log Message:
+SiClusterAlg:  fixed bug which broke clusters at chip boundaries;
+               now breaks at ladder boundaries
+
+BadStrips:     replaced all arguments like "int view" with 
+               "TkrAxis::axis axis" which is an enum with values
+               X, Y, and PASSIVE.  (SiCluster::view is another possibility;
+               both are used in TkrRecon code.
+
+               Also, fixed a bug in isBadStrip(); clustering code doesn't use
+               this method, but other clients probably will.
+
+    *
+------------------------------------------------------------
 User: burnett  Fri Aug 31 09:30:36 PDT 2001
 TkrRecon/mgr requirements
 
