@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: usher  Tue Aug 20 12:43:16 PDT 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrInitSvc.cxx 
+Log Message:
+Modifications necessary for changing to Gaudi Tools to drive recon
+
+    *
+------------------------------------------------------------
+User: usher  Tue Aug 20 12:43:16 PDT 2002
 TkrRecon/src/GaudiAlg
 
 Modified Files:
