@@ -3,7 +3,7 @@
 #define __TKRCLUSTERSREP_H
 
 #include "TkrRecon/SiClusters.h"
-#include "Gui/DisplayRep.h"
+#include "gui/DisplayRep.h"
 
 //----------------------------------------------
 //

@@ -4,9 +4,9 @@
 #include "Gaudi/Interfaces/IDataProviderSvc.h"
 #include "Gaudi/DataSvc/SmartDataPtr.h"
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
-#include "Gui/DisplayControl.h"
+#include "gui/DisplayControl.h"
 #include "GuiSvc/IGuiSvc.h"
-#include "Gui/GuiMgr.h"
+#include "gui/GuiMgr.h"
 
 #include "TkrRecon/SiClustersAlg.h"
 
