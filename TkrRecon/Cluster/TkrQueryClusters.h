@@ -13,7 +13,10 @@
 *
 * @brief Contains methods that operate on the clusters and return information.
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.2 2002/04/30 23:18:07 lsrea Exp $
+* Only one of the methods in this class is currently being used, but I'm keeping the others
+* they would be tedious to re-code.
+*
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.3 2002/04/30 23:30:24 lsrea Exp $
 */
 
 class TkrQueryClusters
@@ -21,8 +24,8 @@ class TkrQueryClusters
 public:
 	
     TkrQueryClusters(TkrClusters* pClus):m_pClus(pClus) {};
-	/// destructor: also deletes the clusters in the list
     ~TkrQueryClusters() {};
+
 	/// returns the mean space point in for a given view and plane
 	Point meanHit(TkrCluster::view v, int iplane);
 	/** returns the mean space point for a given plane, view, within "inDistance" of a point Pini
@@ -42,17 +45,6 @@ public:
     /// Finds the number of clusters within "inDistance" of a point and within one tower.
     int numberOfHitsNear( TkrCluster::view v, int iPlane, double inDistance, Point& x0);
     
-    /// returns true if the two hits have a gap between them
-    bool isGapBetween(const int lowHit, const int highHit);
-    /// returns true if the cluster is "good"
-    bool isGoodCluster( const int lowHit, const int highHit, const int nBad);
-	
-    /// tag a strip "good"  (see BadStripsSvc)
-	int tagGood(const int strip);
-	/// tag a strip "bad" (see BadStripsSvc)
-    int tagBad(const int strip);
-	/// untag a strip  (see BadStripsSvc)
-    int untag(const int strip);
 	/// gets filled with towerPitch 	
     static double s_towerPitch;
 
