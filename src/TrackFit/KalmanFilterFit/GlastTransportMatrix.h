@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/GlastTransportMatrix.h,v 1.1 2004/03/24 00:03:26 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/GlastTransportMatrix.h,v 1.2 2004/03/25 21:45:05 cohen Exp $
  */
 
 #ifndef GlastTransportMatrix_h
@@ -20,7 +20,7 @@ public:
 
     // Constructor 
     GlastTransportMatrix(std::vector<double> zCoords);
-   ~GlastTransportMatrix() {};
+    virtual ~GlastTransportMatrix() {};
 
     virtual KFmatrix F(int i, int j);
     virtual KFmatrix operator()(const int &i, const int &j);

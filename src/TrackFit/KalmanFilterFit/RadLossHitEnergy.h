@@ -6,7 +6,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/RadLossHitEnergy.h,v 1.1 2004/03/24 00:03:27 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/RadLossHitEnergy.h,v 1.2 2004/03/25 21:45:05 cohen Exp $
  */
 
 #ifndef RadLossHitEnergy_h
@@ -21,7 +21,7 @@ public:
 
     // Constructor needs the matrices that transform state vector, covariance matrix
     RadLossHitEnergy();
-    ~RadLossHitEnergy() {};
+    virtual ~RadLossHitEnergy() {};
 
     double initialHitEnergy(const Event::TkrPatCandHit& candHit, const double trkEnergy);
     double updateHitEnergy(const double curEnergy, const double radLen);
