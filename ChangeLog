@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Wed Jun  5 13:11:40 PDT 2002
+TkrRecon/src/PatRec/LinkAndTree
+
+Modified Files:
+	TkrLinkAndTree.cxx 
+Log Message:
+Fix bug in how layer number of the first hit is chosen. In the case where the X 
+and Y tracks do not start in the same first layer it was picking up the wrong value
+half the time.
+
+    *
+------------------------------------------------------------
 User: usher  Wed Jun  5 10:07:06 PDT 2002
 TkrRecon/src/Cluster
 
