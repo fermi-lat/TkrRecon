@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: atwood  Mon Dec 13 15:50:40 PST 2004
+TkrRecon/src/PatRec
+
+Modified Files:
+	PatRecBaseTool.cxx 
+Log Message:
+New vertexing version.  Many bugs found and fixed in Combo, etc.
+
+    *
+------------------------------------------------------------
+User: atwood  Mon Dec 13 15:50:40 PST 2004
 TkrRecon/src/GaudiAlg
 
 Modified Files:
