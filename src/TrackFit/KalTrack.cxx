@@ -1,5 +1,5 @@
 
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalTrack.cxx,v 1.2 2002/02/06 22:00:17 usher Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalTrack.cxx,v 1.3 2002/02/14 18:46:07 burnett Exp $
 
 //----------------------------------------------------------------------
 //    
@@ -17,7 +17,7 @@
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
 #include "GlastSvc/Reco/IKalmanParticle.h"
 #include <cmath>
-#ifndef WIN32
+#ifdef __CYGWIN__
 # include <ieeefp.h>
 #endif
 bool CONTROL_setDeltaEne = false;
