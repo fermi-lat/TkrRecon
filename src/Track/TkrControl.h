@@ -8,7 +8,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrControl.h,v 1.4 2002/08/29 19:18:47 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrControl.h,v 1.5 2002/09/05 04:15:50 lsrea Exp $
  */
 
 
@@ -52,9 +52,9 @@ public:
     void setPlaneEnergies(  bool   enePlane)  {m_PlaneEnergies      = enePlane; }
 
 private:
-    /// Constructor and destructor are private
+    /// private Constructor
     TkrControl();
-   ~TkrControl() {}
+ 
 
     /// Pointer to the singleton object
     static TkrControl* m_this;
