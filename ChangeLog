@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: lsrea  Fri Jan 10 11:43:21 PST 2003
+TkrRecon/TkrRecon/Display
+
+Modified Files:
+	TkrBestCandRep.h TkrCandidate3DRep.h TkrCandidatesRep.h 
+	TkrClustersRep.h TkrDispActiveNet.h TkrDispCompleteNet.h 
+Log Message:
+Prepare for tag v8r6p1: move TkrGeometrySvc to Tkrutil
+
+    *
+------------------------------------------------------------
+User: lsrea  Fri Jan 10 11:43:21 PST 2003
 TkrRecon/TkrRecon
 
 Removed Files:
