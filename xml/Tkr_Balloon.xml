@@ -15,8 +15,8 @@
         Do not modify and check in this file without permission!
         Note that the text in the item field cannot have direct ampersands of brackets!
   -->
-<TkrGeometry cvs_Header="$Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/xml/Tkr_TestBeam.xml,v 1.1 2001/04/02 23:30:06 usher Exp $"
-            cvs_Revision="$Revision: 1.1 $">
+
+<TkrGeometry cvs_Header="$Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/xml/Tkr_TestBeam.xml,v 1.1 2001/04/02 23:30:06 usher Exp $" cvs_Revision="$Revision: 1.1 $">
 
     <section name="tkr"> TKR properties
         <item name="numXtowers"      value="1">       Number of towers in X direction </item>
