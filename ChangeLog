@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Thu Jun  7 13:23:17 PDT 2001
+TkrRecon/src TkrNtupleAlg.cpp
+
+Modified Files:
+	TkrNtupleAlg.cpp 
+Log Message:
+The layer hits are added, though in a very ugly fashion... This will at least
+get the pdr on the road...
+
+    *
+------------------------------------------------------------
 User: usher  Thu Jun  7 13:22:28 PDT 2001
 TkrRecon/TkrRecon TkrNtupleAlg.h
 
