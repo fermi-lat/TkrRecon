@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Dec 17 15:24:05 PST 2004
+TkrRecon/src/test
+
+Modified Files:
+	test_TkrRecon.cxx 
+Log Message:
+"Standard" set of linux complaints addressed. This builds on noric-new with MRvcmt
+    *
+------------------------------------------------------------
 User: usher  Fri Dec 17 15:24:04 PST 2004
 TkrRecon/src/Track
 
