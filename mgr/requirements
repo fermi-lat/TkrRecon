@@ -23,8 +23,9 @@ macro TkrRecon_linkopts   "$(TkrReconDir)/libTkrReconData.a  " \
 private 
 
 apply_pattern package_Cshlibflags 
+apply_pattern package_headers
 
-library TkrRecon  *.cpp *.cxx ../TkrRecon/*.h  Dll/*.cpp
+library TkrRecon  *.cpp *.cxx Dll/*.cpp ${TkrRecon_headers}
 
 # have a seperate library to export the tracker recon data classes 
 
