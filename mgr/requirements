@@ -15,7 +15,7 @@ macro TkrRecon_stamps
 
 set   TkrReconShr           "${TKRRECONROOT}/${DEBUGDIR}/libTkrRecon"
 
-macro TkrRecon_linkopts   "-L$(TkrReconDir)  -lTkrRecon " \
+macro TkrRecon_linkopts   "$(TkrReconDir)/libTkrRecon.a  " \
       LinuxStatic         "$(TkrReconDir)/libTkrRecon.a -u TkrRecon_loadRef" \
       VisualC             "$(TkrReconDir)/libTkrRecon.lib  " \
       VisualCStatic       "$(TkrReconDir)/libTkrRecon.lib /include:_TkrRecon_loadRef"
