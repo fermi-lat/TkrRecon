@@ -164,7 +164,10 @@ void KalFitTrack::addMeasHit(int clusIdx, int planeID, TkrCluster::view proj, do
 
     incorporateFoundHit(newPlane, clusIdx);
 
-    m_hits.insert(&m_hits[before_hit], newPlane);
+    TkrFitPlaneCol::iterator it = m_hits.begin();
+    std::advance(it, before_hit);
+    m_hits.insert(it, newPlane);
+    //    m_hits.insert(&m_hits[before_hit], newPlane);
 
     if(proj == TkrCluster::X) m_nxHits++;
     else                      m_nyHits++;
