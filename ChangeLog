@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Aug 21 15:13:03 PDT 2002
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx KalFitTrack.h 
+Log Message:
+Change over to TkrControl from GFXXXXX classes
+    *
+------------------------------------------------------------
 User: atwood  Wed Aug 21 15:11:19 PDT 2002
 TkrRecon/src/Track
 
