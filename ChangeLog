@@ -1,4 +1,20 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 13:44:14 PST 2001
+TkrRecon/TkrRecon/Track
+
+Modified Files:
+	GFbase.h GFcandidates.h GFcontrol.h GFdata.h GFgamma.h 
+	GFpair.h GFparticle.h GFsegment.h GFtrack.h GFtutor.h 
+	SiRecObjs.h 
+Added Files:
+	GFpoints.h 
+Log Message:
+Class definitions for new GFxxx code which drives the Kalman Filter fit of
+tracks. This version uses KalParticle (ie RCparticle) in the fit process and
+was authored by Bill Atwood. 
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 13:41:23 PST 2001
 TkrRecon/src/Track
 
