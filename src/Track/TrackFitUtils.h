@@ -3,15 +3,17 @@
   *
   * @brief A Track Fit utility class primarily intended to handle TkrKalFitTrack objects
   *        Used primarily to create hits on a TkrKalFitTrack and then to "finish" fit calculations
+  *        This attempts to centralize operations on this TDS object to allow TkrKalFitTrack to maintain
+  *        "set" operations as protected...
   *
   * 01-Nov-2001
   * Original due to Jose Hernando-Angle circa 1997-1999
   * 10-Mar-2004
   * Adapted from KalFitTrack originally authored by Bill Atwood
   *
-  * @author Tracy Usher
+  * @author Tracy Usher (as editor instead of author)
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/TrackFitUtils.h,v 1.3 2003/03/13 19:13:24 lsrea Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TrackFitUtils.h,v 1.1 2004/03/23 23:59:25 usher Exp $
 */
 
 #ifndef __TrackFitUtils_H
@@ -22,7 +24,7 @@
 #include "Event/Recon/TkrRecon/TkrKalFitTrack.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "Event/Recon/TkrRecon/TkrCluster.h"
-#include "src/TrackFit/KalmanFilterFit/IFitHitEnergy.h"
+#include "src/TrackFit/KalmanFilterFit/TrackEnergy/IFitHitEnergy.h"
 
 class ITkrGeometrySvc;
 class ITkrFailureModeSvc;
@@ -50,13 +52,6 @@ public:
 
     /// Updates the material information for a given step
     void            updateMaterials(TkrFitPlane& plane, TkrFitMatrix& Qmat, double radLen, double actDist, double energy);
-
-    /// Generates an initial "fit" hit
-    TkrFitHit       initialFitHit(const TkrFitPar& initialPar, const TkrFitMatrix& baseCovMat);
-
-    /// Updates the measured covariance matrix taking into account latest track slope information
-    TkrFitMatrix    computeMeasCov(const TkrFitPar& newPars, const TkrFitMatrix& oldCovMat, 
-                                   const TkrCluster& cluster);
         
     /// Operations
     void            flagAllHits(const TkrKalFitTrack& track, int iflag=1);
@@ -74,8 +69,6 @@ private:
     TkrFitHit       makeMeasHit(const Point& x0, const TkrCluster::view& planeView);
     /// Segment Part: First portion that influences direction
     double          computeChiSqSegment(const TkrKalFitTrack& track, int nhits, TkrFitHit::TYPE typ = TkrFitHit::SMOOTH);
-    /// Leon Rochester error function
-    double          errorFactor(double strips, double slope);
 
     /// Pointers to clusters, geoemtry, and control parameters
     Event::TkrClusterCol* m_clusters;

@@ -166,6 +166,12 @@ TkrFitPlane TrackFitUtils::newMeasPlane(const TkrPatCandHit& candHit, const doub
 
 void TrackFitUtils::addNewHit(TkrFitPlane& plane, TkrFitHit::TYPE type, TkrFitPar& statePar, TkrFitMatrix& stateCovMat)
 {
+    // Purpose and Method: Add a new set of track parameters and their covariance matrix to a track hit
+    // Inputs: The plane to add info to, the type of parameters, the parameters and their covariance matrix
+    // Outputs: None
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
     TkrFitHit    stateHit(type,statePar,stateCovMat);
 
     plane.setHit(stateHit);
@@ -175,6 +181,13 @@ void TrackFitUtils::addNewHit(TkrFitPlane& plane, TkrFitHit::TYPE type, TkrFitPa
 
 void TrackFitUtils::updateMaterials(TkrFitPlane& plane, TkrFitMatrix& Qmat, double radLen, double actDist, double energy)
 {
+    // Purpose and Method: Updates the materials parameters in a given plane
+    // Inputs: The plane to update, the multiple scattering error matrix, radiation lengths, active 
+    //         distance and hit energy
+    // Outputs: None
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
     plane.setRadLen(radLen);
     plane.setActiveDist(actDist);
     plane.setEnergy(m_hitEnergy->updateHitEnergy(energy,radLen));
@@ -219,119 +232,6 @@ TkrFitHit TrackFitUtils::makeMeasHit(const Point& x0, const TkrCluster::view& pl
     return measHit;
 }
 
-TkrFitHit TrackFitUtils::initialFitHit(const TkrFitPar& initialPar, const TkrFitMatrix& baseCovMat)
-{  
-    // Purpose and Method: Set parameters for the first hit
-    //          Errors are somewhat arbitrary. 
-    // Inputs: Input Parameters from Pat.Rec.
-    // Outputs: a TkrFitHit
-    // Dependencies: None
-    // Restrictions and Caveats:  None
-
-    //  The first error is arbitrary to a degree
-    TkrFitMatrix first_errors; 
-    first_errors(2,2) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
-    first_errors(4,4) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
-    
-    TkrFitHit hitf(TkrFitHit::FIT, initialPar, baseCovMat + first_errors);
-    
-    return hitf;
-}
-
-TkrFitMatrix TrackFitUtils::computeMeasCov(const TkrFitPar& newPars, const TkrFitMatrix& oldCovMat, 
-                                           const TkrCluster& cluster)
-{
-    // Compute the Measurement covariance taking into account the 
-    // Local track slope
-    const double oneOverSqrt12 = 1. / sqrt(12.);
-
-    // The following sets the error to the slop between the track 
-    // and the cluster over sqrt(12). It protects against getting
-    // too small.
-
-    TkrFitMatrix newCov(1);
-    double min_err = 0.707 * m_tkrGeo->siResolution(); 
-    double clusWid = const_cast<TkrCluster&>(cluster).size();
-
-    if(cluster.v() == TkrCluster::X) 
-    {
-        double x_slope  = newPars.getXSlope();
-        double wid_proj = fabs(x_slope * m_tkrGeo->siThickness());
-        double wid_cls  = clusWid * m_tkrGeo->siStripPitch();
-        //double error    = (wid_cls - wid_proj) * oneOverSqrt12;
-        double error    = errorFactor(clusWid, x_slope) * wid_cls * oneOverSqrt12;
-        if (error == 0.)
-        {
-            error = (wid_cls - wid_proj) * oneOverSqrt12;
-            error = (error > min_err) ? error : min_err; 
-        }
-
-        //error       = (error > min_err) ? error : min_err; 
-        newCov(1,1) = error*error;
-        newCov(3,3) = oldCovMat(3,3);
-    }
-    else 
-    {
-        double y_slope  = newPars.getYSlope();
-        double wid_proj = fabs(y_slope * m_tkrGeo->siThickness());
-        double wid_cls  = clusWid * m_tkrGeo->siStripPitch();
-        //double error    = (wid_cls - wid_proj) * oneOverSqrt12;
-        double error    = errorFactor(clusWid, y_slope) * wid_cls * oneOverSqrt12;
-        if (error == 0.)
-        {
-            error = (wid_cls - wid_proj) * oneOverSqrt12;
-            error = (error > min_err) ? error : min_err; 
-        }
-    
-        //error = (error > min_err) ? error : min_err; 
-        newCov(1,1) = oldCovMat(1,1);
-        newCov(3,3) = error * error;
-    }
-
-    return newCov;
-}
-
-double TrackFitUtils::errorFactor(double strips, double slope) 
-{
-    // Kludgey code that returns the factor by which to multiply width/sqrt(12)
-
-    // strips is the number of strips in the cluster
-    // slope is the slope of the track in the measuring view
-
-
-    double stripAspect = 0.57;  // 228/400
-    double absSlope = fabs(slope/stripAspect);
-
-    // calculation below is done in units of strips
-    // absSlope = 1 is the slope that crosses one strip exactly
-
-    // This is an empircal fit the the "measured" errors as a function
-    // of number of strips in cluster and slope of the track.
-    // The "1.05" accounts for the threshold.
-    // Not sure about the 0.6 yet.
-
-    // For now, return zero if outside the range of applicability.
-    // For clusters wider than expected, maybe max(0.707, fabs(meas - projected)) is a good guess.
-    // For clusters narrower than expected, there must be missing strips,
-    // so the error should also be larger, perhaps again max(0.707, fabs(meas-projected))
-
-    // actually, we can do better... most of the 2nd case are tracks going through the edge
-    // a wafer, so we can "fix" them post facto.
-
-    double factor = 0.0;
-
-    int nStrips = floor(strips+.01);  // just to be safe
-    if (nStrips==1) {
-        if (absSlope<1.4) factor = 1 - 0.5*absSlope;
-    } else if (nStrips==2) {
-        if (absSlope>.4 && absSlope<2.6) factor = 0.9 - 0.6*fabs(absSlope-1.6);
-    } else if (nStrips<11) {
-        if (fabs(absSlope-(2.7+1.05*(nStrips-3)))<1.) 
-            factor = 0.9 - 0.6*fabs(absSlope - (2.7 + 1.05*(nStrips-3)));
-    }
-    return factor;
-}
-
 void TrackFitUtils::finish(TkrKalFitTrack& track)
 {
     // Purpose and Method: Kalman clean-up.  Translates fit parameters
@@ -359,8 +259,10 @@ void TrackFitUtils::finish(TkrKalFitTrack& track)
         
         track.setInitialPosition(x0);
         track.setInitialDirection(dir);
-        track.setChiSquare(track.getChiSquare() / (nplanes-4.)); // 1 measurement per plane - 4 parameters in 3D fit
-        track.setChiSquareSmooth(track.getChiSquareSmooth() / (nplanes-4.));  
+        //track.setChiSquare(track.getChiSquare() / (nplanes-4.)); // 1 measurement per plane - 4 parameters in 3D fit
+        //track.setChiSquareSmooth(track.getChiSquareSmooth() / (nplanes-4.));  
+        //track.setChiSquare(track.getChiSquare() / (2.*nplanes-4.)); // 1 measurement per plane - 4 parameters in 3D fit
+        //track.setChiSquareSmooth(track.getChiSquareSmooth() / (2.*nplanes-4.));  
         track.setScatter(0.);
         
         TkrFitPlaneColPtr hitPtr = track.begin();
@@ -488,7 +390,7 @@ void TrackFitUtils::eneDetermination(TkrKalFitTrack& track)
     // Purpose and Method:Computes the track energy from the amount
     //     of multiple scattering alongthe track. (refered to as 
     //     the KalEnergy). 
-    //         ** Original code taken from KalFitter **
+    //         ** Original code taken from KalFitter and written by Bill Atwood **
     // Inputs: None
     // Outputs: sets kalEnergy and its error for this track
     // Dependencies: None
@@ -668,3 +570,168 @@ void TrackFitUtils::setSharedHitsStatus(TkrKalFitTrack& track)
     return;
 }
 
+
+/*
+
+TkrFitHit TrackFitUtils::initialFitHit(const TkrFitPar& initialPar, const TkrFitMatrix& baseCovMat)
+{  
+    // Purpose and Method: Set parameters for the first hit
+    //          Errors are somewhat arbitrary. 
+    // Inputs: Input Parameters from Pat.Rec.
+    // Outputs: a TkrFitHit
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
+    //  The first error is arbitrary to a degree
+    TkrFitMatrix first_errors; 
+    first_errors(2,2) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
+    first_errors(4,4) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
+    
+    TkrFitHit hitf(TkrFitHit::FIT, initialPar, baseCovMat + first_errors);
+    
+    return hitf;
+}
+
+TkrFitMatrix TrackFitUtils::computeMeasCov(const TkrFitPar& newPars, const TkrFitMatrix& oldCovMat, 
+                                           const TkrCluster& cluster)
+{
+    // Purpose and Method: Set parameters for the first hit
+    //          Errors are somewhat arbitrary. 
+    // Inputs: Input Parameters from Pat.Rec.
+    // Outputs: a TkrFitHit
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+   
+    // Compute the Measurement covariance taking into account the 
+    // Local track slope
+    const double oneOverSqrt12 = 1. / sqrt(12.);
+
+    // The following sets the error to the slop between the track 
+    // and the cluster over sqrt(12). It protects against getting
+    // too small.
+
+    TkrFitMatrix newCov(1);
+    ////double min_err = 0.707 * m_tkrGeo->siResolution(); 
+    double min_err = m_tkrGeo->siResolution(); 
+    double clusWid = const_cast<TkrCluster&>(cluster).size();
+
+    if(cluster.v() == TkrCluster::X) 
+    {
+        double x_slope  = newPars.getXSlope();
+        double wid_proj = fabs(x_slope * m_tkrGeo->siThickness());
+        double wid_cls  = clusWid * m_tkrGeo->siStripPitch();
+        double error    = (wid_cls - wid_proj) * oneOverSqrt12;
+        ////double error    = errorFactor(clusWid, x_slope) * m_tkrGeo->siStripPitch() * oneOverSqrt12;
+        ////if (error == 0.)
+        ////{
+        ////    error = (wid_cls - wid_proj) * oneOverSqrt12;
+        ////    error = (error > min_err) ? error : min_err; 
+        ////}
+        ////error = m_tkrGeo->siResolution();
+
+        error       = (error > min_err) ? error : min_err; 
+        newCov(1,1) = error * error;
+        newCov(3,3) = oldCovMat(3,3);
+    }
+    else 
+    {
+        double y_slope  = newPars.getYSlope();
+        double wid_proj = fabs(y_slope * m_tkrGeo->siThickness());
+        double wid_cls  = clusWid * m_tkrGeo->siStripPitch();
+        double error    = (wid_cls - wid_proj) * oneOverSqrt12;
+        ////double error    = errorFactor(clusWid, y_slope) * m_tkrGeo->siStripPitch() * oneOverSqrt12;
+        ////if (error == 0.)
+        ////{
+        ////    error = (wid_cls - wid_proj) * oneOverSqrt12;
+        ////    error = (error > min_err) ? error : min_err; 
+        ////}
+        ////error = m_tkrGeo->siResolution();
+    
+        error = (error > min_err) ? error : min_err; 
+        newCov(1,1) = oldCovMat(1,1);
+        newCov(3,3) = error * error;
+    }
+
+    return newCov;
+}
+
+double TrackFitUtils::errorFactor(double strips, double slope) 
+{
+    // Kludgey code that returns the factor by which to multiply width/sqrt(12)
+
+    // strips is the number of strips in the cluster
+    // slope is the slope of the track in the measuring view
+
+
+    double stripAspect = 0.57;  // 228/400
+    double absSlope = fabs(slope/stripAspect);
+
+    // calculation below is done in units of strips
+    // absSlope = 1 is the slope that crosses one strip exactly
+
+    // This is an empircal fit the the "measured" errors as a function
+    // of number of strips in cluster and slope of the track.
+    // The "1.05" accounts for the threshold.
+    // Not sure about the 0.6 yet.
+
+    // For now, return zero if outside the range of applicability.
+    // For clusters wider than expected, maybe max(0.707, fabs(meas - projected)) is a good guess.
+    // For clusters narrower than expected, there must be missing strips,
+    // so the error should also be larger, perhaps again max(0.707, fabs(meas-projected))
+
+    // actually, we can do better... most of the 2nd case are tracks going through the edge
+    // a wafer, so we can "fix" them post facto.
+
+    bool oldErrors = false;
+
+    double factor = 0.0;
+    double eps0 = 0.0; // use this to extent or restrict the valid range for 1-strip clusters
+    double eps1 = 0.0; // ditto for the rest of the clusters
+    double loSlope, hiSlope, peakSlope;
+    double loPar1, hiPar1, peakDev;
+
+    if(oldErrors) { return 1.0;}
+
+    int nStrips = floor(strips+.01);  // just to be safe
+    if (nStrips==1) {
+        if (absSlope<1.5+eps0) factor = 1 - 0.52*absSlope;
+    } else if (nStrips<11) {
+        if (nStrips==2) {
+            loSlope = .5 ; hiSlope = 2.5; peakSlope = 1.61;
+            peakDev = 0.97; loPar1 = .613; hiPar1 = .697;
+        } else if (nStrips==3) {
+            loSlope = 1.8 ; hiSlope = 3.5; peakSlope = 2.78;
+            peakDev = 0.97; loPar1 = .600; hiPar1 = .759;
+        } else if (nStrips==4) {
+            loSlope = 3.0 ; hiSlope = 4.6; peakSlope = 3.80;
+            peakDev = 0.90; loPar1 = .691; hiPar1 = .755;
+        } else if (nStrips==5) {
+            loSlope = 4.2 ; hiSlope = 5.6; peakSlope = 4.83;
+            peakDev = 0.94; loPar1 = .769; hiPar1 = .819;
+        } else if (nStrips>=6) {
+            double nm6 = 1.03*(nStrips - 6);
+            loSlope = 5.0 + nm6 ; hiSlope = 6.6 + nm6; peakSlope = 5.88 + nm6;
+            peakDev = 0.96; loPar1 = .714; hiPar1 = .851;
+        }
+        if (absSlope>loSlope-eps1 && absSlope < peakSlope) {
+            factor = peakDev - loPar1*(peakSlope - absSlope);
+        } else if (absSlope>peakSlope && absSlope < hiSlope + eps1 ) {
+            factor = peakDev - hiPar1*(absSlope - peakSlope);
+        }
+    }
+
+    //double factor = 0.0;
+    //
+    //int nStrips = floor(strips+.01);  // just to be safe
+    //if (nStrips==1) {
+    //    if (absSlope<1.4) factor = 1 - 0.5*absSlope;
+    //} else if (nStrips==2) {
+    //    if (absSlope>.4 && absSlope<2.6) factor = 0.9 - 0.6*fabs(absSlope-1.6);
+    //} else if (nStrips<11) {
+    //    if (fabs(absSlope-(2.7+1.05*(nStrips-3)))<1.) 
+    //        factor = 0.9 - 0.6*fabs(absSlope - (2.7 + 1.05*(nStrips-3)));
+    //}
+
+    return factor;
+}
+*/
