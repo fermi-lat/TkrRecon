@@ -3,6 +3,7 @@
  * Package TkrRecon
  * Manager: Leon Rochester 
  *
+ * v6r0    10-May-2002  THB   Now consistent with new Event
  * v5r7    08-May-2002  TU    Tagged just after movement of TDS output classes to GlastEvent
  * v5r6    01-May-2002  LSR   Tagged changes for DSTF meeting
  * v5r5    24-Apr-2002  LSR   Tagged the latest changes
