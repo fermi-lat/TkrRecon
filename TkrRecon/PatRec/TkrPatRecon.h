@@ -2,8 +2,8 @@
 #ifndef TKRPATRECON_H
 #define TKRPATRECON_H
 
-#include "GlastEvent/Recon/TkrRecon/TkrPatCandCol.h"
-#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrPatCandCol.h"
+#include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "geometry/Ray.h"
 
 //

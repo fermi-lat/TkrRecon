@@ -2,7 +2,7 @@
 #ifndef __GFTUTOR_H
 #define __GFTUTOR_H 1
 
-#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 
 namespace TkrRecon { //Namespace

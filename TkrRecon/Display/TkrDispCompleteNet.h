@@ -10,14 +10,14 @@
 * 
 * @authors b. allgood and w. atwood
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Display/TkrDispCompleteNet.h,v 1.1 2002/04/01 19:38:25 allgood Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Display/TkrDispCompleteNet.h,v 1.2 2002/05/07 22:44:33 usher Exp $
 */
 
 #ifndef __TKRDISPCOMPLETENET_H
 #define __TKRDISPCOMPLETENET_H
 
 #include "src/PatRec/NeuralNet/TkrNeuralNet.h"
-#include "GlastEvent/Recon/TkrRecon/TkrPatCandCol.h"
+#include "Event/Recon/TkrRecon/TkrPatCandCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "gui/DisplayRep.h"
 #include "GaudiKernel/IDataProviderSvc.h"

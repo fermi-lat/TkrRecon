@@ -6,8 +6,8 @@
 #ifndef __TKRCOMBOPATREC_H
 #define __TKRCOMBOPATREC_H
 
-#include "GlastEvent/Recon/TkrRecon/TkrPatCandCol.h"
-#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrPatCandCol.h"
+#include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "src/TrackFit/KalFitTrack/KalFitTrack.h"
 #include "TkrRecon/Track/TkrBase.h"

@@ -5,7 +5,7 @@
 #include "GaudiKernel/SmartDataPtr.h"
 #include "GaudiKernel/DataObject.h"
 
-#include "GlastEvent/Recon/ICsIClusters.h"
+#include "Event/Recon/ICsIClusters.h"
 
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 
@@ -15,7 +15,7 @@
 
 #include "TkrRecon/GaudiAlg/TkrFindAlg.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
-#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrRecon/Track/GFcontrol.h"
 
 //#include "src/PatRec/LinkAndTree/TkrLinkAndTreePR.h"

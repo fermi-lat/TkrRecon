@@ -1,6 +1,6 @@
 #include "TkrRecon/Display/TkrBestCandRep.h"
 
-#include "GlastEvent/Recon/TkrRecon/TkrCluster.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
 //------------------------------------------------------------------------------
 /// Algorithm parameters which can be set at run time must be declared.
 /// This should be done in the constructor.

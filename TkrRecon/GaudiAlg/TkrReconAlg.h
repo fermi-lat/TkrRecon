@@ -5,7 +5,7 @@
 #include "GaudiKernel/Algorithm.h"
 
 #include "TkrRecon/Track/TkrTrackFit.h"
-#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrClusterCol.h"
 
 #include "GlastSvc/Reco/IKalmanParticle.h"
 
@@ -19,7 +19,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrReconAlg.h,v 1.8 2002/05/01 04:10:33 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrReconAlg.h,v 1.9 2002/05/07 22:45:12 usher Exp $
  */
 
 class TkrReconAlg : public Algorithm

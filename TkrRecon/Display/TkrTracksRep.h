@@ -2,7 +2,7 @@
 #ifndef TKRTRACKSREP_H
 #define TRKTRACKSREP_H
 
-#include "GlastEvent/Recon/TkrRecon/TkrFitTrackCol.h"
+#include "Event/Recon/TkrRecon/TkrFitTrackCol.h"
 #include "gui/DisplayRep.h"
 #include "GaudiKernel/IDataProviderSvc.h"
 #include "GaudiKernel/SmartDataPtr.h"

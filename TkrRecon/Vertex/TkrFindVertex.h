@@ -2,9 +2,9 @@
 #ifndef TkrFindVertex_H
 #define TkrFindVertex_H
 
-#include "GlastEvent/Recon/TkrRecon/TkrVertexCol.h"
-#include "GlastEvent/Recon/TkrRecon/TkrPatCandCol.h"
-#include "GlastEvent/Recon/TkrRecon/TkrFitTrackCol.h"
+#include "Event/Recon/TkrRecon/TkrVertexCol.h"
+#include "Event/Recon/TkrRecon/TkrPatCandCol.h"
+#include "Event/Recon/TkrRecon/TkrFitTrackCol.h"
 
 //
 //-------------------------------------------------------

@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.10 2002/05/01 05:08:52 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.11 2002/05/07 22:54:33 usher Exp $
 //
 // Description:
 //      Controls the track fitting
@@ -13,11 +13,11 @@
 #include <vector>
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
-#include "GlastEvent/Recon/TkrRecon/TkrFitTrackCol.h"
+#include "Event/Recon/TkrRecon/TkrFitTrackCol.h"
 #include "src/Track/TkrLinkAndTreeTrackFit.h"
 #include "TkrRecon/Track/GFcontrol.h"
 
-#include "GlastEvent/Recon/ICsIClusters.h"
+#include "Event/Recon/ICsIClusters.h"
 
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/AlgFactory.h"

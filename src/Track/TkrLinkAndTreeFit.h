@@ -4,8 +4,8 @@
 
 #include <vector>
 #include "GaudiKernel/MsgStream.h"
-#include "GlastEvent/Recon/TkrRecon/TkrPatCandCol.h"
-#include "GlastEvent/Recon/TkrRecon/TkrFitTrackCol.h"
+#include "Event/Recon/TkrRecon/TkrPatCandCol.h"
+#include "Event/Recon/TkrRecon/TkrFitTrackCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 
 namespace TkrRecon { //Namespace
