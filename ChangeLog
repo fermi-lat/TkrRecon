@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Thu Jul 18 14:11:28 PDT 2002
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx TkrComboPatRec.h 
+Log Message:
+Lots of clean-up.  Adjusted track order parameter (see Candidate constructor for pr_quality) 
+    *
+------------------------------------------------------------
 User: cohen  Tue Jul 16 08:47:17 PDT 2002
 TkrRecon/cmt
 
