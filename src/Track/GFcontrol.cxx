@@ -15,6 +15,6 @@ double	  GFcontrol::minEnergy	         = 30.0;    //MeV  min tracking energy GeV
 double	  GFcontrol::iniErrorSlope       = 0.17;    // 10 deg
 double	  GFcontrol::iniErrorPosition    = 0.10;    //mm
 
-bool      GFcontrol::planeEnergies       = false;    // decrease particle energies by exp(-rad_len)
+bool      GFcontrol::planeEnergies       = true;    // decrease particle energies by exp(-rad_len)
 
 
