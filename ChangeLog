@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: burnett  Thu Feb 14 10:47:40 PST 2002
+TkrRecon/src/Display
+
+Modified Files:
+	TkrBestCandRep.cxx TkrCandidatesRep.cxx 
+Log Message:
+wrong use of enumerated constant
+    *
+------------------------------------------------------------
 User: burnett  Thu Feb 14 10:47:03 PST 2002
 TkrRecon/src/Cluster
 
