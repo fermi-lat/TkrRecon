@@ -3,6 +3,7 @@
  * Package TkrRecon
  * Manager: Leon Rochester 
  *
+ * v6r4    27-Jun-2002  TU    New Combo Recon code included, make this the default recon
  * v6r3p5  13-Jun-2002  TU    TkrReconAlg and TkrFindAlg can again obtain Cal Energy 
  * v6r3p4  11-Jun-2002  TU    Fix TkrGeometrySvc so that cluster positions are (again) correct
  * v6r3p3  
