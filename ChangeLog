@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Wed Oct  6 23:09:12 PDT 2004
+TkrRecon/cmt
+
+Modified Files:
+      Tag: GlastRelease-v4r5
+	requirements 
+Log Message:
+ready to tag v9r0p2gr2: fix TkrAlignHitsTool to go with new TkrUtil
+
+    *
+------------------------------------------------------------
 User: usher  Mon Oct  4 09:18:51 PDT 2004
 TkrRecon/src/test
 
