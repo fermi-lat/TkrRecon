@@ -150,7 +150,7 @@ void TkrNeuralNet::relax()
   double alpha_up   = m_params["AlphaUP"];
   double alpha_down = m_params["AlphaDOWN"];
 
-  std::map<const char*,double>::const_iterator it;
+  std::map<const char*,double,ltstr>::const_iterator it;
   for(it=m_params.begin();it!=m_params.end();it++)
     {
       std::cout<<(*it).first<<" "<<(*it).second<<std::endl;
