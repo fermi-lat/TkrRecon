@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Mon Apr  2 15:32:16 PDT 2001
+TkrRecon/TkrRecon SiClustersAlg.h
+
+Modified Files:
+	SiClustersAlg.h 
+Log Message:
+
+This version obtains its input data from TkrDigi which it finds in the TDS
+
+
+    *
+------------------------------------------------------------
 User: usher  Mon Apr  2 15:31:08 PDT 2001
 TkrRecon/src SiClustersAlg.cxx
 
