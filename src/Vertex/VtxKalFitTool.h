@@ -1,4 +1,3 @@
-
 #ifndef _VtxKalFitTool_H
 #define _VtxKalFitTool_H 1
 
@@ -19,7 +18,7 @@
  * 
  *
  * @author Johann Cohen-Tanugi
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.h,v 1.8 2002/09/02 19:46:15 cohen Exp $
+ * $Header: /home/cvs/SLAC/TkrRecon/src/Vertex/VtxKalFitTool.h,v 1.8 2002/09/02 19:46:15 cohen Exp $
  */
 class VtxKalFitTool : public VtxBaseTool
 {
@@ -46,8 +45,8 @@ class VtxKalFitTool : public VtxBaseTool
   ///current vertex estimate
   ///(arbitrary yet reasonnable choice, advocated by Luchsinger et al.). 
   ///In our case only the energy might be changed by this.
-  HepVector computeQatVtx(const Event::TkrFitTrack&,
-                          const HepVector );
+  HepVector computeQatVtx(const Event::TkrFitTrack& /*theTrack*/,
+                          const HepVector /*theVertex*/);
 
   ///@brief Get the weight matrix G = Cov(m)^-1 with m the track parameters 
   ///Cov(m) is first propagated back to the vertex estimate, before being 
@@ -68,7 +67,7 @@ class VtxKalFitTool : public VtxBaseTool
   ///(X,Sx,Y,Sy) are the track fitted parameters, E is its estimated energy. 
   ///These play for the Kalman vertexer the role of measurement vector, 
   ///the measurement error being their Cov. matrix.
-  HepVector getTkrParVec(const Event::TkrFitTrack& );
+  HepVector getTkrParVec(const Event::TkrFitTrack& /*theTrack*/);
 
  private:
 
@@ -93,7 +92,7 @@ class VtxKalFitTool : public VtxBaseTool
   ///Compute derivative matrix of (Sx,Sy,E)->(Eux,Euy,Euz) transformation
   ///@param Q HepVector (Sx,Sy,E)
   ///@param sign_uz Sign(uz) needed to remove Sx and Sy sign ambiguity
-  HepMatrix SlopeToDir(HepVector, int );
+  HepMatrix SlopeToDir(HepVector /*Q*/, int /*sign_uz*/);
 
   ///Vector of successive estimates.
   std::vector<HepVector>    m_VtxEstimates;
@@ -101,3 +100,4 @@ class VtxKalFitTool : public VtxBaseTool
 
 };
 #endif
+
