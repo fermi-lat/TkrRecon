@@ -17,7 +17,7 @@ TkrClusterLinkList::TkrClusterLinkList()
 	return;
 }
 
-TkrClusterLinkList::TkrClusterLinkList(TkrClusters* pClusters, TkrPlaneType plane)
+TkrClusterLinkList::TkrClusterLinkList(TkrClusterCol* pClusters, TkrPlaneType plane)
 {
 	layerView       = plane;
 	numLinksTotal   =  0;
@@ -37,7 +37,7 @@ TkrClusterLinkList::TkrClusterLinkList(TkrClusters* pClusters, TkrPlaneType plan
 
 			if (pClus.size() > 0)
 			{
-				TkrClusterLinkVector*  pClusLinks = new TkrClusterLinkVector(pClusters, layerNum, plane);
+				TkrClusterLinkVector* pClusLinks = new TkrClusterLinkVector(pClusters, layerNum, plane);
 				LayerLinkVector*      pVector    = pClusLinks;
 				int                   numVectors = pVector->size();
 

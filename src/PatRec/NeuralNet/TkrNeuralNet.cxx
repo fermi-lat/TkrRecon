@@ -30,7 +30,7 @@
 #define TEMP             1     // tempurature for relaxation process
 
 // Right now it doesn't use calEne, but in the future it might.
-TkrNeuralNet::TkrNeuralNet(ITkrGeometrySvc* pTkrGeo, TkrClusters* pClusters, 
+TkrNeuralNet::TkrNeuralNet(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters, 
                            double calEne,  Point calHit):m_energy(calEne),
                            m_Pcal(calHit)
 {  	   
@@ -233,7 +233,7 @@ void TkrNeuralNet::buildCand()
                 _track->findHits();
                 _track->doFit();
 
-                if (!_track->empty()) 
+                if (!_track->empty(GFcontrol::minSegmentHits)) 
                 {
                     //Keep pointer to the track temporarily
                     m_tracks.push_back(_track);
@@ -255,7 +255,7 @@ void TkrNeuralNet::buildCand()
     // real fit
     if (m_tracks.size())
     {
-        TkrFitTrackColPtr iter = m_tracks.begin();
+        TkrFitColPtr iter = m_tracks.begin();
 
         while(iter != m_tracks.end())
         {

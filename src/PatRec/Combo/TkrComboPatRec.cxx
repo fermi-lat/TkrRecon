@@ -15,8 +15,10 @@
 
 #include <algorithm>
 
+using namespace TkrRecon;
+
 //Constructor emulates the "old" SiRecObjs
-TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusters* pClusters, double CalEnergy, Point CalPosition)
+TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters, double CalEnergy, Point CalPosition)
 {
     //Store the cluster info
     GFtutor::load(pClusters, pTkrGeo);
@@ -29,7 +31,7 @@ TkrComboPatRec::~TkrComboPatRec()
 {
     if (m_tracks.size())
     {
-        TkrFitTrackColPtr iter = m_tracks.begin();
+        TkrFitColPtr iter = m_tracks.begin();
 
         while(iter != m_tracks.end())
         {
@@ -94,7 +96,7 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
                 _track->findHits();
                 _track->doFit();
 
-                if (!_track->empty()) 
+                if (!_track->empty(GFcontrol::minSegmentHits)) 
                 {
                     //Keep pointer to the track temporarily
                     m_tracks.push_back(_track);
@@ -126,7 +128,7 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
     //Ok, go through all the attempted track fits and unflag the hits for the real fit
     if (m_tracks.size())
     {
-        TkrFitTrackColPtr iter = m_tracks.begin();
+        TkrFitColPtr iter = m_tracks.begin();
 
         while(iter != m_tracks.end())
         {

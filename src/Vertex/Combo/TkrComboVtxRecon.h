@@ -2,9 +2,9 @@
 #ifndef TkrComboVtxRecon_H
 #define TkrComboVtxRecon_H
 
-#include "TkrRecon/Vertex/TkrVertexCol.h"
-#include "TkrRecon/PatRec/TkrCandidates.h"
-#include "TkrRecon/Track/TkrTracks.h"
+#include "GlastEvent/Recon/TkrRecon/TkrVertexCol.h"
+#include "GlastEvent/Recon/TkrRecon/TkrPatCandCol.h"
+#include "GlastEvent/Recon/TkrRecon/TkrFitTrackCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 
 //
@@ -34,10 +34,12 @@
 //------------------------------------------------------------------------
 //
 
+using namespace TkrRecon;
+
 class TkrComboVtxRecon : public TkrVertexCol
 {
 public:
-	TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrTracks* pTracks, TkrCandidates* pCandTracks);
+	TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTracks, TkrPatCandCol* pCandTracks);
    ~TkrComboVtxRecon();
 
 private:

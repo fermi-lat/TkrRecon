@@ -5,7 +5,7 @@
 
 #include "src/PatRec/LinkAndTree/TkrLinkAndTree.h"
 
-TkrLinkAndTree::TkrLinkAndTree(ITkrGeometrySvc* pTkrGeo, TkrClusters* pTkrClus)
+TkrLinkAndTree::TkrLinkAndTree(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus)
 {
 	ini();
 

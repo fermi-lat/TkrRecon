@@ -2,9 +2,9 @@
 #ifndef TKRLINKANDTREE_H
 #define TKRLINKANDTREE_H
 
-#include "TkrRecon/PatRec/TkrCandidates.h"
+#include "GlastEvent/Recon/TkrRecon/TkrPatCandCol.h"
 #include "src/PatRec/LinkAndTree/TkrLinkForest.h"
-#include "TkrRecon/Cluster/TkrClusters.h"
+#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 
 //
@@ -20,10 +20,10 @@
 //------------------------------------------------------------------------
 //
 
-class TkrLinkAndTree : public TkrCandidates 
+class TkrLinkAndTree : public TkrPatCandCol 
 {
 public:
-	TkrLinkAndTree(ITkrGeometrySvc* pTkrGeo, TkrClusters* pTkrClus);
+	TkrLinkAndTree(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus);
    ~TkrLinkAndTree();
 
         //Return information

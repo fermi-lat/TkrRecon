@@ -25,7 +25,7 @@ class TkrClusterLinkVector : public LayerLinkVector
 
 public:
 	TkrClusterLinkVector();
-	TkrClusterLinkVector(TkrClusters* pClusters, int layerNum, TkrPlaneType plane);
+	TkrClusterLinkVector(TkrClusterCol* pClusters, int layerNum, TkrPlaneType plane);
        ~TkrClusterLinkVector();
 
 	//Which layer is this?
