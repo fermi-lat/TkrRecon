@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: cohen  Thu Aug 29 07:26:13 PDT 2002
+TkrRecon/src/Vertex
+
+Modified Files:
+	IVtxBaseTool.h VtxBaseTool.cxx VtxBaseTool.h 
+	VtxSingleTrkTool.h VtxSingleTrkTool.cxx 
+Log Message:
+documentation update
+    *
+------------------------------------------------------------
 User: usher  Wed Aug 28 15:55:48 PDT 2002
 TkrRecon/src/GaudiAlg
 
