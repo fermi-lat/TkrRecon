@@ -1,4 +1,24 @@
 ------------------------------------------------------------
+User: usher  Wed Feb  6 13:48:46 PST 2002
+TkrRecon/src/PatRec/LinkAndTree
+
+Added Files:
+	BestNodeList.cxx BestNodeList.h LayerLink.cxx LayerLink.h 
+	LayerLinkList.h LayerLinkNode.h LayerLinkTree.cxx 
+	LayerLinkTree.h TkrCandidates.cxx TkrClusterLink.cxx 
+	TkrClusterLink.h TkrClusterLinkList.cxx TkrClusterLinkList.h 
+	TkrClusterLinkVector.cxx TkrClusterLinkVector.h 
+	TkrLinkAndTree.cxx TkrLinkAndTree.h TkrLinkAndTreePR.cxx 
+	TkrLinkAndTreePR.h TkrLinkForest.cxx TkrLinkForest.h 
+	TkrLinkNode.cxx TkrLinkNode.h TkrLinkTree.cxx TkrLinkTree.h 
+	TkrNodeQuality.cxx TkrNodeQuality.h 
+Log Message:
+1) Moved all Link and Tree specific routines from PatRec to PatRec/LinkAndTree
+2) Moved all combo PR specific routines into PatRec/Combo
+
+
+    *
+------------------------------------------------------------
 User: usher  Wed Feb  6 13:48:43 PST 2002
 TkrRecon/src/PatRec/Combo
 
