@@ -1,0 +1,85 @@
+<?xml version="1.0" ?>
+
+<!DOCTYPE TkrGeometry [
+<!ELEMENT TkrGeometry (section)* >
+<!ATTLIST TkrGeometry cvs_Header CDATA #REQUIRED
+                     cvs_Revision CDATA #REQUIRED>
+<!ELEMENT section (#PCDATA | item | section)*  >
+<!ATTLIST section name CDATA #REQUIRED>
+<!ELEMENT item   (#PCDATA)>
+<!ATTLIST item  name CDATA #REQUIRED
+                value CDATA #REQUIRED>
+]>
+
+<!--    GLAST digi constants
+        Do not modify and check in this file without permission!
+        Note that the text in the item field cannot have direct ampersands of brackets!
+  -->
+<TkrGeometry cvs_Header="$Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/xml/Tkr_TestBeam.xml,v 1.1 2001/04/02 23:30:06 usher Exp $"
+            cvs_Revision="$Revision: 1.1 $">
+
+    <section name="tkr"> TKR properties
+        <item name="numXtowers"      value="4">       Number of towers in X direction </item>
+        <item name="numYtowers"      value="4">       Number of towers in Y direction </item>
+		<item name="nViews"          value="2">       Number of views (X and Y) </item>
+		<item name="nLayers"         value="18">      Total number of layers </item>
+
+        <!-- no longer used
+		<item name="nPbLayers"       value="16">      Number of layers with converter (obsolete) </item>
+		<item name="nSuperGLayers"   value="4">       Number of layers with thick converter (obsolete) </item>
+        -->
+
+		<item name="Z0"              value="0">       Z coordinate at the center of the lowest Si layer</item>
+		<item name="towerPitch"      value="37.35">   Tower pitch </item>
+		<item name="trayWidth"       value="36.01">   Width of a tray </item>
+                <!-- we will use an average tray height to make life easier for glastsim -->
+		<item name="trayHeight"      value="3.2412">  Height of one tray </item>
+		<item name="ladderWidth"     value="8.95">    Width of one ladder </item>
+		<item name="ladderLength"    value="35.8075"> Length of one ladder </item>
+		<item name="ladderGap"       value="0.020">   Gap between adjacent ladders </item>
+		<item name="ladderInnerGap"  value="0.0025">  Gap between wafers on the same ladder </item>
+		<item name="ladderNStrips"   value="384">     Number strips/ladder </item>
+		<item name="siStripPitch"    value="0.0228">  Strip pitch </item>
+		<item name="siResolution"    value="0.0066">  Strip resolution </item>
+		<item name="siThickness"     value="0.0400">  Thickness </item>
+		<item name="siDeadDistance"  value="0.0974">  Dead region around outside of wafer</item>
+		<item name="siX0"            value="9.36">    Radiation length of silicon </item>
+		<item name="pbX0"            value="0.35">    Radiation length of (tungsten) converter </item>
+
+        <!--
+		<item name="thinConvHeight"  value="0.0105"> Thickness of "thin" converter (cm) </item>
+		<item name="thickConvHeight" value="0.0630"> Thickness of "thick" converter (cm) </item>
+           replaced by vector below -->
+
+		<item name="layerType"       value="{1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0}"> 0 -> X-Y, 1 -> Y-X </item>
+                <item name="nLadders"        value="{4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4}"> number of ladders vs layer </item>
+		<item name="iZGap"           value="{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}"> index of x-y gap size vs layer </item>
+		<item name="zGap"            value="{0.200}"> values of x-y gap size </item>
+
+        <item name="iRadThickness"   value="{0,0,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1}"> index of radiator thkness vs layer </item>
+        <item name="radThickness"    value="{0.0, 0.0105, 0.0630}"> radiator thicknesses </item>
+
+		<item name="iXSize"          value="{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}"> index of die size for X layers </item>
+		<item name="iYSize"          value="{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}"> index of die size for Y layers </item>
+		<item name="dieSize"         value="{6.xxx}"> values of the die size </item>
+		<item name="nDies"           value="{4}">     number of dies/ladder for each size </item>
+
+		<!-- all this next for the mixed layer (but not relevant for flight instrument -->
+		<item name="indMixed"        value="-1">      Index of the layer with the mixed ladders (BTEM-BFEM) </item>
+		<item name="viewMixed"       value="-1">      View containing mixed ladders (0=X, 1=Y) </item>
+		<item name="ladderMixed"     value="-1">      Index of ladder which is different </item>
+		<item name="isizeMixed"      value="-1">      Index of wafer size for this ladder </item>
+
+    </section>
+
+    <section name="cal"> CAL properties
+    </section>
+
+    <section name="acd">  ACD properties
+	<item name="lowThreshold"     value="0.2"> MeV enables PHA</item>
+        <item name="vetoThreshold"      value="0.4"> MeV nominal veto </item>
+        <item name="highThreshold" value="20.0"> MeV CNO </item>
+        <item name="adcChannelsPerMeV" value = "203.0793"> conversion from energy to ADC channels </item>
+    </section>
+
+</TkrGeometry>
