@@ -48,13 +48,15 @@ void TkrClustersRep::update()
 			//Draw a cross at the position of the cluster center
 			if (pCluster->v() == SiCluster::X)
 			{
-				moveTo(Point(x - delta, Offset, z - delta));
+                Offset += y;
+                moveTo(Point(x - delta, Offset, z - delta));
 				lineTo(Point(x + delta, Offset, z + delta));
 				moveTo(Point(x - delta, Offset, z + delta));
 				lineTo(Point(x + delta, Offset, z - delta));
 			}
 			else
 			{
+                Offset += x;
 				moveTo(Point(Offset, y - delta, z - delta));
 				lineTo(Point(Offset, y + delta, z + delta));
 				moveTo(Point(Offset, y - delta, z + delta));
@@ -73,8 +75,8 @@ void TkrClustersRep::update()
 				}
 				else
 				{
-					moveTo(Point(x, y - stripWid, z));
-					lineTo(Point(x, y + stripWid, z));
+					moveTo(Point(Offset, y - stripWid, z));
+					lineTo(Point(Offset, y + stripWid, z));
 				}
 			}
 		}
