@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Mon Apr  2 15:33:13 PDT 2001
+TkrRecon/TkrRecon TkrGeometrySvc.h
+
+Modified Files:
+	TkrGeometrySvc.h 
+Log Message:
+
+Modified to get geometry from an xml file specified in the job options file, 
+and to use TkrDetGeo instead of DetGeo.
+
+
+    *
+------------------------------------------------------------
 User: usher  Mon Apr  2 15:32:16 PDT 2001
 TkrRecon/TkrRecon SiClustersAlg.h
 
