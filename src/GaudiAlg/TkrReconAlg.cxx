@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.26.2.1 2004/11/19 20:22:01 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.26.2.2 2004/11/22 18:55:23 lsrea Exp $
 */
 
 
@@ -233,8 +233,6 @@ StatusCode TkrReconAlg::execute()
     // Dependencies: None
     // Restrictions and Caveats:  None
     MsgStream log(msgSvc(), name());
-
-    std::cout << "TkrReconAlg execute: " << name() << std::endl;
 
     StatusCode sc = StatusCode::SUCCESS;
 
