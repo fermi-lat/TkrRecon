@@ -11,7 +11,7 @@
                 value CDATA #REQUIRED>
 ]>
 
-<TkrGeometry cvs_Header="$Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/xml/Tkr_TestBeam.xml,v 1.3 2001/05/18 05:06:54 lsrea Exp $" cvs_Revision="$Revision: 1.3 $">
+<TkrGeometry cvs_Header="$Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/xml/Tkr_TestBeam.xml,v 1.4 2001/05/18 19:01:02 lsrea Exp $" cvs_Revision="$Revision: 1.4 $">
 
 <!--    GLAST digi constants
         Do not modify and check in this file without permission!
@@ -30,7 +30,7 @@
         -->
 
         <item name="Z0"              value="2.91">     Z coordinate at the center of the lowest Si layer</item>
-        <item name="towerPitch"      value="0.0">     Tower pitch </item>
+        <item name="towerPitch"      value="32.08">     Tower pitch </item>
         <item name="trayWidth"       value="32.08">   Width of a tray </item>
         <item name="trayHeight"      value="3.2066">  Height of one tray </item>
         <item name="footHeight"      value="0.0">     Height of foot under bottom tray </item>
