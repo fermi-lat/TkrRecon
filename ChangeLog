@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: lsrea  Thu Oct 28 15:17:21 PDT 2004
+TkrRecon/src/Track
+
+Modified Files:
+	KalmanTrackFitTool.cxx 
+Log Message:
+Changes in default properties, so code will run without secret magic changes that only Tracy knows about:
+    TkrTrackFitAlg.UseGenericFit = true;                    // very important
+    KalmanTrackFitTool.MeasHitErrorType = "SlopeCorrected"; // nice but not crucial
+
+    *
+------------------------------------------------------------
+User: lsrea  Thu Oct 28 15:17:21 PDT 2004
 TkrRecon/src/PatRec/Combo
 
 Modified Files:
