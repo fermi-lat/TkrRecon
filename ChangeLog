@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Jul  3 12:29:31 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	TkrPoints.cxx 
+Log Message:
+Added protection from being called when done... 
+    *
+------------------------------------------------------------
 User: atwood  Wed Jul  3 12:28:49 PDT 2002
 TkrRecon/src/Track
 
