@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Oct  9 16:44:08 PDT 2002
+TkrRecon/TkrRecon/Display
+
+Modified Files:
+	TkrCandidate3DRep.h TkrDispActiveNet.h TkrDispCompleteNet.h 
+Log Message:
+Modifications for TkrPatCandCol typedef (now a Contained Object Vector, hence change to stl like references)
+    *
+------------------------------------------------------------
 User: lsrea  Tue Oct  8 15:30:18 PDT 2002
 TkrRecon/src/GaudiAlg
 
