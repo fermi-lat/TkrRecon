@@ -5,7 +5,7 @@
 //      Original due to Jose Hernando-Angle circa 1997-1999
 //      Re-written to combine both X and Y projections (2001)
 //
-//      W. B. Atwood, UCSC, Nov., 2001 
+//      W. B. Atwood, UCSC, Nov., 2001  
 //      
 //----------------------------------------
 
@@ -80,7 +80,8 @@ private:
     // Selecting the Hit
     double        sigmaFoundHit(const TkrFitPlane& previous, const TkrFitPlane& next, int& indexhit, double& radius); // returns also indexhit and radius
     void          incorporateFoundHit(TkrFitPlane& next, int indexhit); // modifies next
-    bool          foundHit(int& indexhit, double& inerRadius, double outRadius, const Point& CenterX, const Point& nearHit);
+    bool          foundHit(int& indexhit, double& min_Dist, double max_Dist, 
+                           double error, const Point& CenterX, const Point& nearHit);
     
     // access to the Step Plane 
     TkrFitPlane   firstKPlane() const;
