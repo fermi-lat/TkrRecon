@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Thu Apr 24 11:52:41 PDT 2003
+TkrRecon/src
+
+Modified Files:
+	mainpage.h 
+Log Message:
+fix a relative path for a link, inorder that it work in nightly builds... but I am not sure it is general enough
+    *
+------------------------------------------------------------
 User: lsrea  Fri Apr 11 13:58:43 PDT 2003
 TkrRecon/doc
 
