@@ -10,9 +10,11 @@
 #ifndef _KALMANFILTER_H
 #define _KALMANFILTER_H 
 
-#include "TkrRecon/Cluster/TkrClusters.h"
-#include "TkrRecon/TrackFit/TkrFitPlane.h"
+#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
+#include "GlastEvent/Recon/TkrRecon/TkrFitPlane.h"
 #include "TkrRecon/Track/GFcontrol.h"
+
+namespace TkrRecon {
 
 class KalmanFilter
 {
@@ -31,6 +33,8 @@ public:
    
 private:
 };
+
+}; //Namespace
 
 #endif 
 

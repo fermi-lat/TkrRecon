@@ -4,9 +4,11 @@
 
 #include <vector>
 #include "GaudiKernel/MsgStream.h"
-#include "TkrRecon/Track/TkrFitTrack.h"
-#include "TkrRecon/PatRec/TkrPatCandHit.h"
-#include "TkrRecon/Cluster/TkrCluster.h"
+#include "GlastEvent/Recon/TkrRecon/TkrFitTrack.h"
+#include "GlastEvent/Recon/TkrRecon/TkrPatCandHit.h"
+#include "GlastEvent/Recon/TkrRecon/TkrCluster.h"
+
+namespace TkrRecon {
 
 class KalFitTrack: public TkrFitTrack
 {    
@@ -50,7 +52,7 @@ private:
     void          ini();
     double        computeQuality() const;
     void          clear();
-    TkrFitHit     generateFirstFitHit();
+    TkrFitHit generateFirstFitHit();
     void          finish();
     void          filterStep(int iplane);
 
@@ -106,6 +108,8 @@ private:
     double m_sigma;
     int    m_nxHits;
     int    m_nyHits;
+};
+
 };
 
 #endif

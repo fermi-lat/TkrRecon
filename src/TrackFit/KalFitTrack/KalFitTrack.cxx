@@ -21,6 +21,9 @@
 #include "TkrRecon/Track/GFcontrol.h"
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
 #include "TkrRecon/Cluster/TkrQueryClusters.h"
+
+using namespace TkrRecon;
+
 //-----------------------------------------------------
 //
 //   KalFitTrack
@@ -509,8 +512,8 @@ void KalFitTrack::doFit()
     loadTkrBase();
 
     // Final determination of status
-    if(!empty()) m_status = FOUND;
-    else         clear();
+    if(!empty(GFcontrol::minSegmentHits)) m_status = FOUND;
+    else                                  clear();
     
     return;
 }
