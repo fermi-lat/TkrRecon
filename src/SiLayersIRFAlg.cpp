@@ -7,7 +7,7 @@
 #include "TkrRecon/SiLayersIRFAlg.h"
 #include "TkrRecon/SiLayers.h"
 #include "TkrRecon/trackerGeo.h"
-#include "GlastEvent/Raw/TdSiData.h"
+#include "GlastEvent/data/TdSiData.h"
 
 static const AlgFactory<SiLayersIRFAlg>  Factory;
 const IAlgFactory& SiLayersIRFAlgFactory = Factory;
@@ -53,13 +53,14 @@ StatusCode SiLayersIRFAlg::execute()
 		}
 	}
 	
+        m_SiLayers->writeOut();
 	return StatusCode::SUCCESS;
+
 }
 //##############################################
 StatusCode SiLayersIRFAlg::finalize()
 //##############################################
 {
-//	m_SiLayers->writeOut();
 	return StatusCode::SUCCESS;
 }
 
@@ -67,13 +68,41 @@ StatusCode SiLayersIRFAlg::finalize()
 StatusCode SiLayersIRFAlg::retrieve()
 //##############################################
 {
-	m_SiLayers = new SiLayers();
-	m_SiLayers->clear();
-	StatusCode sc = eventSvc()->registerObject("/Event/Recon/TkrRecon","SiLayers",m_SiLayers);
+    MsgStream log(msgSvc(), name());
 
-     // get the rdSiData object from the TDS by a converter
-     m_SiData   = SmartDataPtr<TdSiData>(eventSvc(),"/Event/Raw/TdSiDatas");
+    StatusCode sc;
 
-	if (m_SiLayers == 0 || m_SiData == 0) sc = StatusCode::FAILURE;
-	return sc;
+    m_SiLayers = new SiLayers();
+    m_SiLayers->clear();
+    
+    DataObject* pnode=0;
+    
+    sc = eventSvc()->retrieveObject( "/Event", pnode );
+    
+    if( sc.isFailure() ) {
+        log << MSG::ERROR << "Could not retrieve Event directory" << endreq;
+        return sc;
+    }
+    
+    sc = eventSvc()->retrieveObject( "/Event/Raw", pnode );
+    
+    if( sc.isFailure() ) {
+        sc = eventSvc()->registerObject("/Event/Raw",new DataObject);
+        if( sc.isFailure() ) {
+            
+            log << MSG::ERROR << "Could not create Raw directory" << endreq;
+            return sc;
+        }
+    }
+
+    sc = eventSvc()->registerObject( "/Event/Raw/SiLayers", m_SiLayers );
+
+
+    
+    
+    // get the rdSiData object from the TDS by a converter
+    m_SiData   = SmartDataPtr<TdSiData>(eventSvc(),"/Event/Raw/TdSiDatas");
+    
+    if (m_SiLayers == 0 || m_SiData == 0) sc = StatusCode::FAILURE;
+    return sc;
 }

@@ -14,6 +14,8 @@
 #define NVIEWS 2
 #define NPLANES 16
 
+extern const CLID& CLID_SiClusters;
+
 //----------------------------------------------
 //
 //   SiClusters
@@ -78,7 +80,7 @@ public:
 	inline double size()   const {return m_size;}
 
 	//! write out the information of the cluster
-	// void writeOut() const;
+	void writeOut() const;
 	//! draws the clusters (each strips)
 	// void draw(GraphicsRep& v);
 	void draw(gui::DisplayRep& v);
@@ -125,7 +127,6 @@ private:
 
 };
 
-const static CLID CLID_SiClusters = 252;
 /*
 SiClusters class: container class of SiCluster lists and service of the SiCluster
 */
@@ -184,7 +185,7 @@ public:
 	virtual void make() {}
 
 	//! write out the information of the SiLayers
-	// void writeOut() const;
+	void writeOut() const;
 	//! draws the SiClusters
 	void update(gui::DisplayRep& v)  {draw(v);}
 

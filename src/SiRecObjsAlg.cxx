@@ -44,9 +44,7 @@ StatusCode SiRecObjsAlg::initialize()
 //###################################################
 {
 	
-	m_SiRecObjs = new SiRecObjs();
-	m_SiRecObjs->clear();
-	
+	m_SiRecObjs = 0;
 	m_SiClusters = 0;
 	// m_cal = 0;
 
@@ -78,14 +76,14 @@ StatusCode SiRecObjsAlg::execute()
 	
 	// search for tracks
 	searchParticles();
-	
+	m_SiRecObjs->writeOut();
 	return sc;
 }
 //##############################################
 StatusCode SiRecObjsAlg::finalize()
 //##############################################
 {
-	//	m_SiRecObjs->writeOut();
+	//	
 	return StatusCode::SUCCESS;
 }
 //----------- private --------------------------
@@ -95,11 +93,30 @@ StatusCode SiRecObjsAlg::retrieve()
 {
 	StatusCode sc = StatusCode::SUCCESS;
 
+    MsgStream log(msgSvc(), name());
+        DataObject* pnode =0;
+    sc = eventSvc()->retrieveObject( "/Event", pnode );
+    
+    if( sc.isFailure() ) {
+        log << MSG::ERROR << "Could not retrieve Event directory" << endreq;
+        return sc;
+    }
+    
+    sc = eventSvc()->retrieveObject( "/Event/Raw", pnode );
+    
+    if( sc.isFailure() ) {
+        sc = eventSvc()->registerObject("/Event/Raw",new DataObject);
+        if( sc.isFailure() ) {
+            
+            log << MSG::ERROR << "Could not create Raw directory" << endreq;
+            return sc;
+        }
+    }
 	m_SiRecObjs = new SiRecObjs();
 	m_SiRecObjs->clear();
-	sc = eventSvc()->registerObject("/Event/Recon/TkrRecon","SiRecObjs",m_SiRecObjs);
+	sc = eventSvc()->registerObject("/Event/Raw/SiRecObjs",m_SiRecObjs);
 
-	m_SiClusters = SmartDataPtr<SiClusters>(eventSvc(),"/Event/Recon/TkrRecon"); 
+	m_SiClusters = SmartDataPtr<SiClusters>(eventSvc(),"/Event/Raw/SiClusters"); 
 
 
 	// m_cal we need to retrieve the Cal Recon data

@@ -9,7 +9,7 @@ ApplicationMgr.ExtSvc   = { "GlastDetSvc", "GlastEventSelector/EventSelector" , 
 ApplicationMgr.DLLs   = { "GlastSvc", "TkrRecon", "RootHistCnv"  };
 
 
-ApplicationMgr.TopAlg = { "TkrRecoAlg" };
+ApplicationMgr.TopAlg = { "SiLayersIRFAlg", "SiClustersAlg", "SiRecObjsAlg" };
 
 // Set output level threshold (2=DEBUG, 3=INFO, 4=WARNING, 5=ERROR, 6=FATAL )
 
@@ -20,7 +20,7 @@ MessageSvc.OutputLevel      = 2;
 EventPersistencySvc.CnvServices = {"EventCnvSvc"};
 
 
-EventSelector.Input = "IRFFILE /packages/gaudi_dev/instrument/v2r3/src/test/muontest.irf";
+EventSelector.Input = "IRFFILE $(INSTRUMENTROOT)/src/test/muontest.irf";
 //want this: EventSelector.Input = "IRFFILE $(INSTRUMENTROOT)/src/test/muontest.irf";
 
 ApplicationMgr.EvtMax = 20;

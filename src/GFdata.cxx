@@ -66,7 +66,6 @@ void GFdata::writeOut(std::ostream& out) const
     out << " Tower         = " << tower() << "\n";
     out << " num Hits      = " << nhits() << "\n";
 }
-
 //#########################################################################
 Point GFdata::doVertex(const Ray& r1, const Ray& r2)
 //#########################################################################

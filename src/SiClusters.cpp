@@ -17,7 +17,7 @@ SiCluster::SiCluster(int id, int v, int ilayer,
 	// planes are ordered from 0-top to 15-bottom   - used by the recostruction
 	// layers are ordered from 15-top to 0-bottom   - used by the geometry
 	
-	m_plane = trackerGeo::numLayers()-ilayer;
+	m_plane = trackerGeo::numLayers()-ilayer-1;
 
 	m_strip0 = istrip0;
 	m_stripf = istripf;
@@ -29,25 +29,23 @@ SiCluster::SiCluster(int id, int v, int ilayer,
 	m_ToT = ToT;
 	
 }
-/*
+
 //######################################################
 void SiCluster::writeOut() const
 //######################################################
 {
 	
-	std::ostream& out = messageManager::instance()->out();
-	if (!messageManager::instance()->acceptLevel("DEBUG")) return;
 
 //	out << "ID     " << m_id    << " Flag   " << m_flag  << "\n";
 //	out << "tower  " << m_tower << " plane  " << m_plane << " view  " << m_view << " chip " << m_chip << "\n";
 //	out << "strip0 " << m_strip0<< " stripf " << m_stripf<< " strip " << m_strip<< " size " << m_size << "\n"; 
 
-	out << " plane " << m_plane << " XY " << m_view;
-	out << " xpos   " << m_position.x()  << " ypos   " << m_position.y();
-	out << " i0-if " << m_strip0 <<"-"<< m_stripf;
-	out <<"\n";
+	std::cout << " plane " << m_plane << " XY " << m_view;
+        std::cout << " xpos  " << m_position.x()  << " ypos   " << m_position.y();
+        std::cout << " zpos  " << m_position.z();
+        std::cout << " i0-if " << m_strip0 <<"-"<< m_stripf;
+        std::cout <<"\n";
 }
-*/
 //######################################################
 void SiCluster::draw(gui::DisplayRep& v)
 //######################################################
@@ -231,22 +229,16 @@ void SiClusters::flagHitsInPlane(SiCluster::view v, int iplane)
 	for (int ihit = 0; ihit< AuxList.size(); ihit++)
 		AuxList[ihit]->flag();
 }
-/*
 //######################################################
 void SiClusters::writeOut() const
 //######################################################
 {
 	if (nHits()<=0) return;
 
-	std::ostream& out = messageManager::instance()->out();
-	if (!messageManager::instance()->acceptLevel("DEBUG")) return;
-	out << "SiClusters List" << "\n";
-
 	for (int ihit = 0; ihit < nHits(); ihit++) {
 		m_clustersList[ihit]->writeOut();
 	}
 }
-*/
 //######################################################
 void SiClusters::draw(gui::DisplayRep& v)
 //######################################################
