@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Tue Feb 17 10:19:39 PST 2004
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrVertexAlg.cxx 
+Log Message:
+loading Tracy fix to the iterative recon series of problems
+    *
+------------------------------------------------------------
 User: cohen  Mon Feb 16 10:59:08 PST 2004
 TkrRecon/src/Utilities
 
