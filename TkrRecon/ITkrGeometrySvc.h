@@ -37,8 +37,8 @@ public:
     virtual int    numYTowers()=0;
     virtual int    numViews()=0;
     virtual int    numLayers()=0;
-    virtual int    numPbLayers()=0;
-    virtual int    numSuperGLayers()=0;
+    //virtual int    numPbLayers()=0;
+    //virtual int    numSuperGLayers()=0;
     virtual int    indMixed()=0;
     virtual int    numPlanes()=0;
     virtual int    Z0()=0;
@@ -68,7 +68,7 @@ public:
     virtual int ilayer(int iplane)=0;
     
     virtual tkrDetGeo getSiLayer(int ilayer, axis a, int tower = 0)=0;
-    virtual tkrDetGeo getPbLayer(int ilayer, int tower = 0)=0;
+    //virtual tkrDetGeo getPbLayer(int ilayer, int tower = 0)=0;
     virtual tkrDetGeo getSiLadder(int ilayer, axis a, int iladder, int tower = 0)=0;
     virtual tkrDetGeo getSiDice(int ilayer, axis a, int iladder, int idice, int tower = 0)=0;
     
