@@ -1,4 +1,20 @@
 ------------------------------------------------------------
+User: usher  Tue May  7 15:57:21 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	GFtutor.cxx TkrComboFit.cxx TkrComboFit.h TkrComboTrackFit.h 
+	TkrLinkAndTreeFit.cxx TkrLinkAndTreeFit.h 
+	TkrLinkAndTreeTrackFit.h TkrNeuralNetFit.cxx TkrNeuralNetFit.h 
+	TkrNeuralNetTrackFit.h TkrPoints.cxx 
+Removed Files:
+	TkrFitTrack.cxx TkrTracks.cxx 
+Log Message:
+TDS output classes moved to GlastEvent
+Modify remaining source code to reflect this change
+
+    *
+------------------------------------------------------------
 User: usher  Tue May  7 15:55:56 PDT 2002
 TkrRecon/src/PatRec/NeuralNet
 
