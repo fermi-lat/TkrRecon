@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: tlindner  Tue Apr 10 18:51:03 PDT 2001
+TkrRecon/TkrRecon TkrClustersRep.h TkrRecObjsRep.h
+
+Modified Files:
+	TkrClustersRep.h TkrRecObjsRep.h 
+Log Message:
+Fix capitalization
+    *
+------------------------------------------------------------
 User: tlindner  Tue Apr 10 18:50:55 PDT 2001
 TkrRecon/src SiClustersAlg.cxx TkrDisplayAlg.cxx TkrGeometrySvc.cxx
 
