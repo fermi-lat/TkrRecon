@@ -2,7 +2,7 @@
 #ifndef TKRTRACKFIT_H
 #define TKRTRACKFIT_H
 
-#include "Event/Recon/TkrRecon/TkrFitTrackCol.h"
+#include "Event/Recon/TkrRecon/TkrFitTrack.h"
 #include "Event/Recon/TkrRecon/TkrPatCandCol.h"
 #include "geometry/Ray.h"
 

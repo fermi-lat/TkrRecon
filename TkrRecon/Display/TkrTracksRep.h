@@ -2,7 +2,7 @@
 #ifndef TKRTRACKSREP_H
 #define TRKTRACKSREP_H
 
-#include "Event/Recon/TkrRecon/TkrFitTrackCol.h"
+#include "Event/Recon/TkrRecon/TkrFitTrack.h"
 #include "gui/DisplayRep.h"
 #include "GaudiKernel/IDataProviderSvc.h"
 #include "GaudiKernel/SmartDataPtr.h"
@@ -27,8 +27,8 @@ public:
 	void update();
 
 private:
-    void drawChiSq(Event::TkrFitTrack* track);
-    void drawTrack(Event::TkrFitTrack* track);
+    void drawChiSq(Event::TkrFitTrack& track);
+    void drawTrack(Event::TkrFitTrack& track);
 
     IDataProviderSvc* dps;
 };
