@@ -5,7 +5,7 @@
 #include "Gaudi/Kernel/Service.h"
 
 #include "TkrRecon/TkrAxis.h"
-#include "src/tkrDetGeo.h"
+#include "src/TkrDetGeo.h"
 
 #include <string>
 
