@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Wed Nov  7 21:54:16 PST 2001
+TkrRecon/src/TrackFit
+
+Added Files:
+	KalFit.cxx TkrReconAlg.cxx 
+Log Message:
+Add source code to subfolders for implementing the TkrRecon classes
+    *
+------------------------------------------------------------
+User: usher  Wed Nov  7 21:54:16 PST 2001
 TkrRecon/src/Track
 
 Added Files:
