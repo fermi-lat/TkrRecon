@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Apr 10 16:01:48 PDT 2001
+TkrRecon/src/Dll TkrRecon_load.cpp
+
+Modified Files:
+	TkrRecon_load.cpp 
+Log Message:
+Don't forget to load the geometry service
+    *
+------------------------------------------------------------
 User: usher  Tue Apr 10 15:59:47 PDT 2001
 TkrRecon/src TkrGeometrySvc.cxx
 
