@@ -15,7 +15,7 @@
  * 
  * @author Leon Rochester
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometrySvc.h,v 1.14 2002/08/31 21:30:50 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometrySvc.h,v 1.15 2002/09/02 17:31:26 lsrea Exp $
  */
 
 #include "GaudiKernel/Service.h"
@@ -68,6 +68,8 @@ public:
     /// return the position of a strip, will accept int or double
     HepPoint3D getStripPosition(int tower, int layer, int view, double stripid);
 
+    double getReconLayerZ(int layer, int view = -1);
+
     /// calculate the tray number, botTop from layer, view
     void layerToTray (int layer, int view, int& tray, int& botTop);
     /// calculate layer, view from tray, botTop
@@ -119,6 +121,14 @@ private:
     double m_siDeadDistance;
     /// size of Wafer
     double m_siWaferSide;
+    /// z positions of all the layers (digi convention)
+    double m_layerZ[NLAYERS][NVIEWS];
+
+    /// Returns minimum trayHeight... I hope we can stop using this soon
+    StatusCode getMinTrayHeight(double & trayHeight);
+
+    /// returns z position of X, Y or average plane for each layer
+    StatusCode fillLayerZ();
 
     /// pointer to the detector service
     IGlastDetSvc * m_pDetSvc;

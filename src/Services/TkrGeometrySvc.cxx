@@ -6,6 +6,7 @@
 #include "idents/TowerId.h"
 
 #include <iostream>
+#include <algorithm>
 
 static const SvcFactory<TkrGeometrySvc> s_factory;
 const ISvcFactory& TkrGeometrySvcFactory = s_factory;
@@ -102,43 +103,27 @@ StatusCode TkrGeometrySvc::initialize()
     }   
     
     // the minimum "trayHeight" (actually tray pitch)
-    
-    HepTransform3D T1, T2;
-    m_trayHeight = 10000.0;
-    
-    
-    for (bilayer=1;bilayer<m_nlayers;bilayer++) {
-        
-        idents::VolumeIdentifier volId1, volId2;
-        
-        volId1.append(m_volId_tower[0]);
-        volId2.append(m_volId_tower[0]);
-        
-        volId1.append(m_volId_layer[bilayer][1-bilayer%2]);
-        volId2.append(m_volId_layer[bilayer-1][bilayer%2]);
-        
-        sc = m_pDetSvc->getTransform3DByID(volId1, &T1);
-        if( sc.isFailure()) {
-            log << MSG::WARNING << "Failed to obtain transform for id " 
-                << volId1.name() << endreq;
-        }
-        sc= m_pDetSvc->getTransform3DByID(volId2, &T2);
-        if( sc.isFailure()) {
-            log << MSG::WARNING << "Failed to obtain transform for id " 
-                << volId2.name() << endreq;
-        }
-              
-        double z1 = (T1.getTranslation()).z();
-        double z2 = (T2.getTranslation()).z();
-        double trayPitch = z1 - z2;
-        if (trayPitch<m_trayHeight) { m_trayHeight = trayPitch;}        
+    sc = getMinTrayHeight(m_trayHeight);
+    if( sc.isFailure()) {
+        log << MSG::ERROR << "Failed to get minTrayHeight"<< endreq;
+        return sc;
     }
-    if(sc.isFailure()){
-        log << MSG::WARNING 
-            << "continuing in spite of failures, assume it will work out. " 
-            << endreq;
-        sc = StatusCode::SUCCESS;
+
+    // fill the m_layerZ arrays
+    sc = fillLayerZ();
+    if( sc.isFailure()) {
+        log << MSG::ERROR << "Failed to fill layerZ"<< endreq;
+        return sc;
     }
+
+    // get the GeometrySvc
+    for (int i = 0; i<18;i++) {
+        std::cout << "Layer " << i << " " << getReconLayerZ(i, 0) << " " 
+            << getReconLayerZ(i,1) << " " << getReconLayerZ(i)
+            << std::endl;
+    }
+
+
     return sc;
 }
 
@@ -196,3 +181,97 @@ StatusCode  TkrGeometrySvc::queryInterface (const IID& riid, void **ppvIF)
 const IID&  TkrGeometrySvc::type () const {
     return IID_ITkrGeometrySvc;
 }
+
+
+StatusCode TkrGeometrySvc::getMinTrayHeight(double &trayHeight) 
+{
+    // Purpose: fills the m_trayHeight
+    // Method:  cycles through the layers and measure differences in z
+    //          measures from top of a layer to top of next lowest layer
+    // Inputs:  uses list of volIds of layers
+    // Outputs: passes back the minimum tray height
+    // Caveats:
+
+    StatusCode sc = StatusCode::SUCCESS;
+    HepTransform3D T1, T2;
+    trayHeight = 10000.0;
+    
+    // Geometry service knows about trays, recon wants layers
+    for (int tray = 2; tray<=m_nlayers; tray++) {
+
+        idents::VolumeIdentifier volId1, volId2;
+        int layer1, layer2;
+        int view1, view2;
+        
+        volId1.append(m_volId_tower[0]);
+        volId2.append(m_volId_tower[0]);
+
+        int botTop = 0;
+        trayToLayer(tray,   botTop, layer1, view1);    // bottom of each tray
+        trayToLayer(tray-1, botTop, layer2, view2);
+        
+        volId1.append(m_volId_layer[layer1][view1]);
+        volId2.append(m_volId_layer[layer2][view2]);
+
+        std::string foo1 = volId1.name();
+        std::string foo2 = volId1.name();
+
+        sc = m_pDetSvc->getTransform3DByID(volId1, &T1);
+        sc = sc && m_pDetSvc->getTransform3DByID(volId2, &T2);
+
+        double z1 = (T1.getTranslation()).z();
+        double z2 = (T2.getTranslation()).z();
+        double trayPitch = z1 - z2;
+
+        trayHeight = std::min(trayPitch, trayHeight);  
+    }
+    return sc;
+}
+
+StatusCode TkrGeometrySvc::fillLayerZ() 
+{
+    // Purpose: Fills the m_layerZ arrays with z positions
+    // Method:  cycles through the layers and recovers z from the geometry
+    // Inputs:  list of volIds of layers
+    // Outputs: fills m_layerZ
+    // Caveats:
+
+    StatusCode sc = StatusCode::SUCCESS;
+    HepTransform3D T;
+    
+    for (int bilayer=0; bilayer<m_nlayers; bilayer++) {
+        for (int view=0; view<2; view++) {
+            idents::VolumeIdentifier volId;
+            volId.append(m_volId_tower[0]);
+            volId.append(m_volId_layer[bilayer][view]);
+            std::string foo = volId.name();
+            sc = sc && m_pDetSvc->getTransform3DByID(volId,&T);
+            m_layerZ[bilayer][view] = (T.getTranslation()).z();
+           
+        }
+    }
+    return sc;
+}
+
+double TkrGeometrySvc::getReconLayerZ(int layer, int view)
+{
+    // Purpose:
+    // Method:
+    // Inputs
+    // Outputs:
+    // Caveats:
+
+    int digiLayer = reverseLayerNumber(layer);
+    switch (view) {
+    case 0:
+        return m_layerZ[digiLayer][0];
+        break;
+    case 1:
+        return m_layerZ[digiLayer][1];
+        break;
+    default:
+        return 0.5*(m_layerZ[digiLayer][0] + m_layerZ[digiLayer][1]);
+    }
+}
+    
+
