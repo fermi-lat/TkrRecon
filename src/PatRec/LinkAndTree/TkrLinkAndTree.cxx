@@ -268,6 +268,8 @@ void TkrLinkAndTree::buildCand3D()
                 newTrack->addCandHit(pClusLinkY->pBotClus());
             }
 
+            newTrack->sortHits();
+
             push_back(newTrack);
 
             xIter++;
