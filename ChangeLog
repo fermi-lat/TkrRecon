@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Sun Feb 10 19:53:32 PST 2002
+TkrRecon/TkrRecon/GaudiAlg
+
+Modified Files:
+	TkrReconAlg.h 
+Added Files:
+	TkrDisplayAlg.h 
+Log Message:
+TkrReconAlg.h modified to remove references to SiRecObjs.h
+TkrDisplayAlg.h moved here from Display folder
+
+    *
+------------------------------------------------------------
 User: usher  Sun Feb 10 19:52:05 PST 2002
 TkrRecon/TkrRecon/Display
 
