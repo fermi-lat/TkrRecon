@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.26 2005/01/29 05:15:21 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.27 2005/02/01 00:22:06 usher Exp $
  */
 
 // to turn one debug variables
@@ -22,11 +22,11 @@
 #include "TkrRecon/Track/ITkrFitTool.h"
 #include "GaudiKernel/GaudiException.h" 
 #include "GaudiKernel/IParticlePropertySvc.h"
+#include "GaudiKernel/ParticleProperty.h"
 
 // TDS related stuff
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "Event/Recon/TkrRecon/TkrTrack.h"
-//#include "Event/Recon/TkrRecon/TkrTrackTab.h"
 #include "Event/TopLevel/EventModel.h"
 
 // Utilities, geometry, etc.
@@ -69,12 +69,10 @@ public:
     ///        needed from the TDS, then create and use a new KalFitTrack object to 
     ///        fit the track via a Kalman Filter. Successfully fit tracks are then 
     ///        added to the collection in the TDS.
-    StatusCode doTrackFit(Event::TkrPatCand* patCand)  {return StatusCode::SUCCESS;}
-    StatusCode doTrackFit(Event::TkrTrack*   patCand);
+    StatusCode doTrackFit(Event::TkrTrack* patCand);
 
     /// @brief Method to re-fit a single candidate track. Re-uses the existing fit track
-    StatusCode doTrackReFit(Event::TkrPatCand* patCand) {return StatusCode::SUCCESS;}
-    StatusCode doTrackReFit(Event::TkrTrack*   patCand);
+    StatusCode doTrackReFit(Event::TkrTrack* patCand);
 
     /// @brief Method to set type of hit energy loss for a track
     void       setHitEnergyLoss(const std::string& energyLossType);
@@ -101,6 +99,9 @@ private:
     double     doSmoother(Event::TkrTrack& track);
     void       getInitialFitHit(Event::TkrTrack& track);
 
+    /// recursive fit to estimate energy from scattering
+    int        doRecursiveFit(int numTrials, Event::TkrTrack& track);
+
     /// Study "memory" of smoother in fit
     int        doSmootherMemory(Event::TkrTrack* track);
 
@@ -121,12 +122,18 @@ private:
     bool                 m_FitMeasOnly;
     bool                 m_MultScatMat;
     std::string          m_HitEnergyType;
+    std::string          m_ParticleName;
     std::string          m_HitErrorType;
 
     /// Diagnostic running
     bool                 m_RunSmootherMemory;
     int                  m_MinSegmentHits;
     double               m_SegmentRes;
+
+    /// For recursive fit to estimate track energy
+    bool                 m_runRecursiveFit;
+    double               m_fracDifference;
+    int                  m_maxIterations;
 
     /// The matrices which define the Kalman Filter
     IFitHitEnergy*       m_HitEnergy;
@@ -163,13 +170,18 @@ m_KalmanFit(0), m_nMeasPerPlane(0), m_nParams(0), m_fitErrs(0)
 
     //Declare the fit track property
     declareProperty("HitEnergyType",     m_HitEnergyType="eRadLoss");
+    declareProperty("ParticleName",      m_ParticleName="electron");
     declareProperty("DoMultScatMat",     m_MultScatMat=true);
     declareProperty("FitMeasHitOnly",    m_FitMeasOnly=true);
     declareProperty("MeasHitErrorType",  m_HitErrorType="SlopeCorrected");
     declareProperty("RunSmootherMemory", m_RunSmootherMemory=false);
     declareProperty("MinSegmentHits",    m_MinSegmentHits=4);
     declareProperty("SegmentMinDelta",   m_SegmentRes=0.005);
-    
+
+    declareProperty("RunRecursiveFit",   m_runRecursiveFit=false);
+    declareProperty("FracDifference",    m_fracDifference = 0.01);
+    declareProperty("MaxIterations",     m_maxIterations = 5);
+
     return;
 }
 
@@ -259,6 +271,23 @@ StatusCode KalmanTrackFitTool::initialize()
 /// Method to set type of hit energy loss for a track
 void KalmanTrackFitTool::setHitEnergyLoss(const std::string& energyLossType)
 {
+    // Get the particle properties
+    StatusCode sc       = StatusCode::SUCCESS;
+    IService*  iService = 0;
+    if ((sc = serviceLocator()->getService("ParticlePropertySvc", iService, true)).isFailure())
+    {
+        throw GaudiException("Service [ParticlePropertySvc] not found", name(), sc);
+    }
+
+    IParticlePropertySvc* partSvc  = dynamic_cast<IParticlePropertySvc*>(iService);
+    ParticleProperty*     partProp = partSvc->find(m_ParticleName);
+
+    if (partProp == 0)
+    {
+        sc = StatusCode::FAILURE;
+        throw GaudiException("Cannot find Particle in ParticlePropertySvc, name: ", m_ParticleName, sc);
+    }
+
     // No need to do anything if we have a match already
     if (m_HitEnergyType != energyLossType || !m_HitEnergy)
     {
@@ -271,22 +300,15 @@ void KalmanTrackFitTool::setHitEnergyLoss(const std::string& energyLossType)
         // Get the new one...
         if (m_HitEnergyType == "MonteCarlo")
         {
-            IParticlePropertySvc*  partPropSvc = 0;
-            StatusCode sc = service("ParticlePropertySvc", partPropSvc);
-            if( sc.isFailure() ) 
-            {
-                throw GaudiException("Service [ParticlePropertySvc] not found", name(), sc);
-            }
-
-            m_HitEnergy = new MonteCarloHitEnergy(m_dataSvc, partPropSvc);
+            m_HitEnergy = new MonteCarloHitEnergy(m_dataSvc, partSvc);
         }
-        else if (m_HitEnergyType == "MuRadLoss")
+        else if (m_HitEnergyType == "BetheBlock")
         {
-            m_HitEnergy = new BetheBlockHitEnergy();
+            m_HitEnergy = new BetheBlockHitEnergy(partProp->mass());
         }
         else if (m_HitEnergyType == "eRadLoss")
         {
-            m_HitEnergy = new RadLossHitEnergy();
+            m_HitEnergy = new RadLossHitEnergy(partProp->mass());
         }
         else throw(std::invalid_argument("Invalid hit energy loss type requested"));
     }
@@ -388,8 +410,21 @@ StatusCode KalmanTrackFitTool::doTrackReFit(Event::TkrTrack* track)
     // Always believe in success
     StatusCode sc = StatusCode::SUCCESS;
 
-    // Run the Kalman Filter to do the track fit
-    doKalmanFit(*track);
+    if (m_runRecursiveFit)
+    {
+        int numIterations = 0;
+
+        // Do first fit to take into acount energy re-apportionment 
+        doKalmanFit(*track);
+
+        // Now recursively fit to "improve" the energy determination
+        numIterations = doRecursiveFit(numIterations, *track);
+    }
+    else
+    {
+        // Run the Kalman Filter to do the track fit
+        doKalmanFit(*track);
+    }
 
     // Now determine Track values with completed fit
     // Get an instance of the track fit utilities
@@ -398,7 +433,8 @@ StatusCode KalmanTrackFitTool::doTrackReFit(Event::TkrTrack* track)
     trackUtils.finish(*track);
 
     // No Kalman Filter energy re-determination on the second pass? 
-    if (track->getStatusBits() & Event::TkrTrack::LATENERGY) trackUtils.eneDetermination(*track);
+    //if (track->getStatusBits() & Event::TkrTrack::LATENERGY) trackUtils.eneDetermination(*track);
+    trackUtils.eneDetermination(*track);
 
     // Set the bit to confirm completion
     track->setStatusBit(Event::TkrTrack::TWOPASS);
@@ -482,6 +518,38 @@ int KalmanTrackFitTool::doSmootherMemory(Event::TkrTrack* track)
     delete myTrack;
 
     return numSegmentHits;
+}
+
+int KalmanTrackFitTool::doRecursiveFit(int numIterations, Event::TkrTrack& track)
+{
+    // Purpose and Method: Recursive routine to scale track energy until chi-square ~ 1
+    // Inputs: a reference to a fully fit track
+    // Outputs: None
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
+    // Make sure we are not stuck in an endless loop
+    if (numIterations++ < m_maxIterations)
+    {
+        // Keep first track chi-square
+        double initialChiSquare = track.getChiSquareSmooth();
+        double initialTrkEnergy = track.getInitialEnergy();
+        double initialpBeta     = m_HitEnergy->kinETopBeta(initialTrkEnergy);
+        double finalpBeta       = initialpBeta / sqrt(initialChiSquare);
+        double finalTrkEnergy   = m_HitEnergy->pBetaToKinE(finalpBeta);
+
+        track.setInitialEnergy(finalTrkEnergy);
+        track[0]->setEnergy(finalTrkEnergy);
+
+        // Run the Kalman Filter to do the track fit
+        doKalmanFit(track);
+
+        double fracDiff = fabs((track.getChiSquareSmooth() - initialChiSquare) / initialChiSquare);
+
+        if (fracDiff > m_fracDifference) doRecursiveFit(numIterations, track);
+    }
+
+    return numIterations;
 }
 
 void KalmanTrackFitTool::doKalmanFit(Event::TkrTrack& track)
@@ -571,7 +639,7 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
     KFvector curStateVec(referenceHit.getTrackParams(Event::TkrTrackHit::FILTERED));
     KFmatrix curCovMat(referenceHit.getTrackParams(Event::TkrTrackHit::FILTERED));
 
-    KFmatrix& Q = (*m_Qmat)(curStateVec, referenceZ, m_HitEnergy->getHitEnergy(referenceHit.getEnergy()), filterZ);
+    KFmatrix& Q = (*m_Qmat)(curStateVec, referenceZ, m_HitEnergy->kinETopBeta(referenceHit.getEnergy()), filterZ);
 
     // Do we have a measurement at this hit?
     if (filterHit.getStatusBits() & Event::TkrTrackHit::HITONFIT)

@@ -7,7 +7,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/MonteCarloHitEnergy.h,v 1.2 2004/09/08 15:32:47 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/MonteCarloHitEnergy.h,v 1.4 2004/10/01 21:07:40 usher Exp $
  */
 
 #ifndef MonteCarloHitEnergy_h
@@ -32,6 +32,8 @@ public:
                             const double              trkEnergy);
     double updateHitEnergy(const double curEnergy, const double radLen);
     double getHitEnergy(const double energy);
+    double kinETopBeta(const double energy);
+    double pBetaToKinE(const double energy);
 
 private:
     /// Tracker recon control singleton
