@@ -35,46 +35,80 @@ StatusCode TkrGeometrySvc::initialize()
     setProperties();
     MsgStream log(msgSvc(), name());
 
+	sc = service("GlastDetSvc", p_GlastDetSvc);
+
     
     xml::IFile xmlFile(m_xmlFile.c_str());
+		
+	double temp;
   
     if (m_xmlFile.c_str() != "")
     {
-        m_numX            = xmlFile.getInt(   "tkr", "numXtowers");
-        m_numY            = xmlFile.getInt(   "tkr", "numYtowers");
-        m_nviews          = xmlFile.getInt(   "tkr", "nViews");
-        m_nlayers         = xmlFile.getInt(   "tkr", "nLayers");
-        /* no longer used
-        m_nPbLayers       = xmlFile.getInt(   "tkr", "nPbLayers");
-        m_nSuperGLayers   = xmlFile.getInt(   "tkr", "nSuperGLayers");
-        */
+        //m_numX            = xmlFile.getInt(   "tkr", "numXtowers");
+        //m_numY            = xmlFile.getInt(   "tkr", "numYtowers");
+
+		sc = p_GlastDetSvc->getNumericConstByName("xNum", &temp);
+		m_numX = temp + .1;
+		sc = p_GlastDetSvc->getNumericConstByName("xNum", &temp);
+		m_numY = temp + .1;
+
+		m_nviews = 2;
+
+		sc = p_GlastDetSvc->getNumericConstByName("numTrays", &temp);
+		m_nlayers = temp - .5;
+
+		log << MSG::DEBUG << "numX/Y/layer " << m_numX <<" " << m_numY << " "
+			<< m_nlayers << endreq;
+		
         m_indMixed        = xmlFile.getInt(   "tkr", "indMixed");
         m_viewMixed       = xmlFile.getInt(   "tkr", "viewMixed");
         m_ladderMixed     = xmlFile.getInt(   "tkr", "ladderMixed");
 
         m_Z0              = xmlFile.getDouble("tkr", "Z0");      
         log << MSG::INFO <<  "z0 = "  << m_Z0 << endreq;
-        m_towerPitch      = xmlFile.getDouble("tkr", "towerPitch");
+
+        //m_towerPitch      = xmlFile.getDouble("tkr", "towerPitch");
+	    sc = p_GlastDetSvc->getNumericConstByName("towerPitch", &m_towerPitch);
+
         m_trayWidth       = xmlFile.getDouble("tkr", "trayWidth");
         m_trayHeight      = xmlFile.getDouble("tkr", "trayHeight");
         m_footHeight      = xmlFile.getDouble("tkr", "footHeight");
         
         m_ladderWidth     = xmlFile.getDouble("tkr", "ladderWidth");
+
         m_ladderLength    = xmlFile.getDouble("tkr", "ladderLength");
+
         m_ladderGap       = xmlFile.getDouble("tkr", "ladderGap");
+
         m_ladderInnerGap  = xmlFile.getDouble("tkr", "ladderInnerGap");
+
         m_ladderNStrips   = xmlFile.getInt(   "tkr", "ladderNStrips");
         
-        m_siStripPitch    = xmlFile.getDouble("tkr", "siStripPitch");
+
+
         m_siResolution    = xmlFile.getDouble("tkr", "siResolution");
-        m_siThickness     = xmlFile.getDouble("tkr", "siThickness");
-        m_siDeadDistance  = xmlFile.getDouble("tkr", "siDeadDistance");
-        
-        /* no longer used
-        m_thinConvHeight  = xmlFile.getDouble("tkr", "thinConvHeight");
-        m_thickConvHeight = xmlFile.getDouble("tkr", "thickConvHeight");
-        */
-        
+
+        //m_siThickness     = xmlFile.getDouble("tkr", "siThickness");
+	    sc = p_GlastDetSvc->getNumericConstByName("SiThick", &m_siThickness);
+
+
+        //m_siDeadDistance  = xmlFile.getDouble("tkr", "siDeadDistance");
+	    sc = p_GlastDetSvc->getNumericConstByName("SiWaferSide", &m_siDeadDistance);
+        double siWaferActiveSide;
+		sc = p_GlastDetSvc->getNumericConstByName("SiWaferActiveSide", &siWaferActiveSide);
+		m_siDeadDistance -= siWaferActiveSide;
+		m_siDeadDistance *= 0.5;
+
+        //m_siStripPitch    = xmlFile.getDouble("tkr", "siStripPitch");
+	    sc = p_GlastDetSvc->getNumericConstByName("stripPerWafer", &temp);
+		m_siStripPitch = siWaferActiveSide/temp;
+
+		log << MSG::DEBUG << "Towerpitch/SiThick/DeadDist/StripPitch " <<
+			m_towerPitch << " " << m_siThickness << " " << m_siDeadDistance
+			<< " " << m_siStripPitch << endreq;
+		
+
+                
         m_siX0            = xmlFile.getDouble("tkr", "siX0");
         m_pbX0            = xmlFile.getDouble("tkr", "pbX0");
         

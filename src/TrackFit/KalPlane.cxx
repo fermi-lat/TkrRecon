@@ -1,5 +1,5 @@
 
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalPlane.cxx,v 1.3 2002/02/06 22:00:17 usher Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalPlane.cxx,v 1.4 2002/03/27 15:35:43 lsrea Exp $
 
 //----------------------------------------------------------------------
 //    
@@ -174,7 +174,7 @@ KalHit KalPlane::predicted(KalHit::TYPE typ, int &nlayers, int klayer, double &z
     double down = -1.;
     if (nsteps <0 ) down = +1.; // going up;
 
-    double arc_len = nlayers * 32.4/fabs(dir_ini.z()); //mm
+    double arc_len = nlayers * 32.7/fabs(dir_ini.z()); //mm
     std::auto_ptr<IKalmanParticle> 
             kalPart(TkrReconAlg::m_gismoSvc->kalmanParticle(x_ini, dir_ini, arc_min));
     if(kalPart->trackToNextPlane()) {
@@ -231,7 +231,7 @@ KalHit KalPlane::predicted(KalHit::TYPE typ, int nsteps)
         dir_ini = -dir_ini;
     }
     
-    double deltaZ=down*fabs(nsteps)*3.24; // Bad ... need to re-engineer
+    double deltaZ=down*fabs(nsteps)*32.575; //mm and also Very Bad ... need to re-engineer
     
     double arc_len = fabs(deltaZ/dir_ini.z()); 
     std::auto_ptr<IKalmanParticle> 

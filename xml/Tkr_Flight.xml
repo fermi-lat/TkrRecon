@@ -16,7 +16,7 @@
         Note that the text in the item field cannot have direct ampersands of brackets!
   -->
 
-<TkrGeometry cvs_Header="$Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/xml/Tkr_Flight.xml,v 1.7 2002/03/26 22:12:34 usher Exp $" cvs_Revision="$Revision: 1.7 $">
+<TkrGeometry cvs_Header="$Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/xml/Tkr_Flight.xml,v 1.8 2002/03/27 05:31:23 lsrea Exp $" cvs_Revision="$Revision: 1.8 $">
 
     <section name="tkr"> TKR properties
         <item name="numXtowers"      value="4">       Number of towers in X direction </item>
@@ -34,7 +34,10 @@
 		<item name="Z0"              value="-67.004">   Z coordinate at the center of the lowest Si layer</item>
         This one is for the new Geant4 definition of z=0 at the top of the grid.
 		-->
+		<!--
 		<item name="Z0"              value="69.15">   Z coordinate at the center of the lowest Si layer</item>
+		-->
+		<item name="Z0"              value="0.0">   Z coordinate at the center of the lowest Si layer</item>
 		<item name="towerPitch"      value="374.5">   Tower pitch </item>
 		<item name="trayWidth"       value="358.6">   Width of a tray </item>
         <!-- we will use an average tray height to make life easier for glastsim 
