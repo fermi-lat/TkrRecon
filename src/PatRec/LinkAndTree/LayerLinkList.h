@@ -1,6 +1,6 @@
 /*
-	Keeps a list of link vectors
-	Tracy Usher Dec 4, 2000
+    Keeps a list of link vectors
+    Tracy Usher Dec 4, 2000
 */
 
 #ifndef C_LAYERLINKLIST
@@ -15,7 +15,7 @@ typedef std::list<LayerLinkVector*>::iterator layerLinkListPtr;
 class LayerLinkList : public layerLinkList
 {
 public:
-	virtual ~LayerLinkList() = 0;
+    virtual ~LayerLinkList() = 0;
 };
 
 #endif

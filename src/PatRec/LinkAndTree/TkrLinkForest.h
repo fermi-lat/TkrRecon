@@ -1,7 +1,7 @@
 /*
-	This class defines the forest part of the "link and tree" pattern 
-	recognition algorithm. 
-	Tracy Usher Dec 1, 2000
+    This class defines the forest part of the "link and tree" pattern 
+    recognition algorithm. 
+    Tracy Usher Dec 1, 2000
 */
 
 #ifndef __TKRLINKFOREST_H
@@ -18,28 +18,28 @@ typedef std::list<TkrLinkTree>::iterator treeListPtr;
 
 class TkrLinkForest
 {
-	treeList linkTreeList;
+    treeList linkTreeList;
 
-	void     deleteTrees(treeListPtr pTree);
-	void     deleteNodes(LayerLinkNode* pCurNode);
+    void     deleteTrees(treeListPtr pTree);
+    void     deleteNodes(LayerLinkNode* pCurNode);
 public:
-	TkrLinkForest();
-	TkrLinkForest(TkrClusterLinkList* pLinksList);
+    TkrLinkForest();
+    TkrLinkForest(TkrClusterLinkList* pLinksList);
        ~TkrLinkForest();
 
-	//How many trees in our forest
-	int getNumTrees() {return linkTreeList.size();}
+    //How many trees in our forest
+    int getNumTrees() {return linkTreeList.size();}
 
-	//Return the start of the list of trees
-	treeListPtr getListStart() {return linkTreeList.begin();}
+    //Return the start of the list of trees
+    treeListPtr getListStart() {return linkTreeList.begin();}
     treeListPtr getListEnd()   {return linkTreeList.end();}
     treeList*   getTreePtr()   {return &linkTreeList;}
 
-	//This will be useful for sorting a list of trees
-//	friend bool operator()(const SiLinkTree &lhs, const SiLinkTree &rhs);
-	friend bool operator<(TkrLinkTree& lhs, TkrLinkTree& rhs);
-//	friend bool operator>(const SiLinkTree* lhs, const SiLinkTree* rhs);
-//	friend bool operator==(SiLinkTree& lhs, SiLinkTree& rhs);
+    //This will be useful for sorting a list of trees
+//  friend bool operator()(const SiLinkTree &lhs, const SiLinkTree &rhs);
+    friend bool operator<(TkrLinkTree& lhs, TkrLinkTree& rhs);
+//  friend bool operator>(const SiLinkTree* lhs, const SiLinkTree* rhs);
+//  friend bool operator==(SiLinkTree& lhs, SiLinkTree& rhs);
 };
 
 

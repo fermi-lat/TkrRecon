@@ -1,6 +1,6 @@
 /*
-	Class to create and keep track of the adjacent cluster links.
-	Tracy Usher Nov 27, 2000
+    Class to create and keep track of the adjacent cluster links.
+    Tracy Usher Nov 27, 2000
 */
 
 #ifndef __TKRCLUSTERLINKVECTOR_H
@@ -16,23 +16,23 @@ enum TkrPlaneType {X, Y, XY, UNDEFINED};
 
 class TkrClusterLinkVector : public LayerLinkVector
 {
-	int          linkLayer;
-	TkrPlaneType planeType;
+    int          linkLayer;
+    TkrPlaneType planeType;
 
-	//Internal routines for converting plane types
+    //Internal routines for converting plane types
         int planeTypeToInt(TkrPlaneType plane);
-	TkrPlaneType intToPlaneType(int view);
+    TkrPlaneType intToPlaneType(int view);
 
 public:
-	TkrClusterLinkVector();
-	TkrClusterLinkVector(TkrClusterCol* pClusters, int layerNum, TkrPlaneType plane);
+    TkrClusterLinkVector();
+    TkrClusterLinkVector(TkrClusterCol* pClusters, int layerNum, TkrPlaneType plane);
        ~TkrClusterLinkVector();
 
-	//Which layer is this?
-	int getLinkLayer()          {return linkLayer;};
+    //Which layer is this?
+    int getLinkLayer()          {return linkLayer;};
 
-	//Plane type?
-	TkrPlaneType getPlaneType() {return planeType;}
+    //Plane type?
+    TkrPlaneType getPlaneType() {return planeType;}
 };
 
 #endif

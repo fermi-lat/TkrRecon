@@ -34,22 +34,22 @@ TkrNeuralNet::TkrNeuralNet(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters,
                            double calEne,  Point calHit):m_energy(calEne),
                            m_Pcal(calHit), m_tkrGeo(pTkrGeo), m_clusters(pClusters)
 { 
-	// make the neurons
-	m_numNeurons = generateNeurons(); 
+    // make the neurons
+    m_numNeurons = generateNeurons(); 
 
-	// make the neural net
-	buildNet();
+    // make the neural net
+    buildNet();
 
-	if(m_numNeurons > 0){
+    if(m_numNeurons > 0){
 
-		// relax the neurons
-		relax();
+        // relax the neurons
+        relax();
 
-		// build the candidate tracks
-		buildCand();
-	}
+        // build the candidate tracks
+        buildCand();
+    }
 
-	return;
+    return;
 }
 
 /*-------------------Private-------------------*/
@@ -63,45 +63,45 @@ TkrNeuralNet::TkrNeuralNet(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters,
 // the total number of neurons created.
 unsigned int TkrNeuralNet::generateNeurons()
 {
-	// This gets all of the TkrPoints in to a vector
-	for (int ilayer = 0 ; ilayer < 18; ilayer++)
-	{
-		TkrPoints tempTkrPoints(ilayer, m_clusters);
+    // This gets all of the TkrPoints in to a vector
+    for (int ilayer = 0 ; ilayer < 18; ilayer++)
+    {
+        TkrPoints tempTkrPoints(ilayer, m_clusters);
         if(!tempTkrPoints.finished()){
-			TkrPointList tmpList = tempTkrPoints.getAllLayerPoints();
-			m_pointList.insert(m_pointList.end(),tmpList.begin(),tmpList.end());
-		}
-	}
+            TkrPointList tmpList = tempTkrPoints.getAllLayerPoints();
+            m_pointList.insert(m_pointList.end(),tmpList.begin(),tmpList.end());
+        }
+    }
 
-	m_numPoints = m_pointList.size();
+    m_numPoints = m_pointList.size();
 
-	// This creates the neuron list.  Because the point list is in order of 
+    // This creates the neuron list.  Because the point list is in order of 
     // layer (0-17) the search only looks for pairs which are further down 
     // the list.  Because a neuron with two points in the same layer makes no
     // sense we exclude those and because neurons which consist of points 
     // seperated by more than MAX_LAYER_SEPERATION are very unlikely we exclude
     // them.  Finally, neurons with an angle greater than MAX_PITCH are very 
-	// unlikely we exclude them as well.
+    // unlikely we exclude them as well.
 
-	srand((unsigned int)(time(NULL)));
+    srand((unsigned int)(time(NULL)));
 
-	for (int iTop = 0; iTop < m_numPoints; iTop++)
-	{
-		for(int iBottom = iTop+1; iBottom < m_numPoints; iBottom++)
-		{
-			TkrNeuron neuron(&m_pointList[iTop],&m_pointList[iBottom],
+    for (int iTop = 0; iTop < m_numPoints; iTop++)
+    {
+        for(int iBottom = iTop+1; iBottom < m_numPoints; iBottom++)
+        {
+            TkrNeuron neuron(&m_pointList[iTop],&m_pointList[iBottom],
                              (float) rand()/(RAND_MAX+1.0));
 
-			if (neuron.getLayerDiff() == 0) continue;
-			if (neuron.getLayerDiff() > MAX_LAYER_SEPERATION) break;
-			if((neuron.getDirection()).z() < MAX_PITCH) continue;
+            if (neuron.getLayerDiff() == 0) continue;
+            if (neuron.getLayerDiff() > MAX_LAYER_SEPERATION) break;
+            if((neuron.getDirection()).z() < MAX_PITCH) continue;
 
-			neuron.setBias((float) NEURON_BIAS);
-			m_neuronList.push_back(neuron);
-		}
-	}
+            neuron.setBias((float) NEURON_BIAS);
+            m_neuronList.push_back(neuron);
+        }
+    }
 
-	return (unsigned int) m_neuronList.size();
+    return (unsigned int) m_neuronList.size();
 }
 
 // buildNet() 
@@ -110,41 +110,41 @@ unsigned int TkrNeuralNet::generateNeurons()
 // points and the wieghts associated with that connection.
 void TkrNeuralNet::buildNet()
 {
-	float weight=0.0;
+    float weight=0.0;
 
-	for(int i = 0; i < m_numNeurons; i++)
-	{
-		for(int j = i+1; j < m_numNeurons; j++)
-		{
+    for(int i = 0; i < m_numNeurons; i++)
+    {
+        for(int j = i+1; j < m_numNeurons; j++)
+        {
             // do they share the same top point?
-			if(m_neuronList[i].getPnt(top) == m_neuronList[j].getPnt(top))
-			{
-				m_neuronList[i].addConnection(&TkrNeuralNet::calcWieght, 
+            if(m_neuronList[i].getPnt(top) == m_neuronList[j].getPnt(top))
+            {
+                m_neuronList[i].addConnection(&TkrNeuralNet::calcWieght, 
                     this, top, &m_neuronList[j]);
-				m_neuronList[j].addConnection(&TkrNeuralNet::calcWieght, 
+                m_neuronList[j].addConnection(&TkrNeuralNet::calcWieght, 
                     this, top, &m_neuronList[i]);
 
-			}
+            }
             // do they share the same bottom point? 
-			else if(m_neuronList[i].getPnt(bottom) == m_neuronList[j].getPnt(bottom))
-			{
-				m_neuronList[i].addConnection(&TkrNeuralNet::calcWieght, 
+            else if(m_neuronList[i].getPnt(bottom) == m_neuronList[j].getPnt(bottom))
+            {
+                m_neuronList[i].addConnection(&TkrNeuralNet::calcWieght, 
                     this, bottom, &m_neuronList[j]);
-				m_neuronList[j].addConnection(&TkrNeuralNet::calcWieght, 
+                m_neuronList[j].addConnection(&TkrNeuralNet::calcWieght, 
                     this, bottom, &m_neuronList[i]);
-			}
+            }
             // are they consecutive neurons?
-			else if(m_neuronList[i].getPnt(bottom) == m_neuronList[j].getPnt(top))
-			{
-				m_neuronList[i].addConnection(&TkrNeuralNet::calcWieght, 
+            else if(m_neuronList[i].getPnt(bottom) == m_neuronList[j].getPnt(top))
+            {
+                m_neuronList[i].addConnection(&TkrNeuralNet::calcWieght, 
                     this, bottom, &m_neuronList[j]);
-				m_neuronList[j].addConnection(&TkrNeuralNet::calcWieght, 
+                m_neuronList[j].addConnection(&TkrNeuralNet::calcWieght, 
                     this, top, &m_neuronList[i]);
-			}
-		}
-	}
+            }
+        }
+    }
 
-	return;
+    return;
 }
 
 // relax()
@@ -155,42 +155,42 @@ void TkrNeuralNet::buildNet()
 // convergence value.
 void TkrNeuralNet::relax()
 {
-	double prevActivity = 0.0;
-	double cumActivityDiff = 0.0;
-	double converge = 0.0005;
-	std::vector<TkrNeuron*> tmpList;
+    double prevActivity = 0.0;
+    double cumActivityDiff = 0.0;
+    double converge = 0.0005;
+    std::vector<TkrNeuron*> tmpList;
 
-	for(int i=0;i < m_numNeurons; i++) tmpList.push_back(&m_neuronList[i]);
+    for(int i=0;i < m_numNeurons; i++) tmpList.push_back(&m_neuronList[i]);
 
-	do{
+    do{
 
         // shuffle the list
-		std::random_shuffle(tmpList.begin(),tmpList.end());  //just for now
+        std::random_shuffle(tmpList.begin(),tmpList.end());  //just for now
 
-		cumActivityDiff = 0.0;
+        cumActivityDiff = 0.0;
 
         // update neurons from the shuffled list
-		for(i=0;i < m_numNeurons; i++){
-			prevActivity = tmpList[i]->getActivity();
-			updateNeuron(tmpList[i],(float) TEMP);
-			cumActivityDiff += fabs(prevActivity - tmpList[i]->getActivity());
-		}
+        for(i=0;i < m_numNeurons; i++){
+            prevActivity = tmpList[i]->getActivity();
+            updateNeuron(tmpList[i],(float) TEMP);
+            cumActivityDiff += fabs(prevActivity - tmpList[i]->getActivity());
+        }
 
-		float tmp = 0.0;
+        float tmp = 0.0;
 
         // readjust the biases in each neuron to help speed up convergence.
-		for(i=0;i < m_numNeurons; i++){
-			tmp = 0.0;
-			for(int j = 0; j < tmpList[i]->numSynapse(top); j++) 
+        for(i=0;i < m_numNeurons; i++){
+            tmp = 0.0;
+            for(int j = 0; j < tmpList[i]->numSynapse(top); j++) 
                 tmp += (tmpList[i]->getNextNeuron(top,j))->getActivity();
-			for(int k = 0; k < tmpList[i]->numSynapse(bottom); k++) 
+            for(int k = 0; k < tmpList[i]->numSynapse(bottom); k++) 
                 tmp += (tmpList[i]->getNextNeuron(bottom,k))->getActivity();
-			tmp *= 4/((float)(j+k));
-			if(tmp <= 0.4) tmpList[i]->setBias(tmp);
-			else tmpList[i]->setBias((float) NEURON_BIAS);
-		}
+            tmp *= 4/((float)(j+k));
+            if(tmp <= 0.4) tmpList[i]->setBias(tmp);
+            else tmpList[i]->setBias((float) NEURON_BIAS);
+        }
 
-	}while((cumActivityDiff/((double)m_numNeurons)) > converge);
+    }while((cumActivityDiff/((double)m_numNeurons)) > converge);
 
 }
 
@@ -203,24 +203,24 @@ void TkrNeuralNet::buildCand()
 {
 
     // take neurons with activity above 0.9.
-	for(int i = 0;i < m_numNeurons; i++){
-		if(m_neuronList[i].getActivity() >= 0.9){
-			Candidate trial = Candidate( m_neuronList[i].getLayer(top), m_neuronList[i].getTower(top), .03, 
-				m_neuronList[i].getPnt(top),m_neuronList[i].getDirection());
-			m_candidates.push_back(trial);
-		}
-	}
+    for(int i = 0;i < m_numNeurons; i++){
+        if(m_neuronList[i].getActivity() >= 0.9){
+            Candidate trial = Candidate( m_neuronList[i].getLayer(top), m_neuronList[i].getTower(top), .03, 
+                m_neuronList[i].getPnt(top),m_neuronList[i].getDirection());
+            m_candidates.push_back(trial);
+        }
+    }
 
         TkrControl * control = TkrControl::getPtr(); 
-	if (m_candidates.size() > 0) {
-		
-		TkrNeuralNet::const_iterator hypo;
+    if (m_candidates.size() > 0) {
+        
+        TkrNeuralNet::const_iterator hypo;
             
             for(hypo  = m_candidates.begin(); 
                 hypo != m_candidates.end();   hypo++){
                 
                 int   iniLayer = (*hypo).firstLayer();
-				int   iniTower = (*hypo).tower();
+                int   iniTower = (*hypo).tower();
                 Ray   testRay  = (*hypo).ray();
                 float energy   = (*hypo).energy();
                 
@@ -246,8 +246,8 @@ void TkrNeuralNet::buildCand()
 
                 } 
                 else delete _track;
-			}
-	}
+            }
+    }
 
     // Ok, go through all the attempted track fits and unflag the hits for the 
     // real fit
@@ -263,7 +263,7 @@ void TkrNeuralNet::buildCand()
         }
     }
 
-	return;
+    return;
 }
 
 // calcWieght()
@@ -271,10 +271,10 @@ void TkrNeuralNet::buildCand()
 float TkrNeuralNet::calcWieght(TkrNeuron* neuron1, TkrNeuron* neuron2)
 {
     // If the neurons are joined at the bottom or at the top the weight is zero.
-	if((neuron1->getPnt(top) == neuron2->getPnt(top)) || 
+    if((neuron1->getPnt(top) == neuron2->getPnt(top)) || 
         (neuron1->getPnt(bottom) == neuron2->getPnt(bottom))) return 0.0;
 
-	float tmp = pow(neuron1->getDirection().dot(neuron2->getDirection()),
+    float tmp = pow(neuron1->getDirection().dot(neuron2->getDirection()),
         (double) NEURON_LAMBDA);
 
     // to avoid negative weights, retrun 0 if agnle is > 90 degrees.
@@ -283,7 +283,7 @@ float TkrNeuralNet::calcWieght(TkrNeuron* neuron1, TkrNeuron* neuron2)
     tmp /= pow((double) neuron1->getLayerDiff(),(double) NEURON_MU) + 
         pow((double) neuron2->getLayerDiff(),(double) NEURON_MU);
 
-	return ((float) tmp);
+    return ((float) tmp);
 }
 
 // updateNeurons()
@@ -293,36 +293,36 @@ float TkrNeuralNet::calcWieght(TkrNeuron* neuron1, TkrNeuron* neuron2)
 void TkrNeuralNet::updateNeuron(TkrNeuron* neuron, float temp)
 {
 
-	float tmp1 = 0.0;  // for reinforcing from the neurons activity.
-	float tmp2 = 0.0;  // for detracting from the neurons activity.
-	float tmp3 = 0.0;  // for detracting from the neurons activity.
+    float tmp1 = 0.0;  // for reinforcing from the neurons activity.
+    float tmp2 = 0.0;  // for detracting from the neurons activity.
+    float tmp3 = 0.0;  // for detracting from the neurons activity.
 
-	for(int i=0, j=0;i < neuron->numSynapse(bottom); i++){
-		if(neuron->getNextNeuron(bottom,(unsigned) i)->getPnt(top) == neuron->getPnt(bottom)) 
-			tmp1 +=(neuron->getWieght(bottom,(unsigned) i)) * 
+    for(int i=0, j=0;i < neuron->numSynapse(bottom); i++){
+        if(neuron->getNextNeuron(bottom,(unsigned) i)->getPnt(top) == neuron->getPnt(bottom)) 
+            tmp1 +=(neuron->getWieght(bottom,(unsigned) i)) * 
                    (neuron->getNextNeuron(bottom,(unsigned) i)->getActivity());
-		else{
-			tmp2 += neuron->getNextNeuron(bottom,(unsigned) i)->getActivity();
-			j++;
-		}
-	}
+        else{
+            tmp2 += neuron->getNextNeuron(bottom,(unsigned) i)->getActivity();
+            j++;
+        }
+    }
 
-	for(i = 0;i < neuron->numSynapse(top); i++){
-		if(neuron->getNextNeuron(top,(unsigned) i)->getPnt(bottom) == neuron->getPnt(top))
-			tmp1 +=(neuron->getWieght(top,(unsigned) i)) * 
+    for(i = 0;i < neuron->numSynapse(top); i++){
+        if(neuron->getNextNeuron(top,(unsigned) i)->getPnt(bottom) == neuron->getPnt(top))
+            tmp1 +=(neuron->getWieght(top,(unsigned) i)) * 
                    (neuron->getNextNeuron(top,(unsigned) i)->getActivity());
-		else{
-			tmp3 += neuron->getNextNeuron(top,(unsigned) i)->getActivity();
-		}
-	}
+        else{
+            tmp3 += neuron->getNextNeuron(top,(unsigned) i)->getActivity();
+        }
+    }
 
-	tmp1 *= (float) NEURON_GAMMA;
-	tmp2 *= (float) NEURON_ALPHA_UP;
-	tmp3 *= (float) NEURON_ALPHA_DO;
+    tmp1 *= (float) NEURON_GAMMA;
+    tmp2 *= (float) NEURON_ALPHA_UP;
+    tmp3 *= (float) NEURON_ALPHA_DO;
 
-	// update the neuron
-	neuron->setActivity((0.5*(1+tanh((1/temp)*(tmp1-tmp2-tmp3+(neuron->getBias()))))));
+    // update the neuron
+    neuron->setActivity((0.5*(1+tanh((1/temp)*(tmp1-tmp2-tmp3+(neuron->getBias()))))));
 
-	return;
+    return;
 
 }

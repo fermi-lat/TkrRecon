@@ -15,7 +15,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/TkrComboPatRec.h,v 1.15 2002/08/29 21:12:31 atwood Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/TkrComboPatRec.h,v 1.16 2002/08/30 18:35:40 atwood Exp $
 */
 
 #ifndef __TKRCOMBOPATREC_H
@@ -35,7 +35,7 @@ using namespace Event;
 class TkrComboPatRec : public TkrPatCandCol
 {
 public:
-	TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters, double CalEnergy, Point CalPosition);
+    TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters, double CalEnergy, Point CalPosition);
         ~TkrComboPatRec() {};
 
 private:
@@ -63,7 +63,7 @@ private:
         double conEnergy()     const {return m_ConEnergy;}
         KalFitTrack *track()         {return m_track;} 
         
-    private:	
+    private:    
         float m_deflection;    // End point deflection of line of 1st two hits
         float m_sigma;         // Number of sigma deflection corresponds to
         float m_qual;          // Resulting track Quality

@@ -1,7 +1,7 @@
 /*
-	This contains a list of pointers to layers 
-	with a non-zero number of cluster links
-	Tracy Usher Nov 30, 2000
+    This contains a list of pointers to layers 
+    with a non-zero number of cluster links
+    Tracy Usher Nov 30, 2000
 */
 
 #ifndef __TKRCLUSTERLINKLIST_H
@@ -13,18 +13,18 @@
 
 class TkrClusterLinkList : public LayerLinkList
 {
-	TkrPlaneType layerView;
-	int          numLinksTotal;
-	int          mostLinksLayer;
-	int          numLinksInLayer;
+    TkrPlaneType layerView;
+    int          numLinksTotal;
+    int          mostLinksLayer;
+    int          numLinksInLayer;
 public:
-	TkrClusterLinkList();
-	TkrClusterLinkList(TkrClusterCol* pClusters, TkrPlaneType view);
+    TkrClusterLinkList();
+    TkrClusterLinkList(TkrClusterCol* pClusters, TkrPlaneType view);
    ~TkrClusterLinkList();
 
-	int getNumLinksTotal()  {return numLinksTotal;};
-	int getNumMostLinks()   {return numLinksInLayer;};
-	int getMostLinksLayer() {return mostLinksLayer;};
+    int getNumLinksTotal()  {return numLinksTotal;};
+    int getNumMostLinks()   {return numLinksInLayer;};
+    int getMostLinksLayer() {return mostLinksLayer;};
 
 };
 
