@@ -24,39 +24,49 @@
 class VtxKalFitTool : public VtxBaseTool
 {
  public:
-  // Constructor
   VtxKalFitTool( const std::string& type,
 		 const std::string& name,
 		 const IInterface* parent);
 
-  // Standard Destructor
   virtual ~VtxKalFitTool() { }
 
+  ///base tool overwritten method
   StatusCode initialize();
+
+  ///@brief Initialization: first estimate of Vertex is first hit of best track
+  ///best track is assumed to be first in the TkrFitTrack list
   StatusCode initVertex(Event::TkrFitTrackCol&);
 
+  ///main method: implements the filter
   StatusCode doVtxFit(Event::TkrVertexCol&);
-
-  StatusCode doVtx();
 
   double const getChi2() {return m_chi2;}
 
+  //bring momentum (Sx,Sy) to Zref. currently does nothing
   HepVector computeQatZref(const Event::TkrFitTrack& theTrack);
+
+  //@brief propagate Cov matrix from first hit location to Zref plane
+  //method not yet implemented
+  Event::TkrFitMatrix propagCovToVtx(const Event::TkrFitMatrix, 
+				     const HepVector);
 
  private:
 
-  void initVertex();
-
-  //properties
+  ///max value of single track chi2, above which track is rejected
   double m_chi2max;
 
-  //Reference z-plane.
+  ///Reference z-plane where linearization occurs.
   double m_Zref;
 
-  //computation helpers:
+  ///compute measurement matrix
   HepVector computeVectorH(const HepVector, const HepVector);
+  ///compute derivate of measurement matrix wrt vertex
   HepMatrix computeMatrixA(const HepVector, const HepVector);
+  ///compute derivate of measurement matrix wrt momentum
   HepMatrix computeMatrixB(const HepVector, const HepVector);
+  ///returns TkrFitMatrix as an HepSymMatrix
+  HepSymMatrix getHepSymCov(const Event::TkrFitMatrix& );
+
 
   double m_chi2;
 
@@ -71,7 +81,7 @@ class VtxKalFitTool : public VtxBaseTool
   std::vector<HepSymMatrix> m_D;
   std::vector<HepMatrix>    m_E;
   std::vector<HepMatrix>    m_G;
-  std::vector<HepMatrix>    m_W;
+  std::vector<HepSymMatrix>    m_W;
 
   //Final matrices:
   HepSymMatrix m_CovXX;
