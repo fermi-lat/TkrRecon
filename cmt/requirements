@@ -1,6 +1,6 @@
 package TkrRecon
 
-version v9r0p2gr1
+version v9r0p2gr2
 
 author Tracy Usher    <usher@slac.stanford.edu>
 author Leon Rochester <lsrea@slac.stanford.edu>
@@ -13,7 +13,7 @@ apply_pattern packageShr
 
 apply_pattern package_include
 
-use Event      v9*
+use Event      v*
 use GlastSvc   v9*
 use GuiSvc
 use geometry
