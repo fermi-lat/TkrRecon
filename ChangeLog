@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Thu Mar  7 09:30:51 PST 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrInitSvc.cxx 
+Log Message:
+
+Include the basic initialization of the vertexing algorithm and its
+visualization class.
+
+    *
+------------------------------------------------------------
 User: usher  Thu Mar  7 09:29:08 PST 2002
 TkrRecon/TkrRecon/Vertex
 
