@@ -6,14 +6,11 @@
 
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "TkrRecon/Services/TkrAxis.h"
-#include "src/Services/TkrDetGeo.h"
 
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 #include "idents/VolumeIdentifier.h"
 
-#include "xml/IFile.h"
-
-#include <string>
+//#include <string>
 
 //----------------------------------------------
 //
@@ -46,10 +43,13 @@ public:
     int    numViews()        {return m_nviews;}	
     int    numLayers()       {return m_nlayers;}
 
-    int    indMixed()        {return m_indMixed;}
+    /*
+	int    indMixed()        {return m_indMixed;}
     int    viewMixed()       {return m_viewMixed;}
     int    ladderMixed()     {return m_ladderMixed;}
     int    isizeMixed()      {return m_isizeMixed;}
+	*/
+
     int    numPlanes()       {return m_nlayers;}
 
     double towerPitch()      {return m_towerPitch;}
@@ -70,12 +70,16 @@ public:
 
 	HepPoint3D getStripPosition(int tower, int layer, int view, int stripid);
 	HepPoint3D getDoubleStripPosition(int tower, int layer, int view, double stripid);
+
+	void layerToTray (int layer, int view, int& tray, int& botTop);
+	void trayToLayer (int tray, int botTop, int& layer, int& view);
     
-    
+    /*
     // geometry related access
     int    nLadders(int ilayer, axis a);
     double diceSize(int ilayer, axis a, int iladder);	
     int    nDices(int ilayer, axis a, int iladder);
+	*/
 
     
         /// queryInterface - for implementing a Service this is necessary
@@ -89,8 +93,6 @@ public:
 
     
 private:
-
-	std::string m_xmlFile;  // File name for constants
 
     int    m_geomType;
     
@@ -114,10 +116,12 @@ private:
 
 	IGlastDetSvc * p_GlastDetSvc;
 
-	// room for maximum number of idents, by [tower][layer][view]
-	idents::VolumeIdentifier m_volId[16][18][2];
+	// room for maximum number of idents, by [tower]  and [layer][view]
+	idents::VolumeIdentifier m_volId_tower[16];
+	idents::VolumeIdentifier m_volId_layer[18][2];
 
-    xml::IFile::intVector m_layertype;    // X-Y (0) or Y-X (1)
+    /*
+	xml::IFile::intVector m_layertype;    // X-Y (0) or Y-X (1)
     xml::IFile::intVector m_nladders;     // number of ladders filled vs layer
 
     // this "automates" the die sizes, including the horrible mixed layer
@@ -132,6 +136,7 @@ private:
     int    m_viewMixed;     // view containing mixed ladders
     int    m_ladderMixed;   // ladder which is different
     int    m_isizeMixed;    // index to die size on different ladder
+	*/
 };
 
 #endif
