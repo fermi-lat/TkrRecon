@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.26.2.2 2004/11/22 18:55:23 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.26.2.3 2004/11/23 17:40:17 lsrea Exp $
 */
 
 
@@ -39,7 +39,6 @@
 #include <exception>
 #include <sstream>
 #include <iomanip>
-#include <ios>
 
 namespace {
     std::string doubleToString(double x) {
@@ -105,6 +104,7 @@ private:
     Algorithm*  m_TkrVertexAlg;
     Algorithm*  m_TkrDisplayAlg;
 
+    Event::EventHeader* m_header;
     errorVec m_errorArray;
     double   m_lastTime;
 
@@ -241,8 +241,8 @@ StatusCode TkrReconAlg::execute()
     else                       log << "-------   Tkr Recon iteration  --------";
     log << endreq;
 
-    SmartDataPtr<Event::EventHeader> eventHeader(eventSvc(), EventModel::EventHeader);
-    if(!eventHeader) {
+    m_header = SmartDataPtr<Event::EventHeader>(eventSvc(), EventModel::EventHeader);
+    if(!m_header) {
         log << MSG::ERROR << "Event header not found!" << endreq;
     }
 
@@ -310,7 +310,7 @@ StatusCode TkrReconAlg::execute()
         return handleError();
     }
 
-    m_lastTime = eventHeader->time();
+    m_lastTime = m_header->time();
     return sc;
 }
 
@@ -336,9 +336,8 @@ StatusCode TkrReconAlg::handleError()
     }
 
     ++m_errorCount;
-    SmartDataPtr<Event::EventHeader> eventHeader(eventSvc(), EventModel::EventHeader);
-    int run     = eventHeader->run();
-    int event   = eventHeader->event();
+    int run     = m_header->run();
+    int event   = m_header->event();
     // we should also write out the time... not quite sure how to do that yet.
     log << MSG::ERROR << "====>> Run " << run << " Event " << event 
         << " Time " << doubleToString(m_lastTime)
@@ -350,7 +349,7 @@ StatusCode TkrReconAlg::handleError()
     StatusCode sc = StatusCode::FAILURE;
     if(s_saveBadEvents) sc = StatusCode::SUCCESS;
     s_failed   = true;
-    m_lastTime = eventHeader->time();
+    m_lastTime = m_header->time();
     return sc;
 }
 

@@ -13,7 +13,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitTrack.h,v 1.23 2003/03/13 19:13:24 lsrea Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitTrack.h,v 1.24 2004/09/09 20:39:56 lsrea Exp $
 */
 
 #ifndef __KalFitTrack_H
