@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Sep  7 15:15:51 PDT 2004
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+prepare for tag v9r0; changes for alignment and new alignment service interface
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Sep  1 10:42:32 PDT 2004
 TkrRecon/src/TrackFit/KalFitTrack
 
