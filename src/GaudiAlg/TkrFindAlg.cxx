@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.13 2002/08/20 19:43:16 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.14 2002/08/28 22:55:48 usher Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -105,7 +105,7 @@ StatusCode TkrFindAlg::execute()
 
 
 StatusCode TkrFindAlg::finalize()
-{	
+{   
     return StatusCode::SUCCESS;
 }
 
