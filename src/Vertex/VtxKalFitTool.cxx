@@ -221,20 +221,20 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
   while(usedIter != usedTracks.end())
     { 
       Event::TkrFitTrack* theUsedTrack = *usedIter++;
-      double sgn = theUsedTrack->getDirection().z();
-      int e = sgn>0?+1:-1;
+      double uz = theUsedTrack->getDirection().z();
+      int sgn = uz>0?+1:-1;
 
       HepVector Qi = sQ_list[i]; 
 
       //Physical Momentum:
       //-----------------
-      Vector momentum = Vector(e*Qi[0],e*Qi[1],e*1).unit();
+      Vector momentum = Vector(sgn*Qi[0],sgn*Qi[1],sgn*1).unit();
       momentum.setMag(Qi[2]);
       totP += momentum;
 
       //Cov Matrix of Physical Momentum:
       //-------------------------------
-      HepMatrix Ti = SlopeToDir(Qi);
+      HepMatrix Ti = SlopeToDir(Qi,sgn);
       totCovP += CovQQ[i].similarity(Ti);
 
       //      std::cout<<CovQQ[i]<<Ti<<totCovP<<std::endl;
@@ -243,8 +243,9 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       int j;
       for(j=i+1;j<usedTracks.size();j++)
 	{
+	  int sgn2 = theUsedTrack->getDirection().z()>0?+1:-1;
 	  HepVector Qj = sQ_list[j];
-	  HepMatrix Tj = SlopeToDir(Qj);
+	  HepMatrix Tj = SlopeToDir(Qj,sgn2);
 	  
 	  HepMatrix Qij = Ti*Tmp_list[i]*CovXX*Tmp_list[j].T()*Tj.T();
 	  HepSymMatrix tmp;
@@ -258,9 +259,9 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       i++;
     }
 
-  //  log.stream() <<  "totP "   <<totP<<endreq;
-  //  log.stream() <<  "totCovP" <<totCovP<<endreq;
-  //  log.stream() <<  "totCovXP"<<totCovXP<<std::endl;
+  //  log.stream() <<  "totP "   <<totP<<"\n"<<endreq;
+  //  log.stream() <<  "totCovP" <<totCovP<<"\n"<<endreq;
+  //  log.stream() <<  "totCovXP"<<totCovXP<<"\n"<<endreq;
   
   
 
@@ -466,36 +467,36 @@ HepSymMatrix VtxKalFitTool::getHepSymCov(const Event::TkrFitMatrix& measCov)
 }
 
 
-HepMatrix VtxKalFitTool::SlopeToDir(HepVector Q)
+HepMatrix VtxKalFitTool::SlopeToDir(HepVector Q, int sign_uz)
 {
   // Purpose and Method: Transformation Matrix T (Sx,Sy,E)->(Eux,Euy,Euz)
   //                     newCov = T*oldCov*T.T() and T_{ij} = dy_i/dx_j   (i for line and j for column of matrix)
   //                     where x and y are respectively the vector of old and new parameters.
-  // Inputs: geometrical momentum q=(Sx,Sy,E)
+  // Inputs: geometrical momentum Q=(Sx,Sy,E), sign_uz = uz/|uz|
   // Output: Matrix T
   // Dependencies: None
   //
-  // Restrictions and Caveats: None 
-  
+  // Restrictions and Caveats: This is an approximation working only if the terms left out in the Taylor expansion
+  //                           are small compared to the cov. matrix elements.
       double sx = Q[0];
       double sy = Q[1];
       double  E = Q[2];
 
-      //Transformation: (Sx,Sy,E) -> (Eux,Euy,Euz)
-      //sgn_uz discarded for now: should not matter,
-      //even when transforming skew matrices....
       HepMatrix T(3,3,0);
-      T(1,1) = 1+sy*sy;
-      T(1,2) = -sx*sy;
-      T(2,1) = -sx*sy;
-      T(2,2) = 1+sx*sx;
-      T(3,1) = -sx;
-      T(3,2) = -sy;
-      T *= E;
-      T(1,3) = sx*(1+sx*sx+sy*sy);
-      T(2,3) = sy*(1+sx*sx+sy*sy);
-      T(3,3) =    (1+sx*sx+sy*sy);
-      T /= pow(1+sx*sx+sy*sy,1.5);
+      // partial{Euz} / partial{Sy} up to norm. factor:
+      T(1,1) = E * (1 + sy*sy);
+      T(1,2) = - E * sx*sy;
+      T(1,3) = sx * (1 + sx*sx + sy*sy);
+      // partial{Euy} / partial{Sy} up to norm. factor:
+      T(2,1) = - E * sx*sy;
+      T(2,2) = E * (1 + sx*sx);
+      T(2,3) = sy * (1 + sx*sx + sy*sy);
+      // partial{Euz} / partial{Sy} up to norm. factor:
+      T(3,1) = - E * sx;
+      T(3,2) = - E * sy;
+      T(3,3) = (1 + sx*sx + sy*sy);
+      // norm. factor:
+      T *= (sign_uz) / pow(1 + sx*sx + sy*sy,1.5);
       
       return T;
 }

@@ -84,7 +84,9 @@ class VtxKalFitTool : public VtxBaseTool
   HepSymMatrix getHepSymCov(const Event::TkrFitMatrix& );
 
   ///Compute derivative matrix of (Sx,Sy,E)->(Eux,Euy,Euz) transformation
-  HepMatrix SlopeToDir(HepVector /*Q*/);
+  ///@param Q HepVector (Sx,Sy,E)
+  ///@param sign_uz Sign(uz) needed to remove Sx and Sy sign ambiguity
+  HepMatrix SlopeToDir(HepVector /*Q*/, int /*sign_uz*/);
 
   ///Vector of successive estimates.
   std::vector<HepVector>    m_VtxEstimates;
