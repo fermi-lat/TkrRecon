@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Fri Jul 18 15:29:03 PDT 2003
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+TkrComboPatRec: remove unused variables
+KalFitTrack, KalFitter: get correct value of calZTop from TkrGeometrySvc; hard-wired value was wrong.
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Jul 18 14:26:59 PDT 2003
 TkrRecon/src/PatRec/NeuralNet
 
