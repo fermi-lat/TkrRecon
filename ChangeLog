@@ -1,4 +1,19 @@
 ------------------------------------------------------------
+User: usher  Mon Apr 19 15:40:05 PDT 2004
+TkrRecon/src/TrackFit/KalmanFilterFit
+
+Removed Files:
+	GlastProcNoiseMatrix.cxx GlastProcNoiseMatrix.h 
+	GlastProjectionMatrix.cxx GlastProjectionMatrix.h 
+	GlastTransportMatrix.cxx GlastTransportMatrix.h 
+	IFitHitEnergy.h MonteCarloHitEnergy.cxx MonteCarloHitEnergy.h 
+	NoProcNoiseMatrix.cxx NoProcNoiseMatrix.h RadLossHitEnergy.cxx 
+	RadLossHitEnergy.h 
+Log Message:
+Rearranging this subfolder, these objects moving to new sub sub folders
+
+    *
+------------------------------------------------------------
 User: usher  Mon Apr 19 15:36:08 PDT 2004
 TkrRecon/src/TrackFit/KalmanFilterUtils
 
