@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Mon Apr 19 15:51:01 PDT 2004
+TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy
+
+Added Files:
+	BetheBlockHitEnergy.cxx BetheBlockHitEnergy.h IFitHitEnergy.h 
+	MonteCarloHitEnergy.cxx MonteCarloHitEnergy.h 
+	RadLossHitEnergy.cxx RadLossHitEnergy.h 
+Log Message:
+These objects implement various schemes for assigning the energy at a given hit
+
+    *
+------------------------------------------------------------
 User: usher  Mon Apr 19 15:48:05 PDT 2004
 TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors
 
