@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: cohen  Tue Feb 24 09:39:14 PST 2004
+TkrRecon/TkrRecon/Services
+
+Modified Files:
+	TkrGeometryVisitor.h 
+Log Message:
+- TkrRecon/Services/TkrGeometryVisitor.h  & src/PatRec/Combo/TkrComboPatRec.h
+		added newline at end of file
+- src/PatRec/NeuralNet/TkrNeuron.*
+		added a << operator for printout
+
+    *
+------------------------------------------------------------
 User: cohen  Mon Feb 23 13:41:01 PST 2004
 TkrRecon/src/Utilities
 
