@@ -41,7 +41,7 @@ protected:
 
 protected:
 
-	Point position(int ilayer, SiCluster::view v, double strip);
+	Point position(int ilayer, SiCluster::view v, double strip, int tower = 0);
 
 private:
 

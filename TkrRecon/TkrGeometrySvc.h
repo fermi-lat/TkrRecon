@@ -22,6 +22,7 @@ class TkrGeometrySvc : public TkrAxis, public Service
 //##########################################################
 {
 public:
+
     //! Constructor of this form must be provided
     TkrGeometrySvc(const std::string& name, ISvcLocator* pSvcLocator); 
     virtual ~TkrGeometrySvc() {}
@@ -55,6 +56,9 @@ public:
     double siResolution()    {return m_siResolution;}
     double siThickness()     {return m_siThickness;}
     double siDeadDistance()  {return m_siDeadDistance;}
+
+    double thinConvHeight()  {return m_thinConvHeight;}
+    double thickConvHeight() {return m_thickConvHeight;}
     
     double siX0()            {return m_siX0;}
     double pbX0()            {return m_pbX0;}
@@ -62,10 +66,10 @@ public:
     // planes and layers differ in the ordering
     int ilayer(int iplane)   {return numPlanes()-iplane-1;}
     
-    detGeo getSiLayer(int ilayer, axis a);
-    detGeo getPbLayer(int ilayer);
-    detGeo getSiLadder(int ilayer, axis a, int iladder);
-    detGeo getSiDice(int ilayer, axis a, int iladder, int idice);
+    detGeo getSiLayer(int ilayer, axis a, int tower = 0);
+    detGeo getPbLayer(int ilayer, int tower = 0);
+    detGeo getSiLadder(int ilayer, axis a, int iladder, int tower = 0);
+    detGeo getSiDice(int ilayer, axis a, int iladder, int idice, int tower = 0);
     
     // geometry related access
     double pbRadLen(int ilayer);
@@ -75,6 +79,7 @@ public:
     int    nDices(int ilayer, axis a, int iladder);
     
 private:
+
     int    m_geomType;
     
     int    m_numY;          // number of Towers in Y
@@ -99,9 +104,13 @@ private:
     double m_siResolution;
     double m_siThickness;
     double m_siDeadDistance;
+
+    double m_thinConvHeight;    // height of thin converter
+    double m_thickConvHeight;   // height of thick converter
     
     double m_siX0;          // radiation length of silicon    
     double m_pbX0;          // radiation length of "lead" (may be tungsten)
+
 };
 
 #endif

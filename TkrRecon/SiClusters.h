@@ -47,7 +47,7 @@ public:
 	SiCluster(){}
 	//! constructor with parameters
 	SiCluster(int id, int v, int ilayer, 
-		int istrip0, int istripf, double ToT);
+		int istrip0, int istripf, double ToT, int tower = 0);
 	//! default destructor
 	virtual ~SiCluster() {}
 
@@ -178,7 +178,7 @@ public:
 	std::vector<SiCluster*>& getHits(SiCluster::view v, int iplane)
 	{return m_clustersByPlaneList[SiCluster::viewToInt(v)][iplane];}
 	
-	//! returns the number o f SiClusters in a given view and plane
+	//! returns the number of SiClusters in a given view and plane
 	int nHits(SiCluster::view v, int iplane)
 	{return (int) getHits(v,iplane).size();}
 

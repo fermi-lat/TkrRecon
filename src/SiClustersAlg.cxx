@@ -99,8 +99,8 @@ StatusCode SiClustersAlg::execute()
                 // planes are ordered from 0-top to 15-bottom   - used by the recostruction
                 // layers are ordered from 15-top to 0-bottom   - used by the geometry
                 SiCluster* cl = new SiCluster(nclusters, iview,     pTrackerGeo->numLayers()-klayer-1,
-                    stripIdxL, stripIdxH, layer->ToT());
-                cl->setPosition(position(cl->plane(),cl->v(),cl->strip()));
+                    stripIdxL, stripIdxH, layer->ToT(), tower);
+                cl->setPosition(position(cl->plane(),cl->v(),cl->strip(),cl->tower()));
                 m_SiClusters->addCluster(cl);
                 nclusters++;
                 stripIdxL = stripIdx;
@@ -155,7 +155,7 @@ StatusCode SiClustersAlg::retrieve()
 }
 
 //###################################################
-Point SiClustersAlg::position(int iplane, SiCluster::view v, double strip)
+Point SiClustersAlg::position(int iplane, SiCluster::view v, double strip, int tower)
 //###################################################
 {
     int iladder = (int) strip / pTrackerGeo->ladderNStrips();
@@ -168,7 +168,7 @@ Point SiClustersAlg::position(int iplane, SiCluster::view v, double strip)
     int ilayer = pTrackerGeo->numPlanes()-iplane-1;
     // trackerDetGeo*   trkGeo   = dataManager::instance()->geo()->tracker();
     
-    detGeo ladder = pTrackerGeo->getSiLadder(ilayer, a, iladder);
+    detGeo ladder = pTrackerGeo->getSiLadder(ilayer, a, iladder, tower);
     // Point ladder = pTrackerGeo->ladderGap(ilayer,a,iladder);
     
     //!
