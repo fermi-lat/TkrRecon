@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Wed Jan 29 15:20:27 PST 2003
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrReconAlg.cxx TkrTrackFitAlg.cxx TkrVertexAlg.cxx 
+Log Message:
+more MSG::DEBUG fixes
+    *
+------------------------------------------------------------
 User: lsrea  Wed Jan 29 15:20:26 PST 2003
 TkrRecon/doc/KalVtx
 
