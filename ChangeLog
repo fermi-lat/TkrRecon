@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: burnett  Tue Jan 13 16:10:19 PST 2004
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+disable code that handles monte carlo quantities.
+    *
+------------------------------------------------------------
 User: burnett  Tue Jan 13 12:15:55 PST 2004
 TkrRecon/src/Dll
 
