@@ -72,10 +72,10 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int &
 
     TkrFitMatrix F(relDeltaZ);
 	                      
-    TkrFitMatrix Q = TkrFitPart->mScat_Covr(ene, arc_len); 
+    m_Qmaterial = TkrFitPart->mScat_Covr(ene, arc_len); 
     pp = F*pp;
-    if (down == -1.)     Ck=(F*(Ck*F.T()))+Q;
-    else if (down == +1) Ck=(F*(Ck+Q)*F.T());
+    if (down == -1.)     Ck=(F*(Ck*F.T()))+m_Qmaterial;
+    else if (down == +1) Ck=(F*(Ck+m_Qmaterial)*F.T());
     
     TkrFitHit hitpred(TkrFitHit::PRED, pp, Ck);
 
@@ -123,10 +123,10 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int n
 
     TkrFitMatrix F(relDeltaZ);
 	                      
-    TkrFitMatrix Q = TkrFitPart->mScat_Covr(ene, arc_len); 
+    m_Qmaterial = TkrFitPart->mScat_Covr(ene, arc_len); 
     pp = F*pp;
-    if (down == -1.)     Ck=(F*(Ck*F.T()))+Q;
-    else if (down == +1) Ck=(F*(Ck+Q)*F.T());
+    if (down == -1.)     Ck=(F*(Ck*F.T()))+m_Qmaterial;
+    else if (down == +1) Ck=(F*(Ck+m_Qmaterial)*F.T());
     
     TkrFitHit hitpred(TkrFitHit::PRED, pp, Ck);
 
@@ -178,13 +178,13 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitPlane& kplaneNext)
 
     TkrFitMatrix F(relDeltaZ);
 	                      
-    TkrFitMatrix Q = TkrFitPart->mScat_Covr(ene, arc_len); 
+    m_Qmaterial = TkrFitPart->mScat_Covr(ene, arc_len); 
     pp = F*pp;
-    if (down == -1.)     Ck=(F*(Ck*F.T()))+Q;
-    else if (down == +1) Ck=(F*(Ck+Q)*F.T());
+    if (down == -1.)     Ck=(F*(Ck*F.T()))+m_Qmaterial;
+    else if (down == +1) Ck=(F*(Ck+m_Qmaterial)*F.T());
     
     // store the matrix with the material
-    kplaneNext.setQmaterial(Q);
+    kplaneNext.setQmaterial(m_Qmaterial);
 
     TkrFitHit hitpred(TkrFitHit::PRED, pp, Ck);
 
