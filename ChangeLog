@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: als  Fri Oct 11 16:07:15 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Removed Files:
+	TkrnewVertexAlg.cxx 
+Log Message:
+re-remove TkrnewVertexAlg.cxx
+file escaped from Attic.
+
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Oct 11 15:30:33 PDT 2002
 TkrRecon/src/PatRec/Combo
 
