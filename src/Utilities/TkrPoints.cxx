@@ -48,7 +48,7 @@ Point TkrPoints::getNearestPointOutside(Point x0, double & dist_min)
     double dist_best = 10000.;
     double dist_min2 = dist_min*dist_min; 
 
-    for(int itry = 0; itry<m_itot; itry++){
+    for(int itry = 0; itry<m_itot; ++itry){
         int ix = itry%m_xHits;
         int iy = itry/m_xHits; 
 
@@ -90,7 +90,7 @@ Point TkrPoints::getSpacePoint()
     // Sequential algorithm due to Brandon Allgood
     double x=0, y=0, z=0;
 
-    for(; m_itry<m_itot; m_itry++){
+    for(; m_itry<m_itot; ++m_itry){
         int ix = m_itry%m_xHits;
         int iy = m_itry/m_xHits; 
 

@@ -7,7 +7,7 @@
 *
 * @authors b. allgood and w. atwood
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoint.h,v 1.3 2003/07/04 14:07:39 cohen Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoint.h,v 1.4 2004/10/10 05:08:00 lsrea Exp $
 */
 
 #ifndef __TKRPOINT_H
@@ -40,7 +40,7 @@ public:
     Event::TkrCluster*   getClusterX()   const {return m_pClusterX;}
     Event::TkrCluster*   getClusterY()   const {return m_pClusterY;}
     bool  sameTower(const TkrPoint& point) const;
-    int   layerSeperation(const TkrPoint& point) const;
+    int   layerSeparation(const TkrPoint& point) const;
     //@}
 
     /** @name other methods

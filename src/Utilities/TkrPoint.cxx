@@ -13,25 +13,21 @@ inline bool TkrPoint::sameTower(const TkrPoint& point) const
     return m_tower == point.m_tower;
 }
 
-inline int TkrPoint::layerSeperation(const TkrPoint& point) const
+inline int TkrPoint::layerSeparation(const TkrPoint& point) const
 {
     return abs(m_layer - point.m_layer);
 }
 
 inline bool TkrPoint::operator==(const TkrPoint& point) const
 {
-    // check for equality based on IDs, therefore there is no dependance
-    // on geometry
+    // same point if same clusters
     return( (m_pClusterX == point.m_pClusterX) &&
-        (m_pClusterY == point.m_pClusterY) &&
-        (m_layer == point.m_layer));
+        (m_pClusterY == point.m_pClusterY) );
 }
 
 inline bool TkrPoint::operator!=(const TkrPoint& point) const
 {
-    // check for inequality based on IDs, therefore there is no dependance
-    // on geometry
+    // different point if different clusters
     return( (m_pClusterX != point.m_pClusterX) ||
-            (m_pClusterY != point.m_pClusterY) ||
-            (m_layer != point.m_layer));
+            (m_pClusterY != point.m_pClusterY) );
 }
