@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: igable  Thu Jun 21 16:03:49 PDT 2001
+TkrRecon/src McReconAlg.cxx SiRecObjs.cpp
+
+Modified Files:
+	McReconAlg.cxx SiRecObjs.cpp 
+Log Message:
+Use my new interface which is located in /GlastEvent/Recon/ISiRecObjs.h
+
+    *
+------------------------------------------------------------
 User: igable  Thu Jun 21 16:03:48 PDT 2001
 TkrRecon/TkrRecon SiRecObjs.h
 
