@@ -2,6 +2,13 @@
 #ifndef _VtxKalFitTool_H
 #define _VtxKalFitTool_H 1
 
+#include "VtxBaseTool.h"
+
+#include "CLHEP/Matrix/Matrix.h"
+#include "CLHEP/Matrix/SymMatrix.h"
+#include "Event/Recon/TkrRecon/TkrFitTrack.h"
+#include "Event/Recon/TkrRecon/TkrVertex.h"
+
 /**
  * @class VtxKalFitTool
  *
@@ -13,14 +20,6 @@
  *
  * @author Johann Cohen-Tanugi
  */
-
-#include "VtxBaseTool.h"
-
-#include "CLHEP/Matrix/Matrix.h"
-#include "CLHEP/Matrix/SymMatrix.h"
-#include "Event/Recon/TkrRecon/TkrFitTrack.h"
-#include "Event/Recon/TkrRecon/TkrVertex.h"
-
 class VtxKalFitTool : public VtxBaseTool
 {
  public:
@@ -30,35 +29,38 @@ class VtxKalFitTool : public VtxBaseTool
 
   virtual ~VtxKalFitTool() { }
 
-  ///base tool overwritten method
+  ///base tool overwritten method: need to set local properties
   StatusCode initialize();
 
-  ///@brief Initialization: first estimate of Vertex is first hit of best track
-  ///best track is assumed to be first in the TkrFitTrack list
+  ///@brief Finds start estimate of vertex and its Cov matrix
+  /// First estimate is first hit of first track on the list, which is the best fitted track.
   StatusCode initVertex(Event::TkrFitTrackCol&);
 
   ///main method: implements the filter
   StatusCode doVtxFit(Event::TkrVertexCol&);
 
   ///@brief bring geometrical momentum (Sx,Sy,E) close to current vertex estimate.
-  ///In theory this method should return the geometrical
-  ///momentum at POCA to vtx (conventional but reasonnable choice, advocated by the author of the paper). 
-  ///In our case only the energy could possibly be changed by that.
-  ///This is not yet implemented.
+  ///In theory this method should return the geometrical momentum at POCA to current vertex estimate
+  ///(arbitrary yet reasonnable choice, advocated by Luchsinger et al.). 
+  ///In our case only the energy might be changed by this.
   HepVector computeQatVtx(const Event::TkrFitTrack& /*theTrack*/,const HepVector /*theVertex*/);
 
   ///@brief Get the weight matrix G = Cov(m)^-1 with m the track parameters 
   ///Cov(m) is first propagated back to the vertex estimate, before being inverted.
+  ///@param theTrack: current fitted track;
+  ///@param Vtx:      current vertex estimates;
+  ///@return The weight matrix is returned as an HepSymMatrix object.
   HepSymMatrix computeWeightMatrix(const Event::TkrFitTrack& theTrack,const HepVector Vtx);
 
-  ///@brief propagate Cov matrix from first hit location to Zref plane
-  ///method not yet implemented
+  ///@brief propagate Cov matrix from first hit location to vicinity of current Vertex estimate.
+  ///@param CovMatrix TkrFitMatrix object to be propagated;
+  ///@param Vtx Current estimate of the vertex; 
   Event::TkrFitMatrix propagCovToVtx(const Event::TkrFitMatrix, 
 				     const HepVector);
 
-  //@brief (X,Sx,Y,Sy) are returned as an HepVector.
-  //(X,Sx,Y,Sy) are the track fitted parameters. They play for
-  //the Kalman vertexer the role of measurement vector. 
+  ///@brief returns (X,Sx,Y,Sy,E) as an HepVector.
+  ///(X,Sx,Y,Sy) are the track fitted parameters, E is its estimated energy. These play for
+  ///the Kalman vertexer the role of measurement vector, the measurement error being their Cov. matrix.
   HepVector getTkrParVec(const Event::TkrFitTrack& /*theTrack*/);
 
  private:
@@ -71,14 +73,17 @@ class VtxKalFitTool : public VtxBaseTool
 
   ///compute measurement matrix
   HepVector computeVectorH(const HepVector, const HepVector);
-  ///compute derivate of measurement matrix wrt vertex
+
+  ///compute derivative of measurement matrix wrt vertex
   HepMatrix computeMatrixA(const HepVector, const HepVector);
-  ///compute derivate of measurement matrix wrt momentum
+
+  ///compute derivative of measurement matrix wrt momentum
   HepMatrix computeMatrixB(const HepVector, const HepVector);
-  ///returns TkrFitMatrix as an HepSymMatrix
+
+  ///translate a  TkrFitMatrix object into an HepSymMatrix object
   HepSymMatrix getHepSymCov(const Event::TkrFitMatrix& );
 
-  ///Compute Transformation matrix (Sx,Sy)->(ux,uy,uz)
+  ///Compute derivative matrix of (Sx,Sy,E)->(Eux,Euy,Euz) transformation
   HepMatrix SlopeToDir(HepVector /*Q*/);
 
   ///Vector of successive estimates.
