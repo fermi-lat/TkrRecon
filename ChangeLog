@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon Jun 18 12:52:22 PDT 2001
+TkrRecon/TkrRecon ITkrBadStripsSvc.h TkrBadStripsSvc.h
+
+Added Files:
+	ITkrBadStripsSvc.h TkrBadStripsSvc.h 
+Log Message:
+for TkrBadStripsSvc
+
+    *
+------------------------------------------------------------
 User: usher  Mon Jun 18 11:02:59 PDT 2001
 TkrRecon/src TkrNtupleAlg.cpp
 
