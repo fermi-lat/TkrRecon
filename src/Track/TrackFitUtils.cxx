@@ -402,26 +402,27 @@ void TrackFitUtils::setSharedHitsStatus(Event::TkrTrack& track)
     
     // Hits are shared depending on cluster size 
     // and track direction
-    Event::TkrTrackHitVecItr pln_pointer = track.begin();
+    Event::TkrTrackHitVecItr plane = track.begin();
                 
     int i_Hit = 0; 
     int i_share = 0;
-    while(pln_pointer != track.end() && i_Hit < 6) 
+	int i = 0;
+    while(plane != track.end() && i_Hit < 6) 
     {
-        // First 2 hits (x & y) are shared
-        if(i_Hit < 2) 
-        { 
-            unFlagHit(track, i_Hit);
+       i++;
+	   // First hits (x & y) are shared: gamma conversion vertex
+       if(i < 2 && (*plane)->validCluster()) { 
+            unFlagHit(track, i);
             i_Hit++;
             i_share++;
-            pln_pointer++;
             continue;
         }
-        // For the rest - unflag according to Cluster size and Trajectory
-        Event::TkrTrackHit*  plane   = *pln_pointer;
-        Event::TkrClusterPtr cluster = plane->getClusterPtr();
+	    if(!(*plane)->validCluster()) continue;
 
-        double slope = plane->getMeasuredSlope(Event::TkrTrackHit::FILTERED);
+        // For the rest - unflag according to Cluster size and Trajectory
+        Event::TkrClusterPtr cluster = (*plane)->getClusterPtr();
+
+        double slope = (*plane)->getMeasuredSlope(Event::TkrTrackHit::FILTERED);
 
         double cls_size = cluster->size();        
         double prj_size = m_tkrGeom->siThickness()*fabs(slope)
@@ -433,8 +434,33 @@ void TrackFitUtils::setSharedHitsStatus(Event::TkrTrack& track)
         }
         if(i_share >= 5) break; 
         i_Hit++;
-        pln_pointer++;
+        plane++;
     }
 
     return;
 }
+int TrackFitUtils::compareTracks(Event::TkrTrack& track1, Event::TkrTrack& track2)
+{
+	int num_sharedHits = 0;
+	// Loop over the hits on the track1
+	Event::TkrTrackHitVecItr hitPtr1 = track1.begin();
+
+    while(hitPtr1 != track1.end()) {
+        Event::TkrTrackHit* hit1 = *hitPtr1;
+		hitPtr1++;
+		if(!hit1->validCluster()) continue;
+
+		// Loop over the hits on track2
+	    Event::TkrTrackHitVecItr hitPtr2 = track2.begin();
+       while(hitPtr2 != track2.end()) {
+            Event::TkrTrackHit* hit2 = *hitPtr2;
+			hitPtr2++;
+		    if(!hit2->validCluster()) continue;
+			if(hit1->getClusterPtr() == hit2->getClusterPtr()) num_sharedHits++;
+		}
+	}
+	return num_sharedHits;
+}
+
+
+            
