@@ -23,12 +23,12 @@
 * A gap may be a non-hit strip, or the space between ladders. 
 *
 * For each potential cluster, we ask if it contains any good hits,
-* and if there are fewer than some maximum number of hits.  
+* and if there are no more than some maximum number of bad hits.  
 * If so, the cluster is added, if not, it is dropped.   
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.13 2002/09/02 19:40:41 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.14 2002/09/02 21:15:03 lsrea Exp $
 */
 
 #include <vector>
@@ -47,10 +47,7 @@ class TkrMakeClusters
 public:
     /// default constructor: passes pointers to services and classes, 
     /// and makes the clusters
-    
-    /// large number, used as a sentinel in the strip list
-    enum {bigStripNum = 0xFFFFFF};
-    
+        
     /// This constructor actually makes the clusters
     /// the pointers to services and data are passed through the constructor
     
@@ -62,34 +59,21 @@ public:
     
     /// gets the position of a cluster
     Point position(int ilayer, Event::TkrCluster::view v, 
-        int strip0, int stripf, int tower = 0);
+        int strip0, int stripf, int tower = 0) const;
     /// returns true if the two hits have a gap between them
-    bool isGapBetween(const int lowHit, const int highHit);
+    bool isGapBetween(const TaggedStrip &lowHit, const TaggedStrip &highHit) const;
     /// returns true if the cluster is "good"
-    bool isGoodCluster( const int lowHit, const int highHit, const int nBad);
+    bool isGoodCluster( const TaggedStrip &lowHit, 
+        const TaggedStrip &highHit, int nBad) const;
     
     /// get the list of bad strips
-    v_strips* getBadStrips(const int tower, const int digiLayer, 
-        const int view);
-    
-    /// swap the possibly tagged strip for the merged sort (toggle)
-    int swapForSort(const int strip);
-    /// sort the merged data and bad strips
-    void sortTaggedStrips(std::vector<int> * list);
-    
-    // bool less_than(const int strip1, const int strip2);
-    
-    /// check if strip is bad (see BadStripSvc)
-    bool isTaggedBad( const int strip);
-    /// retrieve strip number  (see BadStripsSvc)
-    int stripNumber(const int strip);
-    /// retrieve tag field from strip
-    int tagField(const int strip);
-    
+    const stripCol* getBadStrips(int tower, int digiLayer, 
+        int view) const;
+           
 private:
     
     /// Keep pointer to the geometry service
-    ITkrGeometrySvc* m_pTkrGeo;
+    ITkrGeometrySvc*  m_pTkrGeo;
     
     /// Keep pointer to the bad strip service
     ITkrBadStripsSvc* m_pBadStrips;
