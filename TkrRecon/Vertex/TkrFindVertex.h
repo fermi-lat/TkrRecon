@@ -2,9 +2,9 @@
 #ifndef TkrFindVertex_H
 #define TkrFindVertex_H
 
-#include "TkrRecon/Vertex/TkrVertexCol.h"
-#include "TkrRecon/PatRec/TkrCandidates.h"
-#include "TkrRecon/Track/TkrTracks.h"
+#include "GlastEvent/Recon/TkrRecon/TkrVertexCol.h"
+#include "GlastEvent/Recon/TkrRecon/TkrPatCandCol.h"
+#include "GlastEvent/Recon/TkrRecon/TkrFitTrackCol.h"
 
 //
 //-------------------------------------------------------
@@ -19,10 +19,14 @@
 //-------------------------------------------------------
 //
 
+namespace TkrRecon { //Namespace
+
 class TkrFindVertex
 {
 public:
-    virtual TkrVertexCol* doVertexRecon(TkrTracks* pTracks, TkrCandidates* pCandTracks) = 0;
+    virtual TkrVertexCol* doVertexRecon(TkrFitTrackCol* pTracks, TkrPatCandCol* pCandTracks) = 0;
 };
+
+}; //Namespace
 
 #endif
