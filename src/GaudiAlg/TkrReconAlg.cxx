@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.16 2002/06/13 23:27:04 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.17 2002/06/27 19:15:04 usher Exp $
 //
 // Description:
 //      Controls the track fitting
@@ -13,37 +13,18 @@
 #include <vector>
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
-#include "Event/Recon/TkrRecon/TkrFitTrack.h"
-#include "src/Track/TkrLinkAndTreeTrackFit.h"
-#include "TkrRecon/Track/GFcontrol.h"
-
-#include "Event/Recon/CalRecon/CalCluster.h"
-#include "Event/TopLevel/EventModel.h"
 
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/AlgFactory.h"
-#include "GaudiKernel/IDataProviderSvc.h"
-#include "GaudiKernel/SmartDataPtr.h"
-
-#include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
-
-#include "GlastSvc/Reco/IRecoSvc.h"
-#include "GlastSvc/Reco/IPropagatorSvc.h"
-
-using namespace Event;
 
 static const AlgFactory<TkrReconAlg>  Factory;
 const IAlgFactory& TkrReconAlgFactory = Factory;
 
-IKalmanParticle* TkrReconAlg::m_KalParticle = 0;
-
-using namespace Event;
-
 TkrReconAlg::TkrReconAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator) 
 {
-    // Variable to switch propagators
-    declareProperty("PropagatorType", m_PropagatorType=1);
+    // Variable to select reconstruction type
+    declareProperty("TrackerReconType", m_TrackerReconType="Combo");
 }
 
 StatusCode TkrReconAlg::initialize()
@@ -52,34 +33,40 @@ StatusCode TkrReconAlg::initialize()
 
 	log << MSG::INFO << "TkrReconAlg Initialization" << endreq;
 
-    // Initialization service
-    TkrInitSvc* pTkrInitSvc = 0;
-    StatusCode  sc          = service("TkrInitSvc", pTkrInitSvc);
+    setProperties();
 
-    // Which propagator to use?
-    if (m_PropagatorType == 0)
+
+    if( createSubAlgorithm("TkrClusterAlg", "TkrClusterAlg", m_TkrClusterAlg).isFailure() ) 
     {
-        // Look for the G4PropagatorSvc service
-        IPropagatorSvc* propSvc = 0;
-        sc = service("G4PropagatorSvc", propSvc, true);
-        m_KalParticle = propSvc->getPropagator();
-	    log << MSG::INFO << "Using Geant4 Particle Propagator" << endreq;
-    }
-    else
-    {
-        // Look for GismoGenerator Service
-        IRecoSvc* gismoSvc = 0;
-        sc = service("RecoSvc", gismoSvc, true);
-        m_KalParticle = gismoSvc->getPropagator();
-	    log << MSG::INFO << "Using Gismo Particle Propagator" << endreq;
+        log << MSG::ERROR << " could not open TkrClusterAlg " << endreq;
+        return StatusCode::FAILURE;
     }
 
-    // Track fit information
-    m_TrackFit = pTkrInitSvc->setTrackFit();
+    if( createSubAlgorithm("TkrFindAlg", "TkrFindAlg", m_TkrFindAlg).isFailure() ) 
+    {
+        log << MSG::ERROR << " could not open TkrFindAlg " << endreq;
+        return StatusCode::FAILURE;
+    }
 
-	m_TkrClusters = 0;
+    m_TkrFindAlg->setProperty("TrackFindType", m_TrackerReconType);
 
-	return sc;
+    if( createSubAlgorithm("TkrTrackFitAlg", "TkrTrackFitAlg", m_TkrTrackFitAlg).isFailure() ) 
+    {
+        log << MSG::ERROR << " could not open TkrTrackFitAlg " << endreq;
+        return StatusCode::FAILURE;
+    }
+
+    m_TkrTrackFitAlg->setProperty("TrackFitType", m_TrackerReconType);
+
+    if( createSubAlgorithm("TkrVertexAlg", "TkrVertexAlg", m_TkrVertexAlg).isFailure() ) 
+    {
+        log << MSG::ERROR << " could not open TkrVertexAlg " << endreq;
+        return StatusCode::FAILURE;
+    }
+
+    m_TkrVertexAlg->setProperty("VertexerType", "DEFAULT");
+
+	return StatusCode::SUCCESS;
 }
 
 StatusCode TkrReconAlg::execute()
@@ -89,41 +76,29 @@ StatusCode TkrReconAlg::execute()
 
 	log << MSG::DEBUG << "------- Recon of new Event --------" << endreq;
 
-    // Recover pointer to the reconstructed clusters
-    m_TkrClusters = SmartDataPtr<TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol); 
-
-    // Find the patter recon tracks
-    TkrPatCandCol* pTkrCands = SmartDataPtr<TkrPatCandCol>(eventSvc(),EventModel::TkrRecon::TkrPatCandCol);
-
-    // Recover pointer to Cal Cluster info  
-    CalClusterCol* pCalClusters = SmartDataPtr<CalClusterCol>(eventSvc(),EventModel::CalRecon::CalClusterCol);
-
-    double minEnergy   = GFcontrol::minEnergy;
-	double CalEnergy   = minEnergy;
-    Point  CalPosition = Point(0.,0.,0.);
-
-    // If clusters, then retrieve estimate for the energy
-    if (pCalClusters)
+    if(m_TkrClusterAlg->execute() == StatusCode::FAILURE)
     {
-        CalEnergy   = pCalClusters->front()->getEnergySum(); 
-        CalPosition = pCalClusters->front()->getPosition();
+        log << MSG::ERROR << " TkrClusterAlg FAILED to execute!" << endreq;
+        return StatusCode::FAILURE;
     }
-
-    // Provide for some lower cutoff energy...
-    if (CalEnergy < minEnergy)
+ 
+    if( m_TkrFindAlg->execute() == StatusCode::FAILURE)
     {
-        //! for the moment use:
-        CalEnergy     = minEnergy;
-        CalPosition   = Point(0.,0.,0.);
+        log << MSG::ERROR << " TkrFindAlg FAILED to execute!" << endreq;
+        return StatusCode::FAILURE;
     }
-
-    // Reconstruct the pattern recognized tracks
-    TkrFitTrackCol* tracks = m_TrackFit->doTrackFit(m_TkrClusters, pTkrCands, CalEnergy);
-
-    sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrFitTrackCol, tracks);
-
-    //JCT I need to fix that
-    //    tracks->writeOut(log);
+  
+    if( m_TkrTrackFitAlg->execute() == StatusCode::FAILURE)
+    {
+        log << MSG::ERROR << " TkrReconAlg FAILED to execute!" << endreq;
+        return StatusCode::FAILURE;
+    }
+  
+    if( m_TkrVertexAlg->execute() == StatusCode::FAILURE)
+    {
+        log << MSG::ERROR << " TkrVertexAlg FAILED to execute!" << endreq;
+        return StatusCode::FAILURE;
+    }
 
 	return sc;
 }

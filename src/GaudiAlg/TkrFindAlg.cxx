@@ -4,6 +4,7 @@
 #include "GaudiKernel/IDataProviderSvc.h"
 #include "GaudiKernel/SmartDataPtr.h"
 #include "GaudiKernel/DataObject.h"
+#include "GaudiKernel/IToolSvc.h"
 
 #include "Event/Recon/CalRecon/CalCluster.h"
 #include "Event/TopLevel/EventModel.h"
@@ -14,7 +15,7 @@
 #include "TkrRecon/GaudiAlg/TkrFindAlg.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
-#include "TkrRecon/Track/GFcontrol.h"
+#include "src/Track/TkrControl.h"
 
 //#include "src/PatRec/LinkAndTree/TkrLinkAndTreePR.h"
 //#include "src/PatRec/Combo/TkrComboPR.h"
@@ -27,6 +28,7 @@ const IAlgFactory& TkrFindAlgFactory = Factory;
 TkrFindAlg::TkrFindAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator)  
 { 
+    declareProperty("TrackFindType",   m_TrackFindType="Combo");
 }
 
 StatusCode TkrFindAlg::initialize()
@@ -44,8 +46,25 @@ StatusCode TkrFindAlg::initialize()
         return sc;
     }
 
-    //Set pointer to the concrete implementation of the pattern recognition
-    pPatRecon = pTkrInitSvc->setPatRecon();
+
+    // Track fit information
+    if (m_TrackFindType == "Combo")
+    {
+        sc = toolSvc()->retrieveTool("ComboFindTrackTool", m_findTool);
+    }
+    else if (m_TrackFindType == "LinkAndTree")
+    {
+        sc = toolSvc()->retrieveTool("LinkAndTreeFindTrackTool", m_findTool);
+    }
+    else if (m_TrackFindType == "NeuralNet")
+    {
+        sc = toolSvc()->retrieveTool("NeuralNetFindTrackTool", m_findTool);
+    }
+    else
+    {
+        log << MSG::FATAL << "TkrTrackFindAlg cannot initialize track fit algorithm" << endreq;
+        sc = StatusCode::FAILURE;
+    }
     
     return StatusCode::SUCCESS;
 }
@@ -56,56 +75,9 @@ StatusCode TkrFindAlg::execute()
     StatusCode sc = StatusCode::SUCCESS;
     
     MsgStream log(msgSvc(), name());
-    
-    /*! Check to see if we can get the subdirectory. If not create it
-    */
-    DataObject* pnode =0;
-    sc = eventSvc()->retrieveObject(EventModel::TkrRecon::Event, pnode);
-    
-    if( sc.isFailure() ) 
-    {
-        sc = eventSvc()->registerObject(EventModel::TkrRecon::Event,new DataObject);
-        if( sc.isFailure() ) 
-        {
-            log << MSG::ERROR << "Could not create TkrRecon directory" << endreq;
-            return sc;
-        }
-    }
-    
-    //Recover a pointer to the raw digi objects
-    Event::TkrClusterCol* pTkrClus  = SmartDataPtr<Event::TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol);
 
-
-    // Recover pointer to Cal Cluster info  
-    CalClusterCol* pCalClusters = SmartDataPtr<CalClusterCol>(eventSvc(),EventModel::CalRecon::CalClusterCol);
-
-    double minEnergy = GFcontrol::minEnergy;
-	double CalEnergy   = minEnergy;
-    Point  CalPosition = Point(0.,0.,0.);
-
-    //If clusters, then retrieve estimate for the energy
-    if (pCalClusters)
-    {
-        CalEnergy   = pCalClusters->front()->getEnergySum(); 
-        CalPosition = pCalClusters->front()->getPosition();
-    }
-
-    //Provide for some lower cutoff energy...
-    if (CalEnergy < minEnergy) 
-    {
-        //! for the moment use:
-        CalEnergy     = minEnergy;
-        CalPosition   = Point(0.,0.,0.);
-    }
-
-    //Create the TkrCandidates TDS object
-    Event::TkrPatCandCol* pTkrCands = pPatRecon->doPatRecon(pTkrClus, CalEnergy, CalPosition);
-
-    //Register this object in the TDS
-    sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrPatCandCol,pTkrCands);
-    
-    if (pTkrClus == 0 || pTkrCands == 0) sc = StatusCode::FAILURE;
-    
+    sc = m_findTool->findTracks();
+        
     return sc;
 }
 
