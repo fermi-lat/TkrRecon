@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.23 2003/03/26 22:05:02 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.24 2003/05/27 22:23:31 usher Exp $
  */
 
 
@@ -28,6 +28,8 @@
 #include "GaudiKernel/Algorithm.h"
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/AlgFactory.h"
+
+#include "Utilities/TkrException.h"
 
 // Class defintion...
 class TkrReconAlg : public Algorithm
@@ -175,36 +177,47 @@ StatusCode TkrReconAlg::execute()
     else                       log << "-------   Tkr Recon iteration  --------";
     log << endreq;
 
-    // Call clustering if in first pass mode
-    if (m_TkrClusterAlg) sc = m_TkrClusterAlg->execute();
-    if (sc.isFailure())
-    {
-        log << MSG::ERROR << " TkrClusterAlg FAILED to execute!" << endreq;
-        return sc;
-    }
+    try {
+        // Call clustering if in first pass mode
+        if (m_TkrClusterAlg) sc = m_TkrClusterAlg->execute();
+        if (sc.isFailure())
+        {
+            log << MSG::ERROR << " TkrClusterAlg FAILED to execute!" << endreq;
+            return sc;
+        }
 
-    // Call track finding if in first pass mode
-    if (m_TkrFindAlg) sc = m_TkrFindAlg->execute();
-    if (sc.isFailure())
-    {
-        log << MSG::ERROR << " TkrFindAlg FAILED to execute!" << endreq;
-        return sc;
-    }
+        // Call track finding if in first pass mode
+        if (m_TkrFindAlg) sc = m_TkrFindAlg->execute();
+        if (sc.isFailure())
+        {
+            log << MSG::ERROR << " TkrFindAlg FAILED to execute!" << endreq;
+            return sc;
+        }
 
-    // Call track fit
-    sc = m_TkrTrackFitAlg->execute();
-    if (sc.isFailure())
-    {
-        log << MSG::ERROR << " TkrReconAlg FAILED to execute!" << endreq;
+        // Call track fit
+        sc = m_TkrTrackFitAlg->execute();
+        if (sc.isFailure())
+        {
+            log << MSG::ERROR << " TkrReconAlg FAILED to execute!" << endreq;
+            return sc;
+        }
+
+        // Call vertexing
+        sc = m_TkrVertexAlg->execute();
+        if (sc.isFailure())
+        {
+            log << MSG::ERROR << " TkrVertexAlg FAILED to execute!" << endreq;
+            return sc;
+        }
+
+    }catch( TkrException& e ){
+        log << MSG::ERROR << "Caught exception " << e.what() << ", filter set to fail event" <<  endreq;
+        this->setFilterPassed(false); 
         return sc;
-    }
-  
-    // Call vertexing
-    sc = m_TkrVertexAlg->execute();
-    if (sc.isFailure())
-    {
-        log << MSG::ERROR << " TkrVertexAlg FAILED to execute!" << endreq;
-        return sc;
+
+    }catch(...){
+        log << MSG::ERROR  << "Unknown exception, passing it on" <<endreq;
+        throw;
     }
 
     return sc;
