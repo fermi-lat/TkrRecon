@@ -1371,10 +1371,12 @@ void KalFitter::eneDetermination()
         double theta = acos(t0t1);
         double rl_factor = radLen;
 
+        if(rl_factor>1.e-4) {
         eSumCount += 1.; 
         tSumCount += 1./rl_factor; 
         eneSum += (theta * e_factor)*(theta * e_factor)/rl_factor; 
         thetaSum += theta * theta /rl_factor; 
+        }
 
         // Reset for next X,Y measuring plane
         old_Plane_Id = (*m_track)[iplane].getIDPlane(); 
@@ -1396,7 +1398,7 @@ void KalFitter::eneDetermination()
         range_limit = totalRad * 50.; // 10 MeV = 15% rad. len
     }
 
-    m_track->setKalThetaMS(sqrt(thetaSum/2./tSumCount));
+    m_track->setKalThetaMS(sqrt(thetaSum/2./std::max(1.e-4,tSumCount)));
     double e_inv = sqrt(eneSum  /2./eSumCount);
     double kalEnergy = 13.6 / e_inv;
 
