@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: cohen  Fri May 31 16:31:24 PDT 2002
+TkrRecon/TkrRecon/Track
+
+Modified Files:
+	TkrTrackFit.h 
+Log Message:
+STL Compliance of TkrFitTrackCol
+    *
+------------------------------------------------------------
+User: cohen  Fri May 31 16:31:24 PDT 2002
 TkrRecon/TkrRecon/Display
 
 Modified Files:
