@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Thu Dec 18 15:37:05 PST 2003
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+Remove the local varibale   ene    from the search method.  It was surving no purpose and confusing the code. 
+    *
+------------------------------------------------------------
 User: lsrea  Wed Dec 17 17:01:46 PST 2003
 TkrRecon/src/TrackFit/KalFitTrack
 
