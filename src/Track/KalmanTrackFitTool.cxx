@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.13 2004/11/09 21:27:46 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.14 2004/11/15 21:17:49 usher Exp $
  */
 
 // to turn one debug variables
@@ -419,6 +419,7 @@ void KalmanTrackFitTool::doFinalFitCalculations(Event::TkrTrack& track)
 
         //Add the track to the collection in the TDS
         Event::TkrTrackCol* pFitTracks = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol); 
+		if(!pFitTracks) return;
 
         //Flag the hits
         trackUtils.flagAllHits(track);

@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.2 2004/11/10 22:21:24 atwood Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.3 2004/11/15 21:17:49 usher Exp $
  */
 
 // to turn one debug variables
@@ -203,11 +203,18 @@ StatusCode FindTrackHitsTool::findTrackHits(Event::TkrTrack* track)
 
     StatusCode sc = StatusCode::SUCCESS;
 
-	bool filter = false;
-
     // Set the first hit on the track here
     Event::TkrTrackHit* lastHit = setFirstHit(track);
-
+	if(lastHit->hitUsedOnFit()) {
+		if(lastHit->getStatusBits() & Event::TkrTrackHit::MEASURESX) {
+			int numX = track->getNumXHits() + 1;
+			track->setNumXHits(numX);
+		}
+		else {
+	        int numY = track->getNumYHits() + 1;
+			track->setNumYHits(numY);
+		}
+	}
     track->push_back(lastHit);
 
     // Loop until no more track hits found
@@ -218,13 +225,23 @@ StatusCode FindTrackHitsTool::findTrackHits(Event::TkrTrack* track)
 
         // Add this to the track itself
         track->push_back(trackHit);
-
+		if(trackHit->hitUsedOnFit()) {
+			if(trackHit->getStatusBits() & Event::TkrTrackHit::MEASURESX) {
+				int numX = track->getNumXHits() + 1;
+			    track->setNumXHits(numX);
+		    }
+		    else {
+				int numY = track->getNumYHits() + 1;
+			    track->setNumYHits(numY);
+		    }
+		}
         // update the "last" hit
         lastHit = trackHit;
 	}
 
 	// Check the minimum criterian for a "found" track
-	if((track->getNumXHits() + track->getNumYHits() < 5) || !filter) sc = StatusCode::FAILURE;
+	if((track->getNumXHits() + track->getNumYHits() < 5)) sc = StatusCode::FAILURE;
+	else track->setStatusBit(Event::TkrTrack::Found);
 	return sc;
 }
 
@@ -334,6 +351,8 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrack* track)
 
         params(measIdx,measIdx) = sigma * sigma;
         params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
+		if(measIdx == 1) trackHit->setStatusBit(Event::TkrTrackHit::MEASURESX);
+		else             trackHit->setStatusBit(Event::TkrTrackHit::MEASURESY);
 	}
 	else {
 		// No cluster found  - so this a gap of some sort
@@ -494,6 +513,9 @@ Event::TkrTrackHit* FindTrackHitsTool::setFirstHit(Event::TkrTrack* track)
 	if(view == idents::TkrId::eMeasureX) status_bits |= Event::TkrTrackHit::MEASURESX;
 	else                                 status_bits |= Event::TkrTrackHit::MEASURESY;
 	status_bits |= Event::TkrTrackHit::HASVALIDTKR;
+
+	// Update the TkrTrackHit status bits
+	trackHit->setStatusBit((Event::TkrTrackHit::StatusBits)status_bits);
        
 	// Done! 
 	return trackHit;
