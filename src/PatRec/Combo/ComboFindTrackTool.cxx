@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.14 2004/11/05 18:28:56 atwood Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.15 2004/11/10 22:19:39 atwood Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -936,7 +936,7 @@ ComboFindTrackTool::Candidate::Candidate(double e, Point x, Vector t, double chi
         pln_pointer++;
     }
 	int top_plane     = geometry->getPlane(x.z());
-    int first_layer   = geometry->getLayer(top_plane);
+    int first_layer   = 17 - geometry->getLayer(top_plane);
 
     // Initial setting of constrained energies
     // This originally in the SetEnergies method, moved here to initialize con energy
