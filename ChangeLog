@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: cohen  Mon Jul 22 06:38:37 PDT 2002
+TkrRecon/src/Vertex
+
+Removed Files:
+      Tag: v6r4p2
+	IVtxBaseTool.h VtxBaseTool.h VtxBaseTool.cxx 
+Log Message:
+try again: removing from v6r4p2...
+    *
+------------------------------------------------------------
 User: cohen  Mon Jul 22 06:35:56 PDT 2002
 TkrRecon/src/Vertex
 
