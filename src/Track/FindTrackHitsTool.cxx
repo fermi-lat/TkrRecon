@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.11 2004/10/12 19:03:37 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.1 2004/11/09 23:21:03 usher Exp $
  */
 
 // to turn one debug variables
@@ -55,7 +55,7 @@ public:
 
 	
     /// @brief This method will attempt to find the hits prior to the first hit on track
-	int FindTrackHitsTool::addLeadingHits(Event::TkrTrack track);
+	int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track);
 
 private:
 
@@ -585,7 +585,7 @@ Event::TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, Event::TkrTr
     return found_cluster;
 }
 
-int FindTrackHitsTool::addLeadingHits(Event::TkrTrack track)
+int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
 {
   // Purpose and Method: This method projects backwards from 
   //             the start of the track to pick-up possible un-paired x & y hits. 
