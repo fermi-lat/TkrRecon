@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: igable  Tue Feb 13 15:04:24 PST 2001
+TkrRecon/doc release.notes
+
+Modified Files:
+	release.notes 
+Log Message:
+Changes to reflect TkrRecon branch of the TDS. Also simplified removed
+the check on the Event branch(in each retrieve) of the TDS to clean up 
+the code. The majority of the code needs more Doxygen style comments.
+
+    *
+------------------------------------------------------------
+User: igable  Tue Feb 13 15:04:24 PST 2001
 TkrRecon/TkrRecon mainpage.h
 
 Modified Files:
