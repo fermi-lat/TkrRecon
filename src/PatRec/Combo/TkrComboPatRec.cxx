@@ -47,7 +47,10 @@ namespace {
 using namespace Event;
 
 
-TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters, double CalEnergy, Point CalPosition)
+TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo,
+                               ITkrFailureModeSvc* pTkrFail,
+                               TkrClusterCol* pClusters, 
+                               double CalEnergy, Point CalPosition)
 {
    // Purpose and Method: Constructor - Does a search for tracks
    //                     Then it sets the track energies
@@ -68,6 +71,7 @@ TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pCluster
     // Internal init's 
     m_clusters     = pClusters;
     m_tkrGeo       = pTkrGeo;
+    m_tkrFail      = pTkrFail;
     m_control = TkrControl::getPtr();
     
     m_BestHitCount = 0;
@@ -526,7 +530,7 @@ void TkrComboPatRec::findBlindCandidates()
 
                         // If good hit found: make a trial fit & store it away
                         if(sigma < m_cut && deflection > .7) {        
-                            Candidate* trial = new Candidate(m_clusters, m_tkrGeo,
+                            Candidate* trial = new Candidate(m_clusters, m_tkrGeo, m_tkrFail,
                                                              ilayer, itwr, m_energy, x1, VDir, 
                                                              deflection, m_cut, gap, m_TopLayer); 
                             if(trial->track()->status() == KalFitTrack::EMPTY) {
@@ -642,7 +646,7 @@ void TkrComboPatRec::findCalCandidates()
                     double deflection = 1.;
                     Vector t_trial = Vector(-deltaX/deltaZx, -deltaY/deltaZy, -1.).unit();
                     
-                    Candidate *trial = new Candidate(m_clusters, m_tkrGeo,
+                    Candidate *trial = new Candidate(m_clusters, m_tkrGeo, m_tkrFail,
                                                      ilayer, itwr, m_energy, x1, t_trial, 
                                                      deflection, m_cut, gap, m_TopLayer); 
                     if(trial->track()->status() == KalFitTrack::EMPTY) {
@@ -778,6 +782,7 @@ bool TkrComboPatRec::incorporate(Candidate* trial)
 
 TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
                                      ITkrGeometrySvc* geometry,
+                                     ITkrFailureModeSvc* failureMode,
                                      int layer, int twr, double e, 
                                      Point x, Vector t, 
                                      float d, float s, int g, int /* top */): 
@@ -801,7 +806,8 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
 
     // Do a prelim. Fit using TkrKalTrack to find all the hits
     Ray testRay(x,t);  
-    m_track = new KalFitTrack(clusters, geometry, layer, twr, m_sigma, e, testRay); 
+    m_track = new KalFitTrack(clusters, geometry, 
+        layer, twr, m_sigma, e, testRay); 
     m_track->findHits();
     if(m_track->status()==KalFitTrack::EMPTY) return; 
     m_track->doFit(); 

@@ -13,7 +13,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitTrack.h,v 1.21 2002/11/27 20:17:31 atwood Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitTrack.h,v 1.22 2003/03/12 23:35:00 usher Exp $
 */
 
 #ifndef __KalFitTrack_H
@@ -26,6 +26,7 @@
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 
 class ITkrGeometrySvc;
+class ITkrFailureModeSvc;
 class TkrControl;
 
 namespace Event {
@@ -33,7 +34,9 @@ namespace Event {
 class KalFitTrack: public TkrFitTrack
 {    
 public:
-    KalFitTrack(TkrClusterCol* clusters, ITkrGeometrySvc* geo, int layer, int tower, double sigmaCut, double energy, const Ray& testRay);
+    KalFitTrack(TkrClusterCol* clusters, ITkrGeometrySvc* geo, 
+        int layer, int tower, double sigmaCut, double energy, 
+        const Ray& testRay);
    ~KalFitTrack() {}
 
     /// Hit Finding & Fitting
@@ -146,6 +149,7 @@ private:
     /// Pointers to clusters, geoemtry, and control parameters
     Event::TkrClusterCol* m_clusters;
     ITkrGeometrySvc*      m_tkrGeo;
+    ITkrFailureModeSvc*   m_tkrFail;
     TkrControl*           m_control;
 };
 

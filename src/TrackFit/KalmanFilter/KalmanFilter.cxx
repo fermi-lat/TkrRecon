@@ -27,8 +27,9 @@ KalmanFilter::KalmanFilter(TkrClusterCol* clusters, ITkrGeometrySvc* geo)
 //  Kalman Functions
 //-------------------------------------
 
-TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int &nlayers, int klayer, double &zend,
-                           double &arc_min)
+TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, 
+                                  int &nlayers, int klayer, double &zend,
+                                  double &arc_min)
 {
     // Extrapolate the hit to the next SSD layer - maybe an X or a Y
     //     Note: distance will be > arc_min;   arc_len used returned as arc_min
@@ -85,13 +86,15 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int &
     TkrFitHit hitpred(TkrFitHit::PRED, pp, Ck);
 
     m_radLength  = TkrFitPart->radLength();
-    m_activeDist = TkrFitPart->insideActArea(); 
+    m_activeDist = TkrFitPart->insideActArea();
+ 
     
     return hitpred;
 } 
 
-TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int /*klayer*/, double &zend,
-                           double &arc_min)
+TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, 
+                                  int /*klayer*/, double &zend,
+                                  double &arc_min)
 {
     // Extrapolate by arc_min
     // Returns (nlayers)  the number of GLAST Planes crossed 
