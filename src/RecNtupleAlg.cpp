@@ -127,7 +127,8 @@ StatusCode RecTupleValues::calcTupleValues(CsIClusterList* pCalClusters, SiClust
         if (pCalClusters)
         {
             CsICluster* pCalClus = pCalClusters->Cluster(0);
-            Rec_CsI_Energy       = pCalClus->energySum();
+            Rec_CsI_Energy       = pCalClus->energySum() / 1000; //GeV for now
+            if (Rec_CsI_Energy < 0.001) Rec_CsI_Energy = 0.3;
         }
 
         // Right now we are assuming that the first gamma is the "right" gamma
