@@ -6,14 +6,14 @@
 #include "src/Vertex/Combo/RayDoca.h"
 #include "Event/Recon/TkrRecon/TkrVertexTab.h"
 
-double erf(double x) {
+double fast_erf(double x) {
     double t = 1./(1.+.47047*x);
     double results = 1. -(.34802 - (.09587 -.74785*t)*t)*t*exp(-x*x);
     return results;
 }
 double thrshold(double x) {
-    if(x < 0) return (.5*(1. + erf(-x)));
-    else      return (.5*(1. - erf( x)));
+    if(x < 0) return (.5*(1. + fast_erf(-x)));
+    else      return (.5*(1. - fast_erf( x)));
 }
 
 using namespace Event;
