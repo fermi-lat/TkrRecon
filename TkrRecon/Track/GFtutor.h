@@ -26,6 +26,7 @@ public:
 	friend class GFdata;
 	friend class GFbase;
 	friend class KalPlane;
+        friend class TkrFitTrack;
 
 	static void GFtutor::load(TkrClusters* scl, ITkrGeometrySvc* pTrkGeo);
 	static void GFtutor::setVeto(bool vt) {CUT_veto = vt;}

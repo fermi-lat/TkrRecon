@@ -6,6 +6,7 @@
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/DataObject.h"
 #include "TkrRecon/Track/GFcandidates.h"
+#include "TkrRecon/Track/TkrFitTrack.h"
 #include "GlastEvent/Recon/ISiRecObjs.h"
 
 #include "gui/DisplayRep.h"
@@ -47,7 +48,7 @@ public:
     //! add a GFgamma to the list
     void addGamma(GFgamma* g)       {m_GFgammaList.push_back(g);}
     //! add a GFparticle to the list
-    void addParticle(GFparticle* p) {m_GFparticleList.push_back(p);}
+    void addParticle(TkrFitTrack* p) {m_trackList.push_back(p);}
     
     void searchGammas(double CalEnergy, Point CalPosition);
         //! returns number of gammas
@@ -56,10 +57,12 @@ public:
     GFgamma*  Gamma(int i)   const              {return m_GFgammaList[i];}
     
     void searchParticles(double CalEnergy, Point CalPosition);
-        //! returns number of GFparticles
-        int numParticles() const			{return m_GFparticleList.size();}
+    //! returns number of GFparticles
+    int numParticles() const			{return m_GFparticleList.size();}
+     //! returns number of GFparticles
+    int numTracks() const			{return m_trackList.size();}
     //! returns pointer to GFparticle in position i
-    GFparticle* Particle(int i) const			{return m_GFparticleList[i];}
+    GFparticle* Particle(int i) const		{return m_GFparticleList[i];}
     
     //! draws the SiRecObjs
     void update(gui::DisplayRep& v) {draw(v);}
@@ -73,28 +76,31 @@ public:
     
     //new methods required for the interface
     //! Get the X slope of the ith GFparticle
-    double getXGFparticleSlope(int i) {return m_GFparticleList[i]->getXGFtrack()->direction().x();}
+    double getXGFparticleSlope(int i) {return m_GFparticleList[i]->getXGFtrack()->k_direction().x();}
     //! Get the Y slope of the ith GFparticle
-    double getYGFparticleSlope(int i) { return m_GFparticleList[i]->getYGFtrack()->direction().y();}
+    double getYGFparticleSlope(int i) { return m_GFparticleList[i]->getYGFtrack()->k_direction().y();}
     //! get the vextex of the ith Gamma
     Point getGammaVertex(int i) { return m_GFgammaList[i]->vertex(); }
     //! get the direction vector of the ith Gamma
     Vector getGammaDirection(int i) { return Vector(0,0,-1.); }
     //! Get the X slope of the ith GFgamma
-    double getXGFgammaSlope(int i) {return m_GFgammaList[i]->getPair(TkrCluster::X)->direction().x(); }
+    double getXGFgammaSlope(int i) {return m_GFgammaList[i]->getPair(TkrCluster::X)->k_direction().x(); }
     //! Get the Y slope of the ith GFgamma
-    double getYGFgammaSlope(int i) { return m_GFgammaList[i]->getPair(TkrCluster::Y)->direction().y(); }
+    double getYGFgammaSlope(int i) { return m_GFgammaList[i]->getPair(TkrCluster::Y)->k_direction().y(); }
+    //	void draw(GraphicsRep& v);
+    void draw(gui::DisplayRep& v);
     
 private:
     
     //! ini the lists
     virtual void ini();
     //! draws the objects
-    //	void draw(GraphicsRep& v);
-    void draw(gui::DisplayRep& v);
+
     
 private:
     
+    //! vector with the list of GFparticle reconstructed
+    std::vector<TkrFitTrack*> m_trackList;
     //! vector with the list of GFparticle reconstructed
     std::vector<GFparticle*> m_GFparticleList;
     //! vector with the list of GFgamma reconstructed
