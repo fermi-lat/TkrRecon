@@ -78,7 +78,7 @@ TkrLinkAndTreeFit::TkrLinkAndTreeFit(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pT
         
         if (!track->empty(GFcontrol::minSegmentHits)) 
         {
-            addTrack(track);
+            push_back(track);
             track->flagAllHits();
 
             if(++trkCount==1) 

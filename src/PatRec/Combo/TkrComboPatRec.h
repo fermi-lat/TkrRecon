@@ -69,7 +69,7 @@ private:
     
     // data members
     CandidateList  m_candidates;  // List of found hypothesises
-    TkrFitCol      m_tracks;      // List of attempted fits
+    TkrFitTrackCol m_tracks;      // List of attempted fits
 
     Point m_Pcal;      // Calorimeter seed point
     Point m_nextHit;   // Space point transfer space

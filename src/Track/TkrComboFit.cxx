@@ -37,7 +37,7 @@ TkrComboFit::TkrComboFit(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus, TkrP
          
         if (!track->empty(GFcontrol::minSegmentHits)) 
         {
-            addTrack(track);
+            push_back(track);
             track->flagAllHits();
 
             if(++trkCount==1) 
