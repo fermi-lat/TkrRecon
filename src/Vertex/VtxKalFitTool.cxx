@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.17 2002/12/19 21:59:19 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.18 2003/01/29 23:20:27 lsrea Exp $
 // Description:                                                  
 //      Implementation of the Kalman vertexer
 //
@@ -352,7 +352,7 @@ StatusCode  VtxKalFitTool::initVertex(Event::TkrFitTrackCol& theTracks)
   Cov0(2,2) = trkCov.getcovY0Y0();
   Cov0(1,2) = trkCov.getcovX0Y0();
   Cov0(2,1) = trkCov.getcovX0Y0();
-  Cov0(3,3) = 0.4/sqrt(12); //waffer thickness = 400um
+  Cov0(3,3) = 0.4/sqrt(12.0); //waffer thickness = 400um
 
   m_VtxCovEstimates.push_back(Cov0);
 
@@ -599,7 +599,7 @@ VtxKalFitTool::computeWeightMatrix(const Event::TkrFitTrack& theTrack,
   else
     {
       int nHits = theTrack.getNumHits();
-      double delta_E = E/sqrt(nHits/2);
+      double delta_E = E/sqrt((double)nHits/2);
       G(5,5) = 1/delta_E;
     }
   return G;
