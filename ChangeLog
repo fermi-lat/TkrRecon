@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue Apr 20 10:21:01 PDT 2004
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Fix linux compilation warnings and errors. Also set requirements file to look for GlastPolicy v*
+
+    *
+------------------------------------------------------------
 User: usher  Mon Apr 19 16:16:37 PDT 2004
 TkrRecon/cmt
 
