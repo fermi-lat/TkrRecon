@@ -298,7 +298,7 @@ int TkrBadStripsSvc::swapForSort( const int strip)
     //          can be sorted by strip number
     // Inputs:  strip, tagged or untagged (normal or swapped)
     // Output:  same strip (swapped or normal)
-2    
+   
     return ((strip&stripMask)<< tagShift) | (strip>>tagShift); 
 }
 
