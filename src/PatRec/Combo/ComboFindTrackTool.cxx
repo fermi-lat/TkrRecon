@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.7 2003/03/13 19:13:23 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.8 2003/03/24 01:27:50 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -31,20 +31,28 @@ ComboFindTrackTool::ComboFindTrackTool(const std::string& type, const std::strin
 {
     //Declare the additional interface
     declareInterface<ITkrFindTrackTool>(this);
+	return;
+}
 
-    //Locate and store a pointer to the geometry service
-    IService*   iService = 0;
-    StatusCode  sc       = serviceLocator()->getService("TkrGeometrySvc", iService, true);
-
-    m_tkrGeo  = dynamic_cast<ITkrGeometrySvc*>(iService);
-
-    m_tkrFail = m_tkrGeo->getTkrFailureModeSvc();
-
-    //Locate and store a pointer to the data service
-    sc        = serviceLocator()->getService("EventDataSvc", iService);
-    m_dataSvc = dynamic_cast<DataSvc*>(iService);
+StatusCode ComboFindTrackTool::initialize()
+{	
+    StatusCode sc   = StatusCode::SUCCESS;
+    StatusCode fail = StatusCode::FAILURE;
     
-    return;
+    MsgStream log(msgSvc(), name());
+	if( serviceLocator() ) {   
+		if(service( "TkrGeometrySvc", m_tkrGeo, true ).isFailure()) {
+			log << MSG::ERROR << "Could not find TkrGeometrySvc" << endreq;
+			return fail;
+		}
+		m_tkrFail = m_tkrGeo->getTkrFailureModeSvc();
+
+		if(service( "EventDataSvc", m_dataSvc, true ).isFailure()) {
+			log << MSG::ERROR << "Could not find EventDataSvc" << endreq;
+			return fail;
+		}
+	}
+	return sc;
 }
 
 StatusCode ComboFindTrackTool::findTracks()

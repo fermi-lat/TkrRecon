@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.h,v 1.3 2003/01/10 19:43:24 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.h,v 1.4 2003/07/04 14:12:28 cohen Exp $
  */
 
 #ifndef NEURALNETFINDTRACKTOOL_H
@@ -31,11 +31,7 @@ class NeuralNetFindTrackTool : public AlgTool, virtual public ITkrFindTrackTool
   virtual ~NeuralNetFindTrackTool() {}
   
   /// initialize method allows to load the properties
-  StatusCode initialize()
-    {
-      setProperties();
-      return StatusCode::SUCCESS;
-    }
+  StatusCode initialize();
 
   /// @brief Method to find candidate tracks. Will retrieve the necessary information from
   ///        the TDS, including calorimeter energy, and then use TkrNeuralNet to find all
@@ -53,9 +49,10 @@ class NeuralNetFindTrackTool : public AlgTool, virtual public ITkrFindTrackTool
  private:
   /// Pointer to the local Tracker geometry service
   ITkrGeometrySvc* pTkrGeo;
+  ITkrFailureModeSvc* pTkrFail;
       
   /// Pointer to the Gaudi data provider service (interface to the TDS)
-  DataSvc*        m_dataSvc;
+  IDataProviderSvc*        m_dataSvc;
 
   /// The properties to be passed to TkrNeuralNet
   double m_MaxLayerDiff;

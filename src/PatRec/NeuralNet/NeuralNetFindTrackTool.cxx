@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.6 2003/01/10 19:43:24 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.7 2003/07/04 14:12:27 cohen Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the Neural Net approach
@@ -34,16 +34,29 @@ NeuralNetFindTrackTool::NeuralNetFindTrackTool(const std::string& type, const st
 {
     //Declare the additional interface
     declareInterface<ITkrFindTrackTool>(this);
+	return;
+}
 
-    //Locate and store a pointer to the geometry service
-    IService*   iService = 0;
-    StatusCode  sc       = serviceLocator()->getService("TkrGeometrySvc", iService, true);
+StatusCode NeuralNetFindTrackTool::initialize()
+{   
+    setProperties();
 
-    pTkrGeo  = dynamic_cast<ITkrGeometrySvc*>(iService);
+    MsgStream log(msgSvc(), name());
+    StatusCode sc   = StatusCode::SUCCESS;
+    StatusCode fail = StatusCode::FAILURE;
+    
+	if( serviceLocator() ) {   
+		if(service( "TkrGeometrySvc", pTkrGeo, true ).isFailure()) {
+			log << MSG::ERROR << "Could not find TkrGeometrySvc" << endreq;
+			return fail;
+		}
+		pTkrFail = pTkrGeo->getTkrFailureModeSvc();
 
-    //Locate and store a pointer to the data service
-    sc        = serviceLocator()->getService("EventDataSvc", iService);
-    m_dataSvc = dynamic_cast<DataSvc*>(iService);
+		if(service( "EventDataSvc", m_dataSvc, true ).isFailure()) {
+			log << MSG::ERROR << "Could not find EventDataSvc" << endreq;
+			return fail;
+		}
+	}
     
     declareProperty("maxLayerDiff", m_MaxLayerDiff = 3.   );
     declareProperty("maxPitch",     m_MaxPitch     = 0.2   );
@@ -55,7 +68,7 @@ NeuralNetFindTrackTool::NeuralNetFindTrackTool(const std::string& type, const st
     declareProperty("Gamma",        m_Gamma        = 10.  );
     declareProperty("temperature",  m_temperature  = 1.   );
 
-    return;
+    return sc;
 }
 
 StatusCode NeuralNetFindTrackTool::findTracks()

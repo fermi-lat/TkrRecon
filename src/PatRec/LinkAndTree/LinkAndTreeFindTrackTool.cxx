@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/LinkAndTree/LinkAndTreeFindTrackTool.cxx,v 1.6 2003/01/10 19:43:24 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/LinkAndTree/LinkAndTreeFindTrackTool.cxx,v 1.7 2003/05/27 18:24:54 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the Link and Tree approach
@@ -30,18 +30,28 @@ LinkAndTreeFindTrackTool::LinkAndTreeFindTrackTool(const std::string& type, cons
 {
     //Declare the additional interface
     declareInterface<ITkrFindTrackTool>(this);
+	return;
+}
 
-    //Locate and store a pointer to the geometry service
-    IService*   iService = 0;
-    StatusCode  sc       = serviceLocator()->getService("TkrGeometrySvc", iService, true);
-
-    m_tkrGeo  = dynamic_cast<ITkrGeometrySvc*>(iService);
-
-    //Locate and store a pointer to the data service
-    sc        = serviceLocator()->getService("EventDataSvc", iService);
-    m_dataSvc = dynamic_cast<DataSvc*>(iService);
+StatusCode LinkAndTreeFindTrackTool::initialize()
+{
+    MsgStream log(msgSvc(), name());
+    StatusCode sc   = StatusCode::SUCCESS;
+    StatusCode fail = StatusCode::FAILURE;
     
-    return;
+	if( serviceLocator() ) {   
+		if(service( "TkrGeometrySvc", m_tkrGeo, true ).isFailure()) {
+			log << MSG::ERROR << "Could not find TkrGeometrySvc" << endreq;
+			return fail;
+		}
+		m_tkrFail = m_tkrGeo->getTkrFailureModeSvc();
+
+		if(service( "EventDataSvc", m_dataSvc, true ).isFailure()) {
+			log << MSG::ERROR << "Could not find EventDataSvc" << endreq;
+			return fail;
+		}
+	}
+	return sc;
 }
 
 StatusCode LinkAndTreeFindTrackTool::findTracks()
