@@ -1,5 +1,19 @@
 ------------------------------------------------------------
 User: usher  Fri Jan  9 12:36:07 PST 2004
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrBuildMcRelationsAlg.cxx 
+Log Message:
+Modifications related to tracker Monte Carlo code
+1) Move the McEventStructure and McSiLayerHit (nee McLayerHit) objects to Event
+2) Move the TkrMcTracksTool class (for obtaining mc info from the above) to TkrUtil
+3) Modify the remaining Monte Carlo related code to relfect these changes
+
+
+    *
+------------------------------------------------------------
+User: usher  Fri Jan  9 12:36:07 PST 2004
 TkrRecon/src/Dll
 
 Modified Files:
