@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Tue May  7 15:46:42 PDT 2002
+TkrRecon/TkrRecon/PatRec
+
+Modified Files:
+	TkrPatRecon.h 
+Removed Files:
+	TkrCandidates.h TkrPatCand.h TkrPatCandHit.h 
+Log Message:
+TDS output class files moved to GlastEvent
+Modify TkrPatRecon.h to reflect this movement
+
+    *
+------------------------------------------------------------
 User: usher  Tue May  7 15:45:12 PDT 2002
 TkrRecon/TkrRecon/GaudiAlg
 
