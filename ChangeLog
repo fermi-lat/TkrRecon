@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Feb  8 15:07:33 PST 2005
+TkrRecon/src/PatRec/MonteCarlo
+
+Modified Files:
+	MonteCarloFindTrackTool.cxx 
+Log Message:
+Modify to create tracks with correct energy in new TkrRecon
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r3p6, operation: add
 Package: TkrRecon
