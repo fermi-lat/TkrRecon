@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.27 2005/01/04 16:38:40 atwood Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.29 2005/01/20 01:39:21 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -212,7 +212,7 @@ StatusCode ComboFindTrackTool::initialize()
 {   
     PatRecBaseTool::initialize();
     StatusCode sc   = StatusCode::SUCCESS;
-    MsgStream log(msgSvc(), name());
+    MsgStream msgLog(msgSvc(), name());
 
     //Set the properties
     setProperties();
@@ -222,19 +222,19 @@ StatusCode ComboFindTrackTool::initialize()
     else if (energyTypeStr=="User")    { m_energyType = USER; }
     else if (energyTypeStr=="MC")      { m_energyType = MC; }
     else {
-        log << MSG::ERROR << "Illegal energyType: " << energyTypeStr << 
+        msgLog << MSG::ERROR << "Illegal energyType: " << energyTypeStr << 
             ", please fix." << endreq;
         return StatusCode::FAILURE;
     }
     if      (searchDirectionStr=="Downwards") {m_searchDirection = DOWN; }
     else if (searchDirectionStr=="Upwards")   {m_searchDirection = UP; }
     else {
-        log << MSG::ERROR << "Illegal searchDirection: " 
+        msgLog << MSG::ERROR << "Illegal searchDirection: " 
             << searchDirectionStr << ", please fix." << endreq;
         return StatusCode::FAILURE;
     }
     if(m_maxTotalGaps<m_maxFirstGaps) {
-        log << MSG::ERROR << "MaxFirstGaps(" << m_maxFirstGaps << 
+        msgLog << MSG::ERROR << "MaxFirstGaps(" << m_maxFirstGaps << 
             ") > MaxTotalGaps(" << m_maxTotalGaps << ")" << endreq;
         return StatusCode::FAILURE;
     }
@@ -338,7 +338,7 @@ void ComboFindTrackTool::searchCandidates()
     // Dependencies: None
     // Restrictions and Caveats:  None
 
-    MsgStream log(msgSvc(), name());
+    MsgStream msgLog(msgSvc(), name());
 
     TrackFitUtils fitUtils = TrackFitUtils(m_tkrGeom, 0);
     m_fitUtils = &fitUtils;
@@ -356,24 +356,24 @@ void ComboFindTrackTool::searchCandidates()
         return;
     }
 
-    log << MSG::DEBUG ;
-    if (log.isActive()) log << "Begin patrec" ;
-    log << endreq;
+    msgLog << MSG::DEBUG ;
+    if (msgLog.isActive()) msgLog << "Begin patrec" ;
+    msgLog << endreq;
 
     //Determine what to do based on status of Cal energy and position
     if( m_calPos.mag() == 0.) 
     {   // This path use no calorimeter energy -
-        log << MSG::DEBUG;
-        if (log.isActive()) log << "First blind search" ;
-        log << endreq;
+        msgLog << MSG::DEBUG;
+        if (msgLog.isActive()) msgLog << "First blind search" ;
+        msgLog << endreq;
         findBlindCandidates();
     }
     else 
     {   // This path first finds the "best" candidate that points to the 
         // Calorimeter cluster - 
-        log << MSG::DEBUG;
-        if (log.isActive()) log << "Cal search" ;
-        log << endreq;
+        msgLog << MSG::DEBUG;
+        if (msgLog.isActive()) msgLog << "Cal search" ;
+        msgLog << endreq;
         findCalCandidates();
         if(m_candidates.empty()) {
             findBlindCandidates();//Is this a good idea?
@@ -407,9 +407,9 @@ void ComboFindTrackTool::searchCandidates()
         // Now with these hits "off the table" lower the energy & find other tracks
         if(m_energyType == DEFAULT) m_energy = .5*m_energy;
 
-        log << MSG::DEBUG;
-        if (log.isActive()) log << "Second pass" ;
-        log << endreq;
+        msgLog << MSG::DEBUG;
+        if (msgLog.isActive()) msgLog << "Second pass" ;
+        msgLog << endreq;
         // should we reset m_topLayerFound or not?
         findBlindCandidates();
     }
@@ -518,16 +518,16 @@ void ComboFindTrackTool::findBlindCandidates()
     // Dependencies: None
     // Restrictions and Caveats:  None.
 
-     MsgStream log(msgSvc(), name());
+    MsgStream msgLog(msgSvc(), name());
 
     int maxLayers = m_tkrGeom->numLayers();
     // maximum number of hits on any downward track so far
     int localBestHitCount = 0; 
-    int  trials        = 0; 
-    int  ilayer        = m_topLayerWithPoints;
-    int lastILayer = 2;
-    int lastJLayer = std::max(1, lastILayer-1);
-    int lastKLayer = std::max(0, lastJLayer-1);
+    int trials            = 0; 
+    int ilayer            = m_topLayerWithPoints;
+    int lastILayer        = 2;
+    int lastJLayer        = std::max(1, lastILayer-1);
+    int lastKLayer        = std::max(0, lastJLayer-1);
 
     for (; ilayer >= lastILayer; --ilayer) { 
         // Termination Criterion
@@ -564,6 +564,7 @@ void ComboFindTrackTool::findBlindCandidates()
                 //
                 // Does this miss the 2nd track of a pair if there's a gap in it?
                 // or if the 1st track has an added hit?
+
                 if( igap > 0 &&
                     (localBestHitCount > (jlayer+2)*2)) break;
 
@@ -573,6 +574,7 @@ void ComboFindTrackTool::findBlindCandidates()
                     if(trials > m_maxTrials) break; 
                     TkrPoint* p2 = *itSecond;
                     Ray testRay = p1->getRayTo(p2);
+
                     if(fabs(testRay.direction().z()) < m_PatRecFoV) continue; 
 
                     // See if there is a third hit - 
@@ -594,9 +596,9 @@ void ComboFindTrackTool::findBlindCandidates()
             }  // end jlayer
         }  // end 1st points
     } // end ilayer
-    log << MSG::DEBUG;
-    if (log.isActive()) log << "Blind search: " <<  m_candidates.size() << ", " << trials << " trials";
-    log << endreq;
+    msgLog << MSG::DEBUG;
+    if (msgLog.isActive()) msgLog << "Blind search: " <<  m_candidates.size() << ", " << trials << " trials";
+    msgLog << endreq;
     return;
 }
 
@@ -613,7 +615,7 @@ void ComboFindTrackTool::findCalCandidates()
     // Dependencies: None
     // Restrictions and Caveats:  None
 
-    MsgStream log(msgSvc(), name());
+    MsgStream msgLog(msgSvc(), name());
 
     int maxLayers = m_tkrGeom->numLayers();
     int localBestHitCount = 0; // maximum number of hits on any track so far
@@ -682,9 +684,9 @@ void ComboFindTrackTool::findCalCandidates()
             } // end klayer
         }  // end 1st points
     }  // end ilayer
-    log << MSG::DEBUG;
-    if (log.isActive()) log << "Cal search: " << m_candidates.size()<< ", " << trials << " trials";
-    log << endreq;
+    msgLog << MSG::DEBUG;
+    if (msgLog.isActive()) msgLog << "Cal search: " << m_candidates.size()<< ", " << trials << " trials";
+    msgLog << endreq;
     return;   
 }
 
@@ -699,6 +701,7 @@ float ComboFindTrackTool::findNextPoint(int layer, Ray& traj, float &cosKink)
     // Note: this method no longer increments the layer... the caller now does this!
     cosKink = 0.;
 
+
     TkrPoints points(layer, m_clusTool);
     if(points.allFlagged() ) return m_sigmaCut+1;
 
@@ -710,8 +713,8 @@ float ComboFindTrackTool::findNextPoint(int layer, Ray& traj, float &cosKink)
     double resid = 0.;
     double resid_max = m_maxTripRes/costh;
     TkrPoint* pPoint = points.getNearestPointOutside(x_pred, resid);
-    m_nextPointPos = pPoint->getPosition();
     if(resid<0.0 || resid>resid_max) return m_sigmaCut+1; 
+    m_nextPointPos = pPoint->getPosition();
 
     cosKink = traj.direction() * ((m_nextPointPos-traj.position()).unit());
 
@@ -726,6 +729,7 @@ float ComboFindTrackTool::findNextPoint(int layer, Ray& traj, float &cosKink)
     double sig_meas = 5.*m_tkrGeom->siStripPitch()/costh; // Big errors for PR
     float denom = 3.*sqrt(dist_MS*dist_MS*6.25 + sig_meas*sig_meas);
     if(denom > 25.) denom = 25.;   // Hardwire in max Error of 25 mm
+
     return resid/denom;  
 } 
 
