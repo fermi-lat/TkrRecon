@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 14:14:07 PST 2001
+TkrRecon/TkrRecon/cluster
+
+Removed Files:
+	TkrCluster.h TkrClusterAlg.h TkrClusters.h 
+Log Message:
+Renaming "cluster" to "Cluster" to avoid trouble on unix
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 14:07:24 PST 2001
 TkrRecon/TkrRecon/PatRec
 
