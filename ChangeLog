@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: lsrea  Tue Oct 19 21:03:28 PDT 2004
+TkrRecon/src/Track
+
+Modified Files:
+      Tag: GlastRelease-v4r5
+	TrackFitUtils.cxx 
+Log Message:
+Prepare for tag v9r0p2gr4
+protect against zero radiation length steps
+
+    *
+------------------------------------------------------------
+User: lsrea  Tue Oct 19 21:03:28 PDT 2004
 TkrRecon/doc
 
 Modified Files:
