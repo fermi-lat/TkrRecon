@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Thu Apr 10 10:35:40 PDT 2003
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrVertexAlg.cxx 
+Log Message:
+Remove alignment shift from clusters; do it at patrec or fitting time; fix unix warnings
+
+    *
+------------------------------------------------------------
+User: lsrea  Thu Apr 10 10:35:40 PDT 2003
 TkrRecon/src/Cluster
 
 Modified Files:
