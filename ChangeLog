@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Fri Jun  8 12:38:17 PDT 2001
+TkrRecon/src RecNtupleAlg.cpp TkrNtupleAlg.cpp
+
+Modified Files:
+	RecNtupleAlg.cpp TkrNtupleAlg.cpp 
+Log Message:
+Modifications to fix bug with surplus_hit_ratio, take into account that 
+calorimeter has changed to MeV (!!) and to include the missing t_angle 
+that people seem to want.
+
+    *
+------------------------------------------------------------
 User: usher  Thu Jun  7 13:23:17 PDT 2001
 TkrRecon/src TkrNtupleAlg.cpp
 
