@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sun Feb 20 11:47:26 PST 2005
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	ComboVtxTool.cxx ComboVtxTool.h 
+Log Message:
+Fix memory leak - this tool needs more cleanup
+    *
+------------------------------------------------------------
 User: usher  Sun Feb 20 11:05:25 PST 2005
 TkrRecon/src/Track
 
