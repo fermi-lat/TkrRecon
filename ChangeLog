@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Sun Mar 23 17:27:51 PST 2003
+TkrRecon/src/Track
+
+Modified Files:
+	TkrComboFitTool.cxx 
+Log Message:
+remove ITkrFailureModeSvc pointer from argument in calls
+    (now stored in TkrGeometrySvc)
+
+    *
+------------------------------------------------------------
 User: lsrea  Sun Mar 23 17:27:50 PST 2003
 TkrRecon/src/PatRec/Combo
 
