@@ -15,7 +15,8 @@ const ISvcFactory& TkrBadStripsSvcFactory = s_factory;
 // Service parameters which can be set at run time must be declared.
 // This should be done in the constructor.
 
-TkrBadStripsSvc::TkrBadStripsSvc(const std::string& name, ISvcLocator* pSvcLocator) :
+TkrBadStripsSvc::TkrBadStripsSvc(const std::string& name, 
+                                 ISvcLocator* pSvcLocator) :
 Service(name, pSvcLocator)
 {
     //Name of the file to get data from   
@@ -55,7 +56,8 @@ StatusCode TkrBadStripsSvc::initialize()
     
     // this method resolves environmental variables in the file name
     xml::IFile::extractEnvVar(&m_badStripsFile);    
-    log << MSG::INFO << "Input file for bad strips: " << m_badStripsFile << endreq;
+    log << MSG::INFO << "Input file for bad strips: " 
+        << m_badStripsFile << endreq;
     
     // open bad strips file
     std::ifstream file;
@@ -144,7 +146,8 @@ void TkrBadStripsSvc::readFromFile(std::ifstream* file)
         int view = element/2;
         
         v_strips* v;
-        if (makestrips) v = getBadStrips(tower, layer, static_cast<idents::GlastAxis::axis>(view) );
+        if (makestrips) v = getBadStrips(tower, layer, 
+            static_cast<idents::GlastAxis::axis>(view) );
         int strip = -1;
         *file >>  strip;
         while (strip>=0) {
@@ -162,7 +165,8 @@ void TkrBadStripsSvc::readFromFile(std::ifstream* file)
     }
 }
 
-int TkrBadStripsSvc::getIndex(const int tower, const int layer, const idents::GlastAxis::axis axis) 
+int TkrBadStripsSvc::getIndex(const int tower, const int layer, 
+                              const idents::GlastAxis::axis axis) 
 {
     // Purpose:  calculate index into array of vectors
     // Inputs:   tower, bilayer, axis
@@ -188,7 +192,8 @@ void TkrBadStripsSvc::addStrip(v_strips* v, const int taggedStrip)
     return;
 }
 
-v_strips* TkrBadStripsSvc::getBadStrips(const int tower, const int layer, const idents::GlastAxis::axis axis)
+v_strips* TkrBadStripsSvc::getBadStrips(const int tower, const int layer, 
+                                        const idents::GlastAxis::axis axis)
 {
     // Purpose:  return pointer to a bad strip vector
     // Inputs:   tower, layer, axis
@@ -254,7 +259,8 @@ bool TkrBadStripsSvc::isTaggedBad(const int taggedStrip)
 
 
 bool TkrBadStripsSvc::isBadStrip(const int tower, const int layer, 
-                                 const idents::GlastAxis::axis axis, const int strip) 
+                                 const idents::GlastAxis::axis axis, 
+                                 const int strip) 
 {
     // Purpose: determine if a given strip is bad
     // Inputs:  tower, bilayer, axis, strip#
@@ -288,7 +294,8 @@ bool TkrBadStripsSvc::isBadStrip(const v_strips* v, const int strip)
 
 int TkrBadStripsSvc::swapForSort( const int strip)
 {
-    // Purpose: swaps high and low order stuff, so tagged strips can be sorted by strip number
+    // Purpose: swaps high and low order stuff, so tagged strips 
+    //          can be sorted by strip number
     // Inputs:  strip, tagged or untagged (normal or swapped)
     // Output:  same strip (swapped or normal)
     

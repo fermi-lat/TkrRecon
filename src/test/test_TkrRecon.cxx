@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.1 2002/08/26 21:57:43 lsrea Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.2 2002/08/31 17:51:42 lsrea Exp $
 
 // Include files
 // Gaudi system includes
@@ -23,13 +23,19 @@
 
 
 
-// Define the class here instead of in a header file: not needed anywhere but here!
-//------------------------------------------------------------------------------
+// Define the class here instead of in a header file: 
+//  not needed anywhere but here!
+//----------------------------------------------------
 /** 
-A simple algorithm.
-
-  
+* test_TkrRecon
+*
+* @brief  A miminal test of TkrRecon, using as few other packages as possible
+*
+* @author Leon Rochester
+*
+* $Header$
 */
+
 class test_TkrRecon : public Algorithm {
 public:
     test_TkrRecon(const std::string& name, ISvcLocator* pSvcLocator);
@@ -53,7 +59,8 @@ const IAlgFactory& test_TkrReconFactory = Factory;
 
 //------------------------------------------------------------------------
 //! ctor
-test_TkrRecon::test_TkrRecon(const std::string& name, ISvcLocator* pSvcLocator)
+test_TkrRecon::test_TkrRecon(const std::string& name, 
+                             ISvcLocator* pSvcLocator)
 :Algorithm(name, pSvcLocator)
 ,m_count(0)
 {
@@ -83,7 +90,8 @@ StatusCode test_TkrRecon::execute()
     
     
     // First, the collection of TkrDigis is retrieved from the TDS
-    SmartDataPtr<Event::TkrDigiCol> digiCol(eventSvc(),EventModel::Digi::TkrDigiCol );
+    SmartDataPtr<Event::TkrDigiCol> digiCol(eventSvc(),
+        EventModel::Digi::TkrDigiCol );
     
     if (digiCol == 0) {
         log << "no TkrDigiCol found" << endreq;
@@ -94,55 +102,65 @@ StatusCode test_TkrRecon::execute()
     }
     
     // get the cluster data from the TDS
-    SmartDataPtr<Event::TkrClusterCol> clusterData(eventSvc(), EventModel::TkrRecon::TkrClusterCol);
+    SmartDataPtr<Event::TkrClusterCol> clusterData(eventSvc(), 
+        EventModel::TkrRecon::TkrClusterCol);
     
     if (clusterData==0) {
         log << MSG::INFO << "no TkrDigiCol found" << endreq;
         sc = StatusCode::FAILURE;        
         return sc;}
     else {
-        log << MSG::INFO << clusterData->nHits() << " Tkr clusters found " << endreq;
+        log << MSG::INFO << clusterData->nHits() << " Tkr clusters found " 
+            << endreq;
     }
     
     // and the Pat Rec candidates
-    SmartDataPtr<Event::TkrPatCandCol> candData(eventSvc(), EventModel::TkrRecon::TkrPatCandCol);
+    SmartDataPtr<Event::TkrPatCandCol> candData(eventSvc(), 
+        EventModel::TkrRecon::TkrPatCandCol);
     
     if (candData==0) {
         log << MSG::INFO << "no TkrPatCandCol found" << endreq;
         sc = StatusCode::FAILURE;        
         return sc;}
     else {
-        log << MSG::INFO  << candData->getNumCands() << " candidate tracks(s) found" << endreq;
+        log << MSG::INFO  << candData->getNumCands() 
+            << " candidate tracks(s) found" << endreq;
     }
     
     // and the TkrFitTracks
-    SmartDataPtr<Event::TkrFitTrackCol> trackData(eventSvc(), EventModel::TkrRecon::TkrFitTrackCol);
+    SmartDataPtr<Event::TkrFitTrackCol> trackData(eventSvc(), 
+        EventModel::TkrRecon::TkrFitTrackCol);
     
     if (trackData==0) {
         log << MSG::INFO << "no TkrTrackCol found" << endreq;
         sc = StatusCode::FAILURE;        
         return sc;}
     else {
-        log << MSG::INFO  << trackData->size() << " Fit track(s) found" << endreq;
+        log << MSG::INFO  << trackData->size() << " Fit track(s) found" 
+            << endreq;
     }
     
     // and The Vertices
-    SmartDataPtr<Event::TkrVertexCol> vertexData(eventSvc(), EventModel::TkrRecon::TkrVertexCol);
+    SmartDataPtr<Event::TkrVertexCol> vertexData(eventSvc(), 
+        EventModel::TkrRecon::TkrVertexCol);
     
     if (vertexData==0) {
         log << MSG::INFO << "no TkrVertexCol found" << endreq;
         sc = StatusCode::FAILURE;        
         return sc;}
     else {
-        log << MSG::INFO  << vertexData->size() << " Vertex/Vertices found" << endreq;
+        log << MSG::INFO  << vertexData->size() << " Vertex/Vertices found" 
+            << endreq;
         if (vertexData->size()>0) {
             Event::TkrVertexCol::const_iterator vptr = vertexData->begin();
             Point vert = (*vptr)->getPosition();
             Vector dir = (*vptr)->getDirection();
-            log << MSG::INFO <<  "First Vertex: Position: (" << vert.x()<< "," << vert.y() 
-                << "," << vert.z() << ")"<< endreq;
-            log << MSG::INFO <<  "             Direction: (" << dir.x()<< "," << dir.y() 
-                << "," << dir.z() << ")"<< endreq;
+            log << MSG::INFO <<  "First Vertex: Position: (" 
+                << vert.x() << "," << vert.y() << "," << vert.z() << ")"
+                << endreq;
+            log << MSG::INFO <<  "             Direction: (" 
+                << dir.x()  << "," << dir.y()  << "," << dir.z() << ")"
+                << endreq;
         }
     }
     

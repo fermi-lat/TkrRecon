@@ -1,7 +1,8 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.7 2002/08/31 17:51:40 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.8 2002/09/02 07:10:22 lsrea Exp $
 //
 // Description:
-//      TkrMakeClusters has the methods for making the clusters, and for setting the cluster flag.
+//      TkrMakeClusters has the methods for making the clusters, 
+//      and for setting the cluster flag.
 //
 // Author(s):
 //      Tracy Usher     
@@ -16,19 +17,21 @@
 using namespace Event;
 
 TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
-                                 ITkrGeometrySvc* pTkrGeoSvc, ITkrBadStripsSvc* pBadStripsSvc, 
+                                 ITkrGeometrySvc* pTkrGeoSvc, 
+                                 ITkrBadStripsSvc* pBadStripsSvc, 
                                  TkrDigiCol* pTkrDigiCol)
 {
     //Save some geometry information for the display routine
-    pTkrGeo    = pTkrGeoSvc;
+    m_pTkrGeo    = pTkrGeoSvc;
     
-    pBadStrips = pBadStripsSvc;
+    m_pBadStrips = pBadStripsSvc;
 
     int lastStrip;
-    if (pBadStrips) {
-        lastStrip = pBadStrips->lastStrip();
+    if (m_pBadStrips) {
+        lastStrip = m_pBadStrips->lastStrip();
     } else {
-        lastStrip = bigStripNum; // requires some knowledge of how bad strips are stored
+        // requires some knowledge of how bad strips are stored
+        lastStrip = bigStripNum; 
     }
     
     //Initialize the cluster lists...
@@ -60,7 +63,8 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
         // now make the combined list
         std::vector<int> mergedHits(nHits+badStripsSize+1);
         std::copy (stripHits.begin(), stripHits.end(), mergedHits.begin());
-        if (badStrips) std::copy (badStrips->begin(), badStrips->end(), mergedHits.begin()+nHits);
+        if (badStrips) std::copy (badStrips->begin(), badStrips->end(), 
+            mergedHits.begin()+nHits);
 
         // and add the sentinel -- guaranteed to make a gap, and it's bad
         mergedHits[nHits+badStripsSize] = lastStrip;
@@ -69,15 +73,19 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
 
         sortMergedHits(&mergedHits);
 
-        int lowStrip  = mergedHits[0];  // the first strip of the current potential cluster
-        int highStrip = lowStrip;       // the last strip of the current cluster
-        int nextStrip = lowStrip;       // the next strip
+        // the first strip of the current potential cluster
+        int lowStrip  = mergedHits[0];  
+        // the last strip of the current cluster
+        int highStrip = lowStrip;       
+        // the next strip
+        int nextStrip = lowStrip;       
         int nBad = 0;
         bool kept;  // for debugging
         
         // Loop over the rest of the strips building clusters enroute.
         // Keep track of bad strips.
-        // Loop over all hits, except the sentinel, which is there to provide a gap
+        // Loop over all hits, except the sentinel, which is there 
+        // to provide a gap
         
         int ihit;
         int hitsSize = mergedHits.size();
@@ -92,10 +100,11 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
                 //	           << highStrip << " " << nBad << endreq;
                 if (kept = isGoodCluster(lowStrip, highStrip, nBad)) {
                     // it's good... make a new cluster
-                    int layer = pTkrGeo->reverseLayerNumber(digiLayer);
+                    int layer = m_pTkrGeo->reverseLayerNumber(digiLayer);
                     int strip0 = untag(lowStrip);
                     int stripf = untag(highStrip);
-                    Point pos = position(layer, TkrCluster::intToView(view), strip0, stripf, tower);
+                    Point pos = position(layer, TkrCluster::intToView(view), 
+                        strip0, stripf, tower);
                     TkrCluster* cl = new TkrCluster(nclusters, layer, view, 
                         strip0, stripf, 
                         pos, pDigi->getToTForStrip(stripf), tower);
@@ -113,7 +122,8 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
 
 
 Point TkrMakeClusters::position(const int layer, TkrCluster::view v,
-                                const int strip0, const int stripf, const int tower)
+                                const int strip0, const int stripf, 
+                                const int tower)
 {
     // Purpose and Method: returns the position of a cluster
     // Inputs:  layer, view, first and last strip and tower
@@ -123,9 +133,9 @@ Point TkrMakeClusters::position(const int layer, TkrCluster::view v,
     
     
     // this converts from recon numbering to physical numbering of layers.
-    int digiLayer = pTkrGeo->reverseLayerNumber(layer);
+    int digiLayer = m_pTkrGeo->reverseLayerNumber(layer);
     double strip = 0.5*(strip0 + stripf);
-    HepPoint3D p = pTkrGeo->getStripPosition(tower, digiLayer, (int) v, strip);
+    HepPoint3D p = m_pTkrGeo->getStripPosition(tower, digiLayer, (int) v, strip);
     Point p1(p.x(), p.y(), p.z());
     return p1;
     
@@ -147,14 +157,15 @@ bool TkrMakeClusters::isGapBetween(const int lowStrip, const int highStrip)
     if (highHit > (lowHit + 1)) { return true; }
     
     // edge of chip
-    int nStrips = pTkrGeo->ladderNStrips();
+    int nStrips = m_pTkrGeo->ladderNStrips();
     if((lowHit/nStrips) < (highHit/nStrips)) {return true; }
     
     return false;
 }
 
 
-bool TkrMakeClusters::isGoodCluster(const int lowStrip, const int highStrip, const int nBad) 
+bool TkrMakeClusters::isGoodCluster(const int lowStrip, const int highStrip, 
+                                    const int nBad) 
 {
     // Purpose and Method: Finds out if a cluster is "good"
     // Inputs: first and last strip, and number of bad strips
@@ -182,11 +193,12 @@ int TkrMakeClusters::untag(const int strip)
     // Dependencies: None
     // Restrictions and Caveats:  None
     
-    if (pBadStrips) return pBadStrips->untag(strip);
+    if (m_pBadStrips) return m_pBadStrips->untag(strip);
     else return strip;
 }
 
-v_strips* TkrMakeClusters::getBadStrips(const int tower, const int digiLayer, const int view) 
+v_strips* TkrMakeClusters::getBadStrips(const int tower, const int digiLayer, 
+                                        const int view) 
 {
     // Purpose and Method: get the list of bad strips, if it exists
     // Inputs: tower, digiLayer, view
@@ -195,9 +207,10 @@ v_strips* TkrMakeClusters::getBadStrips(const int tower, const int digiLayer, co
     // Restrictions and Caveats:  None
     
     v_strips* badStrips = 0;
-    if (pBadStrips) {
+    if (m_pBadStrips) {
         badStrips = 
-            pBadStrips->getBadStrips(tower, digiLayer, static_cast<idents::GlastAxis::axis>(view) );
+            m_pBadStrips->getBadStrips(tower, digiLayer, 
+                static_cast<idents::GlastAxis::axis>(view) );
         if (badStrips && badStrips->size()<=0) {
             badStrips = 0;
         }
@@ -207,8 +220,8 @@ v_strips* TkrMakeClusters::getBadStrips(const int tower, const int digiLayer, co
 
 bool TkrMakeClusters::isTaggedBad(const int strip) 
 {
-    if (pBadStrips) {
-        return pBadStrips->isTaggedBad(strip);
+    if (m_pBadStrips) {
+        return m_pBadStrips->isTaggedBad(strip);
     } else {
         return false;
     }
@@ -216,8 +229,8 @@ bool TkrMakeClusters::isTaggedBad(const int strip)
 
 int TkrMakeClusters::tagField(const int strip) 
 {
-    if (pBadStrips) {
-        return pBadStrips->tagField(strip);
+    if (m_pBadStrips) {
+        return m_pBadStrips->tagField(strip);
     } else {
         return 0;
     }
@@ -239,8 +252,8 @@ void TkrMakeClusters::sortMergedHits(std::vector<int> *list)
 }
     
 int TkrMakeClusters::swapForSort(const int strip) {
-    if (pBadStrips) {
-        return pBadStrips->swapForSort(strip);
+    if (m_pBadStrips) {
+        return m_pBadStrips->swapForSort(strip);
     } else {
         return strip;
     }

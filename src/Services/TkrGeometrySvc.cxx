@@ -15,7 +15,8 @@ const ISvcFactory& TkrGeometrySvcFactory = s_factory;
 /// Service parameters which can be set at run time must be declared.
 /// This should be done in the constructor.
 
-TkrGeometrySvc::TkrGeometrySvc(const std::string& name, ISvcLocator* pSvcLocator) :
+TkrGeometrySvc::TkrGeometrySvc(const std::string& name, 
+                               ISvcLocator* pSvcLocator) :
 Service(name, pSvcLocator)
 {   
     return; 
@@ -31,37 +32,38 @@ StatusCode TkrGeometrySvc::initialize()
     setProperties();
     MsgStream log(msgSvc(), name());
     
-    sc = service("GlastDetSvc", p_GlastDetSvc);
+    sc = service("GlastDetSvc", m_pDetSvc);
     
-    sc = p_GlastDetSvc->getNumericConstByName("xNum", &m_numX);
-    sc = p_GlastDetSvc->getNumericConstByName("xNum", &m_numY);
+    sc = m_pDetSvc->getNumericConstByName("xNum", &m_numX);
+    sc = m_pDetSvc->getNumericConstByName("xNum", &m_numY);
     
-    sc = p_GlastDetSvc->getNumericConstByName("nWaferAcross", &m_nWaferAcross);
+    sc = m_pDetSvc->getNumericConstByName("nWaferAcross", &m_nWaferAcross);
 
     m_nviews = 2;
     
-    sc = p_GlastDetSvc->getNumericConstByName("numTrays", &m_nlayers);
+    sc = m_pDetSvc->getNumericConstByName("numTrays", &m_nlayers);
     m_nlayers--;
     
-    sc = p_GlastDetSvc->getNumericConstByName("towerPitch", &m_towerPitch);
+    sc = m_pDetSvc->getNumericConstByName("towerPitch", &m_towerPitch);
     
-    sc = p_GlastDetSvc->getNumericConstByName("SiThick", &m_siThickness);
+    sc = m_pDetSvc->getNumericConstByName("SiThick", &m_siThickness);
     
-    sc = p_GlastDetSvc->getNumericConstByName("SiWaferSide", &m_siWaferSide);
+    sc = m_pDetSvc->getNumericConstByName("SiWaferSide", &m_siWaferSide);
     m_trayWidth = m_nWaferAcross*m_siWaferSide +(m_nWaferAcross-1)*m_ladderGap;
 
     double siWaferActiveSide;
-    sc = p_GlastDetSvc->getNumericConstByName("SiWaferActiveSide", &siWaferActiveSide);
+    sc = m_pDetSvc->getNumericConstByName(
+        "SiWaferActiveSide", &siWaferActiveSide);
 
     m_siDeadDistance = 0.5*(m_siWaferSide - siWaferActiveSide);
     
-    sc = p_GlastDetSvc->getNumericConstByName("stripPerWafer", &m_ladderNStrips);
+    sc = m_pDetSvc->getNumericConstByName("stripPerWafer", &m_ladderNStrips);
 
     m_siStripPitch = siWaferActiveSide/m_ladderNStrips;
     m_siResolution = m_siStripPitch/sqrt(12.);
     
-    sc = p_GlastDetSvc->getNumericConstByName("ladderGap", &m_ladderGap);
-    sc = p_GlastDetSvc->getNumericConstByName("ssdGap", &m_ladderInnerGap);
+    sc = m_pDetSvc->getNumericConstByName("ladderGap", &m_ladderGap);
+    sc = m_pDetSvc->getNumericConstByName("ssdGap", &m_ladderInnerGap);
     
     // fill up the m_volId arrays
     
@@ -88,8 +90,10 @@ StatusCode TkrGeometrySvc::initialize()
             vId.append(tray);
             vId.append(view);
             vId.append(botTop);
-            // seems that the old silicon plane no longer exists, only wafers now
-            vId.append(0); vId.append(0); // add in ladder, wafer--this is all fragile
+            // seems that the old silicon plane no longer exists, 
+            // only wafers now
+            // add in ladder, wafer--this is all fragile
+            vId.append(0); vId.append(0); 
             
             m_volId_layer[bilayer][view].init(0,0);
             m_volId_layer[bilayer][view].append(vId);
@@ -112,13 +116,15 @@ StatusCode TkrGeometrySvc::initialize()
         volId1.append(m_volId_layer[bilayer][1-bilayer%2]);
         volId2.append(m_volId_layer[bilayer-1][bilayer%2]);
         
-        sc = p_GlastDetSvc->getTransform3DByID(volId1, &T1);
+        sc = m_pDetSvc->getTransform3DByID(volId1, &T1);
         if( sc.isFailure()) {
-            log << MSG::WARNING << "Failed to obtain transform for id " << volId1.name() << endreq;
+            log << MSG::WARNING << "Failed to obtain transform for id " 
+                << volId1.name() << endreq;
         }
-        sc= p_GlastDetSvc->getTransform3DByID(volId2, &T2);
+        sc= m_pDetSvc->getTransform3DByID(volId2, &T2);
         if( sc.isFailure()) {
-            log << MSG::WARNING << "Failed to obtain transform for id " << volId2.name() << endreq;
+            log << MSG::WARNING << "Failed to obtain transform for id " 
+                << volId2.name() << endreq;
         }
               
         double z1 = (T1.getTranslation()).z();
@@ -130,7 +136,9 @@ StatusCode TkrGeometrySvc::initialize()
         //       << z1 <<" "<< z2 <<" trayPitch " << trayPitch << std::endl;
     }
     if(sc.isFailure()){
-        log << MSG::WARNING << "continuing in spite of failures, assume it will work out. " << endreq;
+        log << MSG::WARNING 
+            << "continuing in spite of failures, assume it will work out. " 
+            << endreq;
         sc = StatusCode::SUCCESS;
     }
     return sc;
@@ -141,29 +149,34 @@ StatusCode TkrGeometrySvc::finalize()
     return StatusCode::SUCCESS;
 }
 
-HepPoint3D TkrGeometrySvc::getStripPosition(int tower, int layer, int view, double stripId)
+HepPoint3D TkrGeometrySvc::getStripPosition(int tower, int layer, int view, 
+                                            double stripId)
 {
     // Purpose: return the global position
-    // Method:  gets local position and applies local->global transformation for that volume
+    // Method:  gets local position and applies local->global transformation 
+    //          for that volume
     // Inputs:  (tower, bilayer, view) and strip number (can be fractional)
     // Return:  global position
     
     MsgStream log(msgSvc(), name());
 
     // offsets from the corner wafer to the full plane
-    static double ladderOffset = 0.5*(nWaferAcross()-1)*(m_siWaferSide + m_ladderGap);
-    static double ssdOffset    = 0.5*(nWaferAcross()-1)*(m_siWaferSide + m_ladderInnerGap);
+    static double ladderOffset = 0.5*(nWaferAcross()-1)
+        *(m_siWaferSide + m_ladderGap);
+    static double ssdOffset    = 0.5*(nWaferAcross()-1)
+        *(m_siWaferSide + m_ladderInnerGap);
     
     HepTransform3D volTransform;
     idents::VolumeIdentifier volId;
     volId.append(m_volId_tower[tower]);
     volId.append(m_volId_layer[layer][view]);
-    StatusCode sc = p_GlastDetSvc->getTransform3DByID(volId, &volTransform);
+    StatusCode sc = m_pDetSvc->getTransform3DByID(volId, &volTransform);
     if( sc.isFailure()) {
-        log << MSG::WARNING << "Failed to obtain transform for id " << volId.name() << endreq;
+        log << MSG::WARNING << "Failed to obtain transform for id " 
+            << volId.name() << endreq;
     }
 
-    double stripLclX = p_GlastDetSvc->stripLocalXDouble(stripId);
+    double stripLclX = m_pDetSvc->stripLocalXDouble(stripId);
     HepPoint3D p(stripLclX+ladderOffset, ssdOffset, 0.);
     
     // y direction not quite sorted out yet!
@@ -213,4 +226,3 @@ StatusCode  TkrGeometrySvc::queryInterface (const IID& riid, void **ppvIF)
 const IID&  TkrGeometrySvc::type () const {
     return IID_ITkrGeometrySvc;
 }
-

@@ -13,7 +13,7 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrClusterAlg.h,v 1.7 2002/07/25 09:12:23 burnett Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrClusterAlg.h,v 1.8 2002/08/31 21:30:49 lsrea Exp $
 */
 
 #include <vector>
@@ -32,7 +32,8 @@ class TkrClusterAlg : public Algorithm
 public:
     TkrClusterAlg(const std::string& name, ISvcLocator* pSvcLocator); 
     virtual ~TkrClusterAlg() {}
-    /// Looks for the geometry service (required) and the bad strips service (optional)
+    /// Looks for the geometry service (required) and the bad strips service 
+    /// (optional)
     StatusCode initialize();
     /// Recovers pointer to Tkr digis, makes TkrClusterCol/TkrCluster
     StatusCode execute();
@@ -40,14 +41,14 @@ public:
     
 private:
     
-	/// pointer to geometry service
-    ITkrGeometrySvc*         pTkrGeo;
-	/// pointer to bad strips service
-    ITkrBadStripsSvc*        pBadStrips;
+    /// pointer to geometry service
+    ITkrGeometrySvc*         m_pTkrGeo;
+    /// pointer to bad strips service
+    ITkrBadStripsSvc*        m_pBadStrips;
     
-	/// pointer to Tkr digis
+    /// pointer to Tkr digis
     Event::TkrDigiCol*       m_TkrDigis;
-	/// pointer to generated TkrClusterCol
+    /// pointer to generated TkrClusterCol
     Event::TkrClusterCol*    m_TkrClusterCol;
 };
 
