@@ -1,5 +1,5 @@
 package TkrRecon
-version v8r12p20
+version v8r12p21
 
 author Tracy Usher    <usher@slac.stanford.edu>
 author Leon Rochester <lsrea@slac.stanford.edu>
@@ -27,7 +27,7 @@ private
 # everything below here is private
 
 use RootIo v* -no_auto_imports
-use RootPolicy v2r* -no_auto_imports
+use RootPolicy v4r* -no_auto_imports
 
 
 #the following prepend makes the includes folder available locally: avoid the package_include
