@@ -2,8 +2,8 @@
 #ifndef TKRPATRECON_H
 #define TKRPATRECON_H
 
-#include "TkrRecon/PatRec/TkrCandidates.h"
-#include "TkrRecon/Cluster/TkrClusters.h"
+#include "GlastEvent/Recon/TkrRecon/TkrPatCandCol.h"
+#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
 #include "geometry/Ray.h"
 
 //
@@ -19,10 +19,14 @@
 //-------------------------------------------------------
 //
 
+namespace TkrRecon { //namespace
+
 class TkrPatRecon
 {
 public:
-    virtual TkrCandidates* doPatRecon(TkrClusters* pTkrClus, double energy=0., Point position=Point()) = 0;
+    virtual TkrPatCandCol* doPatRecon(TkrClusterCol* pTkrClus, double energy=0., Point position=Point()) = 0;
+};
+
 };
 
 #endif
