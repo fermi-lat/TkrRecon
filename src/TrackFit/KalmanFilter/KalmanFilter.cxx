@@ -11,6 +11,7 @@
 //-----------------------------------------------------------------------
 
 #include "KalmanFilter.h"
+#include "Utilities/TkrException.h"
 
 using namespace Event;
 
@@ -42,6 +43,10 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ,
     TkrFitMatrix Ck      = hit.getCov();
     
     double       ene     = start.getEnergy();
+        if( ene <=0 || ene > 1e6 ){
+        throw( TkrException("bad energy in KalmanFilter") );
+    }
+
     double       x_slope = pp.getXSlope();   
     double       y_slope = pp.getYSlope(); 
     Vector       dir_ini = Vector(-x_slope, -y_slope, -1.).unit();
@@ -106,6 +111,9 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ,
     TkrFitMatrix Ck      = hit.getCov();
     
     double       ene     = start.getEnergy();
+    if( ene <=0 || ene > 1e6 ){
+        throw( TkrException("bad energy in KalmanFilter") );
+    }
     double       x_slope = pp.getXSlope();   
     double       y_slope = pp.getYSlope(); 
     Vector       dir_ini = Vector(-x_slope, -y_slope, -1.).unit();
@@ -159,6 +167,10 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitPlane& kplaneNext)
     TkrFitMatrix Ck      = hit.getCov();
     
     double       ene     = start.getEnergy();
+        if( ene <=0 || ene > 1e6 ){
+        throw( TkrException("bad energy in KalmanFilter") );
+    }
+
     double       x_slope = pp.getXSlope(); 
     double       y_slope = pp.getYSlope(); 
     Vector       dir_ini = Vector(-x_slope, -y_slope, -1.).unit();
