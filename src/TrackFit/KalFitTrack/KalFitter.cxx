@@ -165,7 +165,8 @@ void KalFitter::addMeasHit(const TkrPatCandHit& candHit)
     
     Point       planePos = candHit.Position();
     int         clusIdx  = candHit.HitIndex();
-    TkrFitPlane newPlane(clusIdx, candHit.PlaneIndex(), m_track->getStartEnergy(),
+    int         towerIdx = m_clusters->getHit(clusIdx)->tower();
+    TkrFitPlane newPlane(clusIdx, towerIdx, candHit.PlaneIndex(), m_track->getStartEnergy(),
         planePos.z(), candHit.View());
     
     incorporateFoundHit(newPlane, candHit.HitIndex());
@@ -190,7 +191,8 @@ void KalFitter::addMeasHit(int clusIdx, int planeID, TkrCluster::view proj, doub
     // Dependencies: None
     // Restrictions and Caveats:  None
     
-    TkrFitPlane newPlane(clusIdx, planeID, m_track->getStartEnergy(), zPlane, proj);
+    int         towerIdx = m_clusters->getHit(clusIdx)->tower();
+    TkrFitPlane newPlane(clusIdx, towerIdx, planeID, m_track->getStartEnergy(), zPlane, proj);
     
     incorporateFoundHit(newPlane, clusIdx);
     
@@ -465,7 +467,9 @@ TkrFitPlane KalFitter::projectedKPlane(TkrFitPlane prevKplane, int klayer, doubl
     TkrFitMatrix Q = KF.getMaterialCov();
     
     double prev_energy = prevKplane.getEnergy();
-    TkrFitPlane projectedKplane(prevKplane.getIDHit(),next_layer,prev_energy, zEnd, 
+    int    clusIdx     = prevKplane.getIDHit();
+    int    towerIdx    = clusIdx >= 0 ? m_clusters->getHit(clusIdx)->tower() : -1;
+    TkrFitPlane projectedKplane(clusIdx,towerIdx, next_layer,prev_energy, zEnd, 
         predhit, this_projection);   
     projectedKplane.setActiveDist(actDist);
     projectedKplane.setRadLen(radLen); 
@@ -1110,7 +1114,7 @@ TkrFitPlane KalFitter::originalKPlane() const
     TkrFitHit hitfit(TkrFitHit::FIT, pfit, covfit);
     TkrFitHit hitmeas(TkrFitHit::MEAS, pfit, covfit); 
     
-    TkrFitPlane kp(-1,m_iLayer-1,m_track->getStartEnergy(), x_ini.z(), hitfit, TkrCluster::XY);
+    TkrFitPlane kp(-1,m_iTower,m_iLayer-1,m_track->getStartEnergy(), x_ini.z(), hitfit, TkrCluster::XY);
     kp.setHit(hitmeas);
     
     return kp;
