@@ -1,0 +1,77 @@
+package TkrRecon
+version v4r2p1
+
+branches src mgr doc
+apply_pattern packageShr
+
+private 
+#-----------------------
+# everything below here is private
+
+use GlastSvc
+use GuiSvc
+use ntupleWriterSvc
+
+
+apply_pattern package_include
+
+macro TkrRecon_stamps     
+
+
+
+
+macro TkrRecon_linkopts   "$(TkrReconDir)/libTkrReconData.a  " \
+      VisualC             "$(TkrReconDir)/TkrReconData.lib " 
+
+
+
+apply_pattern package_Cshlibflags 
+apply_pattern package_headers
+
+macro_append TkrRecon_headers     "" WIN32 " ../TkrRecon/GaudiAlg/*.h ../TkrRecon/Display/*.h ../TkrRecon/Services/*.h "
+macro_append TkrReconData_headers "" WIN32 " ../src/PatRec/Combo/*.h ../TkrRecon/Track/T*.h ../TkrRecon/Cluster/TkrClusters.h ../TkrRecon/TrackFit/*.h "
+macro_append TkrCluster_headers   "" WIN32 " ../TkrRecon/Cluster/*.h"
+macro_append TkrPatRec_headers    "" WIN32 " ../TkrRecon/PatRec/*.h ../src/PatRec/LinkAndTree/*.h ../src/PatRec/Combo/*.h"
+macro_append TkrTrack_headers     "" WIN32 " ../TkrRecon/Track/*.h ../TkrRecon/TrackFit/*.h"
+
+# have a seperate library to export the tracker recon data classes 
+
+library TkrReconData -no_share Cluster/*.cxx                 \
+                               PatRec/*.cxx                  \
+                               PatRec/Combo/*.cxx            \
+                               PatRec/LinkAndTree/*.cxx      \
+                               Track/*.cxx                   \
+                               TrackFit/*.cxx                \
+                               Services/*.cxx                \
+                               GaudiAlg/*.cxx                \
+                               Display/*.cxx                 \
+                               ${TkrReconData_headers}
+
+library TkrCluster   -no_share Cluster/*.cxx                 \
+                               ${TkrCluster_headers}
+library TkrPatRec    -no_share PatRec/*.cxx                  \
+                               PatRec/LinkAndTree/*.cxx      \
+                               PatRec/Combo/*.cxx            \
+                               ${TkrPatRec_headers}
+
+library TkrTrack     -no_share Track/*.cxx                   \
+                               TrackFit/*.cxx                \
+                               ${TkrTrack_headers}
+
+library TkrRecon               GaudiAlg/*.cxx                \
+                               Display/*.cxx                 \
+                               Services/*.cxx                \
+                               Dll/*.cxx                     \
+                               ${TkrRecon_headers}           \
+                               $(TkrReconDir)/TkrCluster.lib \
+                               $(TkrReconDir)/TkrPatRec.lib  \
+                               $(TkrReconDir)/TkrTrack.lib
+
+# build this for testing
+
+macro jobOptions "" WIN32 "test/jobOptions.txt"
+
+application test \
+        test/*.cxx $(jobOptions)
+
+
