@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Fri Feb  8 15:18:46 PST 2002
+TkrRecon/mgr
+
+Modified Files:
+	requirements 
+Log Message:
+changes to track .cpp -> .cxx
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Feb  8 15:06:17 PST 2002
 TkrRecon/src/Services
 
