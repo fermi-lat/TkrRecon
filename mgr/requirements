@@ -6,6 +6,7 @@ branches src mgr doc
 use GlastSvc
 use GuiSvc
 use ntupleWriterSvc
+use GismoGenerator
 
 
 apply_pattern package_include
@@ -16,34 +17,44 @@ apply_pattern packageShr
 
 
 macro TkrRecon_linkopts   "$(TkrReconDir)/libTkrReconData.a  " \
-      VisualC             "$(TkrReconDir)/TkrReconData.lib  " 
+      VisualC             "$(TkrReconDir)/TkrReconData.lib " 
 
 private 
 
 apply_pattern package_Cshlibflags 
 apply_pattern package_headers
 
-macro_append TkrRecon_headers "" WIN32 " ../TkrRecon/Cluster/*.h ../TkrRecon/Display/*.h ../TkrRecon/Services/*.h ../TkrRecon/Track/*.h ../TkrRecon/TrackFit/*.h"
+macro_append TkrRecon_headers     "" WIN32 " ../TkrRecon/GaudiAlg/*.h ../TkrRecon/Display/*.h ../TkrRecon/Services/*.h "
+macro_append TkrReconData_headers "" WIN32 " ../TkrRecon/Track/*.h ../TkrRecon/Cluster/TkrClusters.h ../TkrRecon/TrackFit/*.h "
+macro_append TkrCluster_headers   "" WIN32 " ../TkrRecon/Cluster/*.h"
+macro_append TkrPatRec_headers    "" WIN32 " ../TkrRecon/PatRec/*.h"
+macro_append TkrTrack_headers     "" WIN32 " ../TkrRecon/Track/*.h ../TkrRecon/TrackFit/*.h"
 
 # have a seperate library to export the tracker recon data classes 
 
-library TkrReconData -no_share Track/*.cpp             \
-                               Track/*.cxx             \
-                               Cluster/TkrClusters.cpp \
-                               TrackFit/KalFit.cxx
+library TkrReconData -no_share Cluster/*.cpp                 \
+                               Track/*.cxx                   \
+                               TrackFit/*.cxx                \
+                               ${TkrReconData_headers}
 
-library TkrRecon  *.cpp \
-                  *.cxx    \
-                  Cluster/*.cpp  \
-                  Cluster/*.cxx  \
-                  Display/*.cxx  \
-                  Services/*.cpp \
-                  Services/*.cxx \
-                  Track/*.cpp    \
-                  Track/*.cxx    \
-                  TrackFit/*.cxx \
-                  Dll/*.cpp      \
-                  ${TkrRecon_headers}
+library TkrCluster   -no_share Cluster/*.cpp                 \
+                               ${TkrCluster_headers}
+library TkrPatRec    -no_share PatRec/*.cxx                  \
+                               ${TkrPatRec_headers}
+
+library TkrTrack     -no_share Track/*.cxx                   \
+                               TrackFit/*.cxx                \
+                               ${TkrTrack_headers}
+
+library TkrRecon               GaudiAlg/*.cxx                \
+                               Display/*.cxx                 \
+                               Services/*.cpp                \
+                               Services/*.cxx                \
+                               Dll/*.cpp                     \
+                               ${TkrRecon_headers}           \
+                               $(TkrReconDir)/TkrCluster.lib \
+                               $(TkrReconDir)/TkrPatRec.lib  \
+                               $(TkrReconDir)/TkrTrack.lib
 
 # build this for testing
 
