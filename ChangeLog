@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Fri Jun  1 12:45:45 PDT 2001
+TkrRecon/src/Dll TkrRecon_load.cpp
+
+Modified Files:
+	TkrRecon_load.cpp 
+Log Message:
+Provide a spigot for TkrNtupleAlg
+
+    *
+------------------------------------------------------------
 User: usher  Fri Jun  1 12:19:45 PDT 2001
 TkrRecon/src TkrNtupleAlg.cpp
 
