@@ -37,7 +37,6 @@ void TkrRecon_load() {
 //    DLL_DECL_ALGORITHM( TkrNtupleAlg     );
 //    DLL_DECL_ALGORITHM( RecNtupleAlg     );
     DLL_DECL_TOOL( VtxSingleTrkTool        );
-    DLL_DECL_TOOL( VtxComboTrkTool         );
     DLL_DECL_TOOL( VtxKalFitTool           );
     DLL_DECL_TOOL( ComboVtxTool            );
     DLL_DECL_TOOL( TkrComboFitTool         );
