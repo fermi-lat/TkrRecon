@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Nov 27 12:17:31 PST 2002
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx KalFitTrack.h 
+Log Message:
+Added data member for total radiation length from start of track to front to cal. 
+    *
+------------------------------------------------------------
 User: atwood  Wed Nov 27 11:53:34 PST 2002
 TkrRecon/src/Vertex/Combo
 
