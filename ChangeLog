@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Wed Mar 27 12:18:43 PST 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrReconAlg.cxx 
+Log Message:
+another GeV->MeV
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Mar 27 08:30:30 PST 2002
 TkrRecon/src/Display
 
