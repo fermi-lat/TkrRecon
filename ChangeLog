@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+User: lsrea  Fri Feb  4 23:13:51 PST 2005
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx 
+Log Message:
+Several updates:
+     Repair logic to fix event that Johann found and Tracy diagnosed
+     Rethink the strategy for truncating the search, due to Bill
+     Reorganize tryCandidates()
+     Fix assignment of pointer to automatic variable 
+
+    *
+------------------------------------------------------------
 User: usher  Fri Feb  4 14:29:25 PST 2005
 TkrRecon/src/PatRec/Combo
 
