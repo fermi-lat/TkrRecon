@@ -14,7 +14,7 @@
  * TkrComboVtxRecon.cxx
  *
  * @author Johann Cohen-Tanugi
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxSingleTrkTool.h,v 1.3 2002/09/01 22:37:41 cohen Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxSingleTrkTool.h,v 1.4 2002/09/02 19:46:15 cohen Exp $
  */
 class VtxSingleTrkTool : public VtxBaseTool
 {
@@ -30,7 +30,7 @@ class VtxSingleTrkTool : public VtxBaseTool
   
   ///concrete implementation of VtxBaseTool: 
   ///take each track of TkrFitTrackCol and assign first hit as a vertex.
-  StatusCode doVtxFit(Event::TkrVertexCol& /*theVtxColToFill*/);
+  StatusCode doVtxFit(Event::TkrVertexCol& );
   
 };
 #endif

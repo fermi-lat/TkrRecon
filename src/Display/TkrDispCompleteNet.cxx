@@ -27,34 +27,34 @@ void TkrDispCompleteNet::update()
 {
     TkrPatCandCol* pTkrPatCandCol = SmartDataPtr<TkrPatCandCol>(dps,EventModel::TkrRecon::TkrPatCandCol);
 
-	//Now see if we can do the drawing
-	if (pTkrPatCandCol)
-	{
+    //Now see if we can do the drawing
+    if (pTkrPatCandCol)
+    {
 
-		TkrNeuralNet* pTkrNeuralNet = dynamic_cast<TkrNeuralNet*>(pTkrPatCandCol);
+        TkrNeuralNet* pTkrNeuralNet = dynamic_cast<TkrNeuralNet*>(pTkrPatCandCol);
 
                 //int numDispNeurons = pTkrNeuralNet->numNeurons();
                 //int colorIdx      = 6;
-		const char violet[]     = "violet";
-		setColor(violet);
+        const char violet[]     = "violet";
+        setColor(violet);
 
-		//gui::DisplayRep* pDisplay = this;
+        //gui::DisplayRep* pDisplay = this;
 
-		TkrNeuralNet::TkrNeuronList tmpList = pTkrNeuralNet->neurons();
-		TkrNeuralNet::TkrNeuronList::const_iterator hypo;
+        TkrNeuralNet::TkrNeuronList tmpList = pTkrNeuralNet->neurons();
+        TkrNeuralNet::TkrNeuronList::const_iterator hypo;
 
-		for(hypo  = tmpList.begin(); 
-		hypo != tmpList.end();   hypo++){
+        for(hypo  = tmpList.begin(); 
+        hypo != tmpList.end();   hypo++){
   
-			Point point0 = (*hypo).getPnt(top);
-			Point point1 = (*hypo).getPnt(bottom);
+            Point point0 = (*hypo).getPnt(top);
+            Point point1 = (*hypo).getPnt(bottom);
 
-			moveTo(point0);
-			lineTo(point1);
+            moveTo(point0);
+            lineTo(point1);
 
-		}
+        }
 
-	    setColor("blue");
+        setColor("blue");
     }
 
     return;

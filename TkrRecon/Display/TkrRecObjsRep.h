@@ -17,14 +17,14 @@ class TkrRecObjsRep : public gui::DisplayRep
 //##########################################################
 {
 public:
-	//! Constructor of this form must be provided
-	TkrRecObjsRep();
-	virtual ~TkrRecObjsRep() {}
+    //! Constructor of this form must be provided
+    TkrRecObjsRep();
+    virtual ~TkrRecObjsRep() {}
 
-	void update();
+    void update();
 
 private:
-	//SiRecObjs** ppRecObjs;
+    //SiRecObjs** ppRecObjs;
 };
       
 #endif

@@ -21,11 +21,11 @@ class TkrCandidatesRep : public gui::DisplayRep
 //##########################################################
 {
 public:
-	//! Constructor of this form must be provided
-	TkrCandidatesRep(IDataProviderSvc* dps, ITkrGeometrySvc* pTkrGeo);
-	virtual ~TkrCandidatesRep() {}
+    //! Constructor of this form must be provided
+    TkrCandidatesRep(IDataProviderSvc* dps, ITkrGeometrySvc* pTkrGeo);
+    virtual ~TkrCandidatesRep() {}
 
-	void update();
+    void update();
 
 private:
     void TkrDrawCandidates(TkrPatCandCol* pTkrCands, TkrPlaneType plane);
