@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Tue Aug 20 12:35:10 PDT 2002
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx KalFitTrack.h 
+Added Files:
+	GFcontrol.cxx GFcontrol.h 
+Log Message:
+First changes to remove/lessen dependence on GFtutor and GFcontrol and move
+to new system for managing control parameters
+
+    *
+------------------------------------------------------------
 User: usher  Tue Aug 20 12:32:28 PDT 2002
 TkrRecon/src/Vertex/Combo
 
