@@ -13,7 +13,7 @@
   *
   * @author Tracy Usher (as editor instead of author)
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TrackFitUtils.h,v 1.4 2004/09/23 21:30:31 usher Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TrackFitUtils.h,v 1.5 2004/10/12 19:03:38 lsrea Exp $
 */
 
 #ifndef __TrackFitUtils_H
@@ -54,6 +54,9 @@ public:
     double computeChiSqSegment(const Event::TkrTrack&        track, 
                                int                           nhits, 
                                Event::TkrTrackHit::ParamType typ = Event::TkrTrackHit::SMOOTHED);
+
+	/// Finds the number of shared TkrClusters on the two given tracks
+    int compareTracks(Event::TkrTrack& track1, Event::TkrTrack& track2);
 
     /// Operations
     void   flagAllHits(Event::TkrTrack& track, int iflag=1);
