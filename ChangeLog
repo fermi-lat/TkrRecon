@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Feb  4 13:35:04 PST 2005
+TkrRecon/src/Track
+
+Modified Files:
+	KalmanTrackFitTool.cxx 
+Log Message:
+electrons are really e- in ParticlePropertySvc
+    *
+------------------------------------------------------------
 User: usher  Thu Feb  3 16:56:22 PST 2005
 TkrRecon/src/Track
 
