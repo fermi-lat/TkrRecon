@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Mon Sep  2 00:00:28 PDT 2002
+TkrRecon/src/test
+
+Modified Files:
+	jobOptions.txt 
+Log Message:
+modify jobOptions to use test badStrips file
+    *
+------------------------------------------------------------
 User: lsrea  Sun Sep  1 23:52:05 PDT 2002
 TkrRecon/src/test
 
