@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: usher  Mon May 13 11:41:06 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	TkrComboFit.cxx TkrLinkAndTreeFit.cxx TkrNeuralNetFit.cxx 
+Log Message:
+Final (?) modifications according to DSTF review - required changes to TkrRecon classes
+1) TDS classes modified to have get/set prepended to methods
+2) TDS classes modified to have consistent iterator naming
+
+    *
+------------------------------------------------------------
+User: usher  Mon May 13 11:41:06 PDT 2002
 TkrRecon/src/PatRec/NeuralNet
 
 Modified Files:
