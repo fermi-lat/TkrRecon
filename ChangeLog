@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: allgood  Mon Apr  1 11:19:01 PST 2002
+TkrRecon/src/PatRec/NeuralNet
+
+Added Files:
+	TkrNeuralNet.cxx 
+Log Message:
+Code for Neural Net PatRec routine.
+    *
+------------------------------------------------------------
 User: allgood  Mon Apr  1 11:06:31 PST 2002
 TkrRecon/src/PatRec/NeuralNet
 
