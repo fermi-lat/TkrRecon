@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.10 2004/11/22 18:36:08 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.11 2004/11/23 19:23:17 atwood Exp $
  */
 
 // to turn one debug variables
@@ -52,7 +52,7 @@ public:
     StatusCode findTrackHits(Event::TkrTrack* track);
 
     /// @brief This method will attempt to find the "next" hit associated to a track
-    Event::TkrTrackHit* findNextHit(Event::TkrTrack* track);
+    Event::TkrTrackHit* findNextHit(Event::TkrTrackHit* trackhit, bool reverse);
 
 	
     /// @brief This method will attempt to find the hits prior to the first hit on track
@@ -220,7 +220,7 @@ StatusCode FindTrackHitsTool::findTrackHits(Event::TkrTrack* track)
     track->push_back(lastHit);
 
     // Loop until no more track hits found
-    while(Event::TkrTrackHit* trackHit = findNextHit(track))
+    while(Event::TkrTrackHit* trackHit = findNextHit(lastHit, false))
     {
         // Run the filter
         m_tkrFitTool->doFilterStep(*lastHit, *trackHit);
@@ -246,10 +246,11 @@ StatusCode FindTrackHitsTool::findTrackHits(Event::TkrTrack* track)
 	if((track->getNumXHits() + track->getNumYHits() < 5) ||
 		track->getNumXHits() <= 2 || track->getNumYHits() <= 2) sc = StatusCode::FAILURE;
 	else track->setStatusBit(Event::TkrTrack::FOUND);
+
 	return sc;
 }
 
-Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrack* track)
+Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrackHit* last_hit, bool reverse)
 {
     // Purpose and Method: Finds the next z-plane crossing and searches for a hit 
 	//                     to associated with the given track. This is independent of
@@ -262,15 +263,10 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrack* track)
 
     Event::TkrTrackHit* trackHit = 0;
 
-	// Find out the number of hits presently on this track
-	int num_hits = track->getNumHits();
-
 	// Get starting position and direction
-	Point start_pos;
-	Vector start_dir; 
-	SmartRef<Event::TkrTrackHit> last_hit = track->back();
-	start_pos = last_hit->getPoint(Event::TkrTrackHit::FILTERED);
-	start_dir = last_hit->getDirection(Event::TkrTrackHit::FILTERED);
+	Point start_pos = last_hit->getPoint(Event::TkrTrackHit::FILTERED);
+	Vector start_dir = last_hit->getDirection(Event::TkrTrackHit::FILTERED); 
+	if(reverse) start_dir = -start_dir;  //reverse direction
 
     // Check that starting position is inside LAT
 	if(!m_tkrGeom->isInActiveLAT(start_pos)) return trackHit;
@@ -280,12 +276,13 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrack* track)
     int nearest_plane = m_tkrGeom->getPlane(start_pos.z());
 
 	double delta_z  = m_tkrGeom->getPlaneZ(nearest_plane) - start_pos.z(); 
+	if(fabs(delta_z) < .1) delta_z  = 0.; //Avoid roundoff crap
 	double t_z = start_dir.z();
-	if(delta_z < .1) delta_z  = 0.; //This is the usual case - avoid roundoff crap
-	if(nearest_plane == num_planes-1 || nearest_plane == 0) {
-		// Going out the top or bottom? 
-		if(t_z*delta_z <= 0 && delta_z != 0.) return trackHit;
-	}
+ 
+	// Check if going out the top or bottom
+	if(nearest_plane == num_planes-1 && t_z > 0) return trackHit;
+	if(nearest_plane == 0 && t_z < 0)            return trackHit; 
+
 	int next_plane = nearest_plane;
 	if(t_z > 0 && nearest_plane < num_planes - 1) { //Going upwards
 		double delta_zP1 = m_tkrGeom->getPlaneZ(nearest_plane+1) - start_pos.z();
@@ -299,6 +296,7 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrack* track)
 		if(fabs(delta_zP1) < fabs(delta_z) || delta_z == 0.) {
 			delta_z = delta_zP1;
 			next_plane = nearest_plane - 1;
+		}
 	}
     
 	// Establish the trajectory to check end point
@@ -325,15 +323,18 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrack* track)
 	}
 
 	// Setup the propagator and transport the track parameters along this step
-	m_propagatorTool->setStepStart(last_hit->getTrackParams(Event::TkrTrackHit::FILTERED), 
-		                           start_pos.z());
+    Event::TkrTrackParams last_params = last_hit->getTrackParams(Event::TkrTrackHit::FILTERED);
+
+	if(reverse || t_z > 0) m_propagatorTool->setStepStart(last_params, start_pos.z(), true);
+	else                   m_propagatorTool->setStepStart(last_params, start_pos.z(), false);
+
 	m_propagatorTool->step(arc_len);
 	double rad_len = m_propagatorTool->getRadLength(arc_len);
 	double cur_energy = last_hit->getEnergy();
-	Event::TkrTrackParams next_param = m_propagatorTool->getTrackParams(arc_len, cur_energy, true); 
+	Event::TkrTrackParams next_params = m_propagatorTool->getTrackParams(arc_len, cur_energy, true);
 
 	// See if there is a TkrCluster to associate with this track in this plane
-	Event::TkrCluster *cluster = findNearestCluster(next_plane, &next_param);
+	Event::TkrCluster *cluster = findNearestCluster(next_plane, &next_params);
    
     // There will be a new TkrTrackHit - make one and begin filling it up
 	// If there was a found cluster - set up the hit
@@ -356,13 +357,26 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrack* track)
 
         params(measIdx,measIdx) = sigma * sigma;
         params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
-		if(measIdx == 1) trackHit->setStatusBit(Event::TkrTrackHit::MEASURESX);
-		else             trackHit->setStatusBit(Event::TkrTrackHit::MEASURESY);
-    
-        trackHit->setStatusBit(Event::TkrTrackHit::HASMEASURED);
+
+		// Last: set the hit status bits
+	    unsigned int status_bits = Event::TkrTrackHit::HITONFIT | Event::TkrTrackHit::HASMEASURED |
+		                           Event::TkrTrackHit::HITISSSD | Event::TkrTrackHit::HASVALIDTKR;
+	    if(measIdx == 1) status_bits |= Event::TkrTrackHit::MEASURESX;
+	    else             status_bits |= Event::TkrTrackHit::MEASURESY;
+		if(t_z > 0 & !reverse) status_bits |= Event::TkrTrackHit::UPWARDS;
+
+        trackHit->setStatusBit((Event::TkrTrackHit::StatusBits)status_bits);
 	}
-    else //if (track->back()->getStatusBits() & Event::TkrTrackHit::HASMEASURED)
+    else 
     {
+		// Check if we should terminate this track
+	    double act_dist = m_propagatorTool->isInsideActArea();
+		double big_error = sqrt(next_params(1,1)+ next_params(3,3));
+		// Need protection for first hit which gives an error = .5*tower_width
+		if(reverse) big_error = 1000./fabs(t_z)/cur_energy;
+		double edge_sigma = act_dist/big_error;
+		if(edge_sigma > m_sigma) return trackHit;
+
 		// No cluster found  - so this a gap of some sort
 	    trackHit = new Event::TkrTrackHit();
 		trackHit->setZPlane(m_tkrGeom->getPlaneZ(next_plane));
@@ -381,60 +395,16 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrack* track)
 
         params(measIdx,measIdx) = sigma * sigma;
         params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
+
+		// Last: set the hit status bits
+		unsigned int status_bits = Event::TkrTrackHit::HASMEASURED | Event::TkrTrackHit::HITISGAP;
+	    //if(measIdx == 1) status_bits |= Event::TkrTrackHit::MEASURESX;
+	    //else             status_bits |= Event::TkrTrackHit::MEASURESY;
+		if(t_z > 0 & !reverse) status_bits |= Event::TkrTrackHit::UPWARDS;
+    
+        trackHit->setStatusBit((Event::TkrTrackHit::StatusBits)status_bits);
 	}
-    //else
-    //{
-    //    Event::TkrTrackHit* lastHit = track->back();
-    //    track->pop_back();
-    //    delete lastHit;
-    //}
-    //IFitHitEnergy* m_HitEnergy = new RadLossHitEnergy();
-	//double energy = m_HitEnergy->updateHitEnergy(cur_energy, rad_len);
-    //trackHit->setEnergy(energy);
-     /*   
-        int indexhit = -1;
-        double radius = 0.; 
-        double sigma = sigmaFoundHit(previousKplane, nextKplane, indexhit, radius);
-        if (sigma < m_sigma) {
-            statushit = FOUND;
-            incorporateFoundHit(nextKplane, indexhit);
-        } 
-        else {
-            double act_dist = nextKplane.getActiveDist();
-            if(act_dist < 0.) continue; 
-            if (m_tkrFail) {
-                //get the tower from the position... not the best!
-                int xTower = (int) floor(x0.x()/towerPitch + 0.5*numX + 0.001);
-                int yTower = (int) floor(x0.y()/towerPitch + 0.5*numY + 0.001);
-                int nextTower = idents::TowerId(xTower,yTower).id();
 
-                int nextLayer = m_tkrGeom->reverseLayerNumber(kplane);
-
-                bool failed = m_tkrFail->isFailed(nextTower, nextLayer, nextProj);
-				/*
-				if (failed) {
-                std::cout << "KalFitTrack: Failed: " << failed << " " 
-                    " act_dist " << act_dist << " id "
-                    << nextTower << " " << nextLayer
-                    << " " << nextProj << std::endl;
-				}
-				
-                if (failed) continue;
-            }
-                
-            //Use the PREDICTED hit to set tolerance
-            double pos_err = nextKplane.getHit(TkrFitHit::PRED).getCov().getcovX0X0();
-            if(nextKplane.getProjection() == idents::TkrId::eMeasureY) {
-                pos_err = nextKplane.getHit(TkrFitHit::PRED).getCov().getcovY0Y0();
-            }
-            pos_err = sqrt(pos_err);
-
-            if(pos_err < .25) pos_err = .25;  // Does this need to be a formal parameter?
-            if(act_dist/pos_err > 3. && m_nxHits+m_nyHits > 6) break;  // 3 sig. : formal parameter here
-            continue; 
-        }
-		*/
-    }
    return trackHit;
 }
 
@@ -529,6 +499,7 @@ Event::TkrTrackHit* FindTrackHitsTool::setFirstHit(Event::TkrTrack* track)
 	if(view == idents::TkrId::eMeasureX) status_bits |= Event::TkrTrackHit::MEASURESX;
 	else                                 status_bits |= Event::TkrTrackHit::MEASURESY;
 	status_bits |= Event::TkrTrackHit::HASVALIDTKR;
+	if(t_z > 0) status_bits |= Event::TkrTrackHit::UPWARDS;
 
 	// Update the TkrTrackHit status bits
 	trackHit->setStatusBit((Event::TkrTrackHit::StatusBits)status_bits);
@@ -624,6 +595,16 @@ Event::TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, Event::TkrTr
     // Return a pointer to the found cluster
     return found_cluster;
 }
+// Define a class for sorting
+class FTTrackHitSort
+{
+  public:
+      //bool operator()(Event::TkrTrackHit* patHitLeft, Event::TkrTrackHit* patHitRight)
+      bool operator()(SmartRef<Event::TkrTrackHit> patHitLeft, SmartRef<Event::TkrTrackHit> patHitRight)
+    {
+        return patHitLeft->getZPlane() >  patHitRight->getZPlane();;
+    }
+};
 
 int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
 {
@@ -637,64 +618,58 @@ int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
 
   
     int  added_hit_count = 0;
-	/*
-    double       arc_min = 0.; 
+	int  planes_crossed  = 0;
 
-    //Protection
-    if(m_hits[0].getIDPlane() == 0) return added_hit_count;
+	// Get the first hit on the track
+	Event::TkrTrackHit* lastHit = (*track)[0];
+	double cur_energy = lastHit->getEnergy();
 
-    //int old_tower  = m_iTower; 
-    double old_z   = m_hits[0].getZPlane();
+	// Loop until no more track hits found
+    while(Event::TkrTrackHit* trackHit = findNextHit(lastHit, true))
+    {
+		planes_crossed++;
+		trackHit->setEnergy(cur_energy);
+        lastHit = trackHit;
+		// Check to see that a SSD cluster was found
+		if(planes_crossed > 1) {
+			if(!trackHit->validCluster()){
+				track->pop_back();
+				break;
+			}
+		}
+        // Fill in a temporary filter parameter set
+		double arc_len = m_propagatorTool->getArcLen(); 
+		Event::TkrTrackParams& next_params = m_propagatorTool->getTrackParams(arc_len, cur_energy, true);
+		next_params(2) = -next_params(2);
+		next_params(4) = -next_params(4); 
+		Event::TkrTrackParams& filter_params = trackHit->getTrackParams(Event::TkrTrackHit::FILTERED);
+		filter_params = next_params;
+	//	unsigned int status = Event::TkrTrackHit::HASFILTERED;
+		trackHit->setStatusBit(Event::TkrTrackHit::HASFILTERED);
 
-    //Setup backward looking search loop
-    int next_layer = top_layer-1; 
-    double arc_x, arc_y; 
-    while(next_layer >= 0 && top_layer-next_layer < 2) {   // Limit additions to 2 layers
-        //Check that there are hits to here
-        if ((m_clusTool->getClustersReverseLayer(idents::TkrId::eMeasureX,next_layer).size() +
-             m_clusTool->getClustersReverseLayer(idents::TkrId::eMeasureY,next_layer).size()) < 1)
-        {
-            next_layer--;
-            continue;
-        }
-        //Find the Z location for the x & y planes 
-        double zx = m_tkrGeom->getReconLayerZ(next_layer, idents::TkrId::eMeasureX);
-        double zy = m_tkrGeom->getReconLayerZ(next_layer, idents::TkrId::eMeasureY);
+        // Add this to the head of the track
+       // track->insert(0,trackHit);
+		track->insert(track->begin(), trackHit); //Note: This requires a sort in z prior to fitting
+		// and update the track initial position
+		Point start_pos = m_propagatorTool->getPosition(arc_len);
+		track->setInitialPosition(start_pos);
 
-        //Compute which one is closest 
-        double d_xz = zx - old_z;
-        double d_yz = zy - old_z;
-        if(d_xz < .5 && d_yz < .5) {
-            next_layer--;
-            continue;
-        }
-        arc_x = fabs(d_xz/m_dir.z());
-        arc_y = fabs(d_yz/m_dir.z());
-        if(arc_x < arc_min+.5 && arc_y < arc_min+.5) {
-            next_layer--;
-            continue;
-        }
-        else if(arc_x > arc_min && arc_y > arc_min) { 
-            arc_min = (arc_x < arc_y) ? arc_x:arc_y;
-        }
-        else { 
-            arc_min = (arc_x > arc_y) ? arc_x:arc_y; 
-        }
-        m_axis = (arc_min==arc_y) ? idents::TkrId::eMeasureY :idents::TkrId::eMeasureX;
+		added_hit_count++;
 
-        //Project the track to this layer & search for a hit
-        Point predHit = getPosAtZ(-arc_min);
-        int indexHit;
-        double residual; 
-        double sigma  = sigmaFoundHit(predHit, next_layer, 0, indexHit, residual);
-        if(sigma < m_sigma && indexHit >=0) {
-             addMeasHit(indexHit, next_layer, m_axis, predHit.z(), 0);
-             added_hit_count++;
-             m_iLayer = next_layer;
-        }
-        old_z = predHit.z();
-    }
-	*/
+		if(trackHit->validCluster()) {
+			if(Event::TkrTrackHit::MEASURESX) {
+			    int numX = track->getNumXHits() + 1;
+			    track->setNumXHits(numX);
+		    }
+		    else {
+		        int numY = track->getNumYHits() + 1;
+			    track->setNumYHits(numY);
+		    }
+		}
+
+		// Limited the number of leading hits to 2 or less
+		if(added_hit_count >= 2) break;
+	}
     return added_hit_count; 
 }
 

@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.19 2004/11/22 18:36:08 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.20 2004/11/23 19:23:16 atwood Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -72,15 +72,12 @@ protected:
 
         /// Access
         void setQuality(float Q)      {m_qual       = Q;}
-        void setConEnergy(double e)   {m_ConEnergy  = e;}
         float  quality()       const {return m_qual;}
-        double conEnergy()     const {return m_ConEnergy;}
 		Event::TkrTrack *track()         {return m_track;}
 		void nullTrackPntr()   {m_track = 0;}
         
     private:    
         float m_qual;          // Resulting track Quality 
-        double m_ConEnergy;    // Constraind energy results
 		Event::TkrTrack *m_track;  // The trial track fit
     };
 
@@ -99,6 +96,7 @@ private:
     /// Internal drivers
     void findBlindCandidates();
     void findCalCandidates();
+	void findReverseCandidates();
 
     /// Internal utilities
     float findNextHit(int, Ray&, float&);
@@ -122,7 +120,8 @@ private:
 	int m_maxGaps;       // Max. number of allowed gaps in the first 3 XY hits
 	std::string m_EnergyType; //Energy types: Default, CALOnly, User, MC
 	                     //  default = Tkr+Cal with constraint, others self explanatory
-	                     //            and over ride reseting energy al later stages
+	                     //            and over ride resetting energy at later stages
+    std::string m_Direction; //Direction in which to search for tracks: TopDown or BottomUp
 
 	/// Internal data members
 	CandidateList m_candidates;  // Internal list of found hypothesises
@@ -159,10 +158,11 @@ ComboFindTrackTool::ComboFindTrackTool(const std::string& type, const std::strin
 	declareProperty("FoVLimit", m_PatRecFoV = .19);
 	declareProperty("MaxTrackKink", m_maxDeflect = .7);
 	declareProperty("MaxTripletRes", m_maxTripRes = 30.);
-	declareProperty("MinNumUniHits", m_minUniHits = 4); 
+	declareProperty("UniqueHits", m_minUniHits = 4); 
 	declareProperty("MinPatRecQual", m_minQuality = 10);
     declareProperty("MaxFirstGaps", m_maxGaps = 2);
 	declareProperty("EnergyType",   m_EnergyType="Default");
+	declareProperty("Direction",   m_Direction="Downwards");
 	return;
 }
 
@@ -266,6 +266,12 @@ void ComboFindTrackTool::searchCandidates()
     //Clear the candidate track list
     m_candidates.clear();
     
+	//Check Tracking Finding direction
+	if(m_Direction == "Upwards") {
+		findReverseCandidates();
+		return;
+	}
+
     //Determine what to do based on status of Cal energy and position
     if( m_Pcal.mag() == 0.) 
     {   // This path use no calorimeter energy - 
@@ -323,9 +329,9 @@ class candTrackHitSort
 
 void ComboFindTrackTool::loadOutput()
 {
-    // Purpose and Method: Re-formats internal Candidate class to TkrPatCand Class
+    // Purpose and Method: Transfers internal Candidate class TkrTracks to TDS TkrTrackCol
     // Inputs:  None
-    // Outputs: The TkrPatCands Bank from which the final tracks fits are done
+    // Outputs: The TkrTrackCol from which the final tracks fits are done
     // Dependencies: None
     // Restrictions and Caveats:  None.
 
@@ -374,7 +380,7 @@ void ComboFindTrackTool::loadOutput()
             newTrack->setStatusBit(Event::TkrTrack::FOUND);
 			newTrack->clearEnergyStatusBits();
 			if(m_EnergyType == "CALOnly" )  newTrack->setStatusBit(Event::TkrTrack::CALENERGY);
-			else if(m_EnergyType == "User") newTrack->setStatusBit(Event::TkrTrack::CALENERGY);
+			else if(m_EnergyType == "User") newTrack->setStatusBit(Event::TkrTrack::USERENERGY);
 			else if(m_EnergyType == "MC")   newTrack->setStatusBit(Event::TkrTrack::MCENERGY);
 			else                            newTrack->setStatusBit(Event::TkrTrack::LATENERGY);
 
@@ -386,7 +392,7 @@ void ComboFindTrackTool::loadOutput()
             }
 
             // Finally, sort this track in correct z order (for now)
-            std::sort(newTrack->begin(), newTrack->end(), candTrackHitSort());
+            //std::sort(newTrack->begin(), newTrack->end(), candTrackHitSort());
         }     
     } 
     
@@ -406,7 +412,7 @@ void ComboFindTrackTool::findBlindCandidates()
    // Purpose and Method: Does a combinatoric search for tracks. Assumes
    //                     tracks start in layer furthest from the calorimeter
    //                     First finds 3 (x,y) pairs which line up and then does
-   //                     first KalFitTrack fit using the "findHits method to fill in 
+   //                     first TkrTrack fit using the FindTrackHitsTool to fill in 
    //                     the rest of the hits.
    // Inputs:  None
    // Outputs: The TkrPatCands Bank from which the final tracks fits are done
@@ -450,7 +456,7 @@ void ComboFindTrackTool::findBlindCandidates()
                     if(trials > m_maxTrials) break; 
                     TkrPoint* p2 = *itSecond;
                     Ray testRay = p1->getRayTo(p2);
-                    if(fabs(testRay.direction().z()) < .19) continue; 
+                    if(fabs(testRay.direction().z()) < m_PatRecFoV) continue; 
                     
                     int gap;
                     float deflection, sigma; 
@@ -498,12 +504,12 @@ void ComboFindTrackTool::findCalCandidates()
    //                     Calorimeter energy centroid.
    //                     tracks start in layer furthest from the calorimeter
    //                     First finds 3 (x,y) pairs which line up and then does
-   //                     first KalFitTrack fit using the "findHits method to fill in 
+   //                     first KalFitTrack fit using the FindTrackHitsTool to fill in 
    //                     the rest of the hits.
    // Inputs:  None
-   // Outputs: The TkrPatCands Bank from which the final tracks fits are done
+   // Outputs: The Candidates Bank from which the final tracks are selected
    // Dependencies: None
-   // Restrictions and Caveats:  None.gap
+   // Restrictions and Caveats:  None
     
     int maxLayers = m_tkrGeom->numLayers();
     int localBestHitCount = 0; 
@@ -629,7 +635,92 @@ float ComboFindTrackTool::findNextHit(int layer, Ray& traj, float &deflection)
     if(denom > 25.) denom = 25.;   // Hardwire in max Error of 25 mm
     return resid/denom;  
 } 
+void ComboFindTrackTool::findReverseCandidates()
+{   
+   // Purpose and Method: Does a combinatoric search for tracks. Assumes
+   //                     tracks start in layer closest from the calorimeter
+   //                     First finds 3 (x,y) pairs which line up and then does
+   //                     first TkrTrack fit using the FindTrackHitsTool method to fill in 
+   //                     the rest of the hits.
+   // Inputs:  None
+   // Outputs: The Canididates Bank from which the final tracks fits are selected
+   // Dependencies: None
+   // Restrictions and Caveats:  None.
+    
+    int maxLayers = m_tkrGeom->numLayers();
+    
+    int localBestHitCount = 0; 
+    bool valid_hits = false;
+    int trials      = 0; 
+    
+    for (int ilayer = maxLayers-1; ilayer > 2 ; ilayer--) { 
+        // Termination Criterion
+        if(trials > m_maxTrials) break; 
+        if(localBestHitCount > m_termHitCnt && 
+                                     ilayer - m_firstLayer > 1) break;
+        
+        // Create space point loops and check for hits
+        TkrPoints first_Hit(m_tkrGeom->reverseLayerNumber(ilayer), m_clusTool);
+        int pSize = first_Hit.size();
+        TkrPointListConItr itFirst = first_Hit.begin();
+        for(; itFirst!=first_Hit.end(); ++itFirst) {
+            TkrPoint* p1 = *itFirst;
+            if(m_firstLayer == 0 && !valid_hits) {
+                m_firstLayer = ilayer;
+                valid_hits = true;
+            }
+     
+            // Allows at most one blank layer between first 2 hits
+            for(int igap=0; igap<m_maxGaps && ilayer+igap <maxLayers; igap++) {
+				int jlayer = ilayer - (igap + 1); 
+                // Tests for terminating gap loop
+                if(trials >m_maxTrials) break; 
+                if(localBestHitCount > 0 && igap > 0 &&
+                    (localBestHitCount+2 > (jlayer+2)*2)) break;
 
+                TkrPoints second_Hit(m_tkrGeom->reverseLayerNumber(jlayer), m_clusTool);
+                TkrPointListConItr itSecond = second_Hit.begin();
+                for (; itSecond!=second_Hit.end(); ++itSecond) {
+                    if(trials > m_maxTrials) break; 
+                    TkrPoint* p2 = *itSecond;
+                    Ray testRay = p1->getRayTo(p2);
+                   // if(fabs(testRay.direction().z()) < m_PatRecFoV) continue; 
+                    
+                    int gap;
+                    float deflection, sigma; 
+                    
+                    // See if there is a third hit - 
+                    // Allow up to 2 blank layers depending on 1st 2 hits
+                    int gap_max  = m_maxGaps-igap;
+                    gap_max = std::max(gap_max, 1);
+                    for(gap = 0; gap < gap_max; gap++) {
+                        sigma = findNextHit(jlayer-gap, testRay, deflection);
+
+                        // If good hit found: make a trial fit & store it away
+                        if(sigma < m_sigmaCut && deflection > m_maxDeflect) {        
+                            Candidate* trial = new Candidate(m_energy, testRay.position(), 
+                                                    testRay.direction(), m_maxChiSqCut,
+													m_findHitTool, m_trackFitTool, m_tkrGeom); 
+                            if(trial->track()->getStatusBits() == 0) {
+                                delete trial;
+                                continue;
+                            }
+                            if(trial->track()->getQuality() > m_minQuality) {
+                                int num_trial_hits = trial->track()->getNumHits();
+                                if(num_trial_hits > localBestHitCount) localBestHitCount = num_trial_hits; 
+                            }
+                            if(!incorporate(trial)) break;
+                            trials++; 
+							trial->track()->setStatusBit(Event::TkrTrack::PRBLNSRCH);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return;
+}
 bool ComboFindTrackTool::incorporate(Candidate* trial)
 {
    // Purpose and Method: Adds the trial candidate to the list of accepted candidates
@@ -646,11 +737,11 @@ bool ComboFindTrackTool::incorporate(Candidate* trial)
     TrackFitUtils fitUtil(m_tkrGeom, 0);
 
     // Check if this track duplicates another already present
-    int numTrialHits = trial->track()->getNumHits();
+    int numTrialHits = trial->track()->getNumFitHits();
     ComboFindTrackTool::iterator cand = m_candidates.begin();
     for (; cand!=m_candidates.end(); cand++) {
         int numHitsOverLapped = fitUtil.compareTracks(*((*cand)->track()), *(trial->track()));
-        int numHits = (*cand)->track()->getNumHits();
+        int numHits = (*cand)->track()->getNumFitHits();
         int numTest = std::min(numHits, numTrialHits);
         if (numHitsOverLapped > numTest - m_minUniHits) {
             if(trial->quality() > (*cand)->quality()) {
@@ -718,8 +809,9 @@ ComboFindTrackTool::Candidate::Candidate(double e, Point x, Vector t, double chi
 	if(!(m_track->getStatusBits()& Event::TkrTrack::FOUND)) return;
 
     fitter->doTrackFit(m_track); 
-    int more_hits = hit_finder->addLeadingHits(m_track);
-    if(more_hits > 0)    fitter->doTrackFit(m_track); 
+    int more_hits = 0;
+	if(t.z() < 0.) more_hits = hit_finder->addLeadingHits(m_track);
+	if(more_hits > 0) fitter->doTrackFit(m_track);
 
     // Check X**2 for the Track
 	if(m_track->getChiSquareSmooth() > chi_cut) {
@@ -750,7 +842,7 @@ ComboFindTrackTool::Candidate::Candidate(double e, Point x, Vector t, double chi
         double prj_size  = geometry->siThickness()*fabs(slope)/
                            geometry->siStripPitch() + 2.;
         double over_size = cls_size - prj_size;
-        if(over_size > 5.) over_size = 5.;// Limit effect rough large clusters
+        if(over_size > 5.) over_size = 5.;// Limit effect rouge large clusters
         if(over_size > 0) {
             if(i_Hit < 6)       size_penalty +=    over_size;
             else if(i_Hit < 12) size_penalty += .5*over_size;
@@ -760,13 +852,7 @@ ComboFindTrackTool::Candidate::Candidate(double e, Point x, Vector t, double chi
     }
 	int top_plane     = geometry->getPlane(x.z());
     int first_layer   = 17 - geometry->getLayer(top_plane);
-
-    // Initial setting of constrained energies
-    // This originally in the SetEnergies method, moved here to initialize con energy
-    double kal_energy = std::min(5000., m_track->getKalEnergy());
-    double energy     = std::max(e, kal_energy);
-
-    setConEnergy(energy);
+	if(t.z() > 0 ) first_layer = geometry->getLayer(top_plane);
 
     // This parameter sets the order of the tracks to be considered
     // Penalities: big kinks at start, begining later in stack, and
@@ -779,7 +865,7 @@ ComboFindTrackTool::Candidate::Candidate(double e, Point x, Vector t, double chi
 ComboFindTrackTool::Candidate::~Candidate() 
 {
    // Purpose and Method: destructor - needs to be present to delete the
-   //                     KalFitTrack 
+   //                     TkrTrack from the pointer
    // Inputs:  None
    // Outputs: None
    // Dependencies: None
