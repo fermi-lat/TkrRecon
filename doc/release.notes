@@ -3,6 +3,7 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v10r1p3  04-Jan-2005  TU   Fixes to hit finding and combo pat rec
   v10r1p2  03-Jan-2005  LSR  remove 'use xml *' from req. file
   v10r1p1  01-Jan-2005  LSR  Lots of stuff; remove more reverseLayer() calls
                                 fix some bugs, some cleanup on ComboFindTrackTool
