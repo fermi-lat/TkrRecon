@@ -8,7 +8,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.13 2003/03/26 22:05:03 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.14 2003/05/27 18:24:55 usher Exp $
  */
 
 #include "src/Track/TkrComboFitTool.h"
@@ -117,8 +117,10 @@ StatusCode TkrComboFitTool::doTrackFit(Event::TkrPatCand* patCand)
     Event::CandHitVectorPtr candPtr = patCand->getHitIterBegin();
     while(numHits--)
     {
-        Event::TkrPatCandHit candHit = *candPtr++;
-        fitter->addMeasHit(candHit);
+        ////Event::TkrPatCandHit candHit = *candPtr++;
+        ////fitter->addMeasHit(candHit);
+        Event::TkrPatCandHit* candHit = *candPtr++;
+        fitter->addMeasHit(*candHit);
     }
     track->setType(type);  
     fitter->doFit();
