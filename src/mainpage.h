@@ -72,7 +72,7 @@
  *
  * @authors Tracy Usher, Leon Rochester (SLAC) <br>
  * Bill Atwood, Brandon Allgood(UC Santa Cruz) <br>
- * Michael Kuss, Johann Tanugi-Cohen (INFN Pisa) <br>
+ * Michael Kuss, Johann Cohen-Tanugi (INFN Pisa) <br>
  * Jose Angel Hernando Morata (Santiago de Compostela)
  * <hr>
  * @section requirements CMT Requirements
