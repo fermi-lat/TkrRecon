@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Thu Mar 28 18:09:44 PST 2002
+TkrRecon/src/TrackFit
+
+Modified Files:
+	KalPlane.cxx 
+Log Message:
+First try at getting strip position from stripid, using detModel
+
+    *
+------------------------------------------------------------
 User: lsrea  Thu Mar 28 18:09:43 PST 2002
 TkrRecon/src/Services
 
