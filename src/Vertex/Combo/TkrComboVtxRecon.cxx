@@ -1,8 +1,6 @@
-/*
-    Code to implement the Combo vertex finding class
-
-    Tracy Usher March 1, 2002
-*/
+// Implementation file for combining the first
+// two tracks to estimate the gamma direction
+// Bill Atwood Spring, 2002
 
 #include "src/Vertex/Combo/TkrComboVtxRecon.h"
 #include "src/Vertex/Combo/RayDoca.h"
@@ -45,9 +43,10 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
 
                 Point  gamPos;
                 Vector gamDir;
-
+/*
+    //Begin Method 0.... 
                 double gamEne = track1->getEnergy() + track2->getEnergy();
-                
+              
                 Vector trk1Dir = track1->getDirection();
                 Vector trk2Dir = track2->getDirection();
                 
@@ -65,7 +64,8 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
                 gamDir  = w1*trk1Dir + w2*trk2Dir;
                 
                 gamDir.setMag(1.);
-/*               
+ */     
+       // Begin Method 1
        //Use tracking covariances & energies to weight track directions
                 TkrFitMatrix cov_t1 = track1->getTrackCov();
                 TkrFitMatrix cov_t2 = track2->getTrackCov();
@@ -109,9 +109,8 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
 
                 gamDir = Vector(gam_tx, gam_ty, -gam_tz).unit();
 
-
- 
-
+/*
+              // Begin method 2 
               // Second try using full cov. matrices... 
                 TkrFitMatrix cov_t1 = track1->getTrackCov();
                 TkrFitMatrix cov_t2 = track2->getTrackCov();
@@ -119,10 +118,14 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
                 TkrFitPar    par_t2 = track2->getTrackPar();
                 double e_t1 =  track1->getEnergy();
                 double e_t2 =  track2->getEnergy();
-
+  
+  
               // Recast matrices and parameters to elliminate postions
                 int ierror; 
                 TkrFitMatrix cs_t1; 
+                double sx_1= par_t1.getXSlope();
+                double sy_1= par_t1.getYSlope();
+
                 cs_t1(1,1) = cov_t1(2,2);
                 cs_t1(1,2) = cs_t1(2,1) = cov_t1(2,4);
                 cs_t1(2,2) = cov_t1(4,4); 
@@ -137,10 +140,10 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
             
                 T1(1,1) = e_t1*(1.+sy_1*sy_1)/nrm_1_3;
                 T1(1,2) = T1(2,1) = -e_t1*sx_1*sy_1/nrm_1_3;
-                T1(1,3) = e_t1*sx_1*(sx_1*sx_1 + sy_1*sy_1)/nrm_1_3;
+                T1(1,3) = 0.; //e_t1*sx_1*(sx_1*sx_1 + sy_1*sy_1)/nrm_1_3;
                 T1(2,2) = e_t1*(1.+sx_1*sx_1)/nrm_1_3;
-                T1(2,3) = e_t1*sy_1*(sx_1*sx_1 + sy_1*sy_1)/nrm_1_3;
-                T1(3,3) = e_t1/nrm_1; 
+                T1(2,3) = 0.; //e_t1*sy_1*(sx_1*sx_1 + sy_1*sy_1)/nrm_1_3;
+                T1(3,3) = 1.; //e_t1/nrm_1; 
                 T1(4,4) = 1; 
 
                 TkrFitMatrix wt_t1 = T1 * cs_t1 * T1.T();
@@ -153,8 +156,8 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
                 cs_t2(3,3) = cs_t2(4,4) = 1.;
                 double sx_2= par_t2.getXSlope();
                 double sy_2= par_t2.getYSlope();
-                double nrm_2   = sqrt(1.+sx_2*sx_2 + sy_1*sy_2); 
-                double nrm_2_3 = nrm_2*nrm_2*nrm_1;
+                double nrm_2   = sqrt(1.+sx_2*sx_2 + sy_2*sy_2); 
+                double nrm_2_3 = nrm_2*nrm_2*nrm_2;
                 TkrFitPar pt_t2(e_t2*track2->getDirection().x(), 
                                 e_t2*track2->getDirection().y(),
                                 e_t2*track2->getDirection().z(),1.);
@@ -163,10 +166,10 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
             
                 T2(1,1) = e_t2*(1.+sy_2*sy_2)/nrm_2_3;
                 T2(1,2) = T2(2,1) = -e_t2*sx_2*sy_2/nrm_2_3;
-                T2(1,3) = e_t2*sx_2*(sx_2*sx_2 + sy_2*sy_2)/nrm_2_3;
+                T2(1,3) = 0.; //e_t2*sx_2*(sx_2*sx_2 + sy_2*sy_2)/nrm_2_3;
                 T2(2,2) = e_t2*(1.+sx_2*sx_2)/nrm_2_3;
-                T2(2,3) = e_t2*sy_2*(sx_2*sx_2 + sy_2*sy_2)/nrm_2_3;
-                T2(3,3) = e_t2/nrm_2; 
+                T2(2,3) = 0.; //e_t2*sy_2*(sx_2*sx_2 + sy_2*sy_2)/nrm_2_3;
+                T2(3,3) = 1.; //e_t2/nrm_2; 
                 T2(4,4) = 1.; 
 
                 TkrFitMatrix wt_t2 = T2 * cs_t2 * T2.T();
@@ -176,11 +179,14 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
                 cov_gam.inverse(ierror);
 
                 TkrFitPar p_gam = cov_gam * (wt_t1*pt_t1 + wt_t2*pt_t2); 
+                double gamEne = e_t1 + e_t2;
+                p_gam(3) = -sqrt(gamEne*gamEne - p_gam(1)*p_gam(1) - p_gam(2)*p_gam(2));
+                gamDir = Vector(p_gam(1), p_gam(2), p_gam(3)).unit();
 
-               gamDir = Vector(p_gam.getXPosition(), p_gam.getXSlope(), p_gam.getYPosition()).unit();
+
+ //  End Method 2             
+
 */
-//                double gamEne = e_t1 + e_t2;
-              
                 gamPos  = doca.docaPointRay1();
                 gamPos += doca.docaPointRay2();
                 gamPos *= 0.5;
