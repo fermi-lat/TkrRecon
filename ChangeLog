@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Wed Mar 26 14:05:02 PST 2003
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrReconAlg.cxx TkrTrackFitAlg.cxx TkrVertexAlg.cxx 
+Log Message:
+
+    *
+------------------------------------------------------------
+User: usher  Wed Mar 26 14:05:02 PST 2003
 TkrRecon/src/Dll
 
 Modified Files:
