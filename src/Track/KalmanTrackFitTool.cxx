@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.14 2004/11/15 21:17:49 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.15 2004/11/16 03:36:37 atwood Exp $
  */
 
 // to turn one debug variables
@@ -480,46 +480,62 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
     // Delta z for next to current plane
     double        deltaZ         = filterZ - referenceZ;
 
-        // Measured hits in TDS format
-    TkrTrkParams  measPar(filterHit.getTrackParams(Event::TkrTrackHit::MEASURED));
-    TkrCovMatrix  measCov(filterHit.getTrackParams(Event::TkrTrackHit::MEASURED));
-
-    // Update this TDS cov mat for fit track angles
-    Event::TkrTrackParams&   params  = referenceHit.getTrackParams(Event::TkrTrackHit::FILTERED);
-    const Event::TkrCluster* cluster = filterHit.getClusterPtr();
-    measCov = m_fitErrs->computeMeasErrs(params, measCov, *cluster );
-
-    // Extract the measured state vector from the TDS version
-    // There must be a better way to do this...
-    KFvector measVec    = H(filterTkrId) * KFvector(measPar);
-    KFmatrix measCovMat = H(filterTkrId) * KFmatrix(measCov) * H(filterTkrId).T();
-
     // Get current state vector and covariance matrix
     KFvector curStateVec(referenceHit.getTrackParams(Event::TkrTrackHit::FILTERED));
     KFmatrix curCovMat(referenceHit.getTrackParams(Event::TkrTrackHit::FILTERED));
 
     KFmatrix& Q = (*m_Qmat)(curStateVec, referenceZ, m_HitEnergy->getHitEnergy(referenceHit.getEnergy()), filterZ);
 
-    // Filter this step
-    m_KalmanFit->Filter(curStateVec, curCovMat, measVec, measCovMat, F(deltaZ), H(filterTkrId), Q);
+    // Do we have a measurement at this hit?
+    if (filterHit.getStatusBits() && Event::TkrTrackHit::HASMEASURED)
+    {
+        // Measured hits in TDS format
+        TkrTrkParams  measPar(filterHit.getTrackParams(Event::TkrTrackHit::MEASURED));
+        TkrCovMatrix  measCov(filterHit.getTrackParams(Event::TkrTrackHit::MEASURED));
 
-    // Results?
-    curStateVec = m_KalmanFit->StateVecFilter();
-    curCovMat   = m_KalmanFit->CovMatFilter();
+        // Update this TDS cov mat for fit track angles
+        Event::TkrTrackParams&   params  = referenceHit.getTrackParams(Event::TkrTrackHit::FILTERED);
+        const Event::TkrCluster* cluster = filterHit.getClusterPtr();
+        measCov = m_fitErrs->computeMeasErrs(params, measCov, *cluster );
 
-    // Update the hit information (measured, predicted and filtered) for this plane
-    filterHit.setTrackParams(measPar, Event::TkrTrackHit::MEASURED);
-    filterHit.setTrackParams(measCov, Event::TkrTrackHit::MEASURED);
+        // Extract the measured state vector from the TDS version
+        // There must be a better way to do this...
+        KFvector measVec    = H(filterTkrId) * KFvector(measPar);
+        KFmatrix measCovMat = H(filterTkrId) * KFmatrix(measCov) * H(filterTkrId).T();
 
+        // Filter this step
+        m_KalmanFit->Filter(curStateVec, curCovMat, measVec, measCovMat, F(deltaZ), H(filterTkrId), Q);
+
+        // Update the hit information (measured, predicted and filtered) for this plane
+        filterHit.setTrackParams(measPar, Event::TkrTrackHit::MEASURED);
+        filterHit.setTrackParams(measCov, Event::TkrTrackHit::MEASURED);
+
+        // Calculate the chi-square contribution for this step
+        chiSqInc  = m_KalmanFit->chiSqFilter(measVec, measCovMat, H(filterTkrId));
+    }
+    else
+    {
+        // Extrapolate the previous hit to this hit
+        m_KalmanFit->Predict(curStateVec, curCovMat, F(deltaZ), Q, true);
+
+        chiSqInc = 0.;
+    }
+
+    // Update the extrapolated state information
     KFvector stateVec = m_KalmanFit->StateVecExtrap();
     KFmatrix stateCov = m_KalmanFit->CovMatExtrap();
 
     filterHit.setTrackParams(stateVec, Event::TkrTrackHit::PREDICTED);
     filterHit.setTrackParams(stateCov, Event::TkrTrackHit::PREDICTED);
 
+    // Update the filtered state information
+    curStateVec = m_KalmanFit->StateVecFilter();
+    curCovMat   = m_KalmanFit->CovMatFilter();
+
     filterHit.setTrackParams(curStateVec, Event::TkrTrackHit::FILTERED);
     filterHit.setTrackParams(curCovMat, Event::TkrTrackHit::FILTERED);
 
+    // Update material properties of this step
     KFmatrix qMat = m_Qmat->getLastStepQ();
 
     filterHit.setTrackParams(qMat, Event::TkrTrackHit::QMATERIAL);
@@ -530,9 +546,6 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
     // Change energy on the condition it is not negative...
     double newEnergy = m_HitEnergy->updateHitEnergy(referenceHit.getEnergy(),m_Qmat->getLastStepRadLen());
     if (newEnergy >= 0.) filterHit.setEnergy(newEnergy);
-
-    // Calculate the chi-square contribution for this step
-    chiSqInc  = m_KalmanFit->chiSqFilter(measVec, measCovMat, H(filterTkrId));
 
     filterHit.setChiSquareFilter(chiSqInc);
 
@@ -601,7 +614,10 @@ double KalmanTrackFitTool::doSmoother(Event::TkrTrack& track)
         measVec    = H(tkrId) * KFvector(currentPlane.getTrackParams(Event::TkrTrackHit::MEASURED));
         measCovMat = H(tkrId) * KFmatrix(currentPlane.getTrackParams(Event::TkrTrackHit::MEASURED)) * H(tkrId).T();
 
-        double chiSqKF = m_KalmanFit->chiSqSmooth(measVec, measCovMat, H(tkrId));
+        double chiSqKF =  0.;
+        
+        if (currentPlane.getStatusBits() && Event::TkrTrackHit::HASMEASURED)
+              chiSqKF = m_KalmanFit->chiSqSmooth(measVec, measCovMat, H(tkrId));
 
         chiSqSmooth += chiSqKF;
 
