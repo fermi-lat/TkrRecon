@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrControl.cxx,v 1.8 2004/06/01 22:04:15 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrControl.cxx,v 1.9 2004/07/16 00:20:16 lsrea Exp $
 //
 // Description:
 //      Implements singleton class for storing and retrieving 
@@ -25,15 +25,17 @@ TkrControl::TkrControl()
     m_maxConsecutiveGaps = 6;    // Max consecutive Gaps - Stop
     m_minSegmentHits     = 6;    // Min number of hits for segment
     m_minEnergy          = 30.0; // Min tracking energy (MeV)
+    m_hitEnergyType     = "RadLoss"; // "RadLoss" is standard electron energy loss
+                                     // "MuRadLoss" is muon Bethe-Bloch
 
     m_iniErrorSlope      = 0.17; // First Hit error in Kalman: 10 deg 
     m_iniErrorPosition   = 0.10; // First Hit error in Kalman: .1 mm
 
     m_planeEnergies      = true; // Decrease particle energies by exp(-rad_len)
 
-    m_errorType          = 0;    // 0 -> sigma = siResolution
-                                 // 1 -> sigma = first iteration of new errors
-                                 // 2 -> sigma = 2nd iteration of new errors
+    m_errorType          = 2;    // 0 -> sigma = siResolution
+                                 // 1 -> sigma = first iteration of slope-dependent errors
+                                 // 2 -> sigma = 2nd iteration of slope-dependent errors
     m_trackAcrossTowers  = true; // false means break tracks at tower boundaries
 
     return;

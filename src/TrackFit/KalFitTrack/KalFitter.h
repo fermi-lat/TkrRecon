@@ -13,7 +13,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitter.h,v 1.3 2003/03/13 19:13:24 lsrea Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitter.h,v 1.4 2004/09/07 22:15:53 lsrea Exp $
 */
 
 #ifndef __KalFitter_H
@@ -97,6 +97,7 @@ private:
 
     /// Energy Part
     void          eneDetermination();
+    void          setDeltaEnergy(TkrFitPlane& plane, double energy = 1.e10);
     
     /// Segment Part: First portion that influences direction
     double        computeChiSqSegment(int nhits, TkrFitHit::TYPE typ = TkrFitHit::SMOOTH);
