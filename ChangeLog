@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: burnett  Fri May 31 12:24:35 PDT 2002
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+
+tagging v6r3, mostly gui mods to put display options under a single menu.
+    *
+------------------------------------------------------------
+User: burnett  Fri May 31 12:24:35 PDT 2002
 TkrRecon/TkrRecon/Services
 
 Modified Files:
