@@ -3,6 +3,10 @@
  * Package TkrRecon
  * Manager: Leon Rochester 
  *
+ * v6r3p5  13-Jun-2002  TU    TkrReconAlg and TkrFindAlg can again obtain Cal Energy 
+ * v6r3p4  11-Jun-2002  TU    Fix TkrGeometrySvc so that cluster positions are (again) correct
+ * v6r3p3  
+ * v6r3p2
  * v6r3p1   3-Jun-2002  TU    Modifications made necessary by new TkrFitTrack and TkrVertex defs (grr...)
  * v6r3    13-May-2002  THB   New TkrVertex(Col), put display buttons on a separate menu
  * v6r2    13-May-2002  TU    Final DSTF rec changes, prepend "get" to methods, consistent iters
