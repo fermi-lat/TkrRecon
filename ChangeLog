@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Jan 19 21:39:01 PST 2005
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx 
+Log Message:
+Fix bug which caused crash when running in release mode. Basically, it was a null pointer. It is not at all clear to me why this didn't happen in debug mode code too.
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r2p1, operation: add
 Package: TkrRecon
