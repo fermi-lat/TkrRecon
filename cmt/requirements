@@ -1,6 +1,6 @@
 package TkrRecon
 
-version v8r12p26
+version v9r0
 
 author Tracy Usher    <usher@slac.stanford.edu>
 author Leon Rochester <lsrea@slac.stanford.edu>
@@ -18,7 +18,7 @@ use GlastSvc   v9*
 use GuiSvc
 use geometry
 use xml
-use TkrUtil    v1r*
+use TkrUtil    v2r*
 
 use G4Propagator v*
 
