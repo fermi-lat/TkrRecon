@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Tue Mar 26 14:07:58 PST 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrFindAlg.cxx 
+Removed Files:
+	McReconAlg.cxx RecNtupleAlg.cxx TkrNtupleAlg.cxx 
+Log Message:
+Ntuple algorithms removed since current versions no longer necessary
+    *
+------------------------------------------------------------
 User: usher  Tue Mar 26 13:50:03 PST 2002
 TkrRecon/TkrRecon/GaudiAlg
 
