@@ -141,8 +141,16 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       //computeQAtZref() OR A PRELIMINARY METHOD TO PERFORM
       // PROPAGATION
       Event::TkrFitMatrix measCov = theTrack->getTrackCov();
+      //At least let's make use of the fast inversion!
+      measCov.invert(ifail);
+      if(ifail)
+        {
+          log << MSG::ERROR <<"ERROR INVERTING G!"<<endreq;
+          return sc;
+        }
+
+      //G is actually G^(-1)
       HepSymMatrix G(4,0);
-      //      G.assign(theTrack->getTrackCov()); 
       G(1,1) = measCov.getcovX0X0();
       G(2,2) = measCov.getcovSxSx();
       G(1,2) = measCov.getcovX0Sx();
@@ -163,14 +171,7 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
 
       G(2,4) = measCov.getcovSxSy();
       G(4,2) = measCov.getcovSySx();
-
-      G.invert(ifail);
-      if(ifail)
-        {
-          log << MSG::ERROR <<"ERROR INVERTING G!"<<endreq;
-          return sc;
-        }
-      std::cout<<"MATRIX G: Cov of Tracks params"<<G<<endl;
+      std::cout<<"MATRIX invG: Weight of Tracks params"<<G<<endl;
 
       HepSymMatrix W;
       W.assign(B.T()*G*B);
