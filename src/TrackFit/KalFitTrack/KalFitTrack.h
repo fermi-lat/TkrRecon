@@ -13,7 +13,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitTrack.h,v 1.18 2002/09/05 17:56:01 lsrea Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitTrack.h,v 1.19 2002/09/06 06:59:53 lsrea Exp $
 */
 
 #ifndef __KalFitTrack_H
@@ -111,7 +111,6 @@ private:
     void          eneDetermination();
     
     /// Segment Part: First portion that influences direction
-    int           computeNumSegmentPoints(TkrFitHit::TYPE typ = TkrFitHit::SMOOTH);
     double        computeChiSqSegment(int nhits, TkrFitHit::TYPE typ = TkrFitHit::SMOOTH);
      
     /// Input Data: a position and a direction
