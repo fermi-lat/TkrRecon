@@ -1,4 +1,25 @@
 ------------------------------------------------------------
+User: usher  Tue Aug 20 12:39:59 PDT 2002
+TkrRecon/src/Track
+
+Added Files:
+	TkrComboFitTool.cxx TkrComboFitTool.h TkrControl.cxx 
+	TkrControl.h TkrLinkAndTreeFitTool.cxx TkrLinkAndTreeFitTool.h 
+	TkrNeuralNetFitTool.cxx TkrNeuralNetFitTool.h 
+Removed Files:
+	GFcontrol.cxx TkrBase.cxx TkrComboFit.cxx TkrComboFit.h 
+	TkrComboTrackFit.cxx TkrComboTrackFit.h TkrLinkAndTreeFit.cxx 
+	TkrLinkAndTreeFit.h TkrLinkAndTreeTrackFit.cxx 
+	TkrLinkAndTreeTrackFit.h TkrNeuralNetFit.cxx TkrNeuralNetFit.h 
+	TkrNeuralNetTrackFit.cxx TkrNeuralNetTrackFit.h TkrPoint.cxx 
+	TkrPoints.cxx 
+Log Message:
+Modifications made for:
+1) Change to using Gaudi Tools for controlling the reconstruction
+2) Create a TkrControl singleton object, initialized in TkrInitSvc, for control parameters
+
+    *
+------------------------------------------------------------
 User: usher  Tue Aug 20 12:35:10 PDT 2002
 TkrRecon/src/TrackFit/KalmanFilter
 
