@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.10 2004/03/24 00:07:44 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.11 2004/03/24 23:01:46 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -22,6 +22,7 @@
 #include "Event/MonteCarlo/McRelTableDefs.h"
 #include "Event/MonteCarlo/McIntegratingHit.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 
 #include "GlastSvc/MonteCarlo/IMcBuildRelTablesTool.h"
 
@@ -41,6 +42,9 @@ public:
 private:
     /// private method to build an individual Monte Carlo track
     Event::TkrPatCand* buildTrack(const Event::McParticle* mcPart);
+
+    /// Pointer to the local Tracker geometry service
+    ITkrGeometrySvc*    m_tkrGeo;
 
     IMcBuildRelTablesTool* m_mcBuildInfo;
 };
@@ -66,6 +70,14 @@ StatusCode MonteCarloFindTrackTool::initialize()
 {	
     PatRecBaseTool::initialize();
     StatusCode sc   = StatusCode::SUCCESS;
+
+    //Locate and store a pointer to the geometry service
+    IService*   iService = 0;
+    if ((sc = serviceLocator()->getService("TkrGeometrySvc", iService, true)).isFailure())
+    {
+        throw GaudiException("Service [TkrGeometrySvc] not found", name(), sc);
+    }
+    m_tkrGeo = dynamic_cast<ITkrGeometrySvc*>(iService);
 
     if ( (sc = toolSvc()->retrieveTool("McBuildRelTablesTool", m_mcBuildInfo)).isFailure() )
     {
@@ -195,6 +207,7 @@ Event::TkrPatCand* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* 
         int numGaps     =  0;
         int gapSize     =  0;
         int lastPlane   = -1;
+
         Event::McPartToClusPosHitVec::const_iterator hitIter;
         for(hitIter = hitVec.begin(); hitIter != hitVec.end(); hitIter++)
         {
@@ -208,9 +221,15 @@ Event::TkrPatCand* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* 
             {
                 // Start to fill the hits
                 const idents::VolumeIdentifier volId    = posHit->volumeID();
-                const HepPoint3D&              partPos  = 0.5*(posHit->globalEntryPoint() + posHit->globalExitPoint());
+                double                         startX   = cluster->v() == Event::TkrCluster::X 
+                                                        ? cluster->position().x() 
+                                                        : 0.5 * (posHit->globalEntryPoint().x() + posHit->globalExitPoint().x());
+                double                         startY   = cluster->v() == Event::TkrCluster::Y 
+                                                        ? cluster->position().y() 
+                                                        : 0.5 * (posHit->globalEntryPoint().y() + posHit->globalExitPoint().y());
+                double                         startZ   = cluster->position().z();
                 Hep3Vector                     partDir  = posHit->globalExitPoint() - posHit->globalEntryPoint();
-                Point                          startPos = Point(partPos.x(),partPos.y(),partPos.z());
+                Point                          startPos = Point(startX, startY, startZ);
                 Ray                            testRay  = Ray(startPos, partDir.unit());
                 double                         energy   = posHit->particleEnergy(); 
                 double                         enErr    = 0.01 * energy;     // Gotta have something here...
