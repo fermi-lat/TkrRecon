@@ -1,4 +1,20 @@
 ------------------------------------------------------------
+User: usher  Mon Aug  4 12:57:40 PDT 2003
+TkrRecon/TkrRecon/MonteCarlo
+
+Added Files:
+	McEventStructure.h McLayerHit.h McPatCand.h TkrEventModel.h 
+Log Message:
+Add externally accessible classes allowing for direct TkrRecon comparison to the
+Monte Carlo:
+1) McEventStructure describes the overall event (charged track, gamma conversion, etc.)
+and provides pointers to Monte Carlo tracks in the event
+2) McLayerHit relates McParticles to cluster hits and both to the MC particle hits
+3) McPatCand relates a Monte Carlo track to a pattern recognized track
+4) TkrEventModel emulates EventModel in describing what is in the (temporary) TDS
+
+    *
+------------------------------------------------------------
 User: usher  Mon Aug  4 12:53:09 PDT 2003
 TkrRecon/TkrRecon/MonteCarlo
 
