@@ -84,7 +84,7 @@ public:
 	void writeOut(MsgStream& log) const;
 	//! draws the clusters (each strips)
 	// void draw(GraphicsRep& v);
-	void draw(gui::DisplayRep& v, double pitch, double trayWidth);
+	void draw(gui::DisplayRep& v, double pitch, double towerPitch);
 
 protected:
 
@@ -138,7 +138,7 @@ class SiClusters : public DataObject
 public:
 
 	//! default constructor (ini the container)
-	SiClusters(int nViews, int nPlanes, double stripPitch, double trayWidth);
+	SiClusters(int nViews, int nPlanes, double stripPitch, double towerPitch);
 	//! destructor (delete the siclusters in the lists)
 	virtual ~SiClusters();
 
@@ -171,7 +171,7 @@ public:
 	//! Returns the strip pitch stored from geometry file
 	double const stripPitch() {return m_stripPitch;}
 	//! Returns the tray width stored from geometry file
-	double const trayWidth()  {return m_trayWidth;}
+	double const towerPitch()  {return m_towerPitch;}
 
 	/*! returns a reference to a vector of SiClusters pointer with the list of SiClusters pointer
 	that belong to a given view and plane */
@@ -204,6 +204,11 @@ public:
 	Point nearestHitOutside(SiCluster::view v, int iplane, double inRadius, 
 		Point centerX, int& id);
 
+    //! Finds the number of clusters near a given point
+    int numberOfHitsNear( int iPlane, double inRadius, Point& x0);
+    int numberOfHitsNear( int iPlane, double dX, double dY, Point& x0);
+    int numberOfHitsNear( SiCluster::view v, int iPlane, double inRadius, Point& x0);
+
 private:
 
 
@@ -218,7 +223,7 @@ private:
 	//! Strip pitch
 	double m_stripPitch;
 	//! Tray width
-	double m_trayWidth;
+	double m_towerPitch;
 	
 	/*! the clusters are organized in two lists: a) One containes the list of all clusters,
 	b) the other one has them ordered by plane and view to facilitate access to Pattern Recognition functions.
