@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.27 2005/02/01 00:22:06 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.28 2005/02/04 00:56:22 usher Exp $
  */
 
 // to turn one debug variables
@@ -170,7 +170,7 @@ m_KalmanFit(0), m_nMeasPerPlane(0), m_nParams(0), m_fitErrs(0)
 
     //Declare the fit track property
     declareProperty("HitEnergyType",     m_HitEnergyType="eRadLoss");
-    declareProperty("ParticleName",      m_ParticleName="electron");
+    declareProperty("ParticleName",      m_ParticleName="e-");
     declareProperty("DoMultScatMat",     m_MultScatMat=true);
     declareProperty("FitMeasHitOnly",    m_FitMeasOnly=true);
     declareProperty("MeasHitErrorType",  m_HitErrorType="SlopeCorrected");
