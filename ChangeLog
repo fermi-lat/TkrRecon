@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Sat May 11 22:53:03 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	GFtutor.cxx TkrComboFit.cxx TkrComboFit.h TkrComboTrackFit.h 
+	TkrLinkAndTreeFit.cxx TkrLinkAndTreeFit.h 
+	TkrLinkAndTreeTrackFit.h TkrNeuralNetFit.cxx TkrNeuralNetFit.h 
+	TkrNeuralNetTrackFit.h TkrPoints.cxx 
+Log Message:
+Change namespace TkrRecon to Event
+
+    *
+------------------------------------------------------------
 User: usher  Sat May 11 22:53:01 PDT 2002
 TkrRecon/src/PatRec/NeuralNet
 
