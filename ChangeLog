@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Fri May 10 14:53:54 PDT 2002
+TkrRecon/TkrRecon/Display
+
+Modified Files:
+	TkrCandidate3DRep.h TkrClustersRep.h TkrDispActiveNet.h 
+	TkrDispCompleteNet.h TkrTracksRep.h 
+Log Message:
+Change includes to switch from GlastEvent to Event
+
+    *
+------------------------------------------------------------
 User: usher  Fri May 10 14:53:53 PDT 2002
 TkrRecon/TkrRecon/Cluster
 
