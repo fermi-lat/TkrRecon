@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Mar 12 15:35:00 PST 2003
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	TkrNeuralNet.cxx 
+Log Message:
+Changes to accomodate relational tables and new method for accessing propagator
+
+    *
+------------------------------------------------------------
 User: usher  Wed Mar 12 15:34:59 PST 2003
 TkrRecon/src/PatRec/LinkAndTree
 
