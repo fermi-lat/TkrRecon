@@ -3,7 +3,7 @@
 #define __GFPARTICLE_H 1
 
 #include "GaudiKernel/MsgStream.h"
-#include "TkrRecon/Track/GFtrack.h"
+#include "src/PatRec/Combo/GFtrack.h"
 
 
 //##############################################

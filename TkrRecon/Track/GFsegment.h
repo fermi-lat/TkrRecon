@@ -3,7 +3,7 @@
 #define __GFSEGMENT_H 1
 
 #include "TkrRecon/TrackFit/KalTrack.h"
-#include "TkrRecon/Track/GFbase.h"
+#include "src/PatRec/Combo/GFbase.h"
 
 class GFparticle;
 

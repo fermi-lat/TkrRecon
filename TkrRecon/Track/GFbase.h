@@ -9,7 +9,7 @@
 
 #include "GaudiKernel/MsgStream.h"
 #include "geometry/Ray.h"
-#include "TkrRecon/Track/GFdata.h"
+#include "src/PatRec/Combo/GFdata.h"
 #include "TkrRecon/Track/GFcontrol.h"
 
 //---------------------------------------------------------------

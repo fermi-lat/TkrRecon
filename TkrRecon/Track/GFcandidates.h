@@ -8,7 +8,7 @@
 #define __GFcandidates_H 1
 
 #include <vector>
-#include "TkrRecon/Track/GFgamma.h"
+#include "src/PatRec/Combo/GFgamma.h"
 #include "TkrRecon/Track/GFcontrol.h"
 
 //##########################################################

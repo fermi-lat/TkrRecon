@@ -4,7 +4,7 @@
 
 #include <math.h>
 #include "GaudiKernel/MsgStream.h"
-#include "TkrRecon/Track/GFparticle.h"
+#include "src/PatRec/Combo/GFparticle.h"
 
 //#############################################################
 class GFpair : public GFbase

@@ -4,7 +4,7 @@
 
 #include <math.h>
 #include "GaudiKernel/MsgStream.h"
-#include "TkrRecon/Track/GFpair.h"
+#include "src/PatRec/Combo/GFpair.h"
 
 //############################################
 class GFgamma : public GFbase
