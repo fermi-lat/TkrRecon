@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Feb  6 13:35:12 PST 2002
+TkrRecon/TkrRecon/PatRec
+
+Added Files:
+	TkrPatRecon.h 
+Log Message:
+Adding abstract class definition for making a pat rec algorithm "factory"
+
+    *
+------------------------------------------------------------
 User: usher  Wed Feb  6 13:33:37 PST 2002
 TkrRecon/TkrRecon/PatRec
 
