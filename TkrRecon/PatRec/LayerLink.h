@@ -29,6 +29,13 @@ public:
 	virtual void           setInUse()                        = 0;
 	virtual void           notInUse()                        = 0;
 
+    //Test if link shares top or bottom cluster with another
+    virtual bool           sameTopCluster(LayerLink* pLink)  = 0;
+    virtual bool           sameBotCluster(LayerLink* pLink)  = 0;
+
+    //(signed) angle between links
+    virtual double         angleWith(LayerLink* pLink)       = 0;
+
 	//Set and access node associated with this link
 	virtual LayerLinkNode* getLinkNode()                     = 0;
 	virtual void           setLinkNode(LayerLinkNode* pNode) = 0;

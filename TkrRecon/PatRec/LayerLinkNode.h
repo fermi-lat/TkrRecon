@@ -9,7 +9,7 @@
 
 #include <vector>
 #include <list>
-#include "TkrRecon/PatRec/LayerLink.h"
+#include "TkrRecon/PatRec/LayerLinkVector.h"
 
 class LayerLinkNode;
 typedef std::vector<LayerLinkNode*>           linkNodeVector;
@@ -50,16 +50,37 @@ public:
 	virtual void           delWorstKid() = 0;
 
 	//Function to help find longest and straigtest path
-	virtual bool           isPathStraighter(LayerLinkNode* pNode) = 0;
+	virtual bool           isOldPathStraighter(LayerLinkNode* pOld) = 0;
+
+	//Function to help find longest and straigtest path since a branch
+	virtual bool           isOldPathBetter(LayerLinkNode* pOld) = 0;
 
 	//This routine for finding best list of nodes
-	virtual bool           isNodeBetter(LayerLinkNode* pNode) = 0;
+	virtual bool           isOldNodeBetter(LayerLinkNode* pOld) = 0;
+
+    //This routine checks just the last angle made between links
+    virtual bool           isOldAngleSmaller(LayerLinkNode* pOld) = 0;
+
+    //Function to check if new node is already in use and is better
+    virtual bool           isOldLinkBetter() = 0;
+
+    //This function to check if two links land on the same cluster
+    virtual bool           isOldClusBetter(layerLinkVector* pLayerLinkVector) = 0;
 
 	//Function to match two links
-	virtual bool           doLinksMatch(LayerLink* pNewLink) = 0;
+	virtual LayerLinkNode* doLinksMatch(LayerLink* pNewLink) = 0;
+
+    //Function to attemp to add a candidate node
+    virtual bool           keepNewNode(LayerLinkNode* pNewNode) = 0;
+
+    //Function to attemp to add a candidate node
+    virtual void           addNewNode(LayerLinkNode* pNewNode, int branchIdx) = 0;
 
     //Returns a bit mask of best paths associated with this node
     virtual unsigned       getLinkUsedList() = 0;
+
+    //Returns the number of nodes up to and including this node
+    virtual int            getNodeDepth() = 0;
 
     //Sets a bit in the best paths mask
     virtual void           setLinkUsedList(int id) = 0;

@@ -22,7 +22,7 @@ class LayerLinkTree
 	int  makeTree(layerLinkListPtr pLinkList);
 
 	//Private function for marking links as used for a tree beginning in a given layer
-	void markTreeLinks(LayerLinkNode* pNode);
+	void markTreeLinks(LayerLinkNode* pNode, layerLinkListPtr pLinkList);
 
 	//Recursive algorithm for building tree given a node
 	int  fndNextNode(layerLinkListPtr pLinkList, LayerLinkNode* pNode);
@@ -41,6 +41,11 @@ class LayerLinkTree
 
 	//Recursive algorithm for deleting all nodes in the tree
 	void deleteNodes(LayerLinkNode* pNode);
+
+    //This needed to sort the list of node candidates
+    void sortNodes(linkNodeVector* nodes);
+
+    bool bestNode(LayerLinkNode* pLhs, LayerLinkNode* pRhs);
 public:
 	LayerLinkTree();
 	LayerLinkTree(layerLinkListPtr pLinkList, LayerLinkNode* pNode);
@@ -48,7 +53,7 @@ public:
    ~LayerLinkTree();
 
 	//Sets all links in the tree to in use
-	void           setLinksInUse();
+	void           setLinksInUse(layerLinkListPtr pLinkList);
 
 	//Has our tree been marked?
 	bool           isTreeMarked()                    {return marked;}
@@ -57,7 +62,7 @@ public:
 	//How many leaves in the tree?
 	int            getNumLeaves()                    {return nLeaves;};
 	//How tall is our tree?
-	int            getTreeHeight()                   {return treeHeight;};
+	int            getTreeHeight()                   {return fndTreeHeight(pHeadNode);};
 
 	//Return the head node in our tree
 	LayerLinkNode* getHeadNode()                     {return pHeadNode;};

@@ -2,9 +2,9 @@
 #ifndef PatRecTracks_h
 #define PatRecTracks_h
 
-#include "TkrRecon/PatRec/TkrLinkForest.h"
-#include "TkrRecon/Cluster/TkrClusters.h"
-#include "TkrRecon/ITkrGeometrySvc.h"
+#include <vector>
+#include "GaudiKernel/MsgStream.h"
+#include "TkrRecon/PatRec/TkrPatCand.h"
 #include "GaudiKernel/DataObject.h"
 
 extern const CLID& CLID_TkrCandidates;
@@ -14,10 +14,7 @@ extern const CLID& CLID_TkrCandidates;
 //
 // TkrCandidates
 //
-// Class definition for the Link and Tree Pattern Recognition Transient Data
-// Object. Created by the TkrFindAlg called by GAUDI.
-//
-// Tracy Usher 11/08/01
+// Transient Data Object for the Pattern Recognition state of Tracker Reconstruction
 //
 //------------------------------------------------------------------------
 //
@@ -25,52 +22,30 @@ extern const CLID& CLID_TkrCandidates;
 class TkrCandidates : public DataObject
 {
 public:
-	TkrCandidates(ITkrGeometrySvc* pTkrGeo, TkrClusters* pTkrClus);
+	TkrCandidates();
    ~TkrCandidates();
 
-	//! GAUDI members to be use by the converters
-	static const CLID& classID() {return CLID_TkrCandidates;}
-	virtual const CLID& clID() const {return classID();}
+    //Provide ability to output some information about self...
+    void writeOut(MsgStream& log) const;
 
-        //Return information
-	TkrLinkForest*      getForest(TkrPlaneType plane);
-	int                 getNumTrees(TkrPlaneType plane);
+	//! GAUDI members to be use by the converters
+	static const CLID&  classID()           {return CLID_TkrCandidates;}
+	virtual const CLID& clID()        const {return classID();}
+
+    //How many track candidates are there?
+    int                 getNumCands() const {return m_candTracks.size();}
+
+    //Access to tracks through an iterator
+    CandTrkVectorPtr    getTrackPtr()       {return m_candTracks.begin();}
+
+    //Access to tracks by index
+    TkrPatCand*         getTrack(int idx)   {return m_candTracks[idx];}
+
+    //Add tracks to the list
+    void                addTrack(TkrPatCand* candTrack);
 
 private:
-	//Cluster hit information
-	void                setNumClusters(int nClus) {numClusters = nClus;};
-	int                 getNumClusters()          {return numClusters;};
-
-	//Links information
-	void                setLinkList(TkrClusterLinkList* pLinks, TkrPlaneType plane);
-	TkrClusterLinkList* getLinkList(TkrPlaneType plane);
-	int                 getNumLinks(TkrPlaneType plane);
-
-	//Forest information
-	void                setForest(TkrLinkForest* pForest, TkrPlaneType plane);
-
-	//Overide virtual functions in trsDataVI
-
-	void               ini();
-	void               clear();
-	void               make()     {return;};
-	//void               writeOut() const;
-	//void               update(GraphicsRep& v);
-
-        //Data members
-	int                 numClusters;
-
-	TkrClusterLinkList* pLinkListX;
-	int                 numLinksX;
-
-	TkrClusterLinkList* pLinkListY;
-	int                 numLinksY;
-
-	TkrLinkForest*      pForestX;
-	int                 numTracksX;
-
-	TkrLinkForest*      pForestY;
-	int                 numTracksY;
+    CandTrkVector m_candTracks;
 };
 
 #endif

@@ -8,10 +8,13 @@
 #define __TKRLINKFOREST_H
 
 #include <list>
+//#include <vector>
 #include "TkrRecon/PatRec/TkrLinkTree.h"
 
 typedef std::list<TkrLinkTree>           treeList;
 typedef std::list<TkrLinkTree>::iterator treeListPtr;
+//typedef std::vector<TkrLinkTree>           treeList;
+//typedef std::vector<TkrLinkTree>::iterator treeListPtr;
 
 class TkrLinkForest
 {
@@ -28,10 +31,9 @@ public:
 	int getNumTrees() {return linkTreeList.size();}
 
 	//Return the start of the list of trees
-	treeListPtr getListStart() {return linkTreeList.begin();};
-
-	//Draw the forest
-	//void        draw(GraphicsRep& v);
+	treeListPtr getListStart() {return linkTreeList.begin();}
+    treeListPtr getListEnd()   {return linkTreeList.end();}
+    treeList*   getTreePtr()   {return &linkTreeList;}
 
 	//This will be useful for sorting a list of trees
 //	friend bool operator()(const SiLinkTree &lhs, const SiLinkTree &rhs);
