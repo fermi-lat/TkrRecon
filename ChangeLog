@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: burnett  Fri Jun  1 23:03:04 PDT 2001
+TkrRecon/mgr requirements
+
+Modified Files:
+	requirements 
+Log Message:
+clean up deadwood in requirements;
+output to log file, not cout;
+fix memory leak.
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Jun  1 17:27:48 PDT 2001
 TkrRecon/TkrRecon ITkrGeometrySvc.h TkrGeometrySvc.h
 
