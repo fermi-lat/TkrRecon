@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Mon Sep  2 10:32:33 PDT 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrBadStripsSvc.cxx TkrGeometrySvc.cxx TkrGeometryVisitor.cxx 
+Log Message:
+documentation
+    *
+------------------------------------------------------------
 User: lsrea  Mon Sep  2 10:32:08 PDT 2002
 TkrRecon/src/GaudiAlg
 
