@@ -3,6 +3,7 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v8r10p2 07-Aug-2003  LSR   Mostly Tracy's new MC-patrec
   v8r10p2 23-Jul-2003  LSR   Retag... I messed up the last tag.
   v8r10p1 22-Jul-2003  LSR   Fixes to requirements file
   v8r10   17-Jul-2003  LSR   Kalman uses new TkrGeometry methods; cleanup of patrec tools
