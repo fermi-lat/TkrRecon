@@ -291,7 +291,7 @@ void GFpair::loadGFdata()
     m_RCenergy = doEnergy(_mGFbest, _mGFpair);
     
     if (_mGFpair->empty()) {
-	m_direction = _mGFbest->direction();
+	m_direction = _mGFbest->k_direction();
 	m_weightBest = 1.;
 	m_errorSlope	 = .1;//_mGFbest->errorSlopeAtVertex();
     } else {
@@ -303,8 +303,8 @@ void GFpair::loadGFdata()
     
     m_vertex = _mGFbest->vertex();
     if (!_mGFpair->empty()) {	 
-	Ray bestRay = Ray(_mGFbest->vertex(),_mGFbest->direction());
-	Ray pairRay = Ray(_mGFpair->vertex(),_mGFpair->direction());
+	Ray bestRay = Ray(_mGFbest->vertex(),_mGFbest->k_direction());
+	Ray pairRay = Ray(_mGFpair->vertex(),_mGFpair->k_direction());
 	m_vertex=GFbase::doVertex(bestRay, pairRay);
     }
 }
@@ -556,8 +556,8 @@ Vector GFpair::doDirection(double& xFactor)
     float wt2x = 1./(3.*(_mGFpair->chiSquare() + .01));
     if (wt2x > wt1x) wt2x = wt1x;
     xFactor = wt1x/(wt1x + wt2x);
-    Vector t1 = _mGFbest->direction();
-    Vector t2 = _mGFpair->direction();
+    Vector t1 = _mGFbest->k_direction();
+    Vector t2 = _mGFpair->k_direction();
     //unused: float sinDLT12 = sqrt(std::max(0.0,(1. - sqr(t1*t2))));
     // if(sinDLT12 < .010/m_iniEnergy) { // only trust small opening angle paris
     double aveSlope = 0.;//xFactor*_mGFbest->slope() + (1.-xFactor)*_mGFpair->slope();
@@ -579,8 +579,8 @@ Vector GFpair::doDirectionXene(double xene, double& weight)
     double ix3 = (1.-xene)*(1.-xene)*(1.-xene);
     float wt1x = x3/(x3+ix3);
     float wt2x = ix3/(x3+ix3);
-    Vector t1 = _mGFbest->direction();
-    Vector t2 = _mGFpair->direction();
+    Vector t1 = _mGFbest->k_direction();
+    Vector t2 = _mGFpair->k_direction();
     double aveSlope = 0.;//wt1x*_mGFbest->slope() + wt2x*_mGFpair->slope();
     double slopeX = 0.;
     double slopeY = 0.;

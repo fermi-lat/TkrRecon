@@ -11,6 +11,7 @@
 
 #include "TkrRecon/Track/SiRecObjs.h"
 #include "TkrRecon/Track/GFtutor.h"
+#include "TkrRecon/Track/TkrComboPR.h"
 
 SiRecObjs::SiRecObjs(ITkrGeometrySvc* pTkrGeo, TkrClusters* pTkrClus, double CalEnergy, Point CalPosition)
 {
@@ -22,7 +23,7 @@ SiRecObjs::SiRecObjs(ITkrGeometrySvc* pTkrGeo, TkrClusters* pTkrClus, double Cal
     
     // Our five year mission: To seek new gamma sources, to boldy
     // find gammas where no man has found them before...
-    //searchGammas(CalEnergy, CalPosition);
+    searchGammas(CalEnergy, CalPosition);
     
     // Now search for tracks
     searchParticles(CalEnergy, CalPosition);
@@ -37,6 +38,7 @@ void SiRecObjs::ini()
 {
     m_GFgammaList.clear();
     m_GFparticleList.clear();
+    m_trackList.clear();
 }
 
 //##############################################
@@ -50,20 +52,27 @@ void SiRecObjs::clear()
     int npar= m_GFparticleList.size();
     for (int ipar = 0; ipar < npar; ipar++) 
         delete m_GFparticleList[ipar];
-    
+
+       
+    int ntkr= m_trackList.size();
+    for (int itk = 0; itk < ntkr; itk++) 
+        delete m_trackList[itk];
+
     m_GFparticleList.clear();
     m_GFgammaList.clear();
+    m_trackList.clear();
 }
 
 //########################################################
 void SiRecObjs::draw(gui::DisplayRep& v)
 //########################################################
 {
+    v.setColor("blue");
     if (numGammas()>0) {
         for (int ig=0; ig < numGammas(); ig++) m_GFgammaList[ig]->draw(v);
     }
-    if (numParticles()>0) {
-        for (int ip=0; ip < numParticles(); ip++) m_GFparticleList[ip]->draw(v);
+    if (numTracks()>0) {
+        for (int ip=0; ip < numTracks(); ip++) m_trackList[ip]->draw(v);
     }
 }
 
@@ -101,43 +110,62 @@ void SiRecObjs::writeOut(MsgStream& log) const
 void SiRecObjs::searchGammas(double CalEnergy, Point CalPosition)
 //##############################################
 {
-    /*
-    // Gamma reconstruction
-    int    ntries = 0;
-    double factor = 1.;
-    bool   end    = false;
+   // Other tracks reconstruction
+    int ntries = 0;
+    double ene = GFcontrol::FEneParticle*CalEnergy;
+    if (ene <= GFcontrol::minEnergy) ene = GFcontrol::minEnergy;
+    bool end = false;
     
-    while (ntries < GFcontrol::gammaTries && !end) 
-    {
-        double sigmaCut = 3.* GFcontrol::sigmaCut;
+    while (ntries < GFcontrol::particleTries && !end) {
+        ntries++;        
+        //        GFtutor::setVeto(false);
         
-        double ene = CalEnergy*factor;
-        if (ene <= GFcontrol::minEnergy) ene = GFcontrol::minEnergy;
-        
-        GFcandidates* gamma = 
-            new GFcandidates(GFcandidates::GAMMA, ene , sigmaCut, CalPosition);
-        
-        if (gamma->numCandidates() > 0) {
-            ntries++;
+        TkrComboPR *tracks; 
+        if(ntries == 1) {
+            tracks =
+            new TkrComboPR(GFcontrol::sigmaCut, ene, CalPosition); 
+        }
+        else {
+            tracks =
+            new TkrComboPR(GFcontrol::sigmaCut, 0., CalPosition); 
+        }
+
+        if (tracks->numCandidates() > 0) {
+
+            TkrComboPR::const_iterator hypo;
             
-            int ican = 0;
-            GFdata gammaCandidate = gamma->m_candidates[ican];
-            
-            int iniLayer = gammaCandidate.firstLayer();
-            Ray testRay = gammaCandidate.ray();
-            
-            GFgamma* _GFgamma = new GFgamma(GFcontrol::FEne, sigmaCut,
-                ene, iniLayer, testRay);
-            
-            if (!_GFgamma->empty()) {
-                _GFgamma->flagAllHits();
-                addGamma(_GFgamma);
-            } else delete _GFgamma;
-            
-        } else end = true;
-        delete gamma;
+            for(hypo  = tracks->candidates().begin(); 
+                hypo != tracks->candidates().end();   hypo++){
+                
+                int iniLayer = (*hypo).firstLayer();
+                int iniTower = (*hypo).tower();
+                Ray testRay  = (*hypo).ray();
+                float energy = (*hypo).energy();
+                
+
+                TkrFitTrack * _track = new TkrFitTrack(iniLayer, iniTower, 
+                                      GFcontrol::sigmaCut, energy, testRay); 
+                if (!_track->empty()) {
+                    addParticle(_track);
+                    _track->flagAllHits();
+                    if(ntries==1) {
+                        _track->unFlagHit(0);
+                        _track->unFlagHit(1); 
+                        break;
+                    }
+                    else {
+                        continue;
+                    }
+                } 
+                else {
+                    delete _track;
+                }
+            }
+        } 
+        else end = true;
+        delete tracks;
     }
- */   
+        
 }
 
 //###########################################################
@@ -146,38 +174,60 @@ void SiRecObjs::searchParticles(double CalEnergy, Point CalPosition)
 {
     // Other tracks reconstruction
     int ntries = 0;
-    double factor = 1./GFcontrol::particleTries;
+    double ene = GFcontrol::FEneParticle*CalEnergy;
+    if (ene <= GFcontrol::minEnergy) ene = GFcontrol::minEnergy;
     bool end = false;
     
     while (ntries < GFcontrol::particleTries && !end) {
+        ntries++;        
+        //        GFtutor::setVeto(false);
         
-        GFtutor::setVeto(false);
-        
-        double ene = GFcontrol::FEneParticle*CalEnergy*factor;
-        if (ene <= GFcontrol::minEnergy) ene = GFcontrol::minEnergy;
-        GFcandidates* tracks = 
-            new GFcandidates(GFcandidates::PARTICLE, ene, GFcontrol::sigmaCut, CalPosition);
+        TkrComboPR *tracks =
+            new TkrComboPR(GFcontrol::sigmaCut, ene, CalPosition); 
+        //       GFcandidates* tracks = 
+        //          new GFcandidates(GFcandidates::PARTICLE, ene, GFcontrol::sigmaCut, CalPosition);
         
         if (tracks->numCandidates() > 0) {
-            ntries++;
-            GFdata trackCandidate = tracks->m_candidates[0];
+            //            GFdata trackCandidate = tracks->m_candidates[0];
+            TkrComboPR::const_iterator hypo;
             
-            int iniLayer = trackCandidate.firstLayer();
-            Ray testRay = trackCandidate.ray();
-            
-            GFparticle* _GFparticle = 
-                new GFparticle(GFcontrol::sigmaCut, ene, iniLayer, testRay);
-            
-            if (!_GFparticle->empty()) {
-                addParticle(_GFparticle);
-                _GFparticle->flagAllHits();
-            } else {
-                delete _GFparticle;
+            for(hypo  = tracks->candidates().begin(); 
+                hypo != tracks->candidates().end();   hypo++){
+                
+                int iniLayer = (*hypo).firstLayer();
+                int iniTower = (*hypo).tower();
+                Ray testRay  = (*hypo).ray();
+                float energy = (*hypo).energy();
+                
+             //   GFparticle* _GFparticle = 
+              //      new GFparticle(GFcontrol::sigmaCut, energy, iniLayer, testRay);
+            //    if (!_GFparticle->empty()) {
+            //        addParticle(_GFparticle);
+            //        _GFparticle->flagAllHits();
+            //    } 
+            //    else {
+            //        delete _GFparticle;
+            //    }
+
+                TkrFitTrack * _track = new TkrFitTrack(iniLayer, iniTower, 
+                                      GFcontrol::sigmaCut, energy, testRay); 
+                if (!_track->empty()) {
+                    addParticle(_track);
+                    _track->flagAllHits();
+                    _track->unFlagHit(0);
+                    _track->unFlagHit(1); 
+                    if(ntries==1) break;
+                    else          continue;
+                } 
+                else {
+                    delete _track;
+                }
             }
-        } else end = true;
+        } 
+        else end = true;
         delete tracks;
         
-        GFtutor::setVeto(true);
+ //       GFtutor::setVeto(true);
     }
 }
 

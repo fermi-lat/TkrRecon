@@ -1,4 +1,4 @@
-// $Id: GFparticle.cpp,v 1.2 2001/03/06 20:22:50 usher Exp $
+// $Id: GFtrack.cxx,v 1.1 2001/11/26 21:40:30 usher Exp $
 //------------------------------------------------------------------------------
 //
 //     GlastFit
@@ -563,9 +563,9 @@ void GFtrack::loadGFdata()
 //	y0=position(0.);
 //	slopey=slope();
 //   }
-    m_vertex = position(0.);
+    m_vertex = k_position(0.);
     double factor = -1.;
-    m_direction = direction();
+    m_direction = k_direction();
     m_RCenergy =  KalEnergy();
     m_quality = computeQuality();
     m_firstLayer = kplanelist[0].getIDPlane();
