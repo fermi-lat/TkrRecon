@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Wed Feb  6 13:33:37 PST 2002
+TkrRecon/TkrRecon/PatRec
+
+Removed Files:
+	BestNodeList.h LayerLink.h LayerLinkList.h LayerLinkNode.h 
+	LayerLinkTree.h LayerLinkVector.h TkrClusterLink.h 
+	TkrClusterLinkList.h TkrClusterLinkVector.h TkrLinkAndTreePR.h 
+	TkrLinkForest.h TkrLinkNode.h TkrLinkTree.h TkrNodeQuality.h 
+Log Message:
+Moving these private header files to the private src/PatRec folder
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Jan 29 17:07:55 PST 2002
 TkrRecon/src
 
