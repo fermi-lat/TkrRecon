@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: usher  Mon Aug  4 13:08:37 PDT 2003
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrDisplayAlg.cxx TkrFindAlg.cxx TkrTrackFitAlg.cxx 
+Log Message:
+Modifications to include a "Monte Carlo Pattern Recognition" which forms candidate
+tracks from Monte Carlo associated clusters to allow testing of the fitting 
+and vertexing procedures. 
+
+    *
+------------------------------------------------------------
+User: usher  Mon Aug  4 13:08:37 PDT 2003
 TkrRecon/src/Dll
 
 Modified Files:
