@@ -25,7 +25,7 @@ path_append LD_LIBRARY_PATH "${TKRRECONROOT}/${DEBUGDIR}/"
 
 include_path $(TKRRECONROOT)
 
-private
+private 
 
 
 # note that the debug versions of the used libraries are inserted below
