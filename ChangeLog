@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Oct 10 08:35:01 PDT 2001
+TkrRecon/src GFcontrol.cpp GFparticle.cpp
+
+Modified Files:
+	GFcontrol.cpp GFparticle.cpp 
+Log Message:
+Increased sigmacut to 8, added some comments
+    *
+------------------------------------------------------------
 User: lsrea  Sat Oct  6 10:26:03 PDT 2001
 TkrRecon/src GFcandidates.cpp GFgamma.cpp GFparticle.cpp GFsegment.cpp KalFit.cxx RecNtupleAlg.cpp SiClusters.cpp SiClustersAlg.cxx SiRecObjsAlg.cxx
 
