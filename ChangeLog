@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Thu Mar 25 13:45:05 PST 2004
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusters.cxx TkrQueryClusters.cxx 
+Log Message:
+added newline at end of files
+    *
+------------------------------------------------------------
 User: usher  Wed Mar 24 15:01:46 PST 2004
 TkrRecon/src/PatRec/MonteCarlo
 
