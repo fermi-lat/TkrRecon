@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Tue Jul  8 09:59:52 PDT 2003
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	TkrNeuralNet.cxx 
+Log Message:
+bug fix
+    *
+------------------------------------------------------------
 User: usher  Mon Jul  7 13:04:20 PDT 2003
 TkrRecon/cmt
 
