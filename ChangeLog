@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Feb  7 10:36:41 PST 2002
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+Also set the candidate track energy for this pat rec algorithm
+    *
+------------------------------------------------------------
 User: usher  Thu Feb  7 10:35:03 PST 2002
 TkrRecon/TkrRecon/GaudiAlg
 
