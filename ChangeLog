@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Jan 28 15:02:12 PST 2005
+TkrRecon/src/Track
+
+Modified Files:
+	TkrTrackEnergyTool.cxx 
+Log Message:
+fix problem causing exceptions in propagator
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r3p2, operation: add
 Package: TkrRecon
