@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.17 2004/10/22 17:52:42 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.18 2004/10/28 22:17:20 lsrea Exp $
  */
 
 #include <vector>
@@ -215,29 +215,31 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
     Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
     //std::cout << "TkrTrackFitAlg::doTrackFit: " << trackCol->size() << " tracks to refit" << std::endl;
 
+	// Get the first track to find out the energy option used and execute default (LATENERGY)
+	Event::TkrTrack* firstTrack = *trackCol->begin();
+	if(firstTrack->getStatusBits() & Event::TkrTrack::LATENERGY) {
     // Recover pointer to Cal Cluster info  
-    Event::CalClusterCol* pCalClusters = SmartDataPtr<Event::CalClusterCol>(eventSvc(),EventModel::CalRecon::CalClusterCol);
+        Event::CalClusterCol* pCalClusters = SmartDataPtr<Event::CalClusterCol>(eventSvc(),EventModel::CalRecon::CalClusterCol);
 
-    double CalEnergy = pCalClusters->front()->getEnergyCorrected(); 
-    double CalSumEne = pCalClusters->front()->getEnergySum();
+        double CalEnergy = pCalClusters->front()->getEnergyCorrected(); 
+        double CalSumEne = pCalClusters->front()->getEnergySum();
 
-    if (CalEnergy > CalSumEne)
-    {
-        // Get the energy calculation tool
-        TkrTrackEnergyTool* TrackEnergyTool = 0;
-        sc = toolSvc()->retrieveTool("TkrTrackEnergyTool", TrackEnergyTool);
-
-        TrackEnergyTool->SetTrackEnergies(CalEnergy);
-
-        // Ok, now set up to loop over candidate tracks
-        for(Event::TkrTrackColPtr trackIter = trackCol->begin(); trackIter != trackCol->end(); trackIter++)
+        if (CalEnergy > CalSumEne)
         {
-            Event::TkrTrack* track = *trackIter;
+            // Get the energy calculation tool
+            TkrTrackEnergyTool* TrackEnergyTool = 0;
+            sc = toolSvc()->retrieveTool("TkrTrackEnergyTool", TrackEnergyTool);
 
-            m_FitTool->doTrackReFit(track);
+            TrackEnergyTool->SetTrackEnergies(CalEnergy);
+		}
+	}
+
+    // Ok, now set up to loop over candidate tracks
+    for(Event::TkrTrackColPtr trackIter = trackCol->begin(); trackIter != trackCol->end(); trackIter++)
+        {
+         Event::TkrTrack* track = *trackIter;
+         m_FitTool->doTrackReFit(track);
         }
-    }
-
     return sc;
 }
 

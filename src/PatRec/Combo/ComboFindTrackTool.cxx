@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.17 2004/11/17 01:15:18 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.19 2004/11/22 18:36:08 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -94,7 +94,6 @@ protected:
 private:
     /// Major Sub sections 
     void searchCandidates();
-    void setEnergies(double CalEnergy); 
     void loadOutput(); 
     
     /// Internal drivers
@@ -120,7 +119,10 @@ private:
 	double m_maxTripRes; // Max. un-normalized residual for first 3 TkrPoints
 	int m_minUniHits;    // Min. number of unique hits required on a track
 	int m_minQuality;    // Min. Track PR quality to accept
-	int m_maxGaps;       // Max. number of allowed gaps in the first 3 XY hits 
+	int m_maxGaps;       // Max. number of allowed gaps in the first 3 XY hits
+	std::string m_EnergyType; //Energy types: Default, CALOnly, User, MC
+	                     //  default = Tkr+Cal with constraint, others self explanatory
+	                     //            and over ride reseting energy al later stages
 
 	/// Internal data members
 	CandidateList m_candidates;  // Internal list of found hypothesises
@@ -160,6 +162,7 @@ ComboFindTrackTool::ComboFindTrackTool(const std::string& type, const std::strin
 	declareProperty("MinNumUniHits", m_minUniHits = 4); 
 	declareProperty("MinPatRecQual", m_minQuality = 10);
     declareProperty("MaxFirstGaps", m_maxGaps = 2);
+	declareProperty("EnergyType",   m_EnergyType="Default");
 	return;
 }
 
@@ -199,35 +202,43 @@ StatusCode ComboFindTrackTool::findTracks()
     m_firstLayer   = 0; 
     m_TopLayer     = m_tkrGeom->numLayers(); 
 
-	// Set up the first guess for the energy
+	// Set up the energy variables
     double CalEnergy   = m_minEnergy;
     m_Pcal = Point(0.,0.,0.);
 
-    //If clusters, then retrieve estimate for the energy
+    //If clusters, then retrieve estimate for the energy & centroid
     if (pCalClusters)
     {
         CalEnergy   = pCalClusters->front()->getEnergySum(); 
         m_Pcal      = pCalClusters->front()->getPosition();
     }
 
-    //Provide for some lower cutoff energy...
-    if (CalEnergy < m_minEnergy) 
-    {
+    //Sort out the energy options
+	if(m_EnergyType == "Default") {
+        if (CalEnergy < m_minEnergy) {
         //! for the moment use:
-        CalEnergy     = m_minEnergy;
-        m_Pcal        = Point(0.,0.,0.);
-    }
+            CalEnergy     = m_minEnergy;
+            m_Pcal        = Point(0.,0.,0.);
+        }
+		//Take a fraction of the Cal Energy for the first track
+	    m_energy = std::max(m_1stTkrEFrac*CalEnergy, m_minEnergy);
+	}
+	if(m_EnergyType == "CALOnly") {
+        if (CalEnergy < m_minEnergy) {
+        //! for the moment use:
+            CalEnergy     = m_minEnergy;
+            m_Pcal        = Point(0.,0.,0.);
+        }
+	}
+	if(m_EnergyType  == "User" ) m_energy = m_minEnergy;
+	if(m_EnergyType  == "MC" ) { 
+		m_energy = m_minEnergy;  //PLACE HOLDER 
+		//   - Tracy - need help here to dig out energy
+	}
 
-	//Take a fraction of the Cal Energy for the first track
-	m_energy = std::max(m_1stTkrEFrac*CalEnergy, m_minEnergy);
-
-	// Drivers for the Pattern Recognition
 	// Search for candidate tracks
     searchCandidates();
     
-    //Set Global Event Energy and constrain individual track energies
-    if(!m_candidates.empty()) setEnergies(CalEnergy);
-
     //Load output PR Candidates
     loadOutput();
 
@@ -256,7 +267,7 @@ void ComboFindTrackTool::searchCandidates()
     m_candidates.clear();
     
     //Determine what to do based on status of Cal energy and position
-    if( m_energy <= m_minEnergy || m_Pcal.mag() == 0.) 
+    if( m_Pcal.mag() == 0.) 
     {   // This path use no calorimeter energy - 
         findBlindCandidates();
     }
@@ -293,7 +304,7 @@ void ComboFindTrackTool::searchCandidates()
         if(hypo != m_candidates.end()) m_candidates.erase(hypo, m_candidates.end()); 
         
         // Now with these hits "off the table" lower the energy & find other tracks
-        m_energy = std::max(m_1stTkrEFrac*m_energy, m_minEnergy);
+        if(m_EnergyType == "Default") m_energy = std::max(m_1stTkrEFrac*m_energy, m_minEnergy);
 
         findBlindCandidates();
     }
@@ -359,11 +370,17 @@ void ComboFindTrackTool::loadOutput()
             // Add to the TDS collection
             trackCol->push_back(newTrack);
 
-            newTrack->setStatusBit(Event::TkrTrack::Found);
-            int  numHits  = newTrack->getNumHits();
+			// Set the track energy status
+            newTrack->setStatusBit(Event::TkrTrack::FOUND);
+			newTrack->clearEnergyStatusBits();
+			if(m_EnergyType == "CALOnly" )  newTrack->setStatusBit(Event::TkrTrack::CALENERGY);
+			else if(m_EnergyType == "User") newTrack->setStatusBit(Event::TkrTrack::CALENERGY);
+			else if(m_EnergyType == "MC")   newTrack->setStatusBit(Event::TkrTrack::MCENERGY);
+			else                            newTrack->setStatusBit(Event::TkrTrack::LATENERGY);
 
-            for(int i = 0; i<numHits; i++)
-            {
+			// Add the hits to the TDS
+            int  numHits  = newTrack->getNumHits();
+            for(int i = 0; i<numHits; i++){
                 Event::TkrTrackHit* hit = (*newTrack)[i];
                 trackHitCol->push_back(hit);
             }
@@ -382,195 +399,6 @@ void ComboFindTrackTool::loadOutput()
         m_candidates.clear();
     }
     
-}
-
-namespace {
-
-    // Some constants collected from the file:
-
-    const double _thinCoeff       = 0.61;
-    const double _thickCoeff      = 1.97;
-    const double _noradCoeff      = 0.35;
-
-    const double _calKludge       = 1.2;
-}
-
-void ComboFindTrackTool::setEnergies(double calEnergy)
-{
-   // Purpose and Method: finds the "Global Event Energy" and constrain the
-   //                     first two track energies to sum to it.
-   // Inputs:  Calorimeter Energy
-   // Outputs: Sets the "constrained" energy for all Candidates
-   //          Note: This is the energy that will be used for the 
-   //          final track fit. 
-   // Dependencies: None
-   // Restrictions and Caveats:  None.
-
-    // Use hit counting + CsI energies to compute Event Energy 
-
-    // these come from the actual geometry
-    int nNoCnv = m_tkrGeom->getNumType(NOCONV);
-    int nThin  = m_tkrGeom->getNumType(STANDARD);
-    int nThick = m_tkrGeom->getNumType(SUPER);
-
-    double thinConvRadLen  = m_tkrGeom->getAveConv(STANDARD);
-    double thickConvRadLen = m_tkrGeom->getAveConv(SUPER);
-    double trayRadLen      = m_tkrGeom->getAveRest(ALL);
-    
-
-    double cal_Energy = std::max(calEnergy, 0.5*m_minEnergy);
-
-    // TOTAL KULDGE HERE - Cal Energies are found to be too low by ~20%
-    //  This should be removed when the CAL is calibrated!!!!!!  
-    cal_Energy *= _calKludge; 
-
-    // Get best track ray
-	Event::TkrTrack*  first_track = m_candidates[0]->track();              
-    
-    // Set up parameters for KalParticle swim through entire tracker
-    Point x_ini    = first_track->getInitialPosition(); 
-    Vector dir_ini = first_track->getInitialDirection(); 
-	Point x_start = x_ini - 3.5*dir_ini;   //Back up 3.5 mm to catch first radiator
-    double arc_tot = x_start.z() / fabs(dir_ini.z()); // z=0 at top of grid
-    
-    IKalmanParticle* kalPart = m_tkrGeom->getPropagator();
-    kalPart->setStepStart(x_start, dir_ini, arc_tot);
-
-    // Set up summed var's and loop over all layers between x_ini & cal
-    int num_thin_hits = 0;
-    int num_thick_hits = 0;
-    int num_last_hits = 0; 
-
-    double arc_len    = 5./fabs(dir_ini.z()); 
-	int top_plane     = m_tkrGeom->getPlane(x_ini.z());
-    int top_layer     = m_tkrGeom->getLayer(top_plane);     
-    int maxLayers    = m_tkrGeom->numLayers();
-
-    int thin_layers  = 0;
-    int thick_layers = 0;
-    int norad_layers = 0;
-    
-    for(int ilayer = top_layer; ilayer < maxLayers; ilayer++) {
-        
-        double xms = 0.;
-        double yms = 0.;
-        if(ilayer > top_layer) {
-			Event::TkrFitMatrix Q = kalPart->mScat_Covr(cal_Energy/2., arc_len);
-            xms = Q.getcovX0X0();
-            yms = Q.getcovY0Y0();
-        }
-        double xSprd = sqrt(2.+xms*16.); // 4.0 sigma and not smaller then 2mm (was 2.5 sigma)
-        double ySprd = sqrt(2.+yms*16.); // Limit to a tower... 
-        if(xSprd > m_tkrGeom->trayWidth()/2.) xSprd = m_tkrGeom->trayWidth()/2.;
-        if(ySprd > m_tkrGeom->trayWidth()/2.) ySprd = m_tkrGeom->trayWidth()/2.;
-
-        // Assume location of shower center in given by 1st track
-        Point x_hit = x_start + arc_len*dir_ini;
-        //int numHits = TkrQueryClusters(m_tkrClus).
-        //    numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
-        int numHits = m_clusTool->numberOfHitsNear(m_tkrGeom->reverseLayerNumber(ilayer),
-            xSprd, ySprd, x_hit);
-
-        convType type = m_tkrGeom->getReconLayerType(ilayer);
-        switch(type) {
-        case NOCONV:
-            num_last_hits += numHits;
-            norad_layers++;
-            break;
-        case STANDARD:
-            num_thin_hits += numHits;
-            thin_layers++;
-            break;
-        case SUPER:
-            num_thick_hits += numHits;
-            thick_layers++;
-            break;
-        default: // shouldn't happen, but I'm being nice to the compiler
-            ;
-        }
-
-        // Increment arc-length
-        int nextLayer = ilayer+1;
-        if (ilayer==maxLayers-1) nextLayer--;
-        double deltaZ = m_tkrGeom->getReconLayerZ(ilayer)-m_tkrGeom->getReconLayerZ(nextLayer);
-        arc_len += fabs( deltaZ/dir_ini.z()); 
-    }
-    
-    double ene_trks   = _thinCoeff*num_thin_hits + _thickCoeff*num_thick_hits +
-        _noradCoeff*num_last_hits; // Coefs are MeV/hit - 2nd Round optimization
- 
-    //Just the radiators -- divide by costheta, just like for rad_min
-    double rad_nom  = 
-        (thinConvRadLen*thin_layers + thickConvRadLen*thick_layers)/fabs(dir_ini.z());
-    //The "real" rad- len 
-    double rad_swim = kalPart->radLength();                 
-    //The non-radiator
-    double rad_min  = 
-        (thin_layers+thick_layers+norad_layers)*trayRadLen/fabs(dir_ini.z()); 
-    rad_swim = std::max(rad_swim, rad_nom + rad_min); 
-    double ene_total  =  ene_trks * rad_swim/rad_nom + cal_Energy; //Scale and add cal. energy
-
-    // Now constrain the energies of the first 2 tracks. 
-    //    This isn't valid for non-gamma conversions
-
- 
-    // Initialize all candidate track energies -
-    // Max of either the Pat. Rec. min. or the derived Kalman energy
-  
-    ComboFindTrackTool::iterator cand = m_candidates.begin();
-    for(; cand!=m_candidates.end(); cand++) {
-		Event::TkrTrack* track = (*cand)->track();
-        // limit on high side
-        double kal_energy = std::min(5000., track->getKalEnergy());
-
-        double energy = std::max(m_energy, kal_energy);
-        (*cand)->setConEnergy(energy);
-    }
-
-    if(m_candidates.size() == 1) { // One track - it gets it all - not right but what else?
-        m_candidates[0]->setConEnergy(ene_total);
-    }
-    else {               // Divide up the energy between the first two tracks
-		Event::TkrTrack*  secnd_track = m_candidates[1]->track();
-        
-        int num_hits1 = first_track->getNumHits();
-        int num_hits2 = secnd_track->getNumHits();
-        double e1 = first_track->getKalEnergy();
-        double e2 = secnd_track->getKalEnergy();
-        double e1_min = 2.*num_hits1;        //Coefs are MeV/Hit
-        double e2_min = 2.*num_hits2;
-        
-        e1 = std::max(e1, e1_min);
-        e2 = std::max(e2, e2_min); 
-        double de1 = first_track->getKalEnergyError();
-        double de2 = secnd_track->getKalEnergyError();
-        double w1  = (e1/de1)*(e1/de1); //Just the number of kinks contributing
-        double w2  = (e2/de2)*(e2/de2);
-
-
-         // Trap short-straight track events - no info.in KalEnergies
-        double e1_con, e2_con;
-        if(num_hits1 < 8 && num_hits2 < 8 && e1 > 80. && e2 > 80.) {
-            e1_con = .75*ene_total; 
-            e2_con = .25*ene_total; // 75:25 split
-        }
-        else { // Compute spliting to min. Chi_Sq. and constrain to ~ QED pair energy
-            double logETotal = log(ene_total)/2.306; 
-            double eQED = ene_total*(.72+.04*(std::min((logETotal-2.),2.))); //Empirical - from observation
-            double wQED = 10.*logETotal*logETotal;//Strong constrain as Kal. energies get bad with large E
-            e1_con = e1 - ((e1+e2-ene_total)*w2 + (e1-eQED)*wQED)/(w1+w2+wQED); 
-            if(e1_con < .5*ene_total)  e1_con = .5*ene_total; 
-            if(e1_con > .98*ene_total) e1_con = .98*ene_total; 
-            e2_con = ene_total - e1_con;
-        }
-        // Don't let energies get too small
-        if(e1_con < e1_min) e1_con = e1_min; 
-        if(e2_con < e2_min) e2_con = e2_min; 
-
-        // Set the energies 
-        m_candidates[0]->setConEnergy(e1_con);
-        m_candidates[1]->setConEnergy(e2_con);
-    }
 }
 
 void ComboFindTrackTool::findBlindCandidates()
@@ -649,6 +477,7 @@ void ComboFindTrackTool::findBlindCandidates()
                             }
                             if(!incorporate(trial)) break;
                             trials++; 
+							trial->track()->setStatusBit(Event::TkrTrack::PRBLNSRCH);
 							Point x_start = trial->track()->getInitialPosition();
 	                        int top_plane     = m_tkrGeom->getPlane(x_start.z());
                             int new_top     = m_tkrGeom->getLayer(top_plane);    
@@ -750,6 +579,7 @@ void ComboFindTrackTool::findCalCandidates()
                     }
                     if(!incorporate(trial)) break;
                     trials++;
+					trial->track()->setStatusBit(Event::TkrTrack::PRCALSRCH);
 					Point x_start = trial->track()->getInitialPosition();
 	                int top_plane     = m_tkrGeom->getPlane(x_start.z());
                     int new_top     = m_tkrGeom->getLayer(top_plane);    
@@ -885,7 +715,7 @@ ComboFindTrackTool::Candidate::Candidate(double e, Point x, Vector t, double chi
 
 	// Find the TkrClusters and gaps along this track
 	hit_finder->findTrackHits(m_track);
-	if(!(m_track->getStatusBits()& Event::TkrTrack::Found)) return;
+	if(!(m_track->getStatusBits()& Event::TkrTrack::FOUND)) return;
 
     fitter->doTrackFit(m_track); 
     int more_hits = hit_finder->addLeadingHits(m_track);

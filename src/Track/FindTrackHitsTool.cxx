@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.8 2004/11/17 04:36:06 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.10 2004/11/22 18:36:08 usher Exp $
  */
 
 // to turn one debug variables
@@ -245,7 +245,7 @@ StatusCode FindTrackHitsTool::findTrackHits(Event::TkrTrack* track)
 	// at least 2 in each projection
 	if((track->getNumXHits() + track->getNumYHits() < 5) ||
 		track->getNumXHits() <= 2 || track->getNumYHits() <= 2) sc = StatusCode::FAILURE;
-	else track->setStatusBit(Event::TkrTrack::Found);
+	else track->setStatusBit(Event::TkrTrack::FOUND);
 	return sc;
 }
 
