@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.8 2002/04/18 18:29:09 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.1 2002/04/30 01:35:49 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods
@@ -10,7 +10,7 @@
 
 
 
-#include "TkrRecon/Cluster/TkrMakeClusters.h"
+#include "src/Cluster/TkrMakeClusters.h"
 
 TkrMakeClusters::TkrMakeClusters(TkrClusters* pClus,
 								 ITkrGeometrySvc* pTkrGeoSvc, ITkrBadStripsSvc* pBadStripsSvc, 

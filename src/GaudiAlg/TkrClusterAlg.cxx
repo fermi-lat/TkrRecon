@@ -9,7 +9,7 @@
 #include "gui/GuiMgr.h"
 
 #include "TkrRecon/GaudiAlg/TkrClusterAlg.h"
-#include "TkrRecon/Cluster/TkrMakeClusters.h"
+#include "src/Cluster/TkrMakeClusters.h"
 #include "TkrRecon/Cluster/TkrQueryClusters.h"
 
 // Needed for Gaudi
