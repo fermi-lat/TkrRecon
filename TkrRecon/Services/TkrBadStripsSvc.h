@@ -9,9 +9,11 @@
  *
  * First version 3-Jun-2001
  *
- * The bad strips are kept in ascii files, which are read in under
+ * The bad strips are currently kept in ascii files, which are read in under
  * the control of the jobOptions file. In the ascii files, strips are
  * marked as hot or dead, but in memory, strips are only bad.
+ *
+ * This will be changing shortly when we interface to Joanne's calibration database.
  *
  * The service creates an array of vectors.  The singly indexed array
  * corresponds to a doubly indexed array by tower and layer.
@@ -19,33 +21,33 @@
  * The original design was a vector of vectors, but this was abandoned
  * because some of the code failed on unix.
  * 
- * The use of the bad strips in the clustering algorithm, for example, depends
- * on mixing good and bad strips and still being able to sort in asending strip order.
+ * The use of the bad strips in the clustering algorithm depends
+ * on mixing good and bad strips and still being able to sort in ascending strip order.
  *
- * To this end strips are tagged good or bad by left-shifting the strip number by 1
- * and ORing with 0 (good) or 1 (bad). This mechanism is internal to the service.
+ * To this end strips are tagged good or bad by adding a high-order bit. 
+ * Thus a tagged strip doesn't produce a legal strip number. The service has methods
+ * for manipulating the tags, which are currently accessed by TkrMakeClusters.
  *
- * This can be extended to a more comprehensive
- * tagging arrangement if necessary. Another possiblity would be to create
- * a vector of pairs.  This might be more transparent in the long run.
+ * The tagging arrangement can be extended, if necessary. For Example, we may want to
+ * differentiate dead from hot strips in the reconstruction.
  *
  * @author Leon Rochester
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrBadStripsSvc.h,v 1.3 2002/08/31 17:51:39 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrBadStripsSvc.h,v 1.4 2002/08/31 21:30:50 lsrea Exp $
  */
 
 #include "GaudiKernel/Service.h"
 
 #include "TkrRecon/ITkrBadStripsSvc.h"
-#include "TkrRecon/ITkrGeometrySvc.h"
 
 #include <string>
 #include <vector>
 
-class TkrBadStripsSvc : public Service,
-        virtual public ITkrBadStripsSvc
+class TkrBadStripsSvc : public Service, virtual public ITkrBadStripsSvc
 {
 public:
+
+    enum {tagShift = 12, stripMask = 0xFFF, tooBig = 0xFFFFFF};
 
     /// Constructor of this form must be provided
     TkrBadStripsSvc(const std::string& name, ISvcLocator* pSvcLocator); 
@@ -57,6 +59,8 @@ public:
 
 	/// converts from (tower, layer, view) to index into array
     int getIndex(const int tower, const int layer, const idents::GlastAxis::axis);
+	/// adds a strip to a badstrip vector
+    void addStrip(v_strips* v, const int taggedStrip);
 	/// returns a pointer to a vector of bad strips for a given (tower, layer and view)
     v_strips* getBadStrips(const int tower, const int layer, const idents::GlastAxis::axis);
 	/// returns a pointer to a vector of bad strips for a given array index
@@ -65,21 +69,26 @@ public:
     bool isBadStrip(const int tower, const int layer, const idents::GlastAxis::axis, const int strip);
     /// returns true if the given strip is found in the vector pointed to by v_strips
 	bool isBadStrip(const v_strips* v, const int strip);
-    /// returns true if the tagged strip taggedStrop is tagged bad
+    /// retrieves the tag field from a strip
+    int tagField(const int strip);
+    /// swaps the possibly tagged strip into sorting order (and back)
+    int swapForSort(const int strip);
+
+    /// returns true if the tagged strip is tagged bad (used by TkrMakeClusters)
 	bool isTaggedBad(const int taggedStrip);
-	/// tags a strip bad
-    int tagBad(const int strip);
-	/// tags a strip good
-    int tagGood(const int strip);
-	/// untags a strip
-    int untag(const int strip);
-       
+	/// untags a strip  (used by TkrMakeClusters)
+    int untag(const int strip); 
+    /// returns sentinel strip to TkrMakeClusters
+    int lastStrip() {return tooBig;}
+
     /// queryInterface - required for a service
     StatusCode queryInterface(const IID& riid, void** ppvUnknown);
     /// required for a service
     static const InterfaceID& interfaceID() { return ITkrBadStripsSvc::interfaceID(); }
     /// returns the service type
     const IID& type() const;
+
+
    
 private:
 
@@ -87,22 +96,16 @@ private:
 
 	/// reads bad strips from file file
     void readFromFile(std::ifstream* file);
-	/// adds a strip to a badstrip vector
-    void addStrip(v_strips* v, const int strip);
-
-    /// pointer to the geometry service
-	ITkrGeometrySvc* pTkrGeom;
+    /// tags a strip with a tag
+    int tagBad(const int strip, const int tag);
+	/// tags a strip good
+    int tagGood(const int strip);
 
     /// File name for constants
 	std::string m_badStripsFile;  
 
-	/// number of towers
-    int m_ntowers;
-	/// number of bilayers
-	int m_nlayers;
-	/// number of views
-    int m_nviews;
-
+    /// implicit dimension of 256 array
+    enum {NLAYERS = 18, NVIEWS = 2};
 
     /// array to hold bad strips vectors  [ <= 16*18*2 ]   
 	v_strips m_stripsCol[576];
