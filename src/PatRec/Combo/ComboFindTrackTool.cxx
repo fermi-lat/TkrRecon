@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.8 2003/03/24 01:27:50 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.9 2003/07/18 21:26:58 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -27,32 +27,16 @@ const IToolFactory& ComboFindTrackToolFactory = s_factory;
 //
 
 ComboFindTrackTool::ComboFindTrackTool(const std::string& type, const std::string& name, const IInterface* parent) :
-                    AlgTool(type, name, parent)
+                    PatRecBaseTool(type, name, parent)
 {
-    //Declare the additional interface
-    declareInterface<ITkrFindTrackTool>(this);
 	return;
 }
 
 StatusCode ComboFindTrackTool::initialize()
 {	
-    StatusCode sc   = StatusCode::SUCCESS;
-    StatusCode fail = StatusCode::FAILURE;
-    
-    MsgStream log(msgSvc(), name());
-	if( serviceLocator() ) {   
-		if(service( "TkrGeometrySvc", m_tkrGeo, true ).isFailure()) {
-			log << MSG::ERROR << "Could not find TkrGeometrySvc" << endreq;
-			return fail;
-		}
-		m_tkrFail = m_tkrGeo->getTkrFailureModeSvc();
-
-		if(service( "EventDataSvc", m_dataSvc, true ).isFailure()) {
-			log << MSG::ERROR << "Could not find EventDataSvc" << endreq;
-			return fail;
-		}
-	}
-	return sc;
+  PatRecBaseTool::initialize();
+  StatusCode sc   = StatusCode::SUCCESS;
+  return sc;
 }
 
 StatusCode ComboFindTrackTool::findTracks()

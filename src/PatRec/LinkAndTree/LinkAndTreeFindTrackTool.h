@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/LinkAndTree/LinkAndTreeFindTrackTool.h,v 1.3 2003/01/10 19:43:24 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/LinkAndTree/LinkAndTreeFindTrackTool.h,v 1.4 2003/07/18 21:26:59 lsrea Exp $
  */
 
 #ifndef LINKANDTREEFINDTRACKTOOL_H
@@ -16,8 +16,9 @@
 #include "GaudiKernel/DataSvc.h"
 #include "TkrRecon/PatRec/ITkrFindTrackTool.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
+#include "src/PatRec/PatRecBaseTool.h"
 
-class LinkAndTreeFindTrackTool : public AlgTool, virtual public ITkrFindTrackTool
+class LinkAndTreeFindTrackTool : public PatRecBaseTool //public AlgTool, virtual public ITkrFindTrackTool
 {
 public:
     /// Standard Gaudi Tool interface constructor
@@ -31,14 +32,6 @@ public:
 	StatusCode initialize();
     StatusCode findTracks();
 
-private:
-    /// Pointer to the local Tracker geometry service
-    ITkrGeometrySvc* m_tkrGeo;
-	///
-	ITkrFailureModeSvc* m_tkrFail;
-
-    /// Pointer to the Gaudi data provider service (interface to the TDS)
-    IDataProviderSvc*        m_dataSvc;
 };
 
 #endif

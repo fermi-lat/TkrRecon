@@ -11,7 +11,7 @@
  * @class PatRecBaseTool
  * @brief Base class for the concrete pattern recognition tools.
  * @author GLAST Tracker Software group
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxBaseTool.h,v 1.5 2002/09/02 19:46:15 cohen Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/PatRecBaseTool.h,v 1.1 2003/07/29 13:08:59 cohen Exp $
  */
 class PatRecBaseTool : public AlgTool, virtual public ITkrFindTrackTool 
 {
@@ -29,13 +29,13 @@ class PatRecBaseTool : public AlgTool, virtual public ITkrFindTrackTool
  protected:
 
   /// Pointer to the local Tracker geometry service
-  ITkrGeometrySvc*    pTkrGeo;
-  ITkrFailureModeSvc* pTkrFail;
-      
-  /// @brief Event Service member directly useable by concrete classes.
-  /// It is initialized in PatRecBaseTool::initialize(), and is needed 
-  /// especially in order to use SmartDataPointers.
-  IDataProviderSvc* m_dataSvc;
+  ITkrGeometrySvc*    m_tkrGeo;
+
+  /// Pointer to the local FailureMode service
+  ITkrFailureModeSvc* m_tkrFail;
+
+  /// Event Service member directly useable by concrete classes.
+  IDataProviderSvc*   m_dataSvc;
 
 };
 #endif
