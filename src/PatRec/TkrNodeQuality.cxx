@@ -6,48 +6,68 @@
 #include <math.h>
 #include "TkrRecon/PatRec/TkrNodeQuality.h"
 
-const double  scatAngle = 0.04;
-const double  minAngle  = 0.0001;
-const double  nRMS      = 8.;
+static const double  nRMS      = 4.;
+//static const double  scatAngle = 0.25;          //Multiple Scattering at around 20-30 MeV
+static const double  scatAngle = 0.40;          //Multiple Scattering at around 20-30 MeV
+static const double  minAngle  = 0.0140/nRMS;   //Strip spacing 
 
 
 TkrNodeQuality::TkrNodeQuality()
 {
-	numNodes   =  0;
-	lastAngle  = -1.;
-	angleSum   =  0.;
-	angleSum2  =  0.;
-	angleAVE   =  0.;
-	angleRMS   =  0.;
-	angleTest  =  scatAngle;
+	numNodes       = 0;
+    numSinceBranch = 0;
+	lastAngle      = scatAngle;
+	angleSum       = 0.;
+	angleSum2      = 0.;
+	angleAVE       = scatAngle;
+	angleRMS       = scatAngle/nRMS;
+    angleMAX       = scatAngle;
+	angleTest      = scatAngle;
 
 	return;
-}
+} 
 
 TkrNodeQuality::TkrNodeQuality(TkrNodeQuality* pQual, double newAngle)
 {
-	numNodes   = pQual->getNumNodes() + 1;
-	angleRMS   = pQual->getAngleRMS();
+    //How many nodes in the list?
+	numNodes       = pQual->getNumNodes() + 1;
+    numSinceBranch = pQual->getNumSince() + 1;
 
 	//Keep track of the angle passed to us
-	lastAngle  = newAngle;
+	lastAngle      = newAngle;
 
-	//Make sum of nodes into a floating point for calculations
-	double nodeSum = (double) numNodes;
+    //Accumulate sums for average and rms
+	angleSum       = pQual->getAngleSum()  + newAngle;
+	angleSum2      = pQual->getAngleSum2() + newAngle * newAngle;
 
-	angleSum   = pQual->getAngleSum()  + newAngle;
-	angleSum2  = pQual->getAngleSum2() + newAngle * newAngle;
+    //Calculate the average
+	angleAVE       = angleSum / ((double)numNodes);
+    angleMAX       = pQual->getAngleMAX();
 
-	angleAVE   = angleSum / nodeSum;
-	angleRMS   = (angleSum2/nodeSum) - angleAVE * angleAVE;
-
-	if (angleRMS > 0. && nodeSum > 1)
+    //Deal with the RMS if we have enough data points
+	if (numNodes > 2)
 	{
-		angleRMS  = sqrt(angleRMS) * nodeSum / (nodeSum - 1);
+        double nodeSum = (double) numNodes;
+
+        angleRMS = (angleSum2/nodeSum) - angleAVE * angleAVE;
+
+        if (angleRMS > 0.)
+        {
+		    angleRMS = sqrt(angleRMS) * nodeSum / (nodeSum - 1);
+        
+            if (angleRMS < minAngle )       angleRMS = minAngle;
+            if (angleRMS > scatAngle/nRMS)  angleRMS = scatAngle/nRMS;
+        }
+        else
+        {
+            angleRMS = minAngle;
+        }
 	}	
 	else
 	{
-		angleRMS  = 0.;
+        //Otherwise set RMS to average angle (so it can be different)
+        if (numNodes == 1) angleAVE  = 0.5 * (scatAngle + fabs(newAngle));
+		angleRMS  = 0.5*(fabs(pQual->getLastAngle()) + fabs(newAngle));
 	}
 
 	return;
@@ -62,8 +82,7 @@ bool TkrNodeQuality::keepNewLink(double newAngle)
 {
 	bool match = false;
 
-//	if (newAngle < nRMS * getAngleTest()) match = true;
-	if (newAngle < 0.4) match = true;
+	if (fabs(newAngle) < getAngleTest()) match = true;
 
 	return match;
 }
@@ -74,7 +93,14 @@ bool TkrNodeQuality::isNodeWorse(TkrLinkNode* pNode)
 
 	TkrNodeQuality* pNodeQual = pNode->getQuality();
 
-	if (pNodeQual->getAngleTest() > getAngleTest()) worse = true;
+    //if (getNumNodes() > 2)
+    //{
+	    if (pNodeQual->getAngleTest() > getAngleTest()) worse = true;
+    //}
+    //else
+    //{
+    //    if (fabs(pNodeQual->getAngleAVE()) > fabs(getAngleAVE())) worse = true;
+    //}
 
 	return worse;
 }
@@ -85,14 +111,7 @@ bool TkrNodeQuality::isNodeWorseRMS(TkrLinkNode* pNode)
 
 	TkrNodeQuality* pNodeQual = pNode->getQuality();
 
-	if (numNodes > 1)
-	{
-		if (pNodeQual->getAngleRMS() > getAngleRMS()) worse = true;
-	}
-	else
-	{
-		if (pNodeQual->getLastAngle() > getLastAngle()) worse = true;
-	}
+    if (pNodeQual->getAngleRMS() > getAngleRMS()) worse = true;
 
 	return worse;
 }
@@ -103,7 +122,7 @@ bool TkrNodeQuality::isNodeWorseAVE(TkrLinkNode* pNode)
 
 	TkrNodeQuality* pNodeQual = pNode->getQuality();
 
-	if (pNodeQual->getAngleAVE() > getAngleAVE()) worse = true;
+	if (fabs(pNodeQual->getAngleAVE()) > fabs(getAngleAVE())) worse = true;
 
 	return worse;
 }
@@ -111,23 +130,24 @@ bool TkrNodeQuality::isNodeWorseAVE(TkrLinkNode* pNode)
 int TkrNodeQuality::nodeDepthDiff(TkrLinkNode* pNode)
 {
 	TkrNodeQuality* pNodeQual = pNode->getQuality();
-    int            depthDiff = pNodeQual->getNumNodes() - numNodes;
+    int             depthDiff = pNodeQual->getNumNodes() - numNodes;
+
+	return depthDiff;
+}
+
+int TkrNodeQuality::branchDepthDiff(TkrLinkNode* pNode)
+{
+	TkrNodeQuality* pNodeQual = pNode->getQuality();
+    int             depthDiff = pNodeQual->getNumSince() - numSinceBranch;
 
 	return depthDiff;
 }
 
 double TkrNodeQuality::getAngleTest()
 {
-	angleTest = scatAngle;
+	angleTest = nRMS*angleRMS;
 
-	if      (numNodes > 2) angleTest = angleRMS;
-	else if (numNodes > 0) angleTest = angleAVE;
-
-	//Make sure angle is not too small
-	if (angleTest < minAngle) angleTest = minAngle;
-
-	//If the RMS is growing too large then set angleTest to lower value
-	if (angleRMS > scatAngle) angleTest = 0.5 * scatAngle;
+    if (angleTest > scatAngle) angleTest = scatAngle;
 
 	return angleTest;
 }

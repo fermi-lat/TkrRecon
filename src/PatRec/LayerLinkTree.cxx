@@ -31,8 +31,8 @@ LayerLinkTree::LayerLinkTree(layerLinkListPtr pLinkList, LayerLinkNode* pNode)
 	pHeadNode = pNode;
 	
 	//Build the tree
-	treeHeight = fndNextNode(pLinkList, pHeadNode);
-//	treeHeight = fndLeanNodes(pLinkList, pHeadNode);
+	//treeHeight = fndNextNode(pLinkList, pHeadNode);
+    treeHeight = fndLeanNodes(pLinkList, pHeadNode);
 
 	//Clear out the dead branches
 	remDeadBranches(pNode);
@@ -67,25 +67,38 @@ LayerLinkTree::LayerLinkTree(const LayerLinkTree& oldTree)
 
 
 //Function to mark all the links from given node and below
-void LayerLinkTree::markTreeLinks(LayerLinkNode* pNode)
+void LayerLinkTree::markTreeLinks(LayerLinkNode* pNode, layerLinkListPtr pLinkList)
 {
 	int        nChildren = pNode->getNumKids();
 	LayerLink* pLink     = pNode->getThisLayerLink();
 
 	pLink->setInUse();
 
+    //Attempt to also mark links which share the same bottom cluster
+    layerLinkVector*   pLayerLinkVector = *pLinkList++;
+    layerLinkVectorPtr pLinkVector      =  pLayerLinkVector->begin();
+    int                nLinks           =  pLayerLinkVector->size();
+
+    while(nLinks--)
+    {
+        LayerLink* pCandLink = *pLinkVector++;
+
+        if (pLink != pCandLink && pLink->sameBotCluster(pCandLink)) pCandLink->setInUse();
+    }
+
+
 	if (nChildren)
 	{
-	    while(nChildren--) {markTreeLinks(pNode->getThisKid(nChildren));}
+	    while(nChildren--) {markTreeLinks(pNode->getThisKid(nChildren),pLinkList);}
 	}
 
 	return;
 }
 
 //Sets all links in tree to in use
-void LayerLinkTree::setLinksInUse()
+void LayerLinkTree::setLinksInUse(layerLinkListPtr pLinkList)
 {
-	markTreeLinks(pHeadNode);
+	markTreeLinks(pHeadNode, pLinkList);
 
 	marked = true;
 	
@@ -115,18 +128,21 @@ int LayerLinkTree::fndNextNode(layerLinkListPtr pLinkList, LayerLinkNode* pNode)
 		//Loop over the number of links in the new layer
 		while(nLinks--)
 		{
-			LayerLink* pNewLink = *pLinkIter++;
+            LayerLinkNode* pNewNode = pNode->doLinksMatch(*pLinkIter++);
 
-			//Was a new node created by a match to this link?
-			if (pNode->doLinksMatch(pNewLink))
-			{
-				int            kidIdx    = pNode->getNumKids() - 1;
-				LayerLinkNode* pNewNode  = pNode->getThisKid(kidIdx);
+            //Does this link match (and pass angle cut)?
+            if (pNewNode)
+            {
+                if (pNode->keepNewNode(pNewNode))
+                {
+                    pNode->addNewNode(pNewNode,0);
 
-				int            newHeight = fndNextNode(pLinkList, pNewNode);
+                    int newHeight = fndNextNode(pLinkList, pNewNode);
 
-				if (newHeight > maxHeight) maxHeight = newHeight;
-			}
+                    if (newHeight > maxHeight) maxHeight = newHeight;
+                }
+                else delete pNewNode;
+            }
 		}
 	}
 
@@ -152,25 +168,59 @@ int LayerLinkTree::fndLeanNodes(layerLinkListPtr pLinkList, LayerLinkNode* pNode
 		//Set up for links in the new layer
 		layerLinkVectorPtr pLinkIter   = pLinkVector->begin();
 
+        //Keep a list of candidate nodes which "match" the current link
+        linkNodeVector     candNodes;
+
 		//Loop over the number of links in the new layer and find
 		//the links which match this link
-		while(nLinks--) pNode->doLinksMatch(*pLinkIter++);
+		while(nLinks--) 
+        {
+            //If the links "match" then a new candidate node will be returned
+            LayerLinkNode* pNewNode = pNode->doLinksMatch(*pLinkIter++);
 
-		//Check to make sure our tree isn't getting too big
-		int numNewNodes = pNode->getNumKids();
-		
-		while(numNewNodes > maxNodes)
-		{
-			pNode->delWorstKid();
-			numNewNodes = pNode->getNumKids();
-		}
+            //If we got one, then add to our list
+            if (pNewNode) candNodes.push_back(pNewNode);
+        }
 
-		//Ok, now look for children of these nodes
-		while(numNewNodes--) 
-		{
-			int newHeight = fndLeanNodes(pLinkList, pNode->getThisKid(numNewNodes));
+        //Do we have any candidates in our list?
+        if (candNodes.size() > 0)
+        {
+            int nodeIdx      = 0;
+            int numCandNodes = candNodes.size();
 
-			if (newHeight >= maxHeight) maxHeight = newHeight;
+            //Sort the list of candidate nodes with best first
+            if (numCandNodes > 1) sortNodes(&candNodes);
+
+            //Get an iterator to the list
+            linkNodeVectorPtr nodeIter = candNodes.begin();
+
+            //Go through the list attempting to add nodes
+            while(numCandNodes--)
+            {
+                LayerLinkNode* pNewNode = *nodeIter++;
+                bool           addNode  = false;
+
+                //If the first (best) node then add unless a better link already exists
+                if      (nodeIdx == 0 && !pNewNode->isOldLinkBetter()) addNode = true;
+                //Otherwise, add the node if it passes the more restrictive selection
+                else if (pNode->keepNewNode(pNewNode))                 addNode = true;
+
+                //Make sure this candidate node is not landing on a used cluster
+                if (addNode && pNewNode->isOldClusBetter(pLinkVector)) addNode = false;
+
+                //Are we keeping this node?
+                if (addNode)
+                {
+                    nodeIdx++;
+
+                    pNode->addNewNode(pNewNode,nodeIdx-1);
+
+                    int newHeight = fndLeanNodes(pLinkList, pNewNode);
+
+                    if (newHeight > maxHeight) maxHeight = newHeight;
+                }
+                else delete pNewNode;
+            }
 		}
 	}
 
@@ -256,6 +306,59 @@ void LayerLinkTree::deleteNodes(LayerLinkNode* pCurNode)
 	return;
 }
 
+//stl won't let me sort a vector of pointers. Here is my attempt
+//to do it myself. 
+void LayerLinkTree::sortNodes(linkNodeVector* nodes)
+{
+    linkNodeVectorPtr nodeIter = nodes->begin();
+    int               nNodes   = nodes->size();
+    int               nodeIdx  = 0;
+
+    //Outer loop over elements in the list
+    while(nodeIdx < nodes->size()-1)
+    {
+        LayerLinkNode* pNode   = nodeIter[nodeIdx];   //Start element
+        LayerLinkNode* pBest   = pNode;               //Will be better element
+        int            swapIdx = nodeIdx;             //Index of better element
+        int            loopIdx = nodeIdx + 1;
+
+        //Inner loop over remaining elements in the list
+        while(loopIdx < nodes->size())
+        {
+            LayerLinkNode* pTest = nodeIter[loopIdx];
+
+            //If the new node is better than the old node then swap
+            if (!bestNode(pBest,pTest))
+            {
+                pBest   = pTest;
+                swapIdx = loopIdx;
+            }
+
+            loopIdx++;
+        }
+
+        //Actual swap performed here
+        if (nodeIdx != swapIdx)
+        {
+            nodeIter[nodeIdx] = pBest;
+            nodeIter[swapIdx] = pNode;
+        }
+
+        nodeIdx++;
+    }
+
+
+    return;
+}
+
+bool LayerLinkTree::bestNode(LayerLinkNode* pLhs, LayerLinkNode* pRhs)
+{
+    bool            LhsIsBetter = true;
+
+    if (pLhs->isOldAngleSmaller(pRhs)) LhsIsBetter = false;
+
+    return LhsIsBetter;
+}
 
 //Hopefully clean up the mess we have created
 LayerLinkTree::~LayerLinkTree()

@@ -67,9 +67,11 @@ TkrClusterLinkVector::TkrClusterLinkVector(TkrClusters *pClusters, int layerNum,
 			while(nHitsBot--)
 			{
 				TkrClusterLink* pNewLink   = new TkrClusterLink(pClusTop[nHitsTop], pClusBot[nHitsBot]);
-				LayerLink*     pLayerLink = pNewLink;
+				LayerLink*      pLayerLink = pNewLink;
 
-				push_back(pLayerLink);
+                //Don't make links that are too oblique... cut at 80 degrees
+				if (pNewLink->getLinkAngle() < 1.4) push_back(pLayerLink);
+                else                                delete pNewLink;
 			}
 		}
 	}
