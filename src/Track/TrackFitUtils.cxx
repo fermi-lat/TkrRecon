@@ -476,5 +476,30 @@ int TrackFitUtils::compareTracks(Event::TkrTrack& track1, Event::TkrTrack& track
 	return num_sharedHits;
 }
 
+double TrackFitUtils::firstKinkNorm(Event::TkrTrack& track)
+{
+	Event::TkrTrackHitVecItr hitPtr = track.begin();
+    Event::TkrTrackHit* hit1 = *hitPtr;
+	Vector t0 = hit1->getDirection(Event::TkrTrackHit::SMOOTHED);
+  
+	int layer0 = (hit1->getTkrId()).getLayer();
+	double energy = hit1->getEnergy(); 
+	double rad_len = 0.; 
+	Vector t1;
+	hitPtr++; 
+	while(hitPtr != track.end()) {
+        Event::TkrTrackHit* hit = *hitPtr;
+		int next_layer = (hit->getTkrId()).getLayer(); 
+		if(abs(next_layer - layer0) > 1) break;
+		t1 = hit->getDirection(Event::TkrTrackHit::SMOOTHED);
+		rad_len += hit->getRadLen();
+		hitPtr++;
+	}
+	double kink_angle = acos(t0*t1);
+	double mscat_angle = 13.6 * sqrt(rad_len) * ( 1 + .038*log(rad_len))*
+		                 1.414 /energy; 
+	return kink_angle/mscat_angle;
+}
+		   
 
             
