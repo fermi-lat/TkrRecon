@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: cohen  Mon Jul 22 06:43:44 PDT 2002
+TkrRecon/src/Vertex
+
+Added Files:
+	VtxSingleTrkTool.h VtxSingleTrkTool.cxx VtxKalFitTool.h 
+	VtxKalFitTool.cxx VtxComboTrkTool.h VtxComboTrkTool.cxx 
+Log Message:
+creation of 3 vertexing classes based on tool design: VtxSingleTrkTool when track list is a singleton, xx' for addition
+    *
+------------------------------------------------------------
 User: cohen  Mon Jul 22 06:41:47 PDT 2002
 TkrRecon/src/Vertex
 
