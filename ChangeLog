@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 14:18:49 PST 2001
+TkrRecon/TkrRecon/Cluster
+
+Added Files:
+	TkrCluster.h TkrClusters.h 
+Log Message:
+Folder "cluster" now renamed to "Cluster"
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 14:17:58 PST 2001
 TkrRecon/TkrRecon/Cluster
 
