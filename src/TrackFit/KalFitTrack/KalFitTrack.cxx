@@ -48,9 +48,9 @@ KalFitTrack::KalFitTrack(int ilyr, int itwr, double sigmaCut,double energy, cons
 
 void KalFitTrack::flagAllHits(int iflag)
 {
-    TkrFitPlaneConPtr hitPtr = hitIterConst();
+    TkrFitPlaneConPtr hitPtr = getHitIterBegin();
 
-    while(hitPtr < hitIterEnd())
+    while(hitPtr < getHitIterEnd())
     {
         TkrFitPlane hitplane = *hitPtr++;
         
@@ -60,9 +60,9 @@ void KalFitTrack::flagAllHits(int iflag)
 
 void KalFitTrack::unFlagAllHits()
 {
-    TkrFitPlaneConPtr hitPtr = hitIterConst();
+    TkrFitPlaneConPtr hitPtr = getHitIterBegin();
 
-    while(hitPtr < hitIterEnd())
+    while(hitPtr < getHitIterEnd())
     {
         TkrFitPlane hitplane = *hitPtr++;
         
@@ -72,7 +72,7 @@ void KalFitTrack::unFlagAllHits()
 
 void KalFitTrack::unFlagHit(int num)
 {
-    TkrFitPlaneConPtr hitPtr = hitIterConst();
+    TkrFitPlaneConPtr hitPtr = getHitIterBegin();
 
     TkrFitPlane hitplane = hitPtr[num];
 
@@ -90,7 +90,7 @@ void KalFitTrack::addMeasHit(const TkrPatCandHit& candHit)
 {
     Point       planePos = candHit.Position();
     int         clusIdx  = candHit.HitIndex();
-    TkrFitPlane newPlane(clusIdx, candHit.PlaneIndex(), energy(), planePos.z(), candHit.View());
+    TkrFitPlane newPlane(clusIdx, candHit.PlaneIndex(), getEnergy(), planePos.z(), candHit.View());
 
     incorporateFoundHit(newPlane, candHit.HitIndex());
 

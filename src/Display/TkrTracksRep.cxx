@@ -37,7 +37,7 @@ void TkrTracksRep::update()
             {
                 TkrFitTrack* track = pTracks->getTrack(trkIdx++);
 
-                pDisplay->markerAt(track->position());
+                pDisplay->markerAt(track->getPosition());
 
                 drawChiSq(track);
                 drawTrack(track);
@@ -54,9 +54,9 @@ void TkrTracksRep::drawChiSq(TkrFitTrack* track)
     TkrFitHit::TYPE  fit      = TkrFitHit::SMOOTH;
     TkrFitHit::TYPE  typ      = TkrFitHit::SMOOTH;
 
-    TkrFitPlaneConPtr hitIter = track->hitIterConst();
+    TkrFitPlaneConPtr hitIter = track->getHitIterBegin();
 
-    while(hitIter < track->hitIterEnd())
+    while(hitIter < track->getHitIterEnd())
     {
         TkrFitPlane plane = *hitIter++;
 
@@ -94,9 +94,9 @@ void TkrTracksRep::drawTrack(TkrFitTrack* track)
     TkrFitHit::TYPE  fit      = TkrFitHit::SMOOTH;
     TkrFitHit::TYPE  typ      = TkrFitHit::SMOOTH;
 
-    TkrFitPlaneConPtr hitIter = track->hitIterConst();
+    TkrFitPlaneConPtr hitIter = track->getHitIterBegin();
 
-    while(hitIter < track->hitIterEnd()-1)
+    while(hitIter < track->getHitIterEnd()-1)
     {
         TkrFitPlane plane     = *hitIter++;
         TkrFitPlane planeNext = *hitIter;

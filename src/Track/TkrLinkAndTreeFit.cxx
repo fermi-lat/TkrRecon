@@ -45,9 +45,9 @@ TkrLinkAndTreeFit::TkrLinkAndTreeFit(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pT
         TkrPatCand* pCand = *cands++;
 
                 
-        int    iniLayer = pCand->layer();
-        int    iniTower = pCand->tower();
-        Ray    testRay  = pCand->ray();
+        int    iniLayer = pCand->getLayer();
+        int    iniTower = pCand->getTower();
+        Ray    testRay  = pCand->getRay();
         double eneFrac  = (double)(pCand->numPatCandHits())/totalTrackLength;
         double energy   = eneFrac * CalEnergy;
 

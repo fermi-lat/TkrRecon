@@ -42,7 +42,7 @@ void TkrCandidate3DRep::update()
             Event::TkrPatCand* pTkrCand = pTkrCandidates->getTrack(numCandTracks);
 
             //Put a marker at the start of the candidate
-            Point  strtPoint = pTkrCand->position();
+            Point  strtPoint = pTkrCand->getPosition();
             double x         = strtPoint.x();
             double y         = strtPoint.y();
             double zCur      = strtPoint.z() + 100.; //mm
@@ -52,7 +52,7 @@ void TkrCandidate3DRep::update()
             markerAt(strtPoint);
 
             int                        numHits = pTkrCand->numPatCandHits();
-            Event::CandHitVectorPtr hitPtr  = pTkrCand->getCandHitPtr();
+            Event::CandHitVectorPtr hitPtr  = pTkrCand->getHitIterBegin();
 
             while(numHits--)
             {

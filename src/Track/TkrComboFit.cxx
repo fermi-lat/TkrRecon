@@ -24,10 +24,10 @@ TkrComboFit::TkrComboFit(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus, TkrP
         TkrPatCand* pCand = *cands++;
 
                 
-        int    iniLayer = pCand->layer();
-        int    iniTower = pCand->tower();
-        Ray    testRay  = pCand->ray();
-        double energy   = pCand->energy();
+        int    iniLayer = pCand->getLayer();
+        int    iniTower = pCand->getTower();
+        Ray    testRay  = pCand->getRay();
+        double energy   = pCand->getEnergy();
                 
 
         KalFitTrack* track = new KalFitTrack(iniLayer, iniTower, GFcontrol::sigmaCut, energy, testRay);                 

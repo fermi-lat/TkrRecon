@@ -29,10 +29,10 @@ void TkrComboVtxRep::update()
         {
             Event::TkrVertex* pVertex = pVertices->getVertex(numVertices);
 
-            Point startPoint = Point(pVertex->position());
+            Point startPoint = Point(pVertex->getPosition());
             Point endPoint   = startPoint;
 
-            endPoint -= 300.*pVertex->direction();
+            endPoint -= 300.*pVertex->getDirection();
 
             // draw reconstructed gamma
             setColor("yellow");
