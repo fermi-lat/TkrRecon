@@ -18,6 +18,7 @@
 
 #include "Event/Recon/TkrRecon/TkrPatCandCol.h"
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
+#include "src/Track/TkrControl.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "src/TrackFit/KalFitTrack/KalFitTrack.h"
 #include "geometry/Ray.h"
@@ -33,12 +34,13 @@ public:
         ~TkrComboPatRec() {};
 
 private:
-
     class Candidate
     {
     public:
-        Candidate(int layer, int twr, double e, 
-                   Point x, Vector t, float d, float s, int g);
+        Candidate(TkrClusterCol* clusters,
+                  ITkrGeometrySvc* geometry,
+                  int layer, int twr, double e, 
+                  Point x, Vector t, float d, float s, int g);
         ~Candidate();
 
         // access
@@ -96,9 +98,11 @@ private:
     int m_TopLayer;    // Upper most layer in which a track was found
     int m_firstLayer;  // Find first hit layer once
 
-    // pointers to clusters and geometry
+    // pointers to clusters, geometry, and control parameters
     ITkrGeometrySvc* m_tkrGeo;
     TkrClusterCol*   m_clusters;
+    TkrControl*      m_control; 
+
 };
 
 #endif

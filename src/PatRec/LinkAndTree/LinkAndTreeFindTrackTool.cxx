@@ -46,7 +46,7 @@ StatusCode LinkAndTreeFindTrackTool::findTracks()
     // Recover pointer to Cal Cluster info  
     Event::CalClusterCol* pCalClusters = SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
 
-    double minEnergy   = TkrControl::GetPtr()->GetMinEnergy();
+    double minEnergy   = TkrControl::getPtr()->getMinEnergy();
 	double CalEnergy   = minEnergy;
     Point  CalPosition = Point(0.,0.,0.);
 
