@@ -1,3 +1,15 @@
+//      $Header$
+//
+// Description:
+//      TkrClusters is a container for Tkr clusters, and has the methods
+//      for making the clusters from hits.
+//
+// Author(s):
+//      Tracy Usher     
+//      Leon Rochester     
+
+
+
 #include "TkrRecon/Cluster/TkrClusters.h"
 
 TkrClusters::TkrClusters(ITkrGeometrySvc* pTkrGeoSvc, ITkrBadStripsSvc* pBadStripsSvc, TkrDigiCol* pTkrDigiCol)
@@ -5,15 +17,13 @@ TkrClusters::TkrClusters(ITkrGeometrySvc* pTkrGeoSvc, ITkrBadStripsSvc* pBadStri
     //Save some geometry information for the display routine
     pTkrGeo    = pTkrGeoSvc;
     pBadStrips = pBadStripsSvc;
-    //m_stripPitch = pTkrGeo->siStripPitch();
-	//m_towerPitch = pTkrGeo->towerPitch();
 	numViews     = pTkrGeo->numViews();
 	numPlanes    = pTkrGeo->numLayers();
 
     //Initialize the cluster lists...
     ini();
     
-    /*! The strategy is to merge the list of hits in a layer with the list of known bad strips. 
+    /* The strategy is to merge the list of hits in a layer with the list of known bad strips. 
     The good and bad hits are marked so they can be recognized, but the mechanism is hidden in
     the TkrBadStripsSvc.
     
@@ -116,29 +126,42 @@ TkrClusters::~TkrClusters()
     return;
 }
 
-//######################################################
 void TkrClusters::addCluster(TkrCluster* cl)
-//######################################################
 {
+    // Purpose and Method: Adds a cluster to the cluster list
+    // Inputs:  cl is the cluster to be added
+    // Outputs:  None
+    // Dependencies: None
+    // Restrictions and Caveats:  None
 	m_clustersList.push_back(cl);
 	int iview = TkrCluster::viewToInt(cl->v());
 	m_clustersByPlaneList[iview][cl->plane()].push_back(cl);
 }
-//###################################################
+
 void TkrClusters::clear()
-//###################################################
 {
+    // Purpose and Method: Clears the cluster list, that is, removes the clusters
+    // Inputs:  None
+    // Outputs:  None
+    // Dependencies: None
+    // Restrictions and Caveats:  None
 	int nhits = m_clustersList.size();
 	for (int ihit = 0; ihit < nhits; ihit++) {
 		delete m_clustersList[ihit];
 	}
 	ini();
 }
-//###################################################
 void TkrClusters::ini()
-//###################################################
 {
-	m_clustersList.clear();
+    // Purpose and Method: clears all the cluster lists
+    // Inputs:  None
+    // Outputs:  None
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+	
+    // this "clear" is the clear method of std::vector
+    //   not TkrClusters::clear!
+    m_clustersList.clear();
 	for (int iview = 0; iview < numViews; iview++) {
 		for (int iplane = 0; iplane < numPlanes; iplane++) {
 			m_clustersByPlaneList[iview][iplane].clear();
@@ -147,10 +170,14 @@ void TkrClusters::ini()
 }
 //------------  Operations ---------------------------
   
-//######################################################
 Point TkrClusters::meanHit(TkrCluster::view v, int iplane)
-//######################################################
 {
+    // Purpose and Method: Returns the mean position of all clusters in a layer
+    // Inputs:  view and plane number
+    // Outputs:  mean position of all the clusters in the layer
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
 	Point Pini(0.,0.,0);
 
 	int nhits = nHits(v,iplane);
@@ -164,11 +191,17 @@ Point TkrClusters::meanHit(TkrCluster::view v, int iplane)
 	return Pini2;
 }
 
-//######################################################
 Point TkrClusters::meanHitInside(TkrCluster::view v, int iplane, double inRadius,
 								Point Pcenter)
-//######################################################
 {
+    // Purpose and Method: Returns mean position of hits
+    //    within a distance of a point in the measured dimension,
+    //    and no more than one tower away
+    // Inputs:  view and plane number, radius and center
+    // Outputs:  mean position of clusters satisfying criterion
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
 	Point P(0.,0.,0);
 	std::vector<TkrCluster*> AuxList = getHits(v,iplane);
 	int nhits = AuxList.size();
@@ -212,11 +245,17 @@ Point TkrClusters::meanHitInside(TkrCluster::view v, int iplane, double inRadius
     return P;
 }
 
-//####################################################################
 Point TkrClusters::nearestHitOutside(TkrCluster::view v, int iplane, 
 								 double inRadius, Point Pcenter, int& id)
-//####################################################################
 {
+    // Purpose and Method: returns the position of the closest cluster
+    //    outside of a given distance from a point in the measured direction,
+    //    and in the same or adjacent tower in the other direction.
+    // Inputs:  view and plane, center and distance
+    // Outputs:  Position of nearest cluster
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
 	Point Pnear(0.,0.,0.);
 	id = -1;
 
@@ -260,19 +299,22 @@ Point TkrClusters::nearestHitOutside(TkrCluster::view v, int iplane,
 	return Pnear;
 }
 
+// Several methods follow, which perform similar functions with 
+//     different input arguments.
+//
+// Purpose and Method: counts the number of hits within a certain distance 
+//     in X and Y.
+// Inputs:  various
+// Outputs:  the number of hits that satisfy the criteria
+// Dependencies: None
+// Restrictions and Caveats:  None
 
-
-
-//####################################################################
 int TkrClusters::numberOfHitsNear( int iPlane, double inRadius, Point& x0)
-//####################################################################
 {
     return numberOfHitsNear(iPlane, inRadius, inRadius, x0);
 }
 
-//####################################################################
 int TkrClusters::numberOfHitsNear( int iPlane, double dX, double dY, Point& x0)
-//####################################################################
 {
     int numHits = 0;
 
@@ -303,9 +345,7 @@ int TkrClusters::numberOfHitsNear( int iPlane, double dX, double dY, Point& x0)
     return numHits;
 }
 
-//####################################################################
 int TkrClusters::numberOfHitsNear( TkrCluster::view v, int iPlane, double inRadius, Point& x0)
-//####################################################################
 {
     int numHits = 0;
 
@@ -328,18 +368,17 @@ int TkrClusters::numberOfHitsNear( TkrCluster::view v, int iPlane, double inRadi
     return numHits;
 }
 
-
-//######################################################
+// This doesn't do anything!!
+/*
 void TkrClusters::flagHitsInPlane(TkrCluster::view v, int iplane)
-//######################################################
 {
 	std::vector<TkrCluster*> AuxList = getHits(v,iplane);
 	for (int ihit = 0; ihit< AuxList.size(); ihit++)
 		AuxList[ihit]->flag();
 }
-//######################################################
+*/
+
 void TkrClusters::writeOut(MsgStream& log) const
-//######################################################
 {
 	if (nHits()<=0) return;
 
@@ -347,21 +386,15 @@ void TkrClusters::writeOut(MsgStream& log) const
 		m_clustersList[ihit]->writeOut(log);
 	}
 }
-//######################################################
-void TkrClusters::draw(gui::DisplayRep& v)
-//######################################################
-{
-	v.setColor("black");
-
-	for (int ihit = 0; ihit < nHits(); ihit++) 
-    {
-		m_clustersList[ihit]->draw(v, pTkrGeo->siStripPitch(), pTkrGeo->towerPitch());
-	}
-}
-
 
 Point TkrClusters::position(const int plane, TkrCluster::view v, const double strip, const int tower)
 {
+    // Purpose and Method: returns the position of a cluster
+    // Inputs:  plane, view, strip, and tower
+    // Outputs:  position
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
     int iladder = strip / pTkrGeo->ladderNStrips();
     double stripInLadder = strip - iladder*pTkrGeo->ladderNStrips();
     
@@ -388,9 +421,14 @@ Point TkrClusters::position(const int plane, TkrCluster::view v, const double st
     return P;
 }
 
-
 bool TkrClusters::isGapBetween(const int lowStrip, const int highStrip) 
 {
+    // Purpose and Method: decides whether there is a gap between two strips
+    // Inputs:  strip numbers
+    // Outputs:  yes or no
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
     //Get the actual hit strip number from the tagged strips
     int lowHit  = untag(lowStrip);
     int highHit = untag(highStrip);
@@ -408,6 +446,12 @@ bool TkrClusters::isGapBetween(const int lowStrip, const int highStrip)
 
 bool TkrClusters::isGoodCluster(const int lowStrip, const int highStrip, const int nBad) 
 {
+    // Purpose and Method: Finds out if a cluster is "good"
+    // Inputs: first and last strip, and number of bad strips
+    // Outputs:  yes or no
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+   
     //Get the actual hit strip number from the tagged strips
     int lowHit  = untag(lowStrip);
     int highHit = untag(highStrip);
@@ -423,6 +467,12 @@ bool TkrClusters::isGoodCluster(const int lowStrip, const int highStrip, const i
 
 int TkrClusters::tagBad(const int strip)
 {
+    // Purpose and Method: tag a cluster as bad
+    // Inputs: untagged strip
+    // Outputs:  tagged strip, or raw strip if there is no BadStripsSvc
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
     if (pBadStrips) return pBadStrips->tagBad(strip);
     else return strip;
 }
@@ -430,13 +480,25 @@ int TkrClusters::tagBad(const int strip)
 
 int TkrClusters::tagGood(const int strip)
 {
-    if (pBadStrips) return pBadStrips->tagGood(strip);
+    // Purpose and Method: tag a cluster as good
+    // Inputs: untagged strip
+    // Outputs:  tagged strip, or raw strip if there is no BadStripsSvc
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
+   if (pBadStrips) return pBadStrips->tagGood(strip);
     else return strip;
 }
 
 
 int TkrClusters::untag(const int strip)
 {
+    // Purpose and Method: untag a strip
+    // Inputs: untagged strip
+    // Outputs:  raw strip
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
     if (pBadStrips) return pBadStrips->untag(strip);
     else return strip;
 }

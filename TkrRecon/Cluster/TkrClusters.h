@@ -26,7 +26,7 @@ extern const CLID& CLID_TkrClusters;
  * @brief TDS Container for TkrCluster objects
  *
  *
- * $Header$
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrClusters.h,v 1.2 2002/02/15 06:10:07 lsrea Exp $
  */
 
 class TkrClusters : public DataObject
@@ -36,11 +36,9 @@ public:
 
 	/// default constructor: passes pointers to services and classes
     TkrClusters(ITkrGeometrySvc* pTkrGeo, ITkrBadStripsSvc* pBadStrips, TkrDigiCol* pTkrDigiCol);
-	/// destructor: also deletes the clusters in the list pointed to by the list
+	/// destructor: also deletes the clusters in the list
 	virtual ~TkrClusters();
-
-	/** @name GAUDI members to be use by the converters
-	*/
+    /// @name Gaudi members to be used by the converters
 	//@{
 	static const CLID& classID() {return CLID_TkrClusters;}
 	virtual const CLID& clID() const {return classID();}
@@ -81,25 +79,23 @@ public:
 	/// returns the number of clusters in a given view and plane
 	int nHits(TkrCluster::view v, int iplane) {return (int) getHits(v,iplane).size();}
 
-	/// flag the list of clusters for a given view and plane
-	void flagHitsInPlane(TkrCluster::view v, int iplane);
+	/// This doesn't do anything!!!
+	//void flagHitsInPlane(TkrCluster::view v, int iplane);
 
 	/// delete the list of clusters
 	virtual void clear();
 	/// empty class ??
-	virtual void make() {}
+	//virtual void make() {}
 
 	/// write out the information of the SiLayers
 	void writeOut(MsgStream& log) const;
-	/// draws the TkrClusters
-	void update(gui::DisplayRep& v)  {draw(v);}
 
 	/// returns the mean point in the space for a given view and plane
 	Point meanHit(TkrCluster::view v, int iplane);
 	/// returns the mean point in the space for a given plane, view, around a radius (size) of a given Point
 	Point meanHitInside(TkrCluster::view v, int iplane, double size, Point Pini);
 	/** returns the nearest point around a view and a plane, inside a inner radius centered in a Point. 
-	 *  It also returns the id of the cluser (a reference to the id).
+	 *  It also returns the id of the cluster (a reference to the id).
  	 */
 	Point nearestHitOutside(TkrCluster::view v, int iplane, double inRadius, 
 		Point centerX, int& id);
@@ -126,9 +122,6 @@ private:
 
 	/// intialize the TkrClusters
 	virtual void ini();
-
-	/// draws the TkrClusters
-	void draw(gui::DisplayRep& v);
 
 private:
 
