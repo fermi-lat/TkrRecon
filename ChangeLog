@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue Mar 23 16:07:43 PST 2004
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Various modifications to incorporate the generic Kalman Filter track fit into TkrRecon.
+
+    *
+------------------------------------------------------------
 User: usher  Tue Mar 23 16:06:54 PST 2004
 TkrRecon/src/TrackFit/KalmanFilter
 
