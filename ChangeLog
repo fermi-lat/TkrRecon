@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: cohen  Fri May 31 16:38:37 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	TkrComboFit.h TkrLinkAndTreeFit.h TkrNeuralNetFit.h 
+Log Message:
+STL Compliance of TkrFitTrackCol
+    *
+------------------------------------------------------------
+User: cohen  Fri May 31 16:38:37 PDT 2002
 TkrRecon/src/PatRec/NeuralNet
 
 Modified Files:
