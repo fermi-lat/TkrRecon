@@ -48,6 +48,10 @@ TkrNeuralNet::TkrNeuralNet(Event::TkrClusterCol* pClusters, ITkrQueryClustersToo
 unsigned int TkrNeuralNet::generateNeurons()
 {
   // This gets all of the TkrPoints into a vector
+  //*** Note: because TkrPoints now works on the standard numbering of layers
+  //***    the layer numbers will be backwards.  This needs to be fixed
+  //***    when the code is updated.
+
   for (int ilayer = 0 ; ilayer < 18; ilayer++)
     {
       TkrPoints tempTkrPoints(ilayer, m_clusTool);

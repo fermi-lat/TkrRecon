@@ -534,7 +534,7 @@ void TkrComboPatRec::findBlindCandidates()
         
         // Create space point loops and check for hits
         //TkrPoints first_Hit(ilayer, m_clusters);
-        TkrPoints first_Hit(ilayer, m_clusTool);
+        TkrPoints first_Hit(m_tkrGeo->reverseLayerNumber(ilayer), m_clusTool);
         if(first_Hit.finished()) continue;
         
         while(!first_Hit.finished()) {
@@ -553,8 +553,8 @@ void TkrComboPatRec::findBlindCandidates()
                 if(localBestHitCount > 0 && igap > 1 &&
                   (localBestHitCount+2 > (maxLayers-(ilayer+igap)-2)*2)) break;
                 
-                //TkrPoints secnd_Hit(ilayer+igap, m_clusters);               
-                TkrPoints secnd_Hit(ilayer+igap, m_clusTool);               
+                //TkrPoints secnd_Hit(ilayer+igap, m_clusters);
+                TkrPoints secnd_Hit(m_tkrGeo->reverseLayerNumber(ilayer+igap), m_clusTool);               
                 while(!secnd_Hit.finished()) {
                     if(trials > _maxTrials) break; 
                     Point x2(secnd_Hit.getSpacePoint());
@@ -642,7 +642,7 @@ void TkrComboPatRec::findCalCandidates()
         
         // Create space point loop and check for hits
         //TkrPoints first_Hit(ilayer, m_clusters);
-        TkrPoints first_Hit(ilayer, m_clusTool);
+        TkrPoints first_Hit(m_tkrGeo->reverseLayerNumber(ilayer), m_clusTool);
         
         while(!first_Hit.finished()) {
             if(trials > _maxTrials) break; 
@@ -670,7 +670,7 @@ void TkrComboPatRec::findCalCandidates()
             for(int klayer=ilayer+1; klayer < max_layer; klayer++) {
                 if(trials > _maxTrials) break; 
                 //TkrPoints secnd_Hit(klayer, m_clusters);
-                TkrPoints secnd_Hit(klayer, m_clusTool);
+                TkrPoints secnd_Hit(m_tkrGeo->reverseLayerNumber(klayer), m_clusTool);
                 if(secnd_Hit.finished()) continue;
                 
                 //Try the first 3 closest hits to 1st-hit - cal-hit line
@@ -741,7 +741,7 @@ float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
     deflection = 0.;
     
     //TkrPoints next_Hit(layer+1, m_clusters);
-    TkrPoints next_Hit(layer+1, m_clusTool);
+    TkrPoints next_Hit(m_tkrGeo->reverseLayerNumber(layer+1), m_clusTool);
     if(next_Hit.finished()) return m_cut+1;
     
     Point sample_x(next_Hit.getSpacePoint()); 
