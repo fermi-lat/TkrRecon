@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Wed May  1 21:39:10 PDT 2002
+TkrRecon/TkrRecon/Cluster
+
+Modified Files:
+	TkrQueryClusters.h 
+Log Message:
+Fix the documentation, remove some extraneous code.
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed May  1 10:03:25 PDT 2002
 TkrRecon/src
 
