@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header$
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxBaseTool.cxx,v 1.4 2002/09/01 22:37:41 cohen Exp $
 // Description:
 //      Implementation of the base class of concrete vertexing tools
 //
@@ -15,15 +15,16 @@
 #include "Event/TopLevel/EventModel.h"
 
 VtxBaseTool::VtxBaseTool( const std::string& type, 
-			  const std::string& name, 
-			  const IInterface* parent)
+                          const std::string& name, 
+                          const IInterface* parent)
   : AlgTool(type,name,parent)
 {
   // declare base interface for all consecutive concrete classes
   declareInterface<IVtxBaseTool>(this);
 }
 
-// Purpose and Method: implement AlgTool initialize() method to get basic services
+// Purpose and Method: implement AlgTool initialize() method to get basic 
+//                     services.
 // Inputs: None
 // Output: StatusCode upon completion
 // Dependencies: EventDataSvc should be accessible
@@ -50,13 +51,15 @@ StatusCode VtxBaseTool::initialize()
   return sc;
 }
 
-// Purpose and Method: Call doVtxFit method to find and return a list of candidate vertices 
+// Purpose and Method: Call doVtxFit method to find and return a list of 
+//                     candidate vertices 
 // Inputs: None
 // Output: The list of vertices, as a TkrVertexCol object
 // Dependencies: None
 //
-// Restrictions and Caveats: virtual might prove unnecessary as inheriting classes are
-//                           expected to implement doVtxFit method rather than retrieveVtxCol
+// Restrictions and Caveats: virtual might prove unnecessary as inheriting 
+//                           classes are expected to implement doVtxFit 
+//                           method rather than retrieveVtxCol
 StatusCode VtxBaseTool::retrieveVtxCol(Event::TkrVertexCol& VtxCol)
 {
   MsgStream log(msgSvc(), name());
