@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: burnett  Thu Sep  5 06:48:49 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	TkrControl.h 
+Log Message:
+remove 12 warnings
+    *
+------------------------------------------------------------
 User: cohen  Thu Sep  5 05:44:22 PDT 2002
 TkrRecon/src/Vertex/Combo
 
