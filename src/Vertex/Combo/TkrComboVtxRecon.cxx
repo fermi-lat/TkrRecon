@@ -6,6 +6,8 @@
 #include "src/Vertex/Combo/RayDoca.h"
 #include "Event/Recon/TkrRecon/TkrVertexTab.h"
 
+#include "Event/Recon/TkrRecon/TkrKalFitTrack.h"
+
 double fast_erf(double x) {
     double t = 1./(1.+.47047*x);
     double results = 1. -(.34802 - (.09587 -.74785*t)*t)*t*exp(-x*x);
@@ -20,9 +22,9 @@ using namespace Event;
 
 TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, 
                                    Event::TkrVertexCol* vertexCol, 
-                                   Event::TkrFitTrackCol* pTracks, 
+                                   Event::TkrTrackCol* pTracks, 
                                    Event::TkrPatCandCol* /*pCandTracks*/,
-                                   Event::RelTable<Event::TkrVertex,Event::TkrFitTrackBase>* vertexRelTab)
+                                   Event::TkrVertexTrackTab* vertexRelTab)
 {
     //Define a vector to contain a list of "isolated" tracks
     int    numTracks = pTracks->size();
@@ -36,17 +38,18 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/,
     double gamEne = 0.;
     
     
-    TkrFitConPtr pTrack1 = pTracks->begin();
-    TkrFitConPtr pTrack2 = pTrack1;
+    TkrTrackColPtr pTrack1 = pTracks->begin();
+    TkrTrackColPtr pTrack2 = pTrack1;
     pTrack2++;
     
     int          trk2Idx = trk1Idx+1;
     int      bst_trk2Idx = trk2Idx; 
     
-    TkrFitTrackBase* track1      = *pTrack1;
-    TkrFitTrackBase* best_track2 = 0;
-    
-    double e_t1 =  track1->getEnergy();
+    TkrTrack* track1      = *pTrack1;
+    TkrTrack* best_track2 = 0;
+
+    /// --* What do we put here? Use initial energy for now
+    double e_t1 =  track1->getInitialEnergy();
     Point  gamPos; 
     double best_doca; 
     
@@ -57,20 +60,25 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/,
     //while(pTrack2 < pTracks->end())
     for (; pTrack2!=pTracks->end(); pTrack2++, trk2Idx++) 
     {
-        TkrFitTrackBase* track2 = *pTrack2;
+        TkrTrack* track2 = *pTrack2;
         
-        if(gamEne == 0.) gamEne = e_t1+track2->getEnergy();
-        
-        RayDoca doca    = RayDoca(Ray(track1->getPosition(),track1->getDirection()),
-                                  Ray(track2->getPosition(),track2->getDirection()));
+        /// --* Same here, see above comment
+        if(gamEne == 0.) gamEne = e_t1+track2->getInitialEnergy();
+
+        Point   trk1Pos = track1->front()->getPoint(Event::TkrTrackHit::SMOOTHED);
+        Vector  trk1Dir = track1->front()->getDirection(Event::TkrTrackHit::SMOOTHED);
+        Point   trk2Pos = track2->front()->getPoint(Event::TkrTrackHit::SMOOTHED);
+        Vector  trk2Dir = track2->front()->getDirection(Event::TkrTrackHit::SMOOTHED);
+
+        RayDoca doca    = RayDoca(Ray(trk1Pos, trk1Dir), Ray(trk2Pos, trk2Dir));
         double dist = doca.docaRay1Ray2();
 //        double s1   = doca.arcLenRay1();
 //        double s2   = doca.arcLenRay2(); 
         
-        double cost1t2 = track1->getDirection()*track2->getDirection();
+        double cost1t2 = trk1Dir * trk2Dir;
         double t1t2    = acos(cost1t2);
         
-        double head_sep = (track1->getPosition() - track2->getPosition()).magnitude();
+        double head_sep = (trk1Pos - trk2Pos).magnitude();
         if(head_sep > 40.) continue; 
 
         double q2       = track2->getQuality();   
@@ -106,15 +114,19 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/,
  
         // Begin Method 1
         //Use tracking covariances & energies to weight track directions
-        TkrFitMatrix cov_t1 = track1->getTrackCov();
-        TkrFitMatrix cov_t2 = best_track2->getTrackCov();
-        TkrFitPar    par_t1 = track1->getTrackPar();
-        double sx_1= par_t1.getXSlope();
-        double sy_1= par_t1.getYSlope();
-        TkrFitPar    par_t2 = best_track2->getTrackPar();
-        double sx_2= par_t2.getXSlope();
-        double sy_2= par_t2.getYSlope();
-        double e_t2 =  best_track2->getEnergy();
+        const TkrTrackParams& par_t1 = track1->front()->getTrackParams(Event::TkrTrackHit::SMOOTHED);
+        const TkrTrackParams& par_t2 = best_track2->front()->getTrackParams(Event::TkrTrackHit::SMOOTHED);
+
+        double sx_1 = par_t1.getxSlope();
+        double sy_1 = par_t1.getySlope();
+
+        double sx_2 = par_t2.getxSlope();
+        double sy_2 = par_t2.getySlope();
+
+        //double e_t2 = best_track2->getI
+
+        /// --* see above question on best energy to use here
+        double e_t2 =  best_track2->getInitialEnergy();
         
         double norm_1 = sqrt(1.+ sx_1*sx_1 + sy_1*sy_1); 
         
@@ -127,16 +139,16 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/,
         double tz_1 = -1./norm_1;
         double tz_2 = -1./norm_2;
         
-        double dtx_1_sq = ((1.+sy_1*sy_1)*(1.+sy_1*sy_1)*cov_t1.getcovSxSx() +
-                           sx_1*sx_1*sy_1*sy_1*cov_t1.getcovSySy())/pow(norm_1,6);
-        double dty_1_sq = ((1.+sx_1*sx_1)*(1.+sx_1*sx_1)*cov_t1.getcovSySy() +
-                           sx_1*sx_1*sy_1*sy_1*cov_t1.getcovSxSx())/pow(norm_1,6);
+        double dtx_1_sq = ((1.+sy_1*sy_1)*(1.+sy_1*sy_1)*par_t1.getxSlpxSlp() +
+                           sx_1*sx_1*sy_1*sy_1*par_t1.getySlpySlp())/pow(norm_1,6);
+        double dty_1_sq = ((1.+sx_1*sx_1)*(1.+sx_1*sx_1)*par_t1.getySlpySlp() +
+                           sx_1*sx_1*sy_1*sy_1*par_t1.getxSlpxSlp())/pow(norm_1,6);
         double dtz_1_sq = (tx_1*tx_1/(tz_1*tz_1))*dtx_1_sq + 
                           (ty_1*ty_1/(tz_1*tz_1))*dty_1_sq;
-        double dtx_2_sq = ((1.+sy_2*sy_2)*(1.+sy_2*sy_2)*cov_t2.getcovSxSx() +
-                           sx_2*sx_2*sy_2*sy_2*cov_t2.getcovSySy())/pow(norm_2,6);
-        double dty_2_sq = ((1.+sx_2*sx_2)*(1.+sx_2*sx_2)*cov_t2.getcovSySy() +
-                           sx_2*sx_2*sy_2*sy_2*cov_t2.getcovSxSx())/pow(norm_2,6);
+        double dtx_2_sq = ((1.+sy_2*sy_2)*(1.+sy_2*sy_2)*par_t2.getxSlpxSlp() +
+                           sx_2*sx_2*sy_2*sy_2*par_t2.getySlpySlp())/pow(norm_2,6);
+        double dty_2_sq = ((1.+sx_2*sx_2)*(1.+sx_2*sx_2)*par_t2.getySlpySlp() +
+                           sx_2*sx_2*sy_2*sy_2*par_t2.getxSlpxSlp())/pow(norm_2,6);
         double dtz_2_sq = (tx_2*tx_2/(tz_2*tz_2))*dtx_2_sq + 
                           (ty_2*ty_2/(tz_2*tz_2))*dty_2_sq;
         
@@ -163,7 +175,9 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/,
         gamDir = Vector(gam_tx, gam_ty, gam_tz).unit();
         
         Ray        gamma  = Ray(gamPos,gamDir);
-        TkrVertex* vertex = new TkrVertex(track1->getLayer(),track1->getTower(),gamEne,best_doca,gamma);
+        int        layer  = 2 * track1->front()->getTkrId().getTray() - 1 + track1->front()->getTkrId().getBotTop();
+        int        tower  = 4 * track1->front()->getTkrId().getTowerX() + track1->front()->getTkrId().getTowerY(); 
+        TkrVertex* vertex = new TkrVertex(layer,tower,gamEne,best_doca,gamma);
         //                vertex->setDist1(doca.arcLenRay1());
         //                vertex->setDist2(doca.arcLenRay2())
         //                vertex->setAngle(t1t2); 
@@ -173,8 +187,8 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/,
         vertexCol->push_back(vertex); // addVertex(vertex);
 
         // Add track/vertex to relational table
-        Event::TkrVertexRel* rel1 = new Event::TkrVertexRel(vertex, track1);
-        Event::TkrVertexRel* rel2 = new Event::TkrVertexRel(vertex, best_track2);
+        Event::TkrVertexTrackRel* rel1 = new Event::TkrVertexTrackRel(vertex, track1);
+        Event::TkrVertexTrackRel* rel2 = new Event::TkrVertexTrackRel(vertex, best_track2);
         vertexRelTab->addRelation(rel1);
         vertexRelTab->addRelation(rel2);
 
@@ -184,24 +198,29 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/,
             
             
      //Go through unused list looking for isolated tracks
-    TkrFitConPtr pTrack = pTracks->begin();
-    int          trkIdx = 0;
+    TkrTrackColPtr pTrack = pTracks->begin();
+    int            trkIdx = 0;
             
     //while(pTrack != pTracks->end())
     for (; pTrack != pTracks->end(); pTrack++, trkIdx++)
     {
-         TkrFitTrackBase* track1 = *pTrack;
+         TkrTrack* track1 = *pTrack;
                 
          if (unused[trkIdx])
          {
-            TkrVertex* vertex = new TkrVertex(track1->getLayer(),track1->getTower(),track1->getEnergy(),0.,Ray(track1->getPosition(),track1->getDirection()));
+            Point   trk1Pos = track1->front()->getPoint(Event::TkrTrackHit::SMOOTHED);
+            Vector  trk1Dir = track1->front()->getDirection(Event::TkrTrackHit::SMOOTHED);
+            int     layer   = 35 - 2 * track1->front()->getTkrId().getTray() - 1 + track1->front()->getTkrId().getBotTop();
+            int     tower   = 4 * track1->front()->getTkrId().getTowerX() + track1->front()->getTkrId().getTowerY(); 
+
+            TkrVertex* vertex = new TkrVertex(layer,tower,track1->getInitialEnergy(),0.,Ray(trk1Pos,trk1Dir));
                     
             vertex->addTrack(track1);
                     
             vertexCol->push_back(vertex); //addVertex(vertex);
  
             // Add track/vertex to relational table
-            Event::TkrVertexRel* rel = new Event::TkrVertexRel(vertex, track1);
+            Event::TkrVertexTrackRel* rel = new Event::TkrVertexTrackRel(vertex, track1);
             vertexRelTab->addRelation(rel);
         }
     }            

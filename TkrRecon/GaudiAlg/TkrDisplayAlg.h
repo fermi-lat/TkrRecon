@@ -3,7 +3,7 @@
 #define __TKRDISPLAYALG_H 1
 
 #include "GaudiKernel/Algorithm.h"
-#include "Event/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
 
 
 //----------------------------------------------

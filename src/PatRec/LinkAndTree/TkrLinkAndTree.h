@@ -4,8 +4,9 @@
 
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "src/PatRec/LinkAndTree/TkrLinkForest.h"
-#include "Event/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrQueryClustersTool.h"
 
 //
 //------------------------------------------------------------------------
@@ -23,7 +24,7 @@
 class TkrLinkAndTree : public TkrPatCandCol 
 {
 public:
-    TkrLinkAndTree(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus, double energy);
+    TkrLinkAndTree(ITkrGeometrySvc* pTkrGeo, ITkrQueryClustersTool* clusTool, double energy);
    ~TkrLinkAndTree();
 
         //Return information
@@ -32,8 +33,8 @@ public:
 
 private:
     //Cluster hit information
-    void                setNumClusters(int nClus) {numClusters = nClus;};
-    int                 getNumClusters()          {return numClusters;};
+    //void                setNumClusters(int nClus) {numClusters = nClus;};
+    //int                 getNumClusters()          {return numClusters;};
 
     //Links information
     void                setLinkList(TkrClusterLinkList* pLinks, TkrPlaneType plane);
@@ -55,7 +56,7 @@ private:
     //void               update(GraphicsRep& v);
 
         //Data members
-    int                 numClusters;
+    //int                 numClusters;
 
     double              m_energy;
 

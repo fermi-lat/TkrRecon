@@ -313,7 +313,7 @@ void KalmanFilter::computeMeasCov(TkrFitPlane& plane, TkrFitPar pred_pars)
     // Get the measure hit, the prediction and the cluster
     TkrFitHit    meas_hit      = plane.getHit(TkrFitHit::MEAS);
     int id_Cls = plane.getIDHit();
-    double size_Cls = m_clusters->size(id_Cls);
+    double size_Cls = (*m_clusters)[id_Cls]->size();
 
     TkrFitMatrix newCov(1);
 

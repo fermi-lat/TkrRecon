@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.19 2003/07/18 16:19:39 burnett Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.2 2004/09/08 15:32:48 usher Exp $
 // Description:                                                  
 //      Implementation of the Kalman vertexer
 //
@@ -308,7 +308,8 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
                                   );
 
   usedIter = usedTracks.begin();
-  while(usedIter != usedTracks.end()) vertex->addTrack(*usedIter++);
+  // Comment out for now (changing from TkrFitTrackBase to TkrTrack - 8/26/04 TU)
+  //while(usedIter != usedTracks.end()) vertex->addTrack(*usedIter++);
 
   vertex->writeOut(log);
 

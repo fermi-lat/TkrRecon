@@ -13,7 +13,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitter.h,v 1.4 2004/09/07 22:15:53 lsrea Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalFitTrack/KalFitter.h,v 1.2 2004/09/08 15:32:45 usher Exp $
 */
 
 #ifndef __KalFitter_H
@@ -27,8 +27,9 @@
 
 class ITkrGeometrySvc;
 class ITkrFailureModeSvc;
-class TkrControl;
+class ITkrQueryClustersTool;
 class ITkrAlignHitsTool;
+class TkrControl;
 
 namespace Event {
 
@@ -37,17 +38,23 @@ class KalFitter
 public:
 
     // version for alignment
-    KalFitter(TkrClusterCol* clusters, ITkrGeometrySvc* geo,
-        ITkrAlignHitsTool* alignHits,
-        TkrKalFitTrack* track, int layer, int tower, double sigmaCut, 
-        double energy, const Ray& testRay);
+    KalFitter(TkrClusterCol* clusters, 
+              ITkrGeometrySvc* geo, 
+              ITkrQueryClustersTool* clusTool,
+              ITkrAlignHitsTool* alignHits,
+              TkrKalFitTrack* track, 
+              int layer, int tower, double sigmaCut, double energy, const Ray& testRay);
+
     // standard version
+    KalFitter(TkrClusterCol* clusters, 
+              ITkrGeometrySvc* geo, 
+              ITkrQueryClustersTool* clusTool,
+              TkrKalFitTrack* track, 
+              int layer, int tower, double sigmaCut, double energy, const Ray& testRay);
+
+    // Simple version 
     KalFitter(TkrClusterCol* clusters, ITkrGeometrySvc* geo,
-        TkrKalFitTrack* track, int layer, int tower, double sigmaCut, 
-        double energy, const Ray& testRay);
-    // I think this one is just for refitting
-    KalFitter(TkrClusterCol* clusters, ITkrGeometrySvc* geo,
-        TkrKalFitTrack* track, double sigmaCut, double energy);
+              TkrKalFitTrack* track, double sigmaCut, double energy);
    ~KalFitter() {}
 
     /// Hit Finding & Fitting
@@ -121,11 +128,12 @@ private:
     Event::TkrKalFitTrack*       m_track;
 
     /// Pointers to clusters, geoemtry, and control parameters
-    Event::TkrClusterCol* m_clusters;
-    ITkrGeometrySvc*      m_tkrGeo;
-    ITkrFailureModeSvc*   m_tkrFail;
-    TkrControl*           m_control;
-    ITkrAlignHitsTool*    m_alignHits;
+    Event::TkrClusterCol*  m_clusters;
+    ITkrGeometrySvc*       m_tkrGeo;
+    ITkrFailureModeSvc*    m_tkrFail;
+    ITkrQueryClustersTool* m_clusTool;
+    TkrControl*            m_control;
+    ITkrAlignHitsTool*     m_alignHits;
 };
 
 };

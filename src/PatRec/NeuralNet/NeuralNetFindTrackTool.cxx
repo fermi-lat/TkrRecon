@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.10 2003/07/29 15:08:02 cohen Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.2 2004/09/08 15:32:44 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the Neural Net approach
@@ -13,9 +13,9 @@
 #include "GaudiKernel/SmartDataPtr.h"
 
 #include "Event/TopLevel/EventModel.h"
-#include "Event/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "Event/Recon/CalRecon/CalCluster.h"
-#include "src/TrackFit/KalFitTrack/KalFitTrack.h"
+#include "src/PatRec/KalFitTrack/KalFitTrack.h"
 
 #include "src/PatRec/NeuralNet/TkrNeuralNet.h"
 
@@ -119,7 +119,7 @@ StatusCode NeuralNetFindTrackTool::findTracks()
 
 
   //create the NeuralNet and save it temporarily to TDS for use in display
-  TkrNeuralNet* NN = new TkrNeuralNet(pTkrClus, params, CalEnergy, CalPosition);
+  TkrNeuralNet* NN = new TkrNeuralNet(pTkrClus, m_clusTool, params, CalEnergy, CalPosition);
   
   buildCand(*pTkrCands, NN->neurons(), pTkrClus);
   
@@ -182,7 +182,7 @@ void NeuralNetFindTrackTool::buildCand(Event::TkrPatCandCol& TkrCands,
 	Ray   testRay  = Ray((*hypo).ray().position(),-(*hypo).ray().direction());
 	float energy   = (*hypo).energy();
 	
-	Event::KalFitTrack* _track = new Event::KalFitTrack(pTkrClusters, m_tkrGeo, 
+	Event::KalFitTrack* _track = new Event::KalFitTrack(pTkrClusters, m_tkrGeo, m_clusTool,
 							    iniLayer, iniTower, 
 							    control->getSigmaCut(), energy, testRay); 
 	
@@ -206,7 +206,7 @@ void NeuralNetFindTrackTool::buildCand(Event::TkrPatCandCol& TkrCands,
 	    {
 		    Event::TkrFitPlane hitplane = *hitPtr++;
 		    unsigned hit_ID = hitplane.getIDHit();
-		    Event::TkrCluster * pClus = pTkrClusters->getHit(hit_ID);
+		    Event::TkrCluster * pClus = (*pTkrClusters)[hit_ID];
 		    newTrack->addCandHit(pClus);
 	    }
 

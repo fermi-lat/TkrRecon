@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.7 2004/05/13 22:26:01 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.2 2004/09/08 15:32:45 usher Exp $
  */
 
 // to turn one debug variables
@@ -24,9 +24,9 @@
 #include "GaudiKernel/IParticlePropertySvc.h"
 
 // TDS related stuff
-#include "Event/Recon/TkrRecon/TkrClusterCol.h"
-#include "Event/Recon/TkrRecon/TkrKalFitTrack.h"
-#include "Event/Recon/TkrRecon/TkrTrackTab.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
+#include "Event/Recon/TkrRecon/TkrTrack.h"
+//#include "Event/Recon/TkrRecon/TkrTrackTab.h"
 #include "Event/TopLevel/EventModel.h"
 
 // Utilities, geometry, etc.
@@ -34,6 +34,8 @@
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "src/Track/TkrControl.h"
 #include "TkrUtil/ITkrFailureModeSvc.h"
+#include "TkrUtil/TkrTrkParams.h"
+#include "TkrUtil/TkrCovMatrix.h"
 
 // Track fit specific stuff
 #include "src/TrackFit/KalmanFilterFit/FitMatrices/StdTransportMatrix.h"
@@ -66,18 +68,33 @@ public:
     ///        needed from the TDS, then create and use a new KalFitTrack object to 
     ///        fit the track via a Kalman Filter. Successfully fit tracks are then 
     ///        added to the collection in the TDS.
-    StatusCode doTrackFit(Event::TkrPatCand* patCand);
+    StatusCode doTrackFit(Event::TkrPatCand* patCand)  {return StatusCode::SUCCESS;}
+    StatusCode doTrackFit(Event::TkrTrack*   patCand);
 
     /// @brief Method to re-fit a single candidate track. Re-uses the existing fit track
-    StatusCode doTrackReFit(Event::TkrPatCand* patCand);
+    StatusCode doTrackReFit(Event::TkrPatCand* patCand) {return StatusCode::SUCCESS;}
+    StatusCode doTrackReFit(Event::TkrTrack*   patCand);
+
+    /// @brief Method to set type of hit energy loss for a track
+    void       setHitEnergyLoss(const std::string& energyLossType);
+
+    /// @brief Method to set method for determing cluster errors in fit
+    void       setClusErrCompType(const std::string& clusErrorType);
+
+    /// @brief Method to set multiple scattering matrix computation
+    void       setMultipleScatter(const bool doMultScatComp);
+
+    /// @brief Method to set Kalman Filter projection matrix type
+    void       setProjectionMatrix(const bool measOnly);
 
 private:
     /// Actual track fit method
-    void       doKalmanFit(Event::TkrKalFitTrack& track, Event::TkrClusterCol& clusCol, Event::TrackFitUtils& trackUtils);
-    double     doFilterStep(Event::TkrKalFitTrack& track, Event::TkrClusterCol& clusCol, Event::TrackFitUtils& trackUtils);
-    double     doSmoothStep(Event::TkrKalFitTrack& track, Event::TrackFitUtils& trackUtils);
-    void       initKalmanFitMatrices(Event::TkrKalFitTrack& track);
-    void       getInitialFitHit(Event::TkrKalFitTrack& track, Event::TkrClusterCol& clusCol, Event::TrackFitUtils& trackUtils);
+    void       doKalmanFit(Event::TkrTrack& track);
+    void       doFinalFitCalculations(Event::TkrTrack& track);
+    double     doFilterStep(Event::TkrTrack& track);
+    double     doSmoothStep(Event::TkrTrack& track);
+    void       initKalmanFitMatrices(Event::TkrTrack& track);
+    void       getInitialFitHit(Event::TkrTrack& track);
 
     /// Pointer to the local Tracker geometry service
     ITkrGeometrySvc*     m_tkrGeo;
@@ -131,7 +148,7 @@ m_KalmanFit(0), m_nMeasPerPlane(0), m_nParams(0), m_fitErrs(0)
     declareInterface<ITkrFitTool>(this);
 
     //Declare the fit track property
-    declareProperty("HitEnergyType",    m_HitEnergyType="RadLoss");
+    declareProperty("HitEnergyType",    m_HitEnergyType="eRadLoss");
     declareProperty("DoMultScatMat",    m_MultScatMat=true);
     declareProperty("FitMeasHitOnly",   m_FitMeasOnly=true);
     declareProperty("MeasHitErrorType", m_HitErrorType="Standard");
@@ -191,25 +208,8 @@ StatusCode KalmanTrackFitTool::initialize()
     // Set up control
     m_control = TkrControl::getPtr();
 
-    IParticlePropertySvc*  partPropSvc;
-    if( (sc = service("ParticlePropertySvc", partPropSvc)).isFailure() ) 
-    {
-        throw GaudiException("Service [ParticlePropertySvc] not found", name(), sc);
-    }
-
     //Set up the fit hit energy type
-    if (m_HitEnergyType == "MonteCarlo")
-    {
-        m_HitEnergy = new MonteCarloHitEnergy(m_dataSvc, partPropSvc);
-    }
-    else if (m_HitEnergyType == "MuRadLoss")
-    {
-        m_HitEnergy = new BetheBlockHitEnergy();
-    }
-    else
-    {
-        m_HitEnergy = new RadLossHitEnergy();
-    }
+    setHitEnergyLoss(m_HitEnergyType);
 
     // Set up for multiple scattering
     if (m_MultScatMat) m_Qmat = new StdProcNoiseMatrix(m_tkrGeo);
@@ -233,133 +233,125 @@ StatusCode KalmanTrackFitTool::initialize()
     // Now define the Kalman Filter utilities class
     m_KalmanFit = new KalmanFilterUtils(*m_Tmat, *m_Hmat, *m_Qmat);
 
-    // Allow flexibility in errors?
-    if (m_HitErrorType == "SlopeCorrected")
-    {
-        m_fitErrs   = new SlopeCorrectedMeasErrs(m_tkrGeo);
-    }
-    else if (m_HitErrorType == "ClusterWidth")
-    {
-        m_fitErrs   = new ClusWidMeasErrs(m_tkrGeo);
-    }
-    else
-    {
-        m_fitErrs   = new StandardMeasErrs(m_tkrGeo);
-    }
+    // Hit error calculation 
+    setClusErrCompType(m_HitErrorType);
 
     // Set up params for degrees of freedom
-    m_nParams       = 4;
+    m_nParams = 4;
 
     return sc;
 }
 
-StatusCode KalmanTrackFitTool::doTrackFit(Event::TkrPatCand* patCand)
+/// Method to set type of hit energy loss for a track
+void KalmanTrackFitTool::setHitEnergyLoss(const std::string& energyLossType)
 {
-    //Always believe in success
-    StatusCode sc = StatusCode::SUCCESS;
-
-    //Retrieve the pointer to the reconstructed clusters
-    Event::TkrClusterCol* pTkrClus = SmartDataPtr<Event::TkrClusterCol>(m_dataSvc,EventModel::TkrRecon::TkrClusterCol); 
-    
-    //Get an instance of the track fit utilities
-    Event::TrackFitUtils trackUtils(pTkrClus, m_tkrGeo, m_HitEnergy);
-
-    //Use this to create a new TkrKalFitTrack from the pattern track
-    Event::TkrKalFitTrack* track = trackUtils.newFitTrack(*patCand);
-
-    //Fit the track
-    doKalmanFit(*track, *pTkrClus, trackUtils);
-
-    trackUtils.finish(*track);
-
-    // If successful then store in TDS
-    if (!track->empty(m_control->getMinSegmentHits())) 
+    // No need to do anything if we have a match already
+    if (m_HitEnergyType != energyLossType || !m_HitEnergy)
     {
-        //Its a keeper
-        track->setStatus(Event::TkrKalFitTrack::FOUND);
+        // Get rid of whatever already exists
+        if (m_HitEnergy) delete m_HitEnergy;
 
-        //Add the track to the collection in the TDS
-        Event::TkrFitTrackCol* pFitTracks = SmartDataPtr<Event::TkrFitTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrFitTrackCol); 
-        pFitTracks->push_back(track);
+        // Remember what type we are
+        m_HitEnergyType = energyLossType;
 
-        //Update the candidate - fit track relational table
-        Event::TkrFitTrackTab  trackRelTab(SmartDataPtr<Event::TkrFitTrackTabList >(m_dataSvc,EventModel::TkrRecon::TkrTrackTab));
-        Event::TkrFitTrackRel* rel = new Event::TkrFitTrackRel(patCand, track);
-
-        trackRelTab.addRelation(rel);
-
-        trackUtils.flagAllHits(*track);
-        if(pFitTracks->size() == 1) trackUtils.setSharedHitsStatus(*track);
-    } 
-    else  
-    {
-        delete track;
-    }
-
-    return sc;
-}
-
-
-StatusCode KalmanTrackFitTool::doTrackReFit(Event::TkrPatCand* patCand)
-{
-    //Always believe in success
-    StatusCode sc = StatusCode::SUCCESS;
-
-    //Retrieve the pointer to the reconstructed clusters
-    Event::TkrClusterCol* pTkrClus = SmartDataPtr<Event::TkrClusterCol>(m_dataSvc,EventModel::TkrRecon::TkrClusterCol); 
-    
-    //Get an instance of the track fit utilities
-    Event::TrackFitUtils trackUtils(pTkrClus, m_tkrGeo, m_HitEnergy);
-
-
-    // Recover the pat track - fit track relational table
-    Event::TkrFitTrackTab  trackRelTab(SmartDataPtr<Event::TkrFitTrackTabList >(m_dataSvc,EventModel::TkrRecon::TkrTrackTab));
-
-    // Make sure we have some tracks to work with here!
-    if (trackRelTab.getAllRelations())
-    {
-        std::vector<Event::TkrFitTrackRel*> fitToPatCandVec = trackRelTab.getRelByFirst(patCand);
-
-        if (fitToPatCandVec.size() > 0)
+        // Get the new one...
+        if (m_HitEnergyType == "MonteCarlo")
         {
-            Event::TkrFitTrackBase* baseFitTrack = fitToPatCandVec.front()->getSecond();
-
-            // Does fit track really exist?
-            if (baseFitTrack)
+            IParticlePropertySvc*  partPropSvc = 0;
+            StatusCode sc = service("ParticlePropertySvc", partPropSvc);
+            if( sc.isFailure() ) 
             {
-                Event::TkrKalFitTrack*  kalFitTrack  = dynamic_cast<Event::TkrKalFitTrack*>(baseFitTrack);
-
-                // Is the fit track really a TkrKalFitTrack?
-                if (kalFitTrack)
-                {
-                    // Reset the plane parameters
-//                    for(Event::TkrFitPlaneColPtr planePtr = kalFitTrack->begin(); planePtr < kalFitTrack->end(); planePtr++)
-//                   {
-//                        Event::TkrFitPlane* plane = &(*planePtr);
-//
-//                        plane->initializeInfo(plane->getIDHit(),plane->getIDTower(),
-//                                              plane->getIDPlane(),plane->getProjection(),
-//                                              plane->getNextProj(),plane->getZPlane(),
-//                                              patCand->getEnergy(),plane->getRadLen(),
-//                                              plane->getActiveDist());
-//                  }
-
-                    //Fit the track
-//                    doKalmanFit(*kalFitTrack, *pTkrClus, trackUtils);
-
-//                    trackUtils.finish(*kalFitTrack);
-                }
+                throw GaudiException("Service [ParticlePropertySvc] not found", name(), sc);
             }
+
+            m_HitEnergy = new MonteCarloHitEnergy(m_dataSvc, partPropSvc);
         }
+        else if (m_HitEnergyType == "MuRadLoss")
+        {
+            m_HitEnergy = new BetheBlockHitEnergy();
+        }
+        else if (m_HitEnergyType == "eRadLoss")
+        {
+            m_HitEnergy = new RadLossHitEnergy();
+        }
+        else throw(std::invalid_argument("Invalid hit energy loss type requested"));
     }
 
+    return;
+}
+
+/// @brief Method to set method for determing cluster errors in fit
+void KalmanTrackFitTool::setClusErrCompType(const std::string& clusErrorType)
+{
+    // Make sure we want something different
+    if (m_HitErrorType != clusErrorType || !m_fitErrs)
+    {
+        if (m_fitErrs) delete m_fitErrs;
+
+        m_HitErrorType = clusErrorType;
+
+        if (m_HitErrorType == "SlopeCorrected")
+        {
+            m_fitErrs   = new SlopeCorrectedMeasErrs(m_tkrGeo);
+        }
+        else if (m_HitErrorType == "ClusterWidth")
+        {
+            m_fitErrs   = new ClusWidMeasErrs(m_tkrGeo);
+        }
+        else if (m_HitErrorType == "StandardErrs")
+        {
+            m_fitErrs   = new StandardMeasErrs(m_tkrGeo);
+        }
+        else throw(std::invalid_argument("Invalid cluster error type requested"));
+    }
+    return;
+}
+
+/// @brief Method to set multiple scattering matrix computation
+void KalmanTrackFitTool::setMultipleScatter(const bool doMultScatComp)
+{
+    return;
+}
+
+/// @brief Method to set Kalman Filter projection matrix type
+void KalmanTrackFitTool::setProjectionMatrix(const bool measOnly)
+{
+    return;
+}
+
+StatusCode KalmanTrackFitTool::doTrackFit(Event::TkrTrack* track)
+{
+    // Always believe in success
+    StatusCode sc = StatusCode::SUCCESS;
+
+    // Run the Kalman Filter to do the track fit
+    doKalmanFit(*track);
+
+    // Now determine Track values with completed fit
+    doFinalFitCalculations(*track);
+
+    // Set the bit to confirm completion
+    track->setStatusBit(Event::TkrTrack::OnePass);
 
     return sc;
 }
 
-void KalmanTrackFitTool::doKalmanFit(Event::TkrKalFitTrack& track, 
-                                     Event::TkrClusterCol&  clusterCol,
-                                     Event::TrackFitUtils&  trackUtils)
+
+StatusCode KalmanTrackFitTool::doTrackReFit(Event::TkrTrack* track)
+{
+    // Always believe in success
+    StatusCode sc = StatusCode::SUCCESS;
+
+    // This is just a normal fit of the same track over again
+    doTrackFit(track);
+
+    // Set the bit to confirm completion
+    track->setStatusBit(Event::TkrTrack::TwoPass);
+    
+    return sc;
+}
+
+void KalmanTrackFitTool::doKalmanFit(Event::TkrTrack& track)
 {
     // Purpose and Method: Does the formal Kalman process
     //         First - the Filter step then the (reverse) Smoothing
@@ -375,24 +367,56 @@ void KalmanTrackFitTool::doKalmanFit(Event::TkrKalFitTrack& track,
     initKalmanFitMatrices(track);
 
     // Set the initial hit for this track
-    getInitialFitHit(track, clusterCol, trackUtils);
+    getInitialFitHit(track);
     
     // Run the filter and follow with the smoother
-    double chiSqFit    = doFilterStep(track, clusterCol, trackUtils);
-    double chiSqSmooth = doSmoothStep(track, trackUtils);
-    
-    // End the Calculations
-    //---------------------
-    chiSqFit    /= m_nMeasPerPlane * nplanes - m_nParams;
-    chiSqSmooth /= m_nMeasPerPlane * nplanes - m_nParams;
+    double chiSqFit    = doFilterStep(track);
+    double chiSqSmooth = doSmoothStep(track);
 
-    track.setChiSquare(chiSqFit);
+    // Number of degrees of freedom for the final chi-square
+    int    numDegFree  = m_nMeasPerPlane * nplanes - m_nParams;
+    
+    // Compute the normalized chi-square
+    chiSqFit    /= numDegFree;
+    chiSqSmooth /= numDegFree;
+
+    // Set chi-square and status bits
+    track.setChiSquareFilter(chiSqFit);
     track.setChiSquareSmooth(chiSqSmooth);
+    track.setNDegreesOfFreedom(numDegFree);
+    track.setStatusBit(Event::TkrTrack::Filtered);
+    track.setStatusBit(Event::TkrTrack::Smoothed);
     
     return;
 }
 
-double KalmanTrackFitTool::doFilterStep(Event::TkrKalFitTrack& track, Event::TkrClusterCol& clusterCol, Event::TrackFitUtils&  trackUtils)
+void KalmanTrackFitTool::doFinalFitCalculations(Event::TkrTrack& track)
+{
+    // Get an instance of the track fit utilities
+    TrackFitUtils trackUtils(m_tkrGeo, m_HitEnergy);
+
+    trackUtils.finish(track);
+
+    // If successful then store in TDS
+    if (track.getNumHits() >= m_control->getMinSegmentHits()) 
+    {
+        //Its a keeper
+        track.setStatusBit(Event::TkrTrack::Filtered);
+
+        //Add the track to the collection in the TDS
+        Event::TkrTrackCol* pFitTracks = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol); 
+
+        //Flag the hits
+        trackUtils.flagAllHits(track);
+
+        //Check if this is the first track in the TDS collection
+        if(pFitTracks->front() == &track) trackUtils.setSharedHitsStatus(track);
+    } 
+
+    return;
+}
+
+double KalmanTrackFitTool::doFilterStep(Event::TkrTrack& track)
 {
     double chiSqInc = 0.;
     double chiSqFit = 0.;
@@ -405,18 +429,19 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrKalFitTrack& track, Event::Tkr
     for (int iplane = 0 ; iplane < nplanes - 1; iplane++) 
     {
         // The current plane
-        Event::TkrFitPlane& currentPlane = track[iplane];
+        Event::TkrTrackHit& currentPlane = *track[iplane];
 
         // The plane to fit (the next plane)
-        Event::TkrFitPlane& nextPlane    = track[iplane+1];
+        Event::TkrTrackHit& nextPlane    = *track[iplane+1];
 
         // Measured hits in TDS format
-        Event::TkrFitPar    measPar = nextPlane.getHit(Event::TkrFitHit::MEAS).getPar();
-        Event::TkrFitMatrix measCov = nextPlane.getHit(Event::TkrFitHit::MEAS).getCov();
+        TkrTrkParams        measPar(nextPlane.getTrackParams(Event::TkrTrackHit::MEASURED));
+        TkrCovMatrix        measCov(nextPlane.getTrackParams(Event::TkrTrackHit::MEASURED));
 
         // Update this TDS cov mat for fit track angles
-        measCov = m_fitErrs->computeMeasErrs(currentPlane.getHit(Event::TkrFitHit::FIT).getPar(), 
-                                             measCov, *clusterCol.getHit(nextPlane.getIDHit()));
+        Event::TkrTrackParams&   params  = currentPlane.getTrackParams(Event::TkrTrackHit::FILTERED);
+        const Event::TkrCluster* cluster = nextPlane.getClusterPtr();
+        measCov = m_fitErrs->computeMeasErrs(params, measCov, *cluster );
 
         // Extract the measured state vector from the TDS version
         // There must be a better way to do this...
@@ -424,11 +449,12 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrKalFitTrack& track, Event::Tkr
         KFmatrix measCovMat = Hmat(iplane+1) * KFmatrix(measCov) * Hmat(iplane+1).T();
 
         // Update energy at this plane
+        m_HitEnergy->initialHitEnergy(track, currentPlane, currentPlane.getEnergy());
         m_Qmat->setEnergy(m_HitEnergy->getHitEnergy(currentPlane.getEnergy()), iplane);
 
         // Get current state vector and covariance matrix
-        KFvector curStateVec(currentPlane.getHit(Event::TkrFitHit::FIT).getPar());
-        KFmatrix curCovMat(currentPlane.getHit(Event::TkrFitHit::FIT).getCov());
+        KFvector curStateVec(currentPlane.getTrackParams(Event::TkrTrackHit::FILTERED));
+        KFmatrix curCovMat(currentPlane.getTrackParams(Event::TkrTrackHit::FILTERED));
 
         // Filter this step
         m_KalmanFit->Filter(curStateVec, curCovMat, measVec, measCovMat, iplane+1, iplane);
@@ -438,24 +464,28 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrKalFitTrack& track, Event::Tkr
         curCovMat   = m_KalmanFit->CovMatFilter();
 
         // Update the hit information (measured, predicted and filtered) for this plane
-        trackUtils.addNewHit(nextPlane, Event::TkrFitHit::MEAS, measPar, measCov);
+        nextPlane.setTrackParams(measPar, Event::TkrTrackHit::MEASURED);
+        nextPlane.setTrackParams(measCov, Event::TkrTrackHit::MEASURED);
 
-        Event::TkrFitPar    predFitPar(m_KalmanFit->StateVecExtrap());
-        Event::TkrFitMatrix predCovMat(m_KalmanFit->CovMatExtrap());
-        trackUtils.addNewHit(nextPlane, Event::TkrFitHit::PRED, predFitPar, predCovMat);
+        nextPlane.setTrackParams(m_KalmanFit->StateVecExtrap(), Event::TkrTrackHit::PREDICTED);
+        nextPlane.setTrackParams(m_KalmanFit->CovMatExtrap(), Event::TkrTrackHit::PREDICTED);
 
-        Event::TkrFitPar    fitFitPar(curStateVec);
-        Event::TkrFitMatrix fitCovMat(curCovMat);
-        trackUtils.addNewHit(nextPlane, Event::TkrFitHit::FIT, fitFitPar, fitCovMat);
+        nextPlane.setTrackParams(curStateVec, Event::TkrTrackHit::FILTERED);
+        nextPlane.setTrackParams(curCovMat, Event::TkrTrackHit::FILTERED);
 
-        Event::TkrFitMatrix lastStepQ(m_Qmat->getLastStepQ());
-        trackUtils.updateMaterials(nextPlane, lastStepQ, m_Qmat->getLastStepRadLen(), 
-                                   m_Qmat->getLastStepActDist(), currentPlane.getEnergy());
+        nextPlane.setTrackParams(TkrCovMatrix(m_Qmat->getLastStepQ()),Event::TkrTrackHit::QMATERIAL);
 
-#ifdef DEBUG
-        double chiSqOld = nextPlane.getDeltaChiSq(Event::TkrFitHit::FIT);
-#endif
+        nextPlane.setRadLen(m_Qmat->getLastStepRadLen());
+        nextPlane.setActiveDist(m_Qmat->getLastStepActDist());
+
+        // Change energy on the condition it is not negative...
+        double newEnergy = m_HitEnergy->updateHitEnergy(currentPlane.getEnergy(),m_Qmat->getLastStepRadLen());
+        if (newEnergy >= 0.) nextPlane.setEnergy(newEnergy);
+
+        // Calculate the chi-square contribution for this step
         chiSqInc  = m_KalmanFit->chiSqFilter(measVec, measCovMat, iplane+1);
+
+        nextPlane.setChiSquareFilter(chiSqInc);
 
         chiSqFit += chiSqInc;
     }
@@ -463,36 +493,38 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrKalFitTrack& track, Event::Tkr
     return chiSqFit;
 }
 
-double KalmanTrackFitTool::doSmoothStep(Event::TkrKalFitTrack& track, Event::TrackFitUtils&  trackUtils)
+double KalmanTrackFitTool::doSmoothStep(Event::TkrTrack& track)
 {
     // Smoother
     //---------
     int                 nplanes  = track.getNumHits();
-    Event::TkrFitPlane& prvPlane = track[nplanes-1];
-    Event::TkrFitPar    fitPar   = prvPlane.getHit(Event::TkrFitHit::FIT).getPar();
-    Event::TkrFitMatrix fitCov   = prvPlane.getHit(Event::TkrFitHit::FIT).getCov();
+    Event::TkrTrackHit& prvPlane = *track[nplanes-1];
+    TkrTrkParams        fitPar   = prvPlane.getTrackParams(Event::TkrTrackHit::FILTERED);
+    TkrCovMatrix        fitCov   = prvPlane.getTrackParams(Event::TkrTrackHit::FILTERED);
 
     // Make sure the smoothed parameters are set at the final hit
-    trackUtils.addNewHit(prvPlane, Event::TkrFitHit::SMOOTH, fitPar, fitCov);
+    prvPlane.setTrackParams(fitPar, Event::TkrTrackHit::SMOOTHED);
+    prvPlane.setTrackParams(fitCov, Event::TkrTrackHit::SMOOTHED);
 
     // Reference to our projection matrix
     IKalmanFilterMatrix& Hmat     = *m_Hmat;
 
     // Extract measured values at last hit to get initial smoothed chisquare
-    KFvector measVec    = Hmat(nplanes-1) * KFvector(prvPlane.getHit(Event::TkrFitHit::MEAS).getPar());
-    KFmatrix measCovMat = Hmat(nplanes-1) * KFmatrix(prvPlane.getHit(Event::TkrFitHit::MEAS).getCov()) * Hmat(nplanes-1).T();
+    KFvector measVec    = Hmat(nplanes-1) * KFvector(prvPlane.getTrackParams(Event::TkrTrackHit::MEASURED));
+    KFmatrix measCovMat = Hmat(nplanes-1) * KFmatrix(prvPlane.getTrackParams(Event::TkrTrackHit::MEASURED)) * Hmat(nplanes-1).T();
 
     double chiSqSmooth = m_KalmanFit->chiSqFilter(measVec, measCovMat, nplanes-1);
-        
+    prvPlane.setChiSquareSmooth(chiSqSmooth);
+
     KFvector prvStateVec(fitPar);
     KFmatrix prvCovMat(fitCov);
 
     for (int iplane=nplanes-2; iplane >= 0; iplane--) 
     {
-        Event::TkrFitPlane& curPlane = track[iplane];
+        Event::TkrTrackHit& curPlane = *track[iplane];
     
-        KFvector curStateVec(curPlane.getHit(Event::TkrFitHit::FIT).getPar());
-        KFmatrix curCovMat(curPlane.getHit(Event::TkrFitHit::FIT).getCov());
+        KFvector curStateVec(curPlane.getTrackParams(Event::TkrTrackHit::FILTERED));
+        KFmatrix curCovMat(curPlane.getTrackParams(Event::TkrTrackHit::FILTERED));
 
         m_KalmanFit->Smooth(curStateVec, curCovMat, prvStateVec, prvCovMat, iplane, iplane+1);
         
@@ -506,22 +538,19 @@ double KalmanTrackFitTool::doSmoothStep(Event::TkrKalFitTrack& track, Event::Tra
 #endif
 
         // Update the smoothed hit at this plane
-	    Event::TkrFitPar    curPar = Event::TkrFitPar(curStateVec);
-	    Event::TkrFitMatrix curCov = Event::TkrFitMatrix(curCovMat);
-        trackUtils.addNewHit(curPlane, Event::TkrFitHit::SMOOTH, curPar, curCov);
+        curPlane.setTrackParams(curStateVec, Event::TkrTrackHit::SMOOTHED);
+        curPlane.setTrackParams(curCovMat, Event::TkrTrackHit::SMOOTHED);
 
         // Extract the measured state vector from the TDS version
         // There must be a better way to do this...
-        measVec    = Hmat(iplane) * KFvector(curPlane.getHit(Event::TkrFitHit::MEAS).getPar());
-        measCovMat = Hmat(iplane) * KFmatrix(curPlane.getHit(Event::TkrFitHit::MEAS).getCov()) * Hmat(iplane).T();
+        measVec    = Hmat(iplane) * KFvector(curPlane.getTrackParams(Event::TkrTrackHit::MEASURED));
+        measCovMat = Hmat(iplane) * KFmatrix(curPlane.getTrackParams(Event::TkrTrackHit::MEASURED)) * Hmat(iplane).T();
 
         double chiSqKF = m_KalmanFit->chiSqSmooth(measVec, measCovMat, iplane);
 
-#ifdef DEBUG
-        double chisq   = curPlane.getDeltaChiSq(Event::TkrFitHit::SMOOTH);
-#endif
-
         chiSqSmooth += chiSqKF;
+
+        curPlane.setChiSquareSmooth(chiSqKF);
 
         prvStateVec  = curStateVec;
         prvCovMat    = curCovMat;
@@ -530,7 +559,7 @@ double KalmanTrackFitTool::doSmoothStep(Event::TkrKalFitTrack& track, Event::Tra
     return chiSqSmooth;
 }
 
-void KalmanTrackFitTool::initKalmanFitMatrices(Event::TkrKalFitTrack& track)
+void KalmanTrackFitTool::initKalmanFitMatrices(Event::TkrTrack& track)
 {
 
     // This section for testing KalmanFilterUtils
@@ -547,12 +576,12 @@ void KalmanTrackFitTool::initKalmanFitMatrices(Event::TkrKalFitTrack& track)
 
     for(int idx = 0; idx < track.getNumHits(); idx++)
     {
-        Event::TkrFitPlane& fitPlane = track[idx];
-        Point  pos  = fitPlane.getPoint(Event::TkrFitHit::MEAS);
+        Event::TkrTrackHit* fitPlane = track[idx];
+        Point  pos  = fitPlane->getPoint(Event::TkrTrackHit::MEASURED);
 
         double z    = pos.z();
-        double e    = fitPlane.getEnergy();
-        int    proj = fitPlane.getProjection();
+        double e    = fitPlane->getEnergy();
+        int    proj = fitPlane->getTkrId().getView();
 
         zCoords.push_back(z);
         energy.push_back(e);
@@ -569,7 +598,7 @@ void KalmanTrackFitTool::initKalmanFitMatrices(Event::TkrKalFitTrack& track)
     return;
 }
 
-void KalmanTrackFitTool::getInitialFitHit(Event::TkrKalFitTrack& track, Event::TkrClusterCol& clusterCol, Event::TrackFitUtils& trackUtils)
+void KalmanTrackFitTool::getInitialFitHit(Event::TkrTrack& track)
 {
 
     // This section for testing KalmanFilterUtils
@@ -583,40 +612,16 @@ void KalmanTrackFitTool::getInitialFitHit(Event::TkrKalFitTrack& track, Event::T
 
     Point initPosition = track.getInitialPosition();
 
-    int nHitsX = 0;
-    int nHitsY = 0;
-
-    for(int idx = 0; idx < track.getNumHits() && (nHitsX < 2 || nHitsY < 2); idx++)
-    {
-        Event::TkrFitPlane& fitPlane = track[idx];
-        Event::TkrCluster*  cluster  = clusterCol.getHit(fitPlane.getIDHit());
-
-        Point  pos  = fitPlane.getPoint(Event::TkrFitHit::MEAS);
-
-        if (cluster->v() == Event::TkrCluster::X && nHitsX < 2)
-        {
-            x_measCoords.push_back(pos.x() - initPosition.x());
-            x_measErrs.push_back(cluster->size() * m_tkrGeo->siResolution());
-            x_zCoords.push_back(pos.z() - initPosition.z());
-            nHitsX++;
-        }
-        else if (nHitsY < 2)
-        {
-            y_measCoords.push_back(pos.y() - initPosition.y());
-            y_measErrs.push_back(cluster->size() * m_tkrGeo->siResolution());
-            y_zCoords.push_back(pos.z() - initPosition.z());
-            nHitsY++;
-        }
-    }
-
-    // 2D line fits to the points to get initial estimates for full fit
-    LineFit2D lineFitX(x_measCoords, x_measErrs, x_zCoords);
-    LineFit2D lineFitY(y_measCoords, y_measErrs, y_zCoords);
-
     // Initial fit hit parameters are "guess" from initial trackp position and direction
-    Vector              trackDir(track.getInitialDirection());
-    Event::TkrFitPar    stateFitPar(track.getInitialPosition().x(), trackDir.x()/trackDir.z(),
-                                    track.getInitialPosition().y(), trackDir.y()/trackDir.z());
+    TkrTrkParams stateFitPar(4);
+
+    Vector trackDir(track.getInitialDirection());
+
+    stateFitPar(1) = track.getInitialPosition().x();
+    stateFitPar(2) = trackDir.x()/trackDir.z();
+    stateFitPar(3) = track.getInitialPosition().y();
+    stateFitPar(4) = trackDir.y()/trackDir.z();
+
 #ifdef DEBUG
     double initPosX = lineFitX.getPosAt(0.) + initPosition.x();
     double initPosY = lineFitY.getPosAt(0.) + initPosition.y();
@@ -625,28 +630,21 @@ void KalmanTrackFitTool::getInitialFitHit(Event::TkrKalFitTrack& track, Event::T
                                   initPosition.y(), lineFitY.getFitSlope());
 #endif
 
-    // Based on these parameters, compute the "new" measured covariance matrix
-///    Event::TkrFitMatrix newMeasCov  = trackUtils.computeMeasCov(stateFitPar, 
-///                                                                track[0].getHit(Event::TkrFitHit::MEAS).getCov(), 
-///                                                                *clusterCol.getHit(track[0].getIDHit())); 
-
     // Used this as the base for the "guessed" covariance matrix for the first fit hit
-///    Event::TkrFitMatrix stateCovMat(newMeasCov);
-///    stateCovMat(2,2) += m_control->getIniErrSlope() * m_control->getIniErrSlope();
-///    stateCovMat(4,4) += m_control->getIniErrSlope() * m_control->getIniErrSlope();
-    KFmatrix initCovMat(4,4);
-    initCovMat(1,1) = track[0].getHit(Event::TkrFitHit::MEAS).getCov()(1,1);
-    initCovMat(2,2) = lineFitX.getFitSlopeErr() * lineFitX.getFitSlopeErr();
-    initCovMat(3,3) = track[0].getHit(Event::TkrFitHit::MEAS).getCov()(3,3);
-    initCovMat(4,4) = lineFitY.getFitSlopeErr() * lineFitY.getFitSlopeErr();
-    ////initCovMat(2,2) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
-    ////initCovMat(4,4) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
-
-    Event::TkrFitMatrix stateCovMat(initCovMat);
+    TkrCovMatrix stateCovMat(4,4,0);
+    stateCovMat(1,1) = (track[0]->getTrackParams(Event::TkrTrackHit::MEASURED))(1,1);
+    stateCovMat(2,2) = 0.001;
+    stateCovMat(3,3) = track[0]->getTrackParams(Event::TkrTrackHit::MEASURED)(3,3);
+    stateCovMat(4,4) = 0.001;
 
     // Place this "fit" hit in the first slot on the track
-    trackUtils.addNewHit(track[0], Event::TkrFitHit::FIT,  stateFitPar, stateCovMat);
-    trackUtils.addNewHit(track[0], Event::TkrFitHit::PRED, stateFitPar, stateCovMat);
+    Event::TkrTrackHit& trackHit = *track[0];
+    trackHit.setTrackParams(stateFitPar, Event::TkrTrackHit::FILTERED);
+    trackHit.setTrackParams(stateFitPar, Event::TkrTrackHit::PREDICTED);
+    trackHit.setTrackParams(stateCovMat, Event::TkrTrackHit::FILTERED);
+    trackHit.setTrackParams(stateCovMat, Event::TkrTrackHit::PREDICTED);
+
+    int i = 0;
 
     return;
 }

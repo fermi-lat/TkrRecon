@@ -19,10 +19,11 @@
 
 
 // Right now it doesn't use calEne, but in the future it might.
-TkrNeuralNet::TkrNeuralNet(Event::TkrClusterCol* pClusters, std::map<const char*,double,ltstr>& params,
+TkrNeuralNet::TkrNeuralNet(Event::TkrClusterCol* pClusters, ITkrQueryClustersTool* clusTool, 
+                           std::map<const char*,double,ltstr>& params,
                            double calEne, Point calHit) : 
   m_numNeurons(0), m_Pcal(calHit), m_energy(calEne), 
-  m_clusters(pClusters), m_params(params)
+  m_clusters(pClusters), m_clusTool(clusTool), m_params(params)
 { 
   // make the neurons
   m_numNeurons = generateNeurons(); 
@@ -49,7 +50,7 @@ unsigned int TkrNeuralNet::generateNeurons()
   // This gets all of the TkrPoints into a vector
   for (int ilayer = 0 ; ilayer < 18; ilayer++)
     {
-      TkrPoints tempTkrPoints(ilayer, m_clusters);
+      TkrPoints tempTkrPoints(ilayer, m_clusTool);
       if(!tempTkrPoints.finished())
 	{
 	  TkrPointList tmpList = tempTkrPoints.getAllLayerPoints();

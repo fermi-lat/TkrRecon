@@ -18,7 +18,7 @@
  * 
  *
  * @author Johann Cohen-Tanugi
- * $Header: /home/cvs/SLAC/TkrRecon/src/Vertex/VtxKalFitTool.h,v 1.8 2002/09/02 19:46:15 cohen Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Vertex/VtxKalFitTool.h,v 1.2 2004/09/08 15:32:48 usher Exp $
  */
 class VtxKalFitTool : public VtxBaseTool
 {

@@ -1,6 +1,5 @@
 package TkrRecon
-
-version v9r0p2
+version v9r0p0
 
 author Tracy Usher    <usher@slac.stanford.edu>
 author Leon Rochester <lsrea@slac.stanford.edu>
@@ -13,7 +12,7 @@ apply_pattern packageShr
 
 apply_pattern package_include
 
-use Event      v9*
+use Event      v10*
 use GlastSvc   v9*
 use GuiSvc
 use geometry
@@ -28,7 +27,8 @@ private
 # everything below here is private
 
 use RootIo v* -no_auto_imports
-use RootPolicy v4r* -no_auto_imports
+#use RootPolicy v2r* -no_auto_imports
+
 
 #the following prepend makes the includes folder available locally: avoid the package_include
 macro_prepend includes "-I ../src " WIN32 " /I ..\src  "
@@ -37,7 +37,6 @@ macro TkrRecon_stamps
 
 apply_pattern package_Cshlibflags 
 
-private # Traudl says do this
 
 macro TkrRecon_headers   "" WIN32 "\
  ../TkrRecon/Cluster/*.h\
@@ -71,6 +70,7 @@ library TkrRecon  $(TkrRecon_headers)  \
   -s=TrackFit/KalmanFilterFit/TrackEnergy $(source)\
   -s=TrackFit/KalFitTrack $(source)\
   -s=TrackFit/LineFit2D $(source)\
+  -s=TrackFit/LineFit3D $(source)\
   -s=Utilities $(source)\
   -s=Vertex  $(source)\
   -s=Vertex/Combo $(source)\

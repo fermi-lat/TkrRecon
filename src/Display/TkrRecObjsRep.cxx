@@ -1,4 +1,4 @@
-#include "TkrRecon/Display/TkrRecObjsRep.h"
+#include "TkrRecObjsRep.h"
 
 //------------------------------------------------------------------------------
 /// Algorithm parameters which can be set at run time must be declared.

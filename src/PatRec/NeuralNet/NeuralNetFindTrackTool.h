@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.h,v 1.5 2003/07/18 21:26:59 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.h,v 1.2 2004/09/08 15:32:44 usher Exp $
  */
 
 #ifndef NEURALNETFINDTRACKTOOL_H

@@ -20,7 +20,7 @@
  * 
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrTrackFitAlg.h,v 1.5 2003/03/26 22:05:01 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/TkrRecon/GaudiAlg/TkrTrackFitAlg.h,v 1.2 2004/09/08 15:32:41 usher Exp $
  */
 /*
 class TkrTrackFitAlg : public Algorithm

@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.25 2003/09/27 18:53:27 burnett Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.2 2004/09/08 15:32:43 usher Exp $
  */
 
 

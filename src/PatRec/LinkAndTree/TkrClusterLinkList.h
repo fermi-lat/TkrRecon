@@ -10,6 +10,7 @@
 #include <list>
 #include "src/PatRec/LinkAndTree/TkrClusterLinkVector.h"
 #include "src/PatRec/LinkAndTree/LayerLinkList.h"
+#include "TkrUtil/ITkrQueryClustersTool.h"
 
 class TkrClusterLinkList : public LayerLinkList
 {
@@ -19,7 +20,7 @@ class TkrClusterLinkList : public LayerLinkList
     int          numLinksInLayer;
 public:
     TkrClusterLinkList();
-    TkrClusterLinkList(TkrClusterCol* pClusters, TkrPlaneType view);
+    TkrClusterLinkList(ITkrQueryClustersTool* clusTool, TkrPlaneType view);
    ~TkrClusterLinkList();
 
     int getNumLinksTotal()  {return numLinksTotal;};

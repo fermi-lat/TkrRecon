@@ -5,23 +5,23 @@
 
 #include "src/PatRec/LinkAndTree/TkrLinkAndTree.h"
 
-TkrLinkAndTree::TkrLinkAndTree(ITkrGeometrySvc* /*pTkrGeo*/, TkrClusterCol* pTkrClus, double energy)
+TkrLinkAndTree::TkrLinkAndTree(ITkrGeometrySvc* /*pTkrGeo*/, ITkrQueryClustersTool* clusTool, double energy)
 {
     m_energy = energy;
 
     ini();
 
     //How many clusters are we dealing with?
-    setNumClusters(pTkrClus->nHits());
+    //setNumClusters(pTkrClus->size());
 
     //Build the links in the X view
-    setLinkList(new TkrClusterLinkList(pTkrClus, X), X);
+    setLinkList(new TkrClusterLinkList(clusTool, X), X);
 
     //Build the trees from this
     setForest(new TkrLinkForest(getLinkList(X)), X);
     
     //Build the links in the Y view
-    setLinkList(new TkrClusterLinkList(pTkrClus, Y), Y);
+    setLinkList(new TkrClusterLinkList(clusTool, Y), Y);
 
     //Build the trees from this
     setForest(new TkrLinkForest(getLinkList(Y)), Y);
@@ -289,7 +289,7 @@ int TkrLinkAndTree::getNumTrees(TkrPlaneType plane)
 
 void TkrLinkAndTree::ini()
 {
-    numClusters = 0;
+    //numClusters = 0;
     pLinkListX  = 0;
     numLinksX   = 0;
     pLinkListY  = 0;

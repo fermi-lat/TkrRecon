@@ -9,6 +9,7 @@
 #include <vector>
 #include "src/PatRec/LinkAndTree/TkrClusterLink.h"
 #include "src/PatRec/LinkAndTree/LayerLinkVector.h"
+#include "TkrUtil/ITkrQueryClustersTool.h"
 //#include "Event/dataManager.h"
 
 //Ok, ugly stuff that we need to figure out what to do about later
@@ -25,7 +26,7 @@ class TkrClusterLinkVector : public LayerLinkVector
 
 public:
     TkrClusterLinkVector();
-    TkrClusterLinkVector(TkrClusterCol* pClusters, int layerNum, TkrPlaneType plane);
+    TkrClusterLinkVector(ITkrQueryClustersTool* clusTool, int layerNum, TkrPlaneType plane);
        ~TkrClusterLinkVector();
 
     //Which layer is this?

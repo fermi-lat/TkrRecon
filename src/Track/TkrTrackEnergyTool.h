@@ -6,18 +6,24 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.0 2003/01/10 19:43:25 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Track/TkrTrackEnergyTool.h,v 1.2 2004/09/08 15:32:45 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
 #include "GaudiKernel/DataSvc.h"
+#include "GaudiKernel/ToolFactory.h"
+#include "GaudiKernel/SmartDataPtr.h"
+#include "GaudiKernel/GaudiException.h" 
 
 #include "Event/TopLevel/EventModel.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "Event/Recon/TkrRecon/TkrFitTrackBase.h"
 
+//#include "TkrRecon/GaudiAlg/TkrTrackFitAlg.h"
 #include "src/Track/TkrControl.h"
+#include "src/TrackFit/KalFitTrack/KalFitter.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrQueryClustersTool.h"
 
 static const InterfaceID IID_TkrTrackEnergyTool("TkrTrackEnergyTool", 1 , 0);
 
@@ -51,9 +57,12 @@ private:
     double getTotalEnergy(Event::TkrPatCand* track, double CalEnergy);
 
     /// Pointer to the local Tracker geometry service
-    ITkrGeometrySvc* m_tkrGeo;
+    ITkrGeometrySvc*       m_tkrGeo;
 
-    TkrControl*      m_control;
+    /// Pointer to the cluster tool
+    ITkrQueryClustersTool* m_clusTool;
+
+    TkrControl*            m_control;
 
     /// Pointer to the Gaudi data provider service
     DataSvc*         m_dataSvc;

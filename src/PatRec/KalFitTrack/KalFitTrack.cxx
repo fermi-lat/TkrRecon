@@ -20,9 +20,9 @@
 #include "src/TrackFit/KalmanFilter/KalmanFilter.h"
 #include "src/Track/TkrControl.h"
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
-#include "TkrRecon/Cluster/TkrQueryClusters.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrFailureModeSvc.h"
+#include "TkrUtil/ITkrQueryClustersTool.h"
 #include "src/Track/TkrControl.h"
 #include "idents/TowerId.h"
 
@@ -39,6 +39,7 @@ using namespace Event;
 
 KalFitTrack::KalFitTrack(Event::TkrClusterCol* clusters, 
                          ITkrGeometrySvc* geo, 
+                         ITkrQueryClustersTool* clusTool,
                          int ilyr, int itwr, double sigmaCut,
                          double energy, const Ray& testRay) :
                             m_ray(testRay),
@@ -48,6 +49,7 @@ KalFitTrack::KalFitTrack(Event::TkrClusterCol* clusters,
                             m_sigma(sigmaCut),
                             m_clusters(clusters),
                             m_tkrGeo(geo),
+                            m_clusTool(clusTool),
                             m_tkrFail(m_tkrGeo->getTkrFailureModeSvc())
 {
    // Purpose and Method: Constructor - Initialization for KalFitTrack
@@ -85,7 +87,8 @@ void KalFitTrack::flagAllHits(int iflag)
 
     while(hitPtr != getHitIterEnd()) {
         const TkrFitPlane& hitplane = *hitPtr++; 
-        m_clusters->flagHit(hitplane.getIDHit(), iflag);
+        //m_clusters->flagHit(hitplane.getIDHit(), iflag);
+        (*m_clusters)[hitplane.getIDHit()]->flag(iflag);
     }
 }
 
@@ -101,7 +104,8 @@ void KalFitTrack::unFlagAllHits()
 
     while(hitPtr != getHitIterEnd()) {
         const TkrFitPlane& hitplane = *hitPtr++; 
-        m_clusters->unflagHit(hitplane.getIDHit());
+        //m_clusters->unflagHit(hitplane.getIDHit());
+        (*m_clusters)[hitplane.getIDHit()]->unflag();
     }
 }  
 
@@ -116,7 +120,8 @@ void KalFitTrack::unFlagHit(int num)
     TkrFitPlaneConPtr hitPtr = getHitIterBegin();
     hitPtr += num;
     const TkrFitPlane& hitplane     = *hitPtr;
-    m_clusters->unflagHit(hitplane.getIDHit());
+    //m_clusters->unflagHit(hitplane.getIDHit());
+    (*m_clusters)[hitplane.getIDHit()]->unflag();
 }  
 
 void KalFitTrack::clear()
@@ -141,7 +146,8 @@ void KalFitTrack::addMeasHit(const TkrPatCandHit& candHit)
 
     Point       planePos = candHit.Position();
     int         clusIdx  = candHit.HitIndex();
-    int         towerIdx = m_clusters->getHit(clusIdx)->tower();
+    //int         towerIdx = (*m_clusters)[clusIdx]->tower();
+    int         towerIdx = (*m_clusters)[clusIdx]->tower();
     TkrFitPlane newPlane(clusIdx, towerIdx, candHit.PlaneIndex(), getStartEnergy(),
                          planePos.z(), candHit.View());
 
@@ -167,7 +173,7 @@ void KalFitTrack::addMeasHit(int clusIdx, int planeID, TkrCluster::view proj, do
    // Dependencies: None
    // Restrictions and Caveats:  None
 
-    int         towerIdx = m_clusters->getHit(clusIdx)->tower();
+    int         towerIdx = (*m_clusters)[clusIdx]->tower();
     TkrFitPlane newPlane(clusIdx, towerIdx, planeID, getStartEnergy(),
                          zPlane, proj);
 
@@ -243,7 +249,7 @@ void KalFitTrack::findHits()
         if (statushit != FOUND) break;
         if (!m_control->trackAcrossTowers()) {
             int hitID = nextKplane.getIDHit();
-            int thisTower = m_clusters->getHit(hitID)->tower();
+            int thisTower = (*m_clusters)[hitID]->tower();
             if (trackTower==-1) {
                 trackTower = thisTower;
             } else {
@@ -467,7 +473,7 @@ TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer,
  
     double prev_energy = prevKplane.getEnergy();
     int    clusIdx  = prevKplane.getIDHit();
-    int    towerIdx = clusIdx >= 0? m_clusters->getHit(clusIdx)->tower() : -1;
+    int    towerIdx = clusIdx >= 0? (*m_clusters)[clusIdx]->tower() : -1;
     TkrFitPlane projectedKplane(clusIdx,towerIdx, next_layer,prev_energy, zEnd, 
                                 predhit, this_projection);   
     projectedKplane.setActiveDist(actDist);
@@ -494,7 +500,7 @@ void KalFitTrack::incorporateFoundHit(TkrFitPlane& nextKplane, int indexhit)
 
     TkrCluster::view planeView = nextKplane.getProjection();
 
-    Point  nearHit   = m_clusters->position(indexhit);
+    Point  nearHit   = (*m_clusters)[indexhit]->position();
     double x0        = nearHit.x();
     double y0        = nearHit.y();
     double z0        = nearHit.z();
@@ -582,8 +588,7 @@ double KalFitTrack::sigmaFoundHit(const TkrFitPlane& /*previousKplane*/, const T
     double min_dist = -1.;
     bool done = false;
     while (!done) {
-        TkrQueryClusters query(m_clusters);
-        nearHit = query.nearestHitOutside(m_axis, klayer, min_dist, center, indexhit);
+        nearHit = m_clusTool->nearestHitOutside(m_axis, klayer, min_dist, center, indexhit);
         done = foundHit(indexhit, min_dist, max_dist, rError, center, nearHit);
     }
     
@@ -644,8 +649,7 @@ double KalFitTrack::sigmaFoundHit(Point center, int nextLayer, int prevLayer,
     bool done = false;
     int loop_count = 0;
     while (!done && loop_count++ < 4) {
-        TkrQueryClusters query(m_clusters);
-        nearHit = query.nearestHitOutside(m_axis, nextLayer, min_dist, center, indexhit);
+        nearHit = m_clusTool->nearestHitOutside(m_axis, nextLayer, min_dist, center, indexhit);
         done = foundHit(indexhit, min_dist, max_dist, rError, center, nearHit);
     }
     
@@ -680,7 +684,7 @@ bool KalFitTrack::foundHit(int& indexhit, double& min_dist, double max_dist,
 
     // Does measured co-ordinate fall outside search region?
     if (deltaStrip < max_dist){
-        if (m_clusters->hitFlagged(indexhit)) done = false;
+        if ((*m_clusters)[indexhit]->hitFlagged()) done = false;
     } else indexhit = -1; // outside region 
     
     // Check that Cluster size is o.k.
@@ -856,8 +860,11 @@ int KalFitTrack::addLeadingHits(int top_layer)
     double arc_x, arc_y; 
     while(next_layer >= 0 && top_layer-next_layer < 2) {   // Limit additions to 2 layers
         //Check that there are hits to here
-        if((m_clusters->nHits(TkrCluster::X, next_layer) + 
-            m_clusters->nHits(TkrCluster::Y, next_layer)) < 1) {
+        if ((m_clusTool->getClustersReverseLayer(TkrCluster::X,next_layer).size() +
+             m_clusTool->getClustersReverseLayer(TkrCluster::Y,next_layer).size()) < 1)
+        {
+        //if((m_clusters->nHits(TkrCluster::X, next_layer) + 
+        //    m_clusters->nHits(TkrCluster::Y, next_layer)) < 1) {
             next_layer--;
             continue;
         }
@@ -1252,10 +1259,10 @@ void KalFitTrack::eneDetermination()
        TkrCluster::view hit_proj = m_hits[iplane].getProjection();
        int hit_Id = m_hits[iplane].getIDHit();
        if(hit_proj == TkrCluster::X) {
-           x_cls_size = m_clusters->size(hit_Id);
+           x_cls_size = (*m_clusters)[hit_Id]->size();
        }
        else {
-           y_cls_size = m_clusters->size(hit_Id);
+           y_cls_size = (*m_clusters)[hit_Id]->size();
        }
         if(m_hits[iplane].getIDPlane() == old_Plane_Id) {
             sX += m_hits[iplane].getHit(TkrFitHit::SMOOTH).getPar().getXSlope();
@@ -1423,7 +1430,7 @@ int KalFitTrack::okClusterSize(int indexhit, double slope)
 
     int icluster = 0;
     
-    int size = (int) m_clusters->size(indexhit);
+    int size = (int) (*m_clusters)[indexhit]->size();
     
     double distance = m_tkrGeo->siThickness()*fabs(slope)/
                          m_tkrGeo->siStripPitch();

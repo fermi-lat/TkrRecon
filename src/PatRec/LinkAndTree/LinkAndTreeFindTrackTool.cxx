@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/LinkAndTree/LinkAndTreeFindTrackTool.cxx,v 1.8 2003/07/18 21:26:59 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/PatRec/LinkAndTree/LinkAndTreeFindTrackTool.cxx,v 1.2 2004/09/08 15:32:44 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the Link and Tree approach
@@ -11,7 +11,7 @@
 #include "GaudiKernel/ToolFactory.h"
 #include "GaudiKernel/SmartDataPtr.h"
 
-#include "Event/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "Event/Recon/CalRecon/CalCluster.h"
 #include "Event/TopLevel/EventModel.h"
@@ -69,7 +69,7 @@ StatusCode LinkAndTreeFindTrackTool::findTracks()
     }
 
     //Create the TkrCandidates TDS object
-    Event::TkrPatCandCol* pTkrCands = new TkrLinkAndTree(m_tkrGeo, pTkrClus, CalEnergy);
+    Event::TkrPatCandCol* pTkrCands = new TkrLinkAndTree(m_tkrGeo, m_clusTool, CalEnergy);
 
     //Register this object in the TDS
     sc = m_dataSvc->registerObject(EventModel::TkrRecon::TkrPatCandCol,pTkrCands);

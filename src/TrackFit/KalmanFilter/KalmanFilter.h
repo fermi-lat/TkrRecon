@@ -11,12 +11,12 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilter/KalmanFilter.h,v 1.12 2003/03/13 19:13:24 lsrea Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilter/KalmanFilter.h,v 1.2 2004/09/08 15:32:45 usher Exp $
 */
 #ifndef _KALMANFILTER_H
 #define _KALMANFILTER_H 
 
-#include "Event/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "Event/Recon/TkrRecon/TkrFitPlane.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrFailureModeSvc.h"

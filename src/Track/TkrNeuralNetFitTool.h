@@ -7,7 +7,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetFitTool.h,v 1.5 2003/03/13 22:18:15 als Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Track/TkrNeuralNetFitTool.h,v 1.2 2004/09/08 15:32:45 usher Exp $
  */
 
 #ifndef TKRCOMBOFITTOOL_H

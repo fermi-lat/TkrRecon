@@ -1,5 +1,5 @@
 #include "Event/TopLevel/EventModel.h"
-#include "TkrRecon/Display/TkrCandidatesRep.h"
+#include "TkrCandidatesRep.h"
 
 //------------------------------------------------------------------------------
 /// Algorithm parameters which can be set at run time must be declared.

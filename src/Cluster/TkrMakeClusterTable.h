@@ -8,11 +8,11 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusterTable.h,v 1.1 2002/10/08 22:30:17 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Cluster/TkrMakeClusterTable.h,v 1.3 2004/09/08 15:32:42 usher Exp $
 */
 
 #include "Event/Recon/TkrRecon/TkrCluster.h"
-#include "Event/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "Event/Digi/TkrDigi.h"
 #include "Event/TopLevel/EventModel.h"
 #include "Event/TopLevel/Event.h"

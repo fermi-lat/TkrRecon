@@ -13,13 +13,14 @@
 * @todo Impliment graph searching function to better pick out candidate tracks.
 * @todo replace std::rand in generateNeurons() with call to Gaudi Service
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/TkrNeuralNet.h,v 1.12 2003/03/13 19:13:23 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/PatRec/NeuralNet/TkrNeuralNet.h,v 1.2 2004/09/08 15:32:44 usher Exp $
 */
 
 #ifndef __TKR_NEURALNET_H
 #define __TKR_NEURALNET_H
 
-#include "Event/Recon/TkrRecon/TkrClusterCol.h"
+#include "TkrUtil/ITkrQueryClustersTool.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "src/PatRec/NeuralNet/TkrNeuron.h"
 #include "src/Utilities/TkrBase.h"
 #include "GaudiKernel/DataObject.h"
@@ -40,7 +41,7 @@ class TkrNeuralNet : public DataObject
   
   
   // constructor
-  TkrNeuralNet(Event::TkrClusterCol* pClusters, 
+  TkrNeuralNet(Event::TkrClusterCol* pClusters, ITkrQueryClustersTool* clusTool,
 	       std::map<const char*,double, ltstr>& params,
 	       double calEne = 0., Point calHit = Point(0.,0.,0.));
   
@@ -118,6 +119,8 @@ class TkrNeuralNet : public DataObject
   double         m_energy;
 	      
   Event::TkrClusterCol*   m_clusters;
+
+  ITkrQueryClustersTool*  m_clusTool;
 
   std::map<const char*,double, ltstr>& m_params;
 };

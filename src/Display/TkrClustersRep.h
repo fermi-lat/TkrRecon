@@ -2,7 +2,7 @@
 #ifndef __TkrClustersRep_H
 #define __TkrClustersRep_H
 
-#include "Event/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 
 #include "gui/DisplayRep.h"
