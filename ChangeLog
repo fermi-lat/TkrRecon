@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: allgood  Mon Apr  1 11:30:12 PST 2002
+TkrRecon/src/Track
+
+Modified Files:
+	TkrPoints.cxx 
+Log Message:
+Added members and access routines for x & y hit ids.
+
+    *
+------------------------------------------------------------
 User: allgood  Mon Apr  1 11:27:01 PST 2002
 TkrRecon/src/Track
 
