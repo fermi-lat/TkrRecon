@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Thu Jul 18 14:13:39 PDT 2002
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx KalFitTrack.h 
+Log Message:
+Clean-up - deleted un used member func.'s 
+    *
+------------------------------------------------------------
 User: atwood  Thu Jul 18 14:11:28 PDT 2002
 TkrRecon/src/PatRec/Combo
 
