@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.17 2004/12/21 00:10:16 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.18 2004/12/22 17:52:56 usher Exp $
  */
 
 // to turn one debug variables
@@ -24,6 +24,7 @@
 
 // TDS related stuff
 #include "Event/Recon/TkrRecon/TkrTrack.h"
+
 #include "Event/TopLevel/EventModel.h"
 
 // TkrRecon utilities
@@ -56,7 +57,7 @@ public:
 
 	
     /// @brief This method will attempt to find the hits prior to the first hit on track
-	int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track);
+	int addLeadingHits(Event::TkrTrack* track);
 
 private:
     /// Private member methods
@@ -328,7 +329,21 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrackHit* last_hit,
 	if(!m_tkrGeom->isInActiveLAT(end_pos)) return trackHit;
   
     // Check on crossing from one tower to the next
+    int iXTower, iYTower;
+    int jXTower, jYTower;
+    double towerPitch = m_tkrGeom->towerPitch();
+    int numX = m_tkrGeom->numXTowers();
+    int numY = m_tkrGeom->numYTowers();
+
 	if(!m_trackAcrossTowers) {
+        // trucateCoord returns a double, but we only want the tower number here
+        m_tkrGeom->truncateCoord(start_pos.x(), towerPitch, numX, iXTower);
+        m_tkrGeom->truncateCoord(start_pos.y(), towerPitch, numY, iYTower);
+        m_tkrGeom->truncateCoord(end_pos.x(),   towerPitch, numX, jXTower);
+        m_tkrGeom->truncateCoord(end_pos.y(),   towerPitch, numY, jYTower);
+        if(iXTower!=jXTower || iYTower!=jYTower) return trackHit;
+        
+        /*
         int numX = m_tkrGeom->numXTowers();
         int numY = m_tkrGeom->numYTowers();
         double towerPitch = m_tkrGeom->towerPitch();
@@ -338,8 +353,9 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrackHit* last_hit,
         int startTower = idents::TowerId(xTower,yTower).id();
         xTower = (int) floor(end_pos.x()/towerPitch + 0.5*numX + 0.001);
         yTower = (int) floor(end_pos.y()/towerPitch + 0.5*numY + 0.001);
-        int endTower = idents::TowerId(xTower,yTower).id();
+        int endTower = idents::TowerId(iXTower,iYTower).id();
         if (startTower != endTower) return trackHit;
+        */
 	}
 
 	// Setup the propagator and transport the track parameters along this step
@@ -403,7 +419,34 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrackHit* last_hit,
 		trackHit->setZPlane(m_tkrGeom->getPlaneZ(next_plane));
 		// Retrieve a reference to the measured parameters (for setting)
         Event::TkrTrackParams& params = trackHit->getTrackParams(Event::TkrTrackHit::MEASURED);
-		// Set measured track parameters - NEED NEW CODE HERE
+
+        // find out whether there are dead clusters in this plane.
+        // should we restrict ourselves to one tower?
+
+        int layer = m_tkrGeom->getLayer(next_plane);
+        int view  = m_tkrGeom->getView(next_plane);
+        Event::TkrCluster* badCluster = m_clusTool->nearestBadClusterOutside(view, layer, 0.0, end_pos);
+        double distance;
+        double width;
+        if(badCluster) {
+            // here is where we do something about the bad cluster
+            Point pos = badCluster->position();
+            Vector diff = end_pos - pos;
+            distance = fabs(diff[view]);
+            // get the cluster width, including gaps
+            width = m_clusTool->clusterWidth(badCluster);
+        }
+
+        // Check for gaps
+        double xGap, yGap;
+        double activeXDist, activeYDist;
+        bool inTower = m_tkrGeom->inTower(view, end_pos, iXTower, iYTower, 
+            activeXDist, activeYDist, xGap, yGap);
+
+        // now figure out what to do with the information:
+        // if badCluster exists, we have distance and width
+        // inTower, iXTower, iYTower, xActiveDist, yActiveDist, xGap, yGap
+        
         params(1) = end_pos.x();
         params(2) = 0.;
         params(3) = end_pos.y();

@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.22 2004/12/13 23:50:42 atwood Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.23 2004/12/16 05:04:24 usher Exp $
 // Description:                                                  
 //      Implementation of the Kalman vertexer
 //
@@ -579,7 +579,6 @@ VtxKalFitTool::computeWeightMatrix(const Event::TkrTrack& theTrack,
   //
   // Restrictions and Caveats: Energy error might need reviewing
   
-  int ifail;
   MsgStream log(msgSvc(), name());
 
   //first bring Cov(X,Sx,Y,Sy) close to current vertex

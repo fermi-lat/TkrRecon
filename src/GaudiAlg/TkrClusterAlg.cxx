@@ -10,7 +10,7 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.19 2004/09/23 21:30:26 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.20 2004/10/12 19:03:34 lsrea Exp $
 */
 
 #include "GaudiKernel/Algorithm.h"
@@ -57,7 +57,7 @@ private:
     ITkrAlignmentSvc*        m_pAlignment;
     
     /// pointer to Tkr digis
-    Event::TkrDigiCol*       m_TkrDigis;
+    Event::TkrDigiCol*       m_TkrDigiCol;
     /// pointer to generated TkrClusterCol
     Event::TkrClusterCol*    m_TkrClusterCol;
     /// pointer to generated TkrIdClusterMMap
@@ -91,27 +91,28 @@ StatusCode TkrClusterAlg::initialize()
             << endreq;
         return sc;
     }
-    /*
-    // TkrBadStripsSvc is not required for this algorithm
-    // There are some shenanigans below to ensure that the algorithm 
-    // runs without it.
-    sc = service("TkrBadStripsSvc", m_pBadStrips, false);
-    if (sc.isFailure()) {
-        log << MSG::INFO << "Algorithm will not filter bad hits." << endreq;   
-    }
     
-    // TkrAlignmentSvc is not required for this algorithm
-    // There are some shenanigans below to ensure that the algorithm 
-    // runs without it.
-    sc = service("TkrAlignmentSvc", m_pAlignment, false);
-    if (sc.isFailure()) {
-        log << MSG::INFO << "Algorithm will not filter bad hits." << endreq;   
+    ITkrBadStripsSvc* pBadStrips = m_tkrGeom->getTkrBadStripsSvc();
+
+    if (pBadStrips) {
+        Event::TkrDigiCol* pDigis = pBadStrips->getBadDigiCol();
+        if (pDigis) {
+            Event::TkrClusterCol* pClusters = new Event::TkrClusterCol(0);
+            Event::TkrIdClusterMap* pMap = new Event::TkrIdClusterMap;
+
+            //std::set<idents::TkrId> tkrIds1;
+            TkrMakeClusters maker(
+                pClusters, pMap, m_tkrGeom, pDigis, ITkrBadStripsSvc::BADCLUSTERS);
+            pBadStrips->setBadClusterCol(pClusters);
+            int clustSize = pClusters->size();
+            pBadStrips->setBadIdClusterMap(pMap);
+            int mapSize = pMap->size();
+        }
     }
-    */
     
     //Initialize the rest of the data members
     m_TkrClusterCol = 0;
-    m_TkrDigis      = 0; 
+    m_TkrDigiCol    = 0; 
 
     return StatusCode::SUCCESS;
 }
@@ -149,9 +150,9 @@ StatusCode TkrClusterAlg::execute()
     }
     
     // Recover a pointer to the raw digi objects
-    m_TkrDigis   = SmartDataPtr<TkrDigiCol>(eventSvc(),
+    m_TkrDigiCol = SmartDataPtr<TkrDigiCol>(eventSvc(),
         EventModel::Digi::TkrDigiCol);
-    if(!m_TkrDigis) return StatusCode::SUCCESS;
+    if(!m_TkrDigiCol) return StatusCode::SUCCESS;
     
     // Create the TkrClusterCol TDS object
     m_TkrClusterCol = new TkrClusterCol();
@@ -165,8 +166,8 @@ StatusCode TkrClusterAlg::execute()
         m_TkrIdClusterMap);
     
     // make the clusters
-    std::set<idents::TkrId> tkrIds;
-    TkrMakeClusters maker(m_TkrClusterCol, m_TkrIdClusterMap, m_tkrGeom, m_TkrDigis, &tkrIds);
+    //std::set<idents::TkrId> tkrIds;
+    TkrMakeClusters maker(m_TkrClusterCol, m_TkrIdClusterMap, m_tkrGeom, m_TkrDigiCol/*, &tkrIds*/);
 
     if (m_TkrClusterCol == 0) return StatusCode::FAILURE;
     
@@ -184,7 +185,7 @@ StatusCode TkrClusterAlg::execute()
         RelTable<TkrCluster, McPositionHit> cluRelTab;
         cluRelTab.init();
          
-        TkrMakeClusterTable makeTable(m_TkrClusterCol, m_TkrDigis, 
+        TkrMakeClusterTable makeTable(m_TkrClusterCol, m_TkrDigiCol, 
             pRelTab, &cluRelTab,
             m_tkrGeom); 
 

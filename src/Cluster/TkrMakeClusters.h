@@ -28,7 +28,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.22 2004/10/01 19:49:06 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.23 2004/10/12 19:03:33 lsrea Exp $
 */
 
 #include <vector>
@@ -37,7 +37,6 @@
 #include "geometry/Point.h"
 #include "gui/DisplayRep.h"
 #include "Event/Digi/TkrDigi.h"
-#include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrBadStripsSvc.h"
@@ -59,7 +58,8 @@ public:
     TkrMakeClusters(Event::TkrClusterCol* pClus, Event::TkrIdClusterMap* clusMap,
         ITkrGeometrySvc* m_tkrGeom, 
         Event::TkrDigiCol* pTkrDigiCol,
-                                 std::set<idents::TkrId>* tkrIds);
+        /*std::set<idents::TkrId>* tkrIds, */
+        ITkrBadStripsSvc::clusterType clType=ITkrBadStripsSvc::STANDARDCLUSTERS);
     
     ~TkrMakeClusters() { }
            
@@ -87,8 +87,7 @@ private:
     /// Keep pointer to the bad strip service
     ITkrBadStripsSvc* m_pBadStrips;
 
-    /// Keep pointer to the alignment service
-    ITkrAlignmentSvc* m_pAlignment;
+    ITkrBadStripsSvc::clusterType m_type;
 };
 
 #endif // TKRMAKECLUSTERS
