@@ -1,3 +1,12 @@
+// File and Version Information:
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrControl.cxx,v 1.3 2002/08/28 22:55:48 usher Exp $
+//
+// Description:
+//      Implements singleton class for storing and retrieving tracker recon control parameters.
+//
+// Author:
+//      The Tracking Software Group  
+
 
 #include "src/Track/TkrControl.h"
 

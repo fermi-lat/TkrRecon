@@ -1,3 +1,12 @@
+// File and Version Information:
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrNeuralNetFitTool.cxx,v 1.2 2002/08/28 22:55:48 usher Exp $
+//
+// Description:
+//      Tool for performing the fit of Neural Net Pat Rec candidate tracks
+//
+// Author:
+//      The Tracking Software Group  
+
 #include "src/Track/TkrNeuralNetFitTool.h"
 #include "GaudiKernel/ToolFactory.h"
 #include "GaudiKernel/SmartDataPtr.h"
