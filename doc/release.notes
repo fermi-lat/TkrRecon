@@ -3,6 +3,8 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v10r1    26-Dec-2004  LSR  Changes to TkrCluster, add gap and bad-cluster calls
+                                 to FindTrackHitsTool
   v10r0p5  20-Dec-2004  TU   This brings TkrRecon current with latest Bill mods
   v10r0p4  17-Dec-2004  TU   "Last" mods to get to build on linux (FLW)
   v10r0p3       ?        ?    ?

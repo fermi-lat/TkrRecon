@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.23 2004/10/01 19:49:06 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.24 2004/10/12 19:03:33 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, 
@@ -19,7 +19,8 @@ using namespace Event;
 TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* clusMap,
                                  ITkrGeometrySvc* tkrGeom, 
                                  TkrDigiCol* pTkrDigiCol,
-                                 std::set<idents::TkrId>* tkrIds)
+                                 /*std::set<idents::TkrId>* tkrIds,*/
+                                 ITkrBadStripsSvc::clusterType type)
 {
     // Purpose: Makes Clusters from TkrDigis
     // Method:  Digis are scaned and grouped into contiguous groups
@@ -32,7 +33,9 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
     
     m_pBadStrips = m_tkrGeom->getTkrBadStripsSvc();
 
-    m_pAlignment = m_tkrGeom->getTkrAlignmentSvc();
+    unsigned int status = m_tkrGeom->getDefaultClusterStatus();
+
+    m_type = type;
     
     //Initialize the cluster lists...
     pClus->clear();
@@ -45,14 +48,11 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
         TkrDigi* pDigi = *ppDigi;
 
         int digiLayer  =  pDigi->getBilayer();
-        int layer      =  m_tkrGeom->reverseLayerNumber(digiLayer);
         int view       =  pDigi->getView();
         int tower      = (pDigi->getTower()).id();
 
         int  towerX    = pDigi->getTower().ix();
         int  towerY    = pDigi->getTower().iy();
-        //int  tray      = m_tkrGeom->planeToTray(layer);
-        //bool botTop    = m_tkrGeom->planeToBotTop(layer) == 1 ? true : false;
         int  tray      = 0;
         int  botTop    = 0;
         int  measure   = view == idents::GlastAxis::X 
@@ -60,9 +60,8 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
 
         m_tkrGeom->layerToTray(digiLayer, view, tray, botTop);
 
-        idents::TkrId hitId(towerX, towerY, tray, botTop == 1, measure);
+        idents::TkrId hitId(towerX, towerY, tray, (botTop==1), measure);
 
-        tkrIds->insert(hitId);
                
         // debug: std::cout << "digi t/l/v " << tower << " " << digiLayer << " " << view << std::endl;
         // copy the hits, and make them into TaggedStrips
@@ -121,29 +120,17 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
                 // there's a gap... see if the current cluster is good...
 				    // debug: std::cout << std::endl << "Test Cluster: " << lowStrip.getStripNumber() << " "
                     //       << highStrip.getStripNumber() << " " << nBad ;
-                if (kept = isGoodCluster(lowStrip, highStrip, nBad)) {
+                if (kept = (isGoodCluster(lowStrip, highStrip, nBad) || 
+                    (m_type==ITkrBadStripsSvc::BADCLUSTERS && highStrip!=mergedHits[nHits]))) {
                     // debug: std::cout << "good!" << std::endl;
                     // it's good... make a new cluster
                     int strip0 = lowStrip.getStripNumber();
                     int stripf = highStrip.getStripNumber();
-                    Point pos = position(layer, view, strip0, stripf, tower);
-                    /*
-                    HepPoint3D hepPos(pos.x(), pos.y(), pos.z());
-                   
-                    if (m_pAlignment && m_pAlignment->alignRec()) {
-                        int ladder = strip0/m_tkrGeom->ladderNStrips();
-                        m_pAlignment->moveCluster(tower, digiLayer, view, ladder, hepPos);
-                    }
-                   
-                    pos = Point(hepPos.x(), hepPos.y(), hepPos.z());
-                    */
+                    Point pos = position(digiLayer, view, strip0, stripf, tower);
                     TkrCluster* cl = new TkrCluster(hitId, strip0, stripf, 
-                        pos, pDigi->getToTForStrip(stripf), nclusters);
+                        pos, pDigi->getToTForStrip(stripf), status /*, nclusters*/);
                     pClus->push_back(cl);
                     nclusters++;
-
-                    //clusIdPair clusId(hitId,cl);
-                    //clusMap->insert(clusId);
                     (*clusMap)[hitId].push_back(cl);
                 } 
                 lowStrip = nextStrip;  // start a new cluster with this strip
@@ -156,7 +143,7 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
 }
 
 
-Point TkrMakeClusters::position(const int layer, int v,
+Point TkrMakeClusters::position(const int digiLayer, int v,
                                 const int strip0, const int stripf, 
                                 const int tower) const
 {
@@ -167,10 +154,16 @@ Point TkrMakeClusters::position(const int layer, int v,
     // Restrictions and Caveats:  None
     
     // this converts from recon numbering to physical numbering of layers.
-    int digiLayer = m_tkrGeom->reverseLayerNumber(layer);
-    double strip = 0.5*(strip0 + stripf);
+    // since we allow clusters to cross gaps (for "bad" clusters) 
+    // we need to take average of position of first and last strip
+       
+    double firstStrip = strip0;
+    double lastStrip  = stripf;
     HepPoint3D p = m_tkrGeom->getStripPosition(tower, digiLayer, 
-        (int) v, strip);
+        (int) v, firstStrip);
+    p += m_tkrGeom->getStripPosition(tower, digiLayer, 
+        (int) v, lastStrip);
+    p *= 0.5;
     Point p1(p.x(), p.y(), p.z());
     return p1;
     
@@ -194,7 +187,8 @@ bool TkrMakeClusters::isGapBetween(const TaggedStrip &lowStrip,
     
     // edge of chip
     int nStrips = m_tkrGeom->ladderNStrips();
-    if((lowHit/nStrips) < (highHit/nStrips)) {return true; }
+    if(m_type==ITkrBadStripsSvc::STANDARDCLUSTERS 
+        && (lowHit/nStrips) < (highHit/nStrips)) {return true; }
     
     return false;
 }
