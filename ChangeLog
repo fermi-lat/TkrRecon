@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Fri Jan 10 11:43:23 PST 2003
+TkrRecon/src/Dll
+
+Modified Files:
+	tkrRecon_load.cxx 
+Log Message:
+Prepare for tag v8r6p1: move TkrGeometrySvc to Tkrutil
+
+    *
+------------------------------------------------------------
+User: lsrea  Fri Jan 10 11:43:23 PST 2003
 TkrRecon/src/Display
 
 Modified Files:
