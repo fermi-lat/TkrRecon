@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Sat Sep  7 17:14:56 PDT 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrBadStripsSvc.cxx TkrGeometrySvc.cxx 
+Log Message:
+preparing for tag v8r0, remove confusing methods
+    *
+------------------------------------------------------------
 User: lsrea  Sat Sep  7 17:14:55 PDT 2002
 TkrRecon/doc
 
