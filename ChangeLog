@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Mon Feb 21 16:00:23 PST 2005
+TkrRecon/src/Track
+
+Modified Files:
+	KalmanTrackFitTool.cxx 
+Log Message:
+Add new method to refit track removing hits one by one with smoothed results stored in (unused) reverse filter params. Will be useful for studying hit residuals, etc.
+    *
+------------------------------------------------------------
 User: lsrea  Sun Feb 20 17:19:18 PST 2005
 TkrRecon/src/GaudiAlg
 
