@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue Mar  6 11:53:46 PST 2001
+TkrRecon/src trackerGeo.cpp
+
+Removed Files:
+	trackerGeo.cpp 
+Log Message:
+trackerGeo is now replaced with the geometry service TkrGeometrySvc
+
+    *
+------------------------------------------------------------
 User: usher  Tue Mar  6 11:52:35 PST 2001
 TkrRecon/TkrRecon trackerGeo.h
 
