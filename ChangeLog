@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Thu Oct 18 13:04:12 PDT 2001
+TkrRecon/src SiRecObjsAlg.cxx
+
+Modified Files:
+	SiRecObjsAlg.cxx 
+Log Message:
+fix long-standing memory leak.
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Oct 16 16:25:42 PDT 2001
 TkrRecon/xml Tkr_Balloon.xml Tkr_TestBeam.xml
 
