@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: burnett  Tue Jan 23 16:24:09 PST 2001
+TkrRecon/src/test jobOptions.txt
+
+Modified Files:
+	jobOptions.txt 
+Log Message:
+
+fix to run test program (but still wired-in file)
+    *
+------------------------------------------------------------
+User: burnett  Tue Jan 23 16:24:09 PST 2001
 TkrRecon/mgr requirements
 
 Modified Files:
