@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Thu Aug 22 14:04:09 PDT 2002
+TkrRecon/src/PatRec/Utilities
+
+Removed Files:
+	GFtutor.cxx GFtutor.h TkrBase.cxx TkrBase.h TkrPoint.cxx 
+	TkrPoint.h TkrPoints.cxx TkrPoints.h 
+Log Message:
+Moving these files to a new folder
+
+    *
+------------------------------------------------------------
 User: cohen  Thu Aug 22 10:44:53 PDT 2002
 TkrRecon/src/Vertex
 
