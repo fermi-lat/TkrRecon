@@ -135,6 +135,7 @@ TkrTupleValues::TkrTupleValues()
     Tkr_Gamma_x0 = 0;
     Tkr_Gamma_y0 = 0;
     Tkr_Gamma_z0 = 0;
+    Tkr_Gamma_DLT = 0;
     Tkr_Pair_XNhits = 0;
     Tkr_XChisq = 0;
     Tkr_XChisq_1st = 0;
@@ -437,6 +438,7 @@ StatusCode TkrTupleValues::fillTupleValues(INTupleWriterSvc* pSvc, const char* p
         if ((sc = pSvc->addItem(pName, "TKR_Gamma_x0",        Tkr_Gamma_x0       )).isFailure()) return sc;
         if ((sc = pSvc->addItem(pName, "TKR_Gamma_y0",        Tkr_Gamma_y0       )).isFailure()) return sc;
         if ((sc = pSvc->addItem(pName, "TKR_Gamma_z0",        Tkr_Gamma_z0       )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_t_angle",         Tkr_Gamma_DLT      )).isFailure()) return sc;
         
         if ((sc = pSvc->addItem(pName, "TKR_Pair_XNhits",     Tkr_Pair_XNhits    )).isFailure()) return sc;
         if ((sc = pSvc->addItem(pName, "TKR_XChisq",          Tkr_XChisq         )).isFailure()) return sc;
