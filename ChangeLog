@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Thu Mar 27 16:15:57 PST 2003
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx KalFitter.cxx 
+Log Message:
+Bit of cleanup...
+
+    *
+------------------------------------------------------------
 User: usher  Wed Mar 26 14:05:03 PST 2003
 TkrRecon/src/Track
 
