@@ -6,7 +6,7 @@
 *
 * @authors b. allgood, w. atwood and l. rochester
 *
-* $Header$
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoint.cxx,v 1.5 2004/11/02 22:55:44 lsrea Exp $
 */
 
 #include "src/Utilities/TkrPoint.h"
@@ -32,8 +32,10 @@ inline bool TkrPoint::operator!=(const TkrPoint* point) const
 }
 
 Ray TkrPoint::getRayTo(const TkrPoint* point) const
-{
-    double x1 = m_pXCluster->position().x();
+{   // returns a ray from myself to another point
+	// the origin is at my z
+
+	double x1 = m_pXCluster->position().x();
     double x2 = point->m_pXCluster->position().x();
     double z1x = m_pXCluster->position().z();
     double z2x = point->m_pXCluster->position().z();
@@ -45,11 +47,13 @@ Ray TkrPoint::getRayTo(const TkrPoint* point) const
     double z2y = point->m_pYCluster->position().z();
     double slopeY = (y1-y2)/(z1y-z2y);
 
-    // move the y coordinate to the z of the x coordinate
-    double deltaZ = z1x - z1y;
-    y1 += deltaZ*slopeY;
+    // move both coordinates to my z
+	double zAve = 0.5*(z1x+z1y);
 
-    Point origin(x1, y1, z1x);
+	x1 += (zAve - z1x)*slopeX;
+    y1 += (zAve - z1y)*slopeY;
+
+    Point origin(x1, y1, zAve);
     Vector dir   = Vector(-slopeX, -slopeY, -1.);
     dir = dir.unit();
     if ((z1x-z2x)<0) dir *= -1.0;
