@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: lsrea  Thu Mar 13 11:13:24 PST 2003
+TkrRecon/src/TrackFit/KalmanFilter
+
+Modified Files:
+	KalmanFilter.cxx KalmanFilter.h 
+Log Message:
+lots of changes for new TkrUtil, preparations for iterative recon, hook for failureMode service in patrec
+    *
+------------------------------------------------------------
+User: lsrea  Thu Mar 13 11:13:24 PST 2003
 TkrRecon/src/TrackFit/KalFitTrack
 
 Modified Files:
