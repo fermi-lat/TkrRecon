@@ -99,22 +99,18 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
    // Outputs: The internal bank of class "Candidate" tracks 
    // Dependencies: None
    // Restrictions and Caveats:  None
-    double ene    = m_control->getFEneParticle()*CalEnergy;
-    m_energy = ene; //for testing 2000.; //
-    
-    ene = std::max(ene, m_control->getMinEnergy());
-    
+    m_energy    = m_control->getFEneParticle()*CalEnergy;
+    m_energy = std::max(m_energy, m_control->getMinEnergy());
+
     //Clear the candidate track list
     m_candidates.clear();
     
     //Set the parameters for the search
-    m_energy = std::max(m_energy, m_control->getMinEnergy());
-
     m_cut    = m_control->getSigmaCut(); 
     m_Pcal   = CalPosition;
     
     //Determine what to do based on status of Cal energy and position
-    if(ene <= m_control->getMinEnergy() || m_Pcal.mag() == 0.) 
+    if( m_energy <= m_control->getMinEnergy() || m_Pcal.mag() == 0.) 
     {   // This path use no calorimeter energy - 
         findBlindCandidates();
     }
