@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: lsrea  Tue Jun  1 15:04:16 PDT 2004
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx 
+Log Message:
+prepare for tag v8r12p17
+Add code to break tracks at tower boundaries
+controlled by property TkrInitSvc.TkrTrackAcrossTowers, defaults to true, of course!
+
+    *
+------------------------------------------------------------
+User: lsrea  Tue Jun  1 15:04:16 PDT 2004
 TkrRecon/src/Track
 
 Modified Files:
