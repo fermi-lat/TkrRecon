@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Thu Jun 17 11:27:36 PDT 2004
+TkrRecon/src/TrackFit/KalmanFilter
+
+Modified Files:
+	KalmanFilter.cxx 
+Log Message:
+prepare for tag v8r12p20 -- Fix a bunch of unix warnings; the rest are for Tracy
+
+    *
+------------------------------------------------------------
 User: lsrea  Thu Jun 17 11:27:35 PDT 2004
 TkrRecon/src/TrackFit/KalFitTrack
 
