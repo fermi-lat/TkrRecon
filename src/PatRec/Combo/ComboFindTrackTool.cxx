@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.23 2004/12/15 15:25:06 atwood Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.24 2004/12/17 23:24:04 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -66,7 +66,7 @@ protected:
 	//friend ComboFindTrackTool;
     public:
 		Candidate(double e, Point x, Vector t, double chi_cut,
-			      IFindTrackHitsTool *hit_finder, ITkrFitTool *fitter);
+			      IFindTrackHitsTool *hit_finder, ITkrFitTool *fitter, bool leadingHits);
         ~Candidate();
 
         /// Access
@@ -123,6 +123,7 @@ private:
 	                     //  default = Tkr+Cal with constraint, others self explanatory
 	                     //            and over ride resetting energy at later stages
     std::string m_Direction; //Direction in which to search for tracks: TopDown or BottomUp
+	bool m_leadingHits;  // Flag to include leading hit (clusters) on the track
 
 	/// Internal data members
 	CandidateList m_candidates;  // Internal list of found hypothesises
@@ -163,6 +164,7 @@ ComboFindTrackTool::ComboFindTrackTool(const std::string& type, const std::strin
     declareProperty("MaxFirstGaps", m_maxGaps = 2);
 	declareProperty("EnergyType",   m_EnergyType="Default");
 	declareProperty("Direction",   m_Direction="Downwards");
+    declareProperty("AddLeadingHits", m_leadingHits=true);
 	return;
 }
 
@@ -434,6 +436,8 @@ void ComboFindTrackTool::findBlindCandidates()
         // Create space point loops and check for hits
         TkrPoints first_Hit(m_tkrGeom->reverseLayerNumber(ilayer), m_clusTool);
         int pSize = first_Hit.size();
+		if(pSize < 1) continue;
+
         TkrPointListConItr itFirst = first_Hit.begin();
         for(; itFirst!=first_Hit.end(); ++itFirst) {
             TkrPoint* p1 = *itFirst;
@@ -469,10 +473,11 @@ void ComboFindTrackTool::findBlindCandidates()
                         sigma = findNextHit(jlayer+gap, testRay, deflection);
 
                         // If good hit found: make a trial fit & store it away
-                        if(sigma < m_sigmaCut && deflection > m_maxDeflect) {        
+                        if(sigma < m_sigmaCut && deflection > m_maxDeflect) {
+							bool leadingHits = m_leadingHits && ilayer <= m_TopLayer; 
                             Candidate* trial = new Candidate(m_energy, testRay.position(), 
                                                     testRay.direction(), m_maxChiSqCut,
-													m_findHitTool, m_trackFitTool);
+													m_findHitTool, m_trackFitTool, leadingHits);
                             if(trial->track()->getStatusBits() == 0) {
                                 delete trial;
                                 continue;
@@ -573,10 +578,10 @@ void ComboFindTrackTool::findCalCandidates()
                     //Do a trial track fit
                     int gap = klayer - (ilayer+1); 
                     double deflection = 1.;
-                    
+					bool leadingHits = m_leadingHits && ilayer <=  m_TopLayer;
                     Candidate *trial = new Candidate(m_energy, testRay.position(),
                                                      testRay.direction(), m_maxChiSqCut,
-													 m_findHitTool, m_trackFitTool); 
+													 m_findHitTool, m_trackFitTool, m_leadingHits); 
                     if(trial->track()->getStatusBits() == 0) {
                         delete trial;
                         continue;
@@ -668,6 +673,8 @@ void ComboFindTrackTool::findReverseCandidates()
         // Create space point loops and check for hits
         TkrPoints first_Hit(m_tkrGeom->reverseLayerNumber(ilayer), m_clusTool);
         int pSize = first_Hit.size();
+		if(pSize < 1) continue; 
+
         TkrPointListConItr itFirst = first_Hit.begin();
         for(; itFirst!=first_Hit.end(); ++itFirst) {
             TkrPoint* p1 = *itFirst;
@@ -705,7 +712,7 @@ void ComboFindTrackTool::findReverseCandidates()
                         if(sigma < m_sigmaCut && deflection > m_maxDeflect) {        
                             Candidate* trial = new Candidate(m_energy, testRay.position(), 
                                                     testRay.direction(), m_maxChiSqCut,
-													m_findHitTool, m_trackFitTool); 
+													m_findHitTool, m_trackFitTool, m_leadingHits); 
                             if(trial->track()->getStatusBits() == 0) {
                                 delete trial;
                                 continue;
@@ -792,7 +799,8 @@ bool ComboFindTrackTool::incorporate(Candidate* trial)
 
 
 ComboFindTrackTool::Candidate::Candidate(double e, Point x, Vector t, double chi_cut,
-										 IFindTrackHitsTool *hit_finder, ITkrFitTool *fitter)
+										 IFindTrackHitsTool *hit_finder, ITkrFitTool *fitter,
+										 bool leadingHits)
 {
    // Purpose and Method: Constructor for internal Candidate list. Does a first 
    //                     KalFitTrack fit - to find all the hits, chisq, etc.
@@ -817,7 +825,7 @@ ComboFindTrackTool::Candidate::Candidate(double e, Point x, Vector t, double chi
 
     fitter->doTrackFit(m_track); 
     m_addedHits = 0;
-	if(t.z() < 0.) m_addedHits = hit_finder->addLeadingHits(m_track);
+	if(leadingHits) m_addedHits = hit_finder->addLeadingHits(m_track);
 	if(m_addedHits > 0) fitter->doTrackFit(m_track);
 
     // Check X**2 for the Track
@@ -832,7 +840,7 @@ void ComboFindTrackTool::setTkrQuality(ComboFindTrackTool::Candidate *can_track)
 	// Retrive TkrTrack from candidate
 	Event::TkrTrack *tkr_track = can_track->track();
 
-	// Setup the utility class compute kink anlge
+	// Setup the utility class - compute kink angle
     TrackFitUtils fitUtil(m_tkrGeom, 0);
 
     //Angle between 1st 2 segs. normalize to MS expectation

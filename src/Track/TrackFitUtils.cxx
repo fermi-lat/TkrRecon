@@ -150,15 +150,15 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
             Event::TkrTrackHit* hit = *hitPtr;
             rad_len += hit->getRadLen(); 
 
-			if ((hit->getStatusBits()& Event::TkrTrackHit::HITONFIT) && hit->validCluster()) { 
-            
-                if(plane_count > 4 && !quit_first) {
-                    double arc_len  = (z0- hit->getZPlane())*cos_inv; 
-                    double theta_ms = 13.6/start_energy * sqrt(rad_len) *
+			if(plane_count > 4 && !quit_first) {
+                double arc_len  = (z0- hit->getZPlane())*cos_inv; 
+                double theta_ms = 13.6/start_energy * sqrt(rad_len) *
                                              (1. + .038*log(rad_len));
-                    double plane_err = cos_inv*arc_len*theta_ms/1.7321; 
-                    quit_first  = plane_err > 2.*m_tkrGeom->siStripPitch();
-                }
+                double plane_err = cos_inv*arc_len*theta_ms/1.7321; 
+                quit_first  = plane_err > 2.*m_tkrGeom->siStripPitch();
+            }
+
+			if ((hit->getStatusBits()& Event::TkrTrackHit::HITONFIT) && hit->validCluster()) { 
 
                 if(!quit_first) numSegmentPoints++;
 
@@ -197,6 +197,8 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
         
         track.setScatter(rmsResid);
         track.setNumSegmentPoints(numSegmentPoints);
+		track.setNumXHits(num_xPlanes);
+		track.setNumYHits(num_yPlanes); 
         track.setNumXGaps(Xgaps);
         track.setNumYGaps(Ygaps);
         
