@@ -1,4 +1,19 @@
 ------------------------------------------------------------
+User: usher  Sun Jan 27 11:36:18 PST 2002
+TkrRecon/src/Display
+
+Modified Files:
+	TkrBestCandRep.cxx TkrCandidatesRep.cxx 
+Added Files:
+	TkrCandidate3DRep.cxx TkrTracksRep.cxx 
+Log Message:
+New Files: Code to implement drawing classes for 3D candidate and fit tracks
+
+Old Files: Modifications to current pat rec drawing routines for drawing the 2D 
+           projections
+
+    *
+------------------------------------------------------------
 User: usher  Sun Jan 27 11:32:44 PST 2002
 TkrRecon/TkrRecon/Track
 
