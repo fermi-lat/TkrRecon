@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: lsrea  Wed Sep 18 16:40:59 PDT 2002
+TkrRecon/TkrRecon
+
+Modified Files:
+	ITkrBadStripsSvc.h 
+Log Message:
+Cleanup:
+Implement TaggedStrip class
+Convert code to use stl algorithms
+Fix up "const"s
+    *
+------------------------------------------------------------
 User: atwood  Wed Sep 11 14:18:37 PDT 2002
 TkrRecon/TkrRecon/Cluster
 
