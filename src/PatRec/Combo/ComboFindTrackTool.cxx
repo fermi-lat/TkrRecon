@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.25 2004/12/21 00:10:16 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.26 2005/01/02 23:53:47 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -155,20 +155,20 @@ const IToolFactory& ComboFindTrackToolFactory = s_factory;
 ComboFindTrackTool::ComboFindTrackTool(const std::string& type, const std::string& name, const IInterface* parent) :
 PatRecBaseTool(type, name, parent)
 {
-    //Declare the control parameters for Combo Pat Rec. Defaults appear here
-    declareProperty("MinEnergy", m_minEnergy = 30);
-    declareProperty("SigmaCut",  m_sigmaCut  = 9);
-    declareProperty("FirstTrkEnergyFrac", m_1stTkrEFrac = .80);
-    declareProperty("MinTermHitCount", m_termHitCnt = 16);
-    declareProperty("MaxNoCandidates", m_maxCandidates = 10);
-    declareProperty("MaxChisq", m_maxChiSqCut = 40.); 
-    declareProperty("NumSharedFirstClusters", m_hitShares = 6);
-    declareProperty("MaxNumberTrials" , m_maxTrials = 30); 
-    declareProperty("FoVLimit", m_PatRecFoV = .19);
-    declareProperty("MaxTrackKink", m_maxDeflect = .7);
-    declareProperty("MaxTripletRes", m_maxTripRes = 30.);
-    declareProperty("UniqueHits", m_minUniHits = 4); 
-    declareProperty("MinPatRecQual", m_minQuality = 10);
+	//Declare the control parameters for Combo Pat Rec. Defaults appear here
+	declareProperty("MinEnergy", m_minEnergy = 30);
+	declareProperty("SigmaCut",  m_sigmaCut  = 9);
+	declareProperty("FirstTrkEnergyFrac", m_1stTkrEFrac = .80);
+	declareProperty("MinTermHitCount", m_termHitCnt = 16);
+	declareProperty("MaxNoCandidates", m_maxCandidates = 10);
+	declareProperty("MaxChisq", m_maxChiSqCut = 40.); 
+	declareProperty("NumSharedFirstClusters", m_hitShares = 6);
+	declareProperty("MaxNumberTrials" , m_maxTrials = 50); 
+	declareProperty("FoVLimit", m_PatRecFoV = .19);
+	declareProperty("MaxTrackKink", m_maxDeflect = .7);
+	declareProperty("MaxTripletRes", m_maxTripRes = 30.);
+	declareProperty("UniqueHits", m_minUniHits = 4); 
+	declareProperty("MinPatRecQual", m_minQuality = 10);
     declareProperty("MaxFirstGaps", m_maxGaps = 2);
     declareProperty("EnergyType",  energyTypeStr="Default");
     declareProperty("Direction", searchDirectionStr="Downwards");
@@ -476,8 +476,7 @@ void ComboFindTrackTool::findBlindCandidates()
 
         // Create space point loops and check for hits
         TkrPoints first_Hit(m_tkrGeom->reverseLayerNumber(ilayer), m_clusTool);
-        int pSize = first_Hit.size();
-        if(pSize==0) continue;
+        if(first_Hit.size() < 1) continue;
 
         TkrPointListConItr itFirst = first_Hit.begin();
         for(; itFirst!=first_Hit.end(); ++itFirst) {
@@ -529,11 +528,13 @@ void ComboFindTrackTool::findBlindCandidates()
                                 if(num_trial_hits > localBestHitCount) 
                                     localBestHitCount = num_trial_hits; 
                             }
+							trials++;
                             if(!incorporate(trial)) break;
-                            trials++; 
-                            trial->track()->setStatusBit(Event::TkrTrack::PRBLNSRCH);
-                            Point x_start = trial->track()->getInitialPosition();
-                            int top_plane     = m_tkrGeom->getPlane(x_start.z());
+                            //trials++; 
+
+							trial->track()->setStatusBit(Event::TkrTrack::PRBLNSRCH);
+							Point x_start = trial->track()->getInitialPosition();
+	                        int top_plane     = m_tkrGeom->getPlane(x_start.z());
                             int new_top     = m_tkrGeom->getLayer(top_plane); 
                             new_top = m_tkrGeom->reverseLayerNumber(new_top);
                             m_TopLayer = std::min(m_TopLayer, new_top);
@@ -574,6 +575,8 @@ void ComboFindTrackTool::findCalCandidates()
 
         // Create space point loop and check for hits
         TkrPoints first_Hit(m_tkrGeom->reverseLayerNumber(ilayer), m_clusTool);
+		if(first_Hit.size()< 1) continue;
+
         TkrPointListConItr itFirst = first_Hit.begin();
         for (; itFirst!=first_Hit.end(); ++itFirst) {
             TkrPoint* p1 = *itFirst;
@@ -634,11 +637,13 @@ void ComboFindTrackTool::findCalCandidates()
                         if(num_trial_hits > localBestHitCount) 
                             localBestHitCount = num_trial_hits; 
                     }
+					trials++;
                     if(!incorporate(trial)) break;
-                    trials++;
-                    trial->track()->setStatusBit(Event::TkrTrack::PRCALSRCH);
-                    Point x_start = trial->track()->getInitialPosition();
-                    int top_plane     = m_tkrGeom->getPlane(x_start.z());
+                    //trials++;
+
+					trial->track()->setStatusBit(Event::TkrTrack::PRCALSRCH);
+					Point x_start = trial->track()->getInitialPosition();
+	                int top_plane     = m_tkrGeom->getPlane(x_start.z());
                     int new_top     = m_tkrGeom->getLayer(top_plane); 
                     new_top = m_tkrGeom->reverseLayerNumber(new_top); 
                     m_TopLayer = std::min(m_TopLayer, new_top);
@@ -718,8 +723,7 @@ void ComboFindTrackTool::findReverseCandidates()
 
         // Create space point loops and check for hits
         TkrPoints first_Hit(m_tkrGeom->reverseLayerNumber(ilayer), m_clusTool);
-        int pSize = first_Hit.size();
-        if(pSize == 0) continue; 
+        if(first_Hit.size() < 1) continue; 
 
         TkrPointListConItr itFirst = first_Hit.begin();
         for(; itFirst!=first_Hit.end(); ++itFirst) {
@@ -769,9 +773,11 @@ void ComboFindTrackTool::findReverseCandidates()
                                 if(num_trial_hits > localBestHitCount) 
                                     localBestHitCount = num_trial_hits; 
                             }
+							trials++;
                             if(!incorporate(trial)) break;
-                            trials++; 
-                            trial->track()->setStatusBit(Event::TkrTrack::PRBLNSRCH);
+                            //trials++; 
+
+							trial->track()->setStatusBit(Event::TkrTrack::PRBLNSRCH);
                             break;
                         }
                     }
