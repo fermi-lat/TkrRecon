@@ -18,10 +18,7 @@ const ISvcFactory& TkrGeometrySvcFactory = s_factory;
 TkrGeometrySvc::TkrGeometrySvc(const std::string& name, ISvcLocator* pSvcLocator) :
 Service(name, pSvcLocator)
 {   
-    // flag for kludge to reverse local y-coordinate
-    declareProperty("reverseY", m_reverseY = false);
-    
-    return;	
+    return; 
 }
 
 StatusCode TkrGeometrySvc::initialize()
@@ -36,41 +33,35 @@ StatusCode TkrGeometrySvc::initialize()
     
     sc = service("GlastDetSvc", p_GlastDetSvc);
     
-    double temp;
+    sc = p_GlastDetSvc->getNumericConstByName("xNum", &m_numX);
+    sc = p_GlastDetSvc->getNumericConstByName("xNum", &m_numY);
     
-    sc = p_GlastDetSvc->getNumericConstByName("xNum", &temp);
-    m_numX = temp + .1;
-    sc = p_GlastDetSvc->getNumericConstByName("xNum", &temp);
-    m_numY = temp + .1;
-    
-	sc = p_GlastDetSvc->getNumericConstByName("nWaferAcross", &temp);
-	m_nWaferAcross = temp + .1;
+    sc = p_GlastDetSvc->getNumericConstByName("nWaferAcross", &m_nWaferAcross);
 
     m_nviews = 2;
     
-    sc = p_GlastDetSvc->getNumericConstByName("numTrays", &temp);
-    m_nlayers = temp - .5;
+    sc = p_GlastDetSvc->getNumericConstByName("numTrays", &m_nlayers);
+    m_nlayers--;
     
     sc = p_GlastDetSvc->getNumericConstByName("towerPitch", &m_towerPitch);
     
     sc = p_GlastDetSvc->getNumericConstByName("SiThick", &m_siThickness);
     
     sc = p_GlastDetSvc->getNumericConstByName("SiWaferSide", &m_siWaferSide);
+    m_trayWidth = m_nWaferAcross*m_siWaferSide +(m_nWaferAcross-1)*m_ladderGap;
+
     double siWaferActiveSide;
     sc = p_GlastDetSvc->getNumericConstByName("SiWaferActiveSide", &siWaferActiveSide);
 
     m_siDeadDistance = 0.5*(m_siWaferSide - siWaferActiveSide);
     
-    sc = p_GlastDetSvc->getNumericConstByName("stripPerWafer", &temp);
-    m_ladderNStrips = temp;
-    m_siStripPitch = siWaferActiveSide/temp;
+    sc = p_GlastDetSvc->getNumericConstByName("stripPerWafer", &m_ladderNStrips);
+
+    m_siStripPitch = siWaferActiveSide/m_ladderNStrips;
     m_siResolution = m_siStripPitch/sqrt(12.);
     
     sc = p_GlastDetSvc->getNumericConstByName("ladderGap", &m_ladderGap);
     sc = p_GlastDetSvc->getNumericConstByName("ssdGap", &m_ladderInnerGap);
-    
-    sc = p_GlastDetSvc->getNumericConstByName("nWaferAcross", &temp);
-    m_trayWidth = temp*m_siWaferSide +(temp-1)*m_ladderGap;
     
     // fill up the m_volId arrays
     
@@ -85,8 +76,8 @@ StatusCode TkrGeometrySvc::initialize()
         m_volId_tower[tower].append(vId);
     }
     
-	int bilayer;
-	for(bilayer=0;bilayer<m_nlayers;bilayer++) {
+    int bilayer;
+    for(bilayer=0;bilayer<m_nlayers;bilayer++) {
         for (int view=0; view<2; view++) {
             int tray;
             int botTop;
@@ -97,20 +88,20 @@ StatusCode TkrGeometrySvc::initialize()
             vId.append(tray);
             vId.append(view);
             vId.append(botTop);
-			// seems that the old silicon plane no longer exists, only wafers now
+            // seems that the old silicon plane no longer exists, only wafers now
             vId.append(0); vId.append(0); // add in ladder, wafer--this is all fragile
             
             m_volId_layer[bilayer][view].init(0,0);
             m_volId_layer[bilayer][view].append(vId);
         }
-    }	
+    }   
     
     // the minimum "trayHeight" (actually tray pitch)
     
     HepTransform3D T1, T2;
     m_trayHeight = 10000.0;
     
-	
+    
     for (bilayer=1;bilayer<m_nlayers;bilayer++) {
         
         idents::VolumeIdentifier volId1, volId2;
@@ -125,12 +116,11 @@ StatusCode TkrGeometrySvc::initialize()
         if( sc.isFailure()) {
             log << MSG::WARNING << "Failed to obtain transform for id " << volId1.name() << endreq;
         }
-        sc=	p_GlastDetSvc->getTransform3DByID(volId2, &T2);
+        sc= p_GlastDetSvc->getTransform3DByID(volId2, &T2);
         if( sc.isFailure()) {
             log << MSG::WARNING << "Failed to obtain transform for id " << volId2.name() << endreq;
         }
-        
-        
+              
         double z1 = (T1.getTranslation()).z();
         double z2 = (T2.getTranslation()).z();
         double trayPitch = z1 - z2;
@@ -151,11 +141,12 @@ StatusCode TkrGeometrySvc::finalize()
     return StatusCode::SUCCESS;
 }
 
-HepPoint3D TkrGeometrySvc::getDoubleStripPosition(int tower, int layer, int view, double stripid)
+HepPoint3D TkrGeometrySvc::getStripPosition(int tower, int layer, int view, double stripId)
 {
-    // Purpose: return the global position of a strip (can be fractional)
-    // Input:   tower, layer, view, and strip no
-    // Output:  a position
+    // Purpose: return the global position
+    // Method:  gets local position and applies local->global transformation for that volume
+    // Inputs:  (tower, bilayer, view) and strip number (can be fractional)
+    // Return:  global position
     
     MsgStream log(msgSvc(), name());
 
@@ -172,24 +163,14 @@ HepPoint3D TkrGeometrySvc::getDoubleStripPosition(int tower, int layer, int view
         log << MSG::WARNING << "Failed to obtain transform for id " << volId.name() << endreq;
     }
 
-    double stripLclX = p_GlastDetSvc->stripLocalXDouble(stripid);
+    double stripLclX = p_GlastDetSvc->stripLocalXDouble(stripId);
+    HepPoint3D p(stripLclX+ladderOffset, ssdOffset, 0.);
     
-	HepPoint3D p(stripLclX+ladderOffset, ssdOffset, 0.);
-    
-	// y direction not quite sorted out yet!
-	if (view==1) p = HepPoint3D(p.x(), -p.y(), p.z());
+    // y direction not quite sorted out yet!
+    if (view==1) p = HepPoint3D(p.x(), -p.y(), p.z());
 
     p = volTransform*p;
     return p;
-}
-
-HepPoint3D TkrGeometrySvc::getStripPosition(int tower, int layer, int view, int stripid)
-{
-    // Purpose: return the global position given an integer strip number
-    // Method:  interface to getDoubleStripPosition() above
-    
-    double strip = stripid;
-    return getDoubleStripPosition(tower, layer, view, strip);
 }
 
 void TkrGeometrySvc::trayToLayer(int tray, int botTop, int& layer, int& view)
@@ -204,7 +185,7 @@ void TkrGeometrySvc::trayToLayer(int tray, int botTop, int& layer, int& view)
 }
 
 void TkrGeometrySvc::layerToTray(int layer, int view, int& tray, int& botTop) 
-{	
+{   
     // Purpose: calculate tray and botTop from layer and view.
     // Method:  use knowledge of the structure of the Tracker
     

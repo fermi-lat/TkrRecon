@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.5 2002/05/07 22:53:06 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.6 2002/05/12 05:52:59 usher Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, and for setting the cluster flag.
@@ -10,6 +10,7 @@
 
 
 #include "src/Cluster/TkrMakeClusters.h"
+#include "idents/GlastAxis.h"
 #include <algorithm>
 
 using namespace Event;
@@ -21,8 +22,6 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
     //Save some geometry information for the display routine
     pTkrGeo    = pTkrGeoSvc;
     pBadStrips = pBadStripsSvc;
-	numViews     = pTkrGeo->numViews();
-	numPlanes    = pTkrGeo->numLayers();
 	
     //Initialize the cluster lists...
 	pClus->ini();
@@ -35,9 +34,9 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
 		// each digi contains the digitized hits from one layer of one tower
         TkrDigi* pDigi = pTkrDigi[idigi];
         
-        int layer  = pDigi->getBilayer();
-		int view   = pDigi->getView();
-        int tower  = (pDigi->getTower()).id();
+        int digiLayer  =  pDigi->getBilayer();
+		int view       =  pDigi->getView();
+        int tower      = (pDigi->getTower()).id();
         
         int nHits  = pDigi->getNumHits();
 		
@@ -45,7 +44,7 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
         v_strips* badStrips = 0;
         int badStripsSize = 0;
         if (pBadStrips) {
-            badStrips = pBadStrips->getBadStrips(tower, layer, (TkrAxis::axis) view);
+            badStrips = pBadStrips->getBadStrips(tower, digiLayer, static_cast<idents::GlastAxis::axis>(view) );
             if (badStrips) badStripsSize = badStrips->size();
             int sizex = badStrips->size();
         }
@@ -92,11 +91,11 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
 				//	           << highStrip << " " << nBad << endreq;
                 if (kept = isGoodCluster(lowStrip, highStrip, nBad)) {
                     // it's good... make a new cluster
-					int plane = pTkrGeo->numPlanes()-layer-1;
+                    int layer = pTkrGeo->reverseLayerNumber(digiLayer);
 					int strip0 = untag(lowStrip);
 					int stripf = untag(highStrip);
-                    Point pos = position(plane, TkrCluster::intToView(view), strip0, stripf, tower);
-                    TkrCluster* cl = new TkrCluster(nclusters, plane, view, 
+                    Point pos = position(layer, TkrCluster::intToView(view), strip0, stripf, tower);
+                    TkrCluster* cl = new TkrCluster(nclusters, layer, view, 
                         strip0, stripf, 
 						pos, pDigi->getToTForStrip(untag(highStrip)), tower);
                     pClus->addCluster(cl);
@@ -112,20 +111,20 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
 }
 
 
-Point TkrMakeClusters::position(const int plane, TkrCluster::view v,
+Point TkrMakeClusters::position(const int layer, TkrCluster::view v,
 								const int strip0, const int stripf, const int tower)
 {
     // Purpose and Method: returns the position of a cluster
-    // Inputs:  plane, view, first and last strip and tower
+    // Inputs:  layer, view, first and last strip and tower
     // Outputs:  position
     // Dependencies: None
     // Restrictions and Caveats:  None
 
 
     // this converts from recon numbering to physical numbering of layers.
-    int layer = pTkrGeo->ilayer(plane);
+    int digiLayer = pTkrGeo->reverseLayerNumber(layer);
 	double strip = 0.5*(strip0 + stripf);
-	HepPoint3D p = pTkrGeo->getDoubleStripPosition(tower, layer, (int) v, strip);
+	HepPoint3D p = pTkrGeo->getStripPosition(tower, digiLayer, (int) v, strip);
 	Point p1(p.x(), p.y(), p.z());
 	return p1;
 	

@@ -5,7 +5,6 @@
 #include "GaudiKernel/Service.h"
 
 #include "TkrRecon/ITkrBadStripsSvc.h"
-#include "TkrRecon/Services/TkrAxis.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 
 #include <string>
@@ -40,7 +39,7 @@
  *
  * @author Leon Rochester
  *
- * $Header$
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrBadStripsSvc.h,v 1.2 2002/02/26 07:09:02 lsrea Exp $
  */
 
 class TkrBadStripsSvc : public Service,
@@ -57,13 +56,13 @@ public:
     StatusCode finalize();
 
 	/// converts from (tower, layer, view) to index into array
-    int getIndex(const int tower, const int layer, const TkrAxis::axis);
+    int getIndex(const int tower, const int layer, const idents::GlastAxis::axis);
 	/// returns a pointer to a vector of bad strips for a given (tower, layer and view)
-    v_strips* getBadStrips(const int tower, const int layer, const TkrAxis::axis);
+    v_strips* getBadStrips(const int tower, const int layer, const idents::GlastAxis::axis);
 	/// returns a pointer to a vector of bad strips for a given array index
     v_strips* getBadStrips(const int index);
 	/// returns true if the strip (tower, layer, view, strip) is bad
-    bool isBadStrip(const int tower, const int layer, const TkrAxis::axis, const int strip);
+    bool isBadStrip(const int tower, const int layer, const idents::GlastAxis::axis, const int strip);
     /// returns true if the given strip is found in the vector pointed to by v_strips
 	bool isBadStrip(const v_strips* v, const int strip);
     /// returns true if the tagged strip taggedStrop is tagged bad

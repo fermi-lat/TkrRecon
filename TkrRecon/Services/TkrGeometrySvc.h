@@ -5,22 +5,26 @@
 #include "GaudiKernel/Service.h"
 
 #include "TkrRecon/ITkrGeometrySvc.h"
-#include "TkrRecon/Services/TkrAxis.h"
 
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 #include "idents/VolumeIdentifier.h"
 
-enum { NVIEWS=2, NPLANES=18, NTOWERS=16};
+enum { NVIEWS=2, NLAYERS=18, NTOWERS=16};
 
 /** 
  * @class TkrGeometrySvc
  *
  * @brief Supplies the geometry constants and calculations to the TkrRecon Package
+ *
+ * The constants all flow from GlastDetSvc.
+ * 
+ * The calculations are done locally, with some help from the GlastDetSvc
  * 
  * @author Leon Rochester
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometrySvc.h,v 1.11 2002/05/27 02:43:45 burnett Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometrySvc.h,v 1.12 2002/06/22 01:12:58 lsrea Exp $
  */
+
 class TkrGeometrySvc : public Service,
         virtual public ITkrGeometrySvc
 {
@@ -33,8 +37,7 @@ public:
     StatusCode finalize();
     
     //Retrieve stored information
-    int    geomType()        {return m_geomType;}
-    
+
     int    numXTowers()      {return m_numX;} 
     int    numYTowers()      {return m_numY;} 
     int    numViews()        {return m_nviews;}	
@@ -56,13 +59,12 @@ public:
     double siThickness()     {return m_siThickness;}
     double siDeadDistance()  {return m_siDeadDistance;}
 
-    /// reverse the numbering of the bilayers
-    int ilayer(int iplane)   {return numPlanes()-iplane-1;}
+    /// reverse the numbering of the bilayers (goes both ways)
+    int ilayer(int layer)   {return numLayers()-layer-1;} // deprecated
+    int reverseLayerNumber(int layer) {return numLayers()-layer-1;}
 
-	/// return the position of a strip, input as an int
-	HepPoint3D getStripPosition(int tower, int layer, int view, int stripid);
-	/// return the position of a strip, input as a double
-	HepPoint3D getDoubleStripPosition(int tower, int layer, int view, double stripid);
+	/// return the position of a strip, will accept int or double
+	HepPoint3D getStripPosition(int tower, int layer, int view, double stripid);
 
 	/// calculate the tray number, botTop from layer, view
 	void layerToTray (int layer, int view, int& tray, int& botTop);
@@ -74,13 +76,8 @@ public:
     static const InterfaceID& interfaceID() { return ITkrGeometrySvc::interfaceID(); }
     /// return the service type
     const IID& type() const;
-
-
     
 private:
-
-    /// not used for the moment; will be replaced by the name of a det geom file
-	int    m_geomType;
     
     /// number of Towers in X
 	int    m_numX; 
@@ -115,10 +112,8 @@ private:
     double m_siThickness;
 	/// width of the dead region around the edge of a wafer
     double m_siDeadDistance;
-
+    /// size of Wafer
     double m_siWaferSide;
-	/// kludge to reverse the position of the local y coordinate
-	bool   m_reverseY;      
 
     /// pointer to the detector service
 	IGlastDetSvc * p_GlastDetSvc;
@@ -126,7 +121,7 @@ private:
 	/// array to hold the tower part of the volumeIds of the silicon planes
 	idents::VolumeIdentifier m_volId_tower[NTOWERS];
 	/// array to hold the tray part of the volumeIds of the silicon planes
-	idents::VolumeIdentifier m_volId_layer[NPLANES][NVIEWS];
+	idents::VolumeIdentifier m_volId_layer[NLAYERS][NVIEWS];
 };
 
 #endif // TKRGEOMETRYSVC_H
