@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Tue Mar 23 15:59:25 PST 2004
+TkrRecon/src/Track
+
+Added Files:
+	KalmanTrackFitTool.cxx TrackFitUtils.cxx TrackFitUtils.h 
+Log Message:
+KalmanTrackFitTool: new Gaudi tool for using generic Kalman Filter for testing
+TrackFitUtils: A set of utilities to aid the track fit (taken from KalFitter)
+
+    *
+------------------------------------------------------------
 User: cohen  Tue Feb 24 09:39:15 PST 2004
 TkrRecon/src/PatRec/NeuralNet
 
