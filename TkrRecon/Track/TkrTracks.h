@@ -44,6 +44,7 @@ public:
 
     //Access to tracks through an iterator
     TkrVectorPtr        getTrackPtr()        {return m_Tracks.begin();}
+    TkrVectorPtr        getTrackEnd()        {return m_Tracks.end();}
 
     //Access to tracks by index
     TkrFitTrack*        getTrack(int idx)    {return m_Tracks[idx];}
