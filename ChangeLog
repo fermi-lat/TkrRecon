@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Tue Mar  6 12:06:06 PST 2001
+TkrRecon/src TkrClustersRep.cxx
+
+Added Files:
+	TkrClustersRep.cxx 
+Log Message:
+Source code to implement the TkrClustersRep class, responsible for displaying
+the si clusters in the tracker display.
+
+    *
+------------------------------------------------------------
 User: usher  Tue Mar  6 12:04:03 PST 2001
 TkrRecon/TkrRecon TkrGeometrySvc.h
 
