@@ -1,5 +1,5 @@
 package TkrRecon
-version v10r2
+version v10r2p1
 
 author Tracy Usher    <usher@slac.stanford.edu>
 author Leon Rochester <lsrea@slac.stanford.edu>
@@ -20,6 +20,7 @@ use geometry
 use TkrUtil    v3r*
 
 use G4Propagator v*
+use LdfEvent     v*
 
 
 private 
