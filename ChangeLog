@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+User: usher  Thu Apr 11 19:22:09 PDT 2002
+TkrRecon/src/TrackFit
+
+Modified Files:
+	KalPlane.cxx KalTrack.cxx 
+Log Message:
+Modifications made to accomodate new switchable scheme for track propagator
+Changes made:
+1) TkrReconAlg - JobOptions choice between gismo or geant propagator, store
+pointer singleton propagator object
+2) TkrComboPatRec, KalPlane and KalTrack modified for new propagator interface
+
+    *
+------------------------------------------------------------
 User: usher  Thu Apr 11 19:22:08 PDT 2002
 TkrRecon/src/PatRec/Combo
 
