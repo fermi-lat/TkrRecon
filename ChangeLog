@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Wed Apr 24 14:16:37 PDT 2002
+TkrRecon/TkrRecon/Track
+
+Modified Files:
+	TkrBase.h 
+Log Message:
+Remove the inheritance of DataObject. This was done for two reasons 
+1) problems were being encountered in the copying of objects inheriting 
+from DataObject, specifically when their destructors were called,
+2) None of the objects inheriting from TkrBase are DataObjects.
+
+    *
+------------------------------------------------------------
 User: usher  Tue Apr 23 15:08:07 PDT 2002
 TkrRecon/src/Vertex/Combo
 
