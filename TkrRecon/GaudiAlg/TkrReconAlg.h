@@ -54,9 +54,6 @@ private:
     // Fit control information
     TkrTrackFit* m_TrackFit;
 
-	// tracking objects information
-	SiRecObjs*   m_SiRecObjs;
-
     // calorimter TDS
 	// m_cal
 	double m_CsIEnergy;
