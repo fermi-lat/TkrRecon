@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Nov 27 11:53:34 PST 2002
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	TkrComboVtxRecon.cxx 
+Log Message:
+Fixed bug in computing the z-component of the photon when being verticized
+    *
+------------------------------------------------------------
 User: usher  Thu Nov 21 12:10:56 PST 2002
 TkrRecon/doc
 
