@@ -1,4 +1,23 @@
 ------------------------------------------------------------
+User: usher  Sun Jan 27 11:28:38 PST 2002
+TkrRecon/TkrRecon/PatRec
+
+Modified Files:
+	LayerLink.h LayerLinkNode.h LayerLinkTree.h TkrCandidates.h 
+	TkrClusterLink.h TkrLinkForest.h TkrLinkNode.h TkrLinkTree.h 
+	TkrNodeQuality.h 
+Added Files:
+	TkrLinkAndTreePR.h TkrPatCand.h TkrPatCandHit.h 
+Log Message:
+New files: Class definitions for pattern recognition tracks 
+           Class definition for Link and Tree pattern recognition
+
+Old files: Modifications of current version of Link and Tree pat rec 
+           to make it work well enough for testing the rest of the 
+           TkrRecon code
+
+    *
+------------------------------------------------------------
 User: usher  Sun Jan 27 11:19:42 PST 2002
 TkrRecon/TkrRecon/Display
 
