@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon May 10 15:56:00 PDT 2004
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+prepare for tag v8r12p14, before patrec bug fix
+
+    *
+------------------------------------------------------------
 User: usher  Tue Apr 20 15:03:39 PDT 2004
 TkrRecon/src/Track
 
