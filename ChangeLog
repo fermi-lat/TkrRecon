@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Thu Sep  5 09:25:34 PDT 2002
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	NeuralNetFindTrackTool.cxx TkrNeuralNet.cxx TkrNeuralNet.h 
+	TkrNeuron.cxx TkrNeuron.h 
+Log Message:
+untabify
+    *
+------------------------------------------------------------
 User: lsrea  Thu Sep  5 09:25:33 PDT 2002
 TkrRecon/src/PatRec/LinkAndTree
 
