@@ -20,6 +20,7 @@
 
 #include "GlastEvent/MonteCarlo/McVertex.h"
 #include "GlastEvent/MonteCarlo/McParticle.h"
+#include "GlastEvent/TopLevel/Event.h"
 
 #include "ntupleWriterSvc/INtupleWriterSvc.h"
 
@@ -107,6 +108,17 @@ StatusCode McReconAlg::execute() {
         return sc;
     }
     
+    //check for, then fill the event header
+    SmartDataPtr<Event> event(eventSvc(),"/Event");
+    if( 0==event) { log << MSG::ERROR << "could not find the event header" << endreq;
+       return StatusCode::FAILURE;
+    }
+
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"Event_ID",event->event());
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"Run_Number",event->run());
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"Triage_Time",event->time().time()/1e6);
+
+
     McVertex* mcVert = vertList->front();
     
     if(mcVert == 0)
@@ -121,22 +133,14 @@ StatusCode McReconAlg::execute() {
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_yDir",vec.y());
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_zDir",vec.z());
     
-    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Energy",vec.e());
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Energy",vec.e()-vec.m());
     
-    if(sc.isFailure())
-    {
-        log << MSG::ERROR << "Failed to get MC Direction and Energy" << endreq;
-    }
     
     HepPoint3D pos = mcVert->finalPosition();
     sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_X0",pos.x());
-    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Y0",pos.x()); 
-    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Z0",pos.x());
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Y0",pos.y()); 
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Z0",pos.z());
     
-    if(sc.isFailure())
-    {
-        log << MSG::ERROR << "Failed to get MC Position" << endreq;
-    }
     
     return sc;
 }
