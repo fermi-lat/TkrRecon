@@ -257,11 +257,22 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     // Now constrain the energies of the first 2 tracks. 
     //    This isn't valid for non-gamma conversions
 
-    int num_cands = m_candidates.size(); 
+ 
+    // Initialize all candidate track energies -
+    // Max of either the Pat. Rec. min. or the derived Kalman energy
+    int num_cands = m_candidates.size();
+    for(int i=0; i<num_cands; i++) {
+        KalFitTrack* track = m_candidates[1]->track();
+        double kal_energy = track->getKalEnergy();
+        if(kal_energy > 5000.) kal_energy = 5000.; // Limit this
+        double energy = (m_energy > kal_energy) ? m_energy : kal_energy;
+        m_candidates[i]->setConEnergy(energy);
+    }
+
     if(num_cands == 1) { // One track - it gets it all - not right but what else?
         m_candidates[0]->setConEnergy(ene_total);
     }
-    else {
+    else {               // Divide up the energy between the first two tracks
         KalFitTrack*  secnd_track = m_candidates[1]->track();
         
         int num_hits1 = first_track->getNumHits();
