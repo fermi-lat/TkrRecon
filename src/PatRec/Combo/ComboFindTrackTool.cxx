@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.30 2005/01/20 05:39:01 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.31 2005/01/25 20:04:48 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -569,6 +569,7 @@ void ComboFindTrackTool::findBlindCandidates()
                     (localBestHitCount > (jlayer+2)*2)) break;
 
                 TkrPoints secondPoints(jlayer, m_clusTool);
+                if (secondPoints.empty()) continue;
                 TkrPointListConItr itSecond = secondPoints.begin();
                 for (; itSecond!=secondPoints.end(); ++itSecond) {
                     if(trials > m_maxTrials) break; 
