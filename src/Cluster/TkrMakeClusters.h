@@ -28,7 +28,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.12 2002/09/02 17:31:53 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.13 2002/09/02 19:40:41 lsrea Exp $
 */
 
 #include <vector>
@@ -75,7 +75,7 @@ public:
     /// swap the possibly tagged strip for the merged sort (toggle)
     int swapForSort(const int strip);
     /// sort the merged data and bad strips
-    void sortTaggedHits (std::vector<int> * list);
+    void sortTaggedStrips(std::vector<int> * list);
     
     // bool less_than(const int strip1, const int strip2);
     
