@@ -99,6 +99,8 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
                     //Keep this track (but as a candidate)
                     TkrPatCand* newTrack = new TkrPatCand(_track->firstLayer(),_track->tower(),_track->ray());
 
+                    newTrack->setEnergy(energy);
+
                     addTrack(newTrack);
 
                     _track->flagAllHits();
