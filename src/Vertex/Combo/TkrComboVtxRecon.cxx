@@ -45,7 +45,8 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTr
 
                 Point  gamPos;
                 Vector gamDir;
-                double gamEne = track1->getEnergy() + track2->getEnergy();
+
+/*              double gamEne = track1->getEnergy() + track2->getEnergy();
                 
                 Vector trk1Dir = track1->getDirection();
                 Vector trk2Dir = track2->getDirection();
@@ -64,7 +65,84 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTr
                 gamDir  = w1*trk1Dir + w2*trk2Dir;
                 
                 gamDir.setMag(1.);
+ */               
+       //Use tracking covariances & energies to weight track directions
+                TkrFitMatrix cov_t1 = track1->getTrackCov();
+                TkrFitMatrix cov_t2 = track2->getTrackCov();
+                TkrFitPar    par_t1 = track1->getTrackPar();
+                TkrFitPar    par_t2 = track2->getTrackPar();
+                double e_t1 =  track1->getEnergy();
+                double e_t2 =  track2->getEnergy();
+                double gamEne = e_t1 + e_t2;
+
+                double norm_1 = sqrt(1.+par_t1.getXSlope()*par_t1.getXSlope() +
+                                        par_t1.getYSlope()*par_t1.getYSlope());      
+                double norm_2 = sqrt(1.+par_t2.getXSlope()*par_t2.getXSlope() +
+                                        par_t2.getYSlope()*par_t2.getYSlope());  
                 
+                double tx_1 = -par_t1.getXSlope()/norm_1;
+                double ty_1 = -par_t1.getYSlope()/norm_1;
+                double tx_2 = -par_t2.getXSlope()/norm_2;
+                double ty_2 = -par_t2.getYSlope()/norm_2;
+
+                double dtx_1_sq = ((1.+par_t1.getYSlope()*par_t1.getYSlope())*
+                                                         cov_t1.getcovSxSx() +
+                                    par_t1.getXSlope()*par_t1.getYSlope()*
+                                                         cov_t1.getcovSySy())/
+                                                         pow(norm_1,3);
+                double dty_1_sq =  ((1.+par_t1.getXSlope()*par_t1.getXSlope())*
+                                                         cov_t1.getcovSySy() +
+                                    par_t1.getXSlope()*par_t1.getYSlope()*
+                                                         cov_t1.getcovSxSx())/
+                                                         pow(norm_1,3);
+                double dtx_2_sq = ((1.+par_t2.getYSlope()*par_t2.getYSlope())*
+                                                         cov_t2.getcovSxSx() +
+                                    par_t2.getXSlope()*par_t2.getYSlope()*
+                                                         cov_t2.getcovSySy())/
+                                                         pow(norm_2,3);
+                double dty_2_sq =  ((1.+par_t2.getXSlope()*par_t2.getXSlope())*
+                                                         cov_t2.getcovSySy() +
+                                    par_t2.getXSlope()*par_t2.getYSlope()*
+                                                         cov_t2.getcovSxSx())/
+                                                         pow(norm_2,3);
+
+                double wt_1x  = (e_t1/dtx_1_sq) / (e_t1/dtx_1_sq + e_t2/dtx_2_sq);
+                double wt_2x  = (e_t2/dtx_2_sq) / (e_t1/dtx_1_sq + e_t2/dtx_2_sq);
+                double wt_1y  = (e_t1/dty_1_sq) / (e_t1/dty_1_sq + e_t2/dty_2_sq);
+                double wt_2y  = (e_t2/dty_2_sq) / (e_t1/dty_1_sq + e_t2/dty_2_sq);;
+                   
+                double gam_tx = tx_1*wt_1x + tx_2*wt_2x;
+                double gam_ty = ty_1*wt_1y + ty_2*wt_2y;
+
+                double gam_tz = sqrt(1. - gam_tx*gam_tx - gam_ty*gam_ty);
+
+                gamDir = Vector(gam_tx, gam_ty, -gam_tz).unit();
+                /*
+                int i_error;
+                cov_t1.invert(i_error);
+                TkrFitMatrix wgh_1 = cov_t1;
+  
+                cov_t2.invert(i_error);
+                TkrFitMatrix wgh_2 = cov_t2;
+
+                TkrFitMatrix wgh_12 = wgh_1 + wgh_2;
+                wgh_12.invert(i_error);
+                TkrFitMatrix cov_12 = wgh_12; 
+                TkrFitPar par_1(0.,
+                                par_t1.getXSlope()*e_t1,
+                                0.,
+                                par_t1.getYSlope()*e_t1);
+                TkrFitPar par_2(0.,
+                                par_t2.getXSlope()*e_t2,
+                                0.,
+                                par_t2.getYSlope()*e_t2);
+
+                TkrFitPar gam_par = cov_12*(wgh_1*par_1 + wgh_2*par_2);
+                TkrFitMatrix gam_cov = cov_12; 
+                
+                gamDir = Vector(-gam_par.getXSlope()/gamEne, 
+                                -gam_par.getYSlope()/gamEne, -1.).unit();
+              */  
                 gamPos  = doca.docaPointRay1();
                 gamPos += doca.docaPointRay2();
                 gamPos *= 0.5;
