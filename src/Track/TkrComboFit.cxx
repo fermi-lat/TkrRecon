@@ -19,8 +19,7 @@ TkrComboFit::TkrComboFit(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus, TkrP
     GFtutor::load(pTkrClus, pTkrGeo);
     
     //Go through each candidate and pass to the fitter
-    while(numCands--)
-    {
+    while(numCands--) {
         TkrPatCand* pCand = *cands++;
         
         
@@ -32,11 +31,10 @@ TkrComboFit::TkrComboFit(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus, TkrP
         
         KalFitTrack* track = new KalFitTrack(iniLayer, iniTower, GFcontrol::sigmaCut, energy, testRay);                 
         
-        //track->findHits();
+        //track->findHits(); Using PR Solution to save time
         
         //Now fill the hits from the pattern track
         int              numHits = pCand->numPatCandHits();
-   //     CandHitVectorPtr candPtr = pCand->getCandHitPtr();
         CandHitVectorPtr candPtr = pCand->getHitIterBegin();
         while(numHits--){
             TkrPatCandHit candHit = *candPtr++;
@@ -45,11 +43,10 @@ TkrComboFit::TkrComboFit(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus, TkrP
         
         track->doFit();
         
-        if (!track->empty(GFcontrol::minSegmentHits)) 
-        {
+        if (!track->empty(GFcontrol::minSegmentHits)) {
             push_back(track);
             track->flagAllHits();
-            
+
             if(++trkCount==1) {
                 // Hits are shared depending on cluster size 
                 // and track direction
@@ -84,17 +81,13 @@ TkrComboFit::TkrComboFit(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus, TkrP
                     if(i_share >= 5) break; 
                     i_Hit++;
                     pln_pointer++;
-                }
-                
+                }      
             }
         } 
-        else 
-        {
+        else  {
             delete track;
         }
-    }
-    
-    
+    }  
     return;
 }
 
