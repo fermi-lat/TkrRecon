@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: cohen  Fri May 31 10:04:34 PDT 2002
+TkrRecon/src/Vertex/DocaVtx
+
+Modified Files:
+	DocaVtxAlg.h 
+Log Message:
+first migration to STL convention: TkrVertexCol class removed and TkrVertex modified to inherit from ContainedObject and define TkrVertexCol as an ObjectVector type
+    *
+------------------------------------------------------------
+User: cohen  Fri May 31 10:04:34 PDT 2002
 TkrRecon/src/Vertex/Combo
 
 Modified Files:
