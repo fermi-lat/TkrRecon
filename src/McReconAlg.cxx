@@ -31,7 +31,7 @@
 /*! \class McReconAlg
 \brief  alg to control writing of McTruth information
 
-  */
+*/
 
 class McReconAlg : public Algorithm {
     
@@ -46,7 +46,7 @@ public:
 private:
     std::string m_tupleName;
     INTupleWriterSvc *m_ntupleWriteSvc;
-
+    
 };
 
 //------------------------------------------------------------------------------
@@ -56,10 +56,10 @@ const IAlgFactory& McReconAlgFactory = Factory;
 /// 
 McReconAlg::McReconAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator){
-
-    declareProperty("tuple_name",  m_tupleName="");
-
-
+    
+    declareProperty("tupleName",  m_tupleName="");
+    
+    
 }
 
 //------------------------------------------------------------------------------
@@ -68,20 +68,23 @@ Algorithm(name, pSvcLocator){
 StatusCode McReconAlg::initialize() {
     
     StatusCode sc = StatusCode::SUCCESS;
-
+    
     MsgStream log(msgSvc(), name());
     
     // Use the Job options service to set the Algorithm's parameters
     setProperties();
-
+    
     // get a pointer to our ntupleWriterSvc
     sc = service("ntupleWriterSvc", m_ntupleWriteSvc);
-
+    
     if( sc.isFailure() ) {
         log << MSG::ERROR << "McReconAlg failed to get the ntupleWriterSvc" << endreq;
         return sc;
     }
-
+    
+    if(  m_tupleName.empty() ) { 
+        log << MSG::WARNING << "Property \"tupleName\" not defined: will not write to the tuple" << endreq;
+    }
     return sc;
 }
 
@@ -89,50 +92,52 @@ StatusCode McReconAlg::initialize() {
 
 //------------------------------------------------------------------------------
 StatusCode McReconAlg::execute() {
-     
+    
     StatusCode  sc = StatusCode::SUCCESS;
     MsgStream   log( msgSvc(), name() );
-
-	McVertexList * vertList = SmartDataPtr<McVertexList>(eventSvc(), "/Event/MC/McVertexCol");
-
-	if( vertList == 0)
-	{
-		log << MSG::ERROR << "McRecon Failed to get /Event/MC/McParticles" << endreq;
-		sc = StatusCode::FAILURE;
-		return sc;
-	}
-
-	McVertex* mcVert = vertList->front();
-	
-	if(mcVert == 0)
-	{
-		log << MSG::ERROR << "McVertex list is empty" << endreq;
-		sc = StatusCode::FAILURE;
-		return sc;
-	}
-
-	HepLorentzVector vec = mcVert->finalFourMomentum();
-	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_xDir",vec.x());
-	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_yDir",vec.y());
-	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_zDir",vec.z());
-
-	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Energy",vec.e());
-
-	if(sc.isFailure())
-	{
-		log << MSG::ERROR << "Failed to get MC Direction and Energy" << endreq;
-	}
-
-	HepPoint3D pos = mcVert->finalPosition();
-	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_X0",pos.x());
-	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Y0",pos.x()); 
-	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Z0",pos.x());
-	
-	if(sc.isFailure())
-	{
-		log << MSG::ERROR << "Failed to get MC Position" << endreq;
-	}
-	
+    
+    if( m_tupleName.empty()) return sc;
+    
+    McVertexList * vertList = SmartDataPtr<McVertexList>(eventSvc(), "/Event/MC/McVertexCol");
+    
+    if( vertList == 0)
+    {
+        log << MSG::ERROR << "McRecon Failed to get /Event/MC/McParticles" << endreq;
+        sc = StatusCode::FAILURE;
+        return sc;
+    }
+    
+    McVertex* mcVert = vertList->front();
+    
+    if(mcVert == 0)
+    {
+        log << MSG::ERROR << "McVertex list is empty" << endreq;
+        sc = StatusCode::FAILURE;
+        return sc;
+    }
+    
+    HepLorentzVector vec = mcVert->finalFourMomentum();
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_xDir",vec.x());
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_yDir",vec.y());
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_zDir",vec.z());
+    
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Energy",vec.e());
+    
+    if(sc.isFailure())
+    {
+        log << MSG::ERROR << "Failed to get MC Direction and Energy" << endreq;
+    }
+    
+    HepPoint3D pos = mcVert->finalPosition();
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_X0",pos.x());
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Y0",pos.x()); 
+    sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Z0",pos.x());
+    
+    if(sc.isFailure())
+    {
+        log << MSG::ERROR << "Failed to get MC Position" << endreq;
+    }
+    
     return sc;
 }
 
@@ -143,7 +148,7 @@ StatusCode McReconAlg::finalize() {
     
     MsgStream log(msgSvc(), name());
     log << MSG::INFO << "finalize finishing up McReonAlg " << endreq;
- 
+    
     return StatusCode::SUCCESS;
 }
 
