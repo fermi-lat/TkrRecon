@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Jan 28 16:59:36 PST 2005
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrTrackFitAlg.cxx 
+Log Message:
+Modification to use the updated TkrTrackEnergyTool interface
+    *
+------------------------------------------------------------
 User: usher  Fri Jan 28 16:58:19 PST 2005
 TkrRecon/src/Track
 
