@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Mon Jan  3 13:43:01 PST 2005
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrTrackFitAlg.cxx 
+Log Message:
+Bill's change to energy recon on 2nd pass fit
+    *
+------------------------------------------------------------
 User: usher  Mon Jan  3 13:16:57 PST 2005
 TkrRecon/src/Track
 
