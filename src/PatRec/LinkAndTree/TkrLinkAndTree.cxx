@@ -5,8 +5,10 @@
 
 #include "src/PatRec/LinkAndTree/TkrLinkAndTree.h"
 
-TkrLinkAndTree::TkrLinkAndTree(ITkrGeometrySvc* /*pTkrGeo*/, TkrClusterCol* pTkrClus)
+TkrLinkAndTree::TkrLinkAndTree(ITkrGeometrySvc* /*pTkrGeo*/, TkrClusterCol* pTkrClus, double energy)
 {
+    m_energy = energy;
+
     ini();
 
     //How many clusters are we dealing with?
@@ -88,8 +90,10 @@ TkrLinkForest* TkrLinkAndTree::getForest(TkrPlaneType plane)
 
 void TkrLinkAndTree::buildCand3D()
 {
-    int numXcands = pForestX->getNumTrees();
-    int numYcands = pForestY->getNumTrees();
+    int    numXcands = pForestX->getNumTrees();
+    int    numYcands = pForestY->getNumTrees();
+
+    double energy    = m_energy;
 
     //This routine blindly assumes that, since the trees have been presorted
     //by longest and straightest, that the two projections already match up.
@@ -243,7 +247,7 @@ void TkrLinkAndTree::buildCand3D()
             double quality = TkrNodeX->getQuality()->getAngleRMS()
                            + TkrNodeY->getQuality()->getAngleRMS();
 
-            TkrPatCand* newTrack = new TkrPatCand(layer,pTopClusterX->tower(),0.,1.,quality,initDir);
+            TkrPatCand* newTrack = new TkrPatCand(layer,pTopClusterX->tower(),energy,1.,quality,initDir);
 
             newTrack->addCandHit(pTopClusterX);
             newTrack->addCandHit(pTopClusterY);
@@ -268,6 +272,8 @@ void TkrLinkAndTree::buildCand3D()
 
             xIter++;
             yIter++;
+
+            energy = 30.;
         }
     }
 
