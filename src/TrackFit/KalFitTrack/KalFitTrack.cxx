@@ -36,6 +36,10 @@ KalFitTrack::KalFitTrack(int ilyr, int itwr, double sigmaCut,double energy, cons
     m_energy  = energy;
     m_energy0 = energy;
     m_status  = EMPTY;
+
+    m_hits.clear();
+    m_nxHits  = 0;
+    m_nyHits  = 0; 
 }
 
 void KalFitTrack::flagAllHits(int iflag)
@@ -99,25 +103,23 @@ void KalFitTrack::addMeasHit(const TkrPatCandHit& candHit)
 
     m_hits.push_back(newPlane);
 
+    if(candHit.View() == TkrCluster::X) m_nxHits++;
+    else                                m_nyHits++;
+    if(m_nxHits > 2 && m_nyHits > 2)    m_status = FOUND;
+
     return;
 }
-
-//--------------------------------------------------------
-//  KalFitTrack - Private 
-//--------------------------------------------------------
 
 // Drives using the Kalman Filter as pattern rec too
 void KalFitTrack::findHits() 
 { 
     TkrFitPlane oriKplane = lastKPlane();
     
-    int  kplane       = firstLayer();
+//    int  kplane       = firstLayer();
+    int  kplane       = oriKplane.getIDPlane() + 1;
     int  lstgaps      = 0;
     int  step_counter = 0; 
-    bool filter       = false;
-
-    int  m_nxHits     = 0;
-    int  m_nyHits     = 0; 
+    bool filter       = m_nxHits >= 2 && m_nyHits >= 2 ? true : false;
     
     TkrFitHit::TYPE type = TkrFitHit::FIT;
     Status statushit = FOUND;
@@ -178,6 +180,11 @@ void KalFitTrack::findHits()
         if(kplane == GFtutor::numPlanes()-1 && nextKplane.getProjection()==TkrCluster::Y) break; 
     }
 }
+
+//--------------------------------------------------------
+//  KalFitTrack - Private 
+//--------------------------------------------------------
+
 
 KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane, 
                                             int kplane, TkrFitPlane& nextKplane,
