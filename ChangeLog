@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Mon Apr  2 16:35:48 PDT 2001
+TkrRecon/src SiLayers.cpp
+
+Removed Files:
+	SiLayers.cpp 
+Log Message:
+
+Moved to GlastEvent
+
+
+
+    *
+------------------------------------------------------------
 User: usher  Mon Apr  2 16:35:27 PDT 2001
 TkrRecon/src SiLayersIRFAlg.cpp
 
