@@ -1,4 +1,32 @@
 ------------------------------------------------------------
+User: atwood  Thu Jun 20 16:21:44 PDT 2002
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx 
+Log Message:
+
+GFtutor: made pointer to TkrGeoSvc "public" in anticipation of doing away with GFtutor
+
+TkrQueryClusters: Fixed error in search algorithm that counts hits in an x-y region
+
+TkrTracksRep: multiplied the error by 10 - this keeps scale same as it was before cm->mm conversion
+
+TkrComboPatRec: multiple fixes... 
+
+TkrGeometrySvc: I don't think I touched this - but must have???
+
+TkrComboFit: Don't think I touched it but... 
+
+TkrComboTrackFit: no real change - a temp mod was made to check X**2 on muons then reset. 
+
+TkrPoints:  New loop alg. for sequencing through hits
+
+KalFitTrack: no real change - temp mod was made to check X**2 on muons then reset.
+
+TkrComboVtxRecon:  replaced vertexing algorithm with my version to better optimise gamma direction
+    *
+------------------------------------------------------------
 User: atwood  Thu Jun 20 16:21:43 PDT 2002
 TkrRecon/src/Track
 
