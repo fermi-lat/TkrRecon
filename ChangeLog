@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Thu Apr 18 11:29:10 PDT 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrBadStripsSvc.cxx 
+Log Message:
+TkrClusters: Changes for revised TkrDigi
+TkrBadStripsSvc: cosmetic
+
+    *
+------------------------------------------------------------
 User: lsrea  Thu Apr 18 11:29:09 PDT 2002
 TkrRecon/src/Cluster
 
