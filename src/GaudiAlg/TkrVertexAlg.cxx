@@ -17,7 +17,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.17 2003/03/26 22:05:02 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.18 2003/04/10 17:35:40 lsrea Exp $
  */
 
 #include "GaudiKernel/IToolSvc.h"
@@ -123,13 +123,15 @@ StatusCode TkrVertexAlg::execute()
         Event::TkrVertexTabList::iterator vtxRelIter = vtxTable->begin();
 
         // Loop over TDS relational table
-        int tabSize = vtxTable->size();
+        Event::TkrVertex* lastVertex = 0;
+        int               tabSize    = vtxTable->size();
         for (int idx = 0; idx < tabSize; idx++) 
         {
             Event::TkrVertexRel*  relation  = *vtxRelIter;
             Event::TkrVertex*     tkrVertex = relation->getFirst();
 
-            delete tkrVertex;
+            if (tkrVertex != lastVertex) delete tkrVertex;
+            lastVertex = tkrVertex;
             vtxTable->erase(vtxRelIter++);
         }
     }

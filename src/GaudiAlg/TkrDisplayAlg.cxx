@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.8 2002/09/05 16:42:30 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.9 2003/01/10 19:43:23 lsrea Exp $
 //
 // Description:
 //      Contains the implementation of the methods for setting up the TkrRecon display
@@ -30,6 +30,7 @@
 #include "TkrRecon/Display/TkrDispActiveNet.h"
 
 #include "src/Vertex/Combo/TkrComboVtxRep.h"
+#include "src/Vertex/TkrGammaRep.h"
 
 #include "TkrRecon/Services/TkrInitSvc.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
@@ -109,7 +110,8 @@ StatusCode TkrDisplayAlg::initialize()
         tkrmenu.add(new TkrTracksRep(eventSvc()), "Tracks");
     
         //Vertex display routines
-        tkrmenu.add(new TkrComboVtxRep(eventSvc(), pTkrGeo), "Gamma Vertex");
+        tkrmenu.add(new TkrGammaRep(eventSvc(), pTkrGeo), "Gamma Vertex");
+        tkrmenu.add(new TkrComboVtxRep(eventSvc(), pTkrGeo), "All Vertices");
     }
     
     return sc;
