@@ -14,7 +14,7 @@
 * @todo impliment a real equality operator.
 * @todo decide whether to keep 'position' global.
 *
-* $Header$
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/TkrNeuron.h,v 1.1 2002/04/01 19:22:37 allgood Exp $
 */
 
 #ifndef __TKRNEURON_H
@@ -22,7 +22,7 @@
 
 #include "geometry/Point.h"
 #include "geometry/Vector.h"
-#include "TkrRecon/Track/TkrPoint.h"
+#include "src/PatRec/Utilities/TkrPoint.h"
 #include <vector>
 #include <assert.h>
 

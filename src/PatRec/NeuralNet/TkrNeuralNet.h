@@ -13,7 +13,7 @@
 * @todo Impliment graph searching function to better pick out candidate tracks.
 * @todo Move global parameter definitions to joboptions file
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/TkrNeuralNet.h,v 1.5 2002/05/12 05:53:01 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/TkrNeuralNet.h,v 1.6 2002/05/31 23:38:37 cohen Exp $
 */
 
 #ifndef __TKR_NEURALNET_H
@@ -22,9 +22,7 @@
 #include "Event/Recon/TkrRecon/TkrPatCandCol.h"
 #include "src/TrackFit/KalFitTrack/KalFitTrack.h"
 #include "src/PatRec/NeuralNet/TkrNeuron.h"
-#include "TkrRecon/Track/TkrPoints.h"
-#include "TkrRecon/Track/TkrPoint.h"
-#include "TkrRecon/Track/TkrBase.h"
+#include "src/PatRec/NeuralNet/TkrBase.h"
 #include <vector>
 
 using namespace Event;
@@ -154,6 +152,9 @@ private:
     /// energy for the event
     double         m_energy;
 
+    // pointers to clusters and geometry
+    ITkrGeometrySvc* m_tkrGeo;
+    TkrClusterCol*   m_clusters;
 };
 
 #endif // __TKR_NEURLNET_H
