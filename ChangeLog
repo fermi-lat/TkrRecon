@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Mon Jul 22 19:30:45 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	GFcontrol.cxx 
+Log Message:
+Turn on individual plane-energies
+    *
+------------------------------------------------------------
 User: atwood  Mon Jul 22 19:00:30 PDT 2002
 TkrRecon/src/TrackFit/KalFitTrack
 
