@@ -12,7 +12,7 @@
 *
 * @authors Bill Atwood, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.13 2002/09/11 21:18:37 atwood Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.14 2002/09/22 20:32:47 lsrea Exp $
 */
 
 #include <vector>
@@ -55,8 +55,8 @@ public:
     int numberOfHitsNear( Event::TkrCluster::view v, int layer, 
         double inDistance, const Point& x0) const;
 
-    void setTowerPitch(int pitch) { s_towerPitch = pitch;}
-    void setNumLayers(int num)    { s_numLayers = num;}
+    void setTowerPitch(double pitch) { s_towerPitch = pitch;}
+    void setNumLayers (int num)      { s_numLayers = num;}
 
     /// Checks that a layer number is in the correct range
     bool validLayer(int layer) const {return (layer>=0 && layer < s_numLayers);};
