@@ -12,7 +12,7 @@ apply_pattern packageShr
 
 apply_pattern package_include
 
-use Event      v10*
+use Event      v*
 use GlastSvc   v9*
 use GuiSvc
 use geometry
