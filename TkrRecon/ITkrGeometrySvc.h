@@ -14,7 +14,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/ITkrGeometrySvc.h,v 1.12 2002/09/02 23:29:53 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/ITkrGeometrySvc.h,v 1.13 2002/10/11 19:29:58 lsrea Exp $
  */
 
 static const InterfaceID IID_ITkrGeometrySvc(905, 1 , 0); 
@@ -33,6 +33,8 @@ public:
     virtual int    numYTowers()=0;
     virtual int    numViews()=0;
     virtual int    numLayers()=0;
+    virtual int    numNoConverter()=0;
+    virtual int    numSuperGlast()=0;
 
     virtual int    numPlanes()=0;
 

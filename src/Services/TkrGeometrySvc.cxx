@@ -35,38 +35,41 @@ StatusCode TkrGeometrySvc::initialize()
     setProperties();
     MsgStream log(msgSvc(), name());
     
-    sc = service("GlastDetSvc", m_pDetSvc);
-    
-    sc = m_pDetSvc->getNumericConstByName("xNum", &m_numX);
-    sc = m_pDetSvc->getNumericConstByName("xNum", &m_numY);
-    
-    sc = m_pDetSvc->getNumericConstByName("nWaferAcross", &m_nWaferAcross);
+    double siWaferActiveSide;
 
     m_nviews = 2;
+
+    if (service("GlastDetSvc", m_pDetSvc).isSuccess() &&
+        
+        m_pDetSvc->getNumericConstByName("xNum", &m_numX).isSuccess() &&
+        m_pDetSvc->getNumericConstByName("xNum", &m_numY).isSuccess() &&    
+        m_pDetSvc->getNumericConstByName("nWaferAcross", &m_nWaferAcross).isSuccess() &&   
+        m_pDetSvc->getNumericConstByName("numTrays", &m_nlayers).isSuccess() &&   
+        m_pDetSvc->getNumericConstByName("towerPitch", &m_towerPitch).isSuccess() &&
+        m_pDetSvc->getNumericConstByName("SiThick", &m_siThickness).isSuccess() &&
+        m_pDetSvc->getNumericConstByName("SiWaferSide", &m_siWaferSide).isSuccess() &&
+        m_pDetSvc->getNumericConstByName(
+        "SiWaferActiveSide", &siWaferActiveSide).isSuccess() &&
+        m_pDetSvc->getNumericConstByName("stripPerWafer", &m_ladderNStrips).isSuccess() &&
+        m_pDetSvc->getNumericConstByName("ladderGap", &m_ladderGap).isSuccess() &&
+        m_pDetSvc->getNumericConstByName("ssdGap", &m_ladderInnerGap).isSuccess() &&
+        m_pDetSvc->getNumericConstByName("numSuperGlast", &m_nSuperGlast).isSuccess() &&
+        m_pDetSvc->getNumericConstByName("numNoCnvTrays", &m_nNoConverter).isSuccess() )
+    {
+        sc = StatusCode::SUCCESS;
+    } else {
+        log << MSG::ERROR << "Failed to get geometry constants" << endreq;
+        return StatusCode::FAILURE;
+    }
     
-    sc = m_pDetSvc->getNumericConstByName("numTrays", &m_nlayers);
+    // finish up the constants
     m_nlayers--;
-    
-    sc = m_pDetSvc->getNumericConstByName("towerPitch", &m_towerPitch);
-    
-    sc = m_pDetSvc->getNumericConstByName("SiThick", &m_siThickness);
-    
-    sc = m_pDetSvc->getNumericConstByName("SiWaferSide", &m_siWaferSide);
+    m_nNoConverter--;
     m_trayWidth = m_nWaferAcross*m_siWaferSide +(m_nWaferAcross-1)*m_ladderGap;
-
-    double siWaferActiveSide;
-    sc = m_pDetSvc->getNumericConstByName(
-        "SiWaferActiveSide", &siWaferActiveSide);
-
     m_siDeadDistance = 0.5*(m_siWaferSide - siWaferActiveSide);
-    
-    sc = m_pDetSvc->getNumericConstByName("stripPerWafer", &m_ladderNStrips);
-
     m_siStripPitch = siWaferActiveSide/m_ladderNStrips;
     m_siResolution = m_siStripPitch/sqrt(12.);
     
-    sc = m_pDetSvc->getNumericConstByName("ladderGap", &m_ladderGap);
-    sc = m_pDetSvc->getNumericConstByName("ssdGap", &m_ladderInnerGap);
     
     // fill up the m_volId arrays, used for providing volId prefixes
     
@@ -115,17 +118,6 @@ StatusCode TkrGeometrySvc::initialize()
         log << MSG::ERROR << "Failed to fill layerZ"<< endreq;
         return sc;
     }
-
-    /*
-    // get the GeometrySvc
-    for (int i = 0; i<18;i++) {
-        std::cout << "Layer " << i << " " << getReconLayerZ(i, 0) << " " 
-            << getReconLayerZ(i,1) << " " << getReconLayerZ(i)
-            << std::endl;
-    }
-    */
-
-
     return sc;
 }
 
