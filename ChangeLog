@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Mon Jan 10 11:32:17 PST 2005
+TkrRecon/src/Cluster
+
+Modified Files:
+      Tag: GlastRelease-v4r5
+	TkrMakeClusters.cxx TkrMakeClusters.h TkrQueryClusters.cxx 
+Log Message:
+prepare for tag v9r0p2gr10; all the changes necessary for new TkrClusters.h
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon Jan 10 11:32:15 PST 2005
 TkrRecon/doc/KalVtx
 
