@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Oct 12 12:03:40 PDT 2004
+TkrRecon/src/Utilities
+
+Modified Files:
+	TkrPoints.cxx 
+Log Message:
+change to m_tkrGeom throughout
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Oct 12 12:03:39 PDT 2004
 TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors
 
