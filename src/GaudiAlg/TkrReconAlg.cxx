@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header$
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.9 2002/05/01 04:10:34 lsrea Exp $
 //
 // Description:
 //      Controls the track fitting
@@ -102,7 +102,7 @@ StatusCode TkrReconAlg::execute()
     if (pCalClusters)
     {
         ICsICluster* pCalClus = pCalClusters->Cluster(0);
-        CalEnergy             = pCalClus->energySum() / 1000; //GeV for now 
+        CalEnergy             = pCalClus->energySum(); 
         CalPosition           = pCalClus->position();
     }
 
