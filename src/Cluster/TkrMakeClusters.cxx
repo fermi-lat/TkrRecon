@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.25 2004/12/26 23:30:04 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.26 2005/01/25 20:04:47 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, 
@@ -132,11 +132,11 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
                    int end;
                    int rawToT;
                    float ToT = calculateMips(pDigi, strip0, stripf, rawToT, end);
-                   unsigned int status = defaultStatus | TkrCluster::setStatus(rawToT, end);
+                   unsigned int status = defaultStatus | ((end<<TkrCluster::shiftEND)&TkrCluster::maskEND);
 
                     TkrCluster* cl = new TkrCluster(hitId, strip0, stripf, 
-                        pos, 0.0, status, nBad);
-                    cl->setMips(ToT);
+                        pos, rawToT, ToT, status, nBad);
+                    //cl->setMips(ToT);
                     pClus->push_back(cl);
                     nclusters++;
                     (*clusMap)[hitId].push_back(cl);

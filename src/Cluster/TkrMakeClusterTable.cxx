@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusterTable.cxx,v 1.10 2004/10/12 19:03:33 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusterTable.cxx,v 1.11 2005/01/02 23:53:46 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusterTable has the methods for making the clusters, 
@@ -32,10 +32,14 @@ TkrMakeClusterTable::TkrMakeClusterTable(const TkrClusterCol* pClus,
     TkrDigiCol::const_iterator itD = pDigi->begin();
 
     int clsSize = pClus->size();
+    //std::cout << clsSize << " clusters" << std::endl;
 
     // go through all the clusters: these are in the same order as the digis
     for (int iclu=0; iclu<clsSize; iclu++) {
         TkrCluster* p_clu = (*pClus)[iclu];
+        //    std::cout << " cluster " << iclu << ", layer " << p_clu->getLayer()
+        //        << ", plane " << p_clu->getPlane() << ", view "
+        //        << (p_clu->getTkrId()).getView() << std::endl;
         int firstStrip = p_clu->firstStrip();
         int lastStrip  = p_clu->lastStrip();
         // turn into strings for comparison
@@ -47,15 +51,19 @@ TkrMakeClusterTable::TkrMakeClusterTable(const TkrClusterCol* pClus,
         while(highStrip.size()<4) { highStrip = " "+highStrip;}
         TkrDigi* p_digi = *itD;
         int order = digiOrder(p_clu);
-             //std::cout << "Before loop (o/d) " << order << " " 
-             //   << (int) *p_digi << std::endl;
+        //    std::cout << "Digi " << *p_digi <<", layer " << p_digi->getBilayer() 
+        //        << ", view " << p_digi->getView() << std::endl;
+        //    std::cout << "Before loop (o/d) " << order << " " 
+        //        << (int) *p_digi << std::endl;
         while (order!=*p_digi && itD!=pDigi->end()) {
-             //std::cout << "In     loop (o/d) " << order << " " 
-             //   << (int) *p_digi << std::endl;
+        //    std::cout << "In     loop (o/d) " << order << " " 
+        //        << (int) *p_digi << std::endl;
+        //    std::cout << "Digi " << *p_digi <<", layer " << p_digi->getBilayer() 
+        //        << ", view " << p_digi->getView() << std::endl;
             p_digi = *(++itD);
         }
-             //std::cout << "After  loop (o/d) " << order << " " 
-             //   << (int) *p_digi << std::endl;
+        //    std::cout << "After  loop (o/d) " << order << " " 
+        //        << (int) *p_digi << std::endl;
         if (itD==pDigi->end()) return;
         // cluster and digi match; get the McHits
         std::vector<Relation<TkrDigi, McPositionHit> *> relsByDigi = digiHitsTab.getRelByFirst(p_digi);
@@ -94,6 +102,9 @@ TkrMakeClusterTable::TkrMakeClusterTable(const TkrClusterCol* pClus,
 }
 
 int TkrMakeClusterTable::digiOrder ( const TkrCluster* pClust) {
+    //std::cout << "From digiOrder: view " << pClust->getTkrId().getView()
+    //    << " layer " << pClust->getLayer() << " tower " 
+    //    << pClust->tower() <<std::endl;
     return     pClust->getTkrId().getView() 
            + 2*pClust->getLayer() + 64*pClust->tower();
 }
