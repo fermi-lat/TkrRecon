@@ -3,6 +3,7 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v8r12p23 21-Jul-2004  LSR  Fix req. file according to Traudl's suggestion
   v8r12p22 15-Jul-2004  LSR  make radlen accounting a bit more robust (for EM2)
                              fiddle slope-dependent errors a bit
   v8r12p21 18-Jun-2004  HMK   Pick up latest RootPolicy version

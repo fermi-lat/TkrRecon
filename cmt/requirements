@@ -1,6 +1,6 @@
 package TkrRecon
 
-version v8r12p22
+version v8r12p23
 
 author Tracy Usher    <usher@slac.stanford.edu>
 author Leon Rochester <lsrea@slac.stanford.edu>
@@ -38,6 +38,7 @@ macro TkrRecon_stamps
 
 apply_pattern package_Cshlibflags 
 
+private # Traudl says do this
 
 macro TkrRecon_headers   "" WIN32 "\
  ../TkrRecon/Cluster/*.h\
