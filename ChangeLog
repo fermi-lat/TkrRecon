@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Apr 30 09:58:55 PDT 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusters.cxx 
+Log Message:
+fixed include for TkrMakeClusters.h
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon Apr 29 22:02:31 PDT 2002
 TkrRecon/src/Cluster
 
