@@ -1,8 +1,18 @@
 /*
-	This class defines the tree part of the "link and tree" pattern 
-	recognition algorithm. 
-	Tracy Usher Nov 29, 2000
+    A Combinatoric Pattern recognition for GLAST
+
+    This is meant to be close to what has been used historically 
+    to find track in GLAST.  
+
+    It uses two basic methods: 
+    1) Events seeded with an energy centroid in the Cal and an energy
+    2) Events without cal information
+    If the incoming Cal Point is null its assumed that there is no cal 
+    information
+
+    Author: Bill Atwood, UCSC Dec. 2001
 */
+
 #ifndef __TKRCOMBOPATREC_H
 #define __TKRCOMBOPATREC_H
 
@@ -21,15 +31,16 @@ class TkrComboPatRec : public TkrPatCandCol
 {
 public:
 	TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters, double CalEnergy, Point CalPosition);
-   ~TkrComboPatRec();
+        ~TkrComboPatRec() {};
+
 private:
 
-    class Candidate: public TkrBase 
+    class Candidate
     {
     public:
         Candidate(int layer, int twr, double e, 
                    Point x, Vector t, float d, float s, int g);
-        ~Candidate() {};
+        ~Candidate();
 
         // access
         void setDeflection(float def) {m_deflection = def;}
@@ -40,24 +51,26 @@ private:
         float  sigma()         const {return m_sigma;}
         float  quality()       const {return m_qual;}
         int    gap()           const {return m_gap;} 
+        KalFitTrack *track()         {return m_track;} 
         
-    private:    
+    private:	
         float m_deflection;    // End point deflection of line of 1st two hits
         float m_sigma;         // Number of sigma deflection corresponds to
         float m_qual;          // Resulting track Quality
         int m_gap;             // Size of gap (hopefully zero!) 
+        KalFitTrack *m_track;  // The trial track fit
     };
 
-
     // Access methods for getting the individual candidate tracks
-    typedef std::vector<Candidate> CandidateList; 
-    typedef std::vector<Candidate>::const_iterator const_iterator;
+    typedef std::vector<Candidate*> CandidateList; 
+    typedef std::vector<Candidate*>::iterator iterator;
 
-    const CandidateList& candidates() const {return m_candidates;}
-    const_iterator begin()            const {return m_candidates.begin();}
-    const_iterator end()              const {return m_candidates.end();}
+    CandidateList& candidates() {return m_candidates;}
+    iterator begin()            {return m_candidates.begin();}
+    iterator end()              {return m_candidates.end();}
 
     void searchCandidates(double CalEnergy, Point CalPosition);
+    void setEnergies(double CalEnergy); 
     
     // internal drivers
     void findBlindCandidates();
@@ -65,17 +78,18 @@ private:
 
     // internal utilities
     float findNextHit(int, float, Ray&, float&, int&);
-    void  incorporate(Candidate&);
+    void  incorporate(Candidate*);
     
     // data members
-    CandidateList  m_candidates;  // List of found hypothesises
-    TkrFitTrackCol m_tracks;      // List of attempted fits
+    CandidateList m_candidates;  // Internal list of found hypothesises
 
     Point m_Pcal;      // Calorimeter seed point
     Point m_nextHit;   // Space point transfer space
     double m_cut;      // Sigma cut used 
     double m_energy;   // Energy used to compute errors
     double m_arclen;   // arclength transfer space 
+    int m_BestHitCount;// highest hit count on a track this event
+    int m_TopLayer;    // Upper most layer in which a track was found
 
 };
 

@@ -14,19 +14,20 @@ class GFtutor
 public:
 
     friend class KalFitTrack;
+    friend class TrkComboPatRec;
 
     static void GFtutor::load(TkrClusterCol* scl, ITkrGeometrySvc* pTrkGeo);
 	static void GFtutor::setVeto(bool vt) {CUT_veto = vt;}
 	static TkrClusterCol* _DATA;
 
-protected:
+
 
 
 	static bool CONTROL_connectGFpair;
 	static bool CUT_veto;
 
 
-protected:
+
 
 	static int numPlanes() {return m_numPlanes;}
 
@@ -37,7 +38,7 @@ protected:
 	static double siThickness()   {return m_siThickness;}
 	static double siResolution()  {return m_siResolution;}
 
-protected:
+
 
     static int  okClusterSize(TkrCluster::view axis, int indexhit, double slope);	
     static bool neighbourTowers(int itower, int jtower);

@@ -30,8 +30,13 @@ public:
     TkrFitHit predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int nsteps);
     TkrFitHit filter(TkrFitPlane& filterPlane);
     TkrFitHit smoother(TkrFitPlane& start, const TkrFitPlane& kplast);
+    double getRadLength()                     const {return m_radLength;}
+    double getActiveDist()                    const {return m_activeDist;}
    
 private:
+    // Local Temporary Varibles to store addition propagation Info.
+    double m_radLength;    // inc. rad. lengths 
+    double m_activeDist;   // the insideActiveAre parameter
 };
 
 }; //Namespace
