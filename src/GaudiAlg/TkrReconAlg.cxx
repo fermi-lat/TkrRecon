@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.29 2005/01/20 01:39:20 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.30 2005/01/28 20:06:33 lsrea Exp $
 */
 
 
@@ -91,6 +91,8 @@ public:
     StatusCode finalize();
 
 private:
+
+    enum {SKIPALL=0, CLUSTERING, PATREC, FITTING, VERTEXING };
     StatusCode handleError(std::string errorString);
     int         m_errorCount;
     bool        m_saveBadEvents;
@@ -111,7 +113,9 @@ private:
 
     int m_eventCount;
     bool m_testExceptions;
+    bool m_printExceptions;
     std::string m_stage;
+    int m_lastStage;
 
     // this is because 2 copies of TkrReconAlg are instantiated: "FirstPass" and "Iteration"
     static bool s_failed;
@@ -131,10 +135,18 @@ Algorithm(name, pSvcLocator)
 {
     // Variable to select reconstruction type
     declareProperty("TrackerReconType", m_TrackerReconType="Combo");
+    // the following are for testing and debugging the code
+    // defaults are set correctly for standard use
+
     // If true, try very hard not to crash
     declareProperty("saveBadEvents", m_saveBadEvents=true);
     // turn on some bad things to see if exception handling is working
     declareProperty("testExceptions", m_testExceptions=false);
+    // force exceptions to be printed
+    declareProperty("printExceptions", m_printExceptions= false);
+    // control flag to suppress parts of the recon:
+    // 0 = skip all, 1 = do cluster, 2 = and patrec, 3 = and fit, 4 = and vertex
+    declareProperty("lastStage", m_lastStage=100);
 }
 
 // Initialization method
@@ -273,7 +285,7 @@ StatusCode TkrReconAlg::execute()
     try {
         // Call clustering if in first pass mode
         m_stage = "TkrClusterAlg";
-        if (m_TkrClusterAlg) sc = m_TkrClusterAlg->execute();
+        if (m_TkrClusterAlg && m_lastStage>=CLUSTERING) sc = m_TkrClusterAlg->execute();
         if (sc.isFailure())
         {
             return handleError(stageFailed);
@@ -297,7 +309,7 @@ StatusCode TkrReconAlg::execute()
 
         // Call track finding if in first pass mode
         m_stage = "TkrFindAlg";
-        if (m_TkrFindAlg) sc = m_TkrFindAlg->execute();
+        if (m_TkrFindAlg && m_lastStage>=PATREC) sc = m_TkrFindAlg->execute();
         if (sc.isFailure())
         {
             return handleError(stageFailed);
@@ -305,7 +317,7 @@ StatusCode TkrReconAlg::execute()
 
         // Call track fit
         m_stage = "TkrTrackFitAlg";
-        sc = m_TkrTrackFitAlg->execute();
+        if(m_lastStage>=FITTING) sc = m_TkrTrackFitAlg->execute();
         if (m_testExceptions && m_eventCount%5==3) sc = StatusCode::FAILURE;
 
         if (sc.isFailure())
@@ -315,7 +327,7 @@ StatusCode TkrReconAlg::execute()
 
         // Call vertexing
         m_stage = "TkrVertexAlg";
-        sc = m_TkrVertexAlg->execute();
+        if(m_lastStage>=VERTEXING) sc = m_TkrVertexAlg->execute();
         if (name()=="Iteration" && m_testExceptions && m_eventCount%5==4) sc = StatusCode::FAILURE;
         if (sc.isFailure())
         {
@@ -323,16 +335,13 @@ StatusCode TkrReconAlg::execute()
         }
 
     }catch( TkrException& e ){
-        //log << MSG::ERROR << "Caught TkrException: " << e.what() << endreq;
         return handleError(e.what());
 
     }catch( std::exception& e) {
-        //log << MSG::ERROR << "Caught standard exception: " << e.what() << endreq;
         return handleError(e.what());
 
     }catch(...){
-        //log << MSG::ERROR  << "Unknown exception" << endreq;
-        return handleError("Unknown Exception");
+         return handleError("Unknown Exception");
     }
 
     m_lastTime = m_header->time();
@@ -364,6 +373,17 @@ StatusCode TkrReconAlg::handleError(std::string errorString)
     errorString = m_stage+": "+errorString;
  
     TkrErrorRecord* errorRec = new TkrErrorRecord(run, event, m_lastTime, errorString);
+    if (!m_printExceptions) { log << MSG::DEBUG;}
+    else                    { log << MSG::WARNING;}
+    if (log.isActive()) {
+        log << endreq << "**********************" << endreq;
+        log << "Run " << run << " Event " << event 
+            << " Time " << m_lastTime << endreq;
+        log  << "   " << errorString << endreq;
+        log << "**********************" << endreq;
+    }
+    log << endreq;
+
     m_errorArray.push_back(errorRec);
 
     StatusCode sc = StatusCode::FAILURE;
