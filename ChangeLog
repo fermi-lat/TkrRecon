@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Mon Aug 18 17:17:53 PDT 2003
+TkrRecon/TkrRecon/MonteCarlo
+
+Modified Files:
+	ITkrMcTracksTool.h McEventStructure.h McLayerHit.h 
+Log Message:
+Modifications to the Recon/MC relations stuff, mostly to build up TkrMcTracksTool
+to include a number of useful functions (and to provide examples on how to access
+some of the available information)
+
+    *
+------------------------------------------------------------
 User: cohen  Sun Aug 17 10:39:47 PDT 2003
 TkrRecon/src/GaudiAlg
 
