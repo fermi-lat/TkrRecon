@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Mar 12 15:32:21 PST 2003
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrReconAlg.cxx TkrTrackFitAlg.cxx TkrVertexAlg.cxx 
+Log Message:
+Modifications for new way to access propagator and tracker relational tables
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon Mar 10 21:16:39 PST 2003
 TkrRecon/cmt
 
