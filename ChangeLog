@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Fri May 10 14:53:53 PDT 2002
+TkrRecon/TkrRecon/Cluster
+
+Modified Files:
+	TkrQueryClusters.h 
+Log Message:
+Change includes to switch from GlastEvent to Event
+
+    *
+------------------------------------------------------------
 User: usher  Wed May  8 14:54:02 PDT 2002
 TkrRecon/doc
 
