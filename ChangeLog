@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Mon Aug  4 13:17:35 PDT 2003
+TkrRecon/src/PatRec/MonteCarlo
+
+Added Files:
+	MonteCarloFindTrackTool.cxx MonteCarloFindTrackTool.h 
+Log Message:
+New PatRec tool to form a candidate track from Monte Carlo associated clusters 
+(for testing the downstream fitting and vertexing code)
+
+    *
+------------------------------------------------------------
 User: usher  Mon Aug  4 13:15:50 PDT 2003
 TkrRecon/src/PatRec/MonteCarlo
 
