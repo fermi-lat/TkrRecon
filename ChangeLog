@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Mon Jun  3 12:27:09 PDT 2002
+TkrRecon/TkrRecon/Display
+
+Modified Files:
+	TkrTracksRep.h 
+Log Message:
+Modifications made necessary by the change in the structure of the TDS classes.
+Code now compiles and TkrRecon builds but needs to be tested
+
+    *
+------------------------------------------------------------
 User: cohen  Fri May 31 16:59:34 PDT 2002
 TkrRecon/src/Vertex/Combo
 
