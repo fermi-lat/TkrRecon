@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: lsrea  Thu Jul 15 17:20:15 PDT 2004
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+prepare for tag v8r12p22
+Make radlen accounting more robust to accomodate peculiar EM2 setup
+Adjust calculation in slope-dependent errors for too wide/narrow clusters
+
+    *
+------------------------------------------------------------
+User: lsrea  Thu Jul 15 17:20:15 PDT 2004
 TkrRecon/cmt
 
 Modified Files:
