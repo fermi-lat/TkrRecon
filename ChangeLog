@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Tue Apr 29 17:42:20 PDT 2003
+TkrRecon/src/Track
+
+Modified Files:
+	TkrTrackEnergyTool.cxx 
+Log Message:
+replace hard-wired radiation lengths with calls to TkrGeometrySvc
+
+    *
+------------------------------------------------------------
+User: lsrea  Tue Apr 29 17:42:20 PDT 2003
 TkrRecon/src/PatRec/Combo
 
 Modified Files:
