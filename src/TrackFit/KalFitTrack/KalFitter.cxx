@@ -439,10 +439,13 @@ TkrFitPlane KalFitter::projectedKPlane(TkrFitPlane prevKplane, int klayer, doubl
     
     int next_layer = klayer; 
     double arc_x, arc_y; 
-    while(next_layer < 5+old_layer && next_layer < 18) { // Limit Gap to 3 missed x-y planes
-        int rev_layer = m_tkrGeo->reverseLayerNumber(next_layer);      //  Control Parameter needed
-        double zx = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::X, 751).z();
-        double zy = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::Y, 751).z();
+    while(next_layer < 5+old_layer && next_layer < m_tkrGeo->numLayers()) { // Limit Gap to 3 missed x-y planes
+        //int rev_layer = m_tkrGeo->reverseLayerNumber(next_layer);      //  Control Parameter needed
+        //double zx = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::X, 751).z();
+        //double zy = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::Y, 751).z();
+        double zx = m_tkrGeo->getReconLayerZ(next_layer, TkrCluster::X);
+        double zy = m_tkrGeo->getReconLayerZ(next_layer, TkrCluster::Y);
+
         
         double d_xz = old_z - zx;
         double d_yz = old_z - zy;
@@ -871,14 +874,17 @@ int KalFitter::addLeadingHits(int top_layer)
     while(next_layer >= 0 && top_layer-next_layer < 2) {   // Limit additions to 2 layers
         //Check that there are hits to here
         if((m_clusters->nHits(TkrCluster::X, next_layer) + 
-            m_clusters->nHits(TkrCluster::X, next_layer)) < 1) {
+            m_clusters->nHits(TkrCluster::Y, next_layer)) < 1) {
             next_layer--;
             continue;
         }
         //Find the Z location for the x & y planes 
-        int rev_layer = m_tkrGeo->reverseLayerNumber(next_layer); 
-        double zx = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::X, 751).z();
-        double zy = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::Y, 751).z();
+        //int rev_layer = m_tkrGeo->reverseLayerNumber(next_layer); 
+        //double zx = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::X, 751).z();
+        //double zy = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::Y, 751).z();
+        double zx = m_tkrGeo->getReconLayerZ(next_layer, TkrCluster::X);
+        double zy = m_tkrGeo->getReconLayerZ(next_layer, TkrCluster::Y);
+
         //Compute which one is closest 
         double d_xz = zx - old_z;
         double d_yz = zy - old_z;
