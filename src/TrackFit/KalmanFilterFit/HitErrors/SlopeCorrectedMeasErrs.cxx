@@ -8,7 +8,7 @@
  *
  * @author Tracy Usher (editor) from version implemented by Leon Rochester (due to Bill Atwood)
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.6 2005/02/11 07:14:53 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.7 2005/02/15 20:34:25 usher Exp $
  */
 
 #include "SlopeCorrectedMeasErrs.h"
@@ -67,22 +67,16 @@ double SlopeCorrectedMeasErrs::getError(double strips, double slope) const
     // slope is the slope of the track in the measuring view
 
     double stripAspect = m_tkrGeom->siThickness()/m_tkrGeom->siStripPitch();
-    double absSlope = fabs(slope*stripAspect);
+    double projectedStrips = fabs(slope*stripAspect);
 
     // calculation below is done in units of strips
-    // absSlope = 1 is the slope that crosses one strip exactly
-
-    // For clusters narrower than expected, there must be missing strips,
-    // so the error should also be larger, perhaps again max(sqrt(.5), fabs(meas-projected-1))
-
-    // actually, we could do better... most of these are tracks going through the edge
-    // a wafer, so we could "fix" them post facto.
+    // projectedStrips = 1 is the slope that crosses one strip exactly
 
     double error;
+    // if this is still zero at the end, the cluster fell through the logic
+    //   and needs to be dealt with separately.
     double factor = 0.0;
     double minErr = m_tkrGeom->siResolution(); 
-    double clusterWidth  = strips*m_tkrGeom->siStripPitch();
-    double projectedWidth = fabs(slope)*m_tkrGeom->siThickness();
     int    nStrips = (int) strips+.01;  // just to be safe
 
 
@@ -93,7 +87,7 @@ double SlopeCorrectedMeasErrs::getError(double strips, double slope) const
 
     if (nStrips==1) 
     {
-        if (absSlope<1.5+eps0) factor = 1 - 0.52*absSlope;
+        if (projectedStrips<1.5+eps0) factor = 1 - 0.52*projectedStrips;
     } 
     else if (nStrips<11) 
     {
@@ -123,18 +117,29 @@ double SlopeCorrectedMeasErrs::getError(double strips, double slope) const
             loSlope = 5.0 + nm6 ; hiSlope = 6.6 + nm6; peakSlope = 5.88 + nm6;
             peakDev = 0.96; loPar1 = .714; hiPar1 = .851;
         }
-        if (absSlope>loSlope-eps1 && absSlope < peakSlope) 
+        if (projectedStrips>loSlope-eps1 && projectedStrips < peakSlope) 
         {
-            factor = peakDev - loPar1*(peakSlope - absSlope);
+            factor = peakDev - loPar1*(peakSlope - projectedStrips);
         } 
-        else if (absSlope>peakSlope && absSlope < hiSlope + eps1 ) 
+        else if (projectedStrips>peakSlope && projectedStrips < hiSlope + eps1 ) 
         {
-            factor = peakDev - hiPar1*(absSlope - peakSlope);
+            factor = peakDev - hiPar1*(projectedStrips - peakSlope);
         }
     }
-    if (factor==0) 
+    if (factor==0) // no factor assigned yet!
     {
-        double delta = clusterWidth - projectedWidth - 1.;
+        // these are combinations of strips and slopes that are not "allowed"
+        //   by geometry. 
+        //For clusters that are wider than predicted, the likely
+        //   explanation is something like delta-ray production. 
+        //   There has been some talk about choosing one end or the other...
+        //For strips that are narrower than expected, we could be looking
+        //   at inefficency, or tracks that pass through the edge of the 
+        //   active part of a wafer, etc. We can probably "fix" some of this...
+        //In any event, it probably doesn't pay to be too agressive in assigning
+        //   errors to these clusters, since we don't understand them in detail yet.
+
+        double delta = (strips - 1.) - projectedStrips;
         factor = std::max(fabs(delta), 1.);
     } 
 
