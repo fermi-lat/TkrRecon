@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Feb  3 16:56:21 PST 2005
+TkrRecon/TkrRecon/Track
+
+Modified Files:
+	ITkrFitTool.h 
+Log Message:
+Also add a methods to Kalman Fit for recursive iterative fitting
+    *
+------------------------------------------------------------
 User: usher  Tue Feb  1 11:18:05 PST 2005
 TkrRecon/src/PatRec/MonteCarlo
 
