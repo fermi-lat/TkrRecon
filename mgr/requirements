@@ -35,6 +35,7 @@ macro_append TkrTrack_headers     "" WIN32 " ../TkrRecon/Track/*.h ../TkrRecon/T
 library TkrReconData -no_share Cluster/*.cpp                 \
                                Track/*.cxx                   \
                                TrackFit/*.cxx                \
+                               GaudiAlg/TkrReconAlg.cxx      \
                                ${TkrReconData_headers}
 
 library TkrCluster   -no_share Cluster/*.cpp                 \
