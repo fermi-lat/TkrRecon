@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.9 2004/02/19 22:52:44 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.10 2004/03/24 00:07:44 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -231,7 +231,7 @@ Event::TkrPatCand* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* 
             int planeDelta = curPlane - lastPlane;
 
             // Load up the next cluster, if it exists and is in one of the next two planes
-            if (-3 < planeDelta && planeDelta < 0 && cluster)
+            if (-4 < planeDelta && planeDelta < 0 && cluster)
             {
                 patCand->addCandHit(const_cast<Event::TkrCluster*>(cluster));
 
