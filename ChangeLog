@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Mon Apr 19 16:05:22 PDT 2004
+TkrRecon/src/TrackFit/LineFit2D
+
+Added Files:
+	LineFit2D.cxx LineFit2D.h 
+Log Message:
+Implements a simple least squares 2D line fit to supplied hits and simple 
+measurement errors. ** No Multiple Scattering included **
+
+    *
+------------------------------------------------------------
 User: usher  Mon Apr 19 16:04:11 PDT 2004
 TkrRecon/src/TrackFit/LineFit2D
 
