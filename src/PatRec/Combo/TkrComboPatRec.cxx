@@ -209,20 +209,20 @@ void TkrComboPatRec::loadOutput()
     // use this for errors
     const double oneOverSqrt12 = 1./sqrt(12.);
 
+    // Retrieve a pointer (if it exists) to existing fit track collection
+    Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol);
+
+    // If no pointer then create it
+    if (trackCol == 0)
+    {
+        trackCol = new Event::TkrTrackCol();
+    
+        if ((m_dataSvc->registerObject(EventModel::TkrRecon::TkrTrackCol,    trackCol)).isFailure())
+            throw TkrException("Failed to create Fit Track Collection!");
+    }
+
     if (!m_candidates.empty()) 
     {
-        // Retrieve a pointer (if it exists) to existing fit track collection
-        Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol);
-
-        // If no pointer then create it
-        if (trackCol == 0)
-        {
-            trackCol = new Event::TkrTrackCol();
-    
-            if ((m_dataSvc->registerObject(EventModel::TkrRecon::TkrTrackCol,    trackCol)).isFailure())
-                throw TkrException("Failed to create Fit Track Collection!");
-        }
-
         // We will also need the collection of track hits
         Event::TkrTrackHitCol* trackHitCol = SmartDataPtr<Event::TkrTrackHitCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackHitCol);
 
