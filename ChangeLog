@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: kuss  Fri Nov 29 01:37:52 PST 2002
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx 
+Log Message:
+one last(?) fix for gcc3.2
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Nov 27 15:31:05 PST 2002
 TkrRecon/src/TrackFit/KalFitTrack
 
