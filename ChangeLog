@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: usher  Mon Jun  3 12:27:09 PDT 2002
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.h 
+Log Message:
+Modifications made necessary by the change in the structure of the TDS classes.
+Code now compiles and TkrRecon builds but needs to be tested
+
+    *
+------------------------------------------------------------
+User: usher  Mon Jun  3 12:27:09 PDT 2002
 TkrRecon/src/Display
 
 Modified Files:
