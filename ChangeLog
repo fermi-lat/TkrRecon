@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Mon Jul 21 11:12:00 PDT 2003
+TkrRecon/src/test
+
+Modified Files:
+	jobOptions.txt 
+Log Message:
+remove ref to Recon dll, to fix unit test
+    *
+------------------------------------------------------------
 User: lsrea  Fri Jul 18 15:57:01 PDT 2003
 TkrRecon/doc
 
