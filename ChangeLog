@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Apr 13 11:33:55 PDT 2004
+TkrRecon/src/TrackFit/KalmanFilter
+
+Modified Files:
+	KalmanFilter.cxx KalmanFilter.h 
+Log Message:
+Prepare for tag v8r12p9
+first go at slope-dependent errors: controlled by TkrInitSvc.TkrErrorType; default is 0, meaning "good old errors"
+    *
+------------------------------------------------------------
 User: lsrea  Tue Apr 13 11:33:54 PDT 2004
 TkrRecon/src/Services
 
