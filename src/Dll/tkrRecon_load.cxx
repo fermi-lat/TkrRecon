@@ -24,7 +24,7 @@ DECLARE_FACTORY_ENTRIES(TkrRecon)
 
     DECLARE_SERVICE(   TkrGeometrySvc          );
     DECLARE_SERVICE(   TkrInitSvc              );
-    DECLARE_SERVICE(   TkrBadStripsSvc         );
+    //DECLARE_SERVICE(   TkrBadStripsSvc         );
 
     DECLARE_TOOL(      VtxSingleTrkTool        );
     DECLARE_TOOL(      VtxKalFitTool           );

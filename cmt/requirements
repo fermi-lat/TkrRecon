@@ -12,6 +12,7 @@ use GlastSvc   v9*
 use GuiSvc
 use geometry
 use xml
+use TkrUtil    v1r1
 
 use Recon
 #use G4Generator
