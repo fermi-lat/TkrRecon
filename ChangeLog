@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Fri Jul  4 07:07:39 PDT 2003
+TkrRecon/src/Utilities
+
+Modified Files:
+	TkrPoint.h 
+Log Message:
+added newline at end of file and put the TkrPointList typedef in TkrPoint.h
+    *
+------------------------------------------------------------
 User: cohen  Mon Jun 30 11:27:45 PDT 2003
 TkrRecon/src/PatRec/LinkAndTree
 
