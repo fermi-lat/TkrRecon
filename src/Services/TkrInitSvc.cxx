@@ -13,8 +13,6 @@
 #include "src/Track/TkrLinkAndTreeTrackFit.h"
 #include "src/Track/TkrComboTrackFit.h"
 
-#include "src/Vertex/Combo/TkrComboVtx.h"
-
 static const SvcFactory<TkrInitSvc> s_factory;
 const ISvcFactory& TkrInitSvcFactory = s_factory;
 
@@ -108,12 +106,4 @@ TkrTrackFit* TkrInitSvc::setTrackFit()
     else if (m_TrackerReconType == 1) pTrackFit = new TkrComboTrackFit(pTkrGeo);
 
     return pTrackFit;
-}
-
-// Set up the particular vertex finding
-TkrFindVertex* TkrInitSvc::setVertexing()
-{
-    TkrFindVertex* pFindVertex = new TkrComboVtx(pTkrGeo);
-
-    return pFindVertex;
 }

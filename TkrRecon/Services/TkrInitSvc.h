@@ -6,7 +6,6 @@
 
 #include "TkrRecon/PatRec/TkrPatRecon.h"
 #include "TkrRecon/Track/TkrTrackFit.h"
-#include "TkrRecon/Vertex/TkrFindVertex.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "GaudiKernel/IDataProviderSvc.h"
 
@@ -43,9 +42,6 @@ public:
 
     //This for initializing the track fit algorithm
     TkrTrackFit*     setTrackFit();
-
-    //This for initializing the vertex finding algorithm
-    TkrFindVertex*   setVertexing();
 
     //This for returning the pointer to the geometry service
     ITkrGeometrySvc* getGeometrySvc() {return pTkrGeo;}
