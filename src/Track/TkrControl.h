@@ -8,7 +8,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrControl.h,v 1.1 2002/08/28 22:55:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrControl.h,v 1.4 2002/08/29 19:18:47 usher Exp $
  */
 
 
@@ -25,17 +25,17 @@ public:
     static TkrControl* getPtr();
 
     /// Retrieve values
-    const inline int    getMaxCandidates()      {return m_MaxCandidates;     }
-    const inline int    getMinTermHitCount()    {return m_MinTermHitCount;   }
-    const inline double getFEneParticle()       {return m_FEneParticle;      }
-    const inline double getSigmaCut()           {return m_SigmaCut;          }
-    const inline double getMinEnergy()          {return m_MinEnergy;         }
-    const inline int    getMaxConsecutiveGaps() {return m_MaxConsecutiveGaps;}
-    const inline int    getMinSegmentHits()     {return m_MinSegmentHits;    }
-    const inline double getMaxChisqCut()        {return m_MaxChiSqCut;       }
-    const inline double getIniErrSlope()        {return m_IniErrorSlope;     }
-    const inline double getIniErrPosition()     {return m_IniErrorPosition;  }
-    const inline bool   getPlaneEnergies()      {return m_PlaneEnergies;     }
+    const int    getMaxCandidates()      {return m_MaxCandidates;     }
+    const int    getMinTermHitCount()    {return m_MinTermHitCount;   }
+    const double getFEneParticle()       {return m_FEneParticle;      }
+    const double getSigmaCut()           {return m_SigmaCut;          }
+    const double getMinEnergy()          {return m_MinEnergy;         }
+    const int    getMaxConsecutiveGaps() {return m_MaxConsecutiveGaps;}
+    const int    getMinSegmentHits()     {return m_MinSegmentHits;    }
+    const double getMaxChisqCut()        {return m_MaxChiSqCut;       }
+    const double getIniErrSlope()        {return m_IniErrorSlope;     }
+    const double getIniErrPosition()     {return m_IniErrorPosition;  }
+    const bool   getPlaneEnergies()      {return m_PlaneEnergies;     }
 
 
     /// Allow for control variables to be set at initialization
