@@ -71,6 +71,7 @@ private:
 
     TkrLinkForest*      pForestY;
     int                 numTracksY;
+    //ITkrGeometrySvc*    m_pTkrGeo;
 };
 
 #endif

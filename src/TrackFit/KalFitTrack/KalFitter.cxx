@@ -639,7 +639,8 @@ double KalFitter::sigmaFoundHit(const TkrFitPlane& /*previousKplane*/, const Tkr
     double min_dist = -1.;
     bool done = false;
     while (!done) {
-        nearHit = m_clusTool->nearestHitOutside(m_axis, klayer, min_dist, center, indexhit);
+        nearHit = m_clusTool->nearestHitOutside(m_axis, m_tkrGeo->reverseLayerNumber(klayer), 
+            min_dist, center, indexhit);
         done = foundHit(indexhit, min_dist, max_dist, rError, center, nearHit);
     }
     
@@ -700,7 +701,8 @@ double KalFitter::sigmaFoundHit(Point center, int nextLayer, int prevLayer,
     bool done = false;
     int loop_count = 0;
     while (!done && loop_count++ < 4) {
-        nearHit = m_clusTool->nearestHitOutside(m_axis, nextLayer, min_dist, center, indexhit);
+        nearHit = m_clusTool->nearestHitOutside(m_axis, m_tkrGeo->reverseLayerNumber(nextLayer), 
+            min_dist, center, indexhit);
         done = foundHit(indexhit, min_dist, max_dist, rError, center, nearHit);
     }
     

@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.2 2004/09/08 15:32:45 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.9 2004/09/23 21:30:31 usher Exp $
  */
 
 #include "src/Track/TkrTrackEnergyTool.h"
@@ -223,7 +223,8 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrPatCand* track, double CalEn
 
         // Assume location of shower center in given by 1st track
         Point x_hit = getPosAtZ(track, arc_len);
-        int numHits = m_clusTool->numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
+        int numHits = m_clusTool->numberOfHitsNear(m_tkrGeo->reverseLayerNumber(iplane), 
+            xSprd, ySprd, x_hit);
          
         convType type = m_tkrGeo->getReconLayerType(iplane);
         switch(type) {

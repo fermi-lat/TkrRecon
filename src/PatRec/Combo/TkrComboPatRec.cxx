@@ -370,13 +370,13 @@ void TkrComboPatRec::setEnergies(double calEnergy)
 
     double arc_len    = 5./fabs(dir_ini.z()); 
     int top_plane     = first_track->getLayer();     
-    int max_planes    = m_tkrGeo->numLayers();
+    int maxLayers    = m_tkrGeo->numLayers();
 
     int thin_planes  = 0;
     int thick_planes = 0;
     int norad_planes = 0;
     
-    for(int iplane = top_plane; iplane < max_planes; iplane++) {
+    for(int iplane = top_plane; iplane < maxLayers; iplane++) {
         
         double xms = 0.;
         double yms = 0.;
@@ -394,7 +394,8 @@ void TkrComboPatRec::setEnergies(double calEnergy)
         Point x_hit = first_track->getPosAtZ(arc_len);
         //int numHits = TkrQueryClusters(m_clusters).
         //    numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
-        int numHits = m_clusTool->numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
+        int numHits = m_clusTool->numberOfHitsNear(m_tkrGeo->reverseLayerNumber(iplane),
+            xSprd, ySprd, x_hit);
 
         convType type = m_tkrGeo->getReconLayerType(iplane);
         switch(type) {
@@ -416,7 +417,7 @@ void TkrComboPatRec::setEnergies(double calEnergy)
 
         // Increment arc-length
         int nextPlane = iplane+1;
-        if (iplane==max_planes-1) nextPlane--;
+        if (iplane==maxLayers-1) nextPlane--;
         double deltaZ = m_tkrGeo->getReconLayerZ(iplane)-m_tkrGeo->getReconLayerZ(nextPlane);
         arc_len += fabs( deltaZ/dir_ini.z()); 
     }
@@ -519,13 +520,13 @@ void TkrComboPatRec::findBlindCandidates()
    // Dependencies: None
    // Restrictions and Caveats:  None.
     
-    int max_planes = m_tkrGeo->numLayers();
+    int maxLayers = m_tkrGeo->numLayers();
     
     int localBestHitCount = 0; 
     bool valid_hits = false;
     int trials      = 0; 
     
-    for (int ilayer = m_firstLayer; ilayer < max_planes-2; ilayer++) { 
+    for (int ilayer = m_firstLayer; ilayer < maxLayers-2; ilayer++) { 
         // Termination Criterion
         if(trials > _maxTrials) break; 
         if(localBestHitCount > m_control->getMinTermHitCount() && 
@@ -546,11 +547,11 @@ void TkrComboPatRec::findBlindCandidates()
             int itwr = first_Hit.tower();
             
             //allows up to 2 blank layers
-            for(int igap=1; igap<3 && ilayer+igap <max_planes; igap++) {
+            for(int igap=1; igap<3 && ilayer+igap <maxLayers; igap++) {
                 // Tests for terminating gap loop
                 if(trials >_maxTrials) break; 
                 if(localBestHitCount > 0 && igap > 1 &&
-                  (localBestHitCount+2 > (max_planes-(ilayer+igap)-2)*2)) break;
+                  (localBestHitCount+2 > (maxLayers-(ilayer+igap)-2)*2)) break;
                 
                 //TkrPoints secnd_Hit(ilayer+igap, m_clusters);               
                 TkrPoints secnd_Hit(ilayer+igap, m_clusTool);               
@@ -627,12 +628,12 @@ void TkrComboPatRec::findCalCandidates()
    // Dependencies: None
    // Restrictions and Caveats:  None.gap
     
-    int max_planes = m_tkrGeo->numLayers();
+    int maxLayers = m_tkrGeo->numLayers();
     int localBestHitCount = 0; 
     bool valid_hits = false; 
     int trials = 0; 
     
-    for (int ilayer = 0 ; ilayer < max_planes-2; ilayer++)
+    for (int ilayer = 0 ; ilayer < maxLayers-2; ilayer++)
     { 
         // Should we continue? 
         if(trials > _maxTrials) break; 
@@ -665,7 +666,7 @@ void TkrComboPatRec::findCalCandidates()
             if(y_size > (3+3*fabs(t1.y()/t1.z()))) continue; 
             
             int max_layer = ilayer+3; // allows up to 1 gaps
-            if(max_layer > max_planes-1) max_layer =max_planes-1;
+            if(max_layer > maxLayers-1) max_layer =maxLayers-1;
             for(int klayer=ilayer+1; klayer < max_layer; klayer++) {
                 if(trials > _maxTrials) break; 
                 //TkrPoints secnd_Hit(klayer, m_clusters);
