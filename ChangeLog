@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: hernando  Mon Feb  5 11:05:55 PST 2001
+TkrRecon/src detGeo.cpp GFcandidates.cpp GFcontrol.cpp GFdata.cxx GFgamma.cpp GFparticle.cpp GFsegment.cpp KalFit.cxx SiClusters.cpp SiClustersAlg.cxx SiClustersIRFAlg.cxx SiLayers.cpp SiLayersIRFAlg.cpp SiRecObjs.cpp SiRecObjsAlg.cxx trackerGeo.cpp
+
+Added Files:
+	detGeo.cpp GFcandidates.cpp GFcontrol.cpp GFdata.cxx 
+	GFgamma.cpp GFparticle.cpp GFsegment.cpp KalFit.cxx 
+	SiClusters.cpp SiClustersAlg.cxx SiClustersIRFAlg.cxx 
+	SiLayers.cpp SiLayersIRFAlg.cpp SiRecObjs.cpp SiRecObjsAlg.cxx 
+	trackerGeo.cpp 
+Log Message:
+tb recon data and algorithm classes imported to TkrRecon
+    *
+------------------------------------------------------------
 User: hernando  Mon Feb  5 11:05:09 PST 2001
 TkrRecon/TkrRecon detGeo.h GFcandidates.h GFcontrol.h GFdata.h GFgamma.h GFparticle.h GFsegment.h KalFit.h SiClusters.h SiClustersAlg.h SiClustersIRFAlg.h SiLayers.h SiLayersIRFAlg.h SiRecObjs.h SiRecObjsAlg.h TkrAxis.h trackerGeo.h
 
