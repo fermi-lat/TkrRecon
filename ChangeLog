@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: lsrea  Sun Mar 18 20:58:01 PST 2001
+TkrRecon/TkrRecon SiClusters.h SiClustersAlg.h TkrGeometrySvc.h
+
+Modified Files:
+	SiClusters.h SiClustersAlg.h TkrGeometrySvc.h 
+Log Message:
+1) Implemented towers, but tower number not yet in input data; tower # set to zero for now
+2) Un-hardwired radiator thicknesses; specify in cm. not X0
+3) Corrected geometry constants for BTEM/BFEM
+
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Mar 16 13:27:25 PST 2001
 TkrRecon/src SiClustersAlg.cxx TkrGeometrySvc.cxx
 
