@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+User: lsrea  Mon Apr 29 18:35:48 PDT 2002
+TkrRecon/TkrRecon/Cluster
+
+Modified Files:
+	TkrCluster.h TkrClusters.h 
+Added Files:
+	TkrMakeClusters.h TkrQueryClusters.h 
+Log Message:
+Breaking up clustering into smaller parts: TDS classes, MakeClusters, and QueryClusters
+   some changes to the display and  
+   a small change in KalFitTrack to accommodate this
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon Apr 29 18:23:59 PDT 2002
 TkrRecon/doc
 
