@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.5 2004/11/16 18:48:58 atwood Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.6 2004/11/17 01:15:19 usher Exp $
  */
 
 // to turn one debug variables
@@ -356,11 +356,11 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrack* track)
     
         trackHit->setStatusBit(Event::TkrTrackHit::HASMEASURED);
 	}
-    else if (track->back()->getStatusBits() & Event::TkrTrackHit::HASMEASURED)
+    else //if (track->back()->getStatusBits() & Event::TkrTrackHit::HASMEASURED)
     {
 		// No cluster found  - so this a gap of some sort
 	    trackHit = new Event::TkrTrackHit();
-		trackHit->setZPlane(end_pos.z());
+		trackHit->setZPlane(m_tkrGeom->getPlaneZ(next_plane));
 		// Retrieve a reference to the measured parameters (for setting)
         Event::TkrTrackParams& params = trackHit->getTrackParams(Event::TkrTrackHit::MEASURED);
 		// Set measured track parameters - NEED NEW CODE HERE
@@ -377,12 +377,12 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrack* track)
         params(measIdx,measIdx) = sigma * sigma;
         params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
 	}
-    else
-    {
-        Event::TkrTrackHit* lastHit = track->back();
-        track->pop_back();
-        delete lastHit;
-    }
+    //else
+    //{
+    //    Event::TkrTrackHit* lastHit = track->back();
+    //    track->pop_back();
+    //    delete lastHit;
+    //}
     //IFitHitEnergy* m_HitEnergy = new RadLossHitEnergy();
 	//double energy = m_HitEnergy->updateHitEnergy(cur_energy, rad_len);
     //trackHit->setEnergy(energy);

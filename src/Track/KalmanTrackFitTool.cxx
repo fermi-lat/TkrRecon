@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.16 2004/11/16 04:51:33 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.18 2004/11/17 01:15:19 usher Exp $
  */
 
 // to turn one debug variables
@@ -506,6 +506,10 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
         // Filter this step
         m_KalmanFit->Filter(curStateVec, curCovMat, measVec, measCovMat, F(deltaZ), H(filterTkrId), Q);
 
+        // Update the local version of the state vector
+        curStateVec = m_KalmanFit->StateVecFilter();
+        curCovMat   = m_KalmanFit->CovMatFilter();
+
         // Update the hit information (measured, predicted and filtered) for this plane
         filterHit.setTrackParams(measPar, Event::TkrTrackHit::MEASURED);
         filterHit.setTrackParams(measCov, Event::TkrTrackHit::MEASURED);
@@ -518,6 +522,10 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
         // Extrapolate the previous hit to this hit
         m_KalmanFit->Predict(curStateVec, curCovMat, F(deltaZ), Q, true);
 
+        // Update the local version of the state vector
+        curStateVec = m_KalmanFit->StateVecExtrap();
+        curCovMat   = m_KalmanFit->CovMatExtrap();
+
         chiSqInc = 0.;
     }
 
@@ -529,9 +537,6 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
     filterHit.setTrackParams(stateCov, Event::TkrTrackHit::PREDICTED);
 
     // Update the filtered state information
-    curStateVec = m_KalmanFit->StateVecFilter();
-    curCovMat   = m_KalmanFit->CovMatFilter();
-
     filterHit.setTrackParams(curStateVec, Event::TkrTrackHit::FILTERED);
     filterHit.setTrackParams(curCovMat, Event::TkrTrackHit::FILTERED);
 
