@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Mon Jul 22 03:03:51 PDT 2002
+TkrRecon/src/Dll
+
+Modified Files:
+	tkrRecon_load.cxx 
+Log Message:
+removing old test TkrnewVertexAlg, now obsolete
+    *
+------------------------------------------------------------
 User: atwood  Thu Jul 18 14:26:44 PDT 2002
 TkrRecon/src/Track
 
