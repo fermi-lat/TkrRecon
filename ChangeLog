@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Fri Aug 30 11:35:40 PDT 2002
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx TkrComboPatRec.h 
+Log Message:
+Added Pat Rec Type 
+    *
+------------------------------------------------------------
 User: atwood  Fri Aug 30 11:34:39 PDT 2002
 TkrRecon/src/Track
 
