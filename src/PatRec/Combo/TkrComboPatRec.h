@@ -15,7 +15,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TkrComboPatRec.h,v 1.14$
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/TkrComboPatRec.h,v 1.15 2002/08/29 21:12:31 atwood Exp $
 */
 
 #ifndef __TKRCOMBOPATREC_H
@@ -54,10 +54,12 @@ private:
         void setQuality(float Q)      {m_qual       = Q;}
         void setGap(int gs)           {m_gap        = gs;}
         void setConEnergy(double e)   {m_ConEnergy  = e;}
+        int  adjustType(int incr);
         float  deflection()    const {return m_deflection;}
         float  sigma()         const {return m_sigma;}
         float  quality()       const {return m_qual;}
         int    gap()           const {return m_gap;} 
+        int    type()          const {return m_type;}
         double conEnergy()     const {return m_ConEnergy;}
         KalFitTrack *track()         {return m_track;} 
         
@@ -66,6 +68,7 @@ private:
         float m_sigma;         // Number of sigma deflection corresponds to
         float m_qual;          // Resulting track Quality
         int m_gap;             // Size of gap (hopefully zero!) 
+        int m_type;            // Track type: 100*PR-Mode + 10*Energy-Mode + Lead_Hits
         double m_ConEnergy;    // Constraind energy results
         KalFitTrack *m_track;  // The trial track fit
     };
