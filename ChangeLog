@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: allgood  Mon Apr  1 11:22:38 PST 2002
+TkrRecon/src/PatRec/NeuralNet
+
+Added Files:
+	TkrNeuron.h 
+Log Message:
+Container class for Neural Net PatRec routine.
+    *
+------------------------------------------------------------
 User: allgood  Mon Apr  1 11:22:20 PST 2002
 TkrRecon/src/PatRec/NeuralNet
 
