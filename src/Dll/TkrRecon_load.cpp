@@ -22,14 +22,15 @@
 
 //! Load all  services: 
 void TkrRecon_load() {
-    DLL_DECL_SERVICE(   TkrGeometrySvc );
+    DLL_DECL_SERVICE(   TkrGeometrySvc  );
     DLL_DECL_SERVICE(   TkrBadStripsSvc );
-    DLL_DECL_ALGORITHM( TkrClusterAlg  );
-    DLL_DECL_ALGORITHM( TkrReconAlg   );
-    DLL_DECL_ALGORITHM( TkrDisplayAlg  );
-    DLL_DECL_ALGORITHM( McReconAlg     );
-    DLL_DECL_ALGORITHM( TkrNtupleAlg  );
-    DLL_DECL_ALGORITHM( RecNtupleAlg  );
+    DLL_DECL_ALGORITHM( TkrClusterAlg   );
+    DLL_DECL_ALGORITHM( TkrReconAlg     );
+    DLL_DECL_ALGORITHM( TkrFindAlg      );
+    DLL_DECL_ALGORITHM( TkrDisplayAlg   );
+    DLL_DECL_ALGORITHM( McReconAlg      );
+    DLL_DECL_ALGORITHM( TkrNtupleAlg    );
+    DLL_DECL_ALGORITHM( RecNtupleAlg    );
 } 
 
 extern "C" void TkrRecon_loadRef()    {
