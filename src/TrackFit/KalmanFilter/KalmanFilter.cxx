@@ -396,7 +396,8 @@ double KalmanFilter::getError(double strips, double slope) const
                 factor = 0.9 - 0.6*fabs(absSlope - (2.7 + 1.05*(nStrips-3)));
         }
         if (factor==0) {
-            factor = std::max((clusterWidth - projectedWidth - 1), sqrt(0.5));
+            double delta = clusterWidth - projectedWidth - 0.5;
+            factor = std::max(fabs(delta), 1.);
         } 
         error = factor*minErr;
     
@@ -434,7 +435,8 @@ double KalmanFilter::getError(double strips, double slope) const
             }
         }
         if (factor==0) {
-            factor = std::max((clusterWidth - projectedWidth - 1), sqrt(0.5));
+            double delta = clusterWidth - projectedWidth - 0.5;
+            factor = std::max(fabs(delta), 1.);
         } 
 
         error = factor*minErr;

@@ -33,12 +33,7 @@ namespace {
     const double _thickCoeff      = 1.97;
     const double _noradCoeff      = 0.35;
 
-    //const double _thinConvRadLen  = 0.03;
-    //const double _thickConvRadLen = 0.18;
-    //const double _trayRadLen      = 0.015;
-
     const double _calKludge       = 1.2;
-
     const int    _maxTrials       = 30;
 }
 
@@ -257,13 +252,6 @@ void TkrComboPatRec::setEnergies(double calEnergy)
 
     // Use hit counting + CsI energies to compute Event Energy 
 
-    // some useful numbers from geometry
-    // this depends on the constants below being correct
-    // which is *not* guaranteed!
-    //int nThick = m_tkrGeo->numSuperGlast();
-    //int nNoCnv = m_tkrGeo->numNoConverter();
-    //int nThin  = m_tkrGeo->numLayers() - nThick - nNoCnv;
-
     // these come from the actual geometry
     int nNoCnv = m_tkrGeo->getNumType(NOCONV);
     int nThin  = m_tkrGeo->getNumType(STANDARD);
@@ -295,11 +283,14 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     int num_thin_hits = 0;
     int num_thick_hits = 0;
     int num_last_hits = 0; 
-    double arc_len    = 5./fabs(dir_ini.z()); 
 
-    int top_plane     = first_track->getLayer(); 
-    
-    int max_planes = m_tkrGeo->numLayers();
+    double arc_len    = 5./fabs(dir_ini.z()); 
+    int top_plane     = first_track->getLayer();     
+    int max_planes    = m_tkrGeo->numLayers();
+
+    int thin_planes  = 0;
+    int thick_planes = 0;
+    int norad_planes = 0;
     
     for(int iplane = top_plane; iplane < max_planes; iplane++) {
         
@@ -324,12 +315,15 @@ void TkrComboPatRec::setEnergies(double calEnergy)
         switch(type) {
         case NOCONV:
             num_last_hits += numHits;
+            norad_planes++;
             break;
         case STANDARD:
             num_thin_hits += numHits;
+            thin_planes++;
             break;
         case SUPER:
             num_thick_hits += numHits;
+            thick_planes++;
             break;
         default: // shouldn't happen, but I'm being nice to the compiler
             ;
@@ -345,14 +339,9 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     double ene_trks   = _thinCoeff*num_thin_hits + _thickCoeff*num_thick_hits +
         _noradCoeff*num_last_hits; // Coefs are MeV/hit - 2nd Round optimization
  
-    // a bit more obvious now!
-    int thin_planes  = std::min(nThin,  std::max(0, nThin          - top_plane) );
-    int thick_planes = std::min(nThick, std::max(0, nThin + nThick - top_plane) );
-    int norad_planes = std::min(nNoCnv, std::max(0, max_planes     - top_plane) );
-
-    //Just the radiators
-    double rad_nom  = thinConvRadLen*thin_planes 
-        + thickConvRadLen*thick_planes; // why no costheta? LSR
+    //Just the radiators -- divide by costheta, just like for rad_min
+    double rad_nom  = 
+        (thinConvRadLen*thin_planes + thickConvRadLen*thick_planes)/fabs(dir_ini.z());
     //The "real" rad- len 
     double rad_swim = kalPart->radLength();                 
     //The non-radiator
@@ -659,13 +648,6 @@ float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
    // Dependencies: None
    // Restrictions and Caveats:  None.
 
-    // some useful numbers from geometry
-    // this depends on the constants below being correct
-    // which is *not* guaranteed!
-    //int nThick = m_tkrGeo->numSuperGlast();
-    //int nNoCnv = m_tkrGeo->numNoConverter();
-    //int nThin  = m_tkrGeo->numLayers() - nThick - nNoCnv;
-
     deflection = 0.;
     
     TkrPoints next_Hit(layer+1, m_clusters);
@@ -685,14 +667,6 @@ float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
     
     deflection = traj.direction() * ((m_nextHit-traj.position()).unit());
     
-    /* old code, replaced below
-    //Radlens defined locally for now
-    double rad_len = _trayRadLen;
-    if(layer >= nThick + nThin) {}
-    else if(layer < nThin)      {rad_len += thinConvRadLen; }
-    else                        {rad_len += thickConvRadLen;}
-    */
-
     double rad_len = (m_tkrGeo->getReconRadLenConv(layer) 
         + m_tkrGeo->getReconRadLenRest(layer));
 

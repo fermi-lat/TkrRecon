@@ -1,5 +1,6 @@
 package TkrRecon
-version v8r12p21
+
+version v8r12p22
 
 author Tracy Usher    <usher@slac.stanford.edu>
 author Leon Rochester <lsrea@slac.stanford.edu>
