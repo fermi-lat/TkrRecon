@@ -56,7 +56,8 @@ TkrClusters::TkrClusters(ITkrGeometrySvc* pTkrGeoSvc, ITkrBadStripsSvc* pBadStri
         
         int running_index = 0;
         // copy and mark the hits good
-        for (int ihit = 0; ihit < nHits; ihit++,running_index++){
+        int ihit=0;
+        for ( ihit = 0; ihit < nHits; ihit++,running_index++){
             stripHits[running_index] = tagGood(pDigi->hit(ihit));
         } 
         // copy the bad strips, already marked
