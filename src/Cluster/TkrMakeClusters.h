@@ -7,25 +7,25 @@
 * @brief generates the clusters when invoked
 *
 * TkrMakeClusters takes the bad strips into account by merging the list 
-* of hits in a layer with the list of known bad strips. 
-* The good and bad hits are marked, using tagGood() and tagBad(), so they can be recognized, 
-* but the mechanism is (mostly) hidden in the TkrBadStripsSvc. untag() must be invoked on the
-* tagged strips before they can be used in calculations.
+* of hits in a layer with the list of known bad strips, and sorting by strip number.
+* so the bad strips will be encountered while building the clusters.
+* 
+* The bad strips are marked with an extra bits. Methods in TkrBadStripsSvc
+* can be called to manipulate the tagged strips.
 *  
 * What constititutes a gap and a good cluster is defined by the code in isGapBetween() and
 * isGoodCluster(), respectively.
 *    
 * A set of adjacent hits followed by a gap is a potential cluster. 
-*
 * A gap may be a non-hit strip, or the space between ladders. 
-* For each potential cluster, we ask if it contains any good hits.  
-* If so, the cluster is added, if not, it is dropped.
-* 
-* One can imagine other criteria for dropping a cluster, such as too many hits.    
-
+*
+* For each potential cluster, we ask if it contains any good hits, and if there are fewer than some
+* maximum number of hits.  
+* If so, the cluster is added, if not, it is dropped.   
+*
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.9 2002/08/31 17:51:41 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.10 2002/08/31 21:30:50 lsrea Exp $
 */
 
 #include <vector>
@@ -45,7 +45,7 @@ public:
 	/// default constructor: passes pointers to services and classes, and makes the clusters
 	
    /// large number, used as a sentinel in the strip list
-    enum {bigStripNum = 0x7FFFFF};
+    enum {bigStripNum = 0xFFFFFF};
 
 	/// This constructor actually makes the clusters
 	/// the pointers to services and data are passed through the constructor
@@ -63,15 +63,23 @@ public:
     bool isGapBetween(const int lowHit, const int highHit);
     /// returns true if the cluster is "good"
     bool isGoodCluster( const int lowHit, const int highHit, const int nBad);
-	
+
+    /// get the list of bad strips
+    v_strips* getBadStrips(const int tower, const int digiLayer, const int view);
+
+    /// swap the possibly tagged strip for the merged sort (also works the other way)
+    int swapForSort(const int strip);
+    /// sort the merged data and bad strips
+    void sortMergedHits (std::vector<int> * list);
+
+    // bool less_than(const int strip1, const int strip2);
+
     /// tag a strip "good"  (see BadStripsSvc)
-	int tagGood(const int strip);
-	/// tag a strip "bad" (see BadStripsSvc)
-    int tagBad(const int strip);
-	/// untag a strip  (see BadStripsSvc)
     int untag(const int strip);
-	
-	
+    /// check if strip is bad (see BadStripSvc)
+    bool isTaggedBad( const int strip);
+    /// retrieve tag field from strip
+    int tagField(const int strip);
 
 private:
 	
