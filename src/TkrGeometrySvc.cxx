@@ -274,8 +274,12 @@ tkrDetGeo TkrGeometrySvc::getSiLadder(int ilayer, tkrDetGeo::axis a, int iladder
     
     double zsize = 2.*layer.size().z();
     
-    double pos = -0.5*m_trayWidth + (iladder+0.5)*m_ladderWidth + iladder*m_ladderGap;
+    //back up to the start of the tray and proceed to the specified ladder
+    int nladders = nLadders(ilayer, a);
+    double size = nladders*m_ladderWidth+ (nladders-1)*m_ladderGap;
+        double pos = -0.5*size + (iladder+0.5)*m_ladderWidth + iladder*m_ladderGap;
     if (fabs(pos) < 1e-5) pos =0.; 
+
     if (a == tkrDetGeo::X) {
         xpos += pos;
     }
