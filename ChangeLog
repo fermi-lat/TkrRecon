@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Mon Feb 28 16:55:49 PST 2005
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrClusterAlg.cxx TkrFindAlg.cxx TkrTrackFitAlg.cxx 
+Log Message:
+Ready to tag v10r3p11
+    *
+------------------------------------------------------------
 User: lsrea  Mon Feb 28 16:55:48 PST 2005
 TkrRecon/src/Dll
 
