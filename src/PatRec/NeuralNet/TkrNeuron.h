@@ -14,7 +14,7 @@
 * @todo impliment a real equality operator.
 * @todo decide whether to keep 'position' global.
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/PatRec/NeuralNet/TkrNeuron.h,v 1.2 2004/09/08 15:32:44 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/TkrNeuron.h,v 1.7 2004/09/23 21:30:28 usher Exp $
 */
 
 #ifndef __TKRNEURON_H
@@ -102,11 +102,11 @@ public:
     int    getTower(position pos) const {
         return pos==top ? m_pnt0->getTower() : m_pnt1->getTower();}
 
-    int    getIdX(position pos)   const {
-        return pos==top ? m_pnt0->getIdX() : m_pnt1->getIdX();}
+    Event::TkrCluster*  getClusterX(position pos)   const {
+        return pos==top ? m_pnt0->getClusterX() : m_pnt1->getClusterX();}
 
-    int    getIdY(position pos)   const {
-        return pos==top ? m_pnt0->getIdY() : m_pnt1->getIdY();}
+    Event::TkrCluster*  getClusterY(position pos)   const {
+        return pos==top ? m_pnt0->getClusterY() : m_pnt1->getClusterY();}
 
     int    getLayerDiff()         const {return m_l;}
     Vector getDirection()         const {return m_direction;}

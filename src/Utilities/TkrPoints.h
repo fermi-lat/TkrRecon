@@ -11,7 +11,7 @@
  *
  * @authors Bill Atwood
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Utilities/TkrPoints.h,v 1.2 2004/09/08 15:32:48 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoints.h,v 1.3 2004/09/23 21:30:31 usher Exp $
  *
 */
 
@@ -44,8 +44,8 @@ public:
 
     /// Access to details of Clusters used
     int tower() const     {return m_tower;}
-    int xID() const       {return m_xID;}
-    int yID() const       {return m_yID;}
+    Event::TkrCluster*   getClusterX()   const {return m_pClusterX;}
+    Event::TkrCluster*   getClusterY()   const {return m_pClusterY;}
     double xSize() const  {return m_xSize;}
     double ySize() const  {return m_ySize;}
     bool x_Layer() const  {return m_isX;}
@@ -74,8 +74,8 @@ private:
     int m_xHits;
     int m_yHits;
     int m_tower;
-    int m_xID;
-    int m_yID;
+    Event::TkrCluster* m_pClusterX;
+    Event::TkrCluster* m_pClusterY;
     double m_xSize;
     double m_ySize;
     ITkrQueryClustersTool* m_clusTool; 

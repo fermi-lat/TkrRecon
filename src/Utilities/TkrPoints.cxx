@@ -73,8 +73,10 @@ Point TkrPoints::getNearestPointOutside(Point x0, double & dist_min)
         x_min = x;
         y_min = y;
         z_min = z;
-        m_xID = m_xHitList[ix]->id();
-        m_yID = m_yHitList[iy]->id();
+        m_pClusterX = &*m_xHitList[ix];
+        m_pClusterY = &*m_yHitList[iy];
+        //m_xID = m_xHitList[ix]->id();
+        //m_yID = m_yHitList[iy]->id();
         m_xSize = m_xHitList[ix]->size();
         m_ySize = m_yHitList[iy]->size();
     }
@@ -105,8 +107,8 @@ Point TkrPoints::getSpacePoint()
         x = xX.x();
         y = xY.y();
         z = (xX.z()+xY.z())/2.;  // Average the z coordinates 
-        m_xID = m_xHitList[ix]->id();
-        m_yID = m_yHitList[iy]->id();
+        m_pClusterX = &*m_xHitList[ix];
+        m_pClusterY = &*m_yHitList[iy];
         m_xSize = m_xHitList[ix]->size();
         m_ySize = m_yHitList[iy]->size();
         m_itry++;
@@ -130,7 +132,7 @@ std:: vector<TkrPoint> TkrPoints::getAllLayerPoints()
 	    continue;
 	  }else{
 	    
-	    TkrPoint point(tmpPoint,tower(),m_layer,xID(),yID());
+	    TkrPoint point(tmpPoint,tower(),m_layer, getClusterX(), getClusterY());
 	    
 	    m_pointList.push_back(point);
 	  }
