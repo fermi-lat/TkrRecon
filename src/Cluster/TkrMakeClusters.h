@@ -28,7 +28,7 @@ enum {bigStripNum = 0x7FFFFF};
 * Some questions:
 *
 
-* $Header$
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrMakeClusters.h,v 1.1 2002/04/30 01:35:48 lsrea Exp $
 */
 
 class TkrMakeClusters
