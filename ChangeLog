@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Fri Aug 30 05:14:20 PDT 2002
+TkrRecon/src/Vertex
+
+Modified Files:
+	VtxKalFitTool.h VtxKalFitTool.cxx 
+Log Message:
+few fixes + doc
+    *
+------------------------------------------------------------
 User: usher  Thu Aug 29 21:27:18 PDT 2002
 TkrRecon/doc/images
 
