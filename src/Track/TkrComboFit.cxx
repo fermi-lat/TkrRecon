@@ -73,7 +73,8 @@ TkrComboFit::TkrComboFit(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus, TkrP
                     }        
                     int hit_Id = plane.getIDHit();;
                     double cls_size = GFtutor::_DATA->size(hit_proj, hit_Id);        
-                    double prj_size = 400.*fabs(slope)/228. + 1.;
+                    double prj_size = GFtutor::siThickness()*fabs(slope)/
+                              GFtutor::siStripPitch()             + 1.;
                     if(cls_size> prj_size) {
                         track->unFlagHit(i_Hit);
                         i_share++;
