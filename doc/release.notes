@@ -3,6 +3,8 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v8r12p1320-Apr-2004  TU    This fixes bug introduced by Johann during previous linux compile fixes
+  v8r12p1220-Apr-2004  TU    This does fix the linux errors
   v8r12p1120-Apr-2004  TU    Updates to fix linux errors/warnings in the updates to the generic fit
   v8r12p1019-Apr-2004  TU    Updates to generic fit 
   v8r12p9 13-Apr-2004  LSR   First go at slope-dependent errors; default is "good old errors"\
