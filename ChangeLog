@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Tue Aug 20 10:26:08 PDT 2002
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+New "PR track quality" parameter (used to sort tracks: best to worst) 
+    *
+------------------------------------------------------------
 User: cohen  Tue Aug 20 07:16:52 PDT 2002
 TkrRecon/src/Vertex
 
