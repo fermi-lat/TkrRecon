@@ -1,4 +1,4 @@
-// $Id: TkrFitTrack.cxx,v 1.1 2001/11/26 21:40:30 usher Exp $
+// $Id: TkrFitTrack.cxx,v 1.1 2002/01/11 23:44:56 atwood Exp $
 //------------------------------------------------------------------------------
 //
 //     TkrFitTrack
@@ -119,6 +119,7 @@ void TkrFitTrack::writeOut(MsgStream& log) const
 
 void TkrFitTrack::draw(gui::DisplayRep& v) 
 {
+    v.markerAt(position());
     KalTrack::drawChiSq(v,KalHit::SMOOTH);
     KalTrack::drawTrack(v,KalHit::SMOOTH);
 }

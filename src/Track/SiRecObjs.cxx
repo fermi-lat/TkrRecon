@@ -23,10 +23,10 @@ SiRecObjs::SiRecObjs(ITkrGeometrySvc* pTkrGeo, TkrClusters* pTkrClus, double Cal
     
     // Our five year mission: To seek new gamma sources, to boldy
     // find gammas where no man has found them before...
-    searchGammas(CalEnergy, CalPosition);
+    //searchGammas(CalEnergy, CalPosition);
     
     // Now search for tracks
-    searchParticles(CalEnergy, CalPosition);
+    //searchParticles(CalEnergy, CalPosition);
     
     return;
 }
@@ -116,7 +116,8 @@ void SiRecObjs::searchGammas(double CalEnergy, Point CalPosition)
     if (ene <= GFcontrol::minEnergy) ene = GFcontrol::minEnergy;
     bool end = false;
     
-    while (ntries < GFcontrol::particleTries && !end) {
+    //while (ntries < GFcontrol::particleTries && !end) {
+    while (ntries < GFcontrol::gammaTries && !end) {
         ntries++;        
         //        GFtutor::setVeto(false);
         
