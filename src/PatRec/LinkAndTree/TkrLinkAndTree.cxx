@@ -216,21 +216,34 @@ void TkrLinkAndTree::buildCand3D()
             }
 
             //Ok, its a keeper
-	        double          x            = pTopClusterX->position().x();
-	        double          y            = pTopClusterY->position().y();
-            double          z            = pTopClusterX->position().z() > pTopClusterY->position().z()
-                                         ? pTopClusterX->position().z()
-                                         : pTopClusterY->position().z();
+            double xTopX        = pTopClusterX->position().x();
+            double zTopX        = pTopClusterX->position().z();
+            double xBotX        = pBotClusterX->position().x();
+            double zBotX        = pBotClusterX->position().z();
+            double yTopY        = pTopClusterY->position().y();
+            double zTopY        = pTopClusterY->position().z();
+            double yBotY        = pBotClusterY->position().y();
+            double zBotY        = pBotClusterY->position().z();
 
-            Point  start(x,y,z);
-            Vector vDir(pBotClusterX->position().x()-x,
-                        pBotClusterY->position().y()-y,
-                        pBotClusterX->position().z()-z);
+            double xSlope       = (xTopX - xBotX) / (zTopX - zBotX);
+            double ySlope       = (yTopY - yBotY) / (zTopY - zBotY);
+
+            double z            = zTopX > zTopY ? zTopX : zTopY;
+
+            int    layer        = pTopClusterX->plane() < pTopClusterY->plane()
+                                ? pTopClusterX->plane()
+                                : pTopClusterY->plane();
+
+            xTopX += xSlope * (z - zTopX);
+            yTopY += ySlope * (z - zTopY);
+
+            Point  start(xTopX,yTopY,z);
+            Vector vDir(-xSlope,-ySlope,-1.);
             Ray    initDir(start,vDir.unit());
             double quality = TkrNodeX->getQuality()->getAngleRMS()
                            + TkrNodeY->getQuality()->getAngleRMS();
 
-            TkrPatCand* newTrack = new TkrPatCand(pTopClusterX->plane(),pTopClusterX->tower(),0.,quality,initDir);
+            TkrPatCand* newTrack = new TkrPatCand(layer,pTopClusterX->tower(),0.,quality,initDir);
 
             newTrack->addCandHit(pTopClusterX);
             newTrack->addCandHit(pTopClusterY);
