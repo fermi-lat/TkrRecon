@@ -22,23 +22,21 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrTracks* pTracks,
     //Loop over the number of Fit tracks
     TkrFitTrackColPtr pTrack1 = pTracks->getTrackPtr();
 
-    while(pTrack1 < pTracks->getTrackEnd())
+    while(pTrack1 < pTracks->getTrackEnd() && unused[trk1Idx])
     {
         TkrFitTrack*      track1  = *pTrack1++;
         TkrFitTrackColPtr pTrack2 = pTrack1;
-        int               trk2Idx = trk1Idx;
+        int               trk2Idx = trk1Idx + 1;
 
-        while(pTrack2 < pTracks->getTrackEnd())
+        while(pTrack2 < pTracks->getTrackEnd() && unused[trk2Idx])
         {
             TkrFitTrack* track2 = *pTrack2++;
 
             RayDoca doca = RayDoca(Ray(track1->position(),track1->direction()),
                                    Ray(track2->position(),track2->direction()));
 
-            trk2Idx++;
-
             //Check that doca not too big and that vertex starts before or at first hit
-            if (doca.docaRay1Ray2() < docaLimit && (doca.arcLenRay1() <= 0. || doca.arcLenRay2() <= 0.))
+            if (doca.docaRay1Ray2() < docaLimit && (doca.arcLenRay1() <= 0. || doca.arcLenRay2() <= 0.) && (doca.arcLenRay1() > -500. && doca.arcLenRay2() > -500.))
             {
                 Point  gamPos;
                 Vector gamDir;
@@ -88,6 +86,8 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrTracks* pTracks,
 
                 unused[trk1Idx] = false;
                 unused[trk2Idx] = false;
+
+                trk2Idx++;
             }
         }
 

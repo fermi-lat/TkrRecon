@@ -276,7 +276,8 @@ void KalFitTrack::incorporateFoundHit(TkrFitPlane& nextKplane, int indexhit)
     TkrFitPar measpar(x0,0.,y0,0.);
     
     double sigma     = GFtutor::siResolution();
-    double sigma_alt = GFtutor::trayWidth()/sqrt(12.); //mm before not really important to have prescise
+    //double sigma_alt = GFtutor::trayWidth()/sqrt(12.); //mm before not really important to have prescise
+    double sigma_alt = GFtutor::trayWidth(); //mm before not really important to have prescise
     double size      = GFtutor::_DATA->size(planeView,indexhit);
     
     double cx, cy;
@@ -594,7 +595,8 @@ TkrFitPlane KalFitTrack::originalKPlane() const
     double sigma2Position = GFcontrol::iniErrorPosition * GFcontrol::iniErrorPosition;
     TkrFitMatrix covfit(1);
 
-	double sigma_alt = GFtutor::trayWidth()/sqrt(12.); //mm before
+	//double sigma_alt = GFtutor::trayWidth()/sqrt(12.); //mm before
+	double sigma_alt = GFtutor::trayWidth(); //mm before
     if(m_axis == TkrCluster::X) {
         covfit(1,1) = sigma2Position;
         covfit(3,3) = sigma_alt*sigma_alt;
