@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 13:41:23 PST 2001
+TkrRecon/src/Track
+
+Added Files:
+	GFpoints.cxx 
+Log Message:
+New class for use in driving the Kalman Filter fit of tracks
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 13:40:31 PST 2001
 TkrRecon/src/Track
 
