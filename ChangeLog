@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: cohen  Sun Sep  1 15:37:41 PDT 2002
+TkrRecon/src/Vertex
+
+Modified Files:
+	VtxBaseTool.h VtxBaseTool.cxx VtxKalFitTool.cxx 
+	VtxKalFitTool.h VtxSingleTrkTool.cxx VtxSingleTrkTool.h 
+Log Message:
+updated doc
+    *
+------------------------------------------------------------
 User: cohen  Sun Sep  1 15:24:59 PDT 2002
 TkrRecon/src/Dll
 
