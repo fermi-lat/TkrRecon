@@ -39,7 +39,7 @@ KalFitTrack::KalFitTrack(int ilyr, int itwr, double sigmaCut,double energy, cons
                              m_ray(testRay)
 {
     // Initialization for KalFitTrack
-    m_energy0 = 1000.; //energy; For Testing
+    m_energy0 = energy; 
     m_status  = EMPTY;
 
     m_hits.clear();
