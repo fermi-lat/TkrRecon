@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.23 2005/02/15 20:34:25 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.24 2005/02/17 20:17:48 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -246,6 +246,9 @@ void MonteCarloFindTrackTool::buildTrackFromMcPart(const Event::McParticle* mcPa
 
         // Get the particle properties
         ParticleProperty* partProp = m_partPropSvc->findByStdHepID(mcPart->particleProperty());
+
+        // If we can't identify the particle then no use continuing (for our purposes)
+        if (partProp == 0) return;
 
         // Ok, now add the clusters on the downward part of the track
         int numGaps      =  0;
