@@ -2,8 +2,6 @@
 #include "TkrRecon/MonteCarlo/TkrEventModel.h"
 #include "Event/TopLevel/EventModel.h"
 
-//THB #include "Event/MonteCarlo/McEventStructure.h"
-
 //------------------------------------------------------------------------------
 /// Algorithm parameters which can be set at run time must be declared.
 /// This should be done in the constructor.
