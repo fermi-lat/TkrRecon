@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 13:48:21 PST 2001
+TkrRecon/TkrRecon/TrackFit
+
+Added Files:
+	KalHit.h KalMatrix.h KalPar.h KalPlane.h KalTrack.h 
+Log Message:
+Class definitions for the updated Kalman Filter track fit code. This version
+uses KalParticle (ie RCparticle) to transport the track error matrix and does
+a 3-D fit instead of two 2-D fits.
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 13:46:32 PST 2001
 TkrRecon/TkrRecon/TrackFit
 
