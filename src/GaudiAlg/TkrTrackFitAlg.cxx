@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.2 2004/09/08 15:32:43 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.16 2004/09/23 21:30:26 usher Exp $
  */
 
 #include <vector>
@@ -169,42 +169,15 @@ StatusCode TkrTrackFitAlg::doTrackFit()
     log << endreq;
 
     // Find the collection of candidate tracks
-    //Event::TkrPatCandCol* pTkrCands   = SmartDataPtr<Event::TkrPatCandCol>(eventSvc(),EventModel::TkrRecon::TkrPatCandCol);
-    Event::TkrTrackCol* pTkrCands = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
-
-    // Create a new Fit Track collection object and register in the TDS. 
-    // At this point it will have no tracks in it
-    //Event::TkrFitTrackCol* tracks = new Event::TkrFitTrackCol();
-    //sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrFitTrackCol, tracks);
-
-    //Event::TkrTrackCol* newTracks = new Event::TkrTrackCol();
-    //sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrTrackCol, newTracks);
-
-    // Create a new relational table for pattern recognition and fit tracks
-    //Event::TkrFitTrackTab trackRelTab;
-    //trackRelTab.init();
-
-    //sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrTrackTab, trackRelTab.getAllRelations());
+    Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
 
     // Ok, now set up to loop over candidate tracks
-    for(Event::TkrTrackColPtr trackIter = pTkrCands->begin(); trackIter != pTkrCands->end(); trackIter++)
+    for(Event::TkrTrackColPtr trackIter = trackCol->begin(); trackIter != trackCol->end(); trackIter++)
     {
         Event::TkrTrack* track = *trackIter;
 
         m_FitTool->doTrackFit(track);
     }
-
-    //int                     numCands = pTkrCands->size();
-    //Event::TkrTrackColPtr cands    = pTkrCands->begin();
-    
-    // Go through each candidate and pass to the Gaudi Tool performing the fit
-    // Note that the Gaudi tool will add successfully fit tracks to the fit track collection
-    //while(numCands--) 
-    //{
-    //    Event::TkrPatCand* pCand = *cands++;
-
-    //    m_FitTool->doTrackFit(pCand);
-    //}
 
     return sc;
 }
@@ -227,7 +200,7 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
     log << endreq;
   
     // Find the collection of candidate tracks
-    Event::TkrPatCandCol* pTkrCands    = SmartDataPtr<Event::TkrPatCandCol>(eventSvc(),EventModel::TkrRecon::TkrPatCandCol);
+    Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
 
     // Recover pointer to Cal Cluster info  
     Event::CalClusterCol* pCalClusters = SmartDataPtr<Event::CalClusterCol>(eventSvc(),EventModel::CalRecon::CalClusterCol);
@@ -244,16 +217,11 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
         TrackEnergyTool->SetTrackEnergies(CalEnergy);
 
         // Ok, now set up to loop over candidate tracks
-        int                     numCands = pTkrCands->size();
-        Event::TkrPatCandColPtr cands    = pTkrCands->begin();
-    
-        // Go through each candidate and pass to the Gaudi Tool performing the fit
-        // Note that the Gaudi tool will add successfully fit tracks to the fit track collection
-        while(numCands--) 
+        for(Event::TkrTrackColPtr trackIter = trackCol->begin(); trackIter != trackCol->end(); trackIter++)
         {
-            Event::TkrPatCand* pCand = *cands++;
+            Event::TkrTrack* track = *trackIter;
 
-            m_FitTool->doTrackReFit(pCand);
+            m_FitTool->doTrackReFit(track);
         }
     }
 
