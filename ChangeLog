@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Tue May  7 15:53:06 PDT 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusters.cxx TkrMakeClusters.h TkrQueryClusters.cxx 
+Removed Files:
+	TkrCluster.cxx TkrClusters.cxx 
+Log Message:
+Source code for TDS output classes moved to GlastEVent
+
+    *
+------------------------------------------------------------
 User: usher  Tue May  7 15:51:24 PDT 2002
 TkrRecon/TkrRecon/Vertex
 
