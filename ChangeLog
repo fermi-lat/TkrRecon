@@ -1,5 +1,20 @@
 ------------------------------------------------------------
 User: lsrea  Sat Oct  9 22:44:24 PDT 2004
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	TkrNeuralNet.cxx 
+Log Message:
+TkrPoints now works on standard numbering scheme... 
+   this means that the calling routine (say TkrComboPatRec) needs to 
+   explicitly reverse the layer number until the code has been converted 
+   to the new scheme.
+TkrComboPatRec has been fixed; TkrNeuralNet has not, but I've added a 
+   comment to that effect
+
+    *
+------------------------------------------------------------
+User: lsrea  Sat Oct  9 22:44:24 PDT 2004
 TkrRecon/src/PatRec/Combo
 
 Modified Files:
