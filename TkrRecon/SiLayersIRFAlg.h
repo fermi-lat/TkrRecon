@@ -5,6 +5,7 @@
 #include <vector>
 #include "geometry/Point.h"
 #include "TkrRecon/SiLayers.h"
+#include "TkrRecon/TkrGeometrySvc.h"
 
 #include "Gaudi/Algorithm/Algorithm.h"
 
@@ -40,6 +41,8 @@ private:
 	StatusCode retrieve();
 
 private:
+
+	TkrGeometrySvc* pTrackerGeo;
 
 	SiLayers* m_SiLayers;
 	const SiData* m_SiData; // Interface of the Former TdSiData

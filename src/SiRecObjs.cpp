@@ -9,10 +9,7 @@
 //
 //-------------------------------------------------------------------
 
-#include <iostream.h>
-
 #include "TkrRecon/SiRecObjs.h"
-//#include "Event/messageManager.h"
 
 //######################################################
 void SiRecObjs::ini()
@@ -48,23 +45,31 @@ void SiRecObjs::draw(gui::DisplayRep& v)
 	}
 }
 //########################################################
-void SiRecObjs::writeOut() const
+void SiRecObjs::writeOut(MsgStream& log) const
 //########################################################
 {
 	if (numGammas() <=0 && numParticles() <=0) return;
 	
 	
-        std::cout << " --- SiRecObs ---- " << "\n";
-        std::cout << " num Gammas = " << numGammas() << "\n";
-	if (numGammas()>0) {
-		for (int ig=0; ig < numGammas(); ig++) {
-                    m_GFgammaList[ig]->GFdata::writeOut();
+	log << MSG::DEBUG << " --- SiRecObs ---- " << endreq;
+
+	if (numGammas()>0) 
+	{
+		log << MSG::DEBUG << " ----------------- " << endreq;
+		log << MSG::DEBUG << " num Gammas = " << numGammas() << endreq;
+		for (int ig=0; ig < numGammas(); ig++) 
+		{
+			m_GFgammaList[ig]->writeOut(log);
 		}
 	}
-        std::cout << " num Particles = " << numParticles() << "\n";
-	if (numParticles()>0) {
-		for (int ip=0; ip < numParticles(); ip++) { 
-			m_GFparticleList[ip]->GFdata::writeOut();
+		
+	if (numParticles()>0) 
+	{
+		log << MSG::DEBUG << " ----------------- " << endreq;
+		log << MSG::DEBUG << " num Particles = " << numParticles() << endreq;
+		for (int ip=0; ip < numParticles(); ip++) 
+		{ 
+			m_GFparticleList[ip]->writeOut(log);
 		}
 	}
 }

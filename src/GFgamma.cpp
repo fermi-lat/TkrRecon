@@ -88,32 +88,32 @@ void GFpair::clear()
     GFdata::ini();
     setAlive();
 }
-/*
+
 //########################################################
-void GFpair::writeOut(std::ostream& out) const
+void GFpair::writeOut(MsgStream& log) const
 //########################################################
 {
     // kludge to avoid warnings from egcs
     int axis   = m_axis;
     int status = m_status;
-    out << " --- GFpair::writeOut --- " << "\n";
-    out << " axis:           " << axis << "\n";
-    out << " Energy Split    " << m_xEne << "\n";
-    out << " Weight          " << m_weightBest << "\n";
-    out << " planes together " << numTogether() << "\n";
-    out << " planes split    " << numSplit() << "\n";
-    out << " planes one      " << numOne() << "\n";
-    out << " shared hits     " << numSharedHits() << "\n";
-    out << " empty planes    " << numEmpty() << "\n";
-    out << " last Status     " << status << "\n"; 
+    log << MSG::DEBUG << " --- GFpair::writeOut --- " << "\n";
+    log << MSG::DEBUG << " axis:           " << axis << "\n";
+    log << MSG::DEBUG << " Energy Split    " << m_xEne << "\n";
+    log << MSG::DEBUG << " Weight          " << m_weightBest << "\n";
+    log << MSG::DEBUG << " planes together " << numTogether() << "\n";
+    log << MSG::DEBUG << " planes split    " << numSplit() << "\n";
+    log << MSG::DEBUG << " planes one      " << numOne() << "\n";
+    log << MSG::DEBUG << " shared hits     " << numSharedHits() << "\n";
+    log << MSG::DEBUG << " empty planes    " << numEmpty() << "\n";
+    log << MSG::DEBUG << " last Status     " << status << "\n"; 
     
-    GFdata::writeOut(out);
-    std::cout << " --> best Track : " << "\n";
-    _mGFbest->writeOut(out);
-    std::cout << " --> pair Track : " << "\n";
-    _mGFpair->writeOut(out);
+    GFdata::writeOut(log);
+//    log << MSG::DEBUG << " --> best Track : " << "\n";
+//    _mGFbest->writeOut(out);
+//    log << MSG::DEBUG << " --> pair Track : " << "\n";
+//    _mGFpair->writeOut(out);
 }
-*/
+
 //########################################################
 void GFpair::draw(gui::DisplayRep& v) 
 //########################################################
@@ -764,27 +764,27 @@ bool GFgamma::accept() const
     
     return accept;
 }
-/*
+
 //########################################################
-void GFgamma::writeOut(std::ostream& out) const
+void GFgamma::writeOut(MsgStream& log) const
 //########################################################
 {
     // kludge to avoid warning messages from egcs
     int status = m_status;
-    out << " --- GFgamma::writeOut --- " << "\n";
-    out << " planes together " << numTogether() <<"\n";
-    out << " planes split    " << numSplit() <<"\n";
-    out << " planes one      " << numOne() << "\n";
-    out << " last Status     " << status << "\n"; 
+    log << MSG::DEBUG << " --- GFgamma::writeOut --- " << endreq;
+    log << MSG::DEBUG << " planes together " << numTogether() <<endreq;
+    log << MSG::DEBUG << " planes split    " << numSplit() <<endreq;
+    log << MSG::DEBUG << " planes one      " << numOne() << endreq;
+    log << MSG::DEBUG << " last Status     " << status << endreq; 
     
-    GFdata::writeOut(out);
-    std::cout << " --> Xpair : " <<"\n";
-    _mXpair->writeOut(out);
-    std::cout << " --> Ypair : " <<"\n";
-    _mYpair->writeOut(out);
+//    GFdata::writeOut(log);
+    log << MSG::DEBUG << " --> Xpair : " <<endreq;
+    _mXpair->writeOut(log);
+    log << MSG::DEBUG << " --> Ypair : " <<endreq;
+    _mYpair->writeOut(log);
     
 }
-*/
+
 //########################################################
 void GFgamma::draw(gui::DisplayRep& v) 
 //########################################################

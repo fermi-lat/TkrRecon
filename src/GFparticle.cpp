@@ -1,4 +1,4 @@
-// $Id: GFparticle.cpp,v 1.6 2000/10/26 17:24:43 burnett Exp $
+// $Id: GFparticle.cpp,v 1.1 2001/02/05 19:05:54 hernando Exp $
 //------------------------------------------------------------------------------
 //
 //     GlastFit
@@ -110,32 +110,32 @@ void GFtrack::clear()
     setAlive();
     
 }
-/*
+
 //########################################################
-void GFtrack::writeOut(std::ostream& out) const
+void GFtrack::writeOut(MsgStream& log) const
 //########################################################
 {
     // kludge to avoid egcs warning messages
     int axis = getAxis();
     int status = m_status;
-    out << " --- GFtrack::writeOut --- " << "\n";
-    out << " axis           = " << axis << "\n";
-    out << " Qbest          = " << Qbest() << "\n";
-    out << " last  Layer    = " << lastLayer() << "\n";
-    out << " num Hits       = " << numDataPoints() << "\n";
-    out << " num Gaps       = " << numGaps() << "\n";
-    out << " num First Gaps = " << numFirstGaps() << "\n";
-    out << " num Noise      = " << numNoise() << "\n";
-    out << " num First Noise= " << numFirstNoise() << "\n";
-    out << " last Status    = " << status << "\n"; 
+    log << MSG::DEBUG << " --- GFtrack::writeOut --- " << endreq;
+    log << MSG::DEBUG << " axis           = " << axis << endreq;
+    log << MSG::DEBUG << " Qbest          = " << Qbest() << endreq;
+    log << MSG::DEBUG << " last  Layer    = " << lastLayer() << endreq;
+    log << MSG::DEBUG << " num Hits       = " << numDataPoints() << endreq;
+    log << MSG::DEBUG << " num Gaps       = " << numGaps() << endreq;
+    log << MSG::DEBUG << " num First Gaps = " << numFirstGaps() << endreq;
+    log << MSG::DEBUG << " num Noise      = " << numNoise() << endreq;
+    log << MSG::DEBUG << " num First Noise= " << numFirstNoise() << endreq;
+    log << MSG::DEBUG << " last Status    = " << status << endreq; 
     
-    GFdata::writeOut(out);
+//    GFdata::writeOut(out);
     
-    std::cout << " --> KalTrack : " << "\n";
-    KalTrack::writeOut(out);
+//    std::cout << " --> KalTrack : " << endreq;
+//    KalTrack::writeOut(out);
     
 }
-*/
+
 //########################################################
 void GFtrack::draw(gui::DisplayRep& v) 
 //########################################################
@@ -354,7 +354,7 @@ KalPlane GFtrack::firstKPlane() const
 //################################################
 {
     if (kplanelist.size() == 0) {
-	std::cout << "ERROR GFtrack::thisKPlane " << "\n";
+	std::cout << "ERROR GFtrack::thisKPlane " << endreq;
 	return originalKPlane();
     }
     return kplanelist.front();
@@ -374,7 +374,7 @@ KalPlane GFtrack::previousKPlane() const
 //################################################
 {
     if (kplanelist.size() <= 1) {
-	//		std::cout << "ERROR GFtrack::previousKPlane " << "\n";
+	//		std::cout << "ERROR GFtrack::previousKPlane " << endreq;
 	return originalKPlane();
     }
     int iprevious = kplanelist.size()-2;
@@ -597,30 +597,30 @@ void GFparticle::clear()
     setAlive();
     
 }
-/*
+
 //########################################################
-void GFparticle::writeOut(std::ostream& out) const
+void GFparticle::writeOut(MsgStream& log) const
 //########################################################
 {
     // kludge to avoid egcs warning messages
     int status = m_status;
-    out << " --- GFparticle::writeOut --- " << "\n";
-    out << " Qbest          = " << Qbest() << "\n";
-    out << " last  Layer    = " << lastLayer() << "\n";
-    out << " num Gaps       = " << numGaps() << "\n";
-    out << " num First Gaps = " << numFirstGaps() << "\n";
-    out << " num Noise      = " << numNoise() << "\n";
-    out << " num First Noise= " << numFirstNoise() << "\n";
-    out << " last Status    = " << status << "\n"; 
+    log << MSG::DEBUG << " --- GFparticle::writeOut --- " << endreq;
+    log << MSG::DEBUG << " Qbest          = " << Qbest() << endreq;
+    log << MSG::DEBUG << " last  Layer    = " << lastLayer() << endreq;
+    log << MSG::DEBUG << " num Gaps       = " << numGaps() << endreq;
+    log << MSG::DEBUG << " num First Gaps = " << numFirstGaps() << endreq;
+    log << MSG::DEBUG << " num Noise      = " << numNoise() << endreq;
+    log << MSG::DEBUG << " num First Noise= " << numFirstNoise() << endreq;
+    log << MSG::DEBUG << " last Status    = " << status << endreq; 
     
-    GFdata::writeOut(out);
+    GFdata::writeOut(log);
     
-    std::cout << " -->  X - GFtrack : " << "\n";
-    _mXGFtrack->writeOut(out);
-    std::cout << " -->  Y - GFtrack : " << "\n";
-    _mYGFtrack->writeOut(out);
+    log << MSG::DEBUG << " -->  X - GFtrack : " << endreq;
+    _mXGFtrack->writeOut(log);
+    log << MSG::DEBUG << " -->  Y - GFtrack : " << endreq;
+    _mYGFtrack->writeOut(log);
 }
-*/
+
 //########################################################
 void GFparticle::draw(gui::DisplayRep& v) 
 //########################################################

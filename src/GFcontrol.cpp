@@ -37,6 +37,8 @@ SiClusters* GFtutor::_DATA = 0;// Sets by TrackerRecon - made accesible to all G
 bool GFtutor::CUT_veto = false;
 bool GFtutor::CONTROL_connectGFpair = false;
 
+TkrGeometrySvc* GFtutor::pTrackerGeo = 0;
+
 int     GFtutor::m_numPlanes = 0;
 double	GFtutor::m_trayWidth = 0;
 double	GFtutor::m_trayGap   = 0;
@@ -47,23 +49,25 @@ double	GFtutor::m_siResolution = 0;
 
 //----------------- Static function ----------------------
 //########################################################
-void GFtutor::load(SiClusters* scl)			 
+void GFtutor::load(SiClusters* scl, TkrGeometrySvc* pTrkGeo)			 
 //########################################################
 {
+
+	GFtutor::pTrackerGeo = pTrkGeo;
 	
 	GFtutor::_DATA = scl;
 
 	GFtutor::CUT_veto = true;
 	GFtutor::CONTROL_connectGFpair = true;
 	
-	GFtutor::m_numPlanes = trackerGeo::numPlanes();
+	GFtutor::m_numPlanes = pTrackerGeo->numPlanes();
 	
-	GFtutor::m_trayWidth = trackerGeo::trayWidth();
-	GFtutor::m_trayGap   = trackerGeo::trayHeight();
+	GFtutor::m_trayWidth = pTrackerGeo->trayWidth();
+	GFtutor::m_trayGap   = pTrackerGeo->trayHeight();
 
-	GFtutor::m_siStripPitch = trackerGeo::siStripPitch();
-	GFtutor::m_siThickness  = trackerGeo::siThickness();
-	GFtutor::m_siResolution = trackerGeo::siResolution();
+	GFtutor::m_siStripPitch = pTrackerGeo->siStripPitch();
+	GFtutor::m_siThickness  = pTrackerGeo->siThickness();
+	GFtutor::m_siResolution = pTrackerGeo->siResolution();
 
 }
 //------------- protected --------------------------------
@@ -72,8 +76,8 @@ double GFtutor::convRadLen(int iplane)
 //########################################################
 {
 	// plane and layers differ in the order
-	// int jplane = trackerGeo::numPlanes()-iplane-1;
-	return trackerGeo::pbRadLen(trackerGeo::ilayer(iplane));
+	// int jplane = pTrackerGeo->numPlanes()-iplane-1;
+	return pTrackerGeo->pbRadLen(pTrackerGeo->ilayer(iplane));
 }
 //########################################################
 int GFtutor::okClusterSize(SiCluster::view axis, int indexhit, 

@@ -7,7 +7,6 @@
 
 #include "TkrRecon/SiClustersIRFAlg.h"
 #include "TkrRecon/SiClusters.h"
-#include "TkrRecon/trackerGeo.h"
 #include "GlastEvent/data/TdGlastData.h"
 
 static const AlgFactory<SiClustersIRFAlg>  Factory;
@@ -24,7 +23,10 @@ Algorithm(name, pSvcLocator)
 StatusCode SiClustersIRFAlg::initialize()
 //##############################################
 {
-	return StatusCode::SUCCESS;
+	//Look for the geometry service
+	StatusCode sc = service("TkrGeometrySvc", pTrackerGeo);
+
+	return sc;
 }
 //##############################################
 StatusCode SiClustersIRFAlg::execute()
@@ -34,10 +36,10 @@ StatusCode SiClustersIRFAlg::execute()
 	if (sc != StatusCode::SUCCESS) return StatusCode::FAILURE;
 
 	int nclusters = 0;
-	for (int iview = 0; iview < trackerGeo::numViews(); iview++) {
+	for (int iview = 0; iview < pTrackerGeo->numViews(); iview++) {
 		SiData::Axis a = SiData::X;
 		if (iview != 0) a = SiData::Y;
-		for (int ilayer = 0; ilayer < trackerGeo::numLayers(); ilayer++) {
+		for (int ilayer = 0; ilayer < pTrackerGeo->numLayers(); ilayer++) {
 			int nhits = m_SiData->nHits(a,ilayer);
 			for (int ihit=0; ihit< nhits; ihit++) {
 			int istrip0 = m_SiData->hitId(a,ilayer,ihit);
@@ -110,7 +112,10 @@ StatusCode SiClustersIRFAlg::retrieve()
     MsgStream log(msgSvc(), name());
 
     StatusCode sc;
-    m_SiClusters = new SiClusters();
+        
+//    pTrackerGeo = SmartDataPtr<trackerGeo>(eventSvc(),"/Event/TkrRecon/trackerGeo");
+
+    m_SiClusters = new SiClusters(pTrackerGeo->numViews(), pTrackerGeo->numLayers(), pTrackerGeo->siStripPitch(), pTrackerGeo->trayWidth());
     m_SiClusters->clear();
     
     

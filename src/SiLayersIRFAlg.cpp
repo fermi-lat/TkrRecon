@@ -6,7 +6,6 @@
 
 #include "TkrRecon/SiLayersIRFAlg.h"
 #include "TkrRecon/SiLayers.h"
-#include "TkrRecon/trackerGeo.h"
 #include "GlastEvent/data/TdGlastData.h"
 
 static const AlgFactory<SiLayersIRFAlg>  Factory;
@@ -23,6 +22,9 @@ Algorithm(name, pSvcLocator)
 StatusCode SiLayersIRFAlg::initialize()
 //##############################################
 {
+	//Look for the geometry service
+	StatusCode sc = service("TkrGeometrySvc", pTrackerGeo);
+
 	m_SiLayers = 0;
 	m_SiData = 0;
 	return StatusCode::SUCCESS;
@@ -35,10 +37,10 @@ StatusCode SiLayersIRFAlg::execute()
 	if (sc != StatusCode::SUCCESS) return sc;
 	int ToT = -1;
 
-	for (int iview = 0; iview < trackerGeo::numViews(); iview++) {
+	for (int iview = 0; iview < pTrackerGeo->numViews(); iview++) {
 		SiData::Axis a = SiData::X;
 		if (iview == 1) a = SiData::Y;
-		for (int iplane = 0; iplane < trackerGeo::numPlanes(); iplane++) {
+		for (int iplane = 0; iplane < pTrackerGeo->numPlanes(); iplane++) {
 			int nstrips = m_SiData->nHits(a,iplane);
 			if (nstrips >0) {
 				SiLayer* slayer = new SiLayer(iplane,iview,ToT);
@@ -98,6 +100,7 @@ StatusCode SiLayersIRFAlg::retrieve()
     */
 
     SmartDataPtr<TdGlastData> glastData(eventSvc(),"/Event/TdGlastData");
+
     // get the rdSiData object from the TDS by a converter
     m_SiData   = glastData->getSiData();
     

@@ -13,8 +13,6 @@
 #include "TkrRecon/SiRecObjsAlg.h"
 //#include "Event/dataManager.h"
 //#include "Event/messageManager.h"
-#include "TkrRecon/SiClusters.h"
-#include "TkrRecon/SiRecObjs.h"
 #include "TkrRecon/GFcandidates.h"
 //#include "TkrRecon/CsIClusters.h"
 
@@ -43,7 +41,9 @@ Algorithm(name, pSvcLocator)
 StatusCode SiRecObjsAlg::initialize()
 //###################################################
 {
-	
+	//Look for the geometry service
+	StatusCode sc = service("TkrGeometrySvc", pTrackerGeo);
+
 	m_SiRecObjs = 0;
 	m_SiClusters = 0;
 	// m_cal = 0;
@@ -56,9 +56,14 @@ StatusCode SiRecObjsAlg::execute()
 {
 	// load the data from the TDS
 	StatusCode sc = retrieve();
+    
+    MsgStream log(msgSvc(), name());
+
+	log << MSG::DEBUG << "------- Recon of new Event --------" << endreq;
+
 	if (sc != StatusCode::SUCCESS) return sc;
 
-	GFtutor::load(m_SiClusters);
+	GFtutor::load(m_SiClusters, pTrackerGeo);
 	// double MAXCLUSTERS = 250;
 	//	if (m_SiClusters->nHits() >= MAXCLUSTERS) {
 	//		messageManager::instance()->message(" not reconstructing tracks, too many clusters ");
@@ -76,7 +81,9 @@ StatusCode SiRecObjsAlg::execute()
 	
 	// search for tracks
 	searchParticles();
-	m_SiRecObjs->writeOut();
+
+	m_SiRecObjs->writeOut(log);
+
 	return sc;
 }
 //##############################################
@@ -113,6 +120,7 @@ StatusCode SiRecObjsAlg::retrieve()
     m_SiRecObjs->clear();
     sc = eventSvc()->registerObject("/Event/TkrRecon/SiRecObjs",m_SiRecObjs);
     
+//    pTrackerGeo  = SmartDataPtr<trackerGeo>(eventSvc(),"/Event/TkrRecon/trackerGeo"); 
     m_SiClusters = SmartDataPtr<SiClusters>(eventSvc(),"/Event/TkrRecon/SiClusters"); 
     
     

@@ -54,17 +54,17 @@ bool GFdata::empty() const
 }
 
 //########################################################
-void GFdata::writeOut(std::ostream& out) const
+void GFdata::writeOut(MsgStream& log) const
 //########################################################
 {
-    out << " --- GFdata::writeOut --- " << "\n";
-    out << " Quality       = " << Q() << "\n";
-    out << " Vertex        = " << vertex().x() << " " <<	vertex().y() << " " << vertex().z() << "\n";
-    out << " Direction     = " << direction().x() << " " << direction().y() << " " << direction().z() << "\n";
-    out << " RCenergy      = " << RCenergy() << "\n";
-    out << " first Layer   = " << firstLayer() << "\n";
-    out << " Tower         = " << tower() << "\n";
-    out << " num Hits      = " << nhits() << "\n";
+    log << MSG::DEBUG << " --- GFdata::writeOut --- " << endreq;
+    log << MSG::DEBUG << " Quality       = " << Q() << endreq;
+    log << MSG::DEBUG << " Vertex        = " << vertex().x() << " " <<	vertex().y() << " " << vertex().z() << endreq;
+    log << MSG::DEBUG << " Direction     = " << direction().x() << " " << direction().y() << " " << direction().z() << endreq;
+    log << MSG::DEBUG << " RCenergy      = " << RCenergy() << endreq;
+    log << MSG::DEBUG << " first Layer   = " << firstLayer() << endreq;
+    log << MSG::DEBUG << " Tower         = " << tower() << endreq;
+    log << MSG::DEBUG << " num Hits      = " << nhits() << endreq;
 }
 //#########################################################################
 Point GFdata::doVertex(const Ray& r1, const Ray& r2)

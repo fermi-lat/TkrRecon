@@ -2,6 +2,7 @@
 #ifndef __GFPARTICLE_H
 #define __GFPARTICLE_H 1
 
+#include "Gaudi/MessageSvc/MsgStream.h"
 #include "TkrRecon/GFsegment.h"
 
 //##############################################
@@ -25,7 +26,7 @@ public:
 	bool empty() const;
 	bool accept() const;
 	void clear();
-//	void writeOut(std::ostream& out = std::cout) const; 
+	void writeOut(MsgStream& log) const; 
 	//--
 
     /// acces 
@@ -131,7 +132,7 @@ public:
 	bool empty() const;
 	bool accept() const;
 	void clear();
-//	void writeOut(std::ostream& out = std::cout) const; 
+	void writeOut(MsgStream& log) const; 
 	//--
 
     // access 
