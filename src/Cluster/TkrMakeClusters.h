@@ -28,7 +28,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.24 2004/12/26 23:30:04 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.25 2005/01/25 20:04:47 lsrea Exp $
 */
 
 #include <vector>
@@ -58,7 +58,7 @@ public:
     /// the pointers to services and data are passed through the constructor
     
     TkrMakeClusters(Event::TkrClusterCol* pClus, Event::TkrIdClusterMap* clusMap,
-        ITkrGeometrySvc* m_tkrGeom, 
+        ITkrGeometrySvc* tkrGeom,
         Event::TkrDigiCol* pTkrDigiCol,
 
         ITkrBadStripsSvc::clusterType clType=ITkrBadStripsSvc::STANDARDCLUSTERS);

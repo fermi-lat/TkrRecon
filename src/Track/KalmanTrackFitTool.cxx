@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.33 2005/02/20 19:05:25 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.34 2005/02/22 00:00:23 usher Exp $
  */
 
 // to turn one debug variables
@@ -54,6 +54,8 @@
 #include "src/TrackFit/KalmanFilterFit/HitErrors/StandardMeasErrs.h"
 #include "src/TrackFit/KalmanFilterFit/HitErrors/IComputeMeasErrors.h"
 #include "src/TrackFit/LineFit2D/LineFit2D.h"
+
+#include <float.h>
 
 class KalmanTrackFitTool : public AlgTool, virtual public ITkrFitTool
 {
@@ -315,7 +317,10 @@ void KalmanTrackFitTool::setHitEnergyLoss(const std::string& energyLossType)
         {
             m_HitEnergy = new RadLossHitEnergy(partProp->mass());
         }
-        else throw(std::invalid_argument("Invalid hit energy loss type requested"));
+        else {
+            std::string eMsg = "KalmanTrackFitTool: "+m_HitEnergyType+": no such HitEnergyType";
+            throw(std::invalid_argument(eMsg));
+        }
     }
 
     return;
@@ -343,7 +348,10 @@ void KalmanTrackFitTool::setClusErrCompType(const std::string& clusErrorType)
         {
             m_fitErrs   = new StandardMeasErrs(m_tkrGeom);
         }
-        else throw(std::invalid_argument("Invalid cluster error type requested"));
+        else {
+            std::string eMsg = "KalmanTrackFitTool: "+m_HitErrorType+": no such MeasHitErrorType";
+            throw(std::invalid_argument(eMsg));
+        }
     }
     return;
 }
@@ -708,6 +716,18 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
     // Get current state vector and covariance matrix
     KFvector curStateVec(referenceHit.getTrackParams(Event::TkrTrackHit::FILTERED));
     KFmatrix curCovMat(referenceHit.getTrackParams(Event::TkrTrackHit::FILTERED));
+
+    /*
+    Event::TkrTrackParams params= referenceHit.getTrackParams(Event::TkrTrackHit::FILTERED);
+    double test = params.getxPosition();
+    double test1 = params.getyPosition();
+    const Event::TkrCluster* pClus = referenceHit.getClusterPtr();
+ //   std::cout << "fit iter x, y " << test << " " << test1 << " clust " << pClus << std::endl;
+    
+    if(_isnan(test)) {
+        std::cout << "found a nan! " << std::endl;
+    }
+   */
 
     KFmatrix& Q = (*m_Qmat)(curStateVec, referenceZ, m_HitEnergy->kinETopBeta(referenceHit.getEnergy()), filterZ);
 

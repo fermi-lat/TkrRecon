@@ -27,16 +27,18 @@ DECLARE_FACTORY_ENTRIES(TkrRecon)
     DECLARE_TOOL(      VtxSingleTrkTool        );
     DECLARE_TOOL(      VtxKalFitTool           );
     DECLARE_TOOL(      ComboVtxTool            );
-//    DECLARE_TOOL(      TkrComboFitTool         );
     DECLARE_TOOL(      KalmanTrackFitTool      );
-//    DECLARE_TOOL(      TkrLinkAndTreeFitTool   );
-//    DECLARE_TOOL(      TkrNeuralNetFitTool     );
     DECLARE_TOOL(      ComboFindTrackTool      );
     DECLARE_TOOL(      LinkAndTreeFindTrackTool);
     DECLARE_TOOL(      NeuralNetFindTrackTool  );
     DECLARE_TOOL(      MonteCarloFindTrackTool );
     DECLARE_TOOL(      TkrTrackEnergyTool      );
     DECLARE_TOOL(      TkrAlignHitsTool        );
-	DECLARE_TOOL(      FindTrackHitsTool       );
+    DECLARE_TOOL(      FindTrackHitsTool       );
+
+//    DECLARE_TOOL(      TkrComboFitTool         );
+//    DECLARE_TOOL(      TkrLinkAndTreeFitTool   );
+//    DECLARE_TOOL(      TkrNeuralNetFitTool     );
+
 } 
 
