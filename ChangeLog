@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Thu Dec 18 16:41:53 PST 2003
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+Changed the setEnergies(..) alg. to use QED constraint and reciprocal errors
+    *
+------------------------------------------------------------
 User: atwood  Thu Dec 18 15:37:05 PST 2003
 TkrRecon/src/PatRec/Combo
 
