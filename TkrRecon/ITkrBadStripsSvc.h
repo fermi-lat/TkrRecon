@@ -42,7 +42,7 @@ public:
     virtual int tagField(const int strip) = 0;
     virtual int stripNumber(const int strip) = 0;
     virtual int swapForSort(const int strip) = 0;
-    virtual void sortTaggedHits(std::vector<int> * list) = 0;
+    virtual void sortTaggedStrips(std::vector<int> * list) = 0;
     virtual int lastStrip() = 0;
  };
 
