@@ -36,10 +36,11 @@
 
 using namespace Event;
 
-class TkrComboVtxRecon : public TkrVertexCol
+class TkrComboVtxRecon 
+//: public TkrVertexCol
 {
 public:
-	TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTracks, TkrPatCandCol* pCandTracks);
+	TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrVertexCol* vertexCol, TkrFitTrackCol* pTracks, TkrPatCandCol* pCandTracks);
    ~TkrComboVtxRecon();
 
 private:
