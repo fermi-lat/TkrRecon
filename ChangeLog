@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Jan 26 13:38:00 PST 2005
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+Fix problem where energy is not getting assigned correctly to tracks on second pass
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r3, operation: add
 Package: TkrRecon
