@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Tue Nov 16 10:48:18 PST 2004
+TkrRecon/src/Track
+
+Modified Files:
+	KalmanTrackFitTool.cxx 
+Log Message:
+statusBit logic fixed in doFilter & Smoother
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 15 20:51:33 PST 2004
 TkrRecon/src/Track
 
