@@ -7,13 +7,14 @@
 *
 * @authors b. allgood and w. atwood
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoint.h,v 1.1 2002/08/22 21:07:18 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoint.h,v 1.2 2002/09/05 16:51:33 lsrea Exp $
 */
 
 #ifndef __TKRPOINT_H
 #define __TKRPOINT_H
 
 #include "geometry/Point.h"
+#include <vector>
 
 class TkrPoint
 {
@@ -60,5 +61,7 @@ private:
     /// hit ID for x and y
     int   m_xID, m_yID;
 };
+
+typedef std::vector<TkrPoint> TkrPointList;
 
 #endif // __TKRPOINT_H
