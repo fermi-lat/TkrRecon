@@ -1,5 +1,24 @@
 ------------------------------------------------------------
 User: lsrea  Sat Aug 31 10:51:41 PDT 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrBadStripsSvc.cxx TkrGeometrySvc.cxx TkrGeometryVisitor.cxx 
+Removed Files:
+	TkrDetGeo.cxx TkrDetGeo.h 
+Log Message:
+Documentation and general cleanup
+Remove TkrAxis: use idents::GlastAxis instead
+Remove TkrDetGeo: no longer needed
+TkrGeometrySvc: Remove unnecessary getDoubleStripPosition()
+                Add reverseLayerNumber() to replace ilayer()
+                TkrAxis->GlastAxis, remove refs to TkrDetGeo
+TkrBadStripsSvc: TkrAxis->GlastAxis, remove refs to TkrDetGeo
+test_TkrRecon: add a bit of output
+
+    *
+------------------------------------------------------------
+User: lsrea  Sat Aug 31 10:51:41 PDT 2002
 TkrRecon/src/Cluster
 
 Modified Files:
