@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.31 2005/02/11 07:14:52 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.32 2005/02/19 07:03:54 usher Exp $
  */
 
 // to turn one debug variables
@@ -473,6 +473,7 @@ int KalmanTrackFitTool::doSmootherMemory(Event::TkrTrack* track)
     *myTrack = *track;
 
     myTrack->clear();
+    myTrack->setParent(0);
 
     //int numHits = 0;
 
