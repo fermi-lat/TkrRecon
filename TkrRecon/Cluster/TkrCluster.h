@@ -20,7 +20,7 @@
 * Adapted from SiCluster of Jose Hernando
 *
 * @author Tracy Usher, Leon Rochester
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrCluster.h,v 1.2 2002/02/15 06:10:07 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrCluster.h,v 1.3 2002/02/23 07:03:14 lsrea Exp $
 */
 
 class TkrCluster
@@ -84,7 +84,7 @@ public:
     
     /// writes out the information of the cluster if msglevel is set to debug
     void writeOut(MsgStream& log) const;
-/// Why protected???    
+	/// Why protected???    
 protected:
     
     /// initializes the member variables of the cluster (to illegal values!) Why do we need this?

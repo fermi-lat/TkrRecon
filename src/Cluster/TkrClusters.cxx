@@ -1,8 +1,8 @@
-//      $Header$
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrClusters.cxx,v 1.3 2002/02/23 07:03:14 lsrea Exp $
 //
 // Description:
 //      TkrClusters is a container for Tkr clusters, and has the methods
-//      for making the clusters from hits.
+//      for making the clusters from hits, and for accessing the clusters for various kinds of information.
 //
 // Author(s):
 //      Tracy Usher     
@@ -23,21 +23,6 @@ TkrClusters::TkrClusters(ITkrGeometrySvc* pTkrGeoSvc, ITkrBadStripsSvc* pBadStri
     //Initialize the cluster lists...
     ini();
     
-    /* The strategy is to merge the list of hits in a layer with the list of known bad strips. 
-    The good and bad hits are marked so they can be recognized, but the mechanism is hidden in
-    the TkrBadStripsSvc.
-    
-    What constititutes a gap and a good cluster is defined by the code in isGap and
-    isGoodCluster, respectively.
-      
-    A set of adjacent hits followed by a gap is a potential cluster. For each potential cluster, 
-    we ask if it contains any good hits.  If so, the cluster is added, if not, it is dropped. There
-    may be other criteria for dropping a cluster, such as too many hits.
-        
-    What constititutes a gap and a good cluster is defined by the code in 
-    isGapBetweem and isGoodCluster, respectively.
-    */
-
     TkrDigiCol::const_iterator pTkrDigi = pTkrDigiCol->begin();
     int nclusters = 0;  // for debugging
     int ndigis = pTkrDigiCol->size();

@@ -11,8 +11,8 @@
  * successively, taking input from and sending output to
  * the Transient Data Store.
  * 
- * Furthermore, the major driver algorithms are arranged 
- * so that that different implementations can be substituted.
+ * The major driver algorithms are written to support multiple 
+ * implementations. 
  * For example, TkrFindAlg currently has two implementations:
  * ComboPR and LinkAndTreePR.
  *
@@ -26,11 +26,11 @@
  * TkrClusterAlg: Groups hits into clusters. Takes as input the digitized hits in TkrDigi,
  * and fills TkrClusters
  *
- * TkrFindAlg: Finds possible tracks. Takes 
+ * TkrFindAlg: Finds possible tracks. Takes the list of clusters as input and fills TkrCandidates. 
  *
- * TkrReconAlg: Fits the candidate tracks (bad name! It's called TkrFitAlg in the diagram.)
+ * TkrReconAlg: (bad name! It's called TkrFitAlg in the diagram.) Fits the candidate tracks and fills TkrTracks.
  *
- * TkrVertexAlg: Finds vertices (not yet implemented)
+ * TkrVertexAlg: Tries to find vertices among the TkrTracks, to produce TkrVertices. (not yet implemented)
  *
  * @section services Services
  * 
