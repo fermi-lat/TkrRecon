@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+TAG
+Tag name: v9r0p2gr8, operation: mov
+Package: TkrRecon
+User: lsrea  Tue Nov 23 09:45:24 2004
+Files:
+  TkrRecon/src/GaudiAlg/TkrReconAlg.cxx  1.26.2.3
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Nov 23 09:40:17 PST 2004
 TkrRecon/src/GaudiAlg
 
