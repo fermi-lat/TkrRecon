@@ -272,10 +272,17 @@ void TkrComboPatRec::setEnergies(double calEnergy)
         if(e2 < e2_min) e2 = e2_min; 
         double de1 = first_track->getKalEnergyError();
         double de2 = secnd_track->getKalEnergyError();
-        double detot = ene_total - (e1+e2);
-        
-        double x1 = detot*de1/(de1*de1+de2*de2);
-        double x2 = detot*de2/(de1*de1+de2*de2);
+
+        // Trap short-straight track events - no info.in KalEnergies
+        double x1, x2;
+        if(num_hits1 < 8 && num_hits2 < 8 && e1 > 80. && e2 > 80.) {
+            x1 = x2 = .50; // 50:50 split
+        }
+        else { // Compute spliting to min. Chi_Sq.  
+            double detot = ene_total - (e1+e2);
+            x1 = detot*de1/(de1*de1+de2*de2);
+            x2 = detot*de2/(de1*de1+de2*de2);
+        }
         double e1_con = e1 + x1*de1;
         double e2_con = e2 + x2*de2;
 
