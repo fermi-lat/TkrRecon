@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Apr 29 17:42:20 PDT 2003
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+replace hard-wired radiation lengths with calls to TkrGeometrySvc
+
+    *
+------------------------------------------------------------
 User: usher  Thu Apr 24 12:42:41 PDT 2003
 TkrRecon/src/test
 
