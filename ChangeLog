@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Sat Sep  7 17:14:55 PDT 2002
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+preparing for tag v8r0, remove confusing methods
+    *
+------------------------------------------------------------
 User: lsrea  Thu Sep  5 23:59:54 PDT 2002
 TkrRecon/src/Track
 
