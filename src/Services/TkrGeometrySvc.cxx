@@ -159,8 +159,9 @@ HepPoint3D TkrGeometrySvc::getDoubleStripPosition(int tower, int layer, int view
 	StatusCode sc = p_GlastDetSvc->getTransform3DByID(volId, &volTransform);
 	double stripLclX = p_GlastDetSvc->stripLocalXDouble(stripid);
 	HepPoint3D p(stripLclX,0.,0.);
-	// turn kludge on with m_reverseY flag, which is set in jobOptions
-	if(m_reverseY && view==1) p = -p;
+	// for the moment, none of this is needed; will have to be revisited...
+	//p = p_GlastDetSvc->siPlaneCoord(p, volId);
+	//if(view==1 && m_reverseY) p = -p;
 	p = volTransform*p;
 	return p;
 }
