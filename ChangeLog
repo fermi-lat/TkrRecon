@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Thu Sep  5 09:51:32 PDT 2002
+TkrRecon/TkrRecon/Services
+
+Modified Files:
+	TkrInitSvc.h 
+Log Message:
+untabify (last of the bunch)
+    *
+------------------------------------------------------------
 User: lsrea  Thu Sep  5 09:42:30 PDT 2002
 TkrRecon/src/GaudiAlg
 
