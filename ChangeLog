@@ -1,4 +1,21 @@
 ------------------------------------------------------------
+User: usher  Wed Dec 15 21:04:23 PST 2004
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx ITkrAlignHitsTool.h TkrAlignHitsTool.cxx 
+	TkrAlignHitsTool.h TkrTrackEnergyTool.cxx TkrTrackEnergyTool.h 
+	TrackFitUtils.h 
+Removed Files:
+	TkrComboFitTool.cxx TkrComboFitTool.h 
+	TkrLinkAndTreeFitTool.cxx TkrLinkAndTreeFitTool.h 
+	TkrNeuralNetFitTool.cxx TkrNeuralNetFitTool.h 
+Log Message:
+1)  Updated Event TDS classes
+2)  Remove classes which use the now obsolete TDS classes
+3) Expect fallout...
+    *
+------------------------------------------------------------
 User: usher  Wed Dec 15 21:04:22 PST 2004
 TkrRecon/src/PatRec
 
