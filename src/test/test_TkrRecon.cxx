@@ -1,5 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.3 2002/09/02 17:32:49 lsrea Exp $
-
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.4 2002/10/10 03:17:44 lsrea Exp $
 // Include files
 // Gaudi system includes
 #include "GaudiKernel/MsgStream.h"
@@ -14,6 +13,7 @@
 
 #include "Event/Digi/TkrDigi.h"
 
+#include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "Event/Recon/TkrRecon/TkrFitTrack.h"
@@ -32,7 +32,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.3 2002/09/02 17:32:49 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.4 2002/10/10 03:17:44 lsrea Exp $
 */
 
 class test_TkrRecon : public Algorithm {
@@ -122,7 +122,7 @@ StatusCode test_TkrRecon::execute()
         sc = StatusCode::FAILURE;        
         return sc;}
     else {
-        log << MSG::INFO  << candData->getNumCands() 
+        log << MSG::INFO  << candData->size() 
             << " candidate tracks(s) found" << endreq;
     }
     
