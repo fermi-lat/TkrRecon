@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: usher  Wed Feb  6 13:38:58 PST 2002
+TkrRecon/TkrRecon/GaudiAlg
+
+Modified Files:
+	TkrDisplayAlg.h TkrFindAlg.h TkrReconAlg.h 
+Log Message:
+Modifications made to header files:
+1) Primarily to allow for the "plug and play" changing of reconstruction routines
+2) Modifications to the way the display algorithms are handled
+
+    *
+------------------------------------------------------------
+User: usher  Wed Feb  6 13:38:58 PST 2002
 TkrRecon/TkrRecon/Display
 
 Modified Files:
