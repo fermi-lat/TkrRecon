@@ -154,8 +154,14 @@ void TkrComboPatRec::findBlindCandidates()
             Point x1(first_Hit.getSpacePoint());
             if(first_Hit.finished()) break;
             int itwr = first_Hit.tower();
-            
-            for(int igap=1; igap<3; igap++) {
+
+            //Change the following for loop
+            //for(int igap=1; igap<3; igap++) {
+            //To prevent findNextHit from trying to access layer 18
+            //I do not know why this was happening here now, but apparantly not before
+            //This is a TEMPORARY fix until Bill has a chance to review and apply the 
+            //proper fix
+            for(int igap=1; igap<3 && ilayer+igap < 17; igap++) {
                 TkrPoints secnd_Hit(ilayer+igap);
                 if(secnd_Hit.finished()) continue;
                 
@@ -282,7 +288,7 @@ float TkrComboPatRec::findNextHit(int layer, float arc_len, Ray& traj, float &de
     
 } 
 
-void TkrComboPatRec::incorporate(Candidate trial)
+void TkrComboPatRec::incorporate(Candidate& trial)
 {
     
     int iniLayer = trial.firstLayer();
@@ -291,6 +297,8 @@ void TkrComboPatRec::incorporate(Candidate trial)
     float energy = trial.energy();
     
     KalFitTrack track(iniLayer, iniTower, m_cut, energy, testRay); 
+    track.findHits();
+    track.doFit();
     trial.setQuality(track.getQuality()-6.*iniLayer);
  
     bool ienter = false;

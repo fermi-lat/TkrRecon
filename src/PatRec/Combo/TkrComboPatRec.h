@@ -61,7 +61,7 @@ private:
 
     // internal utilities
     float findNextHit(int, float, Ray&, float&, int&);
-    void  incorporate(Candidate);
+    void  incorporate(Candidate&);
     
     // data members
     CandidateList  m_candidates;  // List of found hypothesises
