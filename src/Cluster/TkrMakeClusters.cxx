@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.2 2002/04/30 16:58:54 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.3 2002/04/30 23:18:08 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, and for setting the cluster flag.
@@ -10,6 +10,7 @@
 
 
 #include "src/Cluster/TkrMakeClusters.h"
+#include <algorithm>
 
 TkrMakeClusters::TkrMakeClusters(TkrClusters* pClus,
 								 ITkrGeometrySvc* pTkrGeoSvc, ITkrBadStripsSvc* pBadStripsSvc, 

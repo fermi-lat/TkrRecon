@@ -17,11 +17,10 @@ extern const CLID& CLID_TkrClusters;
 *
 * @brief TDS Object for TkrCluster vector, and array of vectors.
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrClusters.h,v 1.8 2002/04/30 01:35:47 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrClusters.h,v 1.9 2002/04/30 23:18:07 lsrea Exp $
 */
 
 class TkrClusters : public DataObject
-//###################################################
 {
 public:
 	
