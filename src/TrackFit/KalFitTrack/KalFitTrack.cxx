@@ -141,7 +141,8 @@ void KalFitTrack::addMeasHit(const TkrPatCandHit& candHit)
 
     Point       planePos = candHit.Position();
     int         clusIdx  = candHit.HitIndex();
-    TkrFitPlane newPlane(clusIdx, candHit.PlaneIndex(), getStartEnergy(),
+    int         towerIdx = m_clusters->getHit(clusIdx)->tower();
+    TkrFitPlane newPlane(clusIdx, towerIdx, candHit.PlaneIndex(), getStartEnergy(),
                          planePos.z(), candHit.View());
 
     incorporateFoundHit(newPlane, candHit.HitIndex());
@@ -166,7 +167,8 @@ void KalFitTrack::addMeasHit(int clusIdx, int planeID, TkrCluster::view proj, do
    // Dependencies: None
    // Restrictions and Caveats:  None
 
-    TkrFitPlane newPlane(clusIdx, planeID, getStartEnergy(),
+    int         towerIdx = m_clusters->getHit(clusIdx)->tower();
+    TkrFitPlane newPlane(clusIdx, towerIdx, planeID, getStartEnergy(),
                          zPlane, proj);
 
     incorporateFoundHit(newPlane, clusIdx);
@@ -436,7 +438,9 @@ TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer,
     TkrFitMatrix Q = KF.getMaterialCov();
  
     double prev_energy = prevKplane.getEnergy();
-    TkrFitPlane projectedKplane(prevKplane.getIDHit(),next_layer,prev_energy, zEnd, 
+    int    clusIdx  = prevKplane.getIDHit();
+    int    towerIdx = clusIdx >= 0? m_clusters->getHit(clusIdx)->tower() : -1;
+    TkrFitPlane projectedKplane(clusIdx,towerIdx, next_layer,prev_energy, zEnd, 
                                 predhit, this_projection);   
     projectedKplane.setActiveDist(actDist);
     projectedKplane.setRadLen(radLen); 
@@ -1064,7 +1068,7 @@ TkrFitPlane KalFitTrack::originalKPlane() const
     TkrFitHit hitfit(TkrFitHit::FIT, pfit, covfit);
     TkrFitHit hitmeas(TkrFitHit::MEAS, pfit, covfit); 
     
-    TkrFitPlane kp(-1,m_iLayer-1,m_energy0, x_ini.z(), hitfit, TkrCluster::XY);
+    TkrFitPlane kp(-1,m_iTower, m_iLayer-1,m_energy0, x_ini.z(), hitfit, TkrCluster::XY);
     kp.setHit(hitmeas);
     
     return kp;
