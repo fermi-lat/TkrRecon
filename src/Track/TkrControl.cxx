@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrControl.cxx,v 1.5 2002/09/05 17:56:02 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrControl.cxx,v 1.6 2002/09/06 06:59:54 lsrea Exp $
 //
 // Description:
 //      Implements singleton class for storing and retrieving 
@@ -30,6 +30,9 @@ TkrControl::TkrControl()
     m_iniErrorPosition   = 0.10; // First Hit error in Kalman: .1 mm
 
     m_planeEnergies      = true; // Decrease particle energies by exp(-rad_len)
+
+    m_errorType          = 0;    // 0 -> sigma = siResolution
+                                 // 1 -> sigma = first iteration of new errors
 
     return;
 }

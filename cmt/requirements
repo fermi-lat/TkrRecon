@@ -1,5 +1,5 @@
 package TkrRecon
-version v8r12p1
+version v8r12p9
 
 author Tracy Usher    <usher@slac.stanford.edu>
 author Leon Rochester <lsrea@slac.stanford.edu>
@@ -42,6 +42,7 @@ macro TkrRecon_headers   "" WIN32 "\
  ../TkrRecon/Cluster/*.h\
  ../TkrRecon/PatRec/*.h\
  ../TkrRecon/Track/*.h \
+# ../TkrRecon/TrackFit/*.h \
  ../TkrRecon/Vertex/*.h  \
  ../TkrRecon/GaudiAlg/*.h ../TkrRecon/Display/*.h ../TkrRecon/Services/*.h"
 

@@ -17,7 +17,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.9 2002/09/06 06:59:52 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.10 2003/01/10 19:43:22 lsrea Exp $
  */
 
 
@@ -65,6 +65,7 @@ private:
     double           m_iniErrorPosition;
 
     bool             m_planeEnergies;
+    int              m_errorType;
 };
 
 #endif // __TKRINITSVC_H

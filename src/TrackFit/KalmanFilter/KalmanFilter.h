@@ -11,7 +11,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilter/KalmanFilter.h,v 1.11 2003/01/10 19:43:26 lsrea Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilter/KalmanFilter.h,v 1.12 2003/03/13 19:13:24 lsrea Exp $
 */
 #ifndef _KALMANFILTER_H
 #define _KALMANFILTER_H 
@@ -20,6 +20,7 @@
 #include "Event/Recon/TkrRecon/TkrFitPlane.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrFailureModeSvc.h"
+#include "src/Track/TkrControl.h"
 
 namespace Event {
 
@@ -54,6 +55,10 @@ private:
     TkrFitMatrix          m_Qmaterial;     // The cov. matrix for last projection
     Event::TkrClusterCol* m_clusters;
     ITkrGeometrySvc*      m_tkrGeo;
+    TkrControl*           m_control;
+
+    // internal method
+    double  getError(double strips, double slope) const;
 };
 
 }; //Namespace
