@@ -20,13 +20,13 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrTracks* pTracks,
     int   trk1Idx = 0;
 
     //Loop over the number of Fit tracks
-    TkrVectorPtr pTrack1 = pTracks->getTrackPtr();
+    TkrFitTrackColPtr pTrack1 = pTracks->getTrackPtr();
 
     while(pTrack1 < pTracks->getTrackEnd())
     {
-        TkrFitTrack* track1  = *pTrack1++;
-        TkrVectorPtr pTrack2 = pTrack1;
-        int          trk2Idx = trk1Idx;
+        TkrFitTrack*      track1  = *pTrack1++;
+        TkrFitTrackColPtr pTrack2 = pTrack1;
+        int               trk2Idx = trk1Idx;
 
         while(pTrack2 < pTracks->getTrackEnd())
         {

@@ -1,4 +1,3 @@
-// $Id: TkrFitTrack.cxx,v 1.3 2002/03/07 17:33:08 usher Exp $
 //------------------------------------------------------------------------------
 //
 //     TkrFitTrack
@@ -25,94 +24,48 @@
 //
 //-----------------------------------------------------
 
-TkrFitTrack::TkrFitTrack(int ilyr, int itwr, double sigmaCut,double energy, 
-                         const Ray& testRay)
-                         : TkrBase(ilyr, itwr, energy, testRay.position(), testRay.direction())
-                         ,m_sigma(sigmaCut)
-                         ,m_ray(testRay)
-                         ,m_status(EMPTY),  
-                         m_Q(-1e6), m_Xgaps(0), m_XistGaps(0), m_Ygaps(0), m_YistGaps(0),
-                         m_lstLayer(0), m_noisyHits(0), m_istNoisyHits(0)
+TkrFitTrack::TkrFitTrack(int ilyr, int itwr, double energy, const Ray& testRay)
+                         : TkrBase(ilyr, itwr, energy, testRay.position(), testRay.direction()),
+                          m_Q(-1e6), m_Xgaps(0), m_XistGaps(0), m_Ygaps(0), m_YistGaps(0)
 {
-    // Initialization for KalTrack
-    setIniEnergy(energy);
-    
-    // Track following filter - hit finder
-    findHits();
-
-    // Kalman filter / smoother fit
-    fit();
-
-    // Final determination
-    if(!empty()) m_status = FOUND;
-    else         clear();
+    m_hits.clear();
 }
 
-void TkrFitTrack::flagAllHits(int iflag)
+TkrFitTrack::~TkrFitTrack()
 {
-    for(unsigned int i=0; i<kplanelist.size(); i++) {
-        GFtutor::_DATA->flagHit( kplanelist[i].getProjection(), 
-                                 kplanelist[i].getIDHit(), iflag);
-    }
+    clear();
 }
-
-void TkrFitTrack::unFlagAllHits()
-{
-    for (unsigned i=0; i<kplanelist.size(); i++) {
-        GFtutor::_DATA->unflagHit(kplanelist[i].getProjection(), 
-                                  kplanelist[i].getIDHit());
-    }
-}  
-
-void TkrFitTrack::unFlagHit(int num)
-{
-        GFtutor::_DATA->unflagHit(kplanelist[num].getProjection(), 
-                                   kplanelist[num].getIDHit());
-}  
 
 bool TkrFitTrack::empty() const
 {
     bool empty = false;
-    if (firstLayer() < 0) empty = true;
-    if (numDataPoints() < GFcontrol::minSegmentHits) empty = true;
-    if (chiSquare() < 0.) empty = true;
+    if (firstLayer()   < 0)                         empty = true;
+    if (getNumHits()   < GFcontrol::minSegmentHits) empty = true;
+    if (getChiSquare() < 0.)                        empty = true;
+
     return empty;
 }
 
-
 void TkrFitTrack::clear()
 {   
+    m_hits.clear();
     
-    KalTrack::clear();
+    m_Xgaps        = m_Ygaps = 0;
+    m_XistGaps     = m_YistGaps= 0;
     
-    m_lstGaps = 0;
-    m_Xgaps = m_Ygaps = 0;
-    m_XistGaps =  m_YistGaps= 0;
-    m_lstLayer = 0;
-    m_noisyHits = 0;
-    m_istNoisyHits = 0;
-    
-    m_status = EMPTY;
-    
-    m_Q = -1e6;
-    m_alive = true;   
+    m_Q            = -1e6;
 }
 
 void TkrFitTrack::writeOut(MsgStream& log) const
 {
     
-    int status = m_status;
-    log << MSG::DEBUG << " --- TkrFitTrack::writeOut --- " << endreq;
-    log << MSG::DEBUG << " quality        = " << quality() << endreq;
-    log << MSG::DEBUG << " last  Layer    = " << lastLayer() << endreq;
-    log << MSG::DEBUG << " num Hits       = " << numDataPoints() << endreq;
-    log << MSG::DEBUG << " num X Gaps     = " << numXGaps() << endreq;
-    log << MSG::DEBUG << " num X 1st Gaps = " << numXFirstGaps() << endreq;
-    log << MSG::DEBUG << " num Y Gaps     = " << numYGaps() << endreq;
-    log << MSG::DEBUG << " num Y 1st Gaps = " << numYFirstGaps() << endreq;
-    log << MSG::DEBUG << " num Noise      = " << numNoise() << endreq;
-    log << MSG::DEBUG << " num First Noise= " << numFirstNoise() << endreq;
-    log << MSG::DEBUG << " last Status    = " << status << endreq; 
+    log << MSG::DEBUG << " --- TkrFitTrack::writeOut --- "            << endreq;
+    log << MSG::DEBUG << " quality        = "   << getQuality()       << endreq;
+    log << MSG::DEBUG << " num m_hits       = " << getNumHits()       << endreq;
+    log << MSG::DEBUG << " num X Gaps     = "   << getNumXGaps()      << endreq;
+    log << MSG::DEBUG << " num X 1st Gaps = "   << getNumXFirstGaps() << endreq;
+    log << MSG::DEBUG << " num Y Gaps     = "   << getNumYGaps()      << endreq;
+    log << MSG::DEBUG << " num Y 1st Gaps = "   << getNumYFirstGaps() << endreq;
 
     TkrBase::writeOut(log);    
 }
@@ -120,387 +73,189 @@ void TkrFitTrack::writeOut(MsgStream& log) const
 void TkrFitTrack::draw(gui::DisplayRep& v) 
 {
     v.markerAt(position());
-    KalTrack::drawChiSq(v,KalHit::SMOOTH);
-    KalTrack::drawTrack(v,KalHit::SMOOTH);
+    drawChiSq(v,TkrFitHit::SMOOTH);
+    drawTrack(v,TkrFitHit::SMOOTH);
 }
 
-//--------------------------------------------------------
-//  TkrFitTrack - Private 
-//--------------------------------------------------------
 
-void TkrFitTrack::findHits() 
-{ 
-    KalPlane oriKplane = lastKPlane();
-    
-    int kplane = firstLayer();
-    int lstgaps = 0;
-    int step_counter = 0; 
-    m_nxHits = m_nyHits = 0; 
-    bool filter = false;
-    
-    KalHit::TYPE type = KalHit::FIT;
-    Status statushit = FOUND;
-    while( -1 < kplane && kplane < GFtutor::numPlanes()) {
-        
-        step_counter++; 
-        KalPlane prevKplane;
-        KalPlane nextKplane;
-        if (kplanelist.size() == 0) prevKplane = oriKplane; 
-        else prevKplane = kplanelist.back();
-        
-        if (step_counter > 1) type = KalHit::FIT;
-        statushit = nextKPlane(prevKplane, kplane, nextKplane, type); 
-        if (statushit != FOUND) break;
-        
-        if(nextKplane.getProjection() == TkrCluster::X) m_nxHits++;
-        else                                           m_nyHits++;
-        if(m_nxHits > 2 && m_nyHits > 2) m_status = FOUND;
-        
-        kplane = nextKplane.getIDPlane();
-
-        lstgaps = kplane - prevKplane.getIDPlane()-1; 
-        if (lstgaps == GFcontrol::maxConsecutiveGaps) break;
-        
-        kplanelist.push_back(nextKplane);
-        int num_planes = kplanelist.size();
-        if (filter) filterStep(num_planes-2);
-        else {
-            if(m_nxHits >= 2 && m_nyHits >= 2) {
-                for(int i=0; i<num_planes-1; i++) filterStep(i);
-                filter = true;
-            }
-            else {
-                KalHit hitpred = nextKplane.getHit(KalHit::PRED);
-                KalHit hitmeas = nextKplane.getHit(KalHit::MEAS);
-                if(nextKplane.getProjection() == TkrCluster::X) {
-                    KalPar p(hitmeas.getPar().getXPosition(),hitpred.getPar().getXSlope(),
-                        hitpred.getPar().getYPosition(),hitpred.getPar().getYSlope());
-                    KalHit hitfit(KalHit::FIT,p,hitpred.getCov());
-                    kplanelist[num_planes-1].setHit(hitfit);
-                }
-                else {
-                    KalPar p(hitpred.getPar().getXPosition(),hitpred.getPar().getXSlope(),
-                        hitmeas.getPar().getYPosition(),hitpred.getPar().getYSlope());
-                    KalHit hitfit(KalHit::FIT,p,hitpred.getCov());
-                    kplanelist[num_planes-1].setHit(hitfit);
-                }
-            }
-        }
-        // Check if there are any planes left.... Last plane is a Y plane, #17
-        if(kplane == GFtutor::numPlanes()-1 &&
-           nextKplane.getProjection()==TkrCluster::Y) break; 
-    }
-}
-
-TkrFitTrack::Status TkrFitTrack::nextKPlane(const KalPlane& previousKplane, 
-                                            int kplane, KalPlane& nextKplane,
-                                            KalHit::TYPE type)
+TkrFitPlane TkrFitTrack::getFirstPlane() const
 {
-    Status statushit = EMPTY;
-    int num_steps = 0;
-    double arc_total = 0;
+    if (m_hits.size() == 0) {
+        std::cout << "ERROR TkrFitTrack::thisKPlane " << endreq;
+        return TkrFitPlane();
+    }
+    return m_hits.front();
+}
+
+TkrFitPlane TkrFitTrack::getLastPlane() const
+{
+    if (m_hits.size() == 0) {
+        return TkrFitPlane();
+    }
+    return m_hits.back();
+}
+
+int TkrFitTrack::getNumGaps() const
+{
+    int numGaps =0;
+    if (getNumHits() == 0) return numGaps;
     
-    while(statushit == EMPTY && num_steps < 4) {
-        
-        double arc_min = arc_total;
-        nextKplane = projectedKPlane(previousKplane, kplane, arc_min, type);
-        // Check that a valid nextplane was found... 
-        if(nextKplane.getHit(KalHit::PRED).getType() != KalHit::PRED) break;
-        
-        arc_total = arc_min;
-        num_steps++; 
-        
-        double zend = nextKplane.getZPlane(); 
-        double arc_len = (zend - m_ray.position().z())/m_ray.direction().z(); 
-        if(nextKplane.getProjection() == TkrCluster::X) {
-            if(m_nxHits <= 2) {
-                Point x0 = m_ray.position(arc_len); 
-                Vector t0 =m_ray.direction(); 
-                KalPar par(x0.x(), t0.x()/t0.z(), x0.y(), t0.y()/t0.z());
-                KalHit hitp = nextKplane.getHit(type);
-                nextKplane.setHit(KalHit(type, par, hitp.getCov()));
-            }
-        }
-        else {
-            if(m_nyHits <= 2) {
-                Point x0 = m_ray.position(arc_len); 
-                Vector t0 =m_ray.direction(); 
-                KalPar par(x0.x(), t0.x()/t0.z(), x0.y(),t0.y()/t0.z());
-                KalHit hitp = nextKplane.getHit(type);
-                nextKplane.setHit(KalHit(type, par, hitp.getCov()));
-            }
-        }
-        
-        int indexhit = -1;
-        double radius = 0.; 
-        double sigma = sigmaFoundHit(previousKplane, nextKplane, indexhit, radius);
-        if (sigma < m_sigma) {
-            statushit = FOUND;
-            incorporateFoundHit(nextKplane, indexhit);
+    numGaps = 1 + m_hits.back().getIDPlane() - m_hits.front().getIDPlane() - getNumHits();
+    
+    return numGaps;
+}
+
+void TkrFitTrack::drawChiSq(gui::DisplayRep& v,  TkrFitHit::TYPE typ)
+{
+    TkrFitHit::TYPE fit = TkrFitHit::SMOOTH;
+    int nplanes = m_hits.size();
+    for (int iplane=0; iplane<nplanes; iplane++) {
+        TkrFitPlane::AXIS prj = m_hits[iplane].getProjection();
+        double x0, y0, z0, xl, xr, yl, yr;
+        double delta= m_hits[iplane].getDeltaChiSq(typ);
+        if(prj == TkrCluster::X){
+            x0 = m_hits[iplane].getHit(typ).getPar().getXPosition();
+            y0 = m_hits[iplane].getHit(fit).getPar().getYPosition(); 
+            z0 = m_hits[iplane].getZPlane()+0.1;
+            xl = x0-0.5*delta;
+            xr = x0+0.5*delta;
+            yl = y0;
+            yr = y0;
         } 
         else {
-            if(nextKplane.getProjection() == TkrCluster::X) {
-                m_Xgaps++;
-                if(m_nxHits < 3 ) m_XistGaps++;
-            }
-            else {
-                m_Ygaps++;
-                if(m_nyHits < 3 ) m_YistGaps++;
-            }
-        }
+            x0 = m_hits[iplane].getHit(fit).getPar().getXPosition();
+            y0 = m_hits[iplane].getHit(typ).getPar().getYPosition(); 
+            z0 = m_hits[iplane].getZPlane()+0.1;
+            xl = x0;
+            xr = x0;
+            yl = y0-0.5*delta;
+            yr = y0+0.5*delta;
+        }		
+        v.moveTo(Point(xl,yl,z0));
+        v.lineTo(Point(xr,yr,z0));
     }
-    
-    return statushit;
 }
 
-
-KalPlane TkrFitTrack::projectedKPlane(KalPlane prevKplane, int klayer, 
-                                      double &arc_min, KalHit::TYPE type) 
+void TkrFitTrack::drawTrack(gui::DisplayRep& v, TkrFitHit::TYPE typ)
 {
-    // The z end position of the next klayer plane
-    int nlayers =0; 
-    double zEnd; 
+    TkrFitHit::TYPE fit = TkrFitHit::SMOOTH;
+    int nplanes = m_hits.size();
+    for (int iplane=0; iplane<nplanes-1; iplane++) {
+        TkrFitPlane::AXIS prj = m_hits[iplane].getProjection();
+        double x0, y0, z0;
+
+		TkrFitHit::TYPE xtyp, ytyp;
+		xtyp = (prj == TkrCluster::X ? typ : fit);
+		ytyp = (prj == TkrCluster::X ? fit : typ);
+
+		// this sets up the track segment to the next plane
     
-    KalHit predhit = prevKplane.predicted(type, nlayers, klayer, zEnd, arc_min);
-    KalPlane projectedKplane(prevKplane.getIDHit(),klayer+nlayers,prevKplane.getEnergy(), zEnd, 
-        predhit, prevKplane.getNextProj());
-    
-    return projectedKplane;
+        x0 = m_hits[iplane].getHit(xtyp).getPar().getXPosition();
+        y0 = m_hits[iplane].getHit(ytyp).getPar().getYPosition(); 
+        z0 = m_hits[iplane].getZPlane();
+ 
+		double tanx = m_hits[iplane].getHit(typ).getPar().getXSlope();
+        double tany = m_hits[iplane].getHit(typ).getPar().getYSlope();
+        
+        Point origin(x0,y0,z0);
+        Vector dir = Vector(-1.*tanx,-1.*tany,-1.).unit();
+        
+        Ray segment(origin,dir);
+        double zstep=m_hits[iplane+1].getZPlane()-z0;
+        double cosz=dir.z();
+
+        // this sets up the dotted line from the lower part of the extrapolated track
+		//  to the next hit.
+
+
+		prj = m_hits[iplane].getNextProj();
+
+		xtyp = (prj == TkrCluster::X ? typ : fit);
+		ytyp = (prj == TkrCluster::X ? fit : typ);
+
+        x0 = m_hits[iplane+1].getHit(xtyp).getPar().getXPosition();
+        y0 = m_hits[iplane+1].getHit(ytyp).getPar().getYPosition(); 
+        z0 = m_hits[iplane+1].getZPlane();
+
+        Point p(x0, y0, z0);
+
+		// do them in this order, so that the connection doesn't cover the track
+		
+		v.set_line_style(1);
+        v.moveTo(segment.position(0.8*zstep/cosz));
+        v.lineTo(p); 
+
+		v.setColor("blue");
+        v.moveTo(segment.position(0.));
+        v.lineTo(segment.position(zstep/cosz));
+    }
 }
 
-void TkrFitTrack::incorporateFoundHit(KalPlane& nextKplane, int indexhit)
-{			
-    Point nearHit = GFtutor::_DATA->position(m_axis, indexhit);
-    double x0 = nearHit.x();
-    double y0 = nearHit.y();
-    double z0 = nearHit.z();
-    
-    KalPar measpar(x0,0.,y0,0.);
-    
-    double sigma = GFtutor::siResolution();
-    double sigma_alt = GFtutor::trayWidth()/sqrt(12.); //mm before not really important to have prescise
-    double size  = GFtutor::_DATA->size(m_axis,indexhit);
-    
- //   double factor = 1.;
- //   if (GFcontrol::sigmaCluster) factor = 1./size; // this must be the correct one But
- //   else factor = size*size;
-    
-    double cx, cy;
-    if(m_axis == TkrCluster::X) {
-        cx = sigma*sigma*size*size;//factor;
-        cy = sigma_alt*sigma_alt;
-    }
-    else {
-        cx = sigma_alt*sigma_alt;
-        cy = sigma*sigma*size*size;//factor;
-    }
-    KalMatrix meascov(1); 
-    meascov(1,1) = cx;
-    meascov(3,3) = cy;
-    
-    KalHit meashit(KalHit::MEAS, measpar, meascov);
-    
-    nextKplane.setIDHit(indexhit);
-    nextKplane.setZPlane(z0);
-    nextKplane.setHit(meashit);
-}
-
-
-double TkrFitTrack::sigmaFoundHit(const KalPlane& previousKplane, const KalPlane& nextKplane,
-                                  int& indexhit, double& radiushit)
+double TkrFitTrack::getKink(int iplane) const
 {
-    indexhit = -1;
-    radiushit = 1e6;
-    double sigmahit = 1e6;
+    double kink = 0.;
+    if (iplane<0 || iplane > getNumHits()-2) return kink;
     
-    double DELTACHI2_CUT = m_sigma;
-    double MAX_RADIUS = GFtutor::trayWidth()/2.;
-    double ERROR_ZPLANE= GFtutor::siThickness(); 
+    double slope0X = m_hits[iplane  ].getHit(TkrFitHit::SMOOTH).getPar().getXSlope();
+    double slope1X = m_hits[iplane+2].getHit(TkrFitHit::SMOOTH).getPar().getXSlope();
     
-    KalHit hitp = nextKplane.getHit(KalHit::PRED);
-    m_axis = nextKplane.getProjection();
-    double tError = 0.;
-    double zError = 0.; 
-    if(m_axis == TkrCluster::X) {
-        tError = sqrt(hitp.getCov().getcovX0X0());
-        zError=ERROR_ZPLANE*hitp.getPar().getXSlope();
-    }
-    else {
-        tError = sqrt(hitp.getCov().getcovY0Y0());
-        zError=ERROR_ZPLANE*hitp.getPar().getYSlope();
-    }
-    double rError=sqrt(tError*tError+zError*zError);
-    double outRadius=3.*DELTACHI2_CUT*rError; 
-    if (outRadius > MAX_RADIUS ) outRadius = MAX_RADIUS;		
+    double slope0Y = m_hits[iplane  ].getHit(TkrFitHit::SMOOTH).getPar().getYSlope();
+    double slope1Y = m_hits[iplane+2].getHit(TkrFitHit::SMOOTH).getPar().getYSlope();
     
-    double x0=hitp.getPar().getXPosition();
-    double y0=hitp.getPar().getYPosition();
-    double z0=nextKplane.getZPlane();
-    Point center(x0,y0,z0);
-    Point nearHit(0.,0.,z0);
     
-    double inerRadius = -1.;
-    int klayer = nextKplane.getIDPlane();
+    kink = (fabs(slope1X-slope0X) > fabs(slope1Y-slope0Y)) ? (slope1X-slope0X) : (slope1Y-slope0Y);
     
-    // Must be inside Glast
-    bool done = false;
-    while (!done) {
-        nearHit = GFtutor::_DATA->nearestHitOutside(m_axis, klayer, inerRadius, center, indexhit);
-        done = foundHit(indexhit, inerRadius, outRadius, center, nearHit);
-    }
-    
-    if (indexhit >= 0) {
-        if(m_axis == TkrCluster::X) radiushit = fabs(nearHit.x() - center.x());
-        else                       radiushit = fabs(nearHit.y() - center.y());
-        if (rError > 0.) sigmahit= radiushit/rError;
-    }
-    
-    return sigmahit;
+    return kink;
 }
 
-bool TkrFitTrack::foundHit(int& indexhit, double& inerRadius, double outRadius,
-                           const Point& centerX, const Point& nearHit)
+double TkrFitTrack::getKinkNorma(int iplane) const
 {
-    bool done = true;
+    double k = getKink(iplane);
     
-    if (indexhit < 0) return done;
-    double deltaX = (m_axis == TkrCluster::X? fabs(nearHit.x()-centerX.x()):
-    fabs(nearHit.y()-centerX.y()));
+    if (iplane <0 || iplane >= getNumHits()) return k;
     
-    if (deltaX < outRadius) {
-        if (GFtutor::_DATA->hitFlagged(m_axis, indexhit)) done = false;
-    } else indexhit = -1; // outside region 
+    double errorXSQ = m_hits[iplane+1].getHit(TkrFitHit::SMOOTH).getCov().getcovSxSx();
+    double errorYSQ = m_hits[iplane+1].getHit(TkrFitHit::SMOOTH).getCov().getcovSySy();
+
+    errorXSQ += m_hits[iplane+1].getQmaterial().getcovSxSx();
+    errorYSQ += m_hits[iplane+1].getQmaterial().getcovSySy();
     
-    // this condition is necessary for the large angle pattern recognition
-    if (indexhit > 0 ) {
-        if (GFtutor::okClusterSize(m_axis,indexhit,0.) == 0) done = false;
-    }
+    double error = sqrt(errorXSQ + errorYSQ);
     
-    if (done == false) {
-        indexhit = -1;
-        inerRadius = deltaX + 0.1*GFtutor::siResolution();
-    }
+    double kinkNorma =  0.;
+    if (error != 0.) kinkNorma = fabs(k)/error;
     
-    return done;
+    return kinkNorma;
 }
 
-void TkrFitTrack::fit()
+double TkrFitTrack::getErrorXPosition() const
 {
-    if (kplanelist.size()< 3) {
-        KalTrack::clear();
-        return;
-    }
-    
-    //----------------------------
-    // Voila monsieur Kalman
-    //----------------------------
-    KalTrack::doFit();
-    //----------------------------
-    
-    loadTkrBase();
+    double error = 0.;
+    if (m_chisqSmooth == 0) return error;
+    error = sqrt(m_hits[0].getHit(TkrFitHit::SMOOTH).getCov().getcovX0X0());
+    return error;
 }
 
-void TkrFitTrack::loadTkrBase()
-{   
-    // Output Data
-
-    
-    m_position = k_position(0.);
-    double factor = -1.;
-    m_direction = k_direction();
-    //m_energy =  KalEnergy();
-    m_energy =  iniEnergy();
-    m_Q = computeQuality();
-    m_firstLayer = kplanelist[0].getIDPlane();
-    m_itower = kplanelist[0].getIDTower();
-    
-} 
-
-double TkrFitTrack::computeQuality() const
-{   
-    double quality = 60./(9.+chiSquare()) + 2.5*(numDataPoints()-4.) -
-                    (m_Xgaps+m_Ygaps + 2*abs(m_Xgaps-m_Ygaps)) - 
-                    2*(m_XistGaps+m_YistGaps+2*abs(m_XistGaps-m_YistGaps));
-
-    return quality;
-}
-
-void TkrFitTrack::setIniEnergy(double ene)
+double TkrFitTrack::getErrorXSlope() const
 {
-    m_energy = ene;
-    KalTrack::setIniEnergy(ene);
+    double error = 0.;
+    if (m_chisqSmooth == 0) return error;
+    error = sqrt(m_hits[0].getHit(TkrFitHit::SMOOTH).getCov().getcovSxSx());
+    return error;
 }
 
-KalPlane TkrFitTrack::firstKPlane() const
+double TkrFitTrack::getErrorYPosition() const
 {
-    if (kplanelist.size() == 0) {
-        std::cout << "ERROR TkrFitTrack::thisKPlane " << endreq;
-        return originalKPlane();
-    }
-    return kplanelist.front();
+    double error = 0.;
+    if (m_chisqSmooth == 0) return error;
+    error = sqrt(m_hits[0].getHit(TkrFitHit::SMOOTH).getCov().getcovY0Y0());
+    return error;
 }
 
-KalPlane TkrFitTrack::lastKPlane() const
+double TkrFitTrack::getErrorYSlope() const
 {
-    if (kplanelist.size() == 0) {
-        return originalKPlane();
-    }
-    return kplanelist.back();
-}
-
-KalPlane TkrFitTrack::previousKPlane() const 
-{
-    if (kplanelist.size() <= 1) {
-        //std::cout << "ERROR TkrFitTrack::previousKPlane " << endreq;
-        return originalKPlane();
-    }
-    int iprevious = kplanelist.size()-2;
-    if (iprevious == -1) return originalKPlane();
-    return kplanelist[iprevious];
-}
-
-KalPlane TkrFitTrack::originalKPlane() const
-{
-    // Back off incoming vertex to cause the first hit to be picked up
-    Ray testRay(m_ray.position(),m_ray.direction());
-    Point x_ini = testRay.position(-1.);
-    double x_slope = m_ray.direction().x()/m_ray.direction().z();
-    double y_slope = m_ray.direction().y()/m_ray.direction().z();
-    KalPar pfit(x_ini.x(), x_slope, x_ini.y(), y_slope);
-    
-    double sigma2Slope = GFcontrol::iniErrorSlope * GFcontrol::iniErrorSlope;
-    double sigma2Position = GFcontrol::iniErrorPosition * GFcontrol::iniErrorPosition;
-    KalMatrix covfit(1);
-
-	double sigma_alt = GFtutor::trayWidth()/sqrt(12.); //mm before
-    if(m_axis == TkrCluster::X) {
-        covfit(1,1) = sigma2Position;
-        covfit(3,3) = sigma_alt*sigma_alt;
-    }
-    else {
-        covfit(1,1) = sigma_alt*sigma_alt;
-        covfit(3,3) = sigma2Position;
-    }
-    covfit(2,2) = covfit(4,4) = sigma2Slope; 
-    
-    KalHit hitfit(KalHit::FIT, pfit, covfit);
-    KalHit hitmeas(KalHit::MEAS, pfit, covfit); 
-    
-    KalPlane kp(0,-1,m_energy, x_ini.z(), hitfit, m_axis);
-    kp.setHit(hitmeas);
-    
-    return kp;
-}
-
-void TkrFitTrack::removeStep(int iplane)
-{
-    if (iplane == -1) iplane = numDataPoints()-1;
-    
-    
-    if (iplane == numDataPoints()-1) {
-        kplanelist.pop_back();
-    } else {
-        // WORK : remove the plane k 
-    }  
-    setStatus(EMPTY);
+    double error = 0.;
+    if (m_chisqSmooth == 0) return error;
+    error = sqrt(m_hits[0].getHit(TkrFitHit::SMOOTH).getCov().getcovSySy());
+    return error;
 }

@@ -1,4 +1,5 @@
 #include "src/Track/TkrComboFit.h"
+#include "src/TrackFit/KalFitTrack/KalFitTrack.h"
 #include "TkrRecon/Track/GFcontrol.h"
 
 //
@@ -24,8 +25,11 @@ TkrComboFit::TkrComboFit(ITkrGeometrySvc* pTkrGeo, TkrClusters* pTkrClus, TkrCan
         double energy   = pCand->energy();
                 
 
-        TkrFitTrack* track = new TkrFitTrack(iniLayer, iniTower, GFcontrol::sigmaCut, energy, testRay);                 
-        
+        KalFitTrack* track = new KalFitTrack(iniLayer, iniTower, GFcontrol::sigmaCut, energy, testRay);                 
+
+        track->findHits();
+        track->doFit();
+         
         if (!track->empty()) 
         {
             addTrack(track);

@@ -43,8 +43,8 @@ public:
     int                 getNumTracks() const {return m_Tracks.size();}
 
     //Access to tracks through an iterator
-    TkrVectorPtr        getTrackPtr()        {return m_Tracks.begin();}
-    TkrVectorPtr        getTrackEnd()        {return m_Tracks.end();}
+    TkrFitTrackColPtr   getTrackPtr()        {return m_Tracks.begin();}
+    TkrFitTrackColPtr   getTrackEnd()        {return m_Tracks.end();}
 
     //Access to tracks by index
     TkrFitTrack*        getTrack(int idx)    {return m_Tracks[idx];}
@@ -53,7 +53,7 @@ public:
     void                addTrack(TkrFitTrack* track);
 
 private:
-    TkrVector m_Tracks;
+    TkrFitTrackCol m_Tracks;
 };
 
 #endif
