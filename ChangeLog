@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: lsrea  Sat Oct  6 10:26:03 PDT 2001
+TkrRecon/src GFcandidates.cpp GFgamma.cpp GFparticle.cpp GFsegment.cpp KalFit.cxx RecNtupleAlg.cpp SiClusters.cpp SiClustersAlg.cxx SiRecObjsAlg.cxx
+
+Modified Files:
+	GFcandidates.cpp GFgamma.cpp GFparticle.cpp GFsegment.cpp 
+	KalFit.cxx RecNtupleAlg.cpp SiClusters.cpp SiClustersAlg.cxx 
+	SiRecObjsAlg.cxx 
+Log Message:
+Tracy's upgrade of tracker code... I'll post details when I get them
+
+    *
+------------------------------------------------------------
 User: lsrea  Sat Oct  6 10:26:02 PDT 2001
 TkrRecon/TkrRecon GFcandidates.h GFparticle.h GFsegment.h KalFit.h RecNtupleAlg.h SiRecObjsAlg.h
 
