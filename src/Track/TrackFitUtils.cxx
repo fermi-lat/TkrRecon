@@ -451,10 +451,12 @@ void TrackFitUtils::eneDetermination(TkrKalFitTrack& track)
         double theta = acos(t0t1);
         double rl_factor = radLen;
         
-        eSumCount += 1.; 
-        tSumCount += 1./rl_factor; 
-        eneSum += (theta * e_factor)*(theta * e_factor)/rl_factor; 
-        thetaSum += theta * theta /rl_factor; 
+        if(rl_factor>1.e-4) {
+            eSumCount += 1.; 
+            tSumCount += 1./rl_factor; 
+            eneSum += (theta * e_factor)*(theta * e_factor)/rl_factor; 
+            thetaSum += theta * theta /rl_factor; 
+        }
         
         // Reset for next X,Y measuring plane
         old_Plane_Id = track[iplane].getIDPlane(); 
@@ -488,7 +490,7 @@ void TrackFitUtils::eneDetermination(TkrKalFitTrack& track)
         if(kalEnergy < m_control->getMinEnergy()/3.) kalEnergy = m_control->getMinEnergy()/3.; 
         if(kalEnergy > range_limit) kalEnergy = range_limit;
         kalEneErr = kalEnergy/sqrt(eSumCount);
-        thetaMS   = sqrt(thetaSum/2./tSumCount);
+        thetaMS   = sqrt(thetaSum/2./std::max(1.e-4,tSumCount));
     }
     else
     {
