@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: burnett  Sun Jul 15 17:54:05 PDT 2001
+TkrRecon/src McReconAlg.cxx
+
+Modified Files:
+	McReconAlg.cxx 
+Log Message:
+
+Remove TrkRecon headers (so can now move it!)
+Implement copy of source id to tuple.
+    *
+------------------------------------------------------------
 User: igable  Sun Jul 15 15:13:13 PDT 2001
 TkrRecon/mgr requirements
 
