@@ -21,6 +21,8 @@
 #include "src/Track/TkrControl.h"
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
 #include "TkrRecon/Cluster/TkrQueryClusters.h"
+#include "TkrRecon/ITkrGeometrySvc.h"
+#include "src/Track/TkrControl.h"
 
 using namespace Event;
 
