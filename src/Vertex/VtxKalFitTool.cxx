@@ -1,3 +1,12 @@
+// File and Version Information:
+//      $Header$
+// Description:                                                  
+//      Implementation of the Kalman vertexer
+//
+//
+// Author
+//      Johann Cohen-Tanugi
+
 
 #include "VtxKalFitTool.h"
 #include "GaudiKernel/ToolFactory.h"
@@ -237,7 +246,7 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       HepMatrix Ti = SlopeToDir(Qi,sgn);
       totCovP += CovQQ[i].similarity(Ti);
 
-      //      std::cout<<CovQQ[i]<<Ti<<totCovP<<std::endl;
+            std::cout<<CovQQ[i]<<Ti<<totCovP<<std::endl;
 
       HepSymMatrix Cov_ij(3,0);
       int j;
@@ -259,9 +268,10 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       i++;
     }
 
-  //  log.stream() <<  "totP "   <<totP<<"\n"<<endreq;
-  //  log.stream() <<  "totCovP" <<totCovP<<"\n"<<endreq;
-  //  log.stream() <<  "totCovXP"<<totCovXP<<"\n"<<endreq;
+    log.stream() <<  "totE "   <<totP.magnitude()<<"\n"<<endreq;
+    log.stream() <<  "totP "   <<totP<<"\n"<<endreq;
+    log.stream() <<  "totCovP" <<totCovP<<"\n"<<endreq;
+    log.stream() <<  "totCovXP"<<totCovXP<<"\n"<<endreq;
   
   
 

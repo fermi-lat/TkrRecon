@@ -14,6 +14,7 @@
  * TkrComboVtxRecon.cxx
  *
  * @author Johann Cohen-Tanugi
+ * $Header$
  */
 class VtxSingleTrkTool : public VtxBaseTool
 {
