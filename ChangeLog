@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Fri Jan 10 11:43:26 PST 2003
+TkrRecon/src/TrackFit/KalmanFilter
+
+Modified Files:
+	KalmanFilter.h 
+Log Message:
+Prepare for tag v8r6p1: move TkrGeometrySvc to Tkrutil
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Jan 10 11:43:25 PST 2003
 TkrRecon/src/TrackFit/KalFitTrack
 
