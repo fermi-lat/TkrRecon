@@ -1,8 +1,8 @@
 
-#ifndef __TKRCLUSTERSREP_H
-#define __TKRCLUSTERSREP_H
+#ifndef __TkrClustersRep_H
+#define __TkrClustersRep_H
 
-#include "TkrRecon/Cluster/TkrClusters.h"
+#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 
 #include "gui/DisplayRep.h"

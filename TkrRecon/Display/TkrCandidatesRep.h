@@ -28,7 +28,7 @@ public:
 	void update();
 
 private:
-    void TkrDrawCandidates(TkrCandidates* pTkrCands, TkrPlaneType plane);
+    void TkrDrawCandidates(TkrPatCandCol* pTkrCands, TkrPlaneType plane);
     void drawFullTree(LayerLinkNode* pNode);
     void drawLinkNode(TkrLinkNode* pTkrNode);
 
