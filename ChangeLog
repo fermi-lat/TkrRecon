@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Tue Sep  7 17:35:41 PDT 2004
+TkrRecon/src/Track
+
+Added Files:
+	ITkrAlignHitsTool.h TkrAlignHitsTool.cxx TkrAlignHitsTool.h 
+Log Message:
+these files got lost in the shuffle!
+    *
+------------------------------------------------------------
 User: lsrea  Tue Sep  7 15:15:53 PDT 2004
 TkrRecon/src/TrackFit/KalFitTrack
 
