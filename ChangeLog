@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Tue Aug 20 12:54:31 PDT 2002
+TkrRecon/TkrRecon/GaudiAlg
+
+Modified Files:
+	TkrDisplayAlg.h TkrFindAlg.h TkrReconAlg.h TkrVertexAlg.h 
+Added Files:
+	TkrTrackFitAlg.h 
+Log Message:
+Modifications primarily for using Gaudi Tools to drive reconstruction
+
+    *
+------------------------------------------------------------
 User: usher  Tue Aug 20 12:43:16 PDT 2002
 TkrRecon/src/Track
 
