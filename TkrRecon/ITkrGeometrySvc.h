@@ -5,6 +5,8 @@
 #include "TkrRecon/Services/TkrAxis.h"
 #include "src/Services/TkrDetGeo.h"
 
+#include "CLHEP/Geometry/Point3D.h"
+
 
 #include <string>
 
@@ -72,11 +74,13 @@ public:
     
     // planes and layers differ in the ordering
     virtual int ilayer(int iplane)=0;
+
+	virtual HepPoint3D getStripPosition( int tower, int layer, int view, int stripid) = 0;
     
-    virtual tkrDetGeo getSiLayer(int ilayer, axis a, int tower = 0)=0;
+    //virtual tkrDetGeo getSiLayer(int ilayer, axis a, int tower = 0)=0;
     //virtual tkrDetGeo getPbLayer(int ilayer, int tower = 0)=0;
-    virtual tkrDetGeo getSiLadder(int ilayer, axis a, int iladder, int tower = 0)=0;
-    virtual tkrDetGeo getSiDice(int ilayer, axis a, int iladder, int idice, int tower = 0)=0;
+    //virtual tkrDetGeo getSiLadder(int ilayer, axis a, int iladder, int tower = 0)=0;
+    //virtual tkrDetGeo getSiDice(int ilayer, axis a, int iladder, int idice, int tower = 0)=0;
     
     // geometry related access
     virtual double pbRadLen(int ilayer)=0;

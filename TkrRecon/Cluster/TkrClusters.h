@@ -37,7 +37,7 @@ extern const CLID& CLID_TkrClusters;
 *
 * 3) Where is the separation of data and algorithm, ala Gaudi?
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrClusters.h,v 1.5 2002/02/26 01:50:53 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrClusters.h,v 1.6 2002/02/26 07:09:02 lsrea Exp $
 */
 
 class TkrClusters : public DataObject
@@ -163,7 +163,7 @@ private:
 	
     /// Keep pointer to the bad strip service
     ITkrBadStripsSvc* pBadStrips;
-	
+		
 	// from the geometry service
 	int numViews;
 	// from the geometry service
