@@ -431,7 +431,7 @@ TkrFitPlane KalFitter::projectedKPlane(TkrFitPlane prevKplane, int klayer, doubl
     
     //Now figure out how far to propagate in z
     int old_layer  = prevKplane.getIDPlane();
-    int old_tower  = m_iTower; 
+    //int old_tower  = m_iTower; 
     double old_z   = prevKplane.getZPlane();
     double x_slope = prevKplane.getHit(TkrFitHit::FIT).getPar().getXSlope();
     double y_slope = prevKplane.getHit(TkrFitHit::FIT).getPar().getYSlope();
@@ -865,7 +865,7 @@ int KalFitter::addLeadingHits(int top_layer)
     //Protection
     if((*m_track)[0].getIDPlane() == 0) return added_hit_count;
     
-    int old_tower  = m_iTower; 
+    //int old_tower  = m_iTower; 
     double old_z   = (*m_track)[0].getZPlane();
     
     //Setup backward looking search loop
@@ -1059,7 +1059,7 @@ TkrFitPlane KalFitter::firstKPlane() const
     // Dependencies: None
     // Restrictions and Caveats:  None
     if (m_track->size() == 0) {
-        std::cout << "ERROR KalFitter::thisKPlane " << endreq;
+        std::cout << "ERROR KalFitter::thisKPlane " << std::endl;
         return originalKPlane();
     }
     return m_track->front();
@@ -1127,7 +1127,8 @@ TkrFitPlane KalFitter::originalKPlane() const
     TkrFitHit hitfit(TkrFitHit::FIT, pfit, covfit);
     TkrFitHit hitmeas(TkrFitHit::MEAS, pfit, covfit); 
     
-    TkrFitPlane kp(-1,m_iTower,m_iLayer-1,m_track->getStartEnergy(), x_ini.z(), hitfit, TkrCluster::XY);
+    unsigned int minusOne = static_cast<unsigned int>(-1);
+    TkrFitPlane kp(minusOne,m_iTower,m_iLayer-1,m_track->getStartEnergy(), x_ini.z(), hitfit, TkrCluster::XY);
     kp.setHit(hitmeas);
     
     return kp;

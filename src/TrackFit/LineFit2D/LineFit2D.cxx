@@ -5,11 +5,13 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/LineFit2D.cxx,v 1.1 2004/03/24 00:03:26 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/LineFit2D/LineFit2D.cxx,v 1.1 2004/04/19 23:05:22 usher Exp $
  */
 
 #include "LineFit2D.h"
 
+// to turn on debug variables
+// #define DEBUG
 
 LineFit2D::LineFit2D(std::vector<double> measCoords, std::vector<double> measErrs, std::vector<double> zCoords)
 {
@@ -20,9 +22,11 @@ LineFit2D::LineFit2D(std::vector<double> measCoords, std::vector<double> measErr
 
     for (int idx = 0; idx < numPoints; idx++)
     {
+#ifdef DEBUG
         double z = zCoords[idx];
         double e = measErrs[idx];
         double m = measCoords[idx];
+#endif
 
         A(idx+1,1)        = zCoords[idx];
         A(idx+1,2)        = 1.;

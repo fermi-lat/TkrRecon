@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.18 2003/01/29 23:20:27 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.19 2003/07/18 16:19:39 burnett Exp $
 // Description:                                                  
 //      Implementation of the Kalman vertexer
 //
@@ -284,13 +284,16 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       i++;
     }
 
-    log.stream() <<  "totE "   <<totP.magnitude()<<"\n"<<endreq;
-    log.stream() <<  "totP "   <<totP<<"\n"<<endreq;
-    log.stream() <<  "totCovP" <<totCovP<<"\n"<<endreq;
-    log.stream() <<  "totCovXP"<<totCovXP<<"\n"<<endreq;
+    log << MSG::DEBUG;
+    if (log.isActive()) {
+        log.stream() <<  "totE " << totP.magnitude();
+        log.stream() <<  ", totP " << totP; 
+        log << endreq;
+        log.stream() <<  "totCovP " << totCovP;
+        log.stream() <<  ", totCovXP " << totCovXP;
+    }
+    log << endreq;
   
-  
-
   //********************************
   //Creating the TkrVertex instance:
   //********************************
@@ -410,7 +413,7 @@ HepMatrix VtxKalFitTool::computeMatrixA(const HepVector /*x*/, const HepVector q
   //
   // Restrictions and Caveats: None
   
-  HepMatrix A(5,3,0.);
+  HepMatrix A(5,3,0);
   A(1,1) = 1;
   A(1,3) = -q[0];
   A(3,2) = 1;
@@ -427,7 +430,7 @@ HepMatrix VtxKalFitTool::computeMatrixB(const HepVector x, const HepVector /*q*/
   //
   // Restrictions and Caveats: None
 
-  HepMatrix B(5,3,0.);
+  HepMatrix B(5,3,0);
   B(1,1) = m_Zref - x[2];
   B(2,1) = 1;
   B(3,2) = m_Zref - x[2];

@@ -372,7 +372,7 @@ double KalmanFilter::getError(double strips, double slope) const
     double clusterWidth  = strips*m_tkrGeo->siStripPitch();
     double projectedWidth = fabs(slope)*m_tkrGeo->siThickness();
     int    errorType = m_control->getErrorType();
-    int    nStrips = floor(strips+.01);  // just to be safe
+    int    nStrips = (int) strips+.01;  // just to be safe
 
     if(errorType==0) {
 

@@ -6,7 +6,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/MonteCarloHitEnergy.cxx,v 1.2 2004/06/14 20:45:19 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/MonteCarloHitEnergy.cxx,v 1.3 2004/06/14 23:31:25 usher Exp $
  */
 
 #include "MonteCarloHitEnergy.h"
@@ -97,7 +97,7 @@ double MonteCarloHitEnergy::initialHitEnergy(const Event::TkrPatCand& patCand,
     return energy;
 }
 
-double MonteCarloHitEnergy::updateHitEnergy(const double curEnergy, const double radLen)
+double MonteCarloHitEnergy::updateHitEnergy(const double /*curEnergy*/, const double /*radLen*/)
 {
     double energy = -1.;
     return energy;

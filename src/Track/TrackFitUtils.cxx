@@ -492,7 +492,8 @@ void TrackFitUtils::eneDetermination(TkrKalFitTrack& track)
     }
     else
     {
-        int whoNelly=0;
+        // just a place to set a breakpoint
+        thetaMS = 0.0;
     }
 
     track.setKalThetaMS(thetaMS);
