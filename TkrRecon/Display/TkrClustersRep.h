@@ -24,20 +24,20 @@ class TkrClustersRep : public gui::DisplayRep
 //##########################################################
 {
 public:
-	//! Constructor of this form must be provided
-	TkrClustersRep(IDataProviderSvc* dps);
-	virtual ~TkrClustersRep() {}
+    //! Constructor of this form must be provided
+    TkrClustersRep(IDataProviderSvc* dps);
+    virtual ~TkrClustersRep() {}
 
-	//This function called to do the display
-	void update();
+    //This function called to do the display
+    void update();
 
-	void setTkrGeo(ITkrGeometrySvc * ptr) { pTkrGeo = ptr;}
+    void setTkrGeo(ITkrGeometrySvc * ptr) { pTkrGeo = ptr;}
 
 private:
-	//Here we keep a pointer to the pointer to the cluster data...
+    //Here we keep a pointer to the pointer to the cluster data...
     IDataProviderSvc* dps;
-	
-	ITkrGeometrySvc* pTkrGeo;
+    
+    ITkrGeometrySvc* pTkrGeo;
 };
       
 #endif

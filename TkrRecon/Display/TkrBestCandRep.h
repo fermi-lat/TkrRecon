@@ -21,11 +21,11 @@ class TkrBestCandRep : public gui::DisplayRep
 //##########################################################
 {
 public:
-	//! Constructor of this form must be provided
-	TkrBestCandRep(IDataProviderSvc* dps, ITkrGeometrySvc* pTkrGeo);
-	virtual ~TkrBestCandRep() {}
+    //! Constructor of this form must be provided
+    TkrBestCandRep(IDataProviderSvc* dps, ITkrGeometrySvc* pTkrGeo);
+    virtual ~TkrBestCandRep() {}
 
-	void update();
+    void update();
 
 private:
     void TkrDrawBestCand(TkrPatCandCol* pTkrCands, TkrPlaneType plane);

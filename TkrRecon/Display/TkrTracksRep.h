@@ -20,11 +20,11 @@ class TkrTracksRep : public gui::DisplayRep
 //##########################################################
 {
 public:
-	//! Constructor of this form must be provided
-	TkrTracksRep(IDataProviderSvc* dps);
-	virtual ~TkrTracksRep() {}
+    //! Constructor of this form must be provided
+    TkrTracksRep(IDataProviderSvc* dps);
+    virtual ~TkrTracksRep() {}
 
-	void update();
+    void update();
 
 private:
     void drawChiSq(const Event::TkrFitTrack& track);

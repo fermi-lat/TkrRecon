@@ -11,7 +11,7 @@ using namespace Event;
 TkrTracksRep::TkrTracksRep(IDataProviderSvc* dataProviderSvc)
 //#############################################################################
 {
-	dps = dataProviderSvc;
+    dps = dataProviderSvc;
 }
 //-------------------- private ----------------------
 //##############################################
@@ -20,9 +20,9 @@ void TkrTracksRep::update()
 {
     TkrFitTrackCol* pTracks = SmartDataPtr<TkrFitTrackCol>(dps,EventModel::TkrRecon::TkrFitTrackCol);
 
-	//Now see if we can do the drawing
-	if (pTracks)
-	{
+    //Now see if we can do the drawing
+    if (pTracks)
+    {
         gui::DisplayRep* pDisplay = this;
 
         pDisplay->setColor("blue");
@@ -31,8 +31,8 @@ void TkrTracksRep::update()
 
         if (numTracks > 0) 
         {
-	  //int trkIdx = 0;
-	        TkrFitTrackCol::const_iterator it = pTracks->begin();
+      //int trkIdx = 0;
+            TkrFitTrackCol::const_iterator it = pTracks->begin();
 
             while(it != pTracks->end())
             {
@@ -44,7 +44,7 @@ void TkrTracksRep::update()
                 drawTrack(track);
             }
         }
-	}
+    }
 
     return;
 }
@@ -83,7 +83,7 @@ void TkrTracksRep::drawChiSq(const TkrFitTrack& track)
             xr = x0;
             yl = y0-0.5*delta;
             yr = y0+0.5*delta;
-        }		
+        }       
         pDisplay->moveTo(Point(xl,yl,z0));
         pDisplay->lineTo(Point(xr,yr,z0));
     }
@@ -106,17 +106,17 @@ void TkrTracksRep::drawTrack(const TkrFitTrack& track)
 
         double x0, y0, z0;
 
-		TkrFitHit::TYPE xtyp, ytyp;
-		xtyp = (prj == TkrCluster::X ? typ : fit);
-		ytyp = (prj == TkrCluster::X ? fit : typ);
+        TkrFitHit::TYPE xtyp, ytyp;
+        xtyp = (prj == TkrCluster::X ? typ : fit);
+        ytyp = (prj == TkrCluster::X ? fit : typ);
 
-		// this sets up the track segment to the next plane
+        // this sets up the track segment to the next plane
     
         x0 = plane.getHit(xtyp).getPar().getXPosition();
         y0 = plane.getHit(ytyp).getPar().getYPosition(); 
         z0 = plane.getZPlane();
  
-		double tanx = plane.getHit(typ).getPar().getXSlope();
+        double tanx = plane.getHit(typ).getPar().getXSlope();
         double tany = plane.getHit(typ).getPar().getYSlope();
         
         Point origin(x0,y0,z0);
@@ -127,13 +127,13 @@ void TkrTracksRep::drawTrack(const TkrFitTrack& track)
         double cosz=dir.z();
 
         // this sets up the dotted line from the lower part of the extrapolated track
-		//  to the next hit.
+        //  to the next hit.
 
 
-		prj = plane.getNextProj();
+        prj = plane.getNextProj();
 
-		xtyp = (prj == TkrCluster::X ? typ : fit);
-		ytyp = (prj == TkrCluster::X ? fit : typ);
+        xtyp = (prj == TkrCluster::X ? typ : fit);
+        ytyp = (prj == TkrCluster::X ? fit : typ);
 
         x0 = planeNext.getHit(xtyp).getPar().getXPosition();
         y0 = planeNext.getHit(ytyp).getPar().getYPosition(); 
@@ -141,13 +141,13 @@ void TkrTracksRep::drawTrack(const TkrFitTrack& track)
 
         Point p(x0, y0, z0);
 
-		// do them in this order, so that the connection doesn't cover the track
-		
-		pDisplay->set_line_style(1);
+        // do them in this order, so that the connection doesn't cover the track
+        
+        pDisplay->set_line_style(1);
         pDisplay->moveTo(segment.position(0.8*zstep/cosz));
         pDisplay->lineTo(p); 
 
-		pDisplay->setColor("blue");
+        pDisplay->setColor("blue");
         pDisplay->moveTo(segment.position(0.));
         pDisplay->lineTo(segment.position(zstep/cosz));
     }

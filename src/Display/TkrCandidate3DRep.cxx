@@ -29,13 +29,13 @@ void TkrCandidate3DRep::update()
 {
     Event::TkrPatCandCol* pTkrCandidates = SmartDataPtr<Event::TkrPatCandCol>(dps,EventModel::TkrRecon::TkrPatCandCol);
 
-	//Now see if we can do the drawing
-	if (pTkrCandidates)
-	{
+    //Now see if we can do the drawing
+    if (pTkrCandidates)
+    {
         int numCandTracks = pTkrCandidates->getNumCands();
         int colorIdx      = 0;
 
-	//        gui::DisplayRep* pDisplay = this;
+    //        gui::DisplayRep* pDisplay = this;
 
         while(numCandTracks--)
         {
@@ -48,7 +48,7 @@ void TkrCandidate3DRep::update()
             double zCur      = strtPoint.z() + 100.; //mm
             double zPrev     = strtPoint.z() + 1000.; //mm
 
-	        setColor(p3dColors[colorIdx]);
+            setColor(p3dColors[colorIdx]);
             markerAt(strtPoint);
 
             int                        numHits = pTkrCand->numPatCandHits();
@@ -79,7 +79,7 @@ void TkrCandidate3DRep::update()
             colorIdx = (colorIdx + 1) % 6;
         }
 
-	    setColor("blue");
+        setColor("blue");
     }
 
     return;

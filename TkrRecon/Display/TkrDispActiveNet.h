@@ -10,7 +10,7 @@
 * 
 * @authors b. allgood and w. atwood 
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Display/TkrDispActiveNet.h,v 1.2 2002/05/07 22:44:33 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Display/TkrDispActiveNet.h,v 1.3 2002/05/10 21:53:53 usher Exp $
 */
 
 #ifndef __TKRDISPACTIVENET_H
@@ -28,11 +28,11 @@ class TkrDispActiveNet : public gui::DisplayRep
 {
 public:
 
-	//! Constructor of this form must be provided
-	TkrDispActiveNet(IDataProviderSvc* dps, ITkrGeometrySvc* pTkrGeo);
-	virtual ~TkrDispActiveNet() {}
+    //! Constructor of this form must be provided
+    TkrDispActiveNet(IDataProviderSvc* dps, ITkrGeometrySvc* pTkrGeo);
+    virtual ~TkrDispActiveNet() {}
 
-	void update();
+    void update();
 
 private:
 
