@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Tue Oct 12 12:03:34 PDT 2004
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrClusterAlg.cxx TkrDisplayAlg.cxx 
+Log Message:
+change to m_tkrGeom throughout
+
+    *
+------------------------------------------------------------
+User: lsrea  Tue Oct 12 12:03:34 PDT 2004
 TkrRecon/src/Display
 
 Modified Files:
