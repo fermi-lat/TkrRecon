@@ -1,32 +1,35 @@
 
-#ifndef TkrVertexAlg_H
-#define TkrVertexAlg_H 1
+#ifndef __TKRVERTEXALG_H
+#define __TKRVERTEXALG_H 1
 
 #include "TkrRecon/Vertex/TkrFindVertex.h"
 
 #include "GaudiKernel/Algorithm.h"
 
-//----------------------------------------------
-//
-//   TkrVertexAlg
-//
-//   Algorithm Data constructor of TkrVertexCol
-//----------------------------------------------
-//   Tracy Usher 03/01/02
-//----------------------------------------------
-//##########################################################
+
+/** 
+* @class TkrVertexAlg
+*
+* @brief Algorithm to construct TkrVertexCol and its contents
+*
+* 01-03-2002 
+*
+* Adapted and augmented from vertex finding code in Atwood/Hernando code
+*
+* @author Tracy Usher, Leon Rochester
+*
+* $Header$
+*/
+
+
+
 class TkrVertexAlg : public Algorithm
-//##########################################################
 {
 public:
-    //! Constructor of this form must be provided
     TkrVertexAlg(const std::string& name, ISvcLocator* pSvcLocator); 
     virtual ~TkrVertexAlg() {}
-    //! mandatory
     StatusCode initialize();
-    //! mandatory
     StatusCode execute();
-    //! mandatory
     StatusCode finalize();
     
 private:
@@ -34,4 +37,4 @@ private:
     TkrFindVertex* pFindVertex;
 };
 
-#endif
+#endif // __TKRVERTEXALG_H

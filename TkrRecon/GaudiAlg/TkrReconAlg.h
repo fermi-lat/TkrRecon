@@ -1,14 +1,3 @@
-//-------------------------------------------------------------------
-//
-//     TkrReconAlg:
-//
-//          Steers the Silicon-Tracker Reconstruction    
-//
-//                    Bill Atwood
-//                    B. Atwood, JA Hernando, Santa Cruz, 02/05/99
-//
-//-------------------------------------------------------------------
-
 #ifndef __TKRRECONALG_H
 #define __TKRRECONALG_H 1
 
@@ -20,26 +9,27 @@
 
 #include "GlastSvc/Reco/IKalmanParticle.h"
 
-//----------------------------------------------
-//
-// TkrReconAlg
-//
-// Controls the old style tracking code. Adapted from SiRecObjsAlg
-// originally authored by Jose Hernando.
-//
-// Tracy Usher 11/07/01
-//
-//----------------------------------------------
+/** 
+ * @class TkrReconAlg
+ *
+ * @brief Controls the track fitting
+ * 
+ * 07-Nov-2001
+ * Adapted from SiRecObjsAlg, originally by Bill Atwood and Jose Hernando
+ * 
+ * @author Tracy Usher
+ *
+ * $Header$
+ */
+
 
 class TkrReconAlg : public Algorithm
 {
 public:
-	
-	//! Constructor of this form must be provided
+
 	TkrReconAlg(const std::string& name, ISvcLocator* pSvcLocator); 
 	virtual ~TkrReconAlg() {}
-	
-	// algorimth virtual
+
 	StatusCode initialize();
 	StatusCode execute();
 	StatusCode finalize();
@@ -48,22 +38,19 @@ public:
 	
 private:
 	
-	// clusters information
+	/// clusters information
 	TkrClusters* m_TkrClusters;
 
-    // Fit control information
+    /// Fit control information
     TkrTrackFit* m_TrackFit;
 
-    // Propagator type
+    /// Propagator type, currently RcParticle or G4Propagator
     int    m_PropagatorType;
 
-    // calorimter TDS
-	// m_cal
+	/// Calorimeter estimated energy
 	double m_CsIEnergy;
+	/// Calorimeter estimated position
 	Point  m_CsIPosition;
 };
 
-
-
-
-#endif
+#endif // __TKRRECONALG_H

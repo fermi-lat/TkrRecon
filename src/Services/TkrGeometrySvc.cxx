@@ -3,7 +3,6 @@
 #include "GaudiKernel/SvcFactory.h"
 #include "TkrRecon/Services/TkrGeometrySvc.h"
 
-#include "xml/IFile.h"
 #include "idents/TowerId.h"
 
 #include <iostream>
@@ -19,14 +18,17 @@ const ISvcFactory& TkrGeometrySvcFactory = s_factory;
 TkrGeometrySvc::TkrGeometrySvc(const std::string& name, ISvcLocator* pSvcLocator) :
 Service(name, pSvcLocator)
 {   
-    declareProperty("reverseY", m_reverseY = false);
+    // flag for kludge to reverse local y-coordinate
+	declareProperty("reverseY", m_reverseY = false);
 
 	return;	
 }
 
 StatusCode TkrGeometrySvc::initialize()
 {
-    StatusCode sc = StatusCode::SUCCESS;
+    // Purpose: load up constants from GlastDetSvc
+	
+	StatusCode sc = StatusCode::SUCCESS;
     
     Service::initialize();
     setProperties();
@@ -120,27 +122,10 @@ StatusCode TkrGeometrySvc::initialize()
 		double trayPitch = z1 - z2;
 		if (trayPitch<m_trayHeight) { m_trayHeight = trayPitch;}
 		
-		std::cout << "layer " << ilayer << " z1/2 " 
-		       << z1 <<" "<< z2 <<" trayPitch " << trayPitch << std::endl;
-		/*		
-		double x1 = (T1.getTranslation()).x();
-		HepDouble angle;
-		Hep3Vector axis;
-		(T1.getRotation()).getAngleAxis( angle, axis);
-
-		idents::VolumeIdentifier volId3;
-		HepTransform3D T3;
-		volId3.init();
-		volId3.append(m_volId_tower[0]);
-		volId3.append(m_volId_layer[ilayer-1][1-layer%2]);
-		p_GlastDetSvc->getTransform3DByID(volId3, &T3);
-		(T3.getRotation()).getAngleAxis( angle, axis);
-		std::cout << " angle " << angle << " axis " << axis.x() << " " << axis.y() << " " << axis.z << std::endl;
-        */
+		//std::cout << "layer " << ilayer << " z1/2 " 
+		//       << z1 <<" "<< z2 <<" trayPitch " << trayPitch << std::endl;
 	}
-	
-    
-    return sc;
+	return sc;
 }
 
 StatusCode TkrGeometrySvc::finalize()
@@ -150,6 +135,10 @@ StatusCode TkrGeometrySvc::finalize()
 
 HepPoint3D TkrGeometrySvc::getDoubleStripPosition(int tower, int layer, int view, double stripid)
 {
+	// Purpose: return the global position of a strip (can be fractional)
+	// Input:   tower, layer, view, and strip no
+	// Output:  a position
+
 	MsgStream log(msgSvc(), name());
 	
 	HepTransform3D volTransform;
@@ -168,15 +157,18 @@ HepPoint3D TkrGeometrySvc::getDoubleStripPosition(int tower, int layer, int view
 
 HepPoint3D TkrGeometrySvc::getStripPosition(int tower, int layer, int view, int stripid)
 {
+	// Purpose: return the global position given an integer strip number
+	// Method:  interface to getDoubleStripPosition() above
+
 	double strip = stripid;
 	return getDoubleStripPosition(tower, layer, view, strip);
 }
 
 void TkrGeometrySvc::trayToLayer(int tray, int botTop, int& layer, int& view)
 {
-	// Calculate layer and view from tray and botTop
-	// Strictly speaking, this isn't allowed, but I have 
-	// permission from Joanne...
+	// Purpose: calculate layer and view from tray and botTop
+	// Method: use knowledge of the structure of the Tracker
+	
 	int plane = 2*tray + botTop - 1;
 	layer = plane/2;
 	view = ((layer%2==0) ? botTop : (1 - botTop));
@@ -185,9 +177,8 @@ void TkrGeometrySvc::trayToLayer(int tray, int botTop, int& layer, int& view)
 
 void TkrGeometrySvc::layerToTray(int layer, int view, int& tray, int& botTop) 
 {	
-	// Calculate tray and botTop from layer and view.
-	// Strictly speaking, this isn't allowed, but I have 
-	// permission from Joanne...
+	// Purpose: calculate tray and botTop from layer and view.
+	// Method:  use knowledge of the structure of the Tracker
 	
     int plane = (2*layer) + (((layer % 2) == 0) ? (1 - view) : (view));
 	tray = (plane+1)/2;

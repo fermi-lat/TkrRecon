@@ -1,13 +1,14 @@
-//-------------------------------------------------------------------
+// File and Version Information:
+//      $Header$
 //
-//     TkrReconAlg:
+// Description:
+//      Controls the track fitting
 //
-//	    Steers the Silicon-Tracker Reconstruction	
+// Adapted from SiRecObjsAlg by Bill Atwood and Jose Hernando (05-Feb-1999)
 //
-//		      Bill Atwood
-//		      B. Atwood, JA Hernando, Santa Cruz, 02/05/99
-//
-//-------------------------------------------------------------------
+// Author:
+//      Tracy Usher       
+
 
 #include <vector>
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
@@ -31,30 +32,23 @@
 static const AlgFactory<TkrReconAlg>  Factory;
 const IAlgFactory& TkrReconAlgFactory = Factory;
 
-//------------------------------------------------------------------------------
-/// Algorithm parameters which can be set at run time must be declared.
-/// This should be done in the constructor.
 
 IKalmanParticle* TkrReconAlg::m_KalParticle = 0;
 
-//#############################################################################
 TkrReconAlg::TkrReconAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator) 
-//#############################################################################
 {
-    //Variable to switch propagators
+    // Variable to switch propagators
     declareProperty("PropagatorType", m_PropagatorType=0);
 }
 
-//###################################################
 StatusCode TkrReconAlg::initialize()
-//###################################################
 {
     MsgStream log(msgSvc(), name());
 
 	log << MSG::INFO << "TkrReconAlg Initialization" << endreq;
 
-    //Initialization service
+    // Initialization service
     TkrInitSvc* pTkrInitSvc = 0;
     StatusCode  sc          = service("TkrInitSvc", pTkrInitSvc);
 
@@ -76,7 +70,7 @@ StatusCode TkrReconAlg::initialize()
 	    log << MSG::INFO << "Using Gismo Particle Propagator" << endreq;
     }
 
-    //Track fit information
+    // Track fit information
     m_TrackFit = pTkrInitSvc->setTrackFit();
 
 	m_TkrClusters = 0;
@@ -84,37 +78,35 @@ StatusCode TkrReconAlg::initialize()
 	return sc;
 }
 
-//###################################################
 StatusCode TkrReconAlg::execute()
-//###################################################
 {
     MsgStream log(msgSvc(), name());
     StatusCode sc = StatusCode::SUCCESS;
 
 	log << MSG::DEBUG << "------- Recon of new Event --------" << endreq;
 
-    //Recover pointer to the reconstructed clusters
+    // Recover pointer to the reconstructed clusters
     m_TkrClusters = SmartDataPtr<TkrClusters>(eventSvc(),"/Event/TkrRecon/TkrClusters"); 
 
-    //Find the patter recon tracks
+    // Find the patter recon tracks
     TkrCandidates* pTkrCands = SmartDataPtr<TkrCandidates>(eventSvc(),"/Event/TkrRecon/TkrCandidates");
 
-    //Recover pointer to Cal Cluster info    
+    // Recover pointer to Cal Cluster info    
     ICsIClusterList* pCalClusters = SmartDataPtr<ICsIClusterList>(eventSvc(),"/Event/CalRecon/CsIClusterList");
 
     double minEnergy = GFcontrol::minEnergy;
 	double CalEnergy   = minEnergy;
     Point  CalPosition = Point(0.,0.,0.);
 
-    //If clusters, then retrieve estimate for the energy
+    // If clusters, then retrieve estimate for the energy
     if (pCalClusters)
     {
         ICsICluster* pCalClus = pCalClusters->Cluster(0);
-        CalEnergy             = pCalClus->energySum() / 1000; //GeV for now
+        CalEnergy             = pCalClus->energySum() / 1000; //GeV for now 
         CalPosition           = pCalClus->position();
     }
 
-    //Provide for some lower cutoff energy...
+    // Provide for some lower cutoff energy...
     if (CalEnergy < minEnergy)
     {
         //! for the moment use:
@@ -122,7 +114,7 @@ StatusCode TkrReconAlg::execute()
         CalPosition   = Point(0.,0.,0.);
     }
 
-    //Reconstruct the pattern recognized tracks
+    // Reconstruct the pattern recognized tracks
     TkrTracks* tracks = m_TrackFit->doTrackFit(m_TkrClusters, pTkrCands, CalEnergy);
 
     sc = eventSvc()->registerObject("/Event/TkrRecon/TkrTracks", tracks);
@@ -132,11 +124,8 @@ StatusCode TkrReconAlg::execute()
 	return sc;
 }
 
-//##############################################
 StatusCode TkrReconAlg::finalize()
-//##############################################
-{
-	//	
+{	
 	return StatusCode::SUCCESS;
 }
 

@@ -25,15 +25,10 @@
 static const SvcFactory<TkrInitSvc> s_factory;
 const ISvcFactory& TkrInitSvcFactory = s_factory;
 
-
-//------------------------------------------------------------------------------
-/// Service parameters which can be set at run time must be declared.
-/// This should be done in the constructor.
-
 TkrInitSvc::TkrInitSvc(const std::string& name, ISvcLocator* pSvcLocator) :
 Service(name, pSvcLocator)
 {
-    //Name of the xml file to get data from
+    // Type of patrec required
     declareProperty("TrackerReconType", m_TrackerReconType=0);
     
     return;	

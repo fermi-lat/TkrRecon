@@ -1,3 +1,14 @@
+// File and Version Information:
+//      $Header$
+//
+// Description:
+//      Handles the Gaudi part of the vertex reconstruction
+//
+//      Adapted and augmented from code by Atwood/Hernando
+//
+// Author
+//      Tracy Usher        
+
 
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/AlgFactory.h"
@@ -18,11 +29,6 @@
 
 static const AlgFactory<TkrVertexAlg>  Factory;
 const IAlgFactory& TkrVertexAlgFactory = Factory;
-
-//------------------------------------------------------------------------------
-/// Algorithm parameters which can be set at run time must be declared.
-/// This should be done in the constructor.
-    
 
 TkrVertexAlg::TkrVertexAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator)  
@@ -58,10 +64,10 @@ StatusCode TkrVertexAlg::execute()
     
     MsgStream log(msgSvc(), name());
 
-    //Find the patter recon tracks
+    //Find the pattern recon tracks
     TkrCandidates* pTkrCands  = SmartDataPtr<TkrCandidates>(eventSvc(),"/Event/TkrRecon/TkrCandidates");
 
-    //Find the patter recon tracks
+    //Find the pattern recon tracks
     TkrTracks*     pTkrTracks = SmartDataPtr<TkrTracks>(eventSvc(),"/Event/TkrRecon/TkrTracks");
 
     //Create the TkrCandidates TDS object

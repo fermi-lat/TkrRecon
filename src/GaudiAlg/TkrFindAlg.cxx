@@ -17,22 +17,17 @@
 #include "TkrRecon/Services/TkrInitSvc.h"
 #include "TkrRecon/Cluster/TkrClusters.h"
 #include "TkrRecon/Track/GFcontrol.h"
+
 //#include "src/PatRec/LinkAndTree/TkrLinkAndTreePR.h"
 //#include "src/PatRec/Combo/TkrComboPR.h"
 
 static const AlgFactory<TkrFindAlg>  Factory;
 const IAlgFactory& TkrFindAlgFactory = Factory;
 
-//------------------------------------------------------------------------------
-/// Algorithm parameters which can be set at run time must be declared.
-/// This should be done in the constructor.
-    
-
 TkrFindAlg::TkrFindAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator)  
 { 
 }
-
 
 StatusCode TkrFindAlg::initialize()
 {
