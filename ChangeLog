@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: als  Thu Mar 13 14:18:15 PST 2003
+TkrRecon/src/Track
+
+Modified Files:
+	TkrNeuralNetFitTool.h 
+Log Message:
+fix case on "ItkrFailureModeSvc.h" include
+
+    *
+------------------------------------------------------------
 User: lsrea  Thu Mar 13 12:04:12 PST 2003
 TkrRecon/doc
 
