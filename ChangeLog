@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Sat Aug 31 14:30:50 PDT 2002
+TkrRecon/TkrRecon/Services
+
+Modified Files:
+	TkrBadStripsSvc.h TkrGeometrySvc.h TkrGeometryVisitor.h 
+Log Message:
+fixing up documentation
+
+    *
+------------------------------------------------------------
 User: lsrea  Sat Aug 31 14:30:49 PDT 2002
 TkrRecon/TkrRecon/GaudiAlg
 
