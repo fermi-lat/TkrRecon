@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: atwood  Tue Nov 23 11:23:17 PST 2004
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx KalmanTrackFitTool.cxx 
+Log Message:
+This is the first version with a full set of TkrTrack status bits. 
+
+    *
+------------------------------------------------------------
 User: atwood  Tue Nov 23 11:23:16 PST 2004
 TkrRecon/src/PatRec/MonteCarlo
 
