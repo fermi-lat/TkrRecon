@@ -28,7 +28,7 @@ apply_pattern package_Cshlibflags
 apply_pattern package_headers
 
 macro_append TkrCluster_headers   "" WIN32 " ../TkrRecon/Cluster/*.h"
-macro_append TkrPatRec_headers    "" WIN32 " ../TkrRecon/PatRec/*.h ../src/PatRec/LinkAndTree/*.h ../src/PatRec/Combo/*.h"
+macro_append TkrPatRec_headers    "" WIN32 " ../TkrRecon/PatRec/*.h ../src/PatRec/LinkAndTree/*.h ../src/PatRec/Combo/*.h ../src/PatRec/NeuralNet/*.h"
 macro_append TkrTrack_headers     "" WIN32 " ../TkrRecon/Track/*.h ../TkrRecon/TrackFit/*.h"
 macro_append TkrVertex_headers    "" WIN32 " ../TkrRecon/Vertex/*.h ../src/Vertex/Combo/*.h"
 macro_append TkrGaudiAlgs_headers "" WIN32 " ../TkrRecon/GaudiAlg/*.h ../TkrRecon/Display/*.h ../TkrRecon/Services/*.h "
@@ -47,6 +47,7 @@ library TkrGaudiAlgs -no_share GaudiAlg/*.cxx                  \
 library TkrPatRec    -no_share PatRec/*.cxx                    \
                                PatRec/LinkAndTree/*.cxx        \
                                PatRec/Combo/*.cxx              \
+                               PatRec/NeuralNet/*.cxx          \
                                ${TkrPatRec_headers}
 
 library TkrTrack     -no_share Track/*.cxx                     \
