@@ -27,7 +27,7 @@ library TkrRecon  *.cpp *.cxx Dll/*.cpp ${TkrRecon_headers}
 
 # have a seperate library to export the tracker recon data classes 
 
-library TkrReconData -no_share GFgamma.cpp GFdata.cxx GFparticle.cpp GFcontrol.cpp GFsegment.cpp SiRecObjs.cpp KalFit.cxx
+library TkrReconData -no_share GFgamma.cpp GFdata.cxx GFparticle.cpp GFcontrol.cpp GFsegment.cpp SiRecObjs.cpp SiClusters.cpp KalFit.cxx
 
 
 # build this for testing
