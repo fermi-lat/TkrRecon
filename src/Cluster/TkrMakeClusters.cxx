@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.14 2002/09/18 23:41:01 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.15 2002/10/08 22:30:17 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, 
@@ -46,6 +46,7 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
         int view       =  pDigi->getView();
         int tower      = (pDigi->getTower()).id();
                
+        // debug: std::cout << "digi t/l/v " << tower << " " << digiLayer << " " << view << std::endl;
         // copy the hits, and make them into TaggedStrips
         
         int nHits = pDigi->getNumHits();
@@ -85,19 +86,25 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
         // Keep track of bad strips.
         // Loop over all hits, except the sentinel, which is there 
         // to provide a gap
-        
-        for( stripCol_it it = mergedHits.begin(); it!=mergedHits.end(); ) {
+
+        // don't let the loop go to the end... the code looks one ahead!
+        stripCol_it itLast = mergedHits.end();
+        itLast--;
+        for( stripCol_it it = mergedHits.begin(); it!=itLast; ) {
             if(nextStrip.isTaggedBad()) nBad++;
             // here we get the next hit, and increment the iterator
             // at the same time!
+            // debug: std::cout << "this pointer " << it <<" next " << it+1 << " end " << mergedHits.end() << std::endl;
             nextStrip = *(++it);
+            // debug: std::cout << " got past next!" << std::endl;
             
             //If we have a gap, then make a cluster
             if (isGapBetween(highStrip, nextStrip)) {
                 // there's a gap... see if the current cluster is good...
-				    //std::cout << std::endl << "Test Cluster: " << lowStrip.getStripNumber() << " "
+				    // debug: std::cout << std::endl << "Test Cluster: " << lowStrip.getStripNumber() << " "
                     //       << highStrip.getStripNumber() << " " << nBad ;
                 if (kept = isGoodCluster(lowStrip, highStrip, nBad)) {
+                    // debug: std::cout << "good!" << std::endl;
                     // it's good... make a new cluster
                     int layer = m_pTkrGeo->reverseLayerNumber(digiLayer);
                     int strip0 = lowStrip.getStripNumber();
@@ -109,11 +116,11 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
                         pos, pDigi->getToTForStrip(stripf), tower);
                     pClus->addCluster(cl);
                     nclusters++;   
-                           // std::cout << " good..." ;
                 } 
                 lowStrip = nextStrip;  // start a new cluster with this strip
                 nBad = 0;
             }
+            // debug: std::cout << "on to next strip..." << std::endl;
             highStrip = nextStrip; // add strip to this cluster
         }
     }
