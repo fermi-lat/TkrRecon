@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sun Oct  3 10:10:13 PDT 2004
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Don't reference a specific version of Event for now
+    *
+------------------------------------------------------------
 User: usher  Fri Oct  1 14:07:40 PDT 2004
 TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy
 
