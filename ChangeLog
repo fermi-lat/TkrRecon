@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: igable  Thu Jul 12 16:28:12 PDT 2001
+TkrRecon/src McReconAlg.cxx
+
+Modified Files:
+	McReconAlg.cxx 
+Log Message:
+Fix capitalization
+    *
+------------------------------------------------------------
 User: lsrea  Fri Jul  6 12:14:08 PDT 2001
 TkrRecon/src TkrBadStripsSvc.cxx
 
