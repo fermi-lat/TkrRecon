@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.3 2003/04/30 00:42:20 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.4 2003/08/09 15:36:23 lsrea Exp $
  */
 #include "src/Track/TkrTrackEnergyTool.h"
 
@@ -139,28 +139,30 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies(double totalEnergy)
             e2 = std::max(e2, e2_min); 
             double de1 = firstCandTrk->getEnergyErr();
             double de2 = secndCandTrk->getEnergyErr();
+            double w1  = (e1/de1)*(e1/de1); //Just the number of kinks contributing
+            double w2  = (e2/de2)*(e2/de2);
 
             // Trap short-straight track events - no info.in KalEnergies
-            double x1, x2;
             double e1_con, e2_con;
             if(num_hits1 < 8 && num_hits2 < 8 && e1 > 80. && e2 > 80.) {
-                e1_con = e2_con = .5*ene_total; // 50:50 split
+                e1_con = .75*ene_total; 
+                e2_con = .25*ene_total; // 75:25 split
             }
-            else { // Compute spliting to min. Chi_Sq.  
-                double detot = ene_total - (e1+e2);
-                x1 = detot*de1/(de1*de1+de2*de2);
-                x2 = detot*de2/(de1*de1+de2*de2);
-                e1_con = e1 + x1*de1;
-                e2_con = e2 + x2*de2;
+            else { // Compute spliting to min. Chi_Sq. and constrain to ~ QED pair energy
+                double logETotal = log(ene_total)/2.306; 
+                double eQED = ene_total*(.72+.04*(std::min((logETotal-2.),2.))); //Empirical - from observation
+                double wQED = 10.*logETotal*logETotal;//Strong constrain as Kal. energies get bad with large E
+                e1_con = e1 - ((e1+e2-ene_total)*w2 + (e1-eQED)*wQED)/(w1+w2+wQED); 
+                if(e1_con < .5*ene_total)  e1_con = .5*ene_total; 
+                if(e1_con > .98*ene_total) e1_con = .98*ene_total; 
+                e2_con = ene_total - e1_con;
             }
 
             if(e1_con < e1_min) {// Don't let energies get too small
                 e1_con = e1_min; 
-                e2_con = ene_total - e1_con;
             }
-            else if(e2_con < e2_min) {
+            if(e2_con < e2_min) {
                 e2_con = e2_min; 
-                e1_con = ene_total - e2_con;
             }
             // Set the energies 
             //m_candidates[0]->setConEnergy(e1_con);
