@@ -16,7 +16,7 @@
         Note that the text in the item field cannot have direct ampersands of brackets!
   -->
 
-<TkrGeometry cvs_Header="$Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/xml/Tkr_TestBeam.xml,v 1.1 2001/04/02 23:30:06 usher Exp $" cvs_Revision="$Revision: 1.1 $">
+<TkrGeometry cvs_Header="$Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/xml/Tkr_Balloon.xml,v 1.2 2001/05/02 18:18:43 lsrea Exp $" cvs_Revision="$Revision: 1.2 $">
 
     <section name="tkr"> TKR properties
         <item name="numXtowers"      value="1">       Number of towers in X direction </item>
@@ -32,7 +32,8 @@
         <item name="Z0"              value="0">       Z coordinate at the center of the lowest Si layer</item>
         <item name="towerPitch"      value="0.0">     Tower pitch </item>
         <item name="trayWidth"       value="32.08">   Width of a tray </item>
-        <item name="trayHeight"      value="3.2066"> Height of one tray </item>
+        <item name="trayHeight"      value="3.2066">  Height of one tray </item>
+        <item name="footHeight"      value="0.0">     Height of foot under bottom tray </item>
         <item name="ladderWidth"     value="6.4">     Width of one ladder </item>
         <!--    Below uses the value for the 5-wafer ladder -->
         <item name="ladderLength"    value="32.012">  Length of one ladder </item>

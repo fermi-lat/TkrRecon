@@ -178,7 +178,7 @@ Point SiClustersAlg::position(int iplane, SiCluster::view v, double strip, int t
         Dstrip = ladder.position().y()-ladder.size().y();
     
     Dstrip += pTrackerGeo->siDeadDistance();
-    Dstrip += stripInLadder*pTrackerGeo->siStripPitch();
+    Dstrip += (stripInLadder+0.5)*pTrackerGeo->siStripPitch();
     
     Point P = ladder.position();
     double x = P.x();

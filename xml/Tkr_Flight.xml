@@ -16,7 +16,7 @@
         Note that the text in the item field cannot have direct ampersands of brackets!
   -->
 
-<TkrGeometry cvs_Header="$Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/xml/Tkr_Flight.xml,v 1.3 2001/05/11 00:14:47 lsrea Exp $" cvs_Revision="$Revision: 1.3 $">
+<TkrGeometry cvs_Header="$Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/xml/Tkr_Flight.xml,v 1.4 2001/05/11 20:33:55 lsrea Exp $" cvs_Revision="$Revision: 1.4 $">
 
     <section name="tkr"> TKR properties
         <item name="numXtowers"      value="4">       Number of towers in X direction </item>
@@ -28,15 +28,18 @@
 		<item name="nPbLayers"       value="16">      Number of layers with converter (obsolete) </item>
 		<item name="nSuperGLayers"   value="4">       Number of layers with thick converter (obsolete) </item>
         -->
-
-		<item name="Z0"              value="-6.64">   Z coordinate at the center of the lowest Si layer</item>
+        <!-- gismo code currently sets z0 at the bottom of the silicon layer in the 3rd tray.
+		 For this definition, z0 = -(2*tray_spacing + si_thickenss/2 + 0.2)
+		-->
+		<item name="Z0"              value="-6.7004">   Z coordinate at the center of the lowest Si layer</item>
 		<item name="towerPitch"      value="37.35">   Tower pitch </item>
 		<item name="trayWidth"       value="35.86">   Width of a tray </item>
         <!-- we will use an average tray height to make life easier for glastsim 
                  this was my calulation, but lets use 3.2 to agree with gismo.
 		        <item name="trayHeight"      value="3.2412">  Height of one tray </item>
                  -->
-		<item name="trayHeight"      value="3.2">     Height of one tray </item>
+		<item name="trayHeight"      value="3.2402">  Height of one tray </item>
+        <item name="footHeight"      value="0.5125">  Height of foot under bottom tray </item>
 		<item name="ladderWidth"     value="8.95">    Width of one ladder </item>
 		<item name="ladderLength"    value="35.8075"> Length of one ladder </item>
 		<item name="ladderGap"       value="0.020">   Gap between adjacent ladders </item>
@@ -57,14 +60,14 @@
 		<item name="layerType"       value="{1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0}"> 0 -> X-Y, 1 -> Y-X </item>
                 <item name="nLadders"        value="{4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4}"> number of ladders vs layer </item>
 		<item name="iZGap"           value="{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}"> index of x-y gap size vs layer </item>
-		<item name="zGap"            value="{0.200}"> values of x-y gap size </item>
+		<item name="zGap"            value="{0.240}"> values of x-y gap size </item>
 
         <item name="iRadThickness"   value="{0,0,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1}"> index of radiator thkness vs layer </item>
         <item name="radThickness"    value="{0.0, 0.0105, 0.0630}"> radiator thicknesses </item>
 
 		<item name="iXSize"          value="{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}"> index of die size for X layers </item>
 		<item name="iYSize"          value="{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}"> index of die size for Y layers </item>
-		<item name="dieSize"         value="{6.xxx}"> values of the die size </item>
+		<item name="dieSize"         value="{8.95}"> values of the die size </item>
 		<item name="nDies"           value="{4}">     number of dies/ladder for each size </item>
 
 		<!-- all this next for the mixed layer (but not relevant for flight instrument -->

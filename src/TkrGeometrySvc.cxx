@@ -55,6 +55,7 @@ StatusCode TkrGeometrySvc::initialize()
         m_towerPitch      = xmlFile.getDouble("tkr", "towerPitch");
         m_trayWidth       = xmlFile.getDouble("tkr", "trayWidth");
         m_trayHeight      = xmlFile.getDouble("tkr", "trayHeight");
+        m_footHeight      = xmlFile.getDouble("tkr", "footHeight");
         
         m_ladderWidth     = xmlFile.getDouble("tkr", "ladderWidth");
         m_ladderLength    = xmlFile.getDouble("tkr", "ladderLength");

@@ -58,6 +58,7 @@ public:
     double towerPitch()      {return m_towerPitch;}
     double trayWidth()       {return m_trayWidth;}
     double trayHeight()      {return m_trayHeight;}
+    double footHeight()      {return m_footHeight;}
     
     double ladderWidth()     {return m_ladderWidth;}
     double ladderLength()    {return m_ladderLength;}
@@ -123,6 +124,7 @@ private:
     double m_towerPitch;    // Distance between centers of adjacent towers
     double m_trayWidth;
     double m_trayHeight;    // from top of one tray to the next (actually pitch)
+    double m_footHeight;     // Height of foot under bottom tray
     
     double m_ladderWidth;
     double m_ladderLength;
