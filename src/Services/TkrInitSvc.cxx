@@ -3,6 +3,7 @@
 #include "GaudiKernel/SvcFactory.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
 
+#include "src/PatRec/NeuralNet/TkrNeuralNetPR.h"
 #include "src/PatRec/LinkAndTree/TkrLinkAndTreePR.h"
 #include "src/PatRec/Combo/TkrComboPR.h"
 
@@ -10,6 +11,11 @@
 #include "TkrRecon/Display/TkrBestCandRep.h"
 #include "TkrRecon/Display/TkrCandidate3DRep.h"
 
+// Display stuff for NeuralNet PatRec Alg
+#include "TkrRecon/Display/TkrDispCompleteNet.h"
+#include "TkrRecon/Display/TkrDispActiveNet.h"
+
+#include "src/Track/TkrNeuralNetTrackFit.h"
 #include "src/Track/TkrLinkAndTreeTrackFit.h"
 #include "src/Track/TkrComboTrackFit.h"
 
@@ -77,6 +83,7 @@ TkrPatRecon* TkrInitSvc::setPatRecon()
 
     if      (m_TrackerReconType == 0) pRecon = new TkrLinkAndTreePR(pTkrGeo);
     else if (m_TrackerReconType == 1) pRecon = new TkrComboPR(pTkrGeo);
+	else if (m_TrackerReconType == 2) pRecon = new TkrNeuralNetPR(pTkrGeo);
 
     return pRecon;
 }
@@ -96,6 +103,19 @@ void TkrInitSvc::setDisplayRtns(gui::DisplayControl& display, IDataProviderSvc* 
 		//Set up the display rep for the reconstructed objects
 		display.add(new TkrCandidate3DRep(dps, pTkrGeo), "PatRec: 3D Cands");
     }
+	//TkrCombo display routines
+	else if (m_TrackerReconType == 1)
+	{
+	}
+	//Neural Net display routines
+	else if (m_TrackerReconType == 2)
+	{
+		//Set up the display rep for the complete Neural Network
+		display.add(new TkrDispCompleteNet(dps, pTkrGeo), "PatRec: Complete NN");
+
+		display.add(new TkrDispActiveNet(dps, pTkrGeo), "PatRec: Active NN");
+
+	}
 
     //Vertex display routines
     display.add(new TkrComboVtxRep(dps, pTkrGeo), "Gamma Vertex");
@@ -110,6 +130,7 @@ TkrTrackFit* TkrInitSvc::setTrackFit()
 
     if      (m_TrackerReconType == 0) pTrackFit = new TkrLinkAndTreeTrackFit(pTkrGeo);
     else if (m_TrackerReconType == 1) pTrackFit = new TkrComboTrackFit(pTkrGeo);
+	else if (m_TrackerReconType == 2) pTrackFit = new TkrNeuralNetTrackFit(pTkrGeo);
 
     return pTrackFit;
 }
