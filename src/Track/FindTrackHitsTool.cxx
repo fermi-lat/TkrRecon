@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.16 2004/12/17 23:24:04 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.17 2004/12/21 00:10:16 usher Exp $
  */
 
 // to turn one debug variables
@@ -658,7 +658,6 @@ int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
 		// If this is the second plane, it must have a valid cluster
 		if(planes_crossed > 1 && !trackHit->validCluster()) break;
 	
-		lastHit = trackHit;
 		trackHit->setEnergy(cur_energy);
 
         // Fill in a temporary filter parameter set
@@ -669,25 +668,84 @@ int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
 		Event::TkrTrackParams& filter_params = trackHit->getTrackParams(Event::TkrTrackHit::FILTERED);
 		filter_params = next_params;
 		trackHit->setStatusBit(Event::TkrTrackHit::HASFILTERED);
+		Event::TkrTrackParams& predParams = trackHit->getTrackParams(Event::TkrTrackHit::PREDICTED);
+		predParams = next_params;
+		trackHit->setStatusBit(Event::TkrTrackHit::HASPREDICTED);
+
+        // Set the filtered and predicted hits
+        //m_tkrFitTool->doFilterStep(*lastHit, *trackHit);
 
         // Add this to the head of the track
 		added_hits++;
 		track->insert(track->begin(), trackHit);
+
 		// and update the track initial position
-		Point start_pos = m_propagatorTool->getPosition(arc_len);
-		track->setInitialPosition(start_pos);
+		//Point start_pos = m_propagatorTool->getPosition(arc_len);
+		//track->setInitialPosition(start_pos);
+
+        // Update the last hit
+        lastHit = trackHit;
 
 		// Limited the number of leading hits to 2 or less
 		if(planes_crossed == 2) break;
 	}
 
-    // Trap the case where the first added plane didn't have a SSD Cluster
-	lastHit = (*track)[0];
-	if(!lastHit->validCluster()) {
-		added_hits--;
-        track->erase(track->begin());
-		track->setInitialPosition(initial_pos);
-	}
+    if (added_hits > 0)
+    {
+        // Trap the case where the first added plane didn't have a SSD Cluster
+        // By definition, the first hit on a track has a valid SSD cluster, this
+        // loop will terminate automaticaly when it reaches the first hit before
+        // hit adding started, if all the hits that were added had no cluster
+        while(!lastHit->validCluster())
+        {
+            added_hits--;
+            track->erase(track->begin());
+            track->setInitialPosition(initial_pos);   //Should this be something else?
+
+            // Update to the new last added hit
+            lastHit = (*track)[0];
+        }
+
+        // Set the predicted and filtered error matrix for the first hit, if there is still an 
+        // added leading hit
+        if (added_hits > 0)
+        {
+            // The following was stolen for set first hit method. Should be done better?
+            int    measIdx   = lastHit->getParamIndex(Event::TkrTrackHit::SSDMEASURED,    Event::TkrTrackParams::Position);
+            int    nonmIdx   = lastHit->getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Position);
+            double sigma     = m_tkrGeom->siResolution();
+            double sigma_alt = m_tkrGeom->trayWidth()/sqrt(12.);
+
+	        // Now do the same for the FILTERED params
+            Event::TkrTrackParams& filtPar = lastHit->getTrackParams(Event::TkrTrackHit::FILTERED);
+
+            // Set the initial measured coordinate (important for chi-square...)
+            filtPar(measIdx) = lastHit->getMeasuredPosition(Event::TkrTrackHit::MEASURED);
+
+	        // Make the cov. matrix from the hit position & set the slope elements
+	        // using the control parameters
+	        filtPar(measIdx,measIdx) = sigma * sigma;
+            filtPar(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
+	        filtPar(2,2) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
+            filtPar(4,4) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
+
+            filtPar(1,2) = 0.;
+            filtPar(1,3) = 0.;
+            filtPar(1,4) = 0.;
+            filtPar(2,3) = 0.;
+            filtPar(2,4) = 0.;
+            filtPar(3,4) = 0.;
+
+	        // And now do the same for the PREDICTED params
+            Event::TkrTrackParams& predPar = lastHit->getTrackParams(Event::TkrTrackHit::PREDICTED);
+            predPar = filtPar;
+
+            // Finally, reset the initial position of the track
+            track->setInitialPosition(lastHit->getPoint(Event::TkrTrackHit::FILTERED));
+        }
+    }
+
+
 	// Restore search cut
 	m_sigma = sigma_temp; 
 	
