@@ -19,6 +19,7 @@
  * 
  *
  * @author Johann Cohen-Tanugi
+ * $Header$
  */
 class VtxKalFitTool : public VtxBaseTool
 {

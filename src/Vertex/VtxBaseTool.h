@@ -10,6 +10,7 @@
  * @class VtxBaseTool
  * @brief Base class for the concrete vertexing tools.
  * @author Johann Cohen-Tanugi
+ * $Header$
  */
 class VtxBaseTool : public AlgTool, virtual public IVtxBaseTool 
 {

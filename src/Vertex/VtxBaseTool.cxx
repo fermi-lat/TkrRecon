@@ -1,3 +1,11 @@
+// File and Version Information:
+//      $Header$
+// Description:
+//      Implementation of the base class of concrete vertexing tools
+//
+//
+// Author
+//      Johann Cohen-Tanugi
 
 #include "VtxBaseTool.h"
 #include "GaudiKernel/ToolFactory.h"
