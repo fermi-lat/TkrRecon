@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon Jan 12 22:51:49 PST 2004
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+Fix a bug in the include files; prepare for tag v8r11p8
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon Jan 12 22:51:48 PST 2004
 TkrRecon/cmt
 
