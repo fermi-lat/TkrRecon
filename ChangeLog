@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Fri Jan 28 12:06:33 PST 2005
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrReconAlg.cxx 
+Log Message:
+prepare for tag v10r3p2: improve error reporting in TkrReconAlg
+    Suppress per-event output as requested by Toby
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Jan 28 12:06:32 PST 2005
 TkrRecon/doc/KalVtx
 
