@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Nov 30 17:44:48 PST 2004
+TkrRecon/TkrRecon/Track
+
+Modified Files:
+	IFindTrackHitsTool.h 
+Log Message:
+Adding more description to Track Hits and Tracks
+    *
+------------------------------------------------------------
 User: atwood  Tue Nov 23 11:23:17 PST 2004
 TkrRecon/src/Track
 
