@@ -245,8 +245,10 @@ float TkrComboPatRec::findNextHit(int layer, float arc_len, Ray& traj, float &de
     Vector dir_ini = traj.direction();
 
     float arc_min = 3.0/fabs(dir_ini.z()) + arc_len; //mm
-    std::auto_ptr<IKalmanParticle> 
-            kalPart(TkrReconAlg::m_gismoSvc->kalmanParticle(x_ini, dir_ini, arc_min));
+    //std::auto_ptr<IKalmanParticle> 
+    //        kalPart(TkrReconAlg::m_gismoSvc->kalmanParticle(x_ini, dir_ini, arc_min));
+    IKalmanParticle* kalPart = TkrReconAlg::m_KalParticle;
+    kalPart->setStepStart(x_ini, dir_ini, arc_min);
     if(kalPart->trackToNextPlane()) {
         m_arclen = kalPart->arcLength();
         nlayers = (m_arclen - arc_len)*fabs(dir_ini.z())/29.0; //mm

@@ -1,5 +1,5 @@
 
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalPlane.cxx,v 1.5 2002/03/28 01:57:10 lsrea Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalPlane.cxx,v 1.6 2002/03/29 02:09:43 lsrea Exp $
 
 //----------------------------------------------------------------------
 //    
@@ -175,8 +175,10 @@ KalHit KalPlane::predicted(KalHit::TYPE typ, int &nlayers, int klayer, double &z
     if (nsteps <0 ) down = +1.; // going up;
 
     double arc_len = nlayers * 32.6/fabs(dir_ini.z()); //mm
-    std::auto_ptr<IKalmanParticle> 
-            kalPart(TkrReconAlg::m_gismoSvc->kalmanParticle(x_ini, dir_ini, arc_min));
+    //std::auto_ptr<IKalmanParticle> 
+    //        kalPart(TkrReconAlg::m_gismoSvc->kalmanParticle(x_ini, dir_ini, arc_min));
+    IKalmanParticle* kalPart = TkrReconAlg::m_KalParticle;
+    kalPart->setStepStart(x_ini, dir_ini, arc_min);
     if(kalPart->trackToNextPlane()) {
         if(kalPart->isXPlane()) m_projPlus = TkrCluster::X; 
         else                    m_projPlus = TkrCluster::Y;
@@ -217,8 +219,9 @@ KalHit KalPlane::predicted(KalHit::TYPE typ, int nsteps)
     double ene =getEnergy();
     double x_slope = pp.getXSlope(); 
     double y_slope = pp.getYSlope(); 
-    Vector dir_ini(-x_slope, -y_slope, -1.);
-    dir_ini.unit();
+    Vector dir_ini = Vector(-x_slope, -y_slope, -1.).unit();
+    //Vector dir_ini(-x_slope, -y_slope, -1.);
+    //dir_ini.unit();
     double x0 = pp.getXPosition();
     double y0 = pp.getYPosition();
     double z0 = getZPlane();
@@ -234,8 +237,10 @@ KalHit KalPlane::predicted(KalHit::TYPE typ, int nsteps)
     double deltaZ=down*fabs(nsteps)*32.575; //mm and also Very Bad ... need to re-engineer
     
     double arc_len = fabs(deltaZ/dir_ini.z()); 
-    std::auto_ptr<IKalmanParticle> 
-            kalPart(TkrReconAlg::m_gismoSvc->kalmanParticle(x_ini, dir_ini, arc_len));
+    //std::auto_ptr<IKalmanParticle> 
+    //        kalPart(TkrReconAlg::m_gismoSvc->kalmanParticle(x_ini, dir_ini, arc_len));
+    IKalmanParticle* kalPart = TkrReconAlg::m_KalParticle;
+    kalPart->setStepStart(x_ini, dir_ini, arc_len);
     double relDeltaZ = down * deltaZ;
 
     KalMatrix F(relDeltaZ);
@@ -262,11 +267,12 @@ KalHit KalPlane::predicted(KalPlane& kplaneNext)
     KalPar pp=hit.getPar();
     KalMatrix Ck=hit.getCov();
     
-   double ene =getEnergy();
+    double ene =getEnergy();
     double x_slope = pp.getXSlope(); 
     double y_slope = pp.getYSlope(); 
-    Vector dir_ini(-x_slope, -y_slope, -1.);
-    dir_ini.unit();
+    Vector dir_ini = Vector(-x_slope, -y_slope, -1.).unit();
+    //Vector dir_ini(-x_slope, -y_slope, -1.);
+    //dir_ini.unit();
     double x0 = pp.getXPosition();
     double y0 = pp.getYPosition();
     double z0 = getZPlane();
@@ -284,8 +290,10 @@ KalHit KalPlane::predicted(KalPlane& kplaneNext)
     double deltaZ=kplaneNext.getZPlane()-getZPlane();
     
     double arc_len = fabs(deltaZ/dir_ini.z()); 
-    std::auto_ptr<IKalmanParticle> 
-            kalPart(TkrReconAlg::m_gismoSvc->kalmanParticle(x_ini, dir_ini, arc_len));
+    //std::auto_ptr<IKalmanParticle> 
+    //        kalPart(TkrReconAlg::m_gismoSvc->kalmanParticle(x_ini, dir_ini, arc_len));
+    IKalmanParticle* kalPart = TkrReconAlg::m_KalParticle;
+    kalPart->setStepStart(x_ini, dir_ini, arc_len);
     double relDeltaZ = down * fabs(deltaZ);
 
     KalMatrix F(relDeltaZ);
