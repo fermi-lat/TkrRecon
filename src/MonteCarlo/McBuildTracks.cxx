@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/McTrackTool.h,v 1.1 2003/03/12 23:36:36 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/MonteCarlo/McBuildTracks.cxx,v 1.1 2003/08/04 20:11:24 usher Exp $
  */
 #include "src/MonteCarlo/McBuildTracks.h"
 #include "GaudiKernel/SmartDataPtr.h"
@@ -18,16 +18,16 @@
 Event::McBuildTracks::McBuildTracks(IDataProviderSvc* dataSvc)
 {
     //Take care of insuring that data area has been created
-    DataObject* pNode = 0;
+    //DataObject* pNode = 0;
     StatusCode  sc;
-    sc = dataSvc->retrieveObject(TkrEventModel::MC::Event, pNode);
-    if ( sc.isFailure() ) {
-        sc = dataSvc->registerObject(TkrEventModel::MC::Event, new DataObject);
-        if( sc.isFailure() ) {
-         //   log << MSG::ERROR << "could not register /Event/tmp" << endreq;
-            return;
-        }
-    }
+    //sc = dataSvc->retrieveObject(TkrEventModel::MC::Event, pNode);
+    //if ( sc.isFailure() ) {
+    //    sc = dataSvc->registerObject(TkrEventModel::MC::Event, new DataObject);
+    //    if( sc.isFailure() ) {
+    //     //   log << MSG::ERROR << "could not register /Event/tmp" << endreq;
+    //        return;
+    //    }
+    //}
 
     //Define the tables needed for the MC tracks
     Event::McPartToHitTab  mcPartToHitTab;
