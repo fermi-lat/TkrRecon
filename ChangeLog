@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: lsrea  Wed Sep 18 16:41:01 PDT 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusters.cxx TkrMakeClusters.h 
+Log Message:
+Cleanup:
+Implement TaggedStrip class
+Convert code to use stl algorithms
+Fix up "const"s
+    *
+------------------------------------------------------------
+User: lsrea  Wed Sep 18 16:41:01 PDT 2002
 TkrRecon/TkrRecon/Services
 
 Modified Files:
