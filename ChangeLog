@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Wed Aug 25 07:59:25 PDT 2004
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+Prepare for tag v8r12p24, fix jobOptions for test program
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Aug 25 07:59:24 PDT 2004
 TkrRecon/cmt
 
