@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: igable  Thu Jul 19 17:09:23 PDT 2001
+TkrRecon/src GFcontrol.cpp
+
+Modified Files:
+	GFcontrol.cpp 
+Log Message:
+Various changes involving the use of ITkrGeometrySvc all in hopes of 
+fixing the linux segfault.
+
+
+    *
+------------------------------------------------------------
 User: igable  Thu Jul 19 17:09:22 PDT 2001
 TkrRecon/TkrRecon GFcontrol.h SiRecObjsAlg.h
 
