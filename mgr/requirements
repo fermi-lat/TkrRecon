@@ -10,8 +10,6 @@ use GaudiKernel
 use ntupleWriterSvc
 
 
-use ntupleWriterSvc 
-
 ignore_pattern include_none
 apply_pattern package_include
 
