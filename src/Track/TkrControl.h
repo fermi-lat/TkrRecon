@@ -15,17 +15,17 @@ public:
     static TkrControl* GetPtr();
 
     // Retrieve values
-    const inline int    GetMaxCandidates()      {return m_MaxCandidates;     }
-    const inline int    GetMinTermHitCount()    {return m_MinTermHitCount;   }
-    const inline double GetFEneParticle()       {return m_FEneParticle;      }
-    const inline double GetSigmaCut()           {return m_SigmaCut;          }
-    const inline double GetMinEnergy()          {return m_MinEnergy;         }
-    const inline int    GetMaxConsecutiveGaps() {return m_MaxConsecutiveGaps;}
-    const inline int    GetMinSegmentHits()     {return m_MinSegmentHits;    }
-    const inline double GetMaxChisqCut()        {return m_MaxChiSqCut;       }
-    const inline double GetIniErrSlope()        {return m_IniErrorSlope;     }
-    const inline double GetIniErrPosition()     {return m_IniErrorPosition;  }
-    const inline bool   GetPlaneEnergies()      {return m_PlaneEnergies;     }
+    inline int    GetMaxCandidates()      const {return m_MaxCandidates;     }
+    inline int    GetMinTermHitCount()    const {return m_MinTermHitCount;   }
+    inline double GetFEneParticle()       const {return m_FEneParticle;      }
+    inline double GetSigmaCut()           const {return m_SigmaCut;          }
+    inline double GetMinEnergy()          const {return m_MinEnergy;         }
+    inline int    GetMaxConsecutiveGaps() const {return m_MaxConsecutiveGaps;}
+    inline int    GetMinSegmentHits()     const {return m_MinSegmentHits;    }
+    inline double GetMaxChisqCut()        const {return m_MaxChiSqCut;       }
+    inline double GetIniErrSlope()        const {return m_IniErrorSlope;     }
+    inline double GetIniErrPosition()     const {return m_IniErrorPosition;  }
+    inline bool   GetPlaneEnergies()      const {return m_PlaneEnergies;     }
 
     // Allow for control variables to be set at initialization
     void SetMaxCandidates(  int    maxCand)   {m_MaxCandidates      = maxCand;   GFcontrol::maxCandidates     = maxCand;   }
