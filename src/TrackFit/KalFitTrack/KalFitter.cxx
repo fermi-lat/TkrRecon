@@ -1248,7 +1248,7 @@ void KalFitter::eneDetermination()
                         m_tkrGeo->siStripPitch()             + 1.;
     double prj_size_y = m_tkrGeo->siThickness()*fabs(sY)/
                         m_tkrGeo->siStripPitch()             + 1.;
-    double range_limit = 10000;  // 10 GeV max... 
+    double range_limit = 100000.;  // 100 GeV max... 
     if((x_cls_size - prj_size_x) > 2 || (y_cls_size - prj_size_y) > 2) {
         range_limit = totalRad * 50.; // 10 MeV = 15% rad. len
     }
