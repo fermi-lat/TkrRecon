@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon Aug 26 14:57:42 PDT 2002
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Get a working test program... runs off of mc and digi root files
+
+    *
+------------------------------------------------------------
 User: cohen  Fri Aug 23 08:10:29 PDT 2002
 TkrRecon/cmt
 
