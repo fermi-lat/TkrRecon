@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Fri Oct 22 10:30:46 PDT 2004
+TkrRecon/src/PatRec/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx 
+Log Message:
+Fixed the layerReversal error in sigmaFoundHit(...)
+    *
+------------------------------------------------------------
 User: usher  Thu Oct 21 14:53:21 PDT 2004
 TkrRecon/src/PatRec/Combo
 
