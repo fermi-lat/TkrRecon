@@ -24,13 +24,13 @@ TkrDispCompleteNet::TkrDispCompleteNet(IDataProviderSvc* dataProviderSvc,
 
 void TkrDispCompleteNet::update()
 {
-    TkrCandidates* pTkrCandidates = SmartDataPtr<TkrCandidates>(dps,"/Event/TkrRecon/TkrCandidates");
+    TkrPatCandCol* pTkrPatCandCol = SmartDataPtr<TkrPatCandCol>(dps,"/Event/TkrRecon/TkrPatCandCol");
 
 	//Now see if we can do the drawing
-	if (pTkrCandidates)
+	if (pTkrPatCandCol)
 	{
 
-		TkrNeuralNet* pTkrNeuralNet = dynamic_cast<TkrNeuralNet*>(pTkrCandidates);
+		TkrNeuralNet* pTkrNeuralNet = dynamic_cast<TkrNeuralNet*>(pTkrPatCandCol);
 
         int numDispNeurons = pTkrNeuralNet->numNeurons();
         int colorIdx      = 6;

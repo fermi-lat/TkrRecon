@@ -16,7 +16,7 @@ TkrCandidatesRep::TkrCandidatesRep(IDataProviderSvc* dataProviderSvc, ITkrGeomet
 void TkrCandidatesRep::update()
 //##############################################
 {
-    TkrCandidates* pTkrCandidates = SmartDataPtr<TkrCandidates>(dps,"/Event/TkrRecon/TkrCandidates");
+    TkrPatCandCol* pTkrCandidates = SmartDataPtr<TkrPatCandCol>(dps,"/Event/TkrRecon/TkrPatCandCol");
 
     //Now see if we can do the drawing
 	if (pTkrCandidates)
@@ -54,7 +54,7 @@ const char color_aquamarine[] = "aquamarine";
 const char* pColors[] = {color_blue,   color_violet, color_turquoise,
                          color_orange, color_maroon, color_aquamarine};
 
-void TkrCandidatesRep::TkrDrawCandidates(TkrCandidates* pTkrCandidates, TkrPlaneType plane)
+void TkrCandidatesRep::TkrDrawCandidates(TkrPatCandCol* pTkrCandidates, TkrPlaneType plane)
 {
     TkrLinkAndTree* pTkrCands      = dynamic_cast<TkrLinkAndTree*>(pTkrCandidates);
 

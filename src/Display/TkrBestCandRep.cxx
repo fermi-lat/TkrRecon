@@ -1,6 +1,6 @@
 #include "TkrRecon/Display/TkrBestCandRep.h"
 
-#include "TkrRecon/Cluster/TkrCluster.h"
+#include "GlastEvent/Recon/TkrRecon/TkrCluster.h"
 //------------------------------------------------------------------------------
 /// Algorithm parameters which can be set at run time must be declared.
 /// This should be done in the constructor.
@@ -17,7 +17,7 @@ TkrBestCandRep::TkrBestCandRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySv
 void TkrBestCandRep::update()
 //##############################################
 {
-    TkrCandidates* pTkrCandidates = SmartDataPtr<TkrCandidates>(dps,"/Event/TkrRecon/TkrCandidates");
+    TkrPatCandCol* pTkrCandidates = SmartDataPtr<TkrPatCandCol>(dps,"/Event/TkrRecon/TkrPatCandCol");
 
     if (pTkrCandidates)
     {
@@ -58,7 +58,7 @@ const char bstcol_aquamarine[] = "aquamarine";
 const char* pBstColors[] = {bstcol_blue,   bstcol_violet, bstcol_turquoise,
                             bstcol_orange, bstcol_maroon, bstcol_aquamarine};
 
-void TkrBestCandRep::TkrDrawBestCand(TkrCandidates* pTkrCandidates, TkrPlaneType plane)
+void TkrBestCandRep::TkrDrawBestCand(TkrPatCandCol* pTkrCandidates, TkrPlaneType plane)
 {
     TkrLinkAndTree* pTkrCands      = dynamic_cast<TkrLinkAndTree*>(pTkrCandidates);
 
