@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Sun Oct  3 11:19:20 PDT 2004
+TkrRecon/src/PatRec/MonteCarlo
+
+Modified Files:
+	MonteCarloFindTrackTool.cxx 
+Log Message:
+Mods to build on linux
+    *
+------------------------------------------------------------
+User: usher  Sun Oct  3 11:19:20 PDT 2004
 TkrRecon/src/PatRec/Combo
 
 Modified Files:
