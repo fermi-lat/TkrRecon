@@ -16,7 +16,7 @@
 //------------------------------------------------------------------------------
 
 
-#include "KalFitTrack.h"
+#include "KalFitTrack.h" 
 #include "src/TrackFit/KalmanFilter/KalmanFilter.h"
 #include "src/Track/TkrControl.h"
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
@@ -909,12 +909,20 @@ double KalFitTrack::computeQuality() const
   // Dependencies: None
   // Restrictions and Caveats:  None
 
+    // Calc. How many hits are possible?
+    int num_max = 2*(m_tkrGeo->numPlanes() - m_iLayer); 
+    if(num_max > 16) num_max = 16;
+
+    // Don't allow more then 8 of each projection
     int num_Hits = (m_nxHits <= 8) ? m_nxHits:8;
     if(m_nyHits > 8) num_Hits += 8; 
     else             num_Hits  += m_nyHits;
+    
+    // Scale to max. allowed 
+    float hit_count_factor = (1.*num_Hits)/(1.*num_max);
 
-    // Overall factor of 2 is to make this ~ match older def's 
-    double quality = 4*num_Hits - 2.*sqrt(m_chisqSmooth); 
+    // Overall factors are to make this ~ match older def's 
+    double quality = 64.*hit_count_factor - 2.*sqrt(m_chisqSmooth); 
 
 
 //    double quality = 4*(m_nxHits+m_nyHits-4. - (m_Xgaps+m_Ygaps)) 
