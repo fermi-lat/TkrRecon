@@ -42,6 +42,7 @@ public:
     void          flagAllHits(int iflag=1);
     void          unFlagAllHits();
     void          unFlagHit(int num);
+    int           compareFits(KalFitTrack& ktrack);
 
     enum          Status {EMPTY, FOUND, CRACK}; 
     void          setStatus(Status status) {m_status = status;}

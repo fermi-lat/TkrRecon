@@ -78,6 +78,9 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int &
     else if (down == +1) Ck=(F*(Ck+Q)*F.T());
     
     TkrFitHit hitpred(TkrFitHit::PRED, pp, Ck);
+
+    m_radLength  = TkrFitPart->radLength();
+    m_activeDist = TkrFitPart->insideActArea(); 
     
     return hitpred;
 } 
@@ -126,6 +129,9 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int n
     else if (down == +1) Ck=(F*(Ck+Q)*F.T());
     
     TkrFitHit hitpred(TkrFitHit::PRED, pp, Ck);
+
+    m_radLength  = TkrFitPart->radLength();
+    m_activeDist = TkrFitPart->insideActArea(); 
     
     return hitpred;
    
@@ -181,7 +187,10 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitPlane& kplaneNext)
     kplaneNext.setQmaterial(Q);
 
     TkrFitHit hitpred(TkrFitHit::PRED, pp, Ck);
-    
+
+    m_radLength  = TkrFitPart->radLength();
+    m_activeDist = TkrFitPart->insideActArea(); 
+
     return hitpred;
     
 } 
