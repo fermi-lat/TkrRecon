@@ -1,4 +1,20 @@
 ------------------------------------------------------------
+User: usher  Wed Feb  6 13:48:43 PST 2002
+TkrRecon/src/PatRec/Combo
+
+Added Files:
+	GFbase.cxx GFbase.h GFcandidates.cxx GFcandidates.h GFdata.cxx 
+	GFdata.h GFgamma.cxx GFgamma.h GFpair.cxx GFpair.h 
+	GFparticle.cxx GFparticle.h GFpoints.cxx GFpoints.h 
+	GFsegment.cxx GFsegment.h GFtrack.cxx GFtrack.h TkrComboPR.cxx 
+	TkrComboPR.h TkrComboPatRec.cxx TkrComboPatRec.h 
+Log Message:
+1) Moved all Link and Tree specific routines from PatRec to PatRec/LinkAndTree
+2) Moved all combo PR specific routines into PatRec/Combo
+
+
+    *
+------------------------------------------------------------
 User: usher  Wed Feb  6 13:42:10 PST 2002
 TkrRecon/src/PatRec/LinkAndTree
 
