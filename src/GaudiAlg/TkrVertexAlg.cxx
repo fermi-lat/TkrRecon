@@ -17,7 +17,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.19 2003/05/13 20:19:18 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.20 2004/02/12 05:18:32 usher Exp $
  */
 
 #include "GaudiKernel/IToolSvc.h"
@@ -109,41 +109,39 @@ StatusCode TkrVertexAlg::execute()
   
     // Recover the collection of Fit tracks
     Event::TkrFitTrackCol* pTkrTracks = SmartDataPtr<Event::TkrFitTrackCol>(eventSvc(),EventModel::TkrRecon::TkrFitTrackCol);
-    //Event::TkrFitTrackCol* pTkrTracks = dynamic_cast<Event::TkrFitTrackCol*>(&tkrTracks);
     
     // Retrieve the information on vertices
     SmartDataPtr<Event::TkrVertexCol> pVtxCol(eventSvc(), EventModel::TkrRecon::TkrVertexCol);
 
-    // Do vertices already exist?
+    // If vertices already exist then we need to delete them
     if (pVtxCol)
     {
         //Iterative recon, need to also delete entries in relational table
         SmartDataPtr<Event::TkrVertexTabList> vtxTable(eventSvc(),EventModel::TkrRecon::TkrVertexTab);
-        Event::TkrVertexCol::iterator vtxColIter;
-        Event::TkrVertexCol::iterator endColIter = pVtxCol->end();
+        Event::TkrVertexTab                   tkrVertexTab(vtxTable);
 
         //Loop over the vertex collection, extracting vertices one at a time
-        for(vtxColIter = pVtxCol->begin(); vtxColIter != endColIter; vtxColIter++)
+        //Note: cannot make iterators work probably because Gaudi ObjectVector erase method
+        //      does not return an iterator ... Use this method instead. 
+        int colSize = pVtxCol->size();
+        while(colSize--)
         {
-            Event::TkrVertex*                 tkrVertex = *vtxColIter;
-            int                               tabSize   = vtxTable->size();
-            Event::TkrVertexTab               tkrVertexTab(vtxTable);
-            std::vector<Event::TkrVertexRel*> vtxRels   = tkrVertexTab.getRelByFirst(tkrVertex);
+            Event::TkrVertexCol::iterator     vtxColIter = pVtxCol->begin();
+            Event::TkrVertex*                 tkrVertex  = *vtxColIter;
+            int                               tabSize    = vtxTable->size();
+            std::vector<Event::TkrVertexRel*> vtxRels    = tkrVertexTab.getRelByFirst(tkrVertex);
 
             // Loop over relations containing this TkrVertex, deleting them as we go
             std::vector<Event::TkrVertexRel*>::iterator vtxRelIter;
             std::vector<Event::TkrVertexRel*>::iterator endRelIter = vtxRels.end();
-            for(vtxRelIter = vtxRels.begin(); vtxRelIter != endRelIter; vtxRelIter++)
+            for(vtxRelIter = vtxRels.begin(); vtxRelIter != vtxRels.end(); vtxRelIter++)
             {
                 Event::TkrVertexRel* relation = *vtxRelIter;
 
-                vtxTable->remove(relation);
-                delete relation;
+                tkrVertexTab.erase(relation);
             }
 
-            // Now remove and delete the TkrVertex
-            pVtxCol->remove(tkrVertex);
-            delete tkrVertex;
+            pVtxCol->erase(vtxColIter);
         }
     }
     else  
