@@ -5,7 +5,8 @@
 #include "GaudiKernel/SmartDataPtr.h"
 #include "GaudiKernel/DataObject.h"
 
-#include "Event/Recon/ICsIClusters.h"
+#include "Event/Recon/CalRecon/CalCluster.h"
+#include "Event/TopLevel/EventModel.h"
 
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 
@@ -13,11 +14,12 @@
 #include "TkrRecon/GaudiAlg/TkrFindAlg.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
-#include "Event/TopLevel/EventModel.h"
 #include "TkrRecon/Track/GFcontrol.h"
 
 //#include "src/PatRec/LinkAndTree/TkrLinkAndTreePR.h"
 //#include "src/PatRec/Combo/TkrComboPR.h"
+
+using namespace Event;
 
 static const AlgFactory<TkrFindAlg>  Factory;
 const IAlgFactory& TkrFindAlgFactory = Factory;
@@ -73,9 +75,9 @@ StatusCode TkrFindAlg::execute()
     //Recover a pointer to the raw digi objects
     Event::TkrClusterCol* pTkrClus  = SmartDataPtr<Event::TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol);
 
-    //Ultimately we want pattern recognition to be independent of calorimetry.
-    //But, for now allow this option to help some pattern rec algorithms
-    ICsIClusterList* pCalClusters = SmartDataPtr<ICsIClusterList>(eventSvc(),"/Event/CalRecon/CsIClusterList");
+
+    // Recover pointer to Cal Cluster info  
+    CalClusterCol* pCalClusters = SmartDataPtr<CalClusterCol>(eventSvc(),EventModel::CalRecon::CalClusterCol);
 
     double minEnergy = GFcontrol::minEnergy;
 	double CalEnergy   = minEnergy;
@@ -84,9 +86,8 @@ StatusCode TkrFindAlg::execute()
     //If clusters, then retrieve estimate for the energy
     if (pCalClusters)
     {
-        ICsICluster* pCalClus = pCalClusters->Cluster(0);
-        CalEnergy             = pCalClus->energySum();
-        CalPosition           = pCalClus->position();
+        CalEnergy   = pCalClusters->front()->getEnergySum(); 
+        CalPosition = pCalClusters->front()->getPosition();
     }
 
     //Provide for some lower cutoff energy...

@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.14 2002/05/13 15:54:29 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.15 2002/05/31 23:38:36 cohen Exp $
 //
 // Description:
 //      Controls the track fitting
@@ -17,7 +17,7 @@
 #include "src/Track/TkrLinkAndTreeTrackFit.h"
 #include "TkrRecon/Track/GFcontrol.h"
 
-#include "Event/Recon/ICsIClusters.h"
+#include "Event/Recon/CalRecon/CalCluster.h"
 #include "Event/TopLevel/EventModel.h"
 
 #include "GaudiKernel/MsgStream.h"
@@ -95,19 +95,18 @@ StatusCode TkrReconAlg::execute()
     // Find the patter recon tracks
     TkrPatCandCol* pTkrCands = SmartDataPtr<TkrPatCandCol>(eventSvc(),EventModel::TkrRecon::TkrPatCandCol);
 
-    // Recover pointer to Cal Cluster info    
-    ICsIClusterList* pCalClusters = SmartDataPtr<ICsIClusterList>(eventSvc(),"/Event/CalRecon/CsIClusterList");
+    // Recover pointer to Cal Cluster info  
+    CalClusterCol* pCalClusters = SmartDataPtr<CalClusterCol>(eventSvc(),EventModel::CalRecon::CalClusterCol);
 
-    double minEnergy = GFcontrol::minEnergy;
+    double minEnergy   = GFcontrol::minEnergy;
 	double CalEnergy   = minEnergy;
     Point  CalPosition = Point(0.,0.,0.);
 
     // If clusters, then retrieve estimate for the energy
     if (pCalClusters)
     {
-        ICsICluster* pCalClus = pCalClusters->Cluster(0);
-        CalEnergy             = pCalClus->energySum(); 
-        CalPosition           = pCalClus->position();
+        CalEnergy   = pCalClusters->front()->getEnergySum(); 
+        CalPosition = pCalClusters->front()->getPosition();
     }
 
     // Provide for some lower cutoff energy...
