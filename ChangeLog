@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Mon Apr  2 16:33:00 PDT 2001
+TkrRecon/TkrRecon SiLayersIRFAlg.h
+
+Removed Files:
+	SiLayersIRFAlg.h 
+Log Message:
+
+No longer trying to read IRF format data in this package
+
+
+
+    *
+------------------------------------------------------------
 User: usher  Mon Apr  2 16:32:25 PDT 2001
 TkrRecon/TkrRecon SiClustersIRFAlg.h
 
