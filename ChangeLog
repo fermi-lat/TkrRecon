@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: cohen  Thu Mar 25 14:20:11 PST 2004
+TkrRecon/src/TrackFit/KalmanFilterFit
+
+Modified Files:
+	GlastProcNoiseMatrix.h GlastProjectionMatrix.h 
+	GlastTransportMatrix.h MonteCarloHitEnergy.h 
+	NoProcNoiseMatrix.h RadLossHitEnergy.h 
+Log Message:
+added virtual destructor to avoid warnings
+    *
+------------------------------------------------------------
 User: cohen  Thu Mar 25 13:45:06 PST 2004
 TkrRecon/src/TrackFit/KalmanFilterUtils
 
