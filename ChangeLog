@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Feb  4 14:29:25 PST 2005
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx 
+Log Message:
+fix small error in loop logic
+    *
+------------------------------------------------------------
 User: usher  Fri Feb  4 13:35:04 PST 2005
 TkrRecon/src/Track
 
