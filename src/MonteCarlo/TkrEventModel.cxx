@@ -1,5 +1,5 @@
 // File and Version Information:
-// $Header: /nfs/slac/g/glast/ground/cvs/Event/src/TopLevel/EventModel.cpp,v 1.55 2003/03/12 23:21:44 usher Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/MonteCarlo/TkrEventModel.cxx,v 1.1 2003/08/04 20:11:24 usher Exp $
 
 #define _TkrEventModel_CPP_
 
@@ -12,7 +12,7 @@
 /** @class EvModel
  *  @brief Event Model: Definition of logical paths and class identifiers
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/Event/src/TopLevel/EventModel.cpp,v 1.55 2003/03/12 23:21:44 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/MonteCarlo/TkrEventModel.cxx,v 1.1 2003/08/04 20:11:24 usher Exp $
  */
 class TkrEvModel {
         
@@ -30,6 +30,10 @@ public:
         TkrEventModel::MC::McClusToLyrHitTab = TkrEventModel::MC::Event  + "/McClusToLyrHitTab";
         TkrEventModel::MC::McLyrToHitTab     = TkrEventModel::MC::Event  + "/McLyrToHitTab";
         TkrEventModel::MC::McLayerHitCol     = TkrEventModel::MC::Event  + "/McLayerHitCol";
+
+        TkrEventModel::MC::PatHitToLyrHit    = TkrEventModel::MC::Event  + "/PatHitToLyrHit";
+        TkrEventModel::MC::PatCandToMcCand   = TkrEventModel::MC::Event  + "/PatCandToMcCand";
+        TkrEventModel::MC::McPatCandCol      = TkrEventModel::MC::Event  + "/McPatCandCol";
     }
 };
     
