@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.7 2002/12/19 21:59:18 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.8 2003/01/10 19:43:25 lsrea Exp $
 //
 // Description:
 //      Tool for performing the fit of Combo Pat Rec candidate tracks
@@ -16,7 +16,7 @@
 
 #include "Event/Recon/TkrRecon/TkrKalFitTrack.h"
 #include "src/TrackFit/KalFitTrack/KalFitter.h"
-#include "TkrRecon/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 #include "src/Track/TkrControl.h"
 
 static ToolFactory<TkrComboFitTool> s_factory;
