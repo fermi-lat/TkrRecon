@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: als  Thu Jan 16 17:45:28 PST 2003
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitter.cxx 
+Log Message:
+linux compile fix:
+change calls to m_track->at(index) to (*m_mtrack)[index]
+(gcc STL frobnication)
+
+    *
+------------------------------------------------------------
 User: lsrea  Thu Jan 16 16:08:04 PST 2003
 TkrRecon/doc
 
