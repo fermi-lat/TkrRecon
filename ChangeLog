@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Wed Feb  6 13:57:29 PST 2002
+TkrRecon/src/Services
+
+Added Files:
+	TkrInitSvc.cxx 
+Log Message:
+This service drives the initialization of the Tracker Reconstruction, allowing
+a choice of pattern recognition algorithms and displays for them.
+
+    *
+------------------------------------------------------------
 User: usher  Wed Feb  6 13:55:17 PST 2002
 TkrRecon/src/Track
 
