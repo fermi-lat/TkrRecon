@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: burnett  Thu Jun 21 15:48:42 PDT 2001
+TkrRecon/src McReconAlg.cxx
+
+Modified Files:
+	McReconAlg.cxx 
+Log Message:
+now looking at MCEvent header.
+    *
+------------------------------------------------------------
 User: usher  Thu Jun 21 13:14:09 PDT 2001
 TkrRecon/src GFgamma.cpp
 
