@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: usher  Wed Dec 15 21:04:22 PST 2004
+TkrRecon/src/PatRec
+
+Modified Files:
+	PatRecBaseTool.cxx PatRecBaseTool.h 
+Log Message:
+1)  Updated Event TDS classes
+2)  Remove classes which use the now obsolete TDS classes
+3) Expect fallout...
+    *
+------------------------------------------------------------
+User: usher  Wed Dec 15 21:04:22 PST 2004
 TkrRecon/src/PatRec/NeuralNet
 
 Modified Files:
