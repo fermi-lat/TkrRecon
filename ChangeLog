@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Thu Apr 24 12:42:41 PDT 2003
+TkrRecon/src/test
+
+Modified Files:
+	jobOptions.txt 
+Log Message:
+Removing line defining external services to fix nightly build problem
+
+    *
+------------------------------------------------------------
 User: cohen  Thu Apr 24 11:52:41 PDT 2003
 TkrRecon/src
 
