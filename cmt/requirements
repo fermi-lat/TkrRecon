@@ -1,8 +1,12 @@
 package TkrRecon
-version v4r2p1
+version v4r4p5
 
 branches src mgr doc
+
+use GlastPolicy
+
 apply_pattern packageShr
+
 
 private 
 #-----------------------
@@ -47,12 +51,16 @@ library TkrTrack     -no_share Track/*.cxx                     \
                                TrackFit/*.cxx                  \
                                ${TkrTrack_headers}
 
-library TkrRecon               Dll/*.cxx                       \
-                               $(TkrReconDir)/TkrGaudiAlgs.lib \
-                               $(TkrReconDir)/TkrCluster.lib   \
-                               $(TkrReconDir)/TkrPatRec.lib    \
-                               $(TkrReconDir)/TkrTrack.lib
+macro libs ""   WIN32   "$(TkrReconDir)/TkrGaudiAlgs.lib \
+                         $(TkrReconDir)/TkrCluster.lib   \
+                         $(TkrReconDir)/TkrPatRec.lib    \
+                         $(TkrReconDir)/TkrTrack.lib"
 
+macro TkrRecon_linkopts "-L $(TkrReconDir) -lTkrGaudiAlgs -lTkrCluster -lTkrPatRec -lTkrTrack"\
+                      WIN32 ""
+
+
+library TkrRecon               Dll/*.cxx $(libs)
 
 # build this for testing
 
