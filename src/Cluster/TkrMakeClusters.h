@@ -12,8 +12,6 @@
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "TkrRecon/ITkrBadStripsSvc.h"
 
-/// large number, used as a sentinel in the strip list
-enum {bigStripNum = 0x7FFFFF};
 
 /** 
 * @class TkrMakeClusters
@@ -23,7 +21,7 @@ enum {bigStripNum = 0x7FFFFF};
 *
 * The methods take into account the bad strips.
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.5 2002/05/07 22:53:06 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.6 2002/05/10 21:53:55 usher Exp $
 */
 
 namespace TkrRecon { //Namespace
@@ -47,6 +45,9 @@ public:
 	* If so, the cluster is added, if not, it is dropped. 
 	* There may be other criteria for dropping a cluster, such as too many hits.      
 	*/
+
+    /// large number, used as a sentinel in the strip list
+    enum {bigStripNum = 0x7FFFFF};
 
 	/// This constructor actually makes the clusters
 	/// the pointers to services and data are passed through the constructor
