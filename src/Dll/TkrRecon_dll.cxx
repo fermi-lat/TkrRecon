@@ -1,5 +1,11 @@
+/** @file TkrRecon_dll.cxx
+@brief dll installation routine
+
+$Header$
+*/
+
 //====================================================================
-//  GlastSvc_dll.cpp
+//  TkrRecon_dll.cxx
 //--------------------------------------------------------------------
 //
 //  Package    : GlastSvc
@@ -15,33 +21,6 @@
 //
 //====================================================================
 
-// DllMain entry point
-#include "GaudiKernel/DllMain.icpp"
-#include <iostream>
-void GaudiDll::initialize(void*) 
-{
-}
 
-void GaudiDll::finalize(void*) 
-{
-}
-extern void TkrRecon_load();
-#include "GaudiKernel/FactoryTable.h"
-
-extern "C" FactoryTable::EntryList* getFactoryEntries() {
-  static bool first = true;
-  if ( first ) {  // Don't call for UNIX
-    TkrRecon_load();
-    first = false;
-  }
-  return FactoryTable::instance()->getEntries();
-} 
-
-void FATAL(const char * msg) {
-    std::cerr << "Stupid error from Tkrrecon DLL: " << msg << std::endl;
-}
-
-void WARNING(const char * msg) {
-    std::cerr << "Another stupid error from TrkRecon DLL:" << msg << std::endl;
-}
-
+#include "GaudiKernel/LoadFactoryEntries.h"
+LOAD_FACTORY_ENTRIES(TkrRecon)
