@@ -4,6 +4,7 @@
 
 #include "GaudiKernel/Service.h"
 
+#include "TkrRecon/ITkrGeometrySvc.h"
 #include "TkrRecon/TkrAxis.h"
 #include "src/TkrDetGeo.h"
 
@@ -19,10 +20,10 @@
 //             Tracy Usher, SLAC, 2/28/01
 //----------------------------------------------
 
-static const InterfaceID IID_TkrGeometrySvc(905, 1 , 0); 
 
 //##########################################################
-class TkrGeometrySvc : public TkrAxis, public Service
+class TkrGeometrySvc :  public Service, 
+	virtual public ITkrGeometrySvc
 //##########################################################
 {
 public:
@@ -34,7 +35,7 @@ public:
     StatusCode initialize();
     StatusCode finalize();
 
-	static const InterfaceID& interfaceID() { return IID_TkrGeometrySvc; }
+	static const InterfaceID& interfaceID() { return ITkrGeometrySvc::interfaceID(); }
     
     //Retrieve stored information
     int    geomType()        {return m_geomType;}
@@ -83,6 +84,14 @@ public:
     int    nLadders(int ilayer, axis a);
     double diceSize(int ilayer, axis a, int iladder);	
     int    nDices(int ilayer, axis a, int iladder);
+
+	/// queryInterface - for implementing a Service this is necessary
+    StatusCode queryInterface(const IID& riid, void** ppvUnknown);
+
+	/// return the service type
+	const IID& type() const;
+
+
     
 private:
 

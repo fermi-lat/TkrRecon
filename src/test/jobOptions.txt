@@ -3,6 +3,8 @@
 // Job options file for CalRecon test
 //
 
+// WARNING!!!!!!!!!!!!!!!!!!!!!!
+// This JobOptions DOES NOT WORK. It needs fixing up.
 
 ApplicationMgr.ExtSvc   = { "GlastDetSvc", "GlastEventSelector/EventSelector" , "EventCnvSvc"};
 
