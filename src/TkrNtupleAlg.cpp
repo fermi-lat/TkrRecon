@@ -1,7 +1,7 @@
 // Implements ntuple writing algorithm
 
-#include "TkrRecon\TkrNtupleAlg.h"
-#include "TkrRecon\SiClusters.h"
+#include "TkrRecon/TkrNtupleAlg.h"
+#include "TkrRecon/SiClusters.h"
 
 #include <algorithm>
 inline static double sqr(double x) {return x*x;}
