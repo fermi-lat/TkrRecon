@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: lsrea  Mon Nov 22 10:55:22 PST 2004
+TkrRecon/cmt
+
+Modified Files:
+      Tag: GlastRelease-v4r5
+	requirements 
+Log Message:
+Prepare for tag v9r0p2gr8
+Set bit in EventSummaryData if TkrRecon fails
+Output list of failed events at end of job
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 22 10:36:08 PST 2004
 TkrRecon/src/Track
 
