@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+User: usher  Tue Aug 20 12:32:28 PDT 2002
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	TkrComboVtxRecon.cxx TkrComboVtxRecon.h 
+Added Files:
+	ComboVtxTool.cxx ComboVtxTool.h 
+Removed Files:
+	TkrComboVtx.cxx TkrComboVtx.h 
+Log Message:
+Changes for using Gaudi Tools to drive the reconstruction
+
+    *
+------------------------------------------------------------
 User: usher  Tue Aug 20 12:25:30 PDT 2002
 TkrRecon/src/PatRec/Utilities
 
