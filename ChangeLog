@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Sun Sep  1 15:24:59 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrVertexAlg.cxx 
+Log Message:
+removing these clones to TkrComboVtxRecon to avoid confusion
+    *
+------------------------------------------------------------
 User: cohen  Sun Sep  1 15:20:59 PDT 2002
 TkrRecon/src/Vertex
 
