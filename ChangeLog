@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Fri Jun  1 13:51:40 PDT 2001
+TkrRecon/src TkrNtupleAlg.cpp
+
+Modified Files:
+	TkrNtupleAlg.cpp 
+Log Message:
+General cleanup to get rid of unused stuff
+
+    *
+------------------------------------------------------------
 User: usher  Fri Jun  1 12:45:45 PDT 2001
 TkrRecon/src/Dll TkrRecon_load.cpp
 
