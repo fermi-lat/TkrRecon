@@ -160,7 +160,8 @@ void TkrNeuralNet::relax()
     double converge = 0.0005;
     std::vector<TkrNeuron*> tmpList;
 
-    for(int i=0;i < m_numNeurons; i++) tmpList.push_back(&m_neuronList[i]);
+    int i;
+    for(i=0;i < m_numNeurons; i++) tmpList.push_back(&m_neuronList[i]);
 
     do{
 
@@ -181,9 +182,11 @@ void TkrNeuralNet::relax()
         // readjust the biases in each neuron to help speed up convergence.
         for(i=0;i < m_numNeurons; i++){
             tmp = 0.0;
-            for(int j = 0; j < tmpList[i]->numSynapse(top); j++) 
+	    int j;
+            for(j = 0; j < tmpList[i]->numSynapse(top); j++) 
                 tmp += (tmpList[i]->getNextNeuron(top,j))->getActivity();
-            for(int k = 0; k < tmpList[i]->numSynapse(bottom); k++) 
+	    int k;
+            for(k = 0; k < tmpList[i]->numSynapse(bottom); k++) 
                 tmp += (tmpList[i]->getNextNeuron(bottom,k))->getActivity();
             tmp *= 4/((float)(j+k));
             if(tmp <= 0.4) tmpList[i]->setBias(tmp);
@@ -297,7 +300,9 @@ void TkrNeuralNet::updateNeuron(TkrNeuron* neuron, float temp)
     float tmp2 = 0.0;  // for detracting from the neurons activity.
     float tmp3 = 0.0;  // for detracting from the neurons activity.
 
-    for(int i=0, j=0;i < neuron->numSynapse(bottom); i++){
+    int i;
+    int j;
+    for(i=0, j=0;i < neuron->numSynapse(bottom); i++){
         if(neuron->getNextNeuron(bottom,(unsigned) i)->getPnt(top) == neuron->getPnt(bottom)) 
             tmp1 +=(neuron->getWieght(bottom,(unsigned) i)) * 
                    (neuron->getNextNeuron(bottom,(unsigned) i)->getActivity());
