@@ -114,7 +114,7 @@ private:
     double m_siThickness;
     double m_siDeadDistance;
 
-	bool   m_reverseY;
+	bool   m_reverseY;      // kludge to reverse the position of the local y coordinate
 
 	IGlastDetSvc * p_GlastDetSvc;
 

@@ -3,7 +3,8 @@
  * Package TkrRecon
  * Manager: Leon Rochester 
  *
- * v5r1p1  09-Apr-2002  LsR   remove "-y" kludge
+ * v5r1p2  10-Apr-2002  LSR   put -y kludge back dependent on jobOptions property 
+ * v5r1p1  09-Apr-2002  LSR   remove "-y" kludge
  * v5r1    01-Apr-2002  LSR   Run TkrGeometrySvc entirely from detModel, get fitter running
  *                            Neural Net patrec in cvs
  * v5r0    26-Mar-2002  TU    Cleanup and tkrApp requirements file that works
