@@ -31,17 +31,17 @@ namespace {
 
     // Some constants collected from the file:
 
-    const        _thinCoeff      = 0.61;
-    const        _thickCoeff     = 1.97;
-    const        _noradCoeff     = 0.35;
+    const double _thinCoeff       = 0.61;
+    const double _thickCoeff      = 1.97;
+    const double _noradCoeff      = 0.35;
 
     const double _thinConvRadLen  = 0.03;
     const double _thickConvRadLen = 0.18;
     const double _trayRadLen      = 0.015;
 
-    double       _calKludge       = 1.2;
+    const double _calKludge       = 1.2;
 
-    int          _maxTrials       = 30;
+    const int    _maxTrials       = 30;
 
 
 }
@@ -282,14 +282,17 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     IKalmanParticle* kalPart = TkrTrackFitAlg::m_KalParticle;
     kalPart->setStepStart(x_ini, dir_ini, arc_tot);
 
-    // Setup summed var's and loop over all layers between x_ini & cal
+    // Set up summed var's and loop over all layers between x_ini & cal
     int num_thin_hits = 0;
     int num_thick_hits = 0;
     int num_last_hits = 0; 
     double arc_len    = 5./fabs(dir_ini.z()); 
+
+    // these vars are not currently used, but I'm leaving them in to avoid pitfalls later
     double rad_thick = 0.;
     double rad_thin  = 0.;
     double rad_last  = 0.; 
+    
     int top_plane     = first_track->getLayer(); 
     
     int max_planes = m_tkrGeo->numLayers();
@@ -317,15 +320,15 @@ void TkrComboPatRec::setEnergies(double calEnergy)
         // and the noConv layers are on the bottom
         if(iplane >= nThick + nThin)   { 
             num_last_hits += numHits; 
-            rad_last  = arc_len;
+            rad_last  = arc_len;  // not currently used
         }
         else if(iplane < nThin) {
             num_thin_hits += numHits;
-            rad_thin  = arc_len;
-        }
+            rad_thin  = arc_len;  // not currently used
+        } 
         else {
             num_thick_hits += numHits;
-            rad_thick  = arc_len;
+            rad_thick  = arc_len; // not currently used
         }
 
         // Increment arc-length
@@ -358,7 +361,9 @@ void TkrComboPatRec::setEnergies(double calEnergy)
         (thin_planes+thick_planes+norad_planes)*_trayRadLen/fabs(dir_ini.z()); 
     rad_swim = std::max(rad_swim, rad_nom + rad_min); 
     double ene_total  =  ene_trks * rad_swim/rad_nom + cal_Energy; //Scale and add cal. energy
- /*   
+
+    // rad_thin, rad_thick, and rad_last are still defined and filled in code
+    /*
     kalPart->setStepStart(x_ini, dir_ini, rad_thin);
     rad_thin = kalPart->radLength();
     kalPart->setStepStart(x_ini, dir_ini, rad_thick);
