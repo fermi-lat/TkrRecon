@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: burnett  Thu Feb 14 11:26:19 PST 2002
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+fix so will link on unix
+    *
+------------------------------------------------------------
 User: burnett  Thu Feb 14 11:20:58 PST 2002
 TkrRecon/src/TrackFit
 
