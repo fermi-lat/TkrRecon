@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: lsrea  Mon Jan  6 11:03:52 PST 2003
+TkrRecon/TkrRecon/Services
+
+Removed Files:
+	TkrBadStripsSvc.h 
+Log Message:
+Remove TkrBadStripsSvc (to TkrUtil) and point to TkrUtil v1r1 (until Gleam does this)
+    *
+------------------------------------------------------------
+User: lsrea  Mon Jan  6 11:03:52 PST 2003
 TkrRecon/TkrRecon
 
 Removed Files:
