@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: cohen  Mon Jun 30 11:27:45 PDT 2003
+TkrRecon/src/PatRec/LinkAndTree
+
+Modified Files:
+	LayerLink.h BestNodeList.h LayerLinkTree.h LayerLinkVector.h 
+	TkrClusterLink.h TkrClusterLinkVector.h TkrLinkAndTree.h 
+	TkrLinkForest.h TkrLinkTree.h TkrNodeQuality.h 
+Log Message:
+newline at end of file
+    *
+------------------------------------------------------------
 User: usher  Wed Jun 18 13:36:55 PDT 2003
 TkrRecon/src/GaudiAlg
 
