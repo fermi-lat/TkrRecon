@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Fri Feb 28 18:17:41 PST 2003
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+clean up unix warnings
+
+    *
+------------------------------------------------------------
+User: lsrea  Fri Feb 28 18:17:41 PST 2003
 TkrRecon/src/Display
 
 Modified Files:
