@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Fri Aug 30 11:36:48 PDT 2002
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	TkrComboVtxRecon.cxx 
+Log Message:
+widen acceptance for putting 2 track together
+    *
+------------------------------------------------------------
 User: atwood  Fri Aug 30 11:35:40 PDT 2002
 TkrRecon/src/PatRec/Combo
 
