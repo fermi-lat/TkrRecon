@@ -260,9 +260,6 @@ void TrackFitUtils::eneDetermination(Event::TkrTrack& track)
     // Dependencies: None
     // Restrictions and Caveats:  None
     
-    int nplanes = track.size()-2; // Assume last 2 hits are x,y pair
-    // No new info. here - using SMOOTHED
-    
     double totalRad  = 0.;
     double eneSum    = 0.;
     double thetaSum  = 0.;

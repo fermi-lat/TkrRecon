@@ -6,10 +6,65 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.10 2004/10/09 04:47:02 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.11 2004/10/12 19:03:38 lsrea Exp $
  */
 
-#include "src/Track/TkrTrackEnergyTool.h"
+#include "GaudiKernel/AlgTool.h"
+#include "GaudiKernel/DataSvc.h"
+#include "GaudiKernel/ToolFactory.h"
+#include "GaudiKernel/SmartDataPtr.h"
+#include "GaudiKernel/GaudiException.h" 
+
+#include "Event/TopLevel/EventModel.h"
+#include "Event/Recon/TkrRecon/TkrTrack.h"
+
+#include "src/Track/TkrControl.h"
+#include "src/TrackFit/KalFitTrack/KalFitter.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrQueryClustersTool.h"
+
+static const InterfaceID IID_TkrTrackEnergyTool("TkrTrackEnergyTool", 1 , 0);
+
+class TkrTrackEnergyTool : public AlgTool
+{
+public:
+    /// Standard Gaudi Tool interface constructor
+    TkrTrackEnergyTool(const std::string& type, const std::string& name, const IInterface* parent);
+    virtual ~TkrTrackEnergyTool() {}
+
+    /// @brief Method to fit a single candidate track. Will retrieve any extra info 
+    ///        needed from the TDS, then create and use a new KalFitTrack object to 
+    ///        fit the track via a Kalman Filter. Successfully fit tracks are then 
+    ///        added to the collection in the TDS.
+    StatusCode initialize();
+
+    /// @brief Method to fit a single candidate track. Will retrieve any extra info 
+    ///        needed from the TDS, then create and use a new KalFitTrack object to 
+    ///        fit the track via a Kalman Filter. Successfully fit tracks are then 
+    ///        added to the collection in the TDS.
+    StatusCode SetTrackEnergies(double totalEnergy);
+
+    /// Retrieve interface ID
+    static const InterfaceID& interfaceID() { return IID_TkrTrackEnergyTool; }
+
+private:
+    /// Internal methods
+    inline Point  getPosAtZ(const Event::TkrTrack* track, double deltaZ)const
+                {return track->getInitialPosition() + track->getInitialDirection() * deltaZ;} 
+
+    double getTotalEnergy(Event::TkrTrack* track, double CalEnergy);
+
+    /// Pointer to the local Tracker geometry service
+    ITkrGeometrySvc*       m_tkrGeom;
+
+    /// Pointer to the cluster tool
+    ITkrQueryClustersTool* m_clusTool;
+
+    TkrControl*            m_control;
+
+    /// Pointer to the Gaudi data provider service
+    DataSvc*         m_dataSvc;
+};
 
 static ToolFactory<TkrTrackEnergyTool> s_factory;
 const IToolFactory& TkrTrackEnergyToolFactory = s_factory;
@@ -97,10 +152,10 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies(double totalEnergy)
     StatusCode sc = StatusCode::SUCCESS;
 
     // Find the collection of candidate tracks
-    Event::TkrPatCandCol* pTkrCands = SmartDataPtr<Event::TkrPatCandCol>(m_dataSvc,EventModel::TkrRecon::TkrPatCandCol);
+    Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol);
 
     //If candidates, then proceed
-    if (pTkrCands->size() > 0)
+    if (trackCol->size() > 0)
     {
         double cal_Energy = std::max(totalEnergy, 0.5*m_control->getMinEnergy());
 
@@ -110,7 +165,7 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies(double totalEnergy)
         //cal_Energy *= _calKludge; 
 
         // Get best track ray
-        Event::TkrPatCand* firstCandTrk = pTkrCands->front();
+        Event::TkrTrack* firstCandTrk = trackCol->front();
 
         double ene_total = getTotalEnergy(firstCandTrk, cal_Energy);
 
@@ -118,23 +173,23 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies(double totalEnergy)
         //    This isn't valid for non-gamma conversions
  
 
-        if(pTkrCands->size() == 1) { // One track - it gets it all - not right but what else?
-            firstCandTrk->setEnergy(ene_total);
+        if(trackCol->size() == 1) { // One track - it gets it all - not right but what else?
+            firstCandTrk->setInitialEnergy(ene_total);
         }
         else {               // Divide up the energy between the first two tracks
-            Event::TkrPatCand* secndCandTrk = (*pTkrCands)[1];
+            Event::TkrTrack* secndCandTrk = (*trackCol)[1];
         
-            int num_hits1 = firstCandTrk->numPatCandHits();
-            int num_hits2 = secndCandTrk->numPatCandHits();
-            double e1 = firstCandTrk->getEnergy();
-            double e2 = secndCandTrk->getEnergy();
+            int num_hits1 = firstCandTrk->getNumHits();
+            int num_hits2 = secndCandTrk->getNumHits();
+            double e1 = firstCandTrk->front()->getEnergy();
+            double e2 = secndCandTrk->front()->getEnergy();
             double e1_min = 2.*num_hits1;        //Coefs are MeV/Hit
             double e2_min = 2.*num_hits2;
         
             e1 = std::max(e1, e1_min);
             e2 = std::max(e2, e2_min); 
-            double de1 = firstCandTrk->getEnergyErr();
-            double de2 = secndCandTrk->getEnergyErr();
+            double de1 = firstCandTrk->getKalEnergyError();
+            double de2 = secndCandTrk->getKalEnergyError();
             double w1  = (e1/de1)*(e1/de1); //Just the number of kinks contributing
             double w2  = (e2/de2)*(e2/de2);
 
@@ -160,8 +215,8 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies(double totalEnergy)
             if(e2_con < e2_min) {
                 e2_con = e2_min; 
             }
-            firstCandTrk->setEnergy(e1_con);
-            secndCandTrk->setEnergy(e2_con);
+            firstCandTrk->setInitialEnergy(e1_con);
+            secndCandTrk->setInitialEnergy(e2_con);
         }
     }
 
@@ -169,7 +224,7 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies(double totalEnergy)
 }
 
 
-double TkrTrackEnergyTool::getTotalEnergy(Event::TkrPatCand* track, double CalEnergy)
+double TkrTrackEnergyTool::getTotalEnergy(Event::TkrTrack* track, double CalEnergy)
 {
     // Use hit counting + CsI energies to compute Event Energy 
 
@@ -187,7 +242,7 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrPatCand* track, double CalEn
     
     // Set up parameters for KalParticle swim through entire tracker
     Point x_ini    = getPosAtZ(track, -2.); // Backup to catch first Radiator
-    Vector dir_ini = track->getDirection(); 
+    Vector dir_ini = track->getInitialDirection(); 
     //double arc_totold = x_ini.z() / fabs(dir_ini.z()); // z=0 at top of grid
     double arc_tot = (x_ini.z() - m_tkrGeom->calZTop()) / fabs(dir_ini.z()); // to z at top of cal
     
@@ -200,7 +255,7 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrPatCand* track, double CalEn
     int num_last_hits = 0; 
     double arc_len    = 5./fabs(dir_ini.z()); 
     
-    int top_plane     = track->getLayer();   
+    int top_plane     = track->front()->getTkrId().getPlane();   
     int max_planes = m_tkrGeom->numLayers();
 
     int thin_planes  = 0;

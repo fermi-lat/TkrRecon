@@ -210,7 +210,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*tkrGeom*/,
          {
             Point   trk1Pos = track1->front()->getPoint(Event::TkrTrackHit::SMOOTHED);
             Vector  trk1Dir = track1->front()->getDirection(Event::TkrTrackHit::SMOOTHED);
-            int     layer   = 35 - 2 * track1->front()->getTkrId().getTray() - 1 + track1->front()->getTkrId().getBotTop();
+            int     layer   = 36 - 2 * track1->front()->getTkrId().getTray() + track1->front()->getTkrId().getBotTop();
             int     tower   = 4 * track1->front()->getTkrId().getTowerX() + track1->front()->getTkrId().getTowerY(); 
 
             TkrVertex* vertex = new TkrVertex(layer,tower,track1->getInitialEnergy(),0.,Ray(trk1Pos,trk1Dir));
