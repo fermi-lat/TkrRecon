@@ -16,7 +16,7 @@
         Note that the text in the item field cannot have direct ampersands of brackets!
   -->
 
-<TkrGeometry cvs_Header="$Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/xml/Tkr_Flight.xml,v 1.5 2001/05/18 05:06:54 lsrea Exp $" cvs_Revision="$Revision: 1.5 $">
+<TkrGeometry cvs_Header="$Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/xml/Tkr_Flight.xml,v 1.6 2001/07/06 18:47:51 lsrea Exp $" cvs_Revision="$Revision: 1.6 $">
 
     <section name="tkr"> TKR properties
         <item name="numXtowers"      value="4">       Number of towers in X direction </item>
@@ -30,44 +30,47 @@
         -->
         <!-- gismo code currently sets z0 at the bottom of the silicon layer in the 3rd tray.
 		 For this definition, z0 = -(2*tray_spacing + si_thickenss/2 + 0.2)
+		
+		<item name="Z0"              value="-67.004">   Z coordinate at the center of the lowest Si layer</item>
+        This one is for the new Geant4 definition of z=0 at the top of the grid.
 		-->
-		<item name="Z0"              value="-6.7004">   Z coordinate at the center of the lowest Si layer</item>
-		<item name="towerPitch"      value="37.45">   Tower pitch </item>
-		<item name="trayWidth"       value="35.86">   Width of a tray </item>
+		<item name="Z0"              value="69.15">   Z coordinate at the center of the lowest Si layer</item>
+		<item name="towerPitch"      value="374.5">   Tower pitch </item>
+		<item name="trayWidth"       value="358.6">   Width of a tray </item>
         <!-- we will use an average tray height to make life easier for glastsim 
-                 this was my calulation, but lets use 3.2 to agree with gismo.
-		        <item name="trayHeight"      value="3.2412">  Height of one tray </item>
+                 this was my calulation, but lets use 32. to agree with gismo.
+		        <item name="trayHeight"      value="32.412">  Height of one tray </item>
                  -->
-		<item name="trayHeight"      value="3.2402">  Height of one tray </item>
-        <item name="footHeight"      value="0.5125">  Height of foot under bottom tray </item>
-		<item name="ladderWidth"     value="8.95">    Width of one ladder </item>
-		<item name="ladderLength"    value="35.8075"> Length of one ladder </item>
-		<item name="ladderGap"       value="0.020">   Gap between adjacent ladders </item>
-		<item name="ladderInnerGap"  value="0.0025">  Gap between wafers on the same ladder </item>
+		<item name="trayHeight"      value="32.402">  Height of one tray </item>
+        <item name="footHeight"      value="5.125">  Height of foot under bottom tray </item>
+		<item name="ladderWidth"     value="89.5">    Width of one ladder </item>
+		<item name="ladderLength"    value="358.075"> Length of one ladder </item>
+		<item name="ladderGap"       value="0.20">   Gap between adjacent ladders </item>
+		<item name="ladderInnerGap"  value="0.025">  Gap between wafers on the same ladder </item>
 		<item name="ladderNStrips"   value="384">     Number strips/ladder </item>
-		<item name="siStripPitch"    value="0.0228">  Strip pitch </item>
-		<item name="siResolution"    value="0.0066">  Strip resolution </item>
-		<item name="siThickness"     value="0.0400">  Thickness </item>
-		<item name="siDeadDistance"  value="0.0974">  Dead region around outside of wafer</item>
-		<item name="siX0"            value="9.36">    Radiation length of silicon </item>
-		<item name="pbX0"            value="0.35">    Radiation length of (tungsten) converter </item>
+		<item name="siStripPitch"    value="0.228">  Strip pitch </item>
+		<item name="siResolution"    value="0.066">  Strip resolution </item>
+		<item name="siThickness"     value="0.400">  Thickness </item>
+		<item name="siDeadDistance"  value="0.974">  Dead region around outside of wafer</item>
+		<item name="siX0"            value="93.6">    Radiation length of silicon </item>
+		<item name="pbX0"            value="03.5">    Radiation length of (tungsten) converter </item>
 
         <!--
-		<item name="thinConvHeight"  value="0.0105"> Thickness of "thin" converter (cm) </item>
-		<item name="thickConvHeight" value="0.0630"> Thickness of "thick" converter (cm) </item>
+		<item name="thinConvHeight"  value="0.105"> Thickness of "thin" converter (cm) </item>
+		<item name="thickConvHeight" value="0.630"> Thickness of "thick" converter (cm) </item>
            replaced by vector below -->
 
 		<item name="layerType"       value="{1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0}"> 0 -> X-Y, 1 -> Y-X </item>
                 <item name="nLadders"        value="{4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4}"> number of ladders vs layer </item>
 		<item name="iZGap"           value="{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}"> index of x-y gap size vs layer </item>
-		<item name="zGap"            value="{0.240}"> values of x-y gap size </item>
+		<item name="zGap"            value="{02.40}"> values of x-y gap size </item>
 
         <item name="iRadThickness"   value="{0,0,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1}"> index of radiator thkness vs layer </item>
-        <item name="radThickness"    value="{0.0, 0.0105, 0.0630}"> radiator thicknesses </item>
+        <item name="radThickness"    value="{0.0, 0.105, 0.630}"> radiator thicknesses </item>
 
 		<item name="iXSize"          value="{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}"> index of die size for X layers </item>
 		<item name="iYSize"          value="{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}"> index of die size for Y layers </item>
-		<item name="dieSize"         value="{8.95}"> values of the die size </item>
+		<item name="dieSize"         value="{89.5}"> values of the die size </item>
 		<item name="nDies"           value="{4}">     number of dies/ladder for each size </item>
 
 		<!-- all this next for the mixed layer (but not relevant for flight instrument -->
