@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Thu Mar 28 23:14:15 PST 2002
+TkrRecon/TkrRecon/Services
+
+Modified Files:
+	TkrGeometrySvc.h 
+Log Message:
+Get rid of useless geometry, and move more stuff to detModel
+
+    *
+------------------------------------------------------------
+User: lsrea  Thu Mar 28 23:14:15 PST 2002
 TkrRecon/TkrRecon
 
 Modified Files:
