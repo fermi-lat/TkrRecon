@@ -140,7 +140,7 @@ void TkrBadStripsSvc::readFromFile(std::ifstream* file)
         *file >> sequence;
         
         // kludge until the geometry supplies this info
-        // converts layer (0...35) to bilayer and view
+        // converts layer (0...35) to bilayer (digi format) and view
         int layer = sequence/2;
         int element = (sequence+3)%4;
         int view = element/2;

@@ -84,10 +84,9 @@ StatusCode TkrGeometrySvc::initialize()
     for(bilayer=0;bilayer<m_nlayers;bilayer++) {
         for (int view=0; view<2; view++) {
             int tray;
-            int botTop;
-            
+            int botTop;            
             layerToTray(bilayer, view, tray, botTop);
-            
+
             idents::VolumeIdentifier vId;
             vId.append(tray);
             vId.append(view);
@@ -152,58 +151,30 @@ HepPoint3D TkrGeometrySvc::getStripPosition(int tower, int layer, int view,
                                             double stripId)
 {
     // Purpose: return the global position
-    // Method:  gets local position and applies local->global transformation 
-    //          for that volume
+    // Method:  pass it on to the detector service
     // Inputs:  (tower, bilayer, view) and strip number (can be fractional)
     // Return:  global position
-    
-    MsgStream log(msgSvc(), name());
 
-    // offsets from the corner wafer to the full plane
-    static double ladderOffset = 0.5*(nWaferAcross()-1)
-        *(m_siWaferSide + m_ladderGap);
-    static double ssdOffset    = 0.5*(nWaferAcross()-1)
-        *(m_siWaferSide + m_ladderInnerGap);
-    
-    HepTransform3D volTransform;
     idents::VolumeIdentifier volId;
     volId.append(m_volId_tower[tower]);
     volId.append(m_volId_layer[layer][view]);
-    StatusCode sc = m_pDetSvc->getTransform3DByID(volId, &volTransform);
-    if( sc.isFailure()) {
-        log << MSG::WARNING << "Failed to obtain transform for id " 
-            << volId.name() << endreq;
-    }
-
-    double stripLclX = m_pDetSvc->stripLocalXDouble(stripId);
-    HepPoint3D p(stripLclX+ladderOffset, ssdOffset, 0.);
-    
-    // y direction not quite sorted out yet!
-    if (view==1) p = HepPoint3D(p.x(), -p.y(), p.z());
-
-    p = volTransform*p;
-    return p;
+    return m_pDetSvc->getStripPosition(volId, stripId);
 }
 
 void TkrGeometrySvc::trayToLayer(int tray, int botTop, int& layer, int& view)
 {
     // Purpose: calculate layer and view from tray and botTop
-    // Method: use knowledge of the structure of the Tracker
+    // Method:  pass it on to the detector service
     
-    int plane = 2*tray + botTop - 1;
-    layer = plane/2;
-    view = ((layer%2==0) ? botTop : (1 - botTop));
-    return;
+    m_pDetSvc->trayToLayer(tray, botTop, layer, view);
 }
 
 void TkrGeometrySvc::layerToTray(int layer, int view, int& tray, int& botTop) 
 {   
-    // Purpose: calculate tray and botTop from layer and view.
-    // Method:  use knowledge of the structure of the Tracker
+    // Purpose: calculate tray and botTop from layer and view
+    // Method:  pass it on to the detector service
     
-    int plane = (2*layer) + (((layer % 2) == 0) ? (1 - view) : (view));
-    tray = (plane+1)/2;
-    botTop = (1 - (plane % 2));
+    m_pDetSvc->layerToTray(layer, view, tray, botTop);
 }
 
 

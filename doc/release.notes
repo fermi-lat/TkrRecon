@@ -3,6 +3,8 @@
  * Package TkrRecon
  * Manager: Leon Rochester 
  *
+ * v8r0     7-sep-2002  LSR   Rationalize geometry... new version so as not to confuse Gleam, etc.
+ * v7r0     ???               Lost track of when this happened
  * v6r5p3   2-Sep-2002  TU    Tag again for testing documentations
  * v6r5p2  29-Aug-2002  TU    Tag in order to fix current round of documentation
  * v6r5p1  22-Aug-2002  TU    Fix the first round of obvious bugs
