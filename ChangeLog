@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Wed Aug 28 15:55:48 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrFindAlg.cxx TkrReconAlg.cxx TkrTrackFitAlg.cxx 
+	TkrVertexAlg.cxx 
+Log Message:
+Add "documentation" to the TkrRecon Gaudi Algorithms listed below
+
+    *
+------------------------------------------------------------
 User: usher  Wed Aug 28 15:55:47 PDT 2002
 TkrRecon/cmt
 
