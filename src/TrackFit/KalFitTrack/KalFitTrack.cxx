@@ -248,21 +248,25 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
         {
             double act_dist = nextKplane.getActiveDist();
             if(act_dist < 0.) continue; 
-            double pos_err  = 0.;  
-            
-            pos_err  =  ((nextKplane.getHit(TkrFitHit::PRED)).getCov()).getcovX0X0()
-                +((nextKplane.getHit(TkrFitHit::PRED)).getCov()).getcovY0Y0();
-            
+        
+            //Find the biggest MS error for last 2 planes (need 2 to comp. for x-y gap) 
+            double x_err_P = previousKplane.getQmaterial().getcovX0X0();
+            double y_err_P = previousKplane.getQmaterial().getcovY0Y0();
+            double x_err = nextKplane.getQmaterial().getcovX0X0();
+            double y_err = nextKplane.getQmaterial().getcovY0Y0();
+            double pos_err  = (x_err > y_err) ? x_err:y_err;
+            pos_err  = (pos_err > y_err_P) ? pos_err:y_err_P;
+            pos_err  = (pos_err > x_err_P) ? pos_err:x_err_P; 
             pos_err = sqrt(pos_err); 
-            if(pos_err < .05) pos_err = .05;  // Does this need to be a formal parameter?
-            if(act_dist/pos_err > 4.) break;  // Need to have a formal parameter here
+            if(pos_err < .25) pos_err = .25;  // Does this need to be a formal parameter?
+            if(act_dist/pos_err > 5. && m_nxHits+m_nyHits > 3) break;  // Need to have a formal parameter here
             
             if(nextKplane.getProjection() == TkrCluster::X) {
-                if(act_dist > 0.) m_Xgaps++;
+                m_Xgaps++;
                 if(m_nxHits < 3 ) m_XistGaps++;
             }
             else {
-                if(act_dist > 0.) m_Ygaps++;
+                m_Ygaps++;
                 if(m_nyHits < 3 ) m_YistGaps++;
             }
             continue; 
@@ -281,13 +285,18 @@ TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer, dou
     double       zEnd; 
 
     TkrFitHit   predhit = KF.predicted(prevKplane, type, nlayers, klayer, zEnd, arc_min);
-    TkrFitPlane projectedKplane(prevKplane.getIDHit(),klayer+nlayers,prevKplane.getEnergy(), zEnd, 
-        predhit, prevKplane.getNextProj());
-    
     double actDist = KF.getActiveDist();
-    projectedKplane.setActiveDist(actDist);
     double radLen  = KF.getRadLength();
+    TkrFitMatrix Q = KF.getMaterialCov();
+    double energy_factor = 1.; 
+    if(prevKplane.getIDPlane() >= m_iLayer) energy_factor = exp(-radLen); // Don't change first real plane
+    double pred_energy = prevKplane.getEnergy()*energy_factor;
+
+    TkrFitPlane projectedKplane(prevKplane.getIDHit(),klayer+nlayers,pred_energy, zEnd, 
+                                predhit, prevKplane.getNextProj());   
+    projectedKplane.setActiveDist(actDist);
     projectedKplane.setRadLen(radLen); 
+    projectedKplane.setQmaterial(Q);
 
     return projectedKplane;
 }
@@ -567,22 +576,9 @@ void KalFitTrack::filterStep(int iplane)
     
 }
 
-void KalFitTrack::loadTkrBase()
-{   
-    double factor = -1.;
-
-    // Output Data
-    //m_position   = getPosAtZ(0.);
-    //m_direction  = getDirection();
-    //m_energy     = m_energy0;
-    m_Q          = computeQuality();
-    //m_firstLayer = m_hits[0].getIDPlane();
-    //m_itower     = m_hits[0].getIDTower();
-} 
-
 double KalFitTrack::computeQuality() const
 { 
-    double quality = 10./(1.+m_chisqSegment) + 
+    double quality = 20./(1.+m_chisqSegment) + 
                       3.*(m_nxHits+m_nyHits-4. - .5*(m_Xgaps+m_Ygaps));
     return quality;
 }
@@ -792,6 +788,7 @@ void KalFitTrack::eneDetermination()
         
         // Reset for next X,Y measuring plane
         old_Plane_Id = m_hits[iplane].getIDPlane(); 
+        if(old_Plane_Id < 1 && iplane > 2) break;// Not sure why we can get ID = 0
         t0 = t1; 
         sX = m_hits[iplane].getHit(TkrFitHit::SMOOTH).getPar().getXSlope();
         sY = m_hits[iplane].getHit(TkrFitHit::SMOOTH).getPar().getYSlope();
