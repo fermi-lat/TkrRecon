@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.1 2003/03/12 23:36:36 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.2 2003/03/13 19:13:24 lsrea Exp $
  */
 #include "src/Track/TkrTrackEnergyTool.h"
 
@@ -31,9 +31,10 @@ namespace {
     const double _thickCoeff      = 1.97;
     const double _noradCoeff      = 0.35;
 
-    const double _thinConvRadLen  = 0.03;
-    const double _thickConvRadLen = 0.18;
-    const double _trayRadLen      = 0.015;
+    // replaced by calls to TkrGeometrySvc
+    //const double _thinConvRadLen  = 0.03; 
+    //const double _thickConvRadLen = 0.18;
+    //const double _trayRadLen      = 0.015;
 
     const double _calKludge       = 1.2;
 
@@ -182,9 +183,19 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrPatCand* track, double CalEn
     // some useful numbers from geometry
     // this depends on the constants below being correct
     // which is *not* guaranteed!
-    int nThick = m_tkrGeo->numSuperGlast();
-    int nNoCnv = m_tkrGeo->numNoConverter();
-    int nThin  = m_tkrGeo->numLayers() - nThick - nNoCnv;
+    //int nThick = m_tkrGeo->numSuperGlast();
+    //int nNoCnv = m_tkrGeo->numNoConverter();
+    //int nThin  = m_tkrGeo->numLayers() - nThick - nNoCnv;
+
+    // these come from the actual geometry
+    int nThick = m_tkrGeo->getNumType(SUPER);
+    int nNoCnv = m_tkrGeo->getNumType(NOCONV);
+    int nThin  = m_tkrGeo->getNumType(STANDARD);
+
+    double thinConvRadLen  = m_tkrGeo->getAveConv(STANDARD);
+    double thickConvRadLen = m_tkrGeo->getAveConv(SUPER);
+    double trayRadLen      = m_tkrGeo->getAveRest(ALL);
+
 
     //Retrieve the pointer to the reconstructed clusters
     Event::TkrClusterCol* pTkrClus = SmartDataPtr<Event::TkrClusterCol>(m_dataSvc,EventModel::TkrRecon::TkrClusterCol); 
@@ -231,8 +242,10 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrPatCand* track, double CalEn
         int numHits = TkrQueryClusters(pTkrClus).
             numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
 
+        /* old code, replaced below
         // the only assumption here is that the thin layers are on top
         // and the noConv layers are on the bottom
+
         if(iplane >= nThick + nThin)   { 
             num_last_hits += numHits; 
             rad_last  = arc_len;  // not currently used
@@ -240,24 +253,35 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrPatCand* track, double CalEn
         else if(iplane < nThin) {
             num_thin_hits += numHits;
             rad_thin  = arc_len;  // not currently used
-        } 
+        }
         else {
             num_thick_hits += numHits;
             rad_thick  = arc_len; // not currently used
+        }        
+        */
+
+        convType type = m_tkrGeo->getReconLayerType(iplane);
+        switch(type) {
+        case NOCONV:
+            num_last_hits += numHits; 
+            break;
+        case STANDARD:
+            num_thin_hits += numHits;
+            break;
+        case SUPER:
+            num_thick_hits += numHits;
+            break;
+        default: // shouldn't happen, but I'm being nice to the compiler
+            ;
         }
 
         // Increment arc-length
-        //arc_len += m_tkrGeo->trayHeight()/fabs(dir_ini.z());
         int nextPlane = iplane+1;
         if (iplane==max_planes-1) nextPlane--;
         double deltaZ = m_tkrGeo->getReconLayerZ(iplane)-m_tkrGeo->getReconLayerZ(nextPlane);
         arc_len += fabs( deltaZ/dir_ini.z()); 
     }
     
-    //double ene_trks   = .4*num_thin_hits + 1.7*num_thick_hits; // Coefs are MeV/hit
-    //double ene_xing   = 1.6*(max_planes-top_plane+1);       // Coef is MeV/plane
-    // Optimized Coefs = .6 , 1.85, and .32
-
     double ene_trks   = _thinCoeff*num_thin_hits + _thickCoeff*num_thick_hits +
         _noradCoeff*num_last_hits; // Coefs are MeV/hit - 2nd Round optimization
  
@@ -267,13 +291,13 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrPatCand* track, double CalEn
     int norad_planes = std::min(nNoCnv, std::max(0, max_planes     - top_plane) );
 
     //Just the radiators
-    double rad_nom  = _thinConvRadLen*thin_planes 
-        + _thickConvRadLen*thick_planes; // why no costheta? LSR
+    double rad_nom  = thinConvRadLen*thin_planes 
+        + thickConvRadLen*thick_planes; // why no costheta? LSR
     //The "real" rad- len 
     double rad_swim = kalPart->radLength();                 
     //The non-radiator
     double rad_min  = 
-        (thin_planes+thick_planes+norad_planes)*_trayRadLen/fabs(dir_ini.z()); 
+        (thin_planes+thick_planes+norad_planes)*trayRadLen/fabs(dir_ini.z()); 
     rad_swim = std::max(rad_swim, rad_nom + rad_min); 
     double ene_total  =  ene_trks * rad_swim/rad_nom + CalEnergy; //Scale and add cal. energy
 
