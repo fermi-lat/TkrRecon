@@ -8,7 +8,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.15 2003/08/04 20:04:40 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.1 2004/03/23 23:59:25 usher Exp $
  */
 
 // Tool and Gaudi related stuff
@@ -364,10 +364,15 @@ void KalmanTrackFitTool::doKalmanFit(Event::TkrKalFitTrack& track,
 
         // Update the hit information (measured, predicted and filtered) for this plane
         trackUtils.addNewHit(nextPlane, Event::TkrFitHit::MEAS,measPar, measCov);
-        trackUtils.addNewHit(nextPlane, Event::TkrFitHit::PRED,Event::TkrFitPar(KalmanFit.StateVecExtrap()),Event::TkrFitMatrix(KalmanFit.CovMatExtrap()));
-        trackUtils.addNewHit(nextPlane, Event::TkrFitHit::FIT,Event::TkrFitPar(curStateVec),Event::TkrFitMatrix(curCovMat));
+	Event::TkrFitPar    extrapPar = Event::TkrFitPar(KalmanFit.StateVecExtrap());
+	Event::TkrFitMatrix extrapCov = Event::TkrFitMatrix(KalmanFit.CovMatExtrap());
+        trackUtils.addNewHit(nextPlane, Event::TkrFitHit::PRED, extrapPar, extrapCov);
+	Event::TkrFitPar    curPar = Event::TkrFitPar(curStateVec);
+	Event::TkrFitMatrix curCov = Event::TkrFitMatrix(curCovMat);
+        trackUtils.addNewHit(nextPlane, Event::TkrFitHit::FIT,curPar,curCov);
 
-        trackUtils.updateMaterials(nextPlane, Event::TkrFitMatrix(Qmat.getLastStepQ()), Qmat.getLastStepRadLen(), 
+	Event::TkrFitMatrix lastStepQ = Event::TkrFitMatrix(Qmat.getLastStepQ());
+        trackUtils.updateMaterials(nextPlane, lastStepQ, Qmat.getLastStepRadLen(), 
                                    Qmat.getLastStepActDist(), currentPlane.getEnergy());
 
         double chiSqOld = nextPlane.getDeltaChiSq(Event::TkrFitHit::FIT);
@@ -403,7 +408,9 @@ void KalmanTrackFitTool::doKalmanFit(Event::TkrKalFitTrack& track,
         curCovMat    = KalmanFit.CovMatSmooth();
 
         // Update the smoothed hit at this plane
-        trackUtils.addNewHit(curPlane, Event::TkrFitHit::SMOOTH,Event::TkrFitPar(curStateVec),Event::TkrFitMatrix(curCovMat));
+	Event::TkrFitPar    curPar = Event::TkrFitPar(curStateVec);
+	Event::TkrFitMatrix curCov = Event::TkrFitMatrix(curCovMat);
+        trackUtils.addNewHit(curPlane, Event::TkrFitHit::FIT,curPar,curCov);
 
         // Extract the measured state vector from the TDS version
         // There must be a better way to do this...
