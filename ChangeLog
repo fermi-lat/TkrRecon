@@ -1,5 +1,20 @@
 ------------------------------------------------------------
 User: lsrea  Wed Mar 27 17:57:10 PST 2002
+TkrRecon/xml
+
+Modified Files:
+	Tkr_Flight.xml 
+Log Message:
+TkrGeometrySvc: First try at getting constants from GlastDetSvc. Seems to work!
+KalPlane: one more cm->mm, and slightly adjust another hard-wired constant
+Tkr_Flight.xml: TEMPORARILY set z0 to zero.  For reasons not yet understood,
+     this makes the fitter start fitting, but of course the track comes out
+     in the wrong place.
+Definitely not a taggable version, but it's the workingest so far! 
+
+    *
+------------------------------------------------------------
+User: lsrea  Wed Mar 27 17:57:10 PST 2002
 TkrRecon/src/TrackFit
 
 Modified Files:
