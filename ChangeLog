@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: usher  Tue Apr 20 15:03:39 PDT 2004
+TkrRecon/src/Track
+
+Modified Files:
+	KalmanTrackFitTool.cxx 
+Log Message:
+Fix bug introduced in original round of linux compile error fixes for the 
+generic track fit. 
+
+    *
+------------------------------------------------------------
+User: usher  Tue Apr 20 15:03:39 PDT 2004
 TkrRecon/doc
 
 Modified Files:
