@@ -1,5 +1,6 @@
 #include "TkrRecon/Services/TkrGeometryVisitor.h"
 #include <iostream>
+#include <algorithm>
 using namespace std;
 
 TkrGeometryVisitor::TkrGeometryVisitor() : m_mode("propagate") {}
@@ -82,7 +83,7 @@ TkrGeometryVisitor::pushShape(ShapeType /*s*/,
     }
     
     // and the silicon
-    if (name=="SiLayerBox") {
+    if (name.find("SiLayerBox")!=std::string::npos) {
         m_botTop = idvec[0];
         m_layer = m_tray - 1 + m_botTop;
         
