@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: igable  Wed Apr 25 10:38:00 PDT 2001
+TkrRecon/src/test TkrTest.cxx
+
+Modified Files:
+	TkrTest.cxx 
+Log Message:
+Move to Gaudi v7. Still having some problems. The TkrReconData.lib
+does not build as a part of the all project.This can be temporarily
+solved by explicitly building the library.
+
+    *
+------------------------------------------------------------
+User: igable  Wed Apr 25 10:38:00 PDT 2001
 TkrRecon/src/Dll TkrRecon_dll.cpp TkrRecon_load.cpp
 
 Modified Files:
