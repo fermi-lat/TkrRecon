@@ -3,7 +3,8 @@
 @verbatim
   Manager: Leon Rochester 
 
-  v8r12p4 19-Feb-2004  TU    Cleaned out MC analysis stuff - moved to McToolBox
+  v8r12p9 13-Apr-2004  LSR   First go at slope-dependent errors; default is "good old errors"\
+  ...                  JCT   Fix unix errors and warnings
   v8r12p3 17-Feb-2004  TU    Tag to get "fixed" iterative recon stuff
   v8r12p1 15-jan-2004  THB   "Fix" the MC stuff
   v8r11p8 06-jan-2004  LSR   Fix the MC stuff

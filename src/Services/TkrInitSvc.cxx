@@ -25,6 +25,7 @@ Service(name, pSvcLocator)
     declareProperty("TkrIniErrorSlope",      m_iniErrorSlope      = control->getIniErrSlope()       );
     declareProperty("TkrIniErrorPosition",   m_iniErrorPosition   = control->getIniErrPosition()    );
     declareProperty("TkrPlaneEnergies",      m_planeEnergies      = control->getPlaneEnergies()     );
+    declareProperty("TkrErrorType",          m_errorType          = control->getErrorType()         );
 
     return; 
 }
@@ -55,7 +56,8 @@ StatusCode TkrInitSvc::initialize()
     if (m_iniErrorSlope      != control->getIniErrSlope()       ) control->setIniErrSlope(m_iniErrorSlope);
     if (m_iniErrorPosition   != control->getIniErrPosition()    ) control->setIniErrPos(m_iniErrorPosition);
     if (m_planeEnergies      != control->getPlaneEnergies()     ) control->setPlaneEnergies(m_planeEnergies);
-    
+    if (m_errorType          != control->getErrorType()         ) control->setErrorType(m_errorType); 
+
     return sc;
 }
 

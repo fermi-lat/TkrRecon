@@ -10,7 +10,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrControl.h,v 1.6 2002/09/05 13:48:49 burnett Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrControl.h,v 1.7 2002/09/06 06:59:54 lsrea Exp $
  */
 
 
@@ -38,6 +38,7 @@ public:
     const double getIniErrSlope()        {return m_iniErrorSlope;     }
     const double getIniErrPosition()     {return m_iniErrorPosition;  }
     const bool   getPlaneEnergies()      {return m_planeEnergies;     }
+    const int    getErrorType()          {return m_errorType;         }
 
 
     /// Allow for control variables to be set at initialization
@@ -52,6 +53,7 @@ public:
     void setIniErrSlope(    double errSlp)    {m_iniErrorSlope     = errSlp;  }
     void setIniErrPos(      double errPos)    {m_iniErrorPosition  = errPos;  }
     void setPlaneEnergies(  bool   enePlane)  {m_planeEnergies     = enePlane;}
+    void setErrorType    (  int    eType)     {m_errorType         = eType;   }
 
 private:
     /// private Constructor
@@ -77,6 +79,7 @@ private:
     double m_iniErrorPosition;   // First Hit error in Kalman: .1 mm
 
     bool   m_planeEnergies;      // Decrease particle energies by exp(-rad_len)
+    int    m_errorType;          // determines type of error calculation
 };
 
 #endif
