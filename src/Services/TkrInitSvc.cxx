@@ -37,7 +37,10 @@ StatusCode TkrInitSvc::initialize()
     setProperties();
     MsgStream log(msgSvc(), name());
     
-    sc = service("TkrGeometrySvc", pTkrGeo, true);
+    if ((sc = service("TkrGeometrySvc", pTkrGeo, true)).isFailure()) {
+        log << MSG::INFO << "Couldn't get TkrGeometrySvc" << endreq;
+        return sc;
+    }
 
     // Take care of resetting of control variables (if necessary)
     TkrControl* control = TkrControl::getPtr();
