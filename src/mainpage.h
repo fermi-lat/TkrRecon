@@ -29,9 +29,13 @@ The diagram below attempts to illustrate this procedure:
  *
  \image html Tkr_diagram.gif
  *
-Here is an example of a reconstructed gamma. The blue lines represent the fit
-tracks found from the pattern recognition. The yellow line is the resultant direction
-from the vertexing algorithm.
+ *
+Here is an example of a reconstructed gamma. The green x's represent the
+cluster positions reconstructed from the hit strips. After this, the blue
+lines represent 
+the fit tracks found from the pattern recognition. The yellow line is the 
+resultant direction from the vertexing algorithm.
+ *
  *
  \image html Event1.gif
  *
@@ -99,7 +103,9 @@ parameters for controlling the TkrRecon reconstruction process.
  *
 @section information More Information
  *
-For more information, please see the Tracker Recon Group <A HREF="http://www-glast.slac.stanford.edu/software/TKR/NewTracker/TrkRecon.htm"> website. </A>
+For more information, please see the Tracker Recon Group 
+<A HREF="http://www-glast.slac.stanford.edu/software/TKR/NewTracker/TrkRecon.htm"> 
+website. </A>
  *
 @authors Tracy Usher, Leon Rochester (SLAC) <br>
 Bill Atwood, Brandon Allgood(UC Santa Cruz) <br>
