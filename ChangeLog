@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+User: usher  Wed Feb  6 13:41:40 PST 2002
+TkrRecon/src/PatRec
+
+Removed Files:
+	BestNodeList.cxx LayerLink.cxx LayerLinkTree.cxx 
+	TkrCandidates.cxx TkrClusterLink.cxx TkrClusterLinkList.cxx 
+	TkrClusterLinkVector.cxx TkrLinkAndTreePR.cxx 
+	TkrLinkForest.cxx TkrLinkNode.cxx TkrLinkTree.cxx 
+	TkrNodeQuality.cxx 
+Log Message:
+Moving these link and tree pat rec routines to their own subfolder
+
+    *
+------------------------------------------------------------
 User: usher  Wed Feb  6 13:38:59 PST 2002
 TkrRecon/TkrRecon/TrackFit
 
