@@ -36,8 +36,8 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
     int          trk2Idx = trk1Idx+1;
     int      bst_trk2Idx = trk2Idx; 
     
-    TkrFitTrack* track1  = *pTrack1;
-    TkrFitTrack* best_track2 = 0;
+    TkrFitTrackBase* track1      = *pTrack1;
+    TkrFitTrackBase* best_track2 = 0;
     
     double e_t1 =  track1->getEnergy();
     Point  gamPos; 
@@ -50,7 +50,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
     //while(pTrack2 < pTracks->end())
     for (; pTrack2!=pTracks->end(); pTrack2++, trk2Idx++) 
     {
-        TkrFitTrack* track2 = *pTrack2;
+        TkrFitTrackBase* track2 = *pTrack2;
         
         if(gamEne == 0.) gamEne = e_t1+track2->getEnergy();
         
@@ -177,7 +177,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
     //while(pTrack != pTracks->end())
     for (; pTrack != pTracks->end(); pTrack++, trkIdx++)
     {
-         TkrFitTrack* track1 = *pTrack;
+         TkrFitTrackBase* track1 = *pTrack;
                 
          if (unused[trkIdx])
          {
