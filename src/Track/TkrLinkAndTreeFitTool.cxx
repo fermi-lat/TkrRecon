@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Track/TkrLinkAndTreeFitTool.cxx,v 1.2 2004/09/08 15:32:45 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrLinkAndTreeFitTool.cxx,v 1.10 2004/09/23 21:30:31 usher Exp $
 //
 // Description:
 //      Tool for performing the fit of Link and Tree Pat Rec candidate tracks
@@ -49,7 +49,7 @@ public:
 
 private:
     /// Pointer to the local Tracker geometry service
-    ITkrGeometrySvc* m_geoSvc;
+    ITkrGeometrySvc* m_tkrGeom;
     /// Pointer to the FailureModeSvc
     ITkrFailureModeSvc* pTkrFail;
     /// Pointer to the cluster tool
@@ -85,7 +85,7 @@ StatusCode TkrLinkAndTreeFitTool::initialize()
         throw GaudiException("Service [TkrGeometrySvc] not found", name(), sc);
     }
 
-    m_geoSvc = dynamic_cast<ITkrGeometrySvc*>(iService);
+    m_tkrGeom = dynamic_cast<ITkrGeometrySvc*>(iService);
 
     //Locate and store a pointer to the data service
     if ((sc = serviceLocator()->getService("EventDataSvc", iService)).isFailure())
@@ -119,7 +119,7 @@ StatusCode TkrLinkAndTreeFitTool::doTrackFit(Event::TkrPatCand* patCand)
     TkrControl* control = TkrControl::getPtr(); 
     Event::TkrKalFitTrack* track  = new Event::TkrKalFitTrack();
     Event::KalFitter*      fitter = new Event::KalFitter(
-        pTkrClus, m_geoSvc, m_clusTool, track, iniLayer, iniTower,
+        pTkrClus, m_tkrGeom, m_clusTool, track, iniLayer, iniTower,
         control->getSigmaCut(), energy, testRay);                 
         
     //track->findHits(); Using PR Solution to save time
@@ -205,7 +205,7 @@ StatusCode TkrLinkAndTreeFitTool::doTrackReFit(Event::TkrPatCand* patCand)
 
                 // Use KalFitter to refit the track
                 Event::KalFitter* fitter = new Event::KalFitter(pTkrClus, 
-                                                                m_geoSvc, 
+                                                                m_tkrGeom, 
                                                                 kalFitTrack, 
                                                                 control->getSigmaCut(), 
                                                                 patCand->getEnergy()); 

@@ -25,8 +25,8 @@ void TkrClustersRep::update()
     if (pClusters)
     {
         int    nHits      = pClusters->size();
-        double stripPitch = pTkrGeo->siStripPitch();
-        double towerPitch = pTkrGeo->towerPitch();
+        double stripPitch = m_tkrGeom->siStripPitch();
+        double towerPitch = m_tkrGeom->towerPitch();
         
         setColor("green");
 
@@ -84,5 +84,5 @@ void TkrClustersRep::update()
     return;
 }
 
-ITkrGeometrySvc * pTkrGeo;
+ITkrGeometrySvc * m_tkrGeom;
 

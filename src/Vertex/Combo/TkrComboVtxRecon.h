@@ -15,7 +15,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Vertex/Combo/TkrComboVtxRecon.h,v 1.2 2004/09/08 15:32:48 usher Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/Combo/TkrComboVtxRecon.h,v 1.13 2004/09/23 21:30:31 usher Exp $
 */
 #ifndef TkrComboVtxRecon_H
 #define TkrComboVtxRecon_H
@@ -29,7 +29,7 @@
 class TkrComboVtxRecon 
 {
 public:
-    TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, 
+    TkrComboVtxRecon(ITkrGeometrySvc* tkrGeom, 
                      Event::TkrVertexCol* vertexCol, 
                      Event::TkrTrackCol* pTracks, 
                      Event::TkrPatCandCol* pCandTracks, 

@@ -13,7 +13,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitter.h,v 1.6 2004/09/23 21:30:29 usher Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitter.h,v 1.7 2004/10/01 19:49:08 usher Exp $
 */
 
 #ifndef __KalFitter_H
@@ -129,7 +129,7 @@ private:
 
     /// Pointers to clusters, geoemtry, and control parameters
     Event::TkrClusterCol*  m_clusters;
-    ITkrGeometrySvc*       m_tkrGeo;
+    ITkrGeometrySvc*       m_tkrGeom;
     ITkrFailureModeSvc*    m_tkrFail;
     ITkrQueryClustersTool* m_clusTool;
     TkrControl*            m_control;

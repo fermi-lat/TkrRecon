@@ -1,4 +1,5 @@
 #include "src/Utilities/TkrPoints.h"
+#include <iostream>
 
 TkrPoints::TkrPoints(int iniLayer, ITkrQueryClustersTool* clusTool)
 {
@@ -16,13 +17,14 @@ void TkrPoints::ini()
 
     m_xHitList = m_clusTool->getClusters(idents::TkrId::eMeasureX,m_layer);
     m_xHits    = m_xHitList.size();
-    //m_xHits = m_clusters->nHits(Event::TkrCluster::X,m_layer);
-    //if (m_xHits > 0) m_xHitList = m_clusters->getHits(Event::TkrCluster::X,m_layer);
+    //int test;
+    //std::cout << "x hits" << std::endl;
+    //for (test=0;test<m_xHits;++test) {
+    //    std::cout << m_xHitList[test]->tower() << " " << std::endl;
+    //}
 
     m_yHitList = m_clusTool->getClusters(idents::TkrId::eMeasureY,m_layer);
     m_yHits    = m_yHitList.size();
-    //m_yHits = m_clusters->nHits(Event::TkrCluster::Y,m_layer);
-    //if (m_yHits > 0) m_yHitList = m_clusters->getHits(Event::TkrCluster::Y,m_layer);
 
     m_end = false;
     if (m_xHits == 0 || m_yHits == 0) {
@@ -75,8 +77,6 @@ Point TkrPoints::getNearestPointOutside(Point x0, double & dist_min)
         z_min = z;
         m_pClusterX = &*m_xHitList[ix];
         m_pClusterY = &*m_yHitList[iy];
-        //m_xID = m_xHitList[ix]->id();
-        //m_yID = m_yHitList[iy]->id();
         m_xSize = m_xHitList[ix]->size();
         m_ySize = m_yHitList[iy]->size();
     }

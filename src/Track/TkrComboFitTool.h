@@ -7,7 +7,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.h,v 1.4 2003/03/13 19:13:24 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.h,v 1.5 2003/03/26 22:05:03 usher Exp $
  */
 
 #ifndef TKRCOMBOFITTOOL_H
@@ -34,7 +34,7 @@ public:
 
 private:
     /// Pointer to the local Tracker geometry service
-    ITkrGeometrySvc* pTkrGeoSvc;
+    ITkrGeometrySvc* m_tkrGeom;
     /// Pointer to the failure service
     ITkrFailureModeSvc* pTkrFailSvc;
 

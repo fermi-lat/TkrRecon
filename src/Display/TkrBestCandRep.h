@@ -22,7 +22,7 @@ class TkrBestCandRep : public gui::DisplayRep
 {
 public:
     //! Constructor of this form must be provided
-    TkrBestCandRep(IDataProviderSvc* dps, ITkrGeometrySvc* pTkrGeo);
+    TkrBestCandRep(IDataProviderSvc* dps, ITkrGeometrySvc* tkrGeom);
     virtual ~TkrBestCandRep() {}
 
     void update();
@@ -32,7 +32,7 @@ private:
     void drawLinkNode(TkrLinkNode* pTkrNode);
 
     IDataProviderSvc* dps;
-    ITkrGeometrySvc*  pTkrGeo;
+    ITkrGeometrySvc*  m_tkrGeom;
 };
       
 #endif

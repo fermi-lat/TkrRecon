@@ -21,10 +21,10 @@ namespace {
 
 
 
-KalmanFilter::KalmanFilter(TkrClusterCol* clusters, ITkrGeometrySvc* geo)
+KalmanFilter::KalmanFilter(TkrClusterCol* clusters, ITkrGeometrySvc* tkrGeom)
 {
     m_clusters   = clusters;
-    m_tkrGeo     = geo;
+    m_tkrGeom    = tkrGeom;
 
     m_radLength  = 0.;
     m_activeDist = 0;
@@ -67,7 +67,7 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ,
 
     double       down    = nsteps < 0 ? +1. : -1.;
 
-    IKalmanParticle* TkrFitPart = m_tkrGeo->getPropagator();
+    IKalmanParticle* TkrFitPart = m_tkrGeom->getPropagator();
     TkrFitPart->setStepStart(x_ini, dir_ini, arc_min);
     if(TkrFitPart->trackToNextPlane()) 
     {
@@ -132,7 +132,7 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ,
 
     double       down    = -1.;
 
-    IKalmanParticle* TkrFitPart = m_tkrGeo->getPropagator();
+    IKalmanParticle* TkrFitPart = m_tkrGeom->getPropagator();
     TkrFitPart->setStepStart(x_ini, dir_ini, arc_min);
     if(arc_min >= 0) {
         AXIS planeProjection = idents::TkrId::eMeasureY;
@@ -209,7 +209,7 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitPlane& kplaneNext)
     double       deltaZ  = kplaneNext.getZPlane() - start.getZPlane();
     double       arc_len = fabs(deltaZ/dir_ini.z()); 
 
-    IKalmanParticle* TkrFitPart = m_tkrGeo->getPropagator();
+    IKalmanParticle* TkrFitPart = m_tkrGeom->getPropagator();
     TkrFitPart->setStepStart(x_ini, dir_ini, arc_len);
 
     double relDeltaZ = down * fabs(deltaZ);
@@ -353,7 +353,7 @@ double KalmanFilter::getError(double strips, double slope) const
     // strips is the number of strips in the cluster
     // slope is the slope of the track in the measuring view
 
-    double stripAspect = m_tkrGeo->siThickness()/m_tkrGeo->siStripPitch();
+    double stripAspect = m_tkrGeom->siThickness()/m_tkrGeom->siStripPitch();
     double absSlope = fabs(slope*stripAspect);
 
     // calculation below is done in units of strips
@@ -367,10 +367,10 @@ double KalmanFilter::getError(double strips, double slope) const
 
     double error;
     double factor = 0.0;
-    double minErr = m_tkrGeo->siResolution(); 
+    double minErr = m_tkrGeom->siResolution(); 
     double oneOverSqrtTwelve = 1./sqrt(12.);
-    double clusterWidth  = strips*m_tkrGeo->siStripPitch();
-    double projectedWidth = fabs(slope)*m_tkrGeo->siThickness();
+    double clusterWidth  = strips*m_tkrGeom->siStripPitch();
+    double projectedWidth = fabs(slope)*m_tkrGeom->siThickness();
     int    errorType = m_control->getErrorType();
     int    nStrips = (int) strips+.01;  // just to be safe
 

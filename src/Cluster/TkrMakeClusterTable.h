@@ -8,7 +8,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Cluster/TkrMakeClusterTable.h,v 1.3 2004/09/08 15:32:42 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusterTable.h,v 1.3 2004/09/23 21:30:25 usher Exp $
 */
 
 #include "Event/Recon/TkrRecon/TkrCluster.h"
@@ -35,14 +35,14 @@ public:
         const Event::TkrDigiCol* pDigi, 
         ObjectList<relDigiType>* pRelTab,
         Event::RelTable<Event::TkrCluster, Event::McPositionHit>* pClRelTab,
-        ITkrGeometrySvc* pTkrGeo);
+        ITkrGeometrySvc* tkrGeom);
     
     ~TkrMakeClusterTable() { }
 
     int digiOrder(const Event::TkrCluster* pClust);
 
 private:
-    ITkrGeometrySvc* m_pTkrGeo;
+    ITkrGeometrySvc* m_tkrGeom;
     
 };
 

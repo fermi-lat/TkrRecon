@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.2 2004/09/08 15:32:43 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.11 2004/09/23 21:30:27 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -95,7 +95,7 @@ StatusCode ComboFindTrackTool::findTracks()
     }
 
     //Create the TkrCandidates TDS object
-    TkrComboPatRec comboPatRec(m_dataSvc, m_clusTool, m_tkrGeo, pTkrClus, CalEnergy, CalPosition);
+    TkrComboPatRec comboPatRec(m_dataSvc, m_clusTool, m_tkrGeom, pTkrClus, CalEnergy, CalPosition);
 
     return sc;
 }

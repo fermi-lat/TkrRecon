@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.16 2004/02/18 20:49:11 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.17 2004/09/23 21:30:26 usher Exp $
 //
 // Description:
 //      Contains the implementation of the methods for setting up the TkrRecon display
@@ -71,8 +71,8 @@ StatusCode TkrDisplayAlg::initialize()
     sc = service("TkrInitSvc", pTkrInitSvc);
     
     //Look for the geometry service
-    ITkrGeometrySvc* pTkrGeo = 0;
-    sc = service("TkrGeometrySvc", pTkrGeo, true);
+    ITkrGeometrySvc* tkrGeom = 0;
+    sc = service("TkrGeometrySvc", tkrGeom, true);
     
     //Ok, see if we can set up the display
     if (sc.isSuccess()) 
@@ -84,19 +84,19 @@ StatusCode TkrDisplayAlg::initialize()
         //Set up the display rep for Clusters
         TkrClustersRep*  p_clRep = new TkrClustersRep(eventSvc());
         tkrmenu.add(p_clRep, "Clusters");
-        p_clRep->setTkrGeo(pTkrGeo);
+        p_clRep->setTkrGeo(tkrGeom);
         
         //Link and Tree display routines
         if (m_TrackerReconType == "LinkAndTree")
         {
             //Set up the display rep for the reconstructed objects
-            tkrmenu.add(new TkrCandidatesRep(eventSvc(), pTkrGeo), "PatRec: Trees");
+            tkrmenu.add(new TkrCandidatesRep(eventSvc(), tkrGeom), "PatRec: Trees");
         
             //Set up the display rep for the reconstructed objects
-            tkrmenu.add(new TkrBestCandRep(eventSvc(), pTkrGeo), "PatRec: Best");
+            tkrmenu.add(new TkrBestCandRep(eventSvc(), tkrGeom), "PatRec: Best");
         
             //Set up the display rep for the reconstructed objects
-            tkrmenu.add(new TkrCandidate3DRep(eventSvc(), pTkrGeo), "PatRec: 3D Cands");
+            tkrmenu.add(new TkrCandidate3DRep(eventSvc(), tkrGeom), "PatRec: 3D Cands");
         }
         //TkrCombo display routines
         else if (m_TrackerReconType == "Combo")
@@ -107,9 +107,9 @@ StatusCode TkrDisplayAlg::initialize()
         else if (m_TrackerReconType == "NeuralNet")
         {
             //Set up the display rep for the complete Neural Network
-            tkrmenu.add(new TkrDispCompleteNet(eventSvc(), pTkrGeo), "PatRec: Complete NN");
+            tkrmenu.add(new TkrDispCompleteNet(eventSvc(), tkrGeom), "PatRec: Complete NN");
         
-            tkrmenu.add(new TkrDispActiveNet(eventSvc(), pTkrGeo), "PatRec: Active NN");
+            tkrmenu.add(new TkrDispActiveNet(eventSvc(), tkrGeom), "PatRec: Active NN");
         
         }
         //Monte Carlo Pat Rec display routines
@@ -122,8 +122,8 @@ StatusCode TkrDisplayAlg::initialize()
         tkrmenu.add(new TkrTracksRep(eventSvc()), "Tracks");
     
         //Vertex display routines
-        tkrmenu.add(new TkrGammaRep(eventSvc(), pTkrGeo), "Gamma Vertex");
-        tkrmenu.add(new TkrComboVtxRep(eventSvc(), pTkrGeo), "All Vertices");
+        tkrmenu.add(new TkrGammaRep(eventSvc(), tkrGeom), "Gamma Vertex");
+        tkrmenu.add(new TkrComboVtxRep(eventSvc(), tkrGeom), "All Vertices");
     }
     
     return sc;

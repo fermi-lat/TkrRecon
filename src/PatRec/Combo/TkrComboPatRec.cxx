@@ -44,7 +44,7 @@ using namespace Event;
 
 TkrComboPatRec::TkrComboPatRec(IDataProviderSvc* dataSvc,
                                ITkrQueryClustersTool* clusTool,
-                               ITkrGeometrySvc* pTkrGeo, 
+                               ITkrGeometrySvc* tkrGeom, 
                                TkrClusterCol* pClusters, 
                                double CalEnergy, Point CalPosition)
 {
@@ -67,14 +67,14 @@ TkrComboPatRec::TkrComboPatRec(IDataProviderSvc* dataSvc,
     // Internal init's 
     m_dataSvc      = dataSvc;
     m_clusters     = pClusters;
-    m_tkrGeo       = pTkrGeo;
+    m_tkrGeom      = tkrGeom;
     m_clusTool     = clusTool;
-    m_tkrFail      = pTkrGeo->getTkrFailureModeSvc();
+    m_tkrFail      = tkrGeom->getTkrFailureModeSvc();
     m_control = TkrControl::getPtr();
     
     m_BestHitCount = 0;
     m_firstLayer = 0; 
-    m_TopLayer     = m_tkrGeo->numLayers(); 
+    m_TopLayer     = m_tkrGeom->numLayers(); 
 
    
     //Search for candidate tracks
@@ -159,8 +159,8 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
             }        
             int hit_Id = plane.getIDHit();;
             double cls_size = (*m_clusters)[hit_Id]->size(); 
-            double prj_size = m_tkrGeo->siThickness()*fabs(slope)/
-                              m_tkrGeo->siStripPitch()             + 1.;
+            double prj_size = m_tkrGeom->siThickness()*fabs(slope)/
+                              m_tkrGeom->siStripPitch()             + 1.;
             if(cls_size> prj_size) {
                 best_tkr->unFlagHit(i_Hit);
                 i_share++; 
@@ -283,8 +283,8 @@ void TkrComboPatRec::loadOutput()
 
                 int    measIdx   = hit->getParamIndex(true,false);
                 int    nonmIdx   = hit->getParamIndex(false,false);
-                double sigma     = m_tkrGeo->siResolution();
-                double sigma_alt = m_tkrGeo->trayWidth() * oneOverSqrt12;
+                double sigma     = m_tkrGeom->siResolution();
+                double sigma_alt = m_tkrGeom->trayWidth() * oneOverSqrt12;
 
                 params(measIdx,measIdx) = sigma * sigma;
                 params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
@@ -337,13 +337,13 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     // Use hit counting + CsI energies to compute Event Energy 
 
     // these come from the actual geometry
-    int nNoCnv = m_tkrGeo->getNumType(NOCONV);
-    int nThin  = m_tkrGeo->getNumType(STANDARD);
-    int nThick = m_tkrGeo->getNumType(SUPER);
+    int nNoCnv = m_tkrGeom->getNumType(NOCONV);
+    int nThin  = m_tkrGeom->getNumType(STANDARD);
+    int nThick = m_tkrGeom->getNumType(SUPER);
 
-    double thinConvRadLen  = m_tkrGeo->getAveConv(STANDARD);
-    double thickConvRadLen = m_tkrGeo->getAveConv(SUPER);
-    double trayRadLen      = m_tkrGeo->getAveRest(ALL);
+    double thinConvRadLen  = m_tkrGeom->getAveConv(STANDARD);
+    double thickConvRadLen = m_tkrGeom->getAveConv(SUPER);
+    double trayRadLen      = m_tkrGeom->getAveRest(ALL);
     
 
     double cal_Energy = std::max(calEnergy, 0.5*m_control->getMinEnergy());
@@ -360,7 +360,7 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     Vector dir_ini = first_track->getDirection(); 
     double arc_tot = x_ini.z() / fabs(dir_ini.z()); // z=0 at top of grid
     
-    IKalmanParticle* kalPart = m_tkrGeo->getPropagator();
+    IKalmanParticle* kalPart = m_tkrGeom->getPropagator();
     kalPart->setStepStart(x_ini, dir_ini, arc_tot);
 
     // Set up summed var's and loop over all layers between x_ini & cal
@@ -370,7 +370,7 @@ void TkrComboPatRec::setEnergies(double calEnergy)
 
     double arc_len    = 5./fabs(dir_ini.z()); 
     int top_plane     = first_track->getLayer();     
-    int maxLayers    = m_tkrGeo->numLayers();
+    int maxLayers    = m_tkrGeom->numLayers();
 
     int thin_planes  = 0;
     int thick_planes = 0;
@@ -387,17 +387,17 @@ void TkrComboPatRec::setEnergies(double calEnergy)
         }
         double xSprd = sqrt(2.+xms*16.); // 4.0 sigma and not smaller then 2mm (was 2.5 sigma)
         double ySprd = sqrt(2.+yms*16.); // Limit to a tower... 
-        if(xSprd > m_tkrGeo->trayWidth()/2.) xSprd = m_tkrGeo->trayWidth()/2.;
-        if(ySprd > m_tkrGeo->trayWidth()/2.) ySprd = m_tkrGeo->trayWidth()/2.;
+        if(xSprd > m_tkrGeom->trayWidth()/2.) xSprd = m_tkrGeom->trayWidth()/2.;
+        if(ySprd > m_tkrGeom->trayWidth()/2.) ySprd = m_tkrGeom->trayWidth()/2.;
 
         // Assume location of shower center in given by 1st track
         Point x_hit = first_track->getPosAtZ(arc_len);
         //int numHits = TkrQueryClusters(m_clusters).
         //    numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
-        int numHits = m_clusTool->numberOfHitsNear(m_tkrGeo->reverseLayerNumber(iplane),
+        int numHits = m_clusTool->numberOfHitsNear(m_tkrGeom->reverseLayerNumber(iplane),
             xSprd, ySprd, x_hit);
 
-        convType type = m_tkrGeo->getReconLayerType(iplane);
+        convType type = m_tkrGeom->getReconLayerType(iplane);
         switch(type) {
         case NOCONV:
             num_last_hits += numHits;
@@ -418,7 +418,7 @@ void TkrComboPatRec::setEnergies(double calEnergy)
         // Increment arc-length
         int nextPlane = iplane+1;
         if (iplane==maxLayers-1) nextPlane--;
-        double deltaZ = m_tkrGeo->getReconLayerZ(iplane)-m_tkrGeo->getReconLayerZ(nextPlane);
+        double deltaZ = m_tkrGeom->getReconLayerZ(iplane)-m_tkrGeom->getReconLayerZ(nextPlane);
         arc_len += fabs( deltaZ/dir_ini.z()); 
     }
     
@@ -520,7 +520,7 @@ void TkrComboPatRec::findBlindCandidates()
    // Dependencies: None
    // Restrictions and Caveats:  None.
     
-    int maxLayers = m_tkrGeo->numLayers();
+    int maxLayers = m_tkrGeom->numLayers();
     
     int localBestHitCount = 0; 
     bool valid_hits = false;
@@ -534,7 +534,7 @@ void TkrComboPatRec::findBlindCandidates()
         
         // Create space point loops and check for hits
         //TkrPoints first_Hit(ilayer, m_clusters);
-        TkrPoints first_Hit(m_tkrGeo->reverseLayerNumber(ilayer), m_clusTool);
+        TkrPoints first_Hit(m_tkrGeom->reverseLayerNumber(ilayer), m_clusTool);
         if(first_Hit.finished()) continue;
         
         while(!first_Hit.finished()) {
@@ -554,7 +554,7 @@ void TkrComboPatRec::findBlindCandidates()
                   (localBestHitCount+2 > (maxLayers-(ilayer+igap)-2)*2)) break;
                 
                 //TkrPoints secnd_Hit(ilayer+igap, m_clusters);
-                TkrPoints secnd_Hit(m_tkrGeo->reverseLayerNumber(ilayer+igap), m_clusTool);               
+                TkrPoints secnd_Hit(m_tkrGeom->reverseLayerNumber(ilayer+igap), m_clusTool);               
                 while(!secnd_Hit.finished()) {
                     if(trials > _maxTrials) break; 
                     Point x2(secnd_Hit.getSpacePoint());
@@ -589,7 +589,7 @@ void TkrComboPatRec::findBlindCandidates()
 
                         // If good hit found: make a trial fit & store it away
                         if(sigma < m_cut && deflection > .7) {        
-                            Candidate* trial = new Candidate(m_clusters, m_tkrGeo, m_clusTool,
+                            Candidate* trial = new Candidate(m_clusters, m_tkrGeom, m_clusTool,
                                                              ilayer, itwr, m_energy, x1, VDir, 
                                                              deflection, m_cut, gap, m_TopLayer); 
                             if(trial->track()->status() == KalFitTrack::EMPTY) {
@@ -628,7 +628,7 @@ void TkrComboPatRec::findCalCandidates()
    // Dependencies: None
    // Restrictions and Caveats:  None.gap
     
-    int maxLayers = m_tkrGeo->numLayers();
+    int maxLayers = m_tkrGeom->numLayers();
     int localBestHitCount = 0; 
     bool valid_hits = false; 
     int trials = 0; 
@@ -642,7 +642,7 @@ void TkrComboPatRec::findCalCandidates()
         
         // Create space point loop and check for hits
         //TkrPoints first_Hit(ilayer, m_clusters);
-        TkrPoints first_Hit(m_tkrGeo->reverseLayerNumber(ilayer), m_clusTool);
+        TkrPoints first_Hit(m_tkrGeom->reverseLayerNumber(ilayer), m_clusTool);
         
         while(!first_Hit.finished()) {
             if(trials > _maxTrials) break; 
@@ -670,16 +670,16 @@ void TkrComboPatRec::findCalCandidates()
             for(int klayer=ilayer+1; klayer < max_layer; klayer++) {
                 if(trials > _maxTrials) break; 
                 //TkrPoints secnd_Hit(klayer, m_clusters);
-                TkrPoints secnd_Hit(m_tkrGeo->reverseLayerNumber(klayer), m_clusTool);
+                TkrPoints secnd_Hit(m_tkrGeom->reverseLayerNumber(klayer), m_clusTool);
                 if(secnd_Hit.finished()) continue;
                 
                 //Try the first 3 closest hits to 1st-hit - cal-hit line
                 double pred_dist = 
-                    fabs((m_tkrGeo->getReconLayerZ(klayer)
-                    - m_tkrGeo->getReconLayerZ(ilayer))
+                    fabs((m_tkrGeom->getReconLayerZ(klayer)
+                    - m_tkrGeom->getReconLayerZ(ilayer))
                     /t1.z());
 
-                //double pred_dist = (klayer-ilayer)*(m_tkrGeo->trayHeight())/fabs(t1.z()); 
+                //double pred_dist = (klayer-ilayer)*(m_tkrGeom->trayHeight())/fabs(t1.z()); 
                 Point x_pred = x1 + pred_dist*t1;
                 double resid_min = 0.; 
                 double resid_max = 30./fabs(t1.z()); //Max resid: 30 mm hardwired in 
@@ -707,7 +707,7 @@ void TkrComboPatRec::findCalCandidates()
                     double deflection = 1.;
                     Vector t_trial = Vector(-deltaX/deltaZx, -deltaY/deltaZy, -1.).unit();
                     
-                    Candidate *trial = new Candidate(m_clusters, m_tkrGeo, m_clusTool,
+                    Candidate *trial = new Candidate(m_clusters, m_tkrGeom, m_clusTool,
                                                      ilayer, itwr, m_energy, x1, t_trial, 
                                                      deflection, m_cut, gap, m_TopLayer); 
                     if(trial->track()->status() == KalFitTrack::EMPTY) {
@@ -741,7 +741,7 @@ float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
     deflection = 0.;
     
     //TkrPoints next_Hit(layer+1, m_clusters);
-    TkrPoints next_Hit(m_tkrGeo->reverseLayerNumber(layer+1), m_clusTool);
+    TkrPoints next_Hit(m_tkrGeom->reverseLayerNumber(layer+1), m_clusTool);
     if(next_Hit.finished()) return m_cut+1;
     
     Point sample_x(next_Hit.getSpacePoint()); 
@@ -758,14 +758,14 @@ float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
     
     deflection = traj.direction() * ((m_nextHit-traj.position()).unit());
     
-    double rad_len = (m_tkrGeo->getReconRadLenConv(layer) 
-        + m_tkrGeo->getReconRadLenRest(layer));
+    double rad_len = (m_tkrGeom->getReconRadLenConv(layer) 
+        + m_tkrGeom->getReconRadLenRest(layer));
 
     rad_len /= costh; 
     double theta_MS = 13.6/m_energy * sqrt(rad_len)*(1+.038*log(rad_len));
     double dist_MS  = m_arclen *theta_MS/1.72/costh; 
     
-    double sig_meas = 5.*m_tkrGeo->siStripPitch()/costh; // Big errors for PR
+    double sig_meas = 5.*m_tkrGeom->siStripPitch()/costh; // Big errors for PR
     float denom = 3.*sqrt(dist_MS*dist_MS*6.25 + sig_meas*sig_meas);
     if(denom > 25.) denom = 25.;   // Hardwire in max Error of 25 mm
     return resid/denom;  

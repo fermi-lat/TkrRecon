@@ -30,10 +30,10 @@ const char* pNNColors[] = {col_red, col_orange, col_yellow, col_aquamarine,
 
 
 TkrDispActiveNet::TkrDispActiveNet(IDataProviderSvc* dataProviderSvc, 
-                                   ITkrGeometrySvc* pTkrGeometry)
+                                   ITkrGeometrySvc* tkrGeom)
 {
     dps     = dataProviderSvc;
-    pTkrGeo = pTkrGeometry;
+    m_tkrGeom = tkrGeom;
 }
 
 //-------------------- private ----------------------

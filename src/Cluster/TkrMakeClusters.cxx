@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.22 2004/09/23 21:30:25 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.23 2004/10/01 19:49:06 usher Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, 
@@ -17,7 +17,7 @@
 using namespace Event;
 
 TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* clusMap,
-                                 ITkrGeometrySvc* pTkrGeoSvc, 
+                                 ITkrGeometrySvc* tkrGeom, 
                                  TkrDigiCol* pTkrDigiCol,
                                  std::set<idents::TkrId>* tkrIds)
 {
@@ -28,11 +28,11 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
     // Dependencies: None
     // Restrictions and Caveats:  None
 
-    m_pTkrGeo    = pTkrGeoSvc;
+    m_tkrGeom    = tkrGeom;
     
-    m_pBadStrips = m_pTkrGeo->getTkrBadStripsSvc();
+    m_pBadStrips = m_tkrGeom->getTkrBadStripsSvc();
 
-    m_pAlignment = m_pTkrGeo->getTkrAlignmentSvc();
+    m_pAlignment = m_tkrGeom->getTkrAlignmentSvc();
     
     //Initialize the cluster lists...
     pClus->clear();
@@ -45,20 +45,20 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
         TkrDigi* pDigi = *ppDigi;
 
         int digiLayer  =  pDigi->getBilayer();
-        int layer      =  m_pTkrGeo->reverseLayerNumber(digiLayer);
+        int layer      =  m_tkrGeom->reverseLayerNumber(digiLayer);
         int view       =  pDigi->getView();
         int tower      = (pDigi->getTower()).id();
 
         int  towerX    = pDigi->getTower().ix();
         int  towerY    = pDigi->getTower().iy();
-        //int  tray      = m_pTkrGeo->planeToTray(layer);
-        //bool botTop    = m_pTkrGeo->planeToBotTop(layer) == 1 ? true : false;
+        //int  tray      = m_tkrGeom->planeToTray(layer);
+        //bool botTop    = m_tkrGeom->planeToBotTop(layer) == 1 ? true : false;
         int  tray      = 0;
         int  botTop    = 0;
         int  measure   = view == idents::GlastAxis::X 
                        ? idents::TkrId::eMeasureX : idents::TkrId::eMeasureY;
 
-        m_pTkrGeo->layerToTray(digiLayer, view, tray, botTop);
+        m_tkrGeom->layerToTray(digiLayer, view, tray, botTop);
 
         idents::TkrId hitId(towerX, towerY, tray, botTop == 1, measure);
 
@@ -131,7 +131,7 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
                     HepPoint3D hepPos(pos.x(), pos.y(), pos.z());
                    
                     if (m_pAlignment && m_pAlignment->alignRec()) {
-                        int ladder = strip0/m_pTkrGeo->ladderNStrips();
+                        int ladder = strip0/m_tkrGeom->ladderNStrips();
                         m_pAlignment->moveCluster(tower, digiLayer, view, ladder, hepPos);
                     }
                    
@@ -167,9 +167,9 @@ Point TkrMakeClusters::position(const int layer, int v,
     // Restrictions and Caveats:  None
     
     // this converts from recon numbering to physical numbering of layers.
-    int digiLayer = m_pTkrGeo->reverseLayerNumber(layer);
+    int digiLayer = m_tkrGeom->reverseLayerNumber(layer);
     double strip = 0.5*(strip0 + stripf);
-    HepPoint3D p = m_pTkrGeo->getStripPosition(tower, digiLayer, 
+    HepPoint3D p = m_tkrGeom->getStripPosition(tower, digiLayer, 
         (int) v, strip);
     Point p1(p.x(), p.y(), p.z());
     return p1;
@@ -193,7 +193,7 @@ bool TkrMakeClusters::isGapBetween(const TaggedStrip &lowStrip,
     if (highHit > (lowHit + 1)) { return true; }
     
     // edge of chip
-    int nStrips = m_pTkrGeo->ladderNStrips();
+    int nStrips = m_tkrGeom->ladderNStrips();
     if((lowHit/nStrips) < (highHit/nStrips)) {return true; }
     
     return false;

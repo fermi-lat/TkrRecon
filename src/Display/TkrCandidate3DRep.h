@@ -22,7 +22,7 @@ class TkrCandidate3DRep : public gui::DisplayRep
 {
 public:
     //! Constructor of this form must be provided
-    TkrCandidate3DRep(IDataProviderSvc* dps, ITkrGeometrySvc* pTkrGeo);
+    TkrCandidate3DRep(IDataProviderSvc* dps, ITkrGeometrySvc* tkrGeom);
     virtual ~TkrCandidate3DRep() {}
 
     void update();
@@ -30,7 +30,7 @@ public:
 private:
 
     IDataProviderSvc* dps;
-    ITkrGeometrySvc* pTkrGeo;
+    ITkrGeometrySvc* m_tkrGeom;
 };
       
 #endif

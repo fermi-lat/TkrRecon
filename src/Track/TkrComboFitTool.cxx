@@ -8,7 +8,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.17 2004/09/23 21:30:31 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.18 2004/10/01 19:49:09 usher Exp $
  */
 
 #include "src/Track/TkrComboFitTool.h"
@@ -55,7 +55,7 @@ public:
 
 private:
     /// Pointer to the local Tracker geometry service
-    ITkrGeometrySvc*       m_geoSvc;
+    ITkrGeometrySvc*       m_tkrGeom;
     /// Pointer to the failure service
     ITkrFailureModeSvc*    m_TkrFailSvc;
     /// Pointer to the cluster tool
@@ -94,9 +94,9 @@ StatusCode TkrComboFitTool::initialize()
         throw GaudiException("Service [TkrGeometrySvc] not found", name(), sc);
     }
 
-    m_geoSvc = dynamic_cast<ITkrGeometrySvc*>(iService);
+    m_tkrGeom = dynamic_cast<ITkrGeometrySvc*>(iService);
 
-    ITkrAlignmentSvc* alignSvc = m_geoSvc->getTkrAlignmentSvc();
+    ITkrAlignmentSvc* alignSvc = m_tkrGeom->getTkrAlignmentSvc();
 
     if (alignSvc && alignSvc->alignRec()) 
     {
@@ -148,7 +148,7 @@ StatusCode TkrComboFitTool::doTrackFit(Event::TkrPatCand* patCand)
     TkrControl* control = TkrControl::getPtr();   
     Event::TkrKalFitTrack* track  = new Event::TkrKalFitTrack();
     Event::KalFitter*      fitter = new Event::KalFitter(
-        pTkrClus, m_geoSvc, m_clusTool, m_alignHits, track, iniLayer, iniTower,
+        pTkrClus, m_tkrGeom, m_clusTool, m_alignHits, track, iniLayer, iniTower,
         control->getSigmaCut(), energy, testRay);                 
         
     //track->findHits(); Using PR Solution to save time
@@ -208,8 +208,8 @@ StatusCode TkrComboFitTool::doTrackFit(Event::TkrPatCand* patCand)
                 }        
                 int hit_Id = plane.getIDHit();;
                 double cls_size = (*pTkrClus)[hit_Id]->size();        
-                double prj_size = m_geoSvc->siThickness()*fabs(slope)
-                    /m_geoSvc->siStripPitch() + 1.;
+                double prj_size = m_tkrGeom->siThickness()*fabs(slope)
+                    /m_tkrGeom->siStripPitch() + 1.;
                 if(cls_size> prj_size) {
                     fitter->unFlagHit(i_Hit);
                     i_share++;
@@ -259,7 +259,7 @@ StatusCode TkrComboFitTool::doTrackReFit(Event::TkrPatCand* patCand)
 
                 // Use KalFitter to refit the track
                 Event::KalFitter* fitter = new Event::KalFitter(pTkrClus, 
-                                                                m_geoSvc, 
+                                                                m_tkrGeom, 
                                                                 kalFitTrack, 
                                                                 control->getSigmaCut(), 
                                                                 patCand->getEnergy()); 

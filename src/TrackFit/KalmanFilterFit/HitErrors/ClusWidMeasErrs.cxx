@@ -7,13 +7,13 @@
  *
  * @author Tracy Usher (editor) 
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/ClusWidMeasErrs.cxx,v 1.3 2004/10/01 19:49:08 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/ClusWidMeasErrs.cxx,v 1.3 2004/10/01 21:02:05 usher Exp $
  */
 
 #include "ClusWidMeasErrs.h"
 
-ClusWidMeasErrs::ClusWidMeasErrs(ITkrGeometrySvc* tkrGeo) : 
-                  m_tkrGeo(tkrGeo), m_control(TkrControl::getPtr())
+ClusWidMeasErrs::ClusWidMeasErrs(ITkrGeometrySvc* tkrGeom) : 
+                  m_tkrGeom(tkrGeom), m_control(TkrControl::getPtr())
 {
     return;
 }
@@ -45,7 +45,7 @@ TkrCovMatrix ClusWidMeasErrs::computeMeasErrs(const Event::TkrTrackParams& newPa
         other    = XPOS;
     }
 
-    double error = clusWid * m_tkrGeo->siResolution();
+    double error = clusWid * m_tkrGeom->siResolution();
     
     newCov(measured, measured) = error*error;
     newCov(other, other)       = oldCovMat(other,other);

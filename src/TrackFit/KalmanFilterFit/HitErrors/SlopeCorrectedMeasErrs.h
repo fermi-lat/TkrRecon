@@ -8,7 +8,7 @@
  *
  * @author Tracy Usher (editor) from version implemented by Leon Rochester (due to Bill Atwood)
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.h,v 1.2 2004/09/08 15:32:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.h,v 1.3 2004/10/01 21:02:05 usher Exp $
  */
 
 #ifndef SlopeCorrectedMeasErrs_h
@@ -34,7 +34,7 @@ public:
 private:
     double getError(double strips, double slope) const;
 
-    ITkrGeometrySvc* m_tkrGeo;
+    ITkrGeometrySvc* m_tkrGeom;
     TkrControl*      m_control;
 };
 

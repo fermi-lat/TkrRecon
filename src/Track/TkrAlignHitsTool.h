@@ -12,7 +12,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.cxx,v 1.15 2003/08/04 20:04:40 usher Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.h,v 1.1 2004/09/08 00:35:41 lsrea Exp $
 */
 
 
@@ -77,7 +77,7 @@ public:
 
 private:
     /// Pointer to the local Tracker geometry service
-    ITkrGeometrySvc*    m_geoSvc;
+    ITkrGeometrySvc*    m_tkrGeom;
     /// Pointer to the failure service
     ITkrFailureModeSvc* m_failSvc;
     /// alignmentsvc

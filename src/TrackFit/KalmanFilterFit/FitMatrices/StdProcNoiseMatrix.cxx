@@ -5,14 +5,14 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/StdProcNoiseMatrix.cxx,v 1.2 2004/09/08 15:32:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/StdProcNoiseMatrix.cxx,v 1.2 2004/10/01 21:07:39 usher Exp $
  */
 
 #include "StdProcNoiseMatrix.h"
 #include "src/TrackFit/KalmanFilterFit/KalmanFilterInit.h"
 
-StdProcNoiseMatrix::StdProcNoiseMatrix(ITkrGeometrySvc* tkrGeo) : 
-                     m_tkrGeo(tkrGeo), m_LastStepRadLen(0.), m_LastStepActDist(0.), 
+StdProcNoiseMatrix::StdProcNoiseMatrix(ITkrGeometrySvc* tkrGeom) : 
+                     m_tkrGeom(tkrGeom), m_LastStepRadLen(0.), m_LastStepActDist(0.), 
                      m_LastStepQ(4,4), m_unit(4,4)
 {
     m_zCoords.clear();
@@ -80,7 +80,7 @@ KFmatrix StdProcNoiseMatrix::operator()(const KFvector& stateVec, const int &k, 
     // Step arc length
     double arc_len = fabs(deltaZ/xDir.z()); 
 
-    IKalmanParticle* TkrFitPart = m_tkrGeo->getPropagator();
+    IKalmanParticle* TkrFitPart = m_tkrGeom->getPropagator();
     TkrFitPart->setStepStart(x0, xDir, arc_len);
                           
     m_LastStepQ = TkrFitPart->mScat_Covr(m_energy[k1], arc_len); 

@@ -20,7 +20,7 @@ double thrshold(double x) {
 
 using namespace Event;
 
-TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, 
+TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*tkrGeom*/, 
                                    Event::TkrVertexCol* vertexCol, 
                                    Event::TkrTrackCol* pTracks, 
                                    Event::TkrPatCandCol* /*pCandTracks*/,

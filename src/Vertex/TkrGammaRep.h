@@ -21,7 +21,7 @@ class TkrGammaRep : public gui::DisplayRep
 {
 public:
     //! Constructor of this form must be provided
-    TkrGammaRep(IDataProviderSvc* dps, ITkrGeometrySvc* pTkrGeo);
+    TkrGammaRep(IDataProviderSvc* dps, ITkrGeometrySvc* tkrGeomp);
     virtual ~TkrGammaRep() {}
 
     void update();
@@ -29,7 +29,7 @@ public:
 private:
 
     IDataProviderSvc* dps;
-    ITkrGeometrySvc*  pTkrGeo;
+    ITkrGeometrySvc*  m_tkrGeom;
 };
       
 #endif

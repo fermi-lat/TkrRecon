@@ -6,11 +6,11 @@
 /// This should be done in the constructor.
 
 //#############################################################################
-TkrGammaRep::TkrGammaRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySvc* pTkrGeometry)
+TkrGammaRep::TkrGammaRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySvc* tkrGeom)
 //#############################################################################
 {
     dps     = dataProviderSvc;
-    pTkrGeo = pTkrGeometry;
+    m_tkrGeom = tkrGeom;
 }
 //-------------------- private ----------------------
 //##############################################

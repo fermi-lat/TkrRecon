@@ -27,9 +27,9 @@
 //
 //-----------------------------------------------------
 
-TrackFitUtils::TrackFitUtils(ITkrGeometrySvc* geo, IFitHitEnergy* hitEnergy) :
-                             m_tkrGeo(geo),
-                             m_tkrFail(m_tkrGeo->getTkrFailureModeSvc()),
+TrackFitUtils::TrackFitUtils(ITkrGeometrySvc* tkrGeom, IFitHitEnergy* hitEnergy) :
+                             m_tkrGeom(tkrGeom),
+                             m_tkrFail(m_tkrGeom->getTkrFailureModeSvc()),
                              m_hitEnergy(hitEnergy)
 {
     // Purpose and Method: Constructor - Initialization for TrackFitUtils
@@ -148,11 +148,11 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
                 double theta_ms = 13.6/start_energy * sqrt(rad_len) *
                     (1. + .038*log(rad_len));
                 double plane_err = cos_inv*arc_len*theta_ms/1.7321; 
-                quit_first  = plane_err > 2.*m_tkrGeo->siStripPitch();
+                quit_first  = plane_err > 2.*m_tkrGeom->siStripPitch();
             }
             if(!quit_first) numSegmentPoints++;
 
-            int this_plane = m_tkrGeo->trayToPlane(hit->getTkrId().getTray(),hit->getTkrId().getBotTop());
+            int this_plane = m_tkrGeom->trayToPlane(hit->getTkrId().getTray(),hit->getTkrId().getBotTop());
             bool xPlane = hit->getTkrId().getView() == idents::TkrId::eMeasureX; 
 
             double x  = hit->getMeasuredPosition(Event::TkrTrackHit::SMOOTHED);
@@ -202,8 +202,8 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
         }   
         
         // Compute the radiation lengths to the calorimeter front face
-        double arc_min = (track.getInitialPosition().z() - m_tkrGeo->calZTop())/fabs(track.getInitialDirection().z()); 
-        IKalmanParticle* TkrFitPart = m_tkrGeo->getPropagator();
+        double arc_min = (track.getInitialPosition().z() - m_tkrGeom->calZTop())/fabs(track.getInitialDirection().z()); 
+        IKalmanParticle* TkrFitPart = m_tkrGeom->getPropagator();
         TkrFitPart->setStepStart(x0, dir, arc_min);
         track.setTkrCalRadLen(TkrFitPart->radLength()); 
     }
@@ -226,10 +226,10 @@ double TrackFitUtils::computeQuality(const Event::TkrTrack& track) const
 
     // Determine plane number 
     idents::TkrId hitId = track[0]->getTkrId();
-    int           layer = m_tkrGeo->trayToBiLayer(hitId.getTray(),hitId.getBotTop());
+    int           layer = m_tkrGeom->trayToBiLayer(hitId.getTray(),hitId.getBotTop());
     
     // Calc. How many hits are possible?
-    //int num_max = 2*(m_tkrGeo->numPlanes() - layer);
+    //int num_max = 2*(m_tkrGeom->numPlanes() - layer);
     int num_max = 2*layer;
     if(num_max > 16) num_max = 16;
     
@@ -279,7 +279,7 @@ void TrackFitUtils::eneDetermination(Event::TkrTrack& track)
 
     // Keep track of the current bilayer
     idents::TkrId hitId = track[0]->getTkrId();
-    int old_BiLayer_Id = m_tkrGeo->trayToBiLayer(hitId.getTray(),hitId.getBotTop());
+    int old_BiLayer_Id = m_tkrGeom->trayToBiLayer(hitId.getTray(),hitId.getBotTop());
     
     for (Event::TkrTrackHitVecItr planeIter = track.begin(); planeIter != track.end(); planeIter++)
     { 
@@ -287,7 +287,7 @@ void TrackFitUtils::eneDetermination(Event::TkrTrack& track)
         const Event::TkrTrackHit& plane   = **planeIter;
         Event::TkrClusterPtr      cluster = plane.getClusterPtr();
         idents::TkrId             hitId   = plane.getTkrId();
-        int                       biLayer = m_tkrGeo->trayToBiLayer(hitId.getTray(),hitId.getBotTop());
+        int                       biLayer = m_tkrGeom->trayToBiLayer(hitId.getTray(),hitId.getBotTop());
      
         if (hitId.getView() == idents::TkrId::eMeasureX) x_cls_size = cluster->size();
         else                                             y_cls_size = cluster->size();
@@ -334,10 +334,10 @@ void TrackFitUtils::eneDetermination(Event::TkrTrack& track)
     
     // Set a max. energy based on range 
     //        - use cluster size as indicator of range-out
-    double prj_size_x = m_tkrGeo->siThickness()*fabs(sX)/
-        m_tkrGeo->siStripPitch()             + 1.;
-    double prj_size_y = m_tkrGeo->siThickness()*fabs(sY)/
-        m_tkrGeo->siStripPitch()             + 1.;
+    double prj_size_x = m_tkrGeom->siThickness()*fabs(sX)/
+        m_tkrGeom->siStripPitch()             + 1.;
+    double prj_size_y = m_tkrGeom->siThickness()*fabs(sY)/
+        m_tkrGeom->siStripPitch()             + 1.;
     double range_limit = 100000.;  // 100 GeV max... 
     if((x_cls_size - prj_size_x) > 2 || (y_cls_size - prj_size_y) > 2) {
         range_limit = totalRad * 50.; // 10 MeV = 15% rad. len 
@@ -427,8 +427,8 @@ void TrackFitUtils::setSharedHitsStatus(Event::TkrTrack& track)
         double slope = plane->getMeasuredSlope(Event::TkrTrackHit::FILTERED);
 
         double cls_size = cluster->size();        
-        double prj_size = m_tkrGeo->siThickness()*fabs(slope)
-                         /m_tkrGeo->siStripPitch() + 1.;
+        double prj_size = m_tkrGeom->siThickness()*fabs(slope)
+                         /m_tkrGeom->siStripPitch() + 1.;
         if(cls_size> prj_size) 
         {
             unFlagHit(track, i_Hit);

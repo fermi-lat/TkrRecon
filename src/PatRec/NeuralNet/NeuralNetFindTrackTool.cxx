@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.2 2004/09/08 15:32:44 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.12 2004/09/23 21:30:28 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the Neural Net approach
@@ -182,7 +182,7 @@ void NeuralNetFindTrackTool::buildCand(Event::TkrPatCandCol& TkrCands,
 	Ray   testRay  = Ray((*hypo).ray().position(),-(*hypo).ray().direction());
 	float energy   = (*hypo).energy();
 	
-	Event::KalFitTrack* _track = new Event::KalFitTrack(pTkrClusters, m_tkrGeo, m_clusTool,
+	Event::KalFitTrack* _track = new Event::KalFitTrack(pTkrClusters, m_tkrGeom, m_clusTool,
 							    iniLayer, iniTower, 
 							    control->getSigmaCut(), energy, testRay); 
 	

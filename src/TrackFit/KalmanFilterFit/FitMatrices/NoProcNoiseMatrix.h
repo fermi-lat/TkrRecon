@@ -6,7 +6,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/NoProcNoiseMatrix.h,v 1.2 2004/09/08 15:32:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/NoProcNoiseMatrix.h,v 1.3 2004/10/01 21:07:39 usher Exp $
  */
 
 #ifndef NoProcNoiseMatrix_h
@@ -40,7 +40,7 @@ public:
     const KFmatrix& getLastStepQ()       {return m_LastStepQ;}
 
 private:
-    ITkrGeometrySvc*    m_tkrGeo;
+    ITkrGeometrySvc*    m_tkrGeom;
     std::vector<double> m_zCoords;
     std::vector<double> m_energy;
 

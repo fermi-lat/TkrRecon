@@ -31,13 +31,13 @@ public:
     //This function called to do the display
     void update();
 
-    void setTkrGeo(ITkrGeometrySvc * ptr) { pTkrGeo = ptr;}
+    void setTkrGeo(ITkrGeometrySvc * tkrGeom) { m_tkrGeom = tkrGeom;}
 
 private:
     //Here we keep a pointer to the pointer to the cluster data...
     IDataProviderSvc* dps;
     
-    ITkrGeometrySvc* pTkrGeo;
+    ITkrGeometrySvc* m_tkrGeom;
 };
       
 #endif

@@ -40,7 +40,7 @@ StatusCode TkrInitSvc::initialize()
     setProperties();
     MsgStream log(msgSvc(), name());
     
-    if ((sc = service("TkrGeometrySvc", pTkrGeo, true)).isFailure()) {
+    if ((sc = service("TkrGeometrySvc", m_tkrGeom, true)).isFailure()) {
         log << MSG::INFO << "Couldn't get TkrGeometrySvc" << endreq;
         return sc;
     }

@@ -13,7 +13,7 @@
   *
   * @author Tracy Usher (as editor instead of author)
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Track/TrackFitUtils.h,v 1.2 2004/09/08 15:32:45 usher Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TrackFitUtils.h,v 1.4 2004/09/23 21:30:31 usher Exp $
 */
 
 #ifndef __TrackFitUtils_H
@@ -63,7 +63,7 @@ public:
 
 private:    
     /// Pointers to clusters, geoemtry, and control parameters
-    ITkrGeometrySvc*      m_tkrGeo;
+    ITkrGeometrySvc*      m_tkrGeom;
     ITkrFailureModeSvc*   m_tkrFail;
     TkrControl*           m_control;
     IFitHitEnergy*        m_hitEnergy;

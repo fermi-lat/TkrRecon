@@ -16,11 +16,11 @@ const char* p3dColors[] = {col3d_blue,   col3d_violet, col3d_turquoise,
                            col3d_orange, col3d_maroon, col3d_aquamarine};
 
 //#############################################################################
-TkrCandidate3DRep::TkrCandidate3DRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySvc* pTkrGeometry)
+TkrCandidate3DRep::TkrCandidate3DRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySvc* tkrGeom)
 //#############################################################################
 {
     dps     = dataProviderSvc;
-    pTkrGeo = pTkrGeometry;
+    m_tkrGeom = tkrGeom;
 }
 //-------------------- private ----------------------
 //##############################################

@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.9 2004/09/23 21:30:31 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.10 2004/10/09 04:47:02 lsrea Exp $
  */
 
 #include "src/Track/TkrTrackEnergyTool.h"
@@ -64,7 +64,7 @@ StatusCode TkrTrackEnergyTool::initialize()
         throw GaudiException("Service [TkrGeometrySvc] not found", name(), sc);
     }
 
-    m_tkrGeo  = dynamic_cast<ITkrGeometrySvc*>(iService);
+    m_tkrGeom = dynamic_cast<ITkrGeometrySvc*>(iService);
     m_control = TkrControl::getPtr();
 
     //Locate and store a pointer to the data service
@@ -174,13 +174,13 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrPatCand* track, double CalEn
     // Use hit counting + CsI energies to compute Event Energy 
 
     // these come from the actual geometry
-    int nThick = m_tkrGeo->getNumType(SUPER);
-    int nNoCnv = m_tkrGeo->getNumType(NOCONV);
-    int nThin  = m_tkrGeo->getNumType(STANDARD);
+    int nThick = m_tkrGeom->getNumType(SUPER);
+    int nNoCnv = m_tkrGeom->getNumType(NOCONV);
+    int nThin  = m_tkrGeom->getNumType(STANDARD);
 
-    double thinConvRadLen  = m_tkrGeo->getAveConv(STANDARD);
-    double thickConvRadLen = m_tkrGeo->getAveConv(SUPER);
-    double trayRadLen      = m_tkrGeo->getAveRest(ALL);
+    double thinConvRadLen  = m_tkrGeom->getAveConv(STANDARD);
+    double thickConvRadLen = m_tkrGeom->getAveConv(SUPER);
+    double trayRadLen      = m_tkrGeom->getAveRest(ALL);
 
     //Retrieve the pointer to the reconstructed clusters
     Event::TkrClusterCol* pTkrClus = SmartDataPtr<Event::TkrClusterCol>(m_dataSvc,EventModel::TkrRecon::TkrClusterCol); 
@@ -189,9 +189,9 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrPatCand* track, double CalEn
     Point x_ini    = getPosAtZ(track, -2.); // Backup to catch first Radiator
     Vector dir_ini = track->getDirection(); 
     //double arc_totold = x_ini.z() / fabs(dir_ini.z()); // z=0 at top of grid
-    double arc_tot = (x_ini.z() - m_tkrGeo->calZTop()) / fabs(dir_ini.z()); // to z at top of cal
+    double arc_tot = (x_ini.z() - m_tkrGeom->calZTop()) / fabs(dir_ini.z()); // to z at top of cal
     
-    IKalmanParticle* kalPart = m_tkrGeo->getPropagator();
+    IKalmanParticle* kalPart = m_tkrGeom->getPropagator();
     kalPart->setStepStart(x_ini, dir_ini, arc_tot);
 
     // Set up summed var's and loop over all layers between x_ini & cal
@@ -201,7 +201,7 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrPatCand* track, double CalEn
     double arc_len    = 5./fabs(dir_ini.z()); 
     
     int top_plane     = track->getLayer();   
-    int max_planes = m_tkrGeo->numLayers();
+    int max_planes = m_tkrGeom->numLayers();
 
     int thin_planes  = 0;
     int thick_planes = 0;
@@ -218,15 +218,15 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrPatCand* track, double CalEn
         }
         double xSprd = sqrt(2.+xms*16.); // 4.0 sigma and not smaller then 2mm (was 2.5 sigma)
         double ySprd = sqrt(2.+yms*16.); // Limit to a tower... 
-        if(xSprd > m_tkrGeo->trayWidth()/2.) xSprd = m_tkrGeo->trayWidth()/2.;
-        if(ySprd > m_tkrGeo->trayWidth()/2.) ySprd = m_tkrGeo->trayWidth()/2.;
+        if(xSprd > m_tkrGeom->trayWidth()/2.) xSprd = m_tkrGeom->trayWidth()/2.;
+        if(ySprd > m_tkrGeom->trayWidth()/2.) ySprd = m_tkrGeom->trayWidth()/2.;
 
         // Assume location of shower center in given by 1st track
         Point x_hit = getPosAtZ(track, arc_len);
-        int numHits = m_clusTool->numberOfHitsNear(m_tkrGeo->reverseLayerNumber(iplane), 
+        int numHits = m_clusTool->numberOfHitsNear(m_tkrGeom->reverseLayerNumber(iplane), 
             xSprd, ySprd, x_hit);
          
-        convType type = m_tkrGeo->getReconLayerType(iplane);
+        convType type = m_tkrGeom->getReconLayerType(iplane);
         switch(type) {
         case NOCONV:
             num_last_hits += numHits; 
@@ -247,7 +247,7 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrPatCand* track, double CalEn
         // Increment arc-length
         int nextPlane = iplane+1;
         if (iplane==max_planes-1) nextPlane--;
-        double deltaZ = m_tkrGeo->getReconLayerZ(iplane)-m_tkrGeo->getReconLayerZ(nextPlane);
+        double deltaZ = m_tkrGeom->getReconLayerZ(iplane)-m_tkrGeom->getReconLayerZ(nextPlane);
         arc_len += fabs( deltaZ/dir_ini.z()); 
     }
     

@@ -15,7 +15,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/PatRec/Combo/TkrComboPatRec.h,v 1.2 2004/09/08 15:32:44 usher Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/TkrComboPatRec.h,v 1.24 2004/09/23 21:30:27 usher Exp $
 */
 
 #ifndef __TKRCOMBOPATREC_H
@@ -40,7 +40,7 @@ class TkrComboPatRec
 {
 public:
     TkrComboPatRec(IDataProviderSvc* dataSvc, ITkrQueryClustersTool* clusTool, 
-        ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters, double CalEnergy, Point CalPosition);
+        ITkrGeometrySvc* tkrGeom, TkrClusterCol* pClusters, double CalEnergy, Point CalPosition);
         ~TkrComboPatRec() {};
 
 private:
@@ -114,7 +114,7 @@ private:
 
     /// Pointers to clusters, geometry, and control parameters
     IDataProviderSvc*      m_dataSvc;
-    ITkrGeometrySvc*       m_tkrGeo;
+    ITkrGeometrySvc*       m_tkrGeom;
     ITkrFailureModeSvc*    m_tkrFail;
     ITkrQueryClustersTool* m_clusTool; // Pointer to the tool to dig info out of clusters
     TkrClusterCol*         m_clusters;
