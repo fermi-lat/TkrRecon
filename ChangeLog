@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Thu Jul 18 14:26:44 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	GFcontrol.cxx 
+Log Message:
+Change default planeEnergies to be true
+    *
+------------------------------------------------------------
 User: atwood  Thu Jul 18 14:24:45 PDT 2002
 TkrRecon/src/TrackFit/KalFitTrack
 
