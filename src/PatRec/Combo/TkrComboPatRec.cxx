@@ -122,7 +122,7 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
     {   // This path first finds the "best" candidate the points to the 
         // Calorimeter cluster - 
         findCalCandidates();
-        if(!m_candidates.empty()) findBlindCandidates();//Is this a good idea?
+        if(m_candidates.empty()) findBlindCandidates();//Is this a good idea?
     }
     
     // Remove "Best Track" and then find  the rest...  
