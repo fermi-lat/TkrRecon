@@ -3,6 +3,9 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v8r11p6 06-jan-2004  LSR   Fix the odd-even effect, and add QED constraint and reciprocal energies
+                             to the SetEnergies() method
+  v8r11p5 04-oct-2003  THB   Fix the fix
   v8r11p4 03-oct-2003  THB   Fix energy setting bug
   v8r11p3 27-Sep-2003  THB   Use new TkrException to project against bad energy
   v8r11p2 18-Aug-2003  TU    "Improvements" to Recon/MC stuff
