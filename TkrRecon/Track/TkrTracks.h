@@ -28,12 +28,6 @@ public:
 
     //Provide ability to output some information about self...
     void writeOut(MsgStream& log) const;
-    
-    //! draws the individual tracks
-    void update(gui::DisplayRep& v) {draw(v);}
-    
-    //	void draw(GraphicsRep& v);
-    void draw(gui::DisplayRep& v);
 
 	//! GAUDI members to be use by the converters
 	static const CLID&  classID()           {return CLID_TkrTracks;}

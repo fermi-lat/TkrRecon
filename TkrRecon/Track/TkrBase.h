@@ -1,19 +1,17 @@
-
-
 #ifndef __TKRBASE_H
 #define __TKRBASE_H 1
 
 #include "GaudiKernel/MsgStream.h"
-#include "GaudiKernel/DataObject.h"
 #include "geometry/Ray.h"
 
-//---------------------------------------------------------------
-//
-// Base Class for Track objects in Glast 
-//
-//      W. Atwood, T. Usher
-//           Nov., 2001
-//---------------------------------------------------------------
+/** 
+* @class TkrBase
+*
+* @brief Base TkrRecon output information for external use
+*
+* @author(s) W. Atwood
+*
+*/
 
 class TkrBase
 {
