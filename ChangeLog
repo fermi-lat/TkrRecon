@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Tue Aug 20 10:28:22 PDT 2002
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx KalFitTrack.h 
+Log Message:
+Numerous bug fixes - also includes new methods allowing setting of meas. cov. matrix  
+    *
+------------------------------------------------------------
 User: atwood  Tue Aug 20 10:26:08 PDT 2002
 TkrRecon/src/PatRec/Combo
 
