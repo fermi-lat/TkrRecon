@@ -37,7 +37,7 @@ SiClusters* GFtutor::_DATA = 0;// Sets by TrackerRecon - made accesible to all G
 bool GFtutor::CUT_veto = false;
 bool GFtutor::CONTROL_connectGFpair = false;
 
-TkrGeometrySvc* GFtutor::pTrackerGeo = 0;
+ITkrGeometrySvc* GFtutor::pTrackerGeo = 0;
 
 int     GFtutor::m_numPlanes = 0;
 double	GFtutor::m_trayWidth = 0;
@@ -49,7 +49,7 @@ double	GFtutor::m_siResolution = 0;
 
 //----------------- Static function ----------------------
 //########################################################
-void GFtutor::load(SiClusters* scl, TkrGeometrySvc* pTrkGeo)			 
+void GFtutor::load(SiClusters* scl, ITkrGeometrySvc* pTrkGeo)			 
 //########################################################
 {
 
