@@ -76,8 +76,8 @@ void KalFitTrack::flagAllHits(int iflag)
 
     TkrFitPlaneConPtr hitPtr = getHitIterBegin();
 
-    while(hitPtr < getHitIterEnd()) {
-        TkrFitPlane hitplane = *hitPtr++; 
+    while(hitPtr != getHitIterEnd()) {
+        const TkrFitPlane& hitplane = *hitPtr++; 
         m_clusters->flagHit(hitplane.getIDHit(), iflag);
     }
 }
@@ -92,8 +92,8 @@ void KalFitTrack::unFlagAllHits()
 
     TkrFitPlaneConPtr hitPtr = getHitIterBegin();
 
-    while(hitPtr < getHitIterEnd()) {
-        TkrFitPlane hitplane = *hitPtr++; 
+    while(hitPtr != getHitIterEnd()) {
+        const TkrFitPlane& hitplane = *hitPtr++; 
         m_clusters->unflagHit(hitplane.getIDHit());
     }
 }  
@@ -107,7 +107,8 @@ void KalFitTrack::unFlagHit(int num)
    // Restrictions and Caveats:  None
 
     TkrFitPlaneConPtr hitPtr = getHitIterBegin();
-    TkrFitPlane hitplane     = hitPtr[num];
+    hitPtr += num;
+    const TkrFitPlane& hitplane     = *hitPtr;
     m_clusters->unflagHit(hitplane.getIDHit());
 }  
 
@@ -342,7 +343,7 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
             double act_dist = nextKplane.getActiveDist();
             if(act_dist < 0.) continue; 
         
-            //Use the PREDICTED hit to set tollerance
+            //Use the PREDICTED hit to set tolerance
             double pos_err = nextKplane.getHit(TkrFitHit::PRED).getCov().getcovX0X0();
             if(nextKplane.getProjection() == TkrCluster::Y) {
                 pos_err = nextKplane.getHit(TkrFitHit::PRED).getCov().getcovY0Y0();
@@ -664,7 +665,7 @@ void KalFitTrack::ini()
 
     TkrFitPlaneColPtr hitPtr = m_hits.begin();
 
-    while(hitPtr < m_hits.end()) hitPtr++->clean();
+    while(hitPtr != m_hits.end()) hitPtr++->clean();
 
     return;
 }
@@ -709,14 +710,14 @@ void KalFitTrack::finish()
         int plane_count = 0; 
         m_numSegmentPoints = 0; 
         bool quit_first  = false; 
-        while(hitPtr < m_hits.end()) {
+        while(hitPtr != m_hits.end()) {
             plane_count++; 
-            TkrFitPlane* hit = hitPtr++;
+            const TkrFitPlane& hit = *hitPtr++;
  
             if(plane_count > 2 && !quit_first) {
-                if(plane_count == 3) z0 = hit->getZPlane();
-                rad_len += hit->getRadLen(); 
-                double arc_len  = (z0- hit->getZPlane())*cos_inv; 
+                if(plane_count == 3) z0 = hit.getZPlane();
+                rad_len += hit.getRadLen(); 
+                double arc_len  = (z0- hit.getZPlane())*cos_inv; 
                 double theta_ms = 13.6/start_energy * sqrt(rad_len) *
                                   (1. + .038*log(rad_len));
                 double plane_err = cos_inv*arc_len*theta_ms/1.7321; 
@@ -724,13 +725,13 @@ void KalFitTrack::finish()
             }
             if(!quit_first) m_numSegmentPoints++;
 
-            int this_plane = hit->getIDPlane();
-            bool xPlane = (hit->getProjection() == TkrCluster::X); 
+            int this_plane = hit.getIDPlane();
+            bool xPlane = (hit.getProjection() == TkrCluster::X); 
             double xm; 
             if (xPlane) {
                 num_xPlanes++;
-                x  = hit->getHit(TkrFitHit::SMOOTH).getPar().getXPosition();
-                xm = hit->getHit(TkrFitHit::MEAS).getPar().getXPosition();
+                x  = hit.getHit(TkrFitHit::SMOOTH).getPar().getXPosition();
+                xm = hit.getHit(TkrFitHit::MEAS).getPar().getXPosition();
                 if(last_Xplane > 0) {
                     m_Xgaps += this_plane-last_Xplane-1; 
                     if(num_xPlanes < 3 || !quit_first) {
@@ -741,8 +742,8 @@ void KalFitTrack::finish()
             }
             else {
                 num_yPlanes++; 
-                x  = hit->getHit(TkrFitHit::SMOOTH).getPar().getYPosition();
-                xm = hit->getHit(TkrFitHit::MEAS).getPar().getYPosition();
+                x  = hit.getHit(TkrFitHit::SMOOTH).getPar().getYPosition();
+                xm = hit.getHit(TkrFitHit::MEAS).getPar().getYPosition();
                 if(last_Yplane >= 0) {
                     m_Ygaps += this_plane-last_Yplane-1;
                     if(num_yPlanes < 3 || !quit_first) {
@@ -1100,28 +1101,28 @@ TkrFitPar KalFitTrack::guessParameters()
 
     TkrFitPlaneColPtr hitPtr = m_hits.begin();
 
-    while(hitPtr < m_hits.end()) {
-        TkrFitPlane* hit = hitPtr++;
-        if(hit->getProjection() == TkrCluster::X && nx < 2) {
+    while(hitPtr != m_hits.end()) {
+        TkrFitPlane& hit = *hitPtr++;
+        if(hit.getProjection() == TkrCluster::X && nx < 2) {
             nx++;
             if(nx == 1)  {
-                x0  = hit->getHit(TkrFitHit::MEAS).getPar().getXPosition();
-                zx0 = hit->getZPlane() + .01; 
+                x0  = hit.getHit(TkrFitHit::MEAS).getPar().getXPosition();
+                zx0 = hit.getZPlane() + .01; 
             }
             else  {
-                x1  = hit->getHit(TkrFitHit::MEAS).getPar().getXPosition();
-                zx1 = hit->getZPlane() + .01;
+                x1  = hit.getHit(TkrFitHit::MEAS).getPar().getXPosition();
+                zx1 = hit.getZPlane() + .01;
             }
         }
-        else if(hit->getProjection() == TkrCluster::Y && ny < 2) {
+        else if(hit.getProjection() == TkrCluster::Y && ny < 2) {
             ny++;
             if(ny == 1)  {
-                y0  = hit->getHit(TkrFitHit::MEAS).getPar().getYPosition();
-                zy0 = hit->getZPlane() + .01; 
+                y0  = hit.getHit(TkrFitHit::MEAS).getPar().getYPosition();
+                zy0 = hit.getZPlane() + .01; 
             }
             else {
-                y1  = hit->getHit(TkrFitHit::MEAS).getPar().getYPosition();
-                zy1 = hit->getZPlane() + .01; 
+                y1  = hit.getHit(TkrFitHit::MEAS).getPar().getYPosition();
+                zy1 = hit.getZPlane() + .01; 
             }
         }
         if(nx==2 && ny==2) break;

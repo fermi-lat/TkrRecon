@@ -81,7 +81,7 @@ TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pCluster
     searchCandidates(CalEnergy, CalPosition);
     
     //Set Global Event Energy and constrain individual track energies
-    if(m_candidates.size() > 0) setEnergies(CalEnergy);
+    if(!m_candidates.empty()) setEnergies(CalEnergy);
 
     //Load output PR Candidates
     loadOutput();
@@ -123,11 +123,11 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
     {   // This path first finds the "best" candidate the points to the 
         // Calorimeter cluster - 
         findCalCandidates();
-        if(m_candidates.size()==0) findBlindCandidates();//Is this a good idea?
+        if(!m_candidates.empty()) findBlindCandidates();//Is this a good idea?
     }
     
     // Remove "Best Track" and then find  the rest...  
-    if (m_candidates.size() > 0) { 
+    if (!m_candidates.empty()) { 
         
         TkrComboPatRec::iterator hypo;
         hypo  = m_candidates.begin();
@@ -199,7 +199,7 @@ void TkrComboPatRec::loadOutput()
    // Dependencies: None
    // Restrictions and Caveats:  None.
 
-    if (m_candidates.size() > 0) {
+    if (!m_candidates.empty()) {
         
         TkrComboPatRec::iterator hypo;
         
@@ -220,7 +220,7 @@ void TkrComboPatRec::loadOutput()
             
             //Add the Hits
             TkrFitPlaneConPtr hitPtr = (*hypo)->track()->getHitIterBegin();
-            while(hitPtr < (*hypo)->track()->getHitIterEnd())
+            while(hitPtr != (*hypo)->track()->getHitIterEnd())
             {
                 TkrFitPlane hitplane = *hitPtr++;
                 unsigned hit_ID = hitplane.getIDHit();
@@ -234,7 +234,7 @@ void TkrComboPatRec::loadOutput()
     } 
     
     // Finally - unflag all hits and clean up! 
-    if (m_candidates.size() > 0) {
+    if (!m_candidates.empty()) {
         TkrComboPatRec::iterator hypo;    
         for(hypo  = m_candidates.begin(); hypo != m_candidates.end(); hypo++){
             (*hypo)->track()->unFlagAllHits();
@@ -383,23 +383,23 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     // Initialize all candidate track energies -
     // Max of either the Pat. Rec. min. or the derived Kalman energy
   
-    int num_cands = m_candidates.size();
-    for(int i=0; i<num_cands; i++) {
-        KalFitTrack* track = m_candidates[i]->track();
+    TkrComboPatRec::iterator cand = m_candidates.begin();
+    for(; cand!=m_candidates.end(); cand++) {
+        KalFitTrack* track = (*cand)->track();
         // limit on high side
         double kal_energy = std::min(5000., track->getKalEnergy());
 
         double energy = std::max(m_energy, kal_energy);
         if(energy == m_energy) {
-            m_candidates[i]->adjustType(10);
+            (*cand)->adjustType(10);
         }
         else {
-            m_candidates[i]->adjustType(20);
+            (*cand)->adjustType(20);
         }
-        m_candidates[i]->setConEnergy(energy);
+        (*cand)->setConEnergy(energy);
     }
 
-    if(num_cands == 1) { // One track - it gets it all - not right but what else?
+    if(m_candidates.size() == 1) { // One track - it gets it all - not right but what else?
         m_candidates[0]->setConEnergy(ene_total);
         m_candidates[0]->adjustType(30);
     }
@@ -420,17 +420,16 @@ void TkrComboPatRec::setEnergies(double calEnergy)
 
         // Trap short-straight track events - no info.in KalEnergies
         double x1, x2;
-        double e1_con, e2_con;
         if(num_hits1 < 8 && num_hits2 < 8 && e1 > 80. && e2 > 80.) {
-            e1_con = e2_con = .5*ene_total; // 50:50 split
+            x1 = x2 = .50; // 50:50 split
         }
         else { // Compute spliting to min. Chi_Sq.  
             double detot = ene_total - (e1+e2);
             x1 = detot*de1/(de1*de1+de2*de2);
             x2 = detot*de2/(de1*de1+de2*de2);
-            e1_con = e1 + x1*de1;
-            e2_con = e2 + x2*de2;
         }
+        double e1_con = e1 + x1*de1;
+        double e2_con = e2 + x2*de2;
 
         if(e1_con < e1_min) {// Don't let energies get too small
             e1_con = e1_min; 
@@ -682,6 +681,7 @@ float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
     int nThin  = m_tkrGeo->numLayers() - nThick - nNoCnv;
 
     deflection = 0.;
+    int nlayers = 0;
     
     TkrPoints next_Hit(layer+1, m_clusters);
     if(next_Hit.finished()) return m_cut+1;
@@ -730,16 +730,16 @@ bool TkrComboPatRec::incorporate(Candidate* trial)
 
     // Check if this track duplicates another already present
     int numTrialHits = trial->track()->getNumHits();
-    int i;
-    for (i=0; i <m_candidates.size(); i++) {
+    TkrComboPatRec::iterator cand = m_candidates.begin();
+    for (; cand!=m_candidates.end(); cand++) {
         int numHitsOverLapped = 
-            (m_candidates[i]->track())->compareFits( *trial->track()); 
-        int numHits = m_candidates[i]->track()->getNumHits();
+            ((*cand)->track())->compareFits( *trial->track()); 
+        int numHits = (*cand)->track()->getNumHits();
         int numTest = std::min(numHits, numTrialHits);
         if (numHitsOverLapped > numTest - 4) {// must have > 4 unique hits
-            if(trial->quality() > m_candidates[i]->quality()) {
-                delete m_candidates[i];  
-                m_candidates.erase(&m_candidates[i]); 
+            if(trial->quality() > (*cand)->quality()) {
+                delete *cand;  
+                m_candidates.erase(cand); 
                 break;
             }
             else {
@@ -753,10 +753,10 @@ bool TkrComboPatRec::incorporate(Candidate* trial)
     // Enter new candidate track in decreasing order of quality
     if(m_BestHitCount < numTrialHits) m_BestHitCount = numTrialHits;
     bool ienter = false;
-    int num_cans = m_candidates.size();
-    for (i=0; i <num_cans; i++) {
-        if (trial->quality() > m_candidates[i]->quality()) {
-            m_candidates.insert(&m_candidates[i],trial);
+    cand = m_candidates.begin();
+    for ( ; cand!=m_candidates.end(); cand++) {
+        if (trial->quality() > (*cand)->quality()) {
+            m_candidates.insert(cand,trial);
             ienter = true;
         }
         if (ienter) break;
@@ -767,7 +767,7 @@ bool TkrComboPatRec::incorporate(Candidate* trial)
         m_candidates.push_back(trial);
     }
     added = true;
-    num_cans = m_candidates.size();
+    int num_cans = m_candidates.size();
     if (num_cans > m_control->getMaxCandidates()) {
         delete m_candidates[num_cans-1];
         m_candidates.pop_back(); 
@@ -781,7 +781,7 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
                                      ITkrGeometrySvc* geometry,
                                      int layer, int twr, double e, 
                                      Point x, Vector t, 
-                                     float d, float s, int g, int /*top*/): 
+                                     float d, float s, int g, int top): 
       m_deflection(d)
     , m_sigma(s)
     , m_gap(g)
@@ -792,7 +792,7 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
    // Inputs:  TrkClusterCol pointer, Geometry Pointer, layer for KalFitTrack to 
    //          in, tower no. in which to start, the track energy, starting point 
    //          direction, the 3-point-track deflection, the sigma - search cut for 
-   //          KalFitTrack to use, the 3-point gap hit count, and the present top
+   //          KalFitTrack to use, the 3-point gap hit ocunt, and the present top
    //          most layer in which a track starts
    // Outputs: A Combo Pat. Rec. Candidate
    // Dependencies: None
@@ -828,7 +828,7 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
     TkrFitPlaneConPtr pln_pointer = m_track->getHitIterBegin();
     
     int i_Hit = 0; 
-    //int i_share = 0;
+    int i_share = 0;
     while(pln_pointer != m_track->getHitIterEnd()) {
         
         TkrFitPlane plane = *pln_pointer;
