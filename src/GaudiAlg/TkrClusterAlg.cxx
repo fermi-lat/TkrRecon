@@ -21,13 +21,13 @@ Algorithm(name, pSvcLocator)  { }
 
 StatusCode TkrClusterAlg::initialize()
 {
-
+	
     // Purpose and Method:  initializes TkrClusterAlg
     // Inputs:  None
     // Outputs:  A StatusCode which denotes success or failure.
     // Dependencies: TkrGeometrySvc must be created
     // Restrictions and Caveats:  None
-
+	
     MsgStream log(msgSvc(), name());
     
     //Look for the geometry service
@@ -58,14 +58,14 @@ StatusCode TkrClusterAlg::execute()
     // Outputs:  A StatusCode which denotes success or failure.
     // Dependencies: Requires TkrDigis
     // Restrictions and Caveats:  None
-
-
+	
+	
     StatusCode sc = StatusCode::SUCCESS;
     
     MsgStream log(msgSvc(), name());
     
-    /*! Check to see if we can get the subdirectory. If not create it
-    */
+    // Check to see if we can get the subdirectory. If not create it
+    
     DataObject* pnode =0;
     sc = eventSvc()->retrieveObject("/Event/TkrRecon", pnode);
     
@@ -89,7 +89,7 @@ StatusCode TkrClusterAlg::execute()
     
     if (m_TkrClusters == 0 || m_TkrDigis ==0) sc = StatusCode::FAILURE;
     return sc;
-
+	
     m_TkrClusters->writeOut(log);
     
     return sc;
