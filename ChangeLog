@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Thu May 17 22:06:46 PDT 2001
+TkrRecon/TkrRecon ITkrGeometrySvc.h TkrGeometrySvc.h
+
+Modified Files:
+	ITkrGeometrySvc.h TkrGeometrySvc.h 
+Log Message:
+The files I actually changed are: SiClustersAlg.cxx, ITkrGeometrySvc.h, TkrGeometrySvc.h;.cxx, and the .xml files.
+Fixed bugs in positioning the clusters.  Clusters now fall on top of the gismo hits.
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri May 11 13:33:55 PDT 2001
 TkrRecon/xml Tkr_Flight.xml
 
