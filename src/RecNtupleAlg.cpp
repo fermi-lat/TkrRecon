@@ -74,10 +74,10 @@ StatusCode RecNtupleAlg::execute()
     
     //Retrieve pointers to the data stored in the TDS
     ICsIClusterList* pCalClusters = SmartDataPtr<ICsIClusterList>(eventSvc(),"/Event/CalRecon/CsIClusterList");
-	SiClusters*      pSiClusters  = SmartDataPtr<SiClusters>(eventSvc(),"/Event/TkrRecon/SiClusters");
+	TkrClusters*     pTkrClusters = SmartDataPtr<TkrClusters>(eventSvc(),"/Event/TkrRecon/TkrClusters");
     SiRecObjs*       pSiRecObjs   = SmartDataPtr<SiRecObjs>(eventSvc(),"/Event/TkrRecon/SiRecObjs");
 
-    if ((sc = nTuple.calcTupleValues(pCalClusters, pSiClusters, pSiRecObjs, pGeometry)).isFailure()) return sc;
+    if ((sc = nTuple.calcTupleValues(pCalClusters, pTkrClusters, pSiRecObjs, pGeometry)).isFailure()) return sc;
 
     return nTuple.fillTupleValues(ntupleWriteSvc, m_tupleName.c_str());
 }
@@ -121,7 +121,7 @@ RecTupleValues::RecTupleValues()
 };
 
 //################################
-StatusCode RecTupleValues::calcTupleValues(ICsIClusterList* pCalClusters, SiClusters* pSiClusters, SiRecObjs* pRecObjs, ITkrGeometrySvc* pGeom)
+StatusCode RecTupleValues::calcTupleValues(ICsIClusterList* pCalClusters, TkrClusters* pTkrClusters, SiRecObjs* pRecObjs, ITkrGeometrySvc* pGeom)
 //################################
 {
 	StatusCode sc = StatusCode::SUCCESS;
@@ -151,7 +151,7 @@ StatusCode RecTupleValues::calcTupleValues(ICsIClusterList* pCalClusters, SiClus
         calcSkirtVars(pGamma);
         calcTowerBoundaries(pGamma, pGeom);
         calcActiveDistance(pGamma, pGeom);
-        calcExtraHits(pSiClusters, pGamma, pGeom);
+        calcExtraHits(pTkrClusters, pGamma, pGeom);
 
         // This depends on the above having been called first !!
         calcEnergyCorrection(pGamma);
@@ -350,7 +350,7 @@ void RecTupleValues::calcActiveDistance(GFgamma* pGamma, ITkrGeometrySvc* pGeom)
 
 
 //########################################################
-void RecTupleValues::calcExtraHits(SiClusters* pSiClusters, GFgamma* pGamma, ITkrGeometrySvc* pGeom)
+void RecTupleValues::calcExtraHits(TkrClusters* pTkrClusters, GFgamma* pGamma, ITkrGeometrySvc* pGeom)
 //########################################################
 {  
     // Initialization    
@@ -363,18 +363,18 @@ void RecTupleValues::calcExtraHits(SiClusters* pSiClusters, GFgamma* pGamma, ITk
     Point  x0         = pGamma->vertex();
     Vector t0         = pGamma->direction();
 
-    Point  x1         = GFdata::doVertex(pGamma->getBest(SiCluster::X)->ray(),
-                                         pGamma->getBest(SiCluster::Y)->ray());
-    Vector t1         = GFdata::doDirection(pGamma->getBest(SiCluster::X)->direction(),
-                                            pGamma->getBest(SiCluster::Y)->direction());
+    Point  x1         = GFdata::doVertex(pGamma->getBest(TkrCluster::X)->ray(),
+                                         pGamma->getBest(TkrCluster::Y)->ray());
+    Vector t1         = GFdata::doDirection(pGamma->getBest(TkrCluster::X)->direction(),
+                                            pGamma->getBest(TkrCluster::Y)->direction());
 
         //	Find number of hits around first hit: 5 sigma out
     int    firstLayer = pGamma->firstLayer();
     Point  firstHit   = pGamma->vertex();
 
     int    diffXY     = pGamma->getXpair()->firstLayer()-pGamma->getYpair()->firstLayer();
-    double dz	      = pGamma->getBest(SiCluster::X)->vertex().z()  
-                      - pGamma->getBest(SiCluster::Y)->vertex().z();
+    double dz	      = pGamma->getBest(TkrCluster::X)->vertex().z()  
+                      - pGamma->getBest(TkrCluster::Y)->vertex().z();
     
     double hitRadFact = fabs(t0.z()) + sqrt(1. - t0.z()*t0.z())/fabs(t0.z());
 
@@ -398,27 +398,27 @@ void RecTupleValues::calcExtraHits(SiClusters* pSiClusters, GFgamma* pGamma, ITk
     double dltY       = dltSprd*yFact;
     
     // Compute the First_hit_count variable
-    Rec_fst_Hit_Count = pSiClusters->numberOfHitsNear(firstLayer, dltX, dltY, firstHit);
+    Rec_fst_Hit_Count = pTkrClusters->numberOfHitsNear(firstLayer, dltX, dltY, firstHit);
 
     // separate the special case of 3 into 3 or 2.5
     if(Rec_fst_Hit_Count == 3 && diffXY == 0) { // Check if extra hits on the far side of the first gap
-        SiCluster::view far_axis = SiCluster::X;
+        TkrCluster::view far_axis = TkrCluster::X;
         double dR = dltX;
         if (dz>0) {
-            far_axis = SiCluster::Y;
+            far_axis = TkrCluster::Y;
             dR = dltY;
         }
-        int ihit_second = pSiClusters->numberOfHitsNear(far_axis, firstLayer, dltX, firstHit);
+        int ihit_second = pTkrClusters->numberOfHitsNear(far_axis, firstLayer, dltX, firstHit);
         if (ihit_second == 2) Rec_fst_Hit_Count -=.5;
     }
     if(Rec_fst_Hit_Count == 1 && diffXY == 0) { // Check if extra hits on the far side of the first gap
-        SiCluster::view far_axis = SiCluster::X;
+        TkrCluster::view far_axis = TkrCluster::X;
         double dR = dltX;
         if (dz>0) {
-            far_axis = SiCluster::Y;
+            far_axis = TkrCluster::Y;
             dR = dltY;
         }
-        int ihit_second = pSiClusters->numberOfHitsNear(far_axis, firstLayer, dltX, firstHit);
+        int ihit_second = pTkrClusters->numberOfHitsNear(far_axis, firstLayer, dltX, firstHit);
         if (ihit_second == 1) Rec_fst_Hit_Count -=.5;
     }
     
@@ -428,7 +428,7 @@ void RecTupleValues::calcExtraHits(SiClusters* pSiClusters, GFgamma* pGamma, ITk
     int    lastLayer = (int)(4+2.*log(CsICorrEnergy/.01) + firstLayer);
     if(lastLayer > pGeom->numPlanes()) lastLayer = pGeom->numPlanes();
     
-    Rec_Sum_Hits = pSiClusters->numberOfHitsNear(firstLayer, .5*dltX, .5*dltY, firstHit);
+    Rec_Sum_Hits = pTkrClusters->numberOfHitsNear(firstLayer, .5*dltX, .5*dltY, firstHit);
 
     Rec_showerHits1 = Rec_Sum_Hits;
     Rec_showerHits2 = 0;
@@ -456,14 +456,14 @@ void RecTupleValues::calcExtraHits(SiClusters* pSiClusters, GFgamma* pGamma, ITk
         Point trkHit((Point)(disp*t0 + x0));
         if (xSprd > 50) xSprd = 50.;
         if (ySprd > 50) ySprd = 50.;
-        double nearHits = pSiClusters->numberOfHitsNear(i, xSprd, ySprd, trkHit);
+        double nearHits = pTkrClusters->numberOfHitsNear(i, xSprd, ySprd, trkHit);
 
         if(i< 12) Rec_showerHits1 +=  nearHits;
         else	  Rec_showerHits2 +=  nearHits;
         
         if( i < lastLayer) {
             Rec_Sum_Hits +=	nearHits;
-            outHits +=	pSiClusters->numberOfHitsNear(i, 50.,   50.,   trkHit) - nearHits;
+            outHits +=	pTkrClusters->numberOfHitsNear(i, 50.,   50.,   trkHit) - nearHits;
         }
         disp += deltaS;
     }

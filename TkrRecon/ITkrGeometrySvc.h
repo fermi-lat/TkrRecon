@@ -2,8 +2,8 @@
 #define __ITKRGEOMETRYSVC_H 1
 
 #include "GaudiKernel/IInterface.h"
-#include "TkrRecon/TkrAxis.h"
-#include "src/TkrDetGeo.h"
+#include "TkrRecon/Services/TkrAxis.h"
+#include "src/Services/TkrDetGeo.h"
 
 
 #include <string>
