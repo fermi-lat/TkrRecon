@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Thu Sep  5 09:30:55 PDT 2002
+TkrRecon/src/Display
+
+Modified Files:
+	TkrBestCandRep.cxx TkrCandidate3DRep.cxx TkrCandidatesRep.cxx 
+	TkrClustersRep.cxx TkrDispActiveNet.cxx TkrDispCompleteNet.cxx 
+	TkrRecObjsRep.cxx TkrTracksRep.cxx 
+Log Message:
+untabify
+    *
+------------------------------------------------------------
 User: lsrea  Thu Sep  5 09:30:54 PDT 2002
 TkrRecon/TkrRecon/Display
 
