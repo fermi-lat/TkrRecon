@@ -476,63 +476,22 @@ int TrackFitUtils::numUniqueHits(Event::TkrTrack& track1,
     Event::TkrTrackHitVecItr hitPtr;
     Event::TkrTrackHit* hit;
     int plane;
-
-    /* debug stuff... keep this for a while
-    hitPtr = track1.begin();
-    hit = *hitPtr;
-    plane = m_tkrGeom->getPlane(hit->getTkrId());
-    int nxHits = track1.getNumXHits();
-    int nyHits = track1.getNumYHits();
-    std::cout << "Track 1 1stPlane " << plane << 
-        ", lastPlane " << plane-track1.getNumHits()+1<< std::endl;
-    std::cout << "nXhits " << nxHits << " nYhits " << nyHits 
-        << " nFitHits " << track1.getNumFitHits() << std::endl;
-    // now look at each hit:
-    for (; hitPtr!= track1.end(); ++hitPtr,--plane) {
-        hit = *hitPtr;
-        int status = hit->getStatusBits();
-        std::cout <<"Plane " << plane << " validCl " << hit->validCluster();
-        if (hit->validCluster()) {
-            bool measuresX = ((status & Event::TkrTrackHit::MEASURESX)!=0);
-            bool measuresY = ((status & Event::TkrTrackHit::MEASURESY)!=0);
-            std::cout << "measX/Y " << measuresX << " " << measuresY ;
-        }
-        std::cout << std::endl;
-    }
-
-    hitPtr = track2.begin();
-    hit = *hitPtr;
-    plane = m_tkrGeom->getPlane(hit->getTkrId());
-    std::cout << "Track 2 1stPlane " << plane << 
-        ", lastPlane " << plane-track2.getNumHits()+1<< std::endl;
-    */
-
     int nUnique = 0;
-    hitPtr = trackToLoad.begin();
-    plane = m_tkrGeom->getPlane((*hitPtr)->getTkrId());
 
-    for (; hitPtr!= trackToLoad.end(); ++hitPtr,--plane) {
+    hitPtr = trackToLoad.begin();
+    //plane = m_tkrGeom->getPlane((*hitPtr)->getTkrId());
+
+    for (; hitPtr!= trackToLoad.end(); ++hitPtr) {
         hit = *hitPtr;
-        /*
-        if(plane<0 || plane>m_tkrGeom->numPlanes()-1) {
-            idents::TkrId tkrId = hit->getTkrId();
-            std::cout << "tray/bottop" << tkrId.getTray() << " " << tkrId.getBotTop() << std::endl;
-            std::cout << "plane " << plane <<" bad!" << std::endl;
-        }
-        */
+        plane = m_tkrGeom->getPlane((*hitPtr)->getTkrId());
         m_hitVec[plane] = hit;
     }
 
     hitPtr = trackToCompare.begin();
     Event::TkrTrackHit* hit1 = *hitPtr;
-    plane = m_tkrGeom->getPlane(hit1->getTkrId());
-    for (; hitPtr!=trackToCompare.end(); ++hitPtr,--plane) {
+    for (; hitPtr!=trackToCompare.end(); ++hitPtr) {
         hit1 = *hitPtr;
-        /*
-        if(plane<0 || plane>m_tkrGeom->numPlanes()-1) {
-            std::cout << "plane " << plane <<" bad!" << std::endl;
-        }
-        */
+        plane = m_tkrGeom->getPlane(hit1->getTkrId());
         hit = m_hitVec[plane];
 
         // if the other hit is not there, hit is unique

@@ -3,6 +3,7 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v10r3p4  31-Jan-2005  LSR  Full TkrId for non-cluster hits
   v10r3p3  29-Jan-2005  LSR  Straighten out TkrTrackEnergyTool
   v10r3p2  28-Jan-2005  LSR  Improve error handling output in TkrReconAlg
                                 Suppress per-event reporting, as requested by Toby
