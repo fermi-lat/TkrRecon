@@ -32,29 +32,47 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrTracks* pTracks,
         {
             TkrFitTrack* track2 = *pTrack2++;
 
-            RayDoca doca = RayDoca(Ray(track1->position(),track1->direction()),
-                                   Ray(track2->position(),track2->direction()));
+            RayDoca doca    = RayDoca(Ray(track1->position(),track1->direction()),
+                                      Ray(track2->position(),track2->direction()));
+            double  dist    = doca.docaRay1Ray2();
 
-            double  dist = doca.docaRay1Ray2();
+            //Arc length to doca from track start
+            double  arcLen1 = doca.arcLenRay1();
+            double  arcLen2 = doca.arcLenRay2();
 
-            //Check that doca not too big and that vertex starts before or at first hit
-            if (dist < docaLimit && (doca.arcLenRay1() <= 0. || doca.arcLenRay2() <= 0.) && (doca.arcLenRay1() > -500. && doca.arcLenRay2() > -500.))
+            //Length of the track
+            double  trkLen1 = (track1->position(TkrRecInfo::Start) - track1->position(TkrRecInfo::End)).mag();
+            double  trkLen2 = (track2->position(TkrRecInfo::Start) - track2->position(TkrRecInfo::End)).mag();
+
+            //Keep the candidate vertex if 1) doca is not too big
+            bool    keepIt  = dist < docaLimit;
+
+            // 2) the doca occurs along track1 or not too far past it
+            keepIt = keepIt && (-20. < arcLen1 && arcLen1 < trkLen1);
+
+            // 3) ditto for track 2
+            keepIt = keepIt && (-20. < arcLen2 && arcLen2 < trkLen2);
+
+            //Keep it?
+            if (keepIt)
             {
                 Point  gamPos;
                 Vector gamDir;
                 double gamEne = track1->energy() + track2->energy();
 
                 //Ok, check if first track vertex's with second before first hit
-                if      (doca.arcLenRay1() > 0.)
+                if      (arcLen1 > 0. && arcLen2 < 1.)
                 {
+                    //Ok, make sure end of track 2 close to track 1
                     if (doca.docaRay1Point2() > docaLimit) continue; 
 
                     gamPos = track1->position();
                     gamDir = track1->direction();
                 }
                 //Same check for track 2
-                else if (doca.arcLenRay2() > 0.)
+                else if (arcLen2 > 0. && arcLen1 < 1.)
                 {
+                    //Make sure end of track 1 is close to track 2
                     if (doca.docaPoint1Ray2() > docaLimit) continue; 
 
                     gamPos = track2->position();

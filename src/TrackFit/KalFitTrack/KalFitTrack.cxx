@@ -28,6 +28,8 @@
 //-----------------------------------------------------
 
 KalFitTrack::KalFitTrack(int ilyr, int itwr, double sigmaCut,double energy, const Ray& testRay) :
+                             m_iLayer(ilyr),
+                             m_iTower(itwr),
                              m_status(EMPTY),
                              m_sigma(sigmaCut),
                              m_ray(testRay)
@@ -609,7 +611,7 @@ TkrFitPlane KalFitTrack::originalKPlane() const
     TkrFitHit hitfit(TkrFitHit::FIT, pfit, covfit);
     TkrFitHit hitmeas(TkrFitHit::MEAS, pfit, covfit); 
     
-    TkrFitPlane kp(0,-1,m_energy0, x_ini.z(), hitfit, m_axis);
+    TkrFitPlane kp(0,m_iLayer-1,m_energy0, x_ini.z(), hitfit, m_axis);
     kp.setHit(hitmeas);
     
     return kp;

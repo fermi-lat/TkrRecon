@@ -99,6 +99,8 @@ private:
     TkrCluster::view m_axis;
 
     //KalTrack data
+    int    m_iLayer;
+    int    m_iTower;
     int    m_numSegmentPoints;
     double m_chisqSegment;
     double m_sigma;
