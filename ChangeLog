@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue Mar  6 11:58:16 PST 2001
+TkrRecon/TkrRecon TkrClustersRep.h
+
+Added Files:
+	TkrClustersRep.h 
+Log Message:
+"Rep" for handling the display of si clusters for the tracker
+
+    *
+------------------------------------------------------------
 User: usher  Tue Mar  6 11:57:16 PST 2001
 TkrRecon/TkrRecon TkrDisplayAlg.h
 
