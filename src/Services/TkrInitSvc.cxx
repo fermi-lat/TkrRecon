@@ -14,6 +14,7 @@
 #include "src/Track/TkrComboTrackFit.h"
 
 #include "src/Vertex/Combo/TkrComboVtx.h"
+#include "src/Vertex/Combo/TkrComboVtxRep.h"
 
 static const SvcFactory<TkrInitSvc> s_factory;
 const ISvcFactory& TkrInitSvcFactory = s_factory;
@@ -95,6 +96,9 @@ void TkrInitSvc::setDisplayRtns(gui::DisplayControl& display, IDataProviderSvc* 
 		//Set up the display rep for the reconstructed objects
 		display.add(new TkrCandidate3DRep(dps, pTkrGeo), "PatRec: 3D Cands");
     }
+
+    //Vertex display routines
+    display.add(new TkrComboVtxRep(dps, pTkrGeo), "Gamma Vertex");
 
     return;
 }
