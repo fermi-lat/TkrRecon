@@ -6,7 +6,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/MonteCarloHitEnergy.cxx,v 1.3 2004/06/14 23:31:25 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/MonteCarloHitEnergy.cxx,v 1.2 2004/09/08 15:32:47 usher Exp $
  */
 
 #include "MonteCarloHitEnergy.h"
@@ -15,6 +15,7 @@
 #include "Event/MonteCarlo/McEventStructure.h"
 #include "Event/MonteCarlo/McRelTableDefs.h"
 #include "GaudiKernel/ParticleProperty.h"
+#include "Event/Recon/TkrRecon/TkrTrack.h"
 
 MonteCarloHitEnergy::MonteCarloHitEnergy(IDataProviderSvc* dataSvc, IParticlePropertySvc* partPropSvc) : 
                      m_control(TkrControl::getPtr()), m_dataSvc(dataSvc), m_partPropSvc(partPropSvc), m_mcParticle(0)
@@ -22,30 +23,30 @@ MonteCarloHitEnergy::MonteCarloHitEnergy(IDataProviderSvc* dataSvc, IParticlePro
     return;
 }
 
-double MonteCarloHitEnergy::initialHitEnergy(const Event::TkrPatCand& patCand, 
-                                             const Event::TkrPatCandHit& candHit, 
-                                             const double trkEnergy)
+double MonteCarloHitEnergy::initialHitEnergy(const Event::TkrTrack&    patCand, 
+                                             const Event::TkrTrackHit& candHit, 
+                                             const double              trkEnergy)
 {
     // Default is to output the input energy, in case we can't find a match for this hit
     double energy = trkEnergy;
 
     // Who would have ever thought this was so complicated... 
     // Start by retrieving the table relating the McParticles to PatCands
-    SmartDataPtr<Event::McPartToTkrPatCandTabList> patCandTable(m_dataSvc,EventModel::MC::McPartToTkrPatCandTab);
-    Event::McPartToTkrPatCandTab mcPartToPatCandTab(patCandTable);
+    SmartDataPtr<Event::McPartToTkrTrackTabList> trackTable(m_dataSvc,EventModel::MC::McPartToTkrTrackTab);
+    Event::McPartToTkrTrackTab mcPartToTkrTrackTab(trackTable);
 
     // Now get the vector of McParticles associated with this candidate track 
     // (recall that Clusters can share McParticles ...)
-    Event::McPartToTkrPatCandVec patCandVec = mcPartToPatCandTab.getRelBySecond(&patCand);
+    Event::McPartToTkrTrackVec trackVec = mcPartToTkrTrackTab.getRelBySecond(&patCand);
 
     int nMcParticles = -1;
-    Event::McPartToTkrPatCandVec::const_iterator candIter;
+    Event::McPartToTkrTrackVec::const_iterator candIter;
 
     // Majority logic wins, pick the McParticle with the most number of hits on the track
-    for(candIter = patCandVec.begin(); candIter != patCandVec.end(); candIter++)
+    for(candIter = trackVec.begin(); candIter != trackVec.end(); candIter++)
     {
-        Event::McPartToTkrPatCandRel* patCandRel = *candIter;
-        int                           nHits      = patCandRel->getInfos().size();
+        Event::McPartToTkrTrackRel* patCandRel = *candIter;
+        int                         nHits      = patCandRel->getInfos().size();
 
         if (nHits > nMcParticles)
         {
@@ -66,18 +67,17 @@ double MonteCarloHitEnergy::initialHitEnergy(const Event::TkrPatCand& patCand,
     SmartDataPtr<Event::McPartToClusPosHitTabList> partClusTable(m_dataSvc,EventModel::MC::McPartToClusHitTab);
     Event::McPartToClusPosHitTab mcPartToClusTab(partClusTable);
 
-    // Extract the cluster id from the candidate hit
-    int clusterIdx = candHit.HitIndex();
-
     // Use this to extract a vector of hits related to the current particle...
     Event::McPartToClusPosHitVec hitVec = mcPartToClusTab.getRelByFirst(m_mcParticle);
+
+    // Need pointer to the cluster associated with this hit
+    const Event::TkrCluster* cluster    = candHit.getClusterPtr();
 
     // Loop through the relations look for a match
     Event::McPartToClusPosHitVec::const_iterator hitVecIter;
     for(hitVecIter = hitVec.begin(); hitVecIter != hitVec.end(); hitVecIter++)
     {
         Event::ClusMcPosHitRel* clusHitRel = (*hitVecIter)->getSecond();
-        Event::TkrCluster*      cluster    = clusHitRel->getFirst();
 
         // It can happen that an McPositionHit does not produce a cluster
         if (!cluster) continue;
@@ -87,7 +87,7 @@ double MonteCarloHitEnergy::initialHitEnergy(const Event::TkrPatCand& patCand,
         if (clusHitRel->getSecond()->mcParticle() != m_mcParticle) continue;
 
         // This to insure that we are at the right cluster
-        if (clusHitRel->getFirst()->id() == clusterIdx)
+        if (clusHitRel->getFirst() == cluster)
         {
             energy = clusHitRel->getSecond()->particleEnergy();
             break;
