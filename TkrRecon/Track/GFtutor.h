@@ -29,10 +29,10 @@ public:
 
 	static void GFtutor::load(TkrClusters* scl, ITkrGeometrySvc* pTrkGeo);
 	static void GFtutor::setVeto(bool vt) {CUT_veto = vt;}
+	static TkrClusters* _DATA;
 
 protected:
 
-	static TkrClusters* _DATA;
 
 	static bool CONTROL_connectGFpair;
 	static bool CUT_veto;
