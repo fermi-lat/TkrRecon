@@ -142,6 +142,8 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       // PROPAGATION
       Event::TkrFitMatrix measCov = theTrack->getTrackCov();
       //At least let's make use of the fast inversion!
+      std::cout<<"COV MATRIX:"<<measCov<<endl;
+
       measCov.invert(ifail);
       if(ifail)
         {
@@ -232,21 +234,27 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
 	  //keep new updates
           m_VtxEstimates.push_back(newX);
           m_VtxCovEstimates.push_back(newC);
-
-         //The following are kept for the smoother step:
-          m_A.push_back(A);
-          m_m.push_back(par);
-          m_c0.push_back(c0);
-          m_B.push_back(B);
-          m_G.push_back(G);
-          m_W.push_back(W);
-
 	  sc = StatusCode::SUCCESS;
-        }
-
+	}
+      else
+	{
+          m_VtxEstimates.push_back(x);
+          m_VtxCovEstimates.push_back(C);	  
+	}
+      //The following are kept for the smoother step:
+      //NEED TO IMPROVE THE CODE: SMOOTHER CURRENTLY
+      //DOESN'T ALLOW TO SAVE ONLY INTERESTING TRACKS...
+      m_A.push_back(A);
+      m_m.push_back(par);
+      m_c0.push_back(c0);
+      m_B.push_back(B);
+      m_G.push_back(G);
+      m_W.push_back(W);
+      
+      
       used_index++;      
     }//end of track while loop
-
+  
   if(sc.isFailure()) 
     {
       log<<MSG::ERROR<<"KALMAN Filter FAILED!"<<endreq;
@@ -285,9 +293,9 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
 	  
 	  //more complex: need a second loop: Cov(q_i,q_j)
 	  //NEED TO BE REVISITED
-	  int j;
+	  int j=0;
 	  HepSymMatrix covSkew(2,0);
-	  for(j=i+1;j!=theTracks->size();j++)
+	  for(j=i+1;j<theTracks->size();j++)
 	    {
 	      if(used[j])
 		{
