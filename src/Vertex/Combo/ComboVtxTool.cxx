@@ -148,13 +148,13 @@ StatusCode ComboVtxTool::findVtxs()
 
 			if(tkr1Cls == tkr2Cls && tkr2Cls->size() < 3) 
 			{// Put vertex 1/2 way into preceeding radiator if first hit is in upper plane
-				int plane = m_tkrGeom->getPlane(tkr1ID);
-				int layer = m_tkrGeom->getLayer(plane);
-				double radLen = m_tkrGeom->getRadLenConv(layer);
-				if(plane%2 == 1) zVtx += radLen/2./3.5 + .4; 
-				status |= Event::TkrVertex::TWOTKRVTX | Event::TkrVertex::FIRSTHIT;
-			}
-			else if((docaZPos-tkr1Pos.z()) > 0. && 
+                int plane = m_tkrGeom->getPlane(tkr1ID);
+                int layer = m_tkrGeom->getLayer(plane);
+                bool isTopPlane = m_tkrGeom->isTopPlaneInLayer(plane);
+                if (!isTopPlane) {zVtx = m_tkrGeom->getConvZ(layer);}
+                status |= Event::TkrVertex::TWOTKRVTX | Event::TkrVertex::FIRSTHIT;
+            }
+            else if((docaZPos-tkr1Pos.z()) > 0. && 
 				    (docaZPos-tkr1Pos.z()) < m_tkrGeom->trayHeight())
 			{// Put vertex at DOCA location   
 				zVtx = docaZPos;

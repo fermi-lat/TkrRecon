@@ -28,12 +28,12 @@
 //-----------------------------------------------------
 
 TrackFitUtils::TrackFitUtils(ITkrGeometrySvc* tkrGeom, IFitHitEnergy* hitEnergy) :
-                             m_tkrGeom(tkrGeom),
-                             m_tkrFail(m_tkrGeom->getTkrFailureModeSvc()),
-                             m_hitEnergy(hitEnergy)
+m_tkrGeom(tkrGeom),
+m_tkrFail(m_tkrGeom->getTkrFailureModeSvc()),
+m_hitEnergy(hitEnergy)
 {
     // Purpose and Method: Constructor - Initialization for TrackFitUtils
-  
+
     // Inputs:  Pointer to Detector Geometery, pointer to TrkClusters
     // Outputs: No output, object creation
     // Dependencies: None
@@ -41,16 +41,18 @@ TrackFitUtils::TrackFitUtils(ITkrGeometrySvc* tkrGeom, IFitHitEnergy* hitEnergy)
 
     // Set up control
     m_control = TkrControl::getPtr();
+    // vector for track compare
+    m_hitVec.resize(m_tkrGeom->numPlanes());
 }
 
 
 void TrackFitUtils::flagAllHits(Event::TkrTrack& track, int iflag)
 {
-   // Purpose and Method: Flag all clusters on a given track as having been used
-   // Inputs: Track, flag that is passed on the TkrCluster (!= 0 means flagged) 
-   // Outputs: None
-   // Dependencies: None
-   // Restrictions and Caveats:  None
+    // Purpose and Method: Flag all clusters on a given track as having been used
+    // Inputs: Track, flag that is passed on the TkrCluster (!= 0 means flagged) 
+    // Outputs: None
+    // Dependencies: None
+    // Restrictions and Caveats:  None
 
     Event::TkrTrackHitVecItr hitPtr = track.begin();
 
@@ -60,18 +62,18 @@ void TrackFitUtils::flagAllHits(Event::TkrTrack& track, int iflag)
         if (!(hitplane->getStatusBits() & Event::TkrTrackHit::HITONFIT)) continue;
 
         Event::TkrClusterPtr cluster = hitplane->getClusterPtr();
- 
+
         cluster->flag(iflag);
     }
 }
 
 void TrackFitUtils::unFlagAllHits(Event::TkrTrack& track)
 {
-   // Purpose and Method: Unflag all clusters on a given track as having been used
-   // Inputs: Track
-   // Outputs: None
-   // Dependencies: None
-   // Restrictions and Caveats:  None
+    // Purpose and Method: Unflag all clusters on a given track as having been used
+    // Inputs: Track
+    // Outputs: None
+    // Dependencies: None
+    // Restrictions and Caveats:  None
 
     Event::TkrTrackHitVecItr hitPtr = track.begin();
 
@@ -93,7 +95,7 @@ void TrackFitUtils::unFlagHit(Event::TkrTrack& track, int num)
     // Outputs: None
     // Dependencies: None
     // Restrictions and Caveats:  None
-    
+
     Event::TkrTrackHitVecItr hitPtr = track.begin();
     hitPtr += num;
     Event::TkrTrackHit* hitplane     = *hitPtr;
@@ -101,7 +103,7 @@ void TrackFitUtils::unFlagHit(Event::TkrTrack& track, int num)
     if (hitplane->getStatusBits() & Event::TkrTrackHit::HITONFIT)
     {
         Event::TkrClusterPtr cluster = hitplane->getClusterPtr();
-    
+
         cluster->unflag();
     }
 }  
@@ -116,7 +118,7 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
     // Outputs: None
     // Dependencies: None
     // Restrictions and Caveats:  None
-    
+
     // Compute the fit variables  
     if (track.getChiSquareSmooth() >= 0) 
     {
@@ -124,11 +126,11 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
         Event::TkrTrackHit* firstPlane = track[0];
         Point               x0         = firstPlane->getPoint(Event::TkrTrackHit::SMOOTHED);
         Vector              dir        = firstPlane->getDirection(Event::TkrTrackHit::SMOOTHED);
-        
+
         track.setInitialPosition(x0);
         track.setInitialDirection(dir);
         track.setScatter(0.);
-        
+
         int    last_XLayer      = -1; 
         int    last_YLayer     = -1;
         int    num_xPlanes      =  0;
@@ -150,27 +152,27 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
             Event::TkrTrackHit* hit = *hitPtr;
             rad_len += hit->getRadLen(); 
 
-			if(plane_count > 4 && !quit_first) {
+            if(plane_count > 4 && !quit_first) {
                 double arc_len  = (z0- hit->getZPlane())*cos_inv; 
                 double theta_ms = 13.6/start_energy * sqrt(rad_len) *
-                                             (1. + .038*log(rad_len));
+                    (1. + .038*log(rad_len));
                 double plane_err = cos_inv*arc_len*theta_ms/1.7321; 
                 quit_first  = plane_err > 2.*m_tkrGeom->siStripPitch();
             }
 
-			if ((hit->getStatusBits()& Event::TkrTrackHit::HITONFIT) && hit->validCluster()) { 
+            if ((hit->getStatusBits()& Event::TkrTrackHit::HITONFIT) && hit->validCluster()) { 
 
                 if(!quit_first) numSegmentPoints++;
 
                 int this_plane = m_tkrGeom->trayToPlane(hit->getTkrId().getTray(),hit->getTkrId().getBotTop());
                 bool xPlane = hit->getTkrId().getView() == idents::TkrId::eMeasureX; 
-                
-				if(hit->validSmoothedHit()) {
+
+                if(hit->validSmoothedHit()) {
                     double x  = hit->getMeasuredPosition(Event::TkrTrackHit::SMOOTHED);
                     double xm = hit->getMeasuredPosition(Event::TkrTrackHit::MEASURED);
 
-					int this_layer, view;
-					m_tkrGeom->planeToLayer(this_plane, this_layer, view);  
+                    int this_layer, view;
+                    m_tkrGeom->planeToLayer(this_plane, this_layer, view);  
 
                     if (xPlane) {
                         num_xPlanes++;
@@ -186,31 +188,31 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
                             Ygaps += last_YLayer- this_layer - 1;
                             if(num_yPlanes < 3 || !quit_first) track.setNumYFirstGaps(Ygaps);
                         } 
-                    last_YLayer= this_layer;
+                        last_YLayer= this_layer;
                     }
                     rmsResid+= (x-xm)*(x-xm);
-					plane_count++; 
-				}
-			}
+                    plane_count++; 
+                }
+            }
         }
         rmsResid=sqrt(rmsResid/(1.*plane_count));
-        
+
         track.setScatter(rmsResid);
         track.setNumSegmentPoints(numSegmentPoints);
-		track.setNumXHits(num_xPlanes);
-		track.setNumYHits(num_yPlanes); 
+        track.setNumXHits(num_xPlanes);
+        track.setNumYHits(num_yPlanes); 
         track.setNumXGaps(Xgaps);
         track.setNumYGaps(Ygaps);
-        
+
         // Energy calculations
         eneDetermination(track);
-        
+
         // Segment Calculation
         if (track.getChiSquareFilter() >= 0) {
             track.setChiSqSegment(computeChiSqSegment(track, track.getNumSegmentPoints()));
             track.setQuality(computeQuality(track));
         }   
-        
+
         // Compute the radiation lengths to the calorimeter front face
         double arc_min = (track.getInitialPosition().z() - m_tkrGeom->calZTop())/fabs(track.getInitialDirection().z()); 
         IKalmanParticle* TkrFitPart = m_tkrGeom->getPropagator();
@@ -235,23 +237,23 @@ double TrackFitUtils::computeQuality(const Event::TkrTrack& track) const
     // Determine plane number 
     idents::TkrId hitId = track[0]->getTkrId();
     int           layer = m_tkrGeom->trayToBiLayer(hitId.getTray(),hitId.getBotTop());
-    
+
     // Calc. How many hits are possible?
     //int num_max = 2*(m_tkrGeom->numPlanes() - layer);
     int num_max = 2*(layer+1); //Layers start at zero...
     if(num_max > 16) num_max = 16;
-    
+
     // Don't allow more then 8 of each projection
     int num_Hits  = (track.getNumXHits() <= 8) ? track.getNumXHits() : 8;
     num_Hits     += (track.getNumYHits() <= 8) ? track.getNumYHits() : 8;
-    
+
     // Scale to max. allowed 
     float hit_count_factor = (1.*num_Hits)/(1.*num_max);
-    
+
     // Overall factors are to make this ~ match older def's 
     double quality = 64.*hit_count_factor - 2.*sqrt(track.getChiSquareSmooth()); 
-    
-    
+
+
     //    double quality = 4*(m_nxHits+m_nyHits-4. - (m_Xgaps+m_Ygaps)) 
     //                    -2.*sqrt(m_chisqSmooth); 
     return quality;
@@ -267,7 +269,7 @@ void TrackFitUtils::eneDetermination(Event::TkrTrack& track)
     // Outputs: sets kalEnergy and its error for this track
     // Dependencies: None
     // Restrictions and Caveats:  None
-    
+
     double totalRad  = 0.;
     double eneSum    = 0.;
     double thetaSum  = 0.;
@@ -279,13 +281,13 @@ void TrackFitUtils::eneDetermination(Event::TkrTrack& track)
     double tSumCount = 0.;
     double x_cls_size = 1.;
     double y_cls_size = 1.;
-    
+
     Vector t0(0.,0.,0.); 
 
     // Keep track of the current bilayer
     idents::TkrId hitId = track[0]->getTkrId();
     int old_BiLayer_Id = m_tkrGeom->trayToBiLayer(hitId.getTray(),hitId.getBotTop());
-    
+
     for (Event::TkrTrackHitVecItr planeIter = track.begin(); planeIter != track.end(); planeIter++)
     { 
         // Get the last cluster size for range estimation
@@ -297,7 +299,7 @@ void TrackFitUtils::eneDetermination(Event::TkrTrack& track)
         Event::TkrClusterPtr cluster = plane.getClusterPtr();
         idents::TkrId        hitId   = plane.getTkrId();
         int                  biLayer = m_tkrGeom->trayToBiLayer(hitId.getTray(),hitId.getBotTop());
-     
+
         if (hitId.getView() == idents::TkrId::eMeasureX) x_cls_size = cluster->size();
         else                                             y_cls_size = cluster->size();
 
@@ -311,7 +313,7 @@ void TrackFitUtils::eneDetermination(Event::TkrTrack& track)
         }
         totalRad += radLen;    
         Vector t1 = Vector(-sX/count, -sY/count, -1.).unit();
-        
+
         if(t0.magnitude() < .1) { // Trap for first plane
             t0 = t1; 
             sX = plane.getTrackParams(Event::TkrTrackHit::SMOOTHED).getxSlope();
@@ -321,17 +323,17 @@ void TrackFitUtils::eneDetermination(Event::TkrTrack& track)
             old_BiLayer_Id = biLayer; 
             continue; 
         }
-        
+
         double e_factor = exp(-totalRad);        
         double t0t1 = t0*t1;
         double theta = acos(t0t1);
         double rl_factor = radLen;
-        
+
         eSumCount += 1.; 
         tSumCount += 1./rl_factor; 
         eneSum += (theta * e_factor)*(theta * e_factor)/rl_factor; 
         thetaSum += theta * theta /rl_factor; 
-        
+
         // Reset for next X,Y measuring plane
         old_BiLayer_Id = biLayer; 
         t0 = t1; 
@@ -340,7 +342,7 @@ void TrackFitUtils::eneDetermination(Event::TkrTrack& track)
         radLen = plane.getRadLen();
         count =1.;
     }
-    
+
     // Set a max. energy based on range 
     //        - use cluster size as indicator of range-out
     double prj_size_x = m_tkrGeom->siThickness()*fabs(sX)/
@@ -359,7 +361,7 @@ void TrackFitUtils::eneDetermination(Event::TkrTrack& track)
     if (eSumCount > 0)
     {
         double e_inv = sqrt(eneSum  /2./eSumCount);
-        
+
         kalEnergy = 13.6 / e_inv;
         if(kalEnergy < m_control->getMinEnergy()/3.) kalEnergy = m_control->getMinEnergy()/3.; 
         if(kalEnergy > range_limit) kalEnergy = range_limit;
@@ -373,7 +375,7 @@ void TrackFitUtils::eneDetermination(Event::TkrTrack& track)
     }
 
     track.setKalThetaMS(thetaMS);
-    
+
     track.setKalEnergy(kalEnergy); //Units MeV
     track.setKalEnergyError(kalEneErr);
 }
@@ -387,7 +389,7 @@ double TrackFitUtils::computeChiSqSegment(const Event::TkrTrack& track, int nhit
     // Outputs: chisquared/D.F.
     // Dependencies: None
     // Restrictions and Caveats:  None
-    
+
     double chi2 = 0;
 
     if (typ == Event::TkrTrackHit::FILTERED)
@@ -411,29 +413,29 @@ void TrackFitUtils::setSharedHitsStatus(Event::TkrTrack& track, int maxShare)
     // Outputs: None
     // Dependencies: None
     // Restrictions and Caveats:  None
-    
+
     // Hits are shared depending on cluster size 
     // and track direction
     Event::TkrTrackHitVecItr plane = track.begin();
-                
+
     int i_Hit = 0; 
     int i_share = 0;
 
     while(plane != track.end()) 
     {
-	   // First hits (x & y) are shared: gamma conversion vertex
-       if(i_Hit < 2 && (*plane)->validCluster()) { 
+        // First hits (x & y) are shared: gamma conversion vertex
+        if(i_Hit < 2 && (*plane)->validCluster()) { 
             unFlagHit(track, i_Hit);
             i_Hit++;
             i_share++;
-			plane++;
+            plane++;
             continue;
         }
-	   if(!(*plane)->validCluster()) {
-		   plane++;
-		   i_Hit++;
-		   continue;
-	   }
+        if(!(*plane)->validCluster()) {
+            plane++;
+            i_Hit++;
+            continue;
+        }
 
         // For the rest - unflag according to Cluster size and Trajectory
         Event::TkrClusterPtr cluster = (*plane)->getClusterPtr();
@@ -442,7 +444,7 @@ void TrackFitUtils::setSharedHitsStatus(Event::TkrTrack& track, int maxShare)
 
         double cls_size = cluster->size();        
         double prj_size = m_tkrGeom->siThickness()*fabs(slope)
-                         /m_tkrGeom->siStripPitch() + 1.;
+            /m_tkrGeom->siStripPitch() + 1.;
         if(cls_size> prj_size) 
         {
             unFlagHit(track, i_Hit);
@@ -455,53 +457,175 @@ void TrackFitUtils::setSharedHitsStatus(Event::TkrTrack& track, int maxShare)
 
     return;
 }
-int TrackFitUtils::compareTracks(Event::TkrTrack& track1, Event::TkrTrack& track2)
+
+int TrackFitUtils::numUniqueHits(Event::TkrTrack& track1,
+                                 Event::TkrTrack& track2,
+                                 int minUnique) const
 {
-	int num_sharedHits = 0;
-	// Loop over the hits on the track1
-	Event::TkrTrackHitVecItr hitPtr1 = track1.begin();
+    // Alternative to compareTracks(), above
+    // This one counts unique hits on the shorter track, 
+    // by looking at each layer (once!)
 
-    while(hitPtr1 != track1.end()) {
+    int size = m_hitVec.size();
+    m_hitVec.assign(size, 0);
+
+    int nHit1 = track1.getNumFitHits();
+    int nHit2 = track2.getNumFitHits();
+    Event::TkrTrack& trackToCompare = (nHit1<nHit2 ? track1 : track2);
+    Event::TkrTrack& trackToLoad    = (nHit1<nHit2 ? track2 : track1);
+    Event::TkrTrackHitVecItr hitPtr;
+    Event::TkrTrackHit* hit;
+    int plane;
+
+    /* debug stuff... keep this for a while
+    hitPtr = track1.begin();
+    hit = *hitPtr;
+    plane = m_tkrGeom->getPlane(hit->getTkrId());
+    int nxHits = track1.getNumXHits();
+    int nyHits = track1.getNumYHits();
+    std::cout << "Track 1 1stPlane " << plane << 
+        ", lastPlane " << plane-track1.getNumHits()+1<< std::endl;
+    std::cout << "nXhits " << nxHits << " nYhits " << nyHits 
+        << " nFitHits " << track1.getNumFitHits() << std::endl;
+    // now look at each hit:
+    for (; hitPtr!= track1.end(); ++hitPtr,--plane) {
+        hit = *hitPtr;
+        int status = hit->getStatusBits();
+        std::cout <<"Plane " << plane << " validCl " << hit->validCluster();
+        if (hit->validCluster()) {
+            bool measuresX = ((status & Event::TkrTrackHit::MEASURESX)!=0);
+            bool measuresY = ((status & Event::TkrTrackHit::MEASURESY)!=0);
+            std::cout << "measX/Y " << measuresX << " " << measuresY ;
+        }
+        std::cout << std::endl;
+    }
+
+    hitPtr = track2.begin();
+    hit = *hitPtr;
+    plane = m_tkrGeom->getPlane(hit->getTkrId());
+    std::cout << "Track 2 1stPlane " << plane << 
+        ", lastPlane " << plane-track2.getNumHits()+1<< std::endl;
+    */
+
+    int nUnique = 0;
+    hitPtr = trackToLoad.begin();
+    plane = m_tkrGeom->getPlane((*hitPtr)->getTkrId());
+
+    for (; hitPtr!= trackToLoad.end(); ++hitPtr,--plane) {
+        hit = *hitPtr;
+        /*
+        if(plane<0 || plane>m_tkrGeom->numPlanes()-1) {
+            idents::TkrId tkrId = hit->getTkrId();
+            std::cout << "tray/bottop" << tkrId.getTray() << " " << tkrId.getBotTop() << std::endl;
+            std::cout << "plane " << plane <<" bad!" << std::endl;
+        }
+        */
+        m_hitVec[plane] = hit;
+    }
+
+    hitPtr = trackToCompare.begin();
+    Event::TkrTrackHit* hit1 = *hitPtr;
+    plane = m_tkrGeom->getPlane(hit1->getTkrId());
+    for (; hitPtr!=trackToCompare.end(); ++hitPtr,--plane) {
+        hit1 = *hitPtr;
+        /*
+        if(plane<0 || plane>m_tkrGeom->numPlanes()-1) {
+            std::cout << "plane " << plane <<" bad!" << std::endl;
+        }
+        */
+        hit = m_hitVec[plane];
+
+        // if the other hit is not there, hit is unique
+        nUnique++;
+        if (hit!=0) {
+            bool valid  = hit->validCluster();
+            bool valid1 = hit1->validCluster();
+            // if both clusters are valid and equal, hit is shared
+            if (valid && valid1) {
+                Event::TkrClusterPtr cl = hit->getClusterPtr();
+                Event::TkrClusterPtr cl1 = hit1->getClusterPtr();
+                if(cl==cl1) nUnique--;
+            } 
+            // if both clusters are invalid, hit is possibly "shared"
+            // could check distance between to be more sure...
+            else if (!valid && !valid1) nUnique--;
+        }
+        // bail early if 3rd arg is supplied, and there are enuf hits
+        if (nUnique>=minUnique) return nUnique;
+    }
+    return nUnique;
+}
+
+
+int TrackFitUtils::compareTracks(Event::TkrTrack& track1, 
+                                 Event::TkrTrack& track2,
+                                 int stopAfter) const
+{
+    // stopAfter defaults to a large number, so loops go to completion
+    //  if method is called with only 2 arguments
+
+    int num_sharedHits = 0;
+    /*
+    int num_compares = 0;
+    int minHits = std::min(track1.getNumHits(), track2.getNumHits());
+    //std::cout << "Begin compareTrack for " << minHits << " hits" << std::endl;
+    */
+    // Loop over the hits on the track1
+    Event::TkrTrackHitVecItr hitPtr1, hitPtr2;  
+    hitPtr1 = track1.begin();
+    for (; hitPtr1 != track1.end(); ++hitPtr1) {
         Event::TkrTrackHit* hit1 = *hitPtr1;
-		hitPtr1++;
-		if(!hit1->validCluster()) continue;
+        if(!hit1->validCluster()) continue;
+        Event::TkrClusterPtr pClus1 = hit1->getClusterPtr();
 
-		// Loop over the hits on track2
-	    Event::TkrTrackHitVecItr hitPtr2 = track2.begin();
-       while(hitPtr2 != track2.end()) {
+        // Loop over the hits on track2
+        hitPtr2 = track2.begin();
+        for (;hitPtr2 != track2.end(); ++hitPtr2) {
             Event::TkrTrackHit* hit2 = *hitPtr2;
-			hitPtr2++;
-		    if(!hit2->validCluster()) continue;
-			if(hit1->getClusterPtr() == hit2->getClusterPtr()) num_sharedHits++;
-		}
-	}
-	return num_sharedHits;
+            //num_compares++;
+            if(!hit2->validCluster()) continue;
+            if(pClus1 == hit2->getClusterPtr()) {
+                //std::cout << "CT: plane " 
+                //    << m_tkrGeom->getPlane(hit2->getTkrId())<<std::endl;
+                num_sharedHits++;
+                if (num_sharedHits>stopAfter) {
+                  //std::cout << num_compares << " comparisons, left early" 
+                  //  << std::endl;
+                    return num_sharedHits;
+                }
+                // found a match for this hit, on to the next one
+                break;
+            }
+        }
+    }
+    //std::cout << num_sharedHits << " overlaps, " << num_compares 
+    //    << " comparisons" << std::endl;
+    return num_sharedHits;
 }
 
 double TrackFitUtils::firstKinkNorm(Event::TkrTrack& track)
 {
-	Event::TkrTrackHitVecItr hitPtr = track.begin();
+    Event::TkrTrackHitVecItr hitPtr = track.begin();
     Event::TkrTrackHit* hit1 = *hitPtr;
-	Vector t0 = hit1->getDirection(Event::TkrTrackHit::SMOOTHED);
-  
-	int layer0 = m_tkrGeom->getLayer(hit1->getTkrId());
-	double energy = hit1->getEnergy(); 
-	double rad_len = 0.; 
-	Vector t1;
-	hitPtr++; 
-	while(hitPtr != track.end()) {
-        Event::TkrTrackHit* hit = *hitPtr;
-		int next_layer = m_tkrGeom->getLayer(hit->getTkrId()); 
-		if(abs(next_layer - layer0) > 1) break;
-		t1 = hit->getDirection(Event::TkrTrackHit::SMOOTHED);
-		rad_len += hit->getRadLen();
-		hitPtr++;
-	}
-	double kink_angle = acos(t0*t1);
-	double mscat_angle = 13.6 * sqrt(rad_len) * ( 1 + .038*log(rad_len))*
-		                 1.414 /energy; 
-	return kink_angle/mscat_angle;
-}
-		   
+    Vector t0 = hit1->getDirection(Event::TkrTrackHit::SMOOTHED);
 
-            
+    int layer0 = m_tkrGeom->getLayer(hit1->getTkrId());
+    double energy = hit1->getEnergy(); 
+    double rad_len = 0.; 
+    Vector t1;
+    hitPtr++; 
+    while(hitPtr != track.end()) {
+        Event::TkrTrackHit* hit = *hitPtr;
+        int next_layer = m_tkrGeom->getLayer(hit->getTkrId()); 
+        if(abs(next_layer - layer0) > 1) break;
+        t1 = hit->getDirection(Event::TkrTrackHit::SMOOTHED);
+        rad_len += hit->getRadLen();
+        hitPtr++;
+    }
+    double kink_angle = acos(t0*t1);
+    double mscat_angle = 13.6 * sqrt(rad_len) * ( 1 + .038*log(rad_len))*
+        1.414 /energy; 
+    return kink_angle/mscat_angle;
+}
+
+
