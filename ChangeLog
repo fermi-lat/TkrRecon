@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Tue Aug 20 10:29:37 PDT 2002
+TkrRecon/src/TrackFit/KalmanFilter
+
+Modified Files:
+	KalmanFilter.cxx KalmanFilter.h 
+Log Message:
+Mainly bug fixes - Also elimination of some(now) unused methods 
+    *
+------------------------------------------------------------
 User: atwood  Tue Aug 20 10:28:22 PDT 2002
 TkrRecon/src/TrackFit/KalFitTrack
 
