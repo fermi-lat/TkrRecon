@@ -35,5 +35,6 @@ DECLARE_FACTORY_ENTRIES(TkrRecon)
     DECLARE_TOOL(      ComboFindTrackTool      );
     DECLARE_TOOL(      LinkAndTreeFindTrackTool);
     DECLARE_TOOL(      NeuralNetFindTrackTool  );
+    DECLARE_TOOL(      TkrMeritTool            );
 } 
 
