@@ -6,7 +6,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/StdTransportMatrix.h,v 1.1 2004/03/24 00:03:26 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/StdTransportMatrix.h,v 1.1 2004/04/19 22:44:22 usher Exp $
  */
 
 #ifndef StdTransportMatrix_h
@@ -21,7 +21,7 @@ public:
 
     // Constructor 
     StdTransportMatrix();
-   ~StdTransportMatrix() {};
+    virtual ~StdTransportMatrix() {};
 
     void    trackInit(const std::vector<double>& zCoords);
     void    accept(const KalmanFilterInit& initObj);

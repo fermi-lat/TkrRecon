@@ -6,7 +6,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/BetheBlockHitEnergy.h,v 1.1 2004/03/24 00:03:27 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/BetheBlockHitEnergy.h,v 1.1 2004/04/19 22:51:00 usher Exp $
  */
 
 #ifndef BetheBlockHitEnergy_h
@@ -21,7 +21,7 @@ public:
 
     // Constructor needs the matrices that transform state vector, covariance matrix
     BetheBlockHitEnergy();
-    ~BetheBlockHitEnergy() {};
+    virtual ~BetheBlockHitEnergy() {};
 
     double initialHitEnergy(const Event::TkrPatCandHit& candHit, const double trkEnergy);
     double updateHitEnergy(const double curEnergy, const double radLen);

@@ -6,7 +6,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/GlastMatrix.h,v 1.1 2004/03/24 00:03:26 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/GlastMatrix.h,v 1.2 2004/03/25 21:45:05 cohen Exp $
  */
 
 #ifndef GlastMatrix_h
@@ -55,3 +55,4 @@ GlastMatrix::GlastMatrix(const Event::TkrFitMatrix& m1) : HepMatrix(4,4)
     (*this)(4,4) = m1(4,4);
 }
 #endif
+

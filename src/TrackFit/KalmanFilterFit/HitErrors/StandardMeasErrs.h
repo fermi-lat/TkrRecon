@@ -7,7 +7,7 @@
  *
  * @author Tracy Usher (editor) taken from code authored by Bill Atwood
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/StandardMeasErrs.h,v 1.1 2004/03/24 00:03:27 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/StandardMeasErrs.h,v 1.1 2004/04/19 22:48:05 usher Exp $
  */
 
 #ifndef StandardMeasErrs_h
@@ -23,7 +23,7 @@ public:
 
     // Constructor needs the matrices that transform state vector, covariance matrix
     StandardMeasErrs(ITkrGeometrySvc* tkrGeo);
-   ~StandardMeasErrs() {};
+    virtual ~StandardMeasErrs() {};
 
 
     Event::TkrFitMatrix computeMeasErrs(const Event::TkrFitPar& newPars, 

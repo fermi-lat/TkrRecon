@@ -7,7 +7,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/MonteCarloHitEnergy.h,v 1.1 2004/03/24 00:03:26 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/MonteCarloHitEnergy.h,v 1.1 2004/04/19 22:51:00 usher Exp $
  */
 
 #ifndef MonteCarloHitEnergy_h
@@ -25,7 +25,7 @@ public:
 
     // Constructor needs the matrices that transform state vector, covariance matrix
     MonteCarloHitEnergy(IDataProviderSvc* dataSvc, IParticlePropertySvc* partPropSvc);
-    ~MonteCarloHitEnergy() {};
+    virtual ~MonteCarloHitEnergy() {};
 
     double initialHitEnergy(const Event::TkrPatCandHit& candHit, const double trkEnergy);
     double updateHitEnergy(const double curEnergy, const double radLen);

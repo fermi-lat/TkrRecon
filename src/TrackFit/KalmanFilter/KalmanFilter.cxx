@@ -368,7 +368,7 @@ double KalmanFilter::getError(double strips, double slope) const
     double error;
     double factor = 0.0;
     double minErr = m_tkrGeo->siResolution(); 
-    double oneOverSqrtTwelve = 1./sqrt(12);
+    double oneOverSqrtTwelve = 1./sqrt(12.);
     double clusterWidth  = strips*m_tkrGeo->siStripPitch();
     double projectedWidth = fabs(slope)*m_tkrGeo->siThickness();
     int    errorType = m_control->getErrorType();

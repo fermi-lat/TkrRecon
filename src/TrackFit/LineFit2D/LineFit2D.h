@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/LineFit2D/Linefit2D.h,v 1.1 2004/03/24 00:03:26 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/LineFit2D/LineFit2D.h,v 1.1 2004/04/19 23:05:22 usher Exp $
  */
 
 #ifndef LineFit2D_h

@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.2 2004/03/25 22:20:47 cohen Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.3 2004/04/19 23:13:24 usher Exp $
  */
 
 // Tool and Gaudi related stuff
@@ -433,9 +433,15 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrKalFitTrack& track, Event::Tkr
         curCovMat   = m_KalmanFit->CovMatFilter();
 
         // Update the hit information (measured, predicted and filtered) for this plane
-        trackUtils.addNewHit(nextPlane, Event::TkrFitHit::MEAS,measPar, measCov);
-        trackUtils.addNewHit(nextPlane, Event::TkrFitHit::PRED,Event::TkrFitPar(m_KalmanFit->StateVecExtrap()),Event::TkrFitMatrix(m_KalmanFit->CovMatExtrap()));
-        trackUtils.addNewHit(nextPlane, Event::TkrFitHit::FIT,Event::TkrFitPar(curStateVec),Event::TkrFitMatrix(curCovMat));
+        trackUtils.addNewHit(nextPlane, Event::TkrFitHit::MEAS, measPar, measCov);
+
+        Event::TkrFitPar    predFitPar(m_KalmanFit->StateVecExtrap());
+        Event::TkrFitMatrix predCovMat(m_KalmanFit->CovMatExtrap());
+        trackUtils.addNewHit(nextPlane, Event::TkrFitHit::PRED, predFitPar, predCovMat);
+
+        Event::TkrFitPar    fitFitPar(curStateVec);
+        Event::TkrFitMatrix fitCovMat(curCovMat);
+        trackUtils.addNewHit(nextPlane, Event::TkrFitHit::FIT, fitFitPar, fitCovMat);
 
         trackUtils.updateMaterials(nextPlane, Event::TkrFitMatrix(m_Qmat->getLastStepQ()), m_Qmat->getLastStepRadLen(), 
                                    m_Qmat->getLastStepActDist(), currentPlane.getEnergy());

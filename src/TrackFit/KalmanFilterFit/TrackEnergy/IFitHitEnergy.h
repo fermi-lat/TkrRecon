@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/IFitHitEnergy.h,v 1.1 2004/03/24 00:04:01 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/IFitHitEnergy.h,v 1.1 2004/04/19 22:51:00 usher Exp $
  */
 
 #ifndef IFitHitEnergy_h
