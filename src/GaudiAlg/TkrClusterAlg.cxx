@@ -82,7 +82,7 @@ StatusCode TkrClusterAlg::execute()
     }
     
     // Recover a pointer to the raw digi objects
-    m_TkrDigis   = SmartDataPtr<TkrDigiCol>(eventSvc(),"/Event/TkrRecon/TkrDigis");
+    m_TkrDigis   = SmartDataPtr<TkrDigiCol>(eventSvc(),"/Event/Digi/TkrDigiCol");
     
     // Create the TkrClusterCol TDS object
     m_TkrClusterCol = new TkrClusterCol();
