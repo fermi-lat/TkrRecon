@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.3 2004/04/19 23:13:24 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.4 2004/04/20 17:21:01 usher Exp $
  */
 
 // Tool and Gaudi related stuff
@@ -443,7 +443,8 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrKalFitTrack& track, Event::Tkr
         Event::TkrFitMatrix fitCovMat(curCovMat);
         trackUtils.addNewHit(nextPlane, Event::TkrFitHit::FIT, fitFitPar, fitCovMat);
 
-        trackUtils.updateMaterials(nextPlane, Event::TkrFitMatrix(m_Qmat->getLastStepQ()), m_Qmat->getLastStepRadLen(), 
+        Event::TkrFitMatrix lastStepQ(m_Qmat->getLastStepQ());
+        trackUtils.updateMaterials(nextPlane, lastStepQ, m_Qmat->getLastStepRadLen(), 
                                    m_Qmat->getLastStepActDist(), currentPlane.getEnergy());
 
         double chiSqOld = nextPlane.getDeltaChiSq(Event::TkrFitHit::FIT);
