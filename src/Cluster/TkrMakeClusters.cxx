@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.13 2002/09/02 23:31:05 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.14 2002/09/18 23:41:01 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, 
@@ -28,7 +28,6 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
     // Dependencies: None
     // Restrictions and Caveats:  None
 
-    //Save some geometry information for the display routine
     m_pTkrGeo    = pTkrGeoSvc;
     
     m_pBadStrips = pBadStripsSvc;
