@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon Jun 18 12:53:20 PDT 2001
+TkrRecon/src TkrBadStripsSvc.cxx
+
+Added Files:
+	TkrBadStripsSvc.cxx 
+Log Message:
+for TkrBadStripsSvc
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon Jun 18 12:52:22 PDT 2001
 TkrRecon/TkrRecon ITkrBadStripsSvc.h TkrBadStripsSvc.h
 
