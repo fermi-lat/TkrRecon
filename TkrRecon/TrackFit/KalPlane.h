@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/TrackFit/KalPlane.h,v 1.2 2002/02/17 00:36:57 burnett Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/TrackFit/KalPlane.h,v 1.3 2002/03/27 21:47:10 lsrea Exp $
 //----------------------------------------
 //
 //      Kalman Filter Objects Declarations
@@ -13,6 +13,7 @@
 
 #include "TkrRecon/Cluster/TkrClusters.h"
 #include "TkrRecon/TrackFit/KalHit.h"
+#include "TkrRecon/Track/GFcontrol.h"
 
 class KalPlane
 {   // Class to link together the various hit types associated with 
@@ -42,7 +43,7 @@ public:
     // Adding Hits, energy and other variables
     void setHit(const KalHit& hit);
     inline void setEnergy(double const e) {
-		m_eneplane = (e < 30.0? 30.0:e);} //MeV
+		m_eneplane = (e < GFcontrol::minEnergy ? GFcontrol::minEnergy : e);}
     inline void setIDHit(unsigned id) {
 		m_IDHit = id;
 		m_IDTower = (int) id/1000000;
