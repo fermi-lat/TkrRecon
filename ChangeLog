@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Wed Feb  6 13:37:21 PST 2002
+TkrRecon/TkrRecon/Track
+
+Modified Files:
+	GFbase.h GFcandidates.h GFgamma.h GFpair.h GFparticle.h 
+	GFsegment.h GFtrack.h SiRecObjs.h 
+Removed Files:
+	TkrComboPR.h TkrLinkAndTreeFit.h 
+Log Message:
+Moving private definitions out of public area
+
+    *
+------------------------------------------------------------
 User: usher  Wed Feb  6 13:35:12 PST 2002
 TkrRecon/TkrRecon/PatRec
 
