@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Fri May 31 16:38:37 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrReconAlg.cxx 
+Log Message:
+STL Compliance of TkrFitTrackCol
+    *
+------------------------------------------------------------
 User: cohen  Fri May 31 16:38:36 PDT 2002
 TkrRecon/src/Display
 
