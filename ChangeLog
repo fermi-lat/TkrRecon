@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Sun Sep 28 13:17:20 PDT 2003
+TkrRecon/src/PatRec
+
+Modified Files:
+	PatRecBaseTool.cxx 
+Log Message:
+clean up console output
+    *
+------------------------------------------------------------
 User: burnett  Sat Sep 27 11:55:15 PDT 2003
 TkrRecon/doc
 
