@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Feb 18 23:03:54 PST 2005
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx KalmanTrackFitTool.cxx 
+Log Message:
+Fix memory leaks: FindTrackHitsTool was "pop"ing the back of the track vector without deleting, KalmanTrackFitTool was burned by copying TkrTrackHits without clearing the  parent pointer.
+    *
+------------------------------------------------------------
 User: lsrea  Fri Feb 18 16:27:03 PST 2005
 TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors
 
