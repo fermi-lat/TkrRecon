@@ -120,13 +120,12 @@ void TkrCandidatesRep::drawLinkNode(TkrLinkNode* pTkrNode)
 	TkrClusterLink* pClusLink = dynamic_cast<TkrClusterLink*>(pTkrNode->getThisLayerLink());
 
     TkrCluster* pTopCluster = pClusLink->pTopClus();
-
 	double x      = pTopCluster->position().x();
 	double y      = pTopCluster->position().y();
 	double z      = pTopCluster->position().z();
 	//double offset = -0.5*trackerGeo::trayWidth();
 
-	if (pTopCluster->v() == TkrCluster::view::X) y += 0.5 * pTkrGeo->towerPitch();
+	if (pTopCluster->v() == TkrCluster::X) y += 0.5 * pTkrGeo->towerPitch();
 	else                                         x += 0.5 * pTkrGeo->towerPitch();
 
 	moveTo(Point(x,y,z));
@@ -137,7 +136,7 @@ void TkrCandidatesRep::drawLinkNode(TkrLinkNode* pTkrNode)
 	y = pBotCluster->position().y();
 	z = pBotCluster->position().z();
 
-	if (pBotCluster->v() == TkrCluster::view::X) y += 0.5 * pTkrGeo->towerPitch();
+	if (pBotCluster->v() == TkrCluster::X) y += 0.5 * pTkrGeo->towerPitch();
 	else                                         x += 0.5 * pTkrGeo->towerPitch();
 
 	lineTo(Point(x,y,z));
