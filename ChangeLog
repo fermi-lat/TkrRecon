@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue Mar 23 16:04:01 PST 2004
+TkrRecon/src/TrackFit/KalmanFilterFit
+
+Added Files:
+	IFitHitEnergy.h 
+Log Message:
+An interface class definition for assigning hit energies
+
+    *
+------------------------------------------------------------
 User: usher  Tue Mar 23 16:03:27 PST 2004
 TkrRecon/src/TrackFit/KalmanFilterFit
 
