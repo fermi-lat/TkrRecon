@@ -24,6 +24,8 @@
 #include "Event/Recon/TkrRecon/TkrTrack.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 
+#include "src/Track/TkrControl.h"
+
 #include "GlastSvc/MonteCarlo/IMcBuildRelTablesTool.h"
 
 
@@ -41,15 +43,17 @@ public:
 
 private:
     /// private method to build an individual Monte Carlo track
-    Event::TkrTrack* buildTrack(const Event::McParticle* mcPart);
+    void buildTrackFromMcPart(const Event::McParticle* mcPart);
+
+    /// Create a TkrTrack given a hit-cluster relation
+    Event::TkrTrack* createNewTrack(const Event::ClusMcPosHitRel* mcHitRel, const ParticleProperty* partProp);
 
     /// Builds the new TkrTrackHit objects
-    Event::TkrTrackHit* newTkrTrackHit(const idents::TkrId tkrId, 
-                                       const Event::TkrCluster* cluster, 
-                                       const double energy);
+    Event::TkrTrackHit* createNewTrackHit(const Event::ClusMcPosHitRel* mcHitRel, const ParticleProperty* partProp);
 
     /// Pointer to the local Tracker geometry service
     ITkrGeometrySvc*       m_tkrGeom;
+    TkrControl*            m_control;
 
     /// Pointer to the particle property service
     IParticlePropertySvc*  m_partPropSvc;
@@ -59,6 +63,10 @@ private:
     /// Keep pointers to the TDS containers
     Event::TkrTrackCol*    m_tdsTracks;
     Event::TkrTrackHitCol* m_tdsTrackHits;
+
+    /// Maximum gap size for a track
+    int                    m_maxGapSize;
+    int                    m_maxNumGaps;
 
 };
 
@@ -72,6 +80,9 @@ const IToolFactory& MonteCarloFindTrackToolFactory = s_factory;
 MonteCarloFindTrackTool::MonteCarloFindTrackTool(const std::string& type, const std::string& name, const IInterface* parent) :
                     PatRecBaseTool(type, name, parent), m_mcBuildInfo(0), m_tdsTracks(0), m_tdsTrackHits(0)
 {
+    declareProperty("MaxGapSize", m_maxGapSize = 4);
+    declareProperty("MaxNumGaps", m_maxNumGaps = 3);
+
 	return;
 }
 
@@ -91,6 +102,8 @@ StatusCode MonteCarloFindTrackTool::initialize()
         throw GaudiException("Service [TkrGeometrySvc] not found", name(), sc);
     }
     m_tkrGeom = dynamic_cast<ITkrGeometrySvc*>(iService);
+
+    m_control = TkrControl::getPtr();
 
     if ( (sc = toolSvc()->retrieveTool("McBuildRelTablesTool", m_mcBuildInfo)).isFailure() )
     {
@@ -147,7 +160,7 @@ StatusCode MonteCarloFindTrackTool::findTracks()
     // If the primary is charged then it is the first track
     if (mcEvent->getClassificationBits() & Event::McEventStructure::CHARGED) 
     {
-        /*Event::TkrTrack* candTrack = */ buildTrack(mcEvent->getPrimaryParticle());
+        buildTrackFromMcPart(mcEvent->getPrimaryParticle());
     }
 
     // Now build the secondaries
@@ -155,13 +168,13 @@ StatusCode MonteCarloFindTrackTool::findTracks()
 
     for(partIter = mcEvent->beginSecondaries(); partIter != mcEvent->endSecondaries(); partIter++)
     {
-        /*Event::TkrTrack* candTrack = */ buildTrack(*partIter);
+        buildTrackFromMcPart(*partIter);
     }
 
     // Finally, any associated tracks
     for(partIter = mcEvent->beginAssociated(); partIter != mcEvent->endAssociated(); partIter++)
     {
-        /* Event::TkrTrack* candTrack = */ buildTrack(*partIter);
+        buildTrackFromMcPart(*partIter);
     }
 
     // Complete the MC relational tables
@@ -213,11 +226,8 @@ class CompareTrackHits
 // Build an individual track
 //
 
-Event::TkrTrack* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* mcPart)
+void MonteCarloFindTrackTool::buildTrackFromMcPart(const Event::McParticle* mcPart)
 {
-    // Null pointer just in case
-    Event::TkrTrack* candTrack = 0;
-
     // To build candidate tracks from Monte Carlo we need the McParticle<->TkrCluster table
     SmartDataPtr<Event::McPartToClusPosHitTabList> partClusTable(m_dataSvc,EventModel::MC::McPartToClusHitTab);
     Event::McPartToClusPosHitTab mcPartToClusTab(partClusTable);
@@ -228,6 +238,9 @@ Event::TkrTrack* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* mc
     // Don't bother if really too few hits
     if (hitVec.size() > 4)
     {
+        // Null pointer just in case
+        Event::TkrTrack* track = 0;
+
         // Sort in a time ordered fashion
         std::sort(hitVec.begin(),hitVec.end(),CompareMcPosHits());
 
@@ -235,158 +248,106 @@ Event::TkrTrack* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* mc
         ParticleProperty* partProp = m_partPropSvc->findByStdHepID(mcPart->particleProperty());
 
         // Ok, now add the clusters on the downward part of the track
-        int numGaps     =  0;
-        int gapSize     =  0;
+        int numGaps      =  0;
+        int gapSize      =  0;
 
-        idents::TkrId lastTkrId;
-        int           trackDir = 1;
+        int lastHitPlane = 0;
+        int trackDir     = 1;
 
+        // Set up an iterator for the hit relations
         Event::McPartToClusPosHitVec::const_iterator hitIter;
+
+        // Set up first loop to find first hit with a cluster which will be the start of the track
         for(hitIter = hitVec.begin(); hitIter != hitVec.end(); hitIter++)
         {
             Event::ClusMcPosHitRel*  mcHitRel = (*hitIter)->getSecond();
-            Event::McPositionHit*    posHit   =  mcHitRel->getSecond();
             const Event::TkrCluster* cluster  = mcHitRel->getFirst();
 
-            // If we have not started at candidate track then look to do that first
-            if (candTrack == 0)
+            // If we have a cluster then we are in business
+            if (cluster)
             {
-                // Tracks must start with a valid cluster
-                if (!cluster) continue;
-
-                // Redundant? 
-                if (!candTrack && posHit->mcParticle() != mcPart) continue;
-
-                // Get the info to fill the candidate track
-                idents::TkrId tkrId       = cluster->getTkrId();
-                Point         measHitPos  = cluster->position();
-                Hep3Vector    mcHitAvePos = 0.5 * (posHit->globalEntryPoint() + posHit->globalExitPoint());
-                Hep3Vector    mcHitVec    = posHit->globalExitPoint() - posHit->globalEntryPoint();
-                double        energy      = posHit->particleEnergy() - partProp->mass();
-                double        startX      = tkrId.getView() == idents::TkrId::eMeasureX
-                                          ? measHitPos.x() : mcHitAvePos.x();
-                double        startY      = tkrId.getView() == idents::TkrId::eMeasureY
-                                          ? measHitPos.y() : mcHitAvePos.y();
-                Point         trackPos(startX,startY,measHitPos.z());
-
-                // Create the candidate track
-                candTrack = new Event::TkrTrack();
-
-                candTrack->setInitialPosition(trackPos);
-                candTrack->setInitialDirection(mcHitVec.unit());
-                candTrack->setInitialEnergy(energy);
+                track = createNewTrack(mcHitRel, partProp);
 
                 // Check if track is going "up" 
+                Event::McPositionHit*    posHit   = mcHitRel->getSecond();
+                Hep3Vector               mcHitVec = posHit->globalExitPoint() - posHit->globalEntryPoint();
+
                 if (mcHitVec.z() > 0.) trackDir = -1;
 
-                // Create and add the first hit (which gets some special treatment)
-                Event::TkrTrackHit* newHit = newTkrTrackHit(tkrId, cluster, energy);
-	
-                // Now make reasonable estimates for first hit filtered and predicted values
-            	double x_slope = mcHitVec.x()/mcHitVec.z();
-	            double y_slope = mcHitVec.y()/mcHitVec.z();
-                Event::TkrTrackParams first_params(trackPos.x(), x_slope, trackPos.y(), y_slope,
-		                                           5., 0., 0., 0., 0., 0., 0., 5., 0., 0.);
-
-                int    measIdx   = newHit->getParamIndex(Event::TkrTrackHit::SSDMEASURED,    Event::TkrTrackParams::Position);
-                int    nonmIdx   = newHit->getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Position);
-                double sigma     = m_tkrGeom->siResolution();
-                double sigma_alt = m_tkrGeom->trayWidth()/sqrt(12.);
-
-	            // Fill the filtered params for first hit
-                Event::TkrTrackParams& filtPar = newHit->getTrackParams(Event::TkrTrackHit::FILTERED);
-	            filtPar = first_params;
-
-	            // Make the cov. matrix from the hit position & set the slope elements
-	            // using the control parameters
-	            filtPar(measIdx,measIdx) = sigma * sigma;
-                filtPar(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
-	            filtPar(2,2)             = 0.1;
-                filtPar(4,4)             = 0.1;
-
-	            // And now do the same for the PREDICTED params
-                Event::TkrTrackParams& predPar = newHit->getTrackParams(Event::TkrTrackHit::PREDICTED);
-                predPar = filtPar;
-	
-                // Set some status bits
-                unsigned int status_bits = Event::TkrTrackHit::HITONFIT     
-                                         | Event::TkrTrackHit::HASMEASURED 
-                                         | Event::TkrTrackHit::HASPREDICTED 
-                                         | Event::TkrTrackHit::HASFILTERED 
-                                         | Event::TkrTrackHit::HITISSSD;
-	            if(tkrId.getView() == idents::TkrId::eMeasureX) status_bits |= Event::TkrTrackHit::MEASURESX;
-	            else                                            status_bits |= Event::TkrTrackHit::MEASURESY;
-	            status_bits |= Event::TkrTrackHit::HASVALIDTKR;
-
-	            // Update the TkrTrackHit status bits
-	            newHit->setStatusBit((Event::TkrTrackHit::StatusBits)status_bits);
-
-                // Finally! Add the hit to the track
-                candTrack->push_back(newHit);
-
-                // Remember where we started
-                lastTkrId = tkrId;
-            }
-            // If a candidate track has been started then we follow this path
-            else
-            {
-                // Get energy at this hit
-                double        energy = posHit->particleEnergy() - partProp->mass();
-
                 // Where are we? 
-                idents::TkrId tkrId(posHit->volumeID());
+                idents::TkrId tkrId(mcHitRel->getSecond()->volumeID());
+                lastHitPlane = 2 * tkrId.getTray() + tkrId.getBotTop() + 1;
 
-                // This ugliness is meant to insure we are not in the same plane and that 
-                // the track has not looped
-                int lastHitPlane = 2 * lastTkrId.getTray() + lastTkrId.getBotTop();
-                int newHitPlane  = 2 * tkrId.getTray()     + tkrId.getBotTop();
-                int deltaPlane   = (lastHitPlane - newHitPlane) * trackDir;
-
-                lastTkrId = tkrId;
-
-                // Looper or same plane, continue with next hit
-                if (deltaPlane <= 0) continue;
-
-                Event::TkrTrackHit* newHit = newTkrTrackHit(tkrId, cluster, energy);
-
-                //trackHits.push_back(newHit);
-                candTrack->push_back(newHit);
-
-                // Keep track of gaps within the first few hits
-                if (candTrack->size() < 8 && deltaPlane > 1)
-                {
-                    numGaps++;
-                    if (deltaPlane > gapSize) gapSize = deltaPlane - 1;
-                }
+                break;
             }
+        }
+
+        // Now loop through to fill in the hits
+        // Note that if no cluster found above then this loop will not (should not) execute
+        for(; hitIter != hitVec.end(); hitIter++)
+        {
+            Event::ClusMcPosHitRel*  mcHitRel = (*hitIter)->getSecond();
+            Event::McPositionHit*    posHit   =  mcHitRel->getSecond();
+            const Event::TkrCluster* cluster  =  mcHitRel->getFirst();
+
+            // Where are we? 
+            idents::TkrId tkrId(posHit->volumeID());
+
+            // This ugliness is meant to insure we are not in the same plane and that 
+            // the track has not looped
+            int newHitPlane  = 2 * tkrId.getTray()     + tkrId.getBotTop();
+            int deltaPlane   = (lastHitPlane - newHitPlane) * trackDir;
+
+            // Keep track for next pass through loop
+            lastHitPlane = newHitPlane;
+
+            // Looper or same plane, continue with next hit
+            if (deltaPlane <= 0) continue;
+
+            // Keep track of number of gaps, and max gapsize
+            if (deltaPlane > 1)
+            {
+                if (deltaPlane > gapSize) gapSize = deltaPlane - 1;
+
+                // Terminate the track if too many gaps
+                if (++numGaps  > m_maxNumGaps) break;
+
+                // Terminate the track if the gap size is too big
+                if (gapSize > m_maxGapSize) break;
+            }
+
+            Event::TkrTrackHit* newHit = createNewTrackHit(mcHitRel, partProp);
+
+            //trackHits.push_back(newHit);
+            track->push_back(newHit);
         }
 
         // Make sure we can fit this track
         // Require at least 5 clusters, no more than 1 gap, a max gap size of 2 layers, or 
         // a gap size of 1 layer if in the first 6 hits (for short tracks)
         //if ((numClusHits < 5) || (numGaps > 1) || (gapSize > 2) || (numClusHits < 6 && gapSize > 1))
-        int numClusHits = candTrack->size();
-        if ((numClusHits < 5) || (numGaps > 2) || (gapSize > 2) || (numClusHits < 6 && gapSize > 1))
+        int numClusHits = track->size();
+        if ((numClusHits < 5) || (gapSize > m_maxGapSize) || (numClusHits < 6 && gapSize > 2))
         {
-            delete candTrack;
-            candTrack = 0;
+            delete track;
+            track = 0;
         }
         // Sort the hits and assign the track energy
         else
         {
             // We like it! Keep the track
-            m_tdsTracks->push_back(candTrack);
+            m_tdsTracks->push_back(track);
 
             // Set status to indicate track has been "found"
-            candTrack->setStatusBit(Event::TkrTrack::FOUND);
+            track->setStatusBit(Event::TkrTrack::FOUND);
 
             // Sort in decreasing z position of the planes (downward going tracks)
             // Eventually leave in time ordered fashion??
-            std::sort(candTrack->begin(), candTrack->end(), CompareTrackHits());
+            //std::sort(track->begin(), track->end(), CompareTrackHits());
 
             // Now add these to the TDS and reference in the track
-            for(SmartRefVector<Event::TkrTrackHit>::iterator hitIter = candTrack->begin(); 
-                                                             hitIter != candTrack->end(); 
+            for(SmartRefVector<Event::TkrTrackHit>::iterator hitIter = track->begin(); 
+                                                             hitIter != track->end(); 
                                                              hitIter++)
             {
                 Event::TkrTrackHit* trackHit = *hitIter;
@@ -395,34 +356,91 @@ Event::TkrTrack* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* mc
                 m_tdsTrackHits->push_back(trackHit);
 
                 if (trackHit->getTkrId().getView() == idents::TkrId::eMeasureX) 
-                    candTrack->setNumXHits(candTrack->getNumXHits()+1);
+                    track->setNumXHits(track->getNumXHits()+1);
                 else
-                    candTrack->setNumYHits(candTrack->getNumYHits()+1);
+                    track->setNumYHits(track->getNumYHits()+1);
             }
         }
     }
-    return candTrack;
+
+    return;
 }
 
-Event::TkrTrackHit* MonteCarloFindTrackTool::newTkrTrackHit(const idents::TkrId tkrId, 
-                                                            const Event::TkrCluster* cluster, 
-                                                            const double energy)
+Event::TkrTrack* MonteCarloFindTrackTool::createNewTrack(const Event::ClusMcPosHitRel* mcHitRel,
+                                                         const ParticleProperty* partProp)
 {
+    // Get back the McPositionHit and Cluster
+    const Event::McPositionHit* posHit  =  mcHitRel->getSecond();
+    const Event::TkrCluster*    cluster =  mcHitRel->getFirst();
+
+    // Get the info to fill the candidate track
+    idents::TkrId tkrId       = cluster->getTkrId();
+    Point         measHitPos  = cluster->position();
+    Hep3Vector    mcHitAvePos = 0.5 * (posHit->globalEntryPoint() + posHit->globalExitPoint());
+    Hep3Vector    mcHitVec    = posHit->globalExitPoint() - posHit->globalEntryPoint();
+    double        energy      = posHit->particleEnergy() - partProp->mass();
+    double        startX      = tkrId.getView() == idents::TkrId::eMeasureX
+                              ? measHitPos.x() : mcHitAvePos.x();
+    double        startY      = tkrId.getView() == idents::TkrId::eMeasureY
+                              ? measHitPos.y() : mcHitAvePos.y();
+    Point         trackPos(startX,startY,measHitPos.z());
+
+    // Create the candidate track
+    Event::TkrTrack* track = new Event::TkrTrack();
+
+    track->setInitialPosition(trackPos);
+    track->setInitialDirection(mcHitVec.unit());
+    track->setInitialEnergy(energy);
+
+    return track;
+}
+
+Event::TkrTrackHit* MonteCarloFindTrackTool::createNewTrackHit(const Event::ClusMcPosHitRel* mcHitRel,
+                                                               const ParticleProperty* partProp)
+{
+    // Get back the McPositionHit and Cluster
+    const Event::McPositionHit* posHit  =  mcHitRel->getSecond();
+    const Event::TkrCluster*    cluster =  mcHitRel->getFirst();
+
     // use this for errors
     const double oneOverSqrt12 = 1./sqrt(12.);
 
+    // Extract some MC information for this hit
+    Hep3Vector mcHitAvePos = 0.5 * (posHit->globalEntryPoint() + posHit->globalExitPoint());
+    Hep3Vector mcHitVec    = posHit->globalExitPoint() - posHit->globalEntryPoint();
+    double     energy      = posHit->particleEnergy() - partProp->mass();
+
+    // Where are we? 
+    idents::TkrId tkrId(posHit->volumeID());
+
+    // Use this for initial position which is overwritten if we have a cluster
+    Point      position(mcHitAvePos.x(),mcHitAvePos.y(),mcHitAvePos.z());
+
+    if (cluster)
+    {
+        double startX = tkrId.getView() == idents::TkrId::eMeasureX
+                      ? cluster->position().x() : mcHitAvePos.x();
+        double startY = tkrId.getView() == idents::TkrId::eMeasureY
+                      ? cluster->position().y() : mcHitAvePos.y();
+        Point  trackPos(startX,startY,cluster->position().z());
+
+        position = trackPos;
+
+        tkrId    = cluster->getTkrId();
+    }
+
     // Get a new instance of a TkrTrackHit object
     Event::TkrTrackHit* hit = new Event::TkrTrackHit(const_cast<Event::TkrCluster*>(cluster), 
-                                                     idents::TkrId(tkrId), cluster->position().z(), 
+                                                     idents::TkrId(tkrId), position.z(), 
                                                      energy, 0., 0., 0., 0.);
 
     // Retrieve a reference to the measured parameters (for setting)
     Event::TkrTrackParams& params = hit->getTrackParams(Event::TkrTrackHit::MEASURED);
 
     // Set measured track parameters
-    params(1) = cluster->position().x();
+    params(1) = position.x();
     params(2) = 0.;
-    params(3) = cluster->position().y();
+    params(3) = position.y();
     params(4) = 0.;
 
     int    measIdx   = hit->getParamIndex(Event::TkrTrackHit::SSDMEASURED,    Event::TkrTrackParams::Position);
@@ -433,7 +451,50 @@ Event::TkrTrackHit* MonteCarloFindTrackTool::newTkrTrackHit(const idents::TkrId 
     params(measIdx,measIdx) = sigma * sigma;
     params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
 
-    hit->setStatusBit(Event::TkrTrackHit::HASMEASURED);
+    // Now make reasonable estimates for first hit filtered and predicted values
+    double x_slope = mcHitVec.x()/mcHitVec.z();
+	double y_slope = mcHitVec.y()/mcHitVec.z();
+    Event::TkrTrackParams first_params(position.x(), x_slope, position.y(), y_slope,
+	                                   5., 0., 0., 0., 0., 0., 0., 5., 0., 0.);
+
+	// Fill the filtered params for first hit
+    Event::TkrTrackParams& filtPar = hit->getTrackParams(Event::TkrTrackHit::FILTERED);
+	filtPar = first_params;
+
+	// Make the cov. matrix from the hit position & set the slope elements
+	// using the control parameters
+	filtPar(measIdx,measIdx) = sigma * sigma;
+    filtPar(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
+	filtPar(2,2)             = m_control->getIniErrSlope() * m_control->getIniErrSlope();
+    filtPar(4,4)             = m_control->getIniErrSlope() * m_control->getIniErrSlope();
+
+	// And now do the same for the PREDICTED params
+    Event::TkrTrackParams& predPar = hit->getTrackParams(Event::TkrTrackHit::PREDICTED);
+    predPar = filtPar;
+
+    // Deal with status bits
+    unsigned int status_bits = Event::TkrTrackHit::HASMEASURED 
+                             | Event::TkrTrackHit::HASVALIDTKR
+                             | Event::TkrTrackHit::HASPREDICTED 
+                             | Event::TkrTrackHit::HASFILTERED;
+
+    if(tkrId.getView() == idents::TkrId::eMeasureX) status_bits |= Event::TkrTrackHit::MEASURESX;
+    else                                            status_bits |= Event::TkrTrackHit::MEASURESY;
+
+    if (cluster) 
+    {
+        status_bits |= Event::TkrTrackHit::HITONFIT | Event::TkrTrackHit::HITISSSD;
+    }
+    else
+    {
+        status_bits |= Event::TkrTrackHit::HITISGAP;
+    }
+
+    // Check to see if upward going track
+    if (mcHitVec.z() < 0.) status_bits |= Event::TkrTrackHit::UPWARDS;
+	
+	// Update the TkrTrackHit status bits
+	hit->setStatusBit((Event::TkrTrackHit::StatusBits)status_bits);
 
     return hit;
 }

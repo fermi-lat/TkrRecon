@@ -7,7 +7,7 @@
  *
  * @author Tracy Usher (editor) 
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/ClusWidMeasErrs.cxx,v 1.4 2004/10/12 19:03:39 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/ClusWidMeasErrs.cxx,v 1.5 2005/02/11 07:14:53 lsrea Exp $
  */
 
 #include "ClusWidMeasErrs.h"
@@ -30,13 +30,10 @@ TkrCovMatrix ClusWidMeasErrs::computeMeasErrs(const Event::TkrTrackParams& /*new
 
     double clusWid = const_cast<Event::TkrCluster&>(cluster).size();
 
-    int  measured = Event::TkrTrackParams::xPosIdx;
-    int  other    = Event::TkrTrackParams::yPosIdx;
+    int measured = Event::TkrTrackParams::xPosIdx;
+    int other    = Event::TkrTrackParams::yPosIdx;
 
-    if(cluster.getTkrId().getView() == idents::TkrId::eMeasureY) 
-    {
-        std::swap(measured, other);
-    } 
+    if(cluster.getTkrId().getView() == idents::TkrId::eMeasureY) std::swap(measured, other);
 
     double error = clusWid * m_tkrGeom->siResolution();
     
