@@ -1,4 +1,19 @@
 ------------------------------------------------------------
+User: lsrea  Tue Oct 12 12:03:38 PDT 2004
+TkrRecon/src/Track
+
+Modified Files:
+	KalmanTrackFitTool.cxx TkrAlignHitsTool.cxx TkrAlignHitsTool.h 
+	TkrComboFitTool.cxx TkrComboFitTool.h 
+	TkrLinkAndTreeFitTool.cxx TkrLinkAndTreeFitTool.h 
+	TkrNeuralNetFitTool.cxx TkrNeuralNetFitTool.h 
+	TkrTrackEnergyTool.cxx TkrTrackEnergyTool.h TrackFitUtils.cxx 
+	TrackFitUtils.h 
+Log Message:
+change to m_tkrGeom throughout
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Oct 12 12:03:37 PDT 2004
 TkrRecon/src/Services
 
