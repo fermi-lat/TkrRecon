@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Tue Oct 12 12:03:38 PDT 2004
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitter.cxx KalFitter.h 
+Log Message:
+change to m_tkrGeom throughout
+
+    *
+------------------------------------------------------------
+User: lsrea  Tue Oct 12 12:03:38 PDT 2004
 TkrRecon/src/Track
 
 Modified Files:
