@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Wed May  1 21:39:10 PDT 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusters.h 
+Log Message:
+Fix the documentation, remove some extraneous code.
+
+    *
+------------------------------------------------------------
+User: lsrea  Wed May  1 21:39:10 PDT 2002
 TkrRecon/TkrRecon/Cluster
 
 Modified Files:
