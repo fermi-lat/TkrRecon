@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Thu Aug 29 09:45:34 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrVertexAlg.cxx 
+Log Message:
+fix 2 now irrelevant pieces of the code
+    *
+------------------------------------------------------------
 User: cohen  Thu Aug 29 07:26:13 PDT 2002
 TkrRecon/src/Vertex
 
