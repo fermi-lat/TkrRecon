@@ -49,7 +49,6 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
   m_G.erase(m_G.begin(),m_G.end());
   m_W.erase(m_W.begin(),m_W.end());
 
-  int    used_index = 0;
   int    ifail      = 0; //flag for matrix inversion check
 
   MsgStream log(msgSvc(), name());
@@ -68,8 +67,9 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
 
   //Vector that indexes the tracks kept to build the vertex
   // (ie the daughters)
-  std::vector<bool> used(theTracks->size(),false);
+  std::vector<Event::TkrFitTrack*> usedTracks;
 
+  log<<MSG::DEBUG<<"NUMBER OF TRACKS TO VERTEX: "<<theTracks->size()<<endreq;
   //***********************
   //FILTER STEP:
   //***********************
@@ -98,10 +98,9 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       par(3) = par0.getYPosition();
       par(4) = par0.getYSlope();
 
-      //      std::cout<<"INITIAL (UX,UY,UZ) OF TRACK "<<theTrack->getDirection()<<endl;
+      //std::cout<<"INITIAL (UX,UY,UZ) OF TRACK "<<theTrack->getDirection()<<endl;
       // get "momentum" vector of track at ZRef
       HepVector    q = computeQatZref(*theTrack); 
-      //      std::cout<<"Q at ZRef"<< q<<endl;
 
       //Only C^(-1) is needed from now on:
       C.invert(ifail);
@@ -111,146 +110,77 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
           return sc;
         }
 
-      //      std::cout<<"VtxCov -1 current Estimate: "<< C <<endl;
-
-
       // Now computes A, B and c0 at linearization point:
       HepMatrix A  = computeMatrixA(x,q);
       HepMatrix B  = computeMatrixB(x,q);
-
-      //      std::cout<<"DERIVATIVE MATRIX A"<< A<<endl;
-      //      std::cout<<"DERIVATIVE MATRIX B"<< B<<endl;
-
-
       HepVector h0 = computeVectorH(x,q);
-
-      //      std::cout<<"MEASUREMENT VECTOR H"<< h0<<endl;
-      //      std::cout<<"MEASUREMENT VECTOR x"<< x<<endl;
-      //      std::cout<<"MEASUREMENT VECTOR q"<< q<<endl;
-      
-
       HepVector c0 = h0 - A*x - B*q;
-      //      std::cout<<"Constant c0"<< c0<<endl;
-      
 
 
       //Step 2: Compute Covariance matrices
-
-      //WARNING: POTENTIALLY WRONG IN CASE OF
-      //NEED FOR PROPAGATION. THIS SHOULD BE HANDLED BY
-      //computeQAtZref() OR A PRELIMINARY METHOD TO PERFORM
-      // PROPAGATION
-      Event::TkrFitMatrix measCov = theTrack->getTrackCov();
-      //At least let's make use of the fast inversion!
+      Event::TkrFitMatrix measCov = propagCovToVtx(theTrack->getTrackCov(),x);
       measCov.invert(ifail);
       if(ifail)
         {
-          log << MSG::ERROR <<"ERROR INVERTING G!"<<endreq;
+          log << MSG::ERROR <<"ERROR INVERTING measCov!"<<endreq;
           return sc;
         }
 
-      //G is actually G^(-1)
-      HepSymMatrix G(4,0);
-      G(1,1) = measCov.getcovX0X0();
-      G(2,2) = measCov.getcovSxSx();
-      G(1,2) = measCov.getcovX0Sx();
-      G(2,1) = measCov.getcovSxX0();
-
-      G(3,3) = measCov.getcovY0Y0();
-      G(4,4) = measCov.getcovSySy();
-      G(3,4) = measCov.getcovY0Sy();
-      G(4,3) = measCov.getcovSyY0();
-
-      G(1,3) = measCov.getcovX0Y0();
-      G(1,4) = measCov.getcovX0Sy();
-      G(4,1) = measCov.getcovSxX0();
-
-      G(3,1) = measCov.getcovY0X0();
-      G(3,2) = measCov.getcovY0Sx();
-      G(2,3) = measCov.getcovSxY0();
-
-      G(2,4) = measCov.getcovSxSy();
-      G(4,2) = measCov.getcovSySx();
-      //      std::cout<<"MATRIX invG: Weight of Tracks params"<<G<<endl;
-
-      HepSymMatrix W;
-      W.assign(B.T()*G*B);
+      HepSymMatrix invG = getHepSymCov(measCov);
+      HepSymMatrix W = invG.similarityT(B); //W = B^T*invG*B
       W.invert(ifail);
       if(ifail) 
         {
           log << MSG::ERROR <<"ERROR INVERTING W!"<<endreq;
           return StatusCode::FAILURE;
         }
-      HepMatrix Gb = G - G*B*W*B.T()*G; //Could be a symMatrix
-      //      std::cout<<"MATRIX W-1"<<W<<endl;
-      //      std::cout<<"MATRIX Gb"<<Gb<<endl;
+
+      HepSymMatrix Gb = invG - W.similarity(invG*B);
 
       //Update vertex Covariance matrix:
-      HepSymMatrix newC;
-      newC.assign(C + A.T()*Gb*A); 
+      HepSymMatrix newC = C + Gb.similarityT(A); // (Ck+1)^-1 = Ck^-1 + A^T*Gb*A
       newC.invert(ifail);
       if(ifail)
         {
           log << MSG::ERROR <<"UPDATED MATRIX C NOT INVERTIBLE!"<<endreq;
           return StatusCode::FAILURE;
         }
-      //      std::cout<<"UPDATED COV C"<<newC<<endl;
 
-      //The following two Cov matrices are actually not needed,
-      // unless one wants to study step by step changes in 
-      //track cov...
-      HepSymMatrix D;      
-      D.assign(W + W*B.T()*G*A*newC*A.T()*G*B*W);
-      //      std::cout<<"MATRIX D"<<D<<endl;
+      // D = Cov(Q,Q)     E = cov(x,Q)
+      HepSymMatrix D = W + newC.similarity(W*B.T()*invG*A);      
+      HepMatrix    E = -newC*A.T()*invG*B*W;
 
-      HepSymMatrix E;
-      E.assign(-newC*A.T()*G*B*W);
-      //      std::cout<<"MATRIX E"<< E<<endl;
-      
 
       //Step 3: Update vertex estimation and check chi2
 
-      //      HepVector m = dynamic_cast<HepVector*>(par); 
-      //new vertex:
+      //new vertex and momentum at vertex for current track:
       HepVector newX = newC*(C*x + A.T()*Gb*(par-c0));
-      //      std::cout<<"NEW VERTEX POSITION"<< newX<<endl;
-      //new momentum at vertex of current track
-      HepVector newQ   = W*B.T()*G*(par-c0-A*newX);      
-      //      std::cout<<"NEW PARAM of current track"<< newQ<<endl;
+      HepVector newQ   = W*B.T()*invG*(par-c0-A*newX);      
 
 
       HepVector r = par - c0 - A*newX - B*newQ;
       HepVector dx = newX - x;
-      double chi2f = G.similarity(r) + C.similarity(dx);// returns r.T()*G*r + dx.T()*C*dx SCALAR
+      double chi2f = invG.similarity(r) + C.similarity(dx);// returns r.T()*G*r + dx.T()*C*dx SCALAR
 
+      //      std::cout<<"NEW VERTEX POSITION"<< newX<<endl;
+      //      std::cout<<"NEW PARAM of current track"<< newQ<<endl;
       //      std::cout<<"CHI2f "<<chi2f<<endl;
-      if(chi2f < m_chi2max) //DUMMY FOR NOW: need a real investigation on the fit quality of the track
+      if(chi2f < m_chi2max) 
         {
-	  used[used_index] = true;
+	  usedTracks.push_back(theTrack);
           m_chi2 += chi2f;
+	  m_A.push_back(A);
+	  m_m.push_back(par);
+	  m_c0.push_back(c0);
+	  m_B.push_back(B);
+	  m_G.push_back(invG);
+	  m_W.push_back(W);
 
 	  //keep new updates
           m_VtxEstimates.push_back(newX);
           m_VtxCovEstimates.push_back(newC);
 	  sc = StatusCode::SUCCESS;
 	}
-      else
-	{
-          m_VtxEstimates.push_back(x);
-          m_VtxCovEstimates.push_back(C);	  
-	}
-      //The following are kept for the smoother step:
-      //NEED TO IMPROVE THE CODE: SMOOTHER CURRENTLY
-      //DOESN'T ALLOW TO SAVE ONLY INTERESTING TRACKS...
-      m_A.push_back(A);
-      m_m.push_back(par);
-      m_c0.push_back(c0);
-      m_B.push_back(B);
-      m_G.push_back(G);
-      m_W.push_back(W);
-      
-      
-      used_index++;      
     }//end of track while loop
   
   if(sc.isFailure()) 
@@ -258,6 +188,7 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       log<<MSG::ERROR<<"KALMAN Filter FAILED!"<<endreq;
       return sc;
     }
+
 
 
   //**************************
@@ -271,76 +202,72 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
   Vector totQ;
   HepSymMatrix totCovQ(3,0);
 
-  int i;
-  for(i=0; i<theTracks->size(); i++)
+  Event::TkrFitConPtr usedIter = usedTracks.begin();
+  int i=0;
+  while(usedIter != usedTracks.end())
     { 
-      if(used[i]) 
+      Event::TkrFitTrack* theUsedTrack = *usedIter++;
+      
+      double sgn = theUsedTrack->getDirection().z();
+      
+      //Final momentum (sx,sy) of track i at vertex:
+      HepVector       Q = m_W[i]*m_B[i].T()*m_G[i]*(m_m[i]-m_c0[i]-m_A[i]*Vtx);
+      //Final Cov Matrix of momentum of current track:
+      HepSymMatrix newD = m_W[i] + CovXX.similarity(m_W[i]*m_B[i].T()*m_G[i]*m_A[i]);
+      //Final Cov Matrix (Vtx,Q) between final vertex and momentum of current track
+      HepMatrix    newE = -CovXX*m_A[i].T()*m_G[i]*m_B[i]*m_W[i];
+      
+      int j;
+      HepSymMatrix covSkew(2,0);
+      for(j=i+1;j<usedTracks.size();j++)
 	{
-	  Event::TkrFitTrack* theUsedTrack = 
-	    dynamic_cast<Event::TkrFitTrack*>(theTracks->containedObject(i));
-	  
-	  //Final momentum (sx,sy) of track i at vertex:
-	  HepVector Q = m_W[i]*m_B[i].T()*m_G[i]*(m_m[i]-m_c0[i]-m_A[i]*Vtx);
-
-	  //	  std::cout<<"SMOOTHED (SX,SY) OF TRACK "<<i<<Q<<endl;
-	  //Final Cov Matrix of momentum of current track:
-	  HepMatrix newD = m_W[i] + m_W[i]*m_B[i].T()*m_G[i]*m_A[i]*CovXX*m_A[i].T()*m_G[i]*m_B[i]*m_W[i];
-	  
-	  //Final Cov matrix (Vtx,Q) between final vertex and momentum of current track
-	  HepMatrix newE = -CovXX*m_A[i].T()*m_G[i]*m_B[i]*m_W[i];
-	  
-	  //more complex: need a second loop: Cov(q_i,q_j)
-	  //NEED TO BE REVISITED
-	  int j=0;
-	  HepSymMatrix covSkew(2,0);
-	  for(j=i+1;j<theTracks->size();j++)
-	    {
-	      if(used[j])
-		{
-		  HepMatrix Skew = m_W[i]*m_B[i].T()*m_G[i]*m_A[i]*CovXX*m_A[j].T()*m_G[j]*m_B[j]*m_W[j];
-		  HepSymMatrix tmp;
-		  tmp.assign((Skew+Skew.T())/2);
-		  covSkew += tmp;
-		}
-	    }
-	  m_Skew.push_back(covSkew);
-	  
-	  //Physical Momentum:
-	  //HERE THERE IS A SIGN(UZ) AMBIGUITY THAT NEEDS TO BE 
-	  //RESOLVED PROPERLY.
-	  //IF SIGN(UZ)>0 "-" should disappear below...
-	  Vector qq(-Q[0],-Q[1],-1);
-	  qq = qq.unit();
-	  //	  std::cout<<"FINAL (ux,uy,uz) OF TRACK "<<i<<":"<<qq<<endl;
-	  //	  std::cout<<"FINAL ENERGY OF TRACK "<<i<<": "<<theUsedTrack->getEnergy()<<endl;
-	  qq.setMag(theUsedTrack->getEnergy());
-	  totQ += qq;
-
-	  HepSymMatrix tmp(3,0);
-	  //THIS DOESN'T WORK: NEED TO APPLY 2 different PASS!!!
-	  //	  tmp.assign(newD + covSkew);
-	  HepMatrix T(2,3,0);
-	  double sx = Q[0];
-	  double sy = Q[1];
-	  T(1,1) = 1+sy*sy;
-	  T(1,2) = sx*sy;
-	  T(1,3) = sx;
-	  T(2,1) = sx*sy;
-	  T(2,2) = 1+sx*sx;
-	  T(2,3) = sy;
-	  tmp.assign(T.T()*newD*T);
-	  tmp /= (1+sx*sx+sy*sy);
-
-	  totCovQ += tmp;
-
-	  //all this and m_Skew should be fed to TkrVertex and the tracks
-	  m_Q.push_back(Q);
-	  m_CovQQ.push_back(newD);
-	  m_CovXQ.push_back(newE);
+	  HepMatrix Skew = m_W[i]*m_B[i].T()*m_G[i]*m_A[i]*CovXX*m_A[j].T()*m_G[j]*m_B[j]*m_W[j];
+	  HepSymMatrix tmp;
+	  tmp.assign(Skew+Skew.T()); //first need to change representation to (ux,uy,uz)
+	  covSkew += tmp;
 	}
-    }//end of for loop
-
+      m_Skew.push_back(covSkew);
+      
+      //Physical Momentum:
+      //-----------------
+      int e = sgn>0?+1:-1;
+      Vector momentum = Vector(e*Q[0],e*Q[1],e*1).unit();
+      momentum.setMag(theUsedTrack->getEnergy());
+      
+      totQ += momentum;
+      
+      //Cov Matrix of Physical Momentum:
+      //-------------------------------
+      double sx = Q[0];
+      double sy = Q[1];
+      
+      //Transformation: (Sx,Sy,E) -> (Eux,Euy,Euz)
+      HepMatrix T(2,3,0);
+      T(1,1) = 1+sy*sy;
+      T(1,2) = sx*sy;
+      T(1,3) = sx;
+      T(2,1) = sx*sy;
+      T(2,2) = 1+sx*sx;
+      T(2,3) = sy;
+      
+      HepSymMatrix tmp = newD.similarityT(T);
+      tmp /= (1+sx*sx+sy*sy);
+            
+      totCovQ += tmp;
+      
+      //all this and m_Skew should be fed to TkrVertex and the tracks
+      m_Q.push_back(Q);
+      m_CovQQ.push_back(newD);
+      m_CovXQ.push_back(newE);
+      
+      //	  std::cout<<"FINAL (ux,uy,uz) OF TRACK "<<i<<":"<<momentum<<endl;
+      //	  std::cout<<"FINAL ENERGY OF TRACK "<<i<<": "<<theUsedTrack->getEnergy()<<endl;
+      i++;
+    }
+  
+  
   //  std::cout<<"GAMMA DIR ()UX,UY,UZ COV MATRIX"<<totCovQ<<endl;
+  
 
   //********************************
   //Creating the TkrVertex instance:
@@ -348,31 +275,16 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
   Point Pt(Vtx[0],Vtx[1],Vtx[2]);
   double totE = totQ.magnitude();
   Ray theRay(Pt,totQ);
-
-  bool flag=true;
-  i=0;
-  while(flag)
-    {
-     if(used[i]) flag=false;
-      i++;
-    }
-  i-=1;
-
-  Event::TkrFitTrack* oneUsedTrack = 
-    dynamic_cast<Event::TkrFitTrack*>(theTracks->containedObject(i));
-  Event::TkrVertex* vertex = new Event::TkrVertex(oneUsedTrack->getLayer(),
-						  oneUsedTrack->getTower(),
+  Event::TkrVertex* vertex = new Event::TkrVertex(usedTracks.front()->getLayer(),
+						  usedTracks.front()->getTower(),
 						  totE, 0.,
 						  theRay
 						  );
 
- tkrIter = theTracks->begin();
-  i=0;
+  tkrIter = usedTracks.begin();
   while(tkrIter != theTracks->end())
     { 
-      Event::TkrFitTrack* theTrack  = *tkrIter++;
-      if(used[i]) vertex->addTrack(theTrack);
-      i++;
+      vertex->addTrack(*tkrIter++);
     }
   
   VtxCol.push_back(vertex); 
@@ -380,10 +292,10 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
   return StatusCode::SUCCESS;
 }
 
+
 StatusCode  VtxKalFitTool::initVertex(Event::TkrFitTrackCol& theTracks)
 {
   //use the first hit of the first (aka best) track as initial Vtx estimate
-  //  std::cout<<"TrackList has: "<<theTracks.size()<<" tracks"<<endl;
   Point p0 = theTracks.front()->getPosition();
   HepVector vtx0(3);
   vtx0[0] = p0.x();
@@ -401,8 +313,7 @@ StatusCode  VtxKalFitTool::initVertex(Event::TkrFitTrackCol& theTracks)
   Cov0(2,2) = trkCov.getcovY0Y0();
   Cov0(1,2) = trkCov.getcovX0Y0();
   Cov0(2,1) = trkCov.getcovX0Y0();
-  Cov0(3,3) = 10.; //DUMMY FOR NOW
-  //WARNING: FOLLOW UP WITH Bill on X0Y0 terms...
+  Cov0(3,3) = 0.4/sqrt(12); //waffer thickness = 400um
 
   m_VtxCovEstimates.push_back(Cov0);
 
@@ -454,3 +365,37 @@ HepVector VtxKalFitTool::computeQatZref(const Event::TkrFitTrack& theTrack)
   return q;
 }
 
+
+HepSymMatrix VtxKalFitTool::getHepSymCov(const Event::TkrFitMatrix& measCov)
+{
+  HepSymMatrix G(4,0);
+  G(1,1) = measCov.getcovX0X0();
+  G(2,2) = measCov.getcovSxSx();
+  G(1,2) = measCov.getcovX0Sx();
+  G(2,1) = measCov.getcovSxX0();
+  
+  G(3,3) = measCov.getcovY0Y0();
+  G(4,4) = measCov.getcovSySy();
+  G(3,4) = measCov.getcovY0Sy();
+  G(4,3) = measCov.getcovSyY0();
+  
+  G(1,3) = measCov.getcovX0Y0();
+  G(1,4) = measCov.getcovX0Sy();
+  G(4,1) = measCov.getcovSyX0();
+  
+  G(3,1) = measCov.getcovY0X0();
+  G(3,2) = measCov.getcovY0Sx();
+  G(2,3) = measCov.getcovSxY0();
+  
+  G(2,4) = measCov.getcovSxSy();
+  G(4,2) = measCov.getcovSySx();
+  return G;
+}
+
+
+Event::TkrFitMatrix VtxKalFitTool::propagCovToVtx(const Event::TkrFitMatrix Cov, 
+						  const HepVector Vtx)
+{
+//not implemented yet...
+  return Cov;
+}
