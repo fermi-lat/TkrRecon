@@ -49,11 +49,6 @@ public:
     virtual int tagGood(const int strip) = 0;
     virtual int untag(const int strip) = 0;
 
-private:
-
-    virtual void makeCol(const int size) = 0;
-    virtual void readFromFile(std::ifstream file)= 0;
-    virtual void addStrip(v_strips* v, const int strip) = 0;
  };
 
 #endif

@@ -51,7 +51,7 @@ public:
 private:
 
     void makeCol(const int size);
-    void readFromFile(std::ifstream file);
+    void readFromFile(std::ifstream* file);
     void addStrip(v_strips* v, const int strip);
 
     TkrGeometrySvc* pTkrGeom;
