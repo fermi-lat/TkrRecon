@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Thu Jun 17 11:27:34 PDT 2004
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrVertexAlg.cxx 
+Log Message:
+prepare for tag v8r12p20 -- Fix a bunch of unix warnings; the rest are for Tracy
+
+    *
+------------------------------------------------------------
+User: lsrea  Thu Jun 17 11:27:34 PDT 2004
 TkrRecon/doc
 
 Modified Files:
