@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Dec 15 07:28:03 PST 2004
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx 
+Log Message:
+Fixed problems in addLeadingHits
+    *
+------------------------------------------------------------
 User: atwood  Wed Dec 15 07:26:49 PST 2004
 TkrRecon/src/Track
 
