@@ -4,13 +4,13 @@
 
 #include <vector>
 #include "geometry/Point.h"
-#include "TkrRecon/SiLayers.h"
+#include "GlastEvent/Hits/SiLayers.h"
 #include "TkrRecon/SiClusters.h"
 #include "TkrRecon/TkrGeometrySvc.h"
 
-#include "Gaudi/Algorithm/Algorithm.h"
+#include "GlastEvent/Digi/TkrDigi.h"
 
-class SiLayers;
+#include "Gaudi/Algorithm/Algorithm.h"
 
 //----------------------------------------------
 //
@@ -47,8 +47,8 @@ private:
 
 	TkrGeometrySvc* pTrackerGeo;
 
-	SiLayers*   m_SiLayers;
-	SiClusters* m_SiClusters;
+    TkrDigiCol* m_TkrDigis;
+    SiClusters* m_SiClusters;
 };
       
 #endif
