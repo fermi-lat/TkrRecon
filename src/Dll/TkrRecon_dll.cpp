@@ -38,7 +38,7 @@ extern "C" FactoryTable::EntryList* getFactoryEntries() {
 } 
 
 void FATAL(const char * msg) {
-    std::cerr << "Stupid error from Calrecon DLL: " << msg << std::endl;
+    std::cerr << "Stupid error from Tkrrecon DLL: " << msg << std::endl;
 }
 
 void WARNING(const char * msg) {
