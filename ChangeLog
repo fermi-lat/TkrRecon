@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Tue May  7 15:43:39 PDT 2002
+TkrRecon/TkrRecon/Cluster
+
+Modified Files:
+	TkrQueryClusters.h 
+Removed Files:
+	TkrCluster.h TkrClusters.h 
+Log Message:
+TDS output classes moved to GlastEvent
+Modify TkrQueryClusters.h to reflect this move
+
+    *
+------------------------------------------------------------
 User: cohen  Tue May  7 08:48:05 PDT 2002
 TkrRecon/src
 
