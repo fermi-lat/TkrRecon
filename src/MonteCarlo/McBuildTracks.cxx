@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/MonteCarlo/McBuildTracks.cxx,v 1.2 2003/08/06 21:53:21 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/MonteCarlo/McBuildTracks.cxx,v 1.3 2003/08/07 16:09:05 usher Exp $
  */
 #include "McBuildTracks.h"
 #include "GaudiKernel/SmartDataPtr.h"
@@ -18,16 +18,7 @@
 Event::McBuildTracks::McBuildTracks(IDataProviderSvc* dataSvc)
 {
     //Take care of insuring that data area has been created
-    //DataObject* pNode = 0;
     StatusCode  sc;
-    //sc = dataSvc->retrieveObject(TkrEventModel::MC::Event, pNode);
-    //if ( sc.isFailure() ) {
-    //    sc = dataSvc->registerObject(TkrEventModel::MC::Event, new DataObject);
-    //    if( sc.isFailure() ) {
-    //     //   log << MSG::ERROR << "could not register /Event/tmp" << endreq;
-    //        return;
-    //    }
-    //}
 
     //Define the tables needed for the MC tracks
     Event::McPartToHitTab  mcPartToHitTab;
@@ -130,12 +121,26 @@ Event::McBuildTracks::McBuildTracks(IDataProviderSvc* dataSvc)
 
                 mcLayerHits->push_back(layerHit);
 
+                // Relate the current McParticle to this McLayerHit
                 Event::McPartToHitRel* partHitRel = new Event::McPartToHitRel(const_cast<Event::McParticle*>(mcPart), layerHit);
                 mcPartToHitTab.addRelation(partHitRel);
 
                 // Relate this McLayerHit to the TkrCluster and add to table
                 Event::ClusToLyrHitRel* clusToLyrRel = new Event::ClusToLyrHitRel(tkrCluster, layerHit);
                 clusToLyrHitTab.addRelation(clusToLyrRel);
+
+                // Take the time to check if a cluster is shared by different McLayerHits
+                Event::ClusToLyrHitVec clusHitVec = clusToLyrHitTab.getRelByFirst(tkrCluster);
+                
+                if (clusHitVec.size() > 1)
+                {
+                    //Go through and set the "shared" bits in the McLayerHits
+                    for(Event::ClusToLyrHitVec::iterator clusHitVecIter = clusHitVec.begin();
+                        clusHitVecIter != clusHitVec.end(); clusHitVecIter++)
+                    {
+                        (*clusHitVecIter)->getSecond()->setStatusBit(Event::McLayerHit::SHAREDCLUS);
+                    }
+                }
             }
         }
 

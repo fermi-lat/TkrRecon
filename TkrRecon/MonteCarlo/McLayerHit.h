@@ -5,7 +5,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/McTrackTool.h,v 1.1 2003/03/12 23:36:36 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/MonteCarlo/McLayerHit.h,v 1.1 2003/08/04 19:57:40 usher Exp $
  */
 #include "GaudiKernel/ContainedObject.h"
 #include "GaudiKernel/SmartRefVector.h"
@@ -22,23 +22,35 @@ namespace Event {
 class McLayerHit : virtual public ContainedObject
 {
 public:
+    //! Define some bits to help classify the event
+    enum StatusBits{  
+        CLUSTERHIT = 1 ,    //! This McLayerHit is associated with a valid TkrCluster
+        SHAREDCLUS = 1<<1,  //! The TkrCluster is shared with another McLayerHit
+        OWNCLUSTER = 1<<2,  //! The TkrCluster is "owned" by this McLayerHit
+    };
+
     /// Standard Gaudi Tool interface constructor
     McLayerHit(const Event::McParticle* particle);
    ~McLayerHit();
 
     void addMcPositionHit(const Event::McPositionHit* posHit);
-    void setTkrCluster(const Event::TkrCluster* cluster) {m_cluster = cluster;}
+    void setTkrCluster(const Event::TkrCluster* cluster);
+    void setStatusBit(StatusBits bitToSet) {m_statusBits |= bitToSet;}
+    void clearStatusBit(StatusBits bitToClear) {m_statusBits &= ~bitToClear;}
     
     const Event::McParticle*                    getMcParticle()        const {return  m_McParticle;}
     const Event::TkrCluster*                    getTkrCluster()        const {return  m_cluster;}
     const SmartRefVector<Event::McPositionHit>* getMcPositionHitsVec() const {return &m_PositionHitsVec;}
     const idents::VolumeIdentifier              getVolumeIdent()       const {return  m_volIdent;}
+    const unsigned long                         getStatusBits()        const {return  m_statusBits;}
+    const HepPoint3D                            getHitPosition()       const;
 
 private:
     const Event::McParticle*             m_McParticle;
     SmartRefVector<Event::McPositionHit> m_PositionHitsVec;
     const Event::TkrCluster*             m_cluster;
     idents::VolumeIdentifier             m_volIdent;
+    unsigned long                        m_statusBits;
 };
 
 // typedefs for the cluster to McPositionHits 

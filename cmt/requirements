@@ -7,6 +7,8 @@ use GlastPolicy
 
 apply_pattern packageShr
 
+apply_pattern package_include
+
 use Event      v9*
 use GlastSvc   v9*
 use GuiSvc
