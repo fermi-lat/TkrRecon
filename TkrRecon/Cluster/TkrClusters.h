@@ -16,17 +16,35 @@
 #define NVIEWS 2
 #define NPLANES 18
 
+/// large number, used as a sentinel in the strip list
 const int bigStripNum = 0x7FFFFF;
 
+/// for Gaudi
 extern const CLID& CLID_TkrClusters;
 
 /** 
  * @class TkrClusters
  *
- * @brief TDS Container for TkrCluster objects
+ * @brief TDS Container for TkrCluster objects, with methods to generate the clusters, and methods used by Pattern Recognition.
  *
+ * The methods take into account the bad strips.
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrClusters.h,v 1.2 2002/02/15 06:10:07 lsrea Exp $
+ * The strategy for finding clusters is to merge the list of hits in a layer with the list of known bad strips. 
+ * The good and bad hits are marked so they can be recognized, but the mechanism is (mostly) hidden in
+ * the TkrBadStripsSvc.
+ *  
+ * What constititutes a gap and a good cluster is defined by the code in isGap and
+ * isGoodCluster, respectively.
+ *    
+ * A set of adjacent hits followed by a gap is a potential cluster. A gap may be a non-hit strip, or 
+ * the space between ladders. For each potential cluster, 
+ * we ask if it contains any good hits.  If so, the cluster is added, if not, it is dropped. There
+ * may be other criteria for dropping a cluster, such as too many hits.
+ *      
+ * What constititutes a gap and a good cluster is defined by the code in 
+ * isGapBetweem and isGoodCluster, respectively.
+ *
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrClusters.h,v 1.3 2002/02/23 07:03:14 lsrea Exp $
  */
 
 class TkrClusters : public DataObject
@@ -34,40 +52,39 @@ class TkrClusters : public DataObject
 {
 public:
 
-	/// default constructor: passes pointers to services and classes
+	/// default constructor: passes pointers to services and classes, and makes the clusters
     TkrClusters(ITkrGeometrySvc* pTkrGeo, ITkrBadStripsSvc* pBadStrips, TkrDigiCol* pTkrDigiCol);
 	/// destructor: also deletes the clusters in the list
 	virtual ~TkrClusters();
-    /// @name Gaudi members to be used by the converters
-	//@{
+    /// needed for Gaudi
 	static const CLID& classID() {return CLID_TkrClusters;}
+	/// needed for Gaudi
 	virtual const CLID& clID() const {return classID();}
-	//@}
 
-	/// add a TkrCluster to the list
+	/// adds a TkrCluster to the list
 	void addCluster(TkrCluster* cl);
-	/// number of total clusters
+	/// returns total number of clusters
 	int nHits()  const {return m_clustersList.size();}
-	/// returns TkrClusters pointer in i position (note i position = id of the cluster)
-	TkrCluster* getHit(int i) const {return m_clustersList[i];}
 
-	/// flag TkrCluster with id (view obsolete)
-	void flagHit(TkrCluster::view v, int id, int iflag=1)   {getHit(v,id)->flag(iflag);}
-	/// unflag TkrCluster with id (view obsolete)
+	/// flags ith TkrCluster (view obsolete)
+	void flagHit(TkrCluster::view v, int i, int iflag=1)   {getHit(v,i)->flag(iflag);}
+	/// unflag ith TkrCluster (view obsolete)
 	void unflagHit(TkrCluster::view v, int id)  {getHit(v,id)->unflag();}
-	/// returns if the TkrCluster with id is flagged (view obsolete)
+	/// returns true if the ith TkrCluster is flagged (view obsolete)
      bool hitFlagged(TkrCluster::view v, int id) {return getHit(v,id)->hitFlagged();}
 
-	/// returns TkrCluster pointer with id (view obsolete)
-	TkrCluster* getHit(TkrCluster::view v, int id) {return m_clustersList[id];}
-	/// returns TkrCluster space position with id (view obsolete)
-	Point const position(TkrCluster::view v, int id)   {return getHit(v,id)->position();}
-	/// returns size of the cluster with id (view obsolete)
-	double const size(TkrCluster::view v, int id)      {return getHit(v,id)->size();}     
+	/// returns pointer to the ith TkrCluster 
+	TkrCluster* getHit(int i) const {return m_clustersList[i];}
+	/// returns pointer to the ith TkrCluster (view obsolete)
+	TkrCluster* getHit(TkrCluster::view v, int i) {return m_clustersList[i];}
+	/// returns  space position of the  ithTkrCluster (view obsolete)
+	Point const position(TkrCluster::view v, int i)   {return getHit(v,i)->position();}
+	/// returns size of the cluster with id "id"(view obsolete)
+	double const size(TkrCluster::view v, int i)      {return getHit(v,i)->size();}     
 
 	/// Returns the strip pitch stored from geometry file
 	double const stripPitch() {return pTkrGeo->siStripPitch();}
-	/// Returns the tray width stored from geometry file
+	/// Returns the tower pitch stored from geometry file
 	double const towerPitch()  {return pTkrGeo->towerPitch();}
 
 	/// returns a reference the a cluster list of hits in a given layer
@@ -79,28 +96,26 @@ public:
 	/// returns the number of clusters in a given view and plane
 	int nHits(TkrCluster::view v, int iplane) {return (int) getHits(v,iplane).size();}
 
-	/// This doesn't do anything!!!
-	//void flagHitsInPlane(TkrCluster::view v, int iplane);
-
 	/// delete the list of clusters
 	virtual void clear();
-	/// empty class ??
-	//virtual void make() {}
 
 	/// write out the information of the SiLayers
 	void writeOut(MsgStream& log) const;
 
-	/// returns the mean point in the space for a given view and plane
+	/// returns the mean space point in for a given view and plane
 	Point meanHit(TkrCluster::view v, int iplane);
-	/// returns the mean point in the space for a given plane, view, around a radius (size) of a given Point
+	/** returns the mean space point for a given plane, view, within a distance "size" of a point Pini
+	 * in the measurement view, and within one tower in the other view.
+	 */
 	Point meanHitInside(TkrCluster::view v, int iplane, double size, Point Pini);
-	/** returns the nearest point around a view and a plane, inside a inner radius centered in a Point. 
-	 *  It also returns the id of the cluster (a reference to the id).
- 	 */
+	/** returns the nearest point outside of a distance "inRadius" of a point "centerX" in the measured view, 
+	 * within one tower in the other view, and a ref. to the id
+	 */
 	Point nearestHitOutside(TkrCluster::view v, int iplane, double inRadius, 
 		Point centerX, int& id);
 
-    /// Finds the number of clusters near a given point
+    /** Finds the number of clusters within a given distance in x and y of a point in a bilayer.
+	 */   
     int numberOfHitsNear( int iPlane, double inRadius, Point& x0);
     int numberOfHitsNear( int iPlane, double dX, double dY, Point& x0);
     int numberOfHitsNear( TkrCluster::view v, int iPlane, double inRadius, Point& x0);
@@ -133,13 +148,6 @@ private:
 
 	int numViews;
 	int numPlanes;
-	/** @name Cluster lists
-	 * The clusters are organized in two lists: 
-	 *     a) One containes the list of all clusters.
-	 *     b) the other one has them ordered by plane and view to facilitate access
-	 * to Pattern Recognition functions.
-	 */
-	//@{
 	/// cluster list
 	std::vector<TkrCluster*> m_clustersList;
 	/// cluster list by plane and view
