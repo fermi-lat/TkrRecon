@@ -203,14 +203,11 @@ tkrDetGeo TkrGeometrySvc::getSiLayer(int ilayer, axis a, int tower)
     double xpos = 0.;
     double ypos = 0.;
     idents::TowerId tid(tower);
-    if (a == tkrDetGeo::X) {
-        xpos  = pos;
-        xpos += (tid.ix() - 0.5 * (m_numX - 1)) * m_towerPitch;
-    }
-    else {
-        ypos  = pos;
-        ypos += (tid.iy() - 0.5 * (m_numY - 1)) * m_towerPitch;
-    }
+
+    xpos  = pos;
+    xpos += (tid.ix() - 0.5 * (m_numX - 1)) * m_towerPitch;
+    ypos  = pos;
+    ypos += (tid.iy() - 0.5 * (m_numY - 1)) * m_towerPitch;
     
     double xsize = sizeRef;
     double ysize = sizeRef;
@@ -274,11 +271,17 @@ tkrDetGeo TkrGeometrySvc::getSiLadder(int ilayer, tkrDetGeo::axis a, int iladder
     
     double zsize = 2.*layer.size().z();
     
-    double pos = -0.5*m_trayWidth+(iladder+0.5)*m_ladderWidth+
-        iladder*m_ladderGap;
+    xpos += -0.5*m_trayWidth;
+    ypos += -0.5*m_trayWidth;
+
+    double pos = (iladder+0.5)*m_ladderWidth + iladder*m_ladderGap;
     if (fabs(pos) < 1e-5) pos =0.; 
-    if (a == tkrDetGeo::X) xpos = pos;
-    else ypos = pos;
+    if (a == tkrDetGeo::X) {
+        xpos += pos;
+    }
+    else {
+        ypos += pos;
+    }
     
     double xsize = m_ladderLength;
     double ysize = m_ladderLength;
