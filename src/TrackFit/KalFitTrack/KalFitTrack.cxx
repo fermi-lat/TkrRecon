@@ -17,6 +17,8 @@
 
 
 #include "KalFitTrack.h" 
+#include "TkrRecon/GaudiAlg/TkrTrackFitAlg.h"
+#include "GlastSvc/Reco/IKalmanParticle.h"
 #include "src/TrackFit/KalmanFilter/KalmanFilter.h"
 #include "src/Track/TkrControl.h"
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
@@ -762,6 +764,12 @@ void KalFitTrack::finish()
         m_chisqSegment     = computeChiSqSegment(m_numSegmentPoints);
         m_Q                = computeQuality();
     }   
+
+    // Compute the radiation lengths to the calorimeter front face
+    double arc_min = (m_x0.z() + 26.5)/fabs(m_dir.z()); 
+    IKalmanParticle* TkrFitPart = TkrTrackFitAlg::m_KalParticle;
+    TkrFitPart->setStepStart(m_x0, m_dir, arc_min);
+    m_TkrCal_radlen = TkrFitPart->radLength(); 
 }
 
 int KalFitTrack::addLeadingHits(int top_layer)
