@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Thu Oct 17 18:28:06 PDT 2002
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	TkrComboVtxRecon.cxx 
+Log Message:
+Fix minor bug in setting unused flag.
+    *
+------------------------------------------------------------
 User: lsrea  Wed Oct 16 19:40:50 PDT 2002
 TkrRecon/src/GaudiAlg
 
