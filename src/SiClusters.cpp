@@ -41,14 +41,14 @@ void SiCluster::writeOut(MsgStream& log) const
     log << MSG::DEBUG <<endreq;
 }
 //######################################################
-void SiCluster::draw(gui::DisplayRep& v, double stripPitch, double trayWidth)
+void SiCluster::draw(gui::DisplayRep& v, double stripPitch, double towerPitch)
 //######################################################
 {
 	int nstrips = (int) m_size;
 	double distance = stripPitch;
 	
 	double delta = 1.2;
-	double Offset = -0.5*trayWidth;
+	double Offset = -0.5*towerPitch;
 	
 	for (int istrip = m_strip0; istrip <= m_stripf; istrip++) {
 		double x = m_position.x();
@@ -109,10 +109,10 @@ int SiCluster::viewToInt(SiCluster::view v)
 //       SiClusterS
 //---------------------------------------------------
 
-SiClusters::SiClusters(int nViews, int nPlanes, double stripPitch, double trayWidth)
+SiClusters::SiClusters(int nViews, int nPlanes, double stripPitch, double towerPitch)
 {
 	m_stripPitch = stripPitch;
-	m_trayWidth  = trayWidth;
+	m_towerPitch = towerPitch;
 	numViews     = nViews;
 	numPlanes    = nPlanes;
 
@@ -232,6 +232,76 @@ Point SiClusters::nearestHitOutside(SiCluster::view v, int iplane,
 	}
 	return Pnear;
 }
+
+
+
+
+//####################################################################
+int SiClusters::numberOfHitsNear( int iPlane, double inRadius, Point& x0)
+//####################################################################
+{
+    return numberOfHitsNear(iPlane, inRadius, inRadius, x0);
+}
+
+//####################################################################
+int SiClusters::numberOfHitsNear( int iPlane, double dX, double dY, Point& x0)
+//####################################################################
+{
+    int numHits = 0;
+
+    //Look for hits in the X view of desired layer
+    std::vector<SiCluster*> clusterList = getHits(SiCluster::X, iPlane);
+    int nHitsInPlane = clusterList.size();
+
+    while(nHitsInPlane--)
+    {
+        double hitDiffX = x0.x() - clusterList[nHitsInPlane]->position().x();
+        double hitDiffY = x0.y() - clusterList[nHitsInPlane]->position().y();
+
+        if (fabs(hitDiffX < dX) && fabs(hitDiffY) < m_towerPitch) numHits++;
+    }
+
+    //Look for hits in the Y view of desired layer
+    clusterList = getHits(SiCluster::Y, iPlane);
+    nHitsInPlane = clusterList.size();
+
+    while(nHitsInPlane--)
+    {
+        double hitDiffX = x0.x() - clusterList[nHitsInPlane]->position().x();
+        double hitDiffY = x0.y() - clusterList[nHitsInPlane]->position().y();
+
+        if (fabs(hitDiffX) < m_towerPitch && fabs(hitDiffY) < dY) numHits++;
+    }
+
+    return numHits;
+}
+
+//####################################################################
+int SiClusters::numberOfHitsNear( SiCluster::view v, int iPlane, double inRadius, Point& x0)
+//####################################################################
+{
+    int numHits = 0;
+
+    //Look for hits in the desired view of the given layer
+    std::vector<SiCluster*> clusterList = getHits(v, iPlane);
+    int nHitsInPlane = clusterList.size();
+
+    while(nHitsInPlane--)
+    {
+        double hitDiffV = v == SiCluster::X 
+                        ? x0.x() - clusterList[nHitsInPlane]->position().x()
+                        : x0.y() - clusterList[nHitsInPlane]->position().y();
+        double hitDiffO = v == SiCluster::X 
+                        ? x0.y() - clusterList[nHitsInPlane]->position().y()
+                        : x0.x() - clusterList[nHitsInPlane]->position().x();
+
+        if (fabs(hitDiffV) < inRadius && fabs(hitDiffO) < m_towerPitch) numHits++;
+    }
+
+    return numHits;
+}
+
+
 //######################################################
 void SiClusters::flagHitsInPlane(SiCluster::view v, int iplane)
 //######################################################
@@ -257,6 +327,6 @@ void SiClusters::draw(gui::DisplayRep& v)
 	v.setColor("black");
 
 	for (int ihit = 0; ihit < nHits(); ihit++) {
-		m_clustersList[ihit]->draw(v, m_stripPitch, m_trayWidth);
+		m_clustersList[ihit]->draw(v, m_stripPitch, m_towerPitch);
 	}
 }

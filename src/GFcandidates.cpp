@@ -249,7 +249,7 @@ bool GFcandidates::findCandidates()
         } // Y candidates
     } // X candidates
 
-    if (OK) return OK;
+    if (OK)  return OK;
 
     // Force a PairFit with no veto
     bool save_veto = GFtutor::CUT_veto;

@@ -28,7 +28,7 @@ void TkrClustersRep::update()
 	{
 		int    nHits      = pClusters->nHits();
 		double stripPitch = pClusters->stripPitch();
-		double trayWidth  = pClusters->trayWidth();
+		double towerPitch  = pClusters->towerPitch();
 		
 		setColor("green");
 
@@ -43,7 +43,7 @@ void TkrClustersRep::update()
 			double     z        = clusPos.z();
 	
 			double     delta    =  0.6;
-			double     Offset   = -0.5 * trayWidth;
+			double     Offset   = -0.5 * towerPitch;
 
 			//Draw a cross at the position of the cluster center
 			if (pCluster->v() == SiCluster::X)
