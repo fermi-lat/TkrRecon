@@ -1,6 +1,6 @@
 
-#ifndef __SISETGEOMETRY_H
-#define __SISETGEOMETRY_H 1
+#ifndef TKRGEOMETRYSVC_H
+#define TKRGEOMETRYSVC_H 1
 
 #include "GaudiKernel/Service.h"
 
@@ -10,21 +10,22 @@
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 #include "idents/VolumeIdentifier.h"
 
-//----------------------------------------------
-//
-//   TkrGeometrySvc
-//
-//	 Tracker Geometry Service. Used to keep track of the 
-//   particular tracker geometry in use
-//----------------------------------------------
-//             Tracy Usher, SLAC, 2/28/01
-//----------------------------------------------
+enum { NVIEWS=2, NPLANES=18, NTOWERS=16};
+
+/** 
+ * @class TkrGeometrySvc
+ *
+ * @brief Supplies the geometry constants and calculations to the TkrRecon Package
+ * 
+ * @author Leon Rochester
+ *
+ * $Header$
+ */
 class TkrGeometrySvc : public Service,
         virtual public ITkrGeometrySvc
 {
 public:
 
-    //! Constructor of this form must be provided
     TkrGeometrySvc(const std::string& name, ISvcLocator* pSvcLocator); 
     virtual ~TkrGeometrySvc() {}
     
@@ -38,13 +39,6 @@ public:
     int    numYTowers()      {return m_numY;} 
     int    numViews()        {return m_nviews;}	
     int    numLayers()       {return m_nlayers;}
-
-    /*
-	int    indMixed()        {return m_indMixed;}
-    int    viewMixed()       {return m_viewMixed;}
-    int    ladderMixed()     {return m_ladderMixed;}
-    int    isizeMixed()      {return m_isizeMixed;}
-	*/
 
     int    numPlanes()       {return m_nlayers;}
 
@@ -61,80 +55,74 @@ public:
     double siThickness()     {return m_siThickness;}
     double siDeadDistance()  {return m_siDeadDistance;}
 
-    // planes and layers differ in the ordering
+    /// reverse the numbering of the bilayers
     int ilayer(int iplane)   {return numPlanes()-iplane-1;}
 
+	/// return the position of a strip, input as an int
 	HepPoint3D getStripPosition(int tower, int layer, int view, int stripid);
+	/// return the position of a strip, input as a double
 	HepPoint3D getDoubleStripPosition(int tower, int layer, int view, double stripid);
 
+	/// calculate the tray number, botTop from layer, view
 	void layerToTray (int layer, int view, int& tray, int& botTop);
+	/// calculate layer, view from tray, botTop
 	void trayToLayer (int tray, int botTop, int& layer, int& view);
     
-    /*
-    // geometry related access
-    int    nLadders(int ilayer, axis a);
-    double diceSize(int ilayer, axis a, int iladder);	
-    int    nDices(int ilayer, axis a, int iladder);
-	*/
-
-    
-        /// queryInterface - for implementing a Service this is necessary
     StatusCode queryInterface(const IID& riid, void** ppvUnknown);
 
     static const InterfaceID& interfaceID() { return ITkrGeometrySvc::interfaceID(); }
-
-        /// return the service type
+    /// return the service type
     const IID& type() const;
 
 
     
 private:
 
-    int    m_geomType;
+    /// not used for the moment; will be replaced by the name of a det geom file
+	int    m_geomType;
     
-    int    m_numX;          // number of Towers in X
-    int    m_numY;          // number of Towers in Y
-    int    m_nviews;        // two views, always!
-    int    m_nlayers;       // total number of x-y layers
+    /// number of Towers in X
+	int    m_numX; 
+	/// number of Towers in Y
+    int    m_numY;              
+	/// two views, always!
+	int    m_nviews;        
+ 	/// total number of x-y layers
+   int    m_nlayers;       
 
-    double m_towerPitch;    // Distance between centers of adjacent towers
+	/// Distance between centers of adjacent towers
+    double m_towerPitch;
+    /// Width of the ladders and the gaps between them
     double m_trayWidth;
-    double m_trayHeight;    // from top of one tray to the next (actually pitch)
-    
-    double m_ladderGap;     // gap between adjacent ladders
-    double m_ladderInnerGap;// gap between SSDs on the same ladder
+	/// from top of one tray to the next (actually pitch) -- Not really a constant
+    double m_trayHeight;   
+	
+	/// gap between adjacent ladders   
+    double m_ladderGap;     
+ 	/// gap between SSDs on the same ladder
+    double m_ladderInnerGap;
+	/// number of strips in a ladder
     int    m_ladderNStrips; 
     
-    double m_siStripPitch;
+	/// distance between two strips
+    double m_siStripPitch; 
+	/// nominally, (strip pitch)/sqrt(12)
     double m_siResolution;
+	/// thickness of the silicon
     double m_siThickness;
+	/// width of the dead region around the edge of a wafer
     double m_siDeadDistance;
 
-	bool   m_reverseY;      // kludge to reverse the position of the local y coordinate
+	/// kludge to reverse the position of the local y coordinate
+	bool   m_reverseY;      
 
+    /// pointer to the detector service
 	IGlastDetSvc * p_GlastDetSvc;
 
-	// room for maximum number of idents, by [tower]  and [layer][view]
-	idents::VolumeIdentifier m_volId_tower[16];
-	idents::VolumeIdentifier m_volId_layer[18][2];
-
-    /*
-	xml::IFile::intVector m_layertype;    // X-Y (0) or Y-X (1)
-    xml::IFile::intVector m_nladders;     // number of ladders filled vs layer
-
-    // this "automates" the die sizes, including the horrible mixed layer
-    xml::IFile::intVector m_iXsize;       // index to size of dies in X layers
-    xml::IFile::intVector m_iYsize;       // index to size of dies in Y layers
-    xml::IFile::doubleVector m_diesize;   // list of die sizes
-    xml::IFile::intVector m_ndies;        // list if number of dies/ladder (goes with die size)
-
-    // the horrible mixed tray
-    
-    int    m_indMixed;      // layer index of mixed tray
-    int    m_viewMixed;     // view containing mixed ladders
-    int    m_ladderMixed;   // ladder which is different
-    int    m_isizeMixed;    // index to die size on different ladder
-	*/
+	/// array to hold the tower part of the volumeIds of the silicon planes
+	idents::VolumeIdentifier m_volId_tower[NTOWERS];
+	/// array to hold the tray part of the volumeIds of the silicon planes
+	idents::VolumeIdentifier m_volId_layer[NPLANES][NVIEWS];
 };
 
-#endif
+#endif // TKRGEOMETRYSVC_H

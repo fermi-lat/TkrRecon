@@ -11,18 +11,25 @@ public:
 
 	~TkrGeometryVisitor() {}
 
-/**     
+/**  
+* @class TkrGeometryVisitor
+*
+* @brief For now not used, but the code works, and utilizes the all the features of a visitor.
+*
+* @author Leon Rochester 
+*   
 * @param s type of the shape
 * @param id vector of unsigned ints (maybe null)
 * @param name
 * @param material
-* @param params vector with the six transformation parameters, followed by 3 or so dimensions
+* @param params vector with the six transformation parameters, 
+* followed by 3 or so dimensions depending on the shape.
 */
    
 	virtual IGeometry::VisitorRet pushShape(ShapeType s, const UintVector& id, std::string name, 
 			 std::string material, const DoubleVector& params, VolumeType type);
   
-    //* called to signal end of nesting */
+    /// called to signal end of nesting 
     virtual void popShape();
 
     /// Need a setMode in case someone wants other than default 
@@ -32,7 +39,7 @@ public:
 
 private:
 
-//Store the relevant information from each call
+    /// Store the relevant information from each call
 
 	idents::TowerId m_tower;
 	int m_towerX;
@@ -44,7 +51,7 @@ private:
 
 	double m_param[9];
 
-	    /// choice mode for traversing geometry
+	/// choice mode for traversing geometry
     std::string m_mode;
 
 

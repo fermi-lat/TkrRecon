@@ -6,32 +6,30 @@
 
 #include "GaudiKernel/Algorithm.h"
 
-//----------------------------------------------
-//
-//   TkrFindAlg
-//
-//   Algorithm Data constructor of TkrCandidates
-//----------------------------------------------
-//   Tracy Usher 11/08/01
-//----------------------------------------------
-//##########################################################
+/** 
+ * @class TkrFindAlg
+ *
+ * @brief controls the construction of TkrCandidates
+ * 
+ * Created 08-Nov-2001
+ * 
+ * @author Tracy Usher
+ *
+ * $Header$
+ */
+
 class TkrFindAlg : public Algorithm
-//##########################################################
 {
 public:
-    //! Constructor of this form must be provided
     TkrFindAlg(const std::string& name, ISvcLocator* pSvcLocator); 
     virtual ~TkrFindAlg() {}
-    //! mandatory
     StatusCode initialize();
-    //! mandatory
     StatusCode execute();
-    //! mandatory
     StatusCode finalize();
     
 private:
-    
+    /// pointer to the patrec algorithm
     TkrPatRecon* pPatRecon;
 };
 
-#endif
+#endif  // __TKRFINDALG_H

@@ -1,41 +1,36 @@
 #include "TkrRecon/Services/TkrGeometryVisitor.h"
 #include <iostream>
 
-TkrGeometryVisitor::TkrGeometryVisitor() : m_mode("propagate")
-{
-	
-}
-
+TkrGeometryVisitor::TkrGeometryVisitor() : m_mode("propagate") {}
 
 /*
-This is a toy example.
-
-This visitor looks for silicon layers in tower number 9, and prints out the parameters
-associated with them.  
-  
-The each volume idvec[0] is that volume's piece of the volume identifier.
-For the tray, the view is stored in idvec[1].
-	
-For a box, there are 9 parameters. the first 3 are the rotation from the local frame to 
-the mother frame, the next three the translation, and the last three, the (half) dimensions
-of the box.
-	  
+* This is a toy example.
+*
+* This visitor looks for silicon layers in tower number 9, 
+* and prints out the parameters associated with them.  
+*
+* For each volume, idvec[0] is that volume's piece of the volume identifier.
+* For the tray, the view is stored in idvec[1].
+*	
+* For a box, there are 9 parameters. the first 3 are the rotation 
+* from the local frame to the mother frame, the next three the translation, 
+* and the last three, the (half) dimensions of the box.
 */
 
 IGeometry::VisitorRet
-   TkrGeometryVisitor::pushShape(ShapeType s, const UintVector& idvec, std::string name, 
-				std::string material, const DoubleVector& params, VolumeType type)
+TkrGeometryVisitor::pushShape(ShapeType s, const UintVector& idvec, std::string name, 
+							  std::string material, const DoubleVector& params, VolumeType type)
 {
 	int i;
     
-	//each call is further down the chain.  We will encounter the row of y-towers first
-
+	// each call is further down the chain.  We will encounter the row of y-towers first
+	
 	if(name=="oneCAL") {
 		std::cout << " encountered a CAL " << std::endl;
 		return AbortSubtree;
 	}
 	
-
+	
 	if (name=="towerRow") {
 		m_towerY = idvec[0];
 	}
@@ -44,10 +39,10 @@ IGeometry::VisitorRet
 	
 	if (name=="oneTower")   {
 		m_towerX = idvec[0];
-    	//make up a TowerID
-	    m_tower = idents::TowerId(m_towerX, m_towerY);
-	    if(m_tower.id()==9) {
-		    std::cout << "Tower " << m_tower.id() << std::endl;
+		//now we can make up a TowerID
+		m_tower = idents::TowerId(m_towerX, m_towerY);
+		if(m_tower.id()==9) {
+			std::cout << "Tower " << m_tower.id() << std::endl;
 		} else {
 			return AbortSubtree;
 		}	
