@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Mon Dec  2 11:28:06 PST 2002
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+replace Atwood patch that I accidentally removed
+    *
+------------------------------------------------------------
 User: atwood  Mon Dec  2 10:09:07 PST 2002
 TkrRecon/src/TrackFit/KalFitTrack
 
