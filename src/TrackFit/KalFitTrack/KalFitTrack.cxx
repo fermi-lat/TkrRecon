@@ -76,7 +76,7 @@ void KalFitTrack::flagAllHits(int iflag)
 
     while(hitPtr < getHitIterEnd()) {
         TkrFitPlane hitplane = *hitPtr++; 
-        m_clusters->flagHit(hitplane.getProjection(),hitplane.getIDHit(), iflag);
+        m_clusters->flagHit(hitplane.getIDHit(), iflag);
     }
 }
 
@@ -92,7 +92,7 @@ void KalFitTrack::unFlagAllHits()
 
     while(hitPtr < getHitIterEnd()) {
         TkrFitPlane hitplane = *hitPtr++; 
-        m_clusters->unflagHit(hitplane.getProjection(),hitplane.getIDHit());
+        m_clusters->unflagHit(hitplane.getIDHit());
     }
 }  
 
@@ -106,7 +106,7 @@ void KalFitTrack::unFlagHit(int num)
 
     TkrFitPlaneConPtr hitPtr = getHitIterBegin();
     TkrFitPlane hitplane     = hitPtr[num];
-    m_clusters->unflagHit(hitplane.getProjection(), hitplane.getIDHit());
+    m_clusters->unflagHit(hitplane.getIDHit());
 }  
 
 void KalFitTrack::clear()
@@ -391,7 +391,7 @@ TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer, dou
     int next_layer = klayer; 
     double arc_x, arc_y; 
     while(next_layer < 5+old_layer && next_layer < 18) { // Limit Gap to 3 missed x-y planes
-        int rev_layer = m_tkrGeo->ilayer(next_layer);      //  Control Parameter needed
+        int rev_layer = m_tkrGeo->reverseLayerNumber(next_layer);      //  Control Parameter needed
         double zx = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::X, 751).z();
         double zy = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::Y, 751).z();
         
@@ -448,7 +448,7 @@ void KalFitTrack::incorporateFoundHit(TkrFitPlane& nextKplane, int indexhit)
 
     TkrCluster::view planeView = nextKplane.getProjection();
 
-    Point  nearHit   = m_clusters->position(planeView, indexhit);
+    Point  nearHit   = m_clusters->position(indexhit);
     double x0        = nearHit.x();
     double y0        = nearHit.y();
     double z0        = nearHit.z();
@@ -628,12 +628,12 @@ bool KalFitTrack::foundHit(int& indexhit, double& min_dist, double max_dist,
 
     // Does measured co-ordinate fall outside search region?
     if (deltaStrip < max_dist){
-        if (m_clusters->hitFlagged(m_axis, indexhit)) done = false;
+        if (m_clusters->hitFlagged(indexhit)) done = false;
     } else indexhit = -1; // outside region 
     
     // Check that Cluster size is o.k.
     if (indexhit > 0 ) {
-        if (okClusterSize(m_axis,indexhit,0.) == 0) done = false;
+        if (okClusterSize(indexhit,0.) == 0) done = false;
     }
 
     // Check if predicted hit is inside this tower
@@ -764,7 +764,7 @@ int KalFitTrack::addLeadingHits(int top_layer)
             continue;
         }
         //Find the Z location for the x & y planes 
-        int rev_layer = m_tkrGeo->ilayer(next_layer); 
+        int rev_layer = m_tkrGeo->reverseLayerNumber(next_layer); 
         double zx = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::X, 751).z();
         double zy = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::Y, 751).z();
         //Compute which one is closest 
@@ -1135,10 +1135,10 @@ void KalFitTrack::eneDetermination()
        TkrCluster::view hit_proj = m_hits[iplane].getProjection();
        int hit_Id = m_hits[iplane].getIDHit();
        if(hit_proj == TkrCluster::X) {
-           x_cls_size = m_clusters->size(hit_proj, hit_Id);
+           x_cls_size = m_clusters->size(hit_Id);
        }
        else {
-           y_cls_size = m_clusters->size(hit_proj, hit_Id);
+           y_cls_size = m_clusters->size(hit_Id);
        }
         if(m_hits[iplane].getIDPlane() == old_Plane_Id) {
             sX += m_hits[iplane].getHit(TkrFitHit::SMOOTH).getPar().getXSlope();
@@ -1306,7 +1306,7 @@ double KalFitTrack::computeChiSqSegment(int nhits, TkrFitHit::TYPE typ)
 }
 
 
-int KalFitTrack::okClusterSize(TkrCluster::view axis, int indexhit, double slope)            
+int KalFitTrack::okClusterSize(int indexhit, double slope)            
 {
   // Purpose and Method: Checks on that the size of the cluster
   //          is O.K.
@@ -1318,7 +1318,7 @@ int KalFitTrack::okClusterSize(TkrCluster::view axis, int indexhit, double slope
 
     int icluster = 0;
     
-    int size = (int) m_clusters->size(axis,indexhit);
+    int size = (int) m_clusters->size(indexhit);
     
     double distance = m_tkrGeo->siThickness()*fabs(slope)/
                          m_tkrGeo->siStripPitch();

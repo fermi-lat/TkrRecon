@@ -14,17 +14,17 @@ Service(name, pSvcLocator)
     TkrControl* control = TkrControl::getPtr();
 
     // Variables which can be modified in TkrControl
-    declareProperty("TkrMaxCandidates",      m_MaxCandidates      = control->getMaxCandidates()     );
-    declareProperty("TkrMinTermHitCount",    m_MinTermHitCount    = control->getMinTermHitCount()   );
-    declareProperty("TkrFEneParticle",       m_FEneParticle       = control->getFEneParticle()      );
-    declareProperty("TkrSigmaCut",           m_SigmaCut           = control->getSigmaCut()          );
-    declareProperty("TkrMinEnergy",          m_MinEnergy          = control->getMinEnergy()         );
-    declareProperty("TkrMaxConsecutiveGaps", m_MaxConsecutiveGaps = control->getMaxConsecutiveGaps());
-    declareProperty("TkrMinSegmentHits",     m_MinSegmentHits     = control->getMinSegmentHits()    );
-    declareProperty("TkrMaxChiSqCut",        m_MaxChiSqCut        = control->getMaxChisqCut()       );
-    declareProperty("TkrIniErrorSlope",      m_IniErrorSlope      = control->getIniErrSlope()       );
-    declareProperty("TkrIniErrorPosition",   m_IniErrorPosition   = control->getIniErrPosition()    );
-    declareProperty("TkrPlaneEnergies",      m_PlaneEnergies      = control->getPlaneEnergies()     );
+    declareProperty("TkrMaxCandidates",      m_maxCandidates      = control->getMaxCandidates()     );
+    declareProperty("TkrMinTermHitCount",    m_minTermHitCount    = control->getMinTermHitCount()   );
+    declareProperty("TkrFEneParticle",       m_fEneParticle       = control->getFEneParticle()      );
+    declareProperty("TkrSigmaCut",           m_sigmaCut           = control->getSigmaCut()          );
+    declareProperty("TkrMinEnergy",          m_minEnergy          = control->getMinEnergy()         );
+    declareProperty("TkrMaxConsecutiveGaps", m_maxConsecutiveGaps = control->getMaxConsecutiveGaps());
+    declareProperty("TkrMinSegmentHits",     m_minSegmentHits     = control->getMinSegmentHits()    );
+    declareProperty("TkrMaxChiSqCut",        m_maxChiSqCut        = control->getMaxChisqCut()       );
+    declareProperty("TkrIniErrorSlope",      m_iniErrorSlope      = control->getIniErrSlope()       );
+    declareProperty("TkrIniErrorPosition",   m_iniErrorPosition   = control->getIniErrPosition()    );
+    declareProperty("TkrPlaneEnergies",      m_planeEnergies      = control->getPlaneEnergies()     );
 
     return; 
 }
@@ -41,17 +41,17 @@ StatusCode TkrInitSvc::initialize()
 
     // Take care of resetting of control variables (if necessary)
     TkrControl* control = TkrControl::getPtr();
-    if (m_MaxCandidates      != control->getMaxCandidates()     ) control->setMaxCandidates(m_MaxCandidates);
-    if (m_MinTermHitCount    != control->getMinTermHitCount()   ) control->setMinTermHitCount(m_MinTermHitCount);
-    if (m_FEneParticle       != control->getFEneParticle()      ) control->setFEneParticle(m_FEneParticle);
-    if (m_SigmaCut           != control->getSigmaCut()          ) control->setSigmaCut(m_SigmaCut);
-    if (m_MinEnergy          != control->getMinEnergy()         ) control->setMinEnergy(m_MinEnergy);
-    if (m_MaxConsecutiveGaps != control->getMaxConsecutiveGaps()) control->setMaxConsGaps(m_MaxConsecutiveGaps);
-    if (m_MinSegmentHits     != control->getMinSegmentHits()    ) control->setMinSegmentHits(m_MinSegmentHits);
-    if (m_MaxChiSqCut        != control->getMaxChisqCut()       ) control->setMaxChisqCut(m_MaxChiSqCut);
-    if (m_IniErrorSlope      != control->getIniErrSlope()       ) control->setIniErrSlope(m_IniErrorSlope);
-    if (m_IniErrorPosition   != control->getIniErrPosition()    ) control->setIniErrPos(m_IniErrorPosition);
-    if (m_PlaneEnergies      != control->getPlaneEnergies()     ) control->setPlaneEnergies(m_PlaneEnergies);
+    if (m_maxCandidates      != control->getMaxCandidates()     ) control->setMaxCandidates(m_maxCandidates);
+    if (m_minTermHitCount    != control->getMinTermHitCount()   ) control->setMinTermHitCount(m_minTermHitCount);
+    if (m_fEneParticle       != control->getFEneParticle()      ) control->setFEneParticle(m_fEneParticle);
+    if (m_sigmaCut           != control->getSigmaCut()          ) control->setSigmaCut(m_sigmaCut);
+    if (m_minEnergy          != control->getMinEnergy()         ) control->setMinEnergy(m_minEnergy);
+    if (m_maxConsecutiveGaps != control->getMaxConsecutiveGaps()) control->setMaxConsGaps(m_maxConsecutiveGaps);
+    if (m_minSegmentHits     != control->getMinSegmentHits()    ) control->setMinSegmentHits(m_minSegmentHits);
+    if (m_maxChiSqCut        != control->getMaxChisqCut()       ) control->setMaxChisqCut(m_maxChiSqCut);
+    if (m_iniErrorSlope      != control->getIniErrSlope()       ) control->setIniErrSlope(m_iniErrorSlope);
+    if (m_iniErrorPosition   != control->getIniErrPosition()    ) control->setIniErrPos(m_iniErrorPosition);
+    if (m_planeEnergies      != control->getPlaneEnergies()     ) control->setPlaneEnergies(m_planeEnergies);
     
     return sc;
 }
