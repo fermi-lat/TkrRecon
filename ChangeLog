@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Oct 12 12:03:35 PDT 2004
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx TkrComboPatRec.cxx TkrComboPatRec.h 
+Log Message:
+change to m_tkrGeom throughout
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Oct 12 12:03:34 PDT 2004
 TkrRecon/src/PatRec
 
