@@ -190,7 +190,9 @@ void TrackFitUtils::updateMaterials(TkrFitPlane& plane, TkrFitMatrix& Qmat, doub
 
     plane.setRadLen(radLen);
     plane.setActiveDist(actDist);
-    plane.setEnergy(m_hitEnergy->updateHitEnergy(energy,radLen));
+
+    // Change energy on the condition it is not negative...
+    if (double newEnergy = m_hitEnergy->updateHitEnergy(energy,radLen) >= 0.) plane.setEnergy(newEnergy);
 
     plane.setQmaterial(Qmat);
 
