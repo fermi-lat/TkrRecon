@@ -7,6 +7,8 @@
 #include <vector>
 #include "Gaudi/Kernel/DataObject.h"
 
+extern const CLID& CLID_SiLayers;
+
 //----------------------------------------------
 //
 //   SiLayers
@@ -51,7 +53,7 @@ public:
 	//! clear the list of strips
 	void clear()              {m_stripList.clear();}
 	//! writes out the information of the SiLayer
-	// void writeOut() const;
+	void writeOut() const;
 
 private:
 
@@ -72,7 +74,7 @@ private:
 
 };
 
-const static CLID CLID_SiLayers = 250;
+//const static CLID CLID_SiLayers = 250;
 /*!
 SiLayers class, container class of the SiLayer elements and service of SiLayer
 */
@@ -110,7 +112,7 @@ public:
 	SiLayer* Layer(int i) const {return m_SiLayersList[i];}
 
 	//! writes out the information of the SiLayers
-	// void writeOut() const;
+	void writeOut() const;
 
 protected:
 

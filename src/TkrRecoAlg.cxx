@@ -11,13 +11,8 @@
 
 #include "xml/IFile.h"
 
-#include "reconstruction/GlastTuple.h"
-#include "reconstruction/PrintReconData.h"
-#include "reconstruction/SummaryData.h"
-#include "reconstruction/GlastTuple.h"
-
-#include "GlastEvent/Raw/TdSiData.h"
-#include "GlastEvent/Raw/TdGlastData.h"
+#include "GlastEvent/data/TdSiData.h"
+#include "GlastEvent/data/TdGlastData.h"
 ;
 static const AlgFactory<TkrRecoAlg>  Factory;
 const IAlgFactory& TkrRecoAlgFactory = Factory;
@@ -56,14 +51,8 @@ StatusCode TkrRecoAlg::initialize() {
     m_ini = const_cast<xml::IFile*>(m_detSvc->iniFile()); //OOPS!
     int nx = m_ini->getInt("glast", "xNum");
 
-//    m_glastData = new GlastRecon;
-    m_recon=new TrackerRecon();
 
     // define the tuple
-    m_summary = new  SummaryData<GlastTuple>(*new GlastTuple("test cal tuple")) ;
-    m_recon->accept(*m_summary);
-
-    m_summary->tuple()->writeHeader(std::cout);
     return sc;
 }
 
@@ -82,19 +71,6 @@ StatusCode TkrRecoAlg::execute() {
     //Now build the TdGlastData object;
 
     // see what is there
-    si->printOn(std::cout);
-
-    // create the TkrRecon object from the reconstrution package and pass data to it.
-
-    m_recon->clear();
-    m_recon->reconstruct(si);
-
-    // print out the  tuple
-    m_recon->accept(PrintReconData(std::cout));
-
-    // fill the tuple and print the line
-    m_summary->tuple()->fill();
-    std::cout << *(m_summary->tuple());
 
     return sc;
 }
@@ -105,8 +81,6 @@ StatusCode TkrRecoAlg::finalize() {
     
     MsgStream log(msgSvc(), name());
     log << MSG::INFO << "finalize" << endreq;
-    delete m_recon;
-    delete m_summary;
     
     return StatusCode::SUCCESS;
 }

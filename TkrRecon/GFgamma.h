@@ -27,7 +27,7 @@ public:
 	bool empty() const;
 	bool accept() const;
 	void clear();
-	void writeOut(std::ostream& out=std::cout) const; 
+//	void writeOut(std::ostream& out=std::cout) const; 
 	//--
 
     // access 
@@ -146,7 +146,7 @@ public:
 	bool empty() const;
 	bool accept() const;
 	void clear();
-	void writeOut(std::ostream& out=std::cout) const; 
+//	void writeOut(std::ostream& out=std::cout) const; 
 	//--
 
 	// Access

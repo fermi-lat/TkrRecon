@@ -4,7 +4,6 @@
 // Include files
 #include "Gaudi/Algorithm/Algorithm.h"
 
-#include "reconstruction/SummaryData.h"
 
 // forward declarations
 class IGlastDetSvc;
@@ -33,17 +32,14 @@ public:
 
 private:
 
-    GlastRecon* m_glastData;
     // the GlastDetSvc used for access to detector info
     IGlastDetSvc*    m_detSvc;
     // ptr to the TkrRecon object used to do the analysis
-    TrackerRecon*    m_recon;
 
     // constants from the "instrument.xml" file.
     xml::IFile * m_ini;
     
     // sumamry object from glastsim creates a n-tuple
-    SummaryData<GlastTuple>* m_summary; 
 };
 
 

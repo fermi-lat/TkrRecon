@@ -47,28 +47,24 @@ void SiRecObjs::draw(gui::DisplayRep& v)
 		for (int ip=0; ip < numParticles(); ip++) m_GFparticleList[ip]->draw(v);
 	}
 }
-/*
 //########################################################
 void SiRecObjs::writeOut() const
 //########################################################
 {
 	if (numGammas() <=0 && numParticles() <=0) return;
 	
-	std::ostream& out = messageManager::instance()->out();
-	if (!messageManager::instance()->acceptLevel("DEBUG")) return;
 	
-	out << " --- SiRecObs ---- " << "\n";
-	out << " num Gammas = " << numGammas() << "\n";
+        std::cout << " --- SiRecObs ---- " << "\n";
+        std::cout << " num Gammas = " << numGammas() << "\n";
 	if (numGammas()>0) {
 		for (int ig=0; ig < numGammas(); ig++) {
-			m_GFgammaList[ig]->GFdata::writeOut(out);
+                    m_GFgammaList[ig]->GFdata::writeOut();
 		}
 	}
-	out << " num Particles = " << numParticles() << "\n";
+        std::cout << " num Particles = " << numParticles() << "\n";
 	if (numParticles()>0) {
 		for (int ip=0; ip < numParticles(); ip++) { 
-			m_GFparticleList[ip]->GFdata::writeOut(out);
+			m_GFparticleList[ip]->GFdata::writeOut();
 		}
 	}
 }
-*/

@@ -8,7 +8,7 @@
 #include "TkrRecon/SiClustersIRFAlg.h"
 #include "TkrRecon/SiClusters.h"
 #include "TkrRecon/trackerGeo.h"
-#include "GlastEvent/Raw/TdSiData.h"
+#include "GlastEvent/data/TdSiData.h"
 
 static const AlgFactory<SiClustersIRFAlg>  Factory;
 const IAlgFactory& SiClustersIRFAlgFactory = Factory;
@@ -107,12 +107,36 @@ StatusCode SiClustersIRFAlg::finalize()
 StatusCode SiClustersIRFAlg::retrieve()
 //###################################################
 {
-	m_SiClusters = new SiClusters();
-	m_SiClusters->clear();
-	StatusCode sc = eventSvc()->registerObject("/Event/Recon/TkrRecon","SiClusters",m_SiClusters);
+    MsgStream log(msgSvc(), name());
 
-	m_SiData = SmartDataPtr<TdSiData>(eventSvc(),"/Event/Raw/TdSiDatas");
+    StatusCode sc;
+    m_SiClusters = new SiClusters();
+    m_SiClusters->clear();
+    
+    
+    //test of Toby's stuff
+    DataObject* pnode=0;
 
-	if (m_SiClusters == 0 || m_SiData == 0) sc = StatusCode::FAILURE;
-	return sc;
+    sc = eventSvc()->retrieveObject( "/Event", pnode );
+    
+    if( sc.isFailure() ) {
+        log << MSG::ERROR << "Could not retrieve Event directory" << endreq;
+        return sc;
+    }
+    
+    sc = eventSvc()->retrieveObject( "/Event/Raw", pnode );
+    
+    if( sc.isFailure() ) {
+        sc = eventSvc()->registerObject("/Event/Raw",m_SiClusters);
+        if( sc.isFailure() ) {
+            
+            log << MSG::ERROR << "Could not create Raw directory" << endreq;
+            return sc;
+        }
+    }
+        
+    m_SiData = SmartDataPtr<TdSiData>(eventSvc(),"/Event/Raw/TdSiDatas");
+    
+    if (m_SiClusters == 0 || m_SiData == 0) sc = StatusCode::FAILURE;
+    return sc;
 }

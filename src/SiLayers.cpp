@@ -1,5 +1,7 @@
 
 #include "TkrRecon/SiLayers.h"
+
+#include "Gaudi/MessageSvc/MsgStream.h"
 //#include "Event/messageManager.h"
 //#include "instrument/trackerGeo.h"
 
@@ -19,21 +21,18 @@ void SiLayer::addStrip(int istrip)
 //	if (validStrip(istrip)) 
 		m_stripList.push_back(istrip);
 }
-/*
 //################################################
 void SiLayer::writeOut() const
 //################################################
 {
-	std::ostream& out = messageManager::instance()->out();
-	if (!messageManager::instance()->acceptLevel("DEBUG")) return;
-
-	out << "Layer " << m_layer << " xy " << m_view << " tot " << m_ToT <<" nstrips " << m_stripList.size() << " ";
-	for (int i = 0; i < m_stripList.size();i++) {
-		out << m_stripList[i] << " ";
-	}
-	out<<"\n";
+      std::cout << "Layer " << m_layer << " xy " << m_view << " tot " << m_ToT <<" nstrips " << m_stripList.size() << " ";
+      for (int i = 0; i < m_stripList.size();i++) {
+          std::cout << m_stripList[i] << " ";
+    }
+      std::cout <<"\n";
 }
 //----------------- private -----------------------
+/*
 //################################################
 bool SiLayer::validStrip(int istrip)
 //################################################
@@ -68,22 +67,17 @@ void SiLayers::ini()
 {
 	m_SiLayersList.clear();
 }
-/*
 //################################################
 void SiLayers::writeOut() const
 //################################################
 {
 	if (m_SiLayersList.size() <=0) return;
 
-	std::ostream& out = messageManager::instance()->out();
-	if (!messageManager::instance()->acceptLevel("DEBUG")) return; 
-
-	out << " SiLayers " << m_SiLayersList.size() <<"\n";
+        std::cout << " SiLayers " << m_SiLayersList.size() <<"\n";
 	for (int i = 0; i < m_SiLayersList.size();i++) {
 		m_SiLayersList[i]->writeOut();
 	}
 }
-*/
 //################################################
 int SiLayers::numStrips()
 //################################################

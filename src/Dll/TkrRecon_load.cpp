@@ -23,6 +23,9 @@
 //! Load all  services: 
 void TkrRecon_load() {
     DLL_DECL_ALGORITHM( TkrRecoAlg );
+    DLL_DECL_ALGORITHM( SiLayersIRFAlg );
+    DLL_DECL_ALGORITHM( SiClustersAlg );
+    DLL_DECL_ALGORITHM( SiRecObjsAlg );
 } 
 
 extern "C" void TkrRecon_loadRef()    {

@@ -4,10 +4,10 @@ version v1
 branches src mgr doc
 
 use GlastSvc
-use reconstruction 
+#use reconstruction 
 use gui
 
-library TkrRecon  *.cxx ../TkrRecon/*.h  Dll/*.cpp
+library TkrRecon  *.cpp *.cxx ../TkrRecon/*.h  Dll/*.cpp
 
 macro TkrRecon Dir  "$(TKRRECONROOT)/$(DEBUGDIR)"
 

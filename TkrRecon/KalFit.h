@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/tb_recon/src/reconstruction/KalFit.h,v 1.6 2000/10/26 17:24:43 burnett Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/KalFit.h,v 1.1 2001/02/05 19:05:09 hernando Exp $
 //----------------------------------------
 //
 //      Kalman Filter Objects Declarations
@@ -195,7 +195,7 @@ public:
     double   getSigma(KalHit::TYPE type) const;
     KalMatrix getQmaterial() const {return m_Qmaterial;} 
 
-    void writeOut(std::ostream& out = std::cout) const;
+//    void writeOut(std::ostream& out = std::cout) const;
 
 public:
 

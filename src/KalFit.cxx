@@ -1,5 +1,5 @@
 
-// $Header: /nfs/slac/g/glast/ground/cvs/tb_recon/src/reconstruction/KalFit.cxx,v 1.9 2000/10/26 17:24:43 burnett Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/KalFit.cxx,v 1.1 2001/02/05 19:05:54 hernando Exp $
 
 //----------------------------------------------------------------------
 //    
@@ -550,7 +550,7 @@ double KalTrack::kinkNorma(int iplane) const
 //-------------------------------------
 //   Kalman Plane
 //-------------------------------------
-
+/*
 //#####################################
 void KalPlane::writeOut(std::ostream& out) const
 //#####################################
@@ -573,6 +573,7 @@ void KalPlane::writeOut(std::ostream& out) const
 	out << " chiSqEne " << getDeltaChiEne(KalHit::PRED)<< "\n";
 
 }
+*/
 //#####################################
 void KalPlane::removeHit()
 //#####################################

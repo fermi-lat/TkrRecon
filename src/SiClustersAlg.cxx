@@ -31,11 +31,11 @@ Algorithm(name, pSvcLocator)
 StatusCode SiClustersAlg::initialize()
 //##############################################
 {
-	m_SiClusters = new SiClusters();
+	m_SiClusters = 0;
 	m_SiLayers = 0; // take at run time
 	//! registering of the object
-	StatusCode sc = eventSvc()->registerObject("/Event/Recon/TkrRecon","SiClusters",m_SiClusters);
-	return sc;
+
+        return StatusCode::SUCCESS;
 }
 //##############################################
 StatusCode SiClustersAlg::execute()
@@ -47,7 +47,6 @@ StatusCode SiClustersAlg::execute()
 //	m_SiClusters    = dataManager::instance()->getData("SiClusters",m_SiClusters);
 
 	StatusCode sc = retrieve();
-
 
 	// loop in number of layers - conversion to planes!
 	int nclusters = 0;
@@ -98,13 +97,14 @@ StatusCode SiClustersAlg::execute()
 			nclusters++;
 		}
 	}
+        m_SiClusters->writeOut();
 	return sc;
 }
 //##############################################
 StatusCode SiClustersAlg::finalize()
 //##############################################
 {
-//	m_SiClusters->writeOut();
+//	
 	return StatusCode::SUCCESS;
 }
 //-------------------- private ----------------------
@@ -114,8 +114,30 @@ StatusCode SiClustersAlg::retrieve()
 {
 	StatusCode sc = StatusCode::SUCCESS;
 
-	m_SiClusters = SmartDataPtr<SiClusters>(eventSvc(),"/Event/Recon/TkrRecon"); 
-	m_SiLayers   = SmartDataPtr<SiLayers>(eventSvc(),"/Event/Recon/TkrRecon");
+    MsgStream log(msgSvc(), name());
+        DataObject* pnode =0;
+    sc = eventSvc()->retrieveObject( "/Event", pnode );
+    
+    if( sc.isFailure() ) {
+        log << MSG::ERROR << "Could not retrieve Event directory" << endreq;
+        return sc;
+    }
+    
+    sc = eventSvc()->retrieveObject( "/Event/Raw", pnode );
+    
+    if( sc.isFailure() ) {
+        sc = eventSvc()->registerObject("/Event/Raw",new DataObject);
+        if( sc.isFailure() ) {
+            
+            log << MSG::ERROR << "Could not create Raw directory" << endreq;
+            return sc;
+        }
+    }
+    m_SiClusters = new SiClusters();
+    sc = eventSvc()->registerObject("/Event/Raw","SiClusters",m_SiClusters);
+
+	// m_SiClusters = SmartDataPtr<SiClusters>(eventSvc(),"/Event/Recon/TkrRecon"); 
+	m_SiLayers   = SmartDataPtr<SiLayers>(eventSvc(),"/Event/Raw/SiLayers");
 
 	if (m_SiClusters == 0 || m_SiLayers ==0) sc = StatusCode::FAILURE;
 	return sc;

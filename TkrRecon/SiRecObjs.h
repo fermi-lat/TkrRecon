@@ -20,7 +20,8 @@
 //             J.A Hernando, Santa Cruz 02/29/00
 //----------------------------------------------
 
-const static CLID CLID_SiRecObjs = 254;
+extern const CLID& CLID_SiRecObjs;
+//const static CLID CLID_SiRecObjs = 254;
 
 /*!
 SiRecObjs container and service class of the Tracker Reconstructed objects (gamma and tracks)
