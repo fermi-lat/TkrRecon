@@ -6,20 +6,19 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.h,v 1.4 2003/07/04 14:12:28 cohen Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.h,v 1.5 2003/07/18 21:26:59 lsrea Exp $
  */
 
 #ifndef NEURALNETFINDTRACKTOOL_H
 #define NEURALNETFINDTRACKTOOL_H
 
-#include "GaudiKernel/AlgTool.h"
 #include "GaudiKernel/DataSvc.h"
-#include "TkrRecon/PatRec/ITkrFindTrackTool.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "src/PatRec/NeuralNet/TkrNeuron.h"
+#include "src/PatRec/PatRecBaseTool.h"
 
-class NeuralNetFindTrackTool : public AlgTool, virtual public ITkrFindTrackTool
+class NeuralNetFindTrackTool : public PatRecBaseTool
 {
  public:
 
@@ -47,13 +46,6 @@ class NeuralNetFindTrackTool : public AlgTool, virtual public ITkrFindTrackTool
   
 
  private:
-  /// Pointer to the local Tracker geometry service
-  ITkrGeometrySvc* pTkrGeo;
-  ITkrFailureModeSvc* pTkrFail;
-      
-  /// Pointer to the Gaudi data provider service (interface to the TDS)
-  IDataProviderSvc*        m_dataSvc;
-
   /// The properties to be passed to TkrNeuralNet
   double m_MaxLayerDiff;
   double m_MaxPitch;

@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.7 2003/07/04 14:12:27 cohen Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.8 2003/07/18 21:26:59 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the Neural Net approach
@@ -30,45 +30,31 @@ const IToolFactory& NeuralNetFindTrackToolFactory = s_factory;
 //
 
 NeuralNetFindTrackTool::NeuralNetFindTrackTool(const std::string& type, const std::string& name, const IInterface* parent) :
-                       AlgTool(type, name, parent)
+                       PatRecBaseTool(type, name, parent)
 {
-    //Declare the additional interface
-    declareInterface<ITkrFindTrackTool>(this);
-	return;
+  //Declare the additional interface NOT NEEDED ANYMORE
+  //  declareInterface<ITkrFindTrackTool>(this);
+
+  declareProperty("maxLayerDiff", m_MaxLayerDiff = 3.   );
+  declareProperty("maxPitch",     m_MaxPitch     = 0.2   );
+  declareProperty("Lambda",       m_Lambda       = 5.   );
+  declareProperty("Mu",           m_Mu           = 2.   );
+  declareProperty("AlphaUP",      m_AlphaUP      = 5.   );
+  declareProperty("AlphaDOWN",    m_AlphaDOWN    = 5.   );
+  declareProperty("Bias",         m_Bias         = 0.2  );
+  declareProperty("Gamma",        m_Gamma        = 10.  );
+  declareProperty("temperature",  m_temperature  = 1.   );
+
+  return;
 }
 
 StatusCode NeuralNetFindTrackTool::initialize()
 {   
-    setProperties();
+  PatRecBaseTool::initialize();
+  setProperties();
 
-    MsgStream log(msgSvc(), name());
-    StatusCode sc   = StatusCode::SUCCESS;
-    StatusCode fail = StatusCode::FAILURE;
-    
-	if( serviceLocator() ) {   
-		if(service( "TkrGeometrySvc", pTkrGeo, true ).isFailure()) {
-			log << MSG::ERROR << "Could not find TkrGeometrySvc" << endreq;
-			return fail;
-		}
-		pTkrFail = pTkrGeo->getTkrFailureModeSvc();
-
-		if(service( "EventDataSvc", m_dataSvc, true ).isFailure()) {
-			log << MSG::ERROR << "Could not find EventDataSvc" << endreq;
-			return fail;
-		}
-	}
-    
-    declareProperty("maxLayerDiff", m_MaxLayerDiff = 3.   );
-    declareProperty("maxPitch",     m_MaxPitch     = 0.2   );
-    declareProperty("Lambda",       m_Lambda       = 5.   );
-    declareProperty("Mu",           m_Mu           = 2.   );
-    declareProperty("AlphaUP",      m_AlphaUP      = 5.   );
-    declareProperty("AlphaDOWN",    m_AlphaDOWN    = 5.   );
-    declareProperty("Bias",         m_Bias         = 0.2  );
-    declareProperty("Gamma",        m_Gamma        = 10.  );
-    declareProperty("temperature",  m_temperature  = 1.   );
-
-    return sc;
+  StatusCode sc   = StatusCode::SUCCESS;
+  return sc;
 }
 
 StatusCode NeuralNetFindTrackTool::findTracks()
@@ -155,7 +141,6 @@ StatusCode NeuralNetFindTrackTool::findTracks()
       return sc;
     }
     
-  
   if (pTkrClus == 0 || pTkrCands == 0) sc = StatusCode::FAILURE;
   
   return sc;
