@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Tue Aug 20 10:30:33 PDT 2002
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	TkrComboVtxRecon.cxx 
+Log Message:
+Trying out a new track track combiner based on cov. errors from Kalman fits 
+    *
+------------------------------------------------------------
 User: atwood  Tue Aug 20 10:29:37 PDT 2002
 TkrRecon/src/TrackFit/KalmanFilter
 
