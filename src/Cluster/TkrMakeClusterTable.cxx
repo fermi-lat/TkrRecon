@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusterTable.cxx,v 1.9 2004/10/01 19:49:06 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusterTable.cxx,v 1.10 2004/10/12 19:03:33 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusterTable has the methods for making the clusters, 
@@ -94,11 +94,8 @@ TkrMakeClusterTable::TkrMakeClusterTable(const TkrClusterCol* pClus,
 }
 
 int TkrMakeClusterTable::digiOrder ( const TkrCluster* pClust) {
-//    TkrCluster clust = *pClust;
-//    return clust.v() + 2*(m_tkrGeom->reverseLayerNumber(clust.plane()))
-//        + 64*clust.tower();
     return     pClust->getTkrId().getView() 
-           + 2*pClust->getTkrId().getLayer() + 64*pClust->tower();
+           + 2*pClust->getLayer() + 64*pClust->tower();
 }
     
 

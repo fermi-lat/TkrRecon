@@ -6,10 +6,10 @@
 #include "src/PatRec/LinkAndTree/TkrLinkAndTree.h"
 #include "geometry/Ray.h"
 
-TkrLinkAndTree::TkrLinkAndTree(ITkrGeometrySvc* /*tkrGeom*/, ITkrQueryClustersTool* clusTool, double energy)
+TkrLinkAndTree::TkrLinkAndTree(ITkrGeometrySvc* tkrGeom, ITkrQueryClustersTool* clusTool, double energy)
 {
     m_energy = energy;
-    //m_tkrGeom = tkrGeom;
+    m_tkrGeom = tkrGeom;
 
     ini();
 
@@ -192,8 +192,8 @@ void TkrLinkAndTree::buildCand3D()
             }
 
             // Both should start within a layer of each other
-            int strtDiff = pTopClusterX->getTkrId().getPlane()
-                         - pTopClusterY->getTkrId().getPlane();
+            int strtDiff = m_tkrGeom->getPlane(pTopClusterX->getTkrId())
+                         - m_tkrGeom->getPlane(pTopClusterY->getTkrId());
             int nodeDiff = nNodesX - nNodesY;
 
             if (abs(strtDiff) > 1)
@@ -237,9 +237,9 @@ void TkrLinkAndTree::buildCand3D()
 
             double z            = zTopX > zTopY ? zTopX : zTopY;
 
-            int    layer        = pTopClusterX->getTkrId().getPlane() < pTopClusterY->getTkrId().getPlane()
-                                ? pTopClusterX->getTkrId().getPlane()
-                                : pTopClusterY->getTkrId().getPlane();
+            int layerX          = m_tkrGeom->getPlane(pTopClusterX->getTkrId());
+            int layerY          = m_tkrGeom->getPlane(pTopClusterY->getTkrId());
+            int    layer        = std::min(layerX, layerY);
 
             xTopX += xSlope * (z - zTopX);
             yTopY += ySlope * (z - zTopY);
