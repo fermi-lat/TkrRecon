@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Jun  4 15:41:38 PDT 2001
+TkrRecon/src RecNtupleAlg.cpp
+
+Added Files:
+	RecNtupleAlg.cpp 
+Log Message:
+Algorithm for computing Cal and Tkr related ntuple values
+
+    *
+------------------------------------------------------------
 User: usher  Mon Jun  4 15:41:21 PDT 2001
 TkrRecon/TkrRecon RecNtupleAlg.h
 
