@@ -2,6 +2,21 @@
 #ifndef TKRGEOMETRYSVC_H
 #define TKRGEOMETRYSVC_H 1
 
+/** 
+ * @class TkrGeometrySvc
+ *
+ * @brief Supplies the geometry constants and calculations to the TkrRecon Package
+ *
+ * The constants all flow from GlastDetSvc.
+ * 
+ * The calculations are done locally, with some help from the GlastDetSvc. 
+ * Probably should be moved to to GlastDetSvc.
+ * 
+ * @author Leon Rochester
+ *
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometrySvc.h,v 1.13 2002/08/31 17:51:39 lsrea Exp $
+ */
+
 #include "GaudiKernel/Service.h"
 
 #include "TkrRecon/ITkrGeometrySvc.h"
@@ -10,20 +25,6 @@
 #include "idents/VolumeIdentifier.h"
 
 enum { NVIEWS=2, NLAYERS=18, NTOWERS=16};
-
-/** 
- * @class TkrGeometrySvc
- *
- * @brief Supplies the geometry constants and calculations to the TkrRecon Package
- *
- * The constants all flow from GlastDetSvc.
- * 
- * The calculations are done locally, with some help from the GlastDetSvc
- * 
- * @author Leon Rochester
- *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometrySvc.h,v 1.12 2002/06/22 01:12:58 lsrea Exp $
- */
 
 class TkrGeometrySvc : public Service,
         virtual public ITkrGeometrySvc

@@ -4,19 +4,6 @@ using namespace std;
 
 TkrGeometryVisitor::TkrGeometryVisitor() : m_mode("propagate") {}
 
-/*
-* This is a toy example, which illustrates the features of a visitor
-*
-* This visitor looks for silicon layers in tower number 9, 
-* and prints out the parameters associated with them.  
-*
-* For each volume, idvec[0] is that volume's piece of the volume identifier.
-* For the tray, the view is stored in idvec[1].
-*	
-* For a box, there are 9 parameters. the first 3 are the rotation 
-* from the local frame to the mother frame, the next three the translation, 
-* and the last three, the (half) dimensions of the box.
-*/
 
 IGeometry::VisitorRet
 TkrGeometryVisitor::pushShape(ShapeType s, const UintVector& idvec, string name, 
@@ -29,6 +16,18 @@ TkrGeometryVisitor::pushShape(ShapeType s, const UintVector& idvec, string name,
     //              material
     //              params   -- vector of the 6 transformation parameters
     //                          followed by 3 or more dimensions, depending on th shape
+
+    // This is a toy example, which illustrates the features of a visitor
+    //
+    // This visitor looks for silicon layers in tower number 9, 
+    // and prints out the parameters associated with them.   
+    //
+    // For each volume, idvec[0] is that volume's piece of the volume identifier.
+    // For the tray, the view is stored in idvec[1].
+    //	
+    // For a box, there are 9 parameters. the first 3 are the rotation 
+    // from the local frame to the mother frame, the next three the translation, 
+    // and the last three, the (half) dimensions of the box.
 
     int i;
     

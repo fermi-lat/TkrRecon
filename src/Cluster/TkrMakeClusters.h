@@ -1,18 +1,6 @@
 #ifndef TKRMAKECLUSTERS_H
 #define TKRMAKECLUSTERS_H 
 
-#include <vector>
-#include "GaudiKernel/MsgStream.h"
-#include "GaudiKernel/DataObject.h"
-#include "geometry/Point.h"
-#include "gui/DisplayRep.h"
-#include "Event/Digi/TkrDigi.h"
-#include "Event/Recon/TkrRecon/TkrCluster.h"
-#include "Event/Recon/TkrRecon/TkrClusterCol.h"
-#include "TkrRecon/ITkrGeometrySvc.h"
-#include "TkrRecon/ITkrBadStripsSvc.h"
-
-
 /** 
 * @class TkrMakeClusters
 *
@@ -37,8 +25,19 @@
 
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.8 2002/05/12 05:52:59 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.9 2002/08/31 17:51:41 lsrea Exp $
 */
+
+#include <vector>
+#include "GaudiKernel/MsgStream.h"
+#include "GaudiKernel/DataObject.h"
+#include "geometry/Point.h"
+#include "gui/DisplayRep.h"
+#include "Event/Digi/TkrDigi.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
+#include "Event/Recon/TkrRecon/TkrClusterCol.h"
+#include "TkrRecon/ITkrGeometrySvc.h"
+#include "TkrRecon/ITkrBadStripsSvc.h"
 
 class TkrMakeClusters
 {

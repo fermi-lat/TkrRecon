@@ -12,8 +12,8 @@ static const SvcFactory<TkrBadStripsSvc> s_factory;
 const ISvcFactory& TkrBadStripsSvcFactory = s_factory;
 
 
-/// Service parameters which can be set at run time must be declared.
-/// This should be done in the constructor.
+// Service parameters which can be set at run time must be declared.
+// This should be done in the constructor.
 
 TkrBadStripsSvc::TkrBadStripsSvc(const std::string& name, ISvcLocator* pSvcLocator) :
 Service(name, pSvcLocator)
@@ -43,8 +43,8 @@ StatusCode TkrBadStripsSvc::initialize()
     // commented code in this routine was the original attempt to implement
 	//  the bad strips as a vector of vectors.
 	
-	//int size = 0;
-    //makeCol(size); //make sure that Collection is sensibly initialized
+	// int size = 0;
+    // makeCol(size); //make sure that Collection is sensibly initialized
 
     // If there is no bad strips file, service will do nothing
 	if (m_badStripsFile=="") {        
@@ -57,16 +57,16 @@ StatusCode TkrBadStripsSvc::initialize()
 	// it looks like the problem is that m_level has been set to INFO before this call,
 	// but I have no idea who does this. Something for another day.
 
-	//std::cout << " about to send a debug and an info message" << std::endl;
-	//log << MSG::DEBUG << "Test 1 Debug"<< endreq;
-	//log << MSG::INFO << "Test 1 Info"<< endreq;
+	// std::cout << " about to send a debug and an info message" << std::endl;
+	// log << MSG::DEBUG << "Test 1 Debug"<< endreq;
+	// log << MSG::INFO << "Test 1 Info"<< endreq;
 
     // this method resolves environmental variables in the file name
 	xml::IFile::extractEnvVar(&m_badStripsFile);    
     log << MSG::INFO << "Input file for bad strips: " << m_badStripsFile << endreq;
 
 	// another test
-	//log << MSG::DEBUG << "Test 2"<< endreq;
+	// log << MSG::DEBUG << "Test 2"<< endreq;
 
     // open bad strips file
     std::ifstream file;
@@ -85,7 +85,7 @@ StatusCode TkrBadStripsSvc::initialize()
     m_nlayers = pTkrGeom->numLayers();
     m_nviews  = pTkrGeom->numViews();
 
-    //This is to test that TkrGeometrySvc is initialized... is there a better way?
+    // This is to test that TkrGeometrySvc is initialized... is there a better way?
 	// or is this needed at all?
 	
     if ((m_ntowers<1) || (m_ntowers>25) || (m_nlayers<1) 
@@ -102,8 +102,8 @@ StatusCode TkrBadStripsSvc::initialize()
 	
 	file.close();
 	
-	//log << MSG::DEBUG<< "m_stripsCol has " << 
-	    //m_stripsCol.size() << " elements" << endreq;
+	// log << MSG::DEBUG<< "m_stripsCol has " << 
+	//      m_stripsCol.size() << " elements" << endreq;
 	log << MSG::DEBUG<< "m_stripsCol has " << 
 		576 << " elements" << endreq;
            
@@ -230,7 +230,7 @@ v_strips* TkrBadStripsSvc::getBadStrips(const int index)
 	// Inputs:   index
 	// Outputs:  pointer to that vector
 
-    //int ind = (m_stripsCol.size()==0) ? m_stripsCol.size() : index;
+    // int ind = (m_stripsCol.size()==0) ? m_stripsCol.size() : index;
     int ind = (index<0 || index>575) ? 0 : index;
     return &m_stripsCol[ind];
 }

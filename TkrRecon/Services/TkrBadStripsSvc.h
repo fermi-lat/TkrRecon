@@ -2,14 +2,6 @@
 #ifndef TKRBADSTRIPSSVC_H
 #define TKRBADSTRIPSSVC_H 
 
-#include "GaudiKernel/Service.h"
-
-#include "TkrRecon/ITkrBadStripsSvc.h"
-#include "TkrRecon/ITkrGeometrySvc.h"
-
-#include <string>
-#include <vector>
-
 /** 
  * @class BadStripsSvc
  *
@@ -39,8 +31,16 @@
  *
  * @author Leon Rochester
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrBadStripsSvc.h,v 1.2 2002/02/26 07:09:02 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrBadStripsSvc.h,v 1.3 2002/08/31 17:51:39 lsrea Exp $
  */
+
+#include "GaudiKernel/Service.h"
+
+#include "TkrRecon/ITkrBadStripsSvc.h"
+#include "TkrRecon/ITkrGeometrySvc.h"
+
+#include <string>
+#include <vector>
 
 class TkrBadStripsSvc : public Service,
         virtual public ITkrBadStripsSvc
