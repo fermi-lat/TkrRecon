@@ -9,6 +9,7 @@
 #include "gui/GuiMgr.h"
 
 #include "TkrRecon/SiClustersAlg.h"
+//include "TkrRecon/TkrAxis.h"
 
 #include <algorithm>
 
@@ -93,8 +94,9 @@ StatusCode SiClustersAlg::execute()
         v_strips* badStrips = 0;
         int badStripsSize = 0;
         if (pBadStrips) {
-            badStrips = pBadStrips->getBadStrips(tower, layer, view);
+            badStrips = pBadStrips->getBadStrips(tower, layer, (TkrAxis::axis) view);
             if (badStrips) badStripsSize = badStrips->size();
+            int sizex = badStrips->size();
         }
 
         //Make a local vector big enough to hold everything
@@ -236,7 +238,8 @@ bool SiClustersAlg::isGapBetween(const int lowStrip, const int highStrip)
     if (highHit > (lowHit + 1)) { return true; }
     
     //edge of chip -- hardwired number may come back to plague us...
-    if((lowHit/64) < (highHit/64)) {return true; }
+    int nStrips = pTkrGeo->ladderNStrips();
+    if((lowHit/nStrips) < (highHit/nStrips)) {return true; }
     
     return false;
 }
