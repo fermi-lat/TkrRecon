@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrQueryClusters.cxx,v 1.11 2002/07/31 00:38:57 atwood Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrQueryClusters.cxx,v 1.12 2002/08/31 17:51:41 lsrea Exp $
 //
 // Description:
 //      TkrQueryClusters is a container for Tkr clusters, and has the methods
@@ -24,8 +24,7 @@ Point TkrQueryClusters::meanHit(Event::TkrCluster::view v, int layer)
     
     Point Pini(0.,0.,0);
     
-    // Kludge to prevent crashes when requested layer out of range
-    if (layer < 0 || layer >= Event::TkrClusterCol::NPLANES) return Pini;
+    if (!validLayer(layer)) return Pini;
     
     int nhits = m_pClus->nHits(v,layer);
     if (nhits == 0) return Pini;
@@ -51,8 +50,7 @@ Point TkrQueryClusters::meanHitInside(Event::TkrCluster::view v, int layer, doub
     
     Point P(0.,0.,0);
     
-    // Kludge to prevent crashes when requested layer out of range
-    if (layer < 0 || layer >= Event::TkrClusterCol::NPLANES) return P;
+    if (!validLayer(layer)) return P;
     
     std::vector<Event::TkrCluster*> AuxList = m_pClus->getHits(v,layer);
     int nhits = AuxList.size();
@@ -110,8 +108,7 @@ Point TkrQueryClusters::nearestHitOutside(Event::TkrCluster::view v, int layer,
     Point Pnear(0.,0.,0.);
     id = -1;
     
-    // Kludge to prevent crashes when requested layer out of range
-    if (layer < 0 || layer >= Event::TkrClusterCol::NPLANES) return Pnear;
+    if (!validLayer(layer)) return Pnear;
     
     int nhits = m_pClus->nHits(v,layer);
     if (nhits == 0) return Pnear;
@@ -180,8 +177,7 @@ int TkrQueryClusters::numberOfHitsNear( int layer, double dX, double dY, Point& 
     
     int numHits = 0;
     
-    // Kludge to prevent crashes when requested layer out of range
-    if (layer < 0 || layer >= Event::TkrClusterCol::NPLANES) return numHits;
+    if (!validLayer(layer)) return numHits;
     
     //Look for hits in the X view of desired layer
     std::vector<Event::TkrCluster*> clusterList = m_pClus->getHits(Event::TkrCluster::X, layer);
@@ -221,8 +217,7 @@ int TkrQueryClusters::numberOfHitsNear( Event::TkrCluster::view v, int layer, do
     
     int numHits = 0;
     
-    // Kludge to prevent crashes when requested layer out of range
-    if (layer < 0 || layer >= Event::TkrClusterCol::NPLANES) return numHits;
+    if (!validLayer(layer)) return numHits;
     
     // Look for hits in the desired view of the given layer
     std::vector<Event::TkrCluster*> clusterList = m_pClus->getHits(v, layer);
@@ -244,5 +239,4 @@ int TkrQueryClusters::numberOfHitsNear( Event::TkrCluster::view v, int layer, do
 }
 
 double TkrQueryClusters::s_towerPitch;
-
-
+int TkrQueryClusters::s_numLayers;

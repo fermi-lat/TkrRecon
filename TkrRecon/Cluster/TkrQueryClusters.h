@@ -18,7 +18,7 @@
 *
 * @authors Bill Atwood, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.7 2002/05/12 05:52:57 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.8 2002/08/31 17:51:39 lsrea Exp $
 */
 
 class TkrQueryClusters
@@ -46,13 +46,26 @@ public:
     int numberOfHitsNear( int layer, double dX, double dY, Point& x0);
     /// Finds the number of clusters within "inDistance" of a point and within one tower.
     int numberOfHitsNear( Event::TkrCluster::view v, int layer, double inDistance, Point& x0);
+
+    void setTowerPitch(int pitch) { s_towerPitch = pitch;}
+    void setNumLayers(int num)    { s_numLayers = num;}
+
+    /// Checks that a layer number is in the correct range
+    bool validLayer(int layer) {return (layer>=0 && layer < s_numLayers-1);};
+
     
-	/// gets filled with towerPitch 	
-    static double s_towerPitch;
 
 private:
 	/// pointer to the TkrClusterCol
     Event::TkrClusterCol* m_pClus;
+
+    /// gets filled with towerPitch 	
+    static double s_towerPitch;
+    /// gets filled with numLayers
+    static int s_numLayers;
+
+
+
 };
 
 #endif // TKRQUERYCLUSTERS
