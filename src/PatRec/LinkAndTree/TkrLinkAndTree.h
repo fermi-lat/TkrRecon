@@ -2,7 +2,7 @@
 #ifndef TKRLINKANDTREE_H
 #define TKRLINKANDTREE_H
 
-#include "Event/Recon/TkrRecon/TkrPatCandCol.h"
+#include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "src/PatRec/LinkAndTree/TkrLinkForest.h"
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"

@@ -32,14 +32,15 @@ void TkrCandidate3DRep::update()
     //Now see if we can do the drawing
     if (pTkrCandidates)
     {
-        int numCandTracks = pTkrCandidates->getNumCands();
-        int colorIdx      = 0;
+        int                     numCandTracks = pTkrCandidates->size();
+        Event::TkrPatCandColPtr cands         = pTkrCandidates->begin();
+        int                     colorIdx      = 0;
 
     //        gui::DisplayRep* pDisplay = this;
 
         while(numCandTracks--)
         {
-            Event::TkrPatCand* pTkrCand = pTkrCandidates->getTrack(numCandTracks);
+            Event::TkrPatCand* pTkrCand = *cands++;
 
             //Put a marker at the start of the candidate
             Point  strtPoint = pTkrCand->getPosition();

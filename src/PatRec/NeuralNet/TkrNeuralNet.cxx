@@ -240,7 +240,7 @@ void TkrNeuralNet::buildCand()
                     TkrPatCand* newTrack = new TkrPatCand(_track->getLayer(),
                         _track->getTower(),energy,_track->getQuality(),_track->getRay());
 
-                    addTrack(newTrack);
+                    push_back(newTrack);
 
                     //_track->flagAllHits();
 

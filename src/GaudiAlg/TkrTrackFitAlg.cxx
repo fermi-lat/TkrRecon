@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.3 2002/09/05 12:44:19 cohen Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.4 2002/09/05 16:42:30 lsrea Exp $
 //
 // Description:
 //      Controls the track fitting
@@ -13,7 +13,7 @@
 #include <vector>
 #include "TkrRecon/GaudiAlg/TkrTrackFitAlg.h"
 #include "Event/Recon/TkrRecon/TkrFitTrack.h"
-#include "Event/Recon/TkrRecon/TkrPatCandCol.h"
+#include "Event/Recon/TkrRecon/TkrPatCand.h"
 
 #include "Event/Recon/CalRecon/CalCluster.h"
 #include "Event/TopLevel/EventModel.h"
@@ -130,8 +130,8 @@ StatusCode TkrTrackFitAlg::execute()
     sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrFitTrackCol, tracks);
 
     // Ok, now set up to loop over candidate tracks
-    int                     numCands = pTkrCands->getNumCands();
-    Event::CandTrkVectorPtr cands    = pTkrCands->getTrackPtr();
+    int                     numCands = pTkrCands->size();
+    Event::TkrPatCandColPtr cands    = pTkrCands->begin();
     
     // Go through each candidate and pass to the Gaudi Tool performing the fit
     // Note that the Gaudi tool will add successfully fit tracks to the fit track collection
