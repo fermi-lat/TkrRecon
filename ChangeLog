@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: igable  Fri Mar  2 19:34:07 PST 2001
+TkrRecon/src/Dll TkrRecon_load.cpp
+
+Modified Files:
+	TkrRecon_load.cpp 
+Log Message:
+Minor changes to the way TdSiData gets loaded.
+
+    *
+------------------------------------------------------------
+User: igable  Fri Mar  2 19:34:07 PST 2001
 TkrRecon/src SiClustersAlg.cxx SiClustersIRFAlg.cxx SiLayersIRFAlg.cpp
 
 Modified Files:
