@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Thu Jun 14 13:35:49 PDT 2001
+TkrRecon/src McReconAlg.cxx
+
+Modified Files:
+	McReconAlg.cxx 
+Log Message:
+Include missing ntuple variables comparing tracking to MC
+
+    *
+------------------------------------------------------------
 User: burnett  Mon Jun 11 10:37:03 PDT 2001
 TkrRecon/src McReconAlg.cxx
 
