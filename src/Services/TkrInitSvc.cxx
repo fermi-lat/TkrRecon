@@ -26,7 +26,7 @@ Service(name, pSvcLocator)
     declareProperty("TkrIniErrorPosition",   m_IniErrorPosition   = control->getIniErrPosition()    );
     declareProperty("TkrPlaneEnergies",      m_PlaneEnergies      = control->getPlaneEnergies()     );
 
-    return;	
+    return; 
 }
 
 StatusCode TkrInitSvc::initialize()

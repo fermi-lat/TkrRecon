@@ -28,17 +28,17 @@ void TkrComboVtxRep::update()
 
         for(iter = pVertices->begin(); iter != pVertices->end(); ++iter)
         {
-	        const Event::TkrVertex& pVertex = **iter;
-	  
-	        Point startPoint = Point(pVertex.getPosition());
-	  
-	        // draw reconstructed gamma
-	        setColor("yellow");
-	        markerAt(startPoint);
-	        moveTo(startPoint);
-	        lineTo(startPoint - 1000.*pVertex.getDirection());
-	        setColor("black");
-	    }
+            const Event::TkrVertex& pVertex = **iter;
+      
+            Point startPoint = Point(pVertex.getPosition());
+      
+            // draw reconstructed gamma
+            setColor("yellow");
+            markerAt(startPoint);
+            moveTo(startPoint);
+            lineTo(startPoint - 1000.*pVertex.getDirection());
+            setColor("black");
+        }
     }
   
     return;

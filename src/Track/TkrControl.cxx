@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrControl.cxx,v 1.3 2002/08/28 22:55:48 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrControl.cxx,v 1.4 2002/08/29 19:18:47 usher Exp $
 //
 // Description:
 //      Implements singleton class for storing and retrieving tracker recon control parameters.
@@ -21,9 +21,9 @@ TkrControl::TkrControl()
     m_SigmaCut           = 9.0;  // PR search window (in  sigmas)
     m_MaxChiSqCut        = 20.0; // Max allow PR Chisq. 
 
-    m_MaxConsecutiveGaps = 6;	 // Max consecutive Gaps - Stop
-    m_MinSegmentHits     = 6;	 // Min number of hits for segment
-    m_MinEnergy	         = 30.0; // Min tracking energy (MeV)
+    m_MaxConsecutiveGaps = 6;    // Max consecutive Gaps - Stop
+    m_MinSegmentHits     = 6;    // Min number of hits for segment
+    m_MinEnergy          = 30.0; // Min tracking energy (MeV)
 
     m_IniErrorSlope      = 0.17; // First Hit error in Kalman: 10 deg 
     m_IniErrorPosition   = 0.10; // First Hit error in Kalman: .1 mm
