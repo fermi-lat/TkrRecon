@@ -31,9 +31,10 @@ apply_pattern package_headers
 
 
 macro_append TkrCluster_headers   "" WIN32 " ../TkrRecon/Cluster/*.h ../src/Cluster/*.h"
-macro_append TkrPatRec_headers    "" WIN32 " ../TkrRecon/PatRec/*.h ../src/PatRec/LinkAndTree/*.h ../src/PatRec/Combo/*.h ../src/PatRec/NeuralNet/*.h ../src/PatRec/Utilities/*.h"
+macro_append TkrPatRec_headers    "" WIN32 " ../TkrRecon/PatRec/*.h ../src/PatRec/LinkAndTree/*.h ../src/PatRec/Combo/*.h ../src/PatRec/NeuralNet/*.h"
 macro_append TkrTrack_headers     "" WIN32 " ../TkrRecon/Track/*.h ../TkrRecon/TrackFit/*.h ../src/Track/*.h ../src/TrackFit/*.h ../src/TrackFit/KalmanFilter/*.h ../src/TrackFit/KalFitTrack/*.h"
 macro_append TkrVertex_headers    "" WIN32 " ../TkrRecon/Vertex/*.h ../src/Vertex/Combo/*.h"
+macro_append TkrUtilities_headers "" WIN32 " ../src/Utilities/*.h "
 macro_append TkrGaudiAlgs_headers "" WIN32 " ../TkrRecon/GaudiAlg/*.h ../TkrRecon/Display/*.h ../TkrRecon/Services/*.h "
 
 # have a seperate libraries to divide into manageable sub projects
@@ -60,15 +61,19 @@ library TkrTrack     -no_share Track/*.cxx                     \
                                TrackFit/KalFitTrack/*.cxx      \
                                ${TkrTrack_headers}
 
+library TkrUtilities -no_share Utilities/*.cxx                 \
+                               ${TkrUtilities_headers}
+
 library TkrVertex    -no_share Vertex/*.cxx                    \
                                Vertex/Combo/*.cxx              \
-                               Vertex/DocaVtx/*.cxx              \
+                               Vertex/DocaVtx/*.cxx            \
                                ${TkrVertex_headers}
 
 macro libs ""   WIN32   "$(TkrReconDir)/TkrGaudiAlgs.lib \
                          $(TkrReconDir)/TkrCluster.lib   \
                          $(TkrReconDir)/TkrPatRec.lib    \
                          $(TkrReconDir)/TkrTrack.lib     \
+                         $(TkrReconDir)/TkrUtilities.lib \
                          $(TkrReconDir)/TkrVertex.lib"
 
 macro TkrRecon_linkopts "-L $(TkrReconDir) -lTkrGaudiAlgs -lTkrCluster -lTkrPatRec -lTkrTrack -lTkrVertex" \
