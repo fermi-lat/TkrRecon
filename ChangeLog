@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Thu Aug 22 14:04:55 PDT 2002
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	TkrNeuralNet.cxx TkrNeuralNet.h TkrNeuron.h 
+Log Message:
+Updating for move of Utilities folder
+
+    *
+------------------------------------------------------------
 User: usher  Thu Aug 22 14:04:54 PDT 2002
 TkrRecon/src/PatRec/Combo
 
