@@ -72,6 +72,11 @@ public:
 	inline int chip()      const {return m_chip;}
 	//! returns strip address
 	inline double strip()  const {return m_strip;}
+    //! returns first strip
+    inline int firstStrip()    const {return m_strip0;}
+    //! returns last strip
+    inline int lastStrip()    const {return m_stripf;}
+    //! returns true if the cluster has been flagged
 	//! returns true if the cluster has been flagged
 	bool hitFlagged()      const {return (m_flag!=0);}
 
