@@ -198,14 +198,14 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     // Set up parameters for KalParticle swim through entire tracker
     Point x_ini = r1.position(); 
     Vector dir_ini = r1.direction(); 
-    double arc_tot = (x_ini.z() + 600.) / fabs(dir_ini.z());
+    double arc_tot = x_ini.z() / fabs(dir_ini.z()); // z=0 at top of grid
     
     IKalmanParticle* kalPart = TkrReconAlg::m_KalParticle;
     kalPart->setStepStart(x_ini, dir_ini, arc_tot);
     // Setup summed var's and loop over all layers between x_ini & cal
     int num_thin_hits = 0;
     int num_thck_hits = 0;
-    double arc_len = 0.; 
+    double arc_len    = 0.; 
     int top_plane     = first_track->getLayer(); 
     
     int max_planes = GFtutor::numPlanes();
@@ -219,11 +219,11 @@ void TkrComboPatRec::setEnergies(double calEnergy)
             xms = Q.getcovX0X0();
             yms = Q.getcovY0Y0();
         }
-        double xSprd = sqrt(1.+xms*6.25);
+        double xSprd = sqrt(1.+xms*6.25); // 2.5 sigma 
         double ySprd = sqrt(1.+yms*6.25);
         if(xSprd > 500.) xSprd = GFtutor::trayWidth();
         if(ySprd > 500.) ySprd = GFtutor::trayWidth();
-        Point x_hit  = r1.position(arc_len);
+        Point x_hit = r1.position(arc_len);
         int numHits = TkrQueryClusters(GFtutor::_DATA).numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
         if(iplane > 12) num_thck_hits += numHits; //Hardwire # thin planes
         else            num_thin_hits += numHits;
@@ -236,7 +236,8 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     
     double ene_total  =  (ene_trks + ene_xing)/fabs(dir_ini.z()) + cal_Energy;
     
-    // Now constrain the energies of the first 2 tracks
+    // Now constrain the energies of the first 2 tracks. 
+    //    This isn't valid for non-gamma conversions
     int num_cands = getNumCands(); 
     if(num_cands == 1) {
         first_track->setEnergy(ene_total);
@@ -248,7 +249,7 @@ void TkrComboPatRec::setEnergies(double calEnergy)
         int num_hits2 = secnd_track->numPatCandHits();
         double e1 = first_track->getEnergy();
         double e2 = secnd_track->getEnergy();
-        double e1_min = 2.*num_hits1;    //Coefs are MeV/Hits
+        double e1_min = 2.*num_hits1;        //Coefs are MeV/Hits
         double e2_min = 2.*num_hits2;
         
         if(e1 < e1_min) e1 = e1_min;
@@ -275,8 +276,8 @@ void TkrComboPatRec::setEnergies(double calEnergy)
 }
 
 void TkrComboPatRec::findBlindCandidates()
-{   // Method to generate track hypothesis from just the hits in the
-    // tracker.
+{   // Method to generate track hypothesis from just the 
+    // hits in the tracker.
     
     int max_planes = GFtutor::numPlanes();
     
@@ -286,7 +287,8 @@ void TkrComboPatRec::findBlindCandidates()
     for (int ilayer = m_firstLayer; ilayer < max_planes-2; ilayer++)
     { 
         // Termination Criterion
-        if(localBestHitCount > 10 && ilayer - m_TopLayer > 1) break;
+        if(localBestHitCount > GFcontrol::minTermHitCount && 
+                                     ilayer - m_TopLayer > 1) break;
         
         // Create space point loops and check for hits
         TkrPoints first_Hit(ilayer);
@@ -310,7 +312,7 @@ void TkrComboPatRec::findBlindCandidates()
                 TkrPoints secnd_Hit(ilayer+igap);               
                 while(!secnd_Hit.finished()) {
                     Point x2(secnd_Hit.getSpacePoint());
-                    if(x2.x()==0.) continue; //Flag Hits can mask the true finish.
+                    if(x2.x()==0.) continue; //Flagged Hits can mask the true finish.
                     
                     // Check relative locations of the x and y co-ordinates and correct
                     double deltaX = x2.x()-x1.x();
@@ -332,7 +334,7 @@ void TkrComboPatRec::findBlindCandidates()
                     int gap;
                     float deflection, sigma; 
                     
-                    //Again allow up to blank layers depending on 1st 2 hits
+                    //Allow up to 2 blank layers depending on 1st 2 hits
                     int gap_max  = 3-igap;
                     if(gap_max < 1) gap_max = 1;
                     for(gap = 0; gap < gap_max; gap++) {
@@ -372,7 +374,8 @@ void TkrComboPatRec::findCalCandidates()
     for (int ilayer = 0 ; ilayer < max_planes-2; ilayer++)
     { 
         // Should we continue?  
-        if(localBestHitCount > 10 && ilayer - m_TopLayer > 1) break;
+        if(localBestHitCount > GFcontrol::minTermHitCount && 
+                                     ilayer - m_TopLayer > 1) break;
         
         // Create space point loop and check for hits
         TkrPoints first_Hit(ilayer);
@@ -390,6 +393,7 @@ void TkrComboPatRec::findCalCandidates()
             t1 = t1.unit();
             if(fabs(t1.z()) < .19) continue; 
             
+            // Don't allow Oversized SSD clusters to start track
             double x_size = first_Hit.xSize();
             double y_size = first_Hit.ySize(); 
             
@@ -402,18 +406,19 @@ void TkrComboPatRec::findCalCandidates()
                 TkrPoints secnd_Hit(klayer);
                 if(secnd_Hit.finished()) continue;
                 
-                //Try the first closest hits to first hit - cal hit line
+                //Try the first 3 closest hits to 1st-hit - cal-hit line
                 double pred_dist = (klayer-ilayer)*GFtutor::trayGap()/fabs(t1.z()); 
                 Point x_pred = x1 + pred_dist*t1;
                 double resid_min = 0.; 
+                double resid_max = 30./fabs(t1.z()); //Max resid: 30 mm hardwired in 
                 for(int k_trys = 0; k_trys < 3; k_trys++){
                     Vector x2 = secnd_Hit.getNearestPointOutside(x_pred, resid_min);
-                    if(resid_min > 50.) break; //Hardwired 50mm deviation
+                    if(resid_min > resid_max) break; 
                     resid_min += .01; 
                     
                     // Check relative locations of the x and y co-ordinates and correct
-                    double deltaX = x2.x()-x1.x();
-                    double deltaY = x2.y()-x1.y();
+                    double deltaX  = x2.x()-x1.x();
+                    double deltaY  = x2.y()-x1.y();
                     double deltaZx = x2.z()-x1.z();
                     double deltaZy = x2.z()-x1.z();
                     if(first_Hit.x_Layer() && !secnd_Hit.x_Layer()) {
@@ -436,6 +441,11 @@ void TkrComboPatRec::findCalCandidates()
                         delete trial;
                         continue;
                     }
+                    if(trial->track()->getQuality() > 10) {
+                        int num_trial_hits = trial->track()->getNumHits();
+                        if(num_trial_hits > localBestHitCount) localBestHitCount = num_trial_hits; 
+                    }
+  
                     incorporate(trial);
                     if(ilayer < m_TopLayer) m_TopLayer = ilayer;
                 }
@@ -455,7 +465,7 @@ float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
     if(next_Hit.finished()) return m_cut+1;
     
     Point sample_x(next_Hit.getSpacePoint()); 
-    if(sample_x.mag() < .001) return m_cut+1; //Required because of hti sharing
+    if(sample_x.mag() < .001) return m_cut+1; //Required because of hit sharing
     
     double costh = fabs(traj.direction().z());    
     //    m_arclen = GFtutor::trayGap()/costh + arc_len; 
@@ -463,13 +473,14 @@ float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
     Point x_pred(traj.position(m_arclen));
     
     double resid =0.;
+    double resid_max = 30./costh; //Max resid: 30 mm hardwired in 
     m_nextHit = next_Hit.getNearestPointOutside(x_pred, resid);
-    if(resid > 150.) return m_cut+1; // Hardwired 150 mm max miss
+    if(resid > resid_max) return m_cut+1; 
     
     deflection = traj.direction() * ((m_nextHit-traj.position()).unit());
     
     
-    double rad_len = (layer < 12) ? .045:.183;
+    double rad_len = (layer < 12) ? .045:.183; //Hardwire in rad. lengths
     rad_len /= costh; 
     double theta_MS = 13.6/m_energy * sqrt(rad_len)*(1+.038*log(rad_len));
     double dist_MS  = m_arclen *theta_MS/1.72/costh; 
@@ -491,7 +502,7 @@ void TkrComboPatRec::incorporate(Candidate* trial)
             (m_candidates[i]->track())->compareFits( *trial->track()); 
         int numHits = m_candidates[i]->track()->getNumHits();
         int numTest = (numHits < numTrialHits) ? numHits : numTrialHits;
-        if (numHitsOverLapped > numTest - 4) { 
+        if (numHitsOverLapped > numTest - 4) {// must have > 4 unique hits
             if(trial->quality() > m_candidates[i]->quality()) {
                 delete m_candidates[i];  
                 m_candidates.erase(&m_candidates[i]); 
@@ -535,10 +546,11 @@ m_deflection(d)
 , m_sigma(s)
 , m_gap(g)
 {
-    // Do a priliminary Fit using TkrKalTrack to find the rest of the hits
+    // Do a prelim. Fit using TkrKalTrack to find all the hits
     Ray testRay(x,t);   
     m_track = new KalFitTrack(layer, twr, m_sigma, e, testRay); 
     m_track->findHits();
+    if(m_track->status()==KalFitTrack::EMPTY) return; 
     m_track->doFit();
 
     // Check X**2 for the Track
@@ -546,15 +558,15 @@ m_deflection(d)
         m_track->setStatus(KalFitTrack::EMPTY);
         return;
     }
-    
-    m_deflection = m_track->getKink(2); //Angle between 1st 2 segs.
+    //Angle between 1st 2 segs.
+    m_deflection = m_track->getKink(2); 
     if(m_deflection > 3.) m_deflection = 0.;
     else  m_deflection = cos(m_deflection);
     
     double sigmas_def = m_track->getKinkNorma(2);
     if(sigmas_def > 9.) sigmas_def = 1.; 
     
-    //Set CLuster size penalty
+    //Set Cluster size penalty
     double size_penalty = 0.; 
     TkrFitPlaneConPtr pln_pointer = m_track->getHitIterBegin();
     
@@ -569,10 +581,11 @@ m_deflection(d)
         if(hit_proj == TkrCluster::X) {
             slope = tkr_par.getXSlope();
         }        
-        int hit_Id = plane.getIDHit();;
-        double cls_size = GFtutor::_DATA->size(hit_proj, hit_Id);        
-        double prj_size = 400.*fabs(slope)/228. + 2.;
-        double over_size = cls_size-prj_size;
+        int    hit_Id    = plane.getIDHit();;
+        double cls_size  = GFtutor::_DATA->size(hit_proj, hit_Id);        
+        double prj_size  = GFtutor::siThickness()*fabs(slope)/
+                           GFtutor::siStripPitch() + 2.;
+        double over_size = cls_size - prj_size;
         
         if(over_size > 0) {
             if(i_Hit < 6)       size_penalty +=    over_size;
@@ -583,8 +596,11 @@ m_deflection(d)
         pln_pointer++;
     }
 
-    // The parameter sets the order of the tracks to be considered
-    double pr_quality = m_track->getQuality() - 1.5*sigmas_def - 7.*layer - size_penalty;   
+    // This parameter sets the order of the tracks to be considered
+    // Penalities: big kinks at start, begining later in stack, and
+    //             using lots of oversized clusters.  
+    double pr_quality = m_track->getQuality() - 1.5*sigmas_def - 
+                                            7.*layer - size_penalty;   
     setQuality(pr_quality);
 }
 
