@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/MonteCarlo/TkrMcPatCandTool.cxx,v 1.5 2003/08/07 16:09:35 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/MonteCarlo/TkrMcPatCandTool.cxx,v 1.1 2003/08/08 20:02:41 usher Exp $
 //
 // Description:
 //      Tool for returning information from the Monte Carlo/Recon relational tables which have been constructed
@@ -19,8 +19,8 @@
 
 #include "Event/TopLevel/EventModel.h"
 #include "TkrRecon/MonteCarlo/TkrEventModel.h"
-#include "TkrRecon/MonteCarlo/McEventStructure.h"
-#include "TkrRecon/MonteCarlo/McLayerHit.h"
+#include "Event/MonteCarlo/McEventStructure.h"
+#include "Event/MonteCarlo/McSiLayerHit.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
 
 
@@ -92,8 +92,8 @@ public:
     {
         bool                     leftTest   = false;
 
-        const Event::McLayerHit* mcHitLeft  = left->getSecond();
-        const Event::McLayerHit* mcHitRight = right->getSecond();
+        const Event::McSiLayerHit* mcHitLeft  = left->getSecond();
+        const Event::McSiLayerHit* mcHitRight = right->getSecond();
 
         // Find the McPositionHit associated with the McParticle
         const Event::McPositionHit* mcPosHitLeft  = findMcPosHit(mcHitLeft);
@@ -108,12 +108,12 @@ public:
         return leftTest;
     }
 private:
-    const Event::McPositionHit* findMcPosHit(const Event::McLayerHit* mcLayerHit)
+    const Event::McPositionHit* findMcPosHit(const Event::McSiLayerHit* McSiLayerHit)
     {
-        const Event::McParticle*    mcPart = mcLayerHit->getMcParticle();
+        const Event::McParticle*    mcPart = McSiLayerHit->getMcParticle();
         const Event::McPositionHit* mcHit  = 0;
 
-        const SmartRefVector<Event::McPositionHit>* mcPosHitVec = mcLayerHit->getMcPositionHitsVec();
+        const SmartRefVector<Event::McPositionHit>* mcPosHitVec = McSiLayerHit->getMcPositionHitsVec();
         for(SmartRefVector<Event::McPositionHit>::const_iterator hitIter  = mcPosHitVec->begin();
                                                                  hitIter != mcPosHitVec->end(); hitIter++)
         {
@@ -141,13 +141,13 @@ int TkrMcPatCandTool::getNumMcTracks()
     int numMcTracks = 0;
 
     // Retrieve the pointer to the McEventStructure
-    SmartDataPtr<Event::McEventStructure> mcEvent(m_dataSvc,TkrEventModel::MC::McEventStructure);
+    SmartDataPtr<Event::McEventStructure> mcEvent(m_dataSvc,EventModel::MC::McEventStructure);
 
     // If it doesn't exist then we need to build the MC structure
     if (mcEvent != 0)
     {
         // Retrieve the McParticle to hit relational table
-        SmartDataPtr<Event::McPartToHitTabList> hitTable(m_dataSvc,TkrEventModel::MC::McPartToHitTab);
+        SmartDataPtr<Event::McPartToHitTabList> hitTable(m_dataSvc,EventModel::MC::McPartToHitTab);
         Event::McPartToHitTab mcPartToHitTab(hitTable);
 
         // If primary particle is charged then count if it is a track

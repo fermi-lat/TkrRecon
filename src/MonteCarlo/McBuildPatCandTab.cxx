@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/MonteCarlo/McBuildPatCandTab.cxx,v 1.1 2003/08/04 20:11:24 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/MonteCarlo/McBuildPatCandTab.cxx,v 1.2 2003/08/07 16:09:05 usher Exp $
  */
 #include "McBuildPatCandTab.h"
 #include "GaudiKernel/SmartDataPtr.h"
@@ -14,7 +14,7 @@
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
 
-#include "TkrRecon/MonteCarlo/McLayerHit.h"
+#include "Event/MonteCarlo/McSiLayerHit.h"
 #include "TkrRecon/MonteCarlo/McPatCand.h"
 
 Event::McBuildPatCandTab::McBuildPatCandTab(DataSvc* dataSvc)
@@ -76,7 +76,7 @@ Event::McBuildPatCandTab::McBuildPatCandTab(DataSvc* dataSvc)
             for(Event::ClusToLyrHitVec::iterator lyrHitIter = lyrHits.begin(); lyrHitIter != lyrHits.end(); lyrHitIter++)
             {
                 Event::ClusToLyrHitRel*  lyrHitRel = *lyrHitIter;
-                Event::McLayerHit*       lyrHit    = lyrHitRel->getSecond();
+                Event::McSiLayerHit*     lyrHit    = lyrHitRel->getSecond();
                 const Event::McParticle* mcPart    = lyrHit->getMcParticle();
 
                 Event::PatHitToLyrHitRel* patHitRel = new Event::PatHitToLyrHitRel(candHit, lyrHit);

@@ -9,7 +9,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrBuildMcRelationsAlg.cxx,v 1.2 2003/08/08 20:06:24 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrBuildMcRelationsAlg.cxx,v 1.3 2003/08/19 00:17:53 usher Exp $
  */
 
 #include "GaudiKernel/MsgStream.h"
@@ -24,8 +24,8 @@
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
 
 #include "TkrRecon/MonteCarlo/TkrEventModel.h"
-#include "TkrRecon/MonteCarlo/McEventStructure.h"
-#include "TkrRecon/MonteCarlo/McLayerHit.h"
+#include "Event/MonteCarlo/McEventStructure.h"
+#include "Event/MonteCarlo/McSiLayerHit.h"
 #include "TkrRecon/MonteCarlo/McPatCand.h"
 #include "src/MonteCarlo/McBuildTracks.h"
 
@@ -84,7 +84,7 @@ StatusCode TkrBuildMcRelationsAlg::execute()
     StatusCode sc = StatusCode::SUCCESS;
 
     // Retrieve the pointer to the McEventStructure
-    SmartDataPtr<Event::McEventStructure> mcEvent(eventSvc(),TkrEventModel::MC::McEventStructure);
+    SmartDataPtr<Event::McEventStructure> mcEvent(eventSvc(),EventModel::MC::McEventStructure);
 
     // If it doesn't exist then we need to build the MC structure
     if (mcEvent == 0)
@@ -111,7 +111,7 @@ StatusCode TkrBuildMcRelationsAlg::execute()
         mcEvent = new Event::McEventStructure(eventSvc(), ppsvc);
 
         //Store in the Tkr TDS 
-        sc = eventSvc()->registerObject(TkrEventModel::MC::McEventStructure, mcEvent);
+        sc = eventSvc()->registerObject(EventModel::MC::McEventStructure, mcEvent);
         if (sc.isFailure())
         {
             throw GaudiException("Cannot store the McEventStructure in the TDS", name(), sc);
@@ -142,9 +142,9 @@ void TkrBuildMcRelationsAlg::buildPatCandRelations()
     Event::TkrClusterCol* pTkrClus  = SmartDataPtr<Event::TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol); 
 
     // Look up the Monte Carlo track tables
-    SmartDataPtr<Event::ClusToLyrHitTabList> tkrTable(eventSvc(),TkrEventModel::MC::McClusToLyrHitTab);
+    SmartDataPtr<Event::ClusToLyrHitTabList> tkrTable(eventSvc(),EventModel::MC::McClusToLyrHitTab);
     Event::ClusToLyrHitTab clusToLyrHitTab(tkrTable);
-    SmartDataPtr<Event::McPartToHitTabList> partTable(eventSvc(),TkrEventModel::MC::McPartToHitTab);
+    SmartDataPtr<Event::McPartToHitTabList> partTable(eventSvc(),EventModel::MC::McPartToHitTab);
     Event::McPartToHitTab mcPartToHitTab(partTable);
 
     //Create the pattern track relational tables
@@ -202,7 +202,7 @@ void TkrBuildMcRelationsAlg::buildPatCandRelations()
             for(Event::ClusToLyrHitVec::iterator lyrHitIter = lyrHits.begin(); lyrHitIter != lyrHits.end(); lyrHitIter++)
             {
                 Event::ClusToLyrHitRel*  lyrHitRel = *lyrHitIter;
-                Event::McLayerHit*       lyrHit    = lyrHitRel->getSecond();
+                Event::McSiLayerHit*     lyrHit    = lyrHitRel->getSecond();
                 const Event::McParticle* mcPart    = lyrHit->getMcParticle();
 
                 Event::PatHitToLyrHitRel* patHitRel = new Event::PatHitToLyrHitRel(candHit, lyrHit);

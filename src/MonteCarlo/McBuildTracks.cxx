@@ -6,14 +6,14 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/MonteCarlo/McBuildTracks.cxx,v 1.4 2003/08/19 00:17:54 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/MonteCarlo/McBuildTracks.cxx,v 1.5 2003/08/21 02:42:32 usher Exp $
  */
 #include "McBuildTracks.h"
 #include "GaudiKernel/SmartDataPtr.h"
 #include "Event/TopLevel/EventModel.h"
 #include "TkrRecon/MonteCarlo/TkrEventModel.h"
 
-#include "TkrRecon/MonteCarlo/McLayerHit.h"
+#include "Event/MonteCarlo/McSiLayerHit.h"
 
 Event::McBuildTracks::McBuildTracks(IDataProviderSvc* dataSvc)
 {
@@ -31,13 +31,13 @@ Event::McBuildTracks::McBuildTracks(IDataProviderSvc* dataSvc)
     mcLyrToHitTab.init();
 
     //Store these objects in the TDS
-    sc = dataSvc->registerObject(TkrEventModel::MC::McPartToHitTab,mcPartToHitTab.getAllRelations());
-    sc = dataSvc->registerObject(TkrEventModel::MC::McClusToLyrHitTab,clusToLyrHitTab.getAllRelations());
-    sc = dataSvc->registerObject(TkrEventModel::MC::McLyrToHitTab,mcLyrToHitTab.getAllRelations());
+    sc = dataSvc->registerObject(EventModel::MC::McPartToHitTab,mcPartToHitTab.getAllRelations());
+    sc = dataSvc->registerObject(EventModel::MC::McClusToLyrHitTab,clusToLyrHitTab.getAllRelations());
+    sc = dataSvc->registerObject(EventModel::MC::McLyrToHitTab,mcLyrToHitTab.getAllRelations());
 
-    //Create the container for any McLayerHits we might create
-    Event::McLayerHitCol* mcLayerHits = new Event::McLayerHitCol();
-    sc = dataSvc->registerObject(TkrEventModel::MC::McLayerHitCol, mcLayerHits);
+    //Create the container for any McSiLayerHits we might create
+    Event::McSiLayerHitCol* McSiLayerHits = new Event::McSiLayerHitCol();
+    sc = dataSvc->registerObject(EventModel::MC::McSiLayerHitCol, McSiLayerHits);
 
     //Recover the McPositionHit to Cluster relational table
     SmartDataPtr<Event::ClusMcPosHitTabList> tkrTable(dataSvc,EventModel::Digi::TkrClusterHitTab);
@@ -50,10 +50,10 @@ Event::McBuildTracks::McBuildTracks(IDataProviderSvc* dataSvc)
     SmartDataPtr<Event::McPositionHitVector> posHits(dataSvc, EventModel::MC::McPositionHitCol);
 
     Event::TkrCluster*       lastCluster = 0;
-    Event::McLayerHit*       layerHit    = 0;
+    Event::McSiLayerHit*     layerHit    = 0;
     const Event::McParticle* curParticle = 0;
 
-    // Loop through McPositionHits to build McLayerHits 
+    // Loop through McPositionHits to build McSiLayerHits 
     Event::McPositionHitVector::const_iterator hit;
     for (hit = posHits->begin(); hit != posHits->end(); hit++ ) 
     {
@@ -85,13 +85,13 @@ Event::McBuildTracks::McBuildTracks(IDataProviderSvc* dataSvc)
         int view    = curVolId[5];
         int layer   = 2*trayNum - 1 + botTop;
 
-        // If an unseen cluster, then create a new McLayerHit, else use a previous one
+        // If an unseen cluster, then create a new McSiLayerHit, else use a previous one
         if (lastCluster != tkrCluster || curParticle != mcPart)
         {
             curParticle = mcPart;
             layerHit    = 0;
 
-            // First step is to search for an McLayerHit associated with this mcPart 
+            // First step is to search for an McSiLayerHit associated with this mcPart 
             // which uses the current cluster
             Event::McPartTrack mcPartTrack = mcPartToHitTab.getRelByFirst(mcPart);
             if (mcPartTrack.size() > 0)
@@ -100,7 +100,7 @@ Event::McBuildTracks::McBuildTracks(IDataProviderSvc* dataSvc)
                 Event::McPartTrack::const_iterator tempIter;
                 for(tempIter = mcPartTrack.begin(); tempIter != mcPartTrack.end(); tempIter++)
                 {
-                    Event::McLayerHit* lastHit = (*tempIter)->getSecond();
+                    Event::McSiLayerHit* lastHit = (*tempIter)->getSecond();
                     const Event::TkrCluster* vecClus = lastHit->getTkrCluster();
 
                     // Did we find one?
@@ -115,30 +115,30 @@ Event::McBuildTracks::McBuildTracks(IDataProviderSvc* dataSvc)
             //No previous layerHit, so make a new one
             if (!layerHit) 
             {
-                layerHit = new Event::McLayerHit(curParticle);
+                layerHit = new Event::McSiLayerHit(curParticle);
 
                 layerHit->setTkrCluster(tkrCluster);
 
-                mcLayerHits->push_back(layerHit);
+                McSiLayerHits->push_back(layerHit);
 
-                // Relate the current McParticle to this McLayerHit
+                // Relate the current McParticle to this McSiLayerHit
                 Event::McPartToHitRel* partHitRel = new Event::McPartToHitRel(const_cast<Event::McParticle*>(mcPart), layerHit);
                 mcPartToHitTab.addRelation(partHitRel);
 
-                // Relate this McLayerHit to the TkrCluster and add to table
+                // Relate this McSiLayerHit to the TkrCluster and add to table
                 Event::ClusToLyrHitRel* clusToLyrRel = new Event::ClusToLyrHitRel(tkrCluster, layerHit);
                 clusToLyrHitTab.addRelation(clusToLyrRel);
 
-                // Take the time to check if a cluster is shared by different McLayerHits
+                // Take the time to check if a cluster is shared by different McSiLayerHits
                 Event::ClusToLyrHitVec clusHitVec = clusToLyrHitTab.getRelByFirst(tkrCluster);
                 
                 if (clusHitVec.size() > 1)
                 {
-                    //Go through and set the "shared" bits in the McLayerHits
+                    //Go through and set the "shared" bits in the McSiLayerHits
                     for(Event::ClusToLyrHitVec::iterator clusHitVecIter = clusHitVec.begin();
                         clusHitVecIter != clusHitVec.end(); clusHitVecIter++)
                     {
-                        (*clusHitVecIter)->getSecond()->setStatusBit(Event::McLayerHit::SHAREDCLUS);
+                        (*clusHitVecIter)->getSecond()->setStatusBit(Event::McSiLayerHit::SHAREDCLUS);
                     }
                 }
             }
@@ -147,7 +147,7 @@ Event::McBuildTracks::McBuildTracks(IDataProviderSvc* dataSvc)
         // Add the McPositionHit 
         layerHit->addMcPositionHit(mcPosHit);
  
-        // Relate this McLayerHit to McPositionHit and add to table
+        // Relate this McSiLayerHit to McPositionHit and add to table
         Event::McLyrToHitRel* lyrToHitRel = new Event::McLyrToHitRel(layerHit, const_cast<Event::McPositionHit*>(mcPosHit));
         mcLyrToHitTab.addRelation(lyrToHitRel);
 

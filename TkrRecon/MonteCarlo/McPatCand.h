@@ -5,7 +5,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/McTrackTool.h,v 1.1 2003/03/12 23:36:36 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/MonteCarlo/McPatCand.h,v 1.1 2003/08/04 19:57:40 usher Exp $
  */
 #include "GaudiKernel/ContainedObject.h"
 #include "GaudiKernel/SmartRefVector.h"
@@ -13,28 +13,28 @@
 #include "Event/MonteCarlo/McParticle.h"
 #include "Event/RelTable/RelTable.h"
 
-#include "TkrRecon/MonteCarlo/McLayerHit.h"
+#include "Event/MonteCarlo/McSiLayerHit.h"
 
 namespace Event {
 
 // typedefs for relating TkrPatCands to McParticles (hence MC tracks)
-typedef Event::RelTable<Event::TkrPatCandHit, Event::McParticle> PatHitToMcPartTab;
-typedef Event::Relation<Event::TkrPatCandHit, Event::McParticle> PatHitToMcPartRel;
-typedef ObjectList<PatHitToMcPartRel>                            PatHitToMcPartTabList;
-typedef std::vector<PatHitToMcPartRel*>                          PatHitToMcPartVec;
+typedef Event::RelTable<Event::TkrPatCandHit, Event::McParticle>   PatHitToMcPartTab;
+typedef Event::Relation<Event::TkrPatCandHit, Event::McParticle>   PatHitToMcPartRel;
+typedef ObjectList<PatHitToMcPartRel>                              PatHitToMcPartTabList;
+typedef std::vector<PatHitToMcPartRel*>                            PatHitToMcPartVec;
 
 // typedefs for relating TkrPatCands to McPatCands
 class McPatCand;
-typedef Event::RelTable<Event::TkrPatCand, Event::McPatCand>     PatCandToMcCandTab;
-typedef Event::Relation<Event::TkrPatCand, Event::McPatCand>     PatCandToMcCandRel;
-typedef ObjectList<Event::PatCandToMcCandRel>                    PatCandToMcCandTabList;
-typedef std::vector<Event::PatCandToMcCandRel*>                  PatCandToMcCandVec;
+typedef Event::RelTable<Event::TkrPatCand, Event::McPatCand>       PatCandToMcCandTab;
+typedef Event::Relation<Event::TkrPatCand, Event::McPatCand>       PatCandToMcCandRel;
+typedef ObjectList<Event::PatCandToMcCandRel>                      PatCandToMcCandTabList;
+typedef std::vector<Event::PatCandToMcCandRel*>                    PatCandToMcCandVec;
 
-// typdefs for relating pattern track hits to McLayerHits
-typedef Event::RelTable<Event::TkrPatCandHit, Event::McLayerHit> PatHitToLyrHitTab;
-typedef Event::Relation<Event::TkrPatCandHit, Event::McLayerHit> PatHitToLyrHitRel;
-typedef ObjectList<PatHitToLyrHitRel>                            PatHitToLyrHitTabList;
-typedef std::vector<Event::PatHitToLyrHitRel*>                   PatHitToLyrHitVec;
+// typdefs for relating pattern track hits to McSiLayerHits
+typedef Event::RelTable<Event::TkrPatCandHit, Event::McSiLayerHit> PatHitToLyrHitTab;
+typedef Event::Relation<Event::TkrPatCandHit, Event::McSiLayerHit> PatHitToLyrHitRel;
+typedef ObjectList<PatHitToLyrHitRel>                              PatHitToLyrHitTabList;
+typedef std::vector<Event::PatHitToLyrHitRel*>                     PatHitToLyrHitVec;
 
 
 class McPatCand : virtual public ContainedObject, public Event::PatHitToMcPartTab

@@ -2,8 +2,8 @@
 #include "TkrRecon/MonteCarlo/TkrEventModel.h"
 #include "Event/TopLevel/EventModel.h"
 
-#include "TkrRecon/MonteCarlo/McEventStructure.h"
-#include "TkrRecon/MonteCarlo/McLayerHit.h"
+#include "Event/MonteCarlo/McEventStructure.h"
+#include "Event/MonteCarlo/McSiLayerHit.h"
 
 //------------------------------------------------------------------------------
 /// Algorithm parameters which can be set at run time must be declared.
@@ -20,7 +20,7 @@ TkrMcTracksRep::TkrMcTracksRep(IDataProviderSvc* dataProviderSvc)
 void TkrMcTracksRep::update()
 //##############################################
 {
-    SmartDataPtr<Event::McEventStructure> mcEvent(dps,TkrEventModel::MC::McEventStructure);
+    SmartDataPtr<Event::McEventStructure> mcEvent(dps,EventModel::MC::McEventStructure);
 
     // no McEvent, no picture
     if (mcEvent)
@@ -53,8 +53,8 @@ public:
     {
         bool                     leftTest   = false;
 
-        const Event::McLayerHit* mcHitLeft  = left->getSecond();
-        const Event::McLayerHit* mcHitRight = right->getSecond();
+        const Event::McSiLayerHit* mcHitLeft  = left->getSecond();
+        const Event::McSiLayerHit* mcHitRight = right->getSecond();
 
         // Find the McPositionHit associated with the McParticle
         const Event::McPositionHit* mcPosHitLeft  = findMcPosHit(mcHitLeft);
@@ -68,12 +68,12 @@ public:
         return leftTest;
     }
 private:
-    const Event::McPositionHit* findMcPosHit(const Event::McLayerHit* mcLayerHit)
+    const Event::McPositionHit* findMcPosHit(const Event::McSiLayerHit* McSiLayerHit)
     {
-        const Event::McParticle*    mcPart = mcLayerHit->getMcParticle();
+        const Event::McParticle*    mcPart = McSiLayerHit->getMcParticle();
         const Event::McPositionHit* mcHit  = 0;
 
-        const SmartRefVector<Event::McPositionHit>* mcPosHitVec = mcLayerHit->getMcPositionHitsVec();
+        const SmartRefVector<Event::McPositionHit>* mcPosHitVec = McSiLayerHit->getMcPositionHitsVec();
         for(SmartRefVector<Event::McPositionHit>::const_iterator hitIter  = mcPosHitVec->begin();
                                                                  hitIter != mcPosHitVec->end(); hitIter++)
         {
@@ -93,7 +93,7 @@ void TkrMcTracksRep::drawTrack(const Event::McParticle* mcPart, const std::strin
     gui::DisplayRep* pDisplay = this;
 
     // Retrieve the McParticle to hit relational table
-    SmartDataPtr<Event::McPartToHitTabList> hitTable(dps,TkrEventModel::MC::McPartToHitTab);
+    SmartDataPtr<Event::McPartToHitTabList> hitTable(dps,EventModel::MC::McPartToHitTab);
     Event::McPartToHitTab mcPartToHitTab(hitTable);
 
     // Find the hits associated with this mcPart
@@ -107,7 +107,7 @@ void TkrMcTracksRep::drawTrack(const Event::McParticle* mcPart, const std::strin
     for(hitIter = hitVec.begin(); hitIter != hitVec.end(); hitIter++)
     {
         Event::McPartToHitRel*   mcHitRel = *hitIter;
-        Event::McLayerHit*       lyrHit   =  mcHitRel->getSecond();
+        Event::McSiLayerHit*     lyrHit   =  mcHitRel->getSecond();
 
         const SmartRefVector<Event::McPositionHit>* mcPosHitVec = lyrHit->getMcPositionHitsVec();
         SmartRefVector<Event::McPositionHit>::const_iterator mcPosHitIter = mcPosHitVec->begin();
