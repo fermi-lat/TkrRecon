@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Mon Sep  2 00:09:17 PDT 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrBadStripsSvc.cxx 
+Log Message:
+upgrade as per Joanne's suggestion; more doc
+    *
+------------------------------------------------------------
 User: lsrea  Mon Sep  2 00:08:45 PDT 2002
 TkrRecon/TkrRecon/Services
 
