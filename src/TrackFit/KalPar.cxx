@@ -1,5 +1,5 @@
 
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/KalFit.cxx,v 1.2 2001/02/13 01:50:34 igable Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalPar.cxx,v 1.1 2001/11/26 21:51:11 usher Exp $
 
 //----------------------------------------------------------------------
 //    
@@ -14,7 +14,7 @@
 #include "TkrRecon/TrackFit/KalPar.h"
 #include "geometry/Ray.h"
 
-KalPar::KalPar(Ray &ray) : HepVector(4)
+KalPar::KalPar(const Ray &ray) : HepVector(4)
 {
     Vector dir = ray.direction();
     Point  x0  = ray.position();
@@ -28,7 +28,7 @@ KalPar::KalPar(Ray &ray) : HepVector(4)
     operator[](3) = y_slope;
 }
 
-KalPar::KalPar(Ray *ray) : HepVector(4)
+KalPar::KalPar(const Ray *ray) : HepVector(4)
 {
     Vector dir = ray->direction();
     Point  x0  = ray->position();
