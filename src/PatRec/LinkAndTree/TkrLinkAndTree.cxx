@@ -125,7 +125,7 @@ void TkrLinkAndTree::buildCand3D()
             if (maxLength >= 17-pTreeY->getFirstLayer()) break;
         }
 
-        int minLength = maxLength > 11 ? maxLength / 3 : 3;
+        int minLength = maxLength > 11 ? maxLength / 3 : 2;
 
         xIter = pForestX->getListStart();
         yIter = pForestY->getListStart();
