@@ -1,4 +1,19 @@
 ------------------------------------------------------------
+User: usher  Thu Sep 23 14:30:25 PDT 2004
+TkrRecon/doc/KalVtx
+
+Modified Files:
+	img10.png img11.png img12.png img13.png img14.png img15.png 
+	img16.png img17.png img18.png img19.png img2.png img20.png 
+	img21.png img22.png img23.png img24.png img25.png img26.png 
+	img3.png img4.png img5.png img6.png img7.png img8.old img8.png 
+	img9.png 
+Log Message:
+Significant updates to TkrRecon:
+1) New TkrCluster, TkrTrack, TkrTrackHit and TkrTrackParams usage 
+2) Beginnings of code rearrangement to better reflect usage
+    *
+------------------------------------------------------------
 User: usher  Thu Sep 23 14:30:24 PDT 2004
 TkrRecon/cmt
 
