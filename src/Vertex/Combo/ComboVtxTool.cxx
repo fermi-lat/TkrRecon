@@ -151,7 +151,7 @@ StatusCode ComboVtxTool::findVtxs()
 				int layer = tkr1ID.getLayer();
 				int plane = tkr1ID.getPlane();
 				double radLen = m_tkrGeom->getRadLenConv(layer);
-				if(plane%2 == 1) zVtx += radLen/2./3.5 + .2; 
+				if(plane%2 == 1) zVtx += radLen/2./3.5 + .4; 
 				status |= Event::TkrVertex::TWOTKRVTX | Event::TkrVertex::FIRSTHIT;
 			}
 			else if((docaZPos-tkr1Pos.z()) > 0. && 
@@ -165,14 +165,14 @@ StatusCode ComboVtxTool::findVtxs()
             
 			// Propagate the TkrParams to the vertex location
 			m_propagatorTool->setStepStart(tkr1Params, tkr1Pos.z(), (sv1 < 0));
-			m_propagatorTool->step(-sv1);
-			Event::TkrTrackParams vtx1Params = m_propagatorTool->getTrackParams(-sv1, e1, (sv1 < 0));
+			m_propagatorTool->step(fabs(sv1));
+			Event::TkrTrackParams vtx1Params = m_propagatorTool->getTrackParams(fabs(sv1), e1, (sv1 < 0));
 			double extraRadLen = m_propagatorTool->getRadLength();
 
 			double e2 = track2->getInitialEnergy();
 			m_propagatorTool->setStepStart(tkr2Params, tkr2Pos.z(), (sv2 < 0));
-			m_propagatorTool->step(-sv2);
-			Event::TkrTrackParams vtx2Params = m_propagatorTool->getTrackParams(-sv2, e2, (sv2 < 0));
+			m_propagatorTool->step(fabs(sv2));
+			Event::TkrTrackParams vtx2Params = m_propagatorTool->getTrackParams(fabs(sv2), e2, (sv2 < 0));
 
 			// Get the covariance weighted average (Note this method also computes
 			// the chi-square for the association. Results in m_chisq)
@@ -192,7 +192,10 @@ StatusCode ComboVtxTool::findVtxs()
                 newVertex->setEnergy(e1 + e2);
                 newVertex->setChiSquare(m_chisq);
                 newVertex->setQuality(trial_quality);
-                newVertex->setAddedRadLen(extraRadLen); 
+                newVertex->setAddedRadLen(extraRadLen);
+				newVertex->setDOCA(dist);
+				newVertex->setTkr1ArcLen(sv1);
+				newVertex->setTkr2ArcLen(sv2);
                 newVertex->clearStatusBits();
 		        newVertex->setStatusBit(status);
 
@@ -248,7 +251,8 @@ Event::TkrTrackParams& ComboVtxTool::getParamAve(Event::TkrTrackParams& params1,
 	KFmatrix cov2_res = cov2-cov_ave;
 	cov2_res.invert(matInvErr);
 
-	HepVector chisq = (vec1-vec_ave).T()*(cov1_res*(vec1-vec_ave)) + (vec2-vec_ave).T()*(cov2_res*(vec2-vec_ave));
+	HepVector chisq = (vec1-vec_ave).T()*(cov1_res*(vec1-vec_ave)) + 
+		              (vec2-vec_ave).T()*(cov2_res*(vec2-vec_ave));
     m_chisq = chisq(1);
 
 	return *aveParam;

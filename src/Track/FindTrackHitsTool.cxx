@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.15 2004/12/16 05:04:22 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.16 2004/12/17 23:24:04 usher Exp $
  */
 
 // to turn one debug variables
@@ -100,6 +100,7 @@ private:
 	double m_LHsigma;          // Size of search region in sigmas for appending leading SSD clusters
 	double m_rej_sigma;        // The rejection track limit for being inside an active area with no cluster
 	double m_max_gap_dist;     // Max. allowed error in mm when testing for gap edges
+	double m_max_slope;        // Max. allowed abs(slope)
 };
 
 static ToolFactory<FindTrackHitsTool> s_factory;
@@ -123,6 +124,7 @@ AlgTool(type, name, parent)
 	declareProperty("LeadingHitsSigmaSize", m_LHsigma = 3.); 
 	declareProperty("GapRejectionSigmaSize", m_rej_sigma = 2.); 
 	declareProperty("GapMaxRejectionSize", m_max_gap_dist = 10.); 
+	declareProperty("MaxAllowedSlope", m_max_slope = 5.); 
 
     return;
 }
@@ -242,7 +244,13 @@ StatusCode FindTrackHitsTool::findTrackHits(Event::TkrTrack* track)
 				int numY = track->getNumYHits() + 1;
 			    track->setNumYHits(numY);
 		    }
+		// Check that the new slopes are within boungs
+		    double  meas_slope = trackHit->getMeasuredSlope(Event::TkrTrackHit::FILTERED);
+		    if(fabs(meas_slope) > m_max_slope) break;
+		    double  non_meas_slope = trackHit->getNonMeasuredSlope(Event::TkrTrackHit::FILTERED);
+		    if(fabs(non_meas_slope) > m_max_slope) break;
 		}
+
         // update the "last" hit
         lastHit = trackHit;
 	}
@@ -630,21 +638,25 @@ int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
   // Dependencies: None
   // Restrictions and Caveats:  None
 
+	// Store the hit search region sigma and replace with control for adding hits
     double sigma_temp = m_sigma; 
 	m_sigma  = m_LHsigma; 
-	int  planes_crossed  = 0;
 
 	// Get the first hit on the track
 	Event::TkrTrackHit* lastHit = (*track)[0];
 	double cur_energy = lastHit->getEnergy();
 	Point initial_pos  = track->getInitialPosition();
-	Point next_pos; 
 
 	// Loop until no more track hits found
+	int  planes_crossed  = 0;
+	int  added_hits      = 0.; 
     while(Event::TkrTrackHit* trackHit = findNextHit(lastHit, true))
     {
 		// Check to see that a SSD cluster was found
 		planes_crossed++;
+
+		// If this is the second plane, it must have a valid cluster
+		if(planes_crossed > 1 && !trackHit->validCluster()) break;
 	
 		lastHit = trackHit;
 		trackHit->setEnergy(cur_energy);
@@ -659,37 +671,27 @@ int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
 		trackHit->setStatusBit(Event::TkrTrackHit::HASFILTERED);
 
         // Add this to the head of the track
+		added_hits++;
 		track->insert(track->begin(), trackHit);
 		// and update the track initial position
 		Point start_pos = m_propagatorTool->getPosition(arc_len);
-		if(planes_crossed == 1) next_pos = start_pos;
 		track->setInitialPosition(start_pos);
-
-		if(trackHit->validCluster()) {
-			if(Event::TkrTrackHit::MEASURESX) {
-			    int numX = track->getNumXHits() + 1;
-			    track->setNumXHits(numX);
-		    }
-		    else {
-		        int numY = track->getNumYHits() + 1;
-			    track->setNumYHits(numY);
-		    }
-		}
 
 		// Limited the number of leading hits to 2 or less
 		if(planes_crossed == 2) break;
 	}
+
+    // Trap the case where the first added plane didn't have a SSD Cluster
 	lastHit = (*track)[0];
 	if(!lastHit->validCluster()) {
-        track->erase(track->begin());
-		track->setInitialPosition(next_pos);
-	}
-	lastHit = (*track)[0];
-	if(!lastHit->validCluster()) {
+		added_hits--;
         track->erase(track->begin());
 		track->setInitialPosition(initial_pos);
 	}
+	// Restore search cut
 	m_sigma = sigma_temp; 
-    return planes_crossed; 
+	
+	// Return the number of planes added to track
+    return added_hits; 
 }
 
