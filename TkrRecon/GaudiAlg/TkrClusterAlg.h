@@ -5,7 +5,7 @@
 #include <vector>
 #include "geometry/Point.h"
 #include "GlastEvent/Hits/SiLayers.h"
-#include "TkrRecon/Cluster/TkrClusters.h"
+#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "TkrRecon/ITkrBadStripsSvc.h"
 
@@ -17,7 +17,7 @@
 /** 
 * @class TkrClusterAlg
 *
-* @brief Algorithm to construct TkrClusters/TkrCluster
+* @brief Algorithm to construct TkrClusterCol/TkrCluster
 *
 * Adapted from SiCluster of Jose Hernando. 
 *
@@ -25,7 +25,7 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrClusterAlg.h,v 1.2 2002/02/26 01:50:54 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrClusterAlg.h,v 1.3 2002/04/30 23:18:07 lsrea Exp $
 */
 
 class TkrClusterAlg : public Algorithm
@@ -36,21 +36,21 @@ public:
     virtual ~TkrClusterAlg() {}
     /// Looks for the geometry service (required) and the bad strips service (optional)
     StatusCode initialize();
-    /// Recovers pointer to Tkr digis, makes TkrClusters/TkrCluster
+    /// Recovers pointer to Tkr digis, makes TkrClusterCol/TkrCluster
     StatusCode execute();
     StatusCode finalize();
     
 private:
     
 	/// pointer to geometry service
-    ITkrGeometrySvc*  pTkrGeo;
+    ITkrGeometrySvc*         pTkrGeo;
 	/// pointer to bad strips service
-    ITkrBadStripsSvc* pBadStrips;
+    ITkrBadStripsSvc*        pBadStrips;
     
 	/// pointer to Tkr digis
-    TkrDigiCol*       m_TkrDigis;
-	/// pointer to generated TkrClusters
-    TkrClusters*      m_TkrClusters;
+    TkrDigiCol*              m_TkrDigis;
+	/// pointer to generated TkrClusterCol
+    TkrRecon::TkrClusterCol* m_TkrClusterCol;
 };
 
 #endif //  TKRCLUSTERALG_H

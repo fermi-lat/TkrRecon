@@ -15,7 +15,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header$
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrFindAlg.h,v 1.3 2002/05/01 04:10:33 lsrea Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -29,7 +29,7 @@ public:
     
 private:
     /// pointer to the patrec algorithm
-    TkrPatRecon* pPatRecon;
+    TkrRecon::TkrPatRecon* pPatRecon;
 };
 
 #endif  // __TKRFINDALG_H

@@ -5,7 +5,7 @@
 #include "GaudiKernel/Algorithm.h"
 
 #include "TkrRecon/Track/TkrTrackFit.h"
-#include "TkrRecon/Cluster/TkrClusters.h"
+#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
 
 #include "GlastSvc/Reco/IKalmanParticle.h"
 
@@ -19,9 +19,8 @@
  * 
  * @author Tracy Usher
  *
- * $Header$
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrReconAlg.h,v 1.8 2002/05/01 04:10:33 lsrea Exp $
  */
-
 
 class TkrReconAlg : public Algorithm
 {
@@ -39,10 +38,10 @@ public:
 private:
 	
 	/// clusters information
-	TkrClusters* m_TkrClusters;
+    TkrRecon::TkrClusterCol* m_TkrClusters;
 
     /// Fit control information
-    TkrTrackFit* m_TrackFit;
+    TkrRecon::TkrTrackFit* m_TrackFit;
 
     /// Propagator type, currently RcParticle or G4Propagator
     int    m_PropagatorType;
