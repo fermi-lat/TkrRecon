@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Apr 13 11:33:54 PDT 2004
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Prepare for tag v8r12p9
+first go at slope-dependent errors: controlled by TkrInitSvc.TkrErrorType; default is 0, meaning "good old errors"
+    *
+------------------------------------------------------------
 User: lsrea  Tue Apr 13 11:33:53 PDT 2004
 TkrRecon/TkrRecon/Services
 
