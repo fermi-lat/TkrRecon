@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: lsrea  Fri Mar  8 16:58:07 PST 2002
+TkrRecon/TkrRecon/GaudiAlg
+
+Modified Files:
+	RecNtupleAlg.h TkrNtupleAlg.h TkrReconAlg.h 
+Log Message:
+Remove unused GFxxx.h, .cxx and SiRecObjs.h,.cxx files, 
+and comment out references to them in the remaining files.
+These are mainly the ntuple algorithms, which need fixing anyway.
+GFcontrol and GFtutor are still needed.
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Mar  8 16:58:06 PST 2002
 TkrRecon/TkrRecon/Display
 
