@@ -14,7 +14,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/ITkrGeometrySvc.h,v 1.11 2002/08/31 17:51:38 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/ITkrGeometrySvc.h,v 1.12 2002/09/02 23:29:53 lsrea Exp $
  */
 
 static const InterfaceID IID_ITkrGeometrySvc(905, 1 , 0); 
@@ -51,11 +51,17 @@ public:
 
     // Digi and Reco layers differ in the ordering
     virtual int ilayer(int layer)=0; // deprecated
+    /// convert from digi<->recon layer number
     virtual int reverseLayerNumber(int layer)=0;
 
-    // Return the strip position (in local coordinates) given the stripId
+    /// Return the strip position (in local coordinates) given the stripId
     virtual HepPoint3D getStripPosition( int tower, int layer, int view, 
         double stripId) = 0;
+
+    /// Return z position for layer and view
+    virtual double getReconLayerZ(int layer, int view) = 0;
+    /// Return average z position for a layer
+    virtual double getReconLayerZ(int layer) = 0;
 };
 
 #endif

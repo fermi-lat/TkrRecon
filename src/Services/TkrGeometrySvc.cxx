@@ -255,10 +255,10 @@ StatusCode TkrGeometrySvc::fillLayerZ()
 
 double TkrGeometrySvc::getReconLayerZ(int layer, int view)
 {
-    // Purpose:
-    // Method:
-    // Inputs
-    // Outputs:
+    // Purpose: returns the z for a given plane and view
+    // Method:  accesses m_layerZ
+    // Inputs   layer and view
+    // Outputs: z position
     // Caveats:
 
     int digiLayer = reverseLayerNumber(layer);
@@ -274,4 +274,12 @@ double TkrGeometrySvc::getReconLayerZ(int layer, int view)
     }
 }
     
-
+double TkrGeometrySvc::getReconLayerZ(int layer) 
+{
+    // Purpose: returns the average z for a given layer
+    // Method:  call getReconLayerZ with 2nd argument
+    // Inputs   layer
+    // Outputs: z position
+    // Caveats:
+    return getReconLayerZ(layer, 2);
+}
