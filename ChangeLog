@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Jan 28 16:58:19 PST 2005
+TkrRecon/src/Track
+
+Modified Files:
+	TkrTrackEnergyTool.cxx TkrTrackEnergyTool.h 
+Log Message:
+Change TkrTrackEnergyTool.h into an abstract definition for the energy tool. Update TkrTrackEnergyTool accordingly. Will wrestle with renaming TkrTrackEnergyTool.h to ITkrTrackEnergyTool.h later
+    *
+------------------------------------------------------------
 User: usher  Fri Jan 28 15:02:12 PST 2005
 TkrRecon/src/Track
 
