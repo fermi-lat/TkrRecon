@@ -191,26 +191,41 @@ StatusCode TkrTupleValues::calcTupleValues(SiClusters* pClusters, SiRecObjs* pRe
         {
             GFgamma* pGam = pRecObjs->Gamma(ngammas);
 
-            if (pGam->getBest(SiCluster::X)) Tkr_No_X_Trks += 1;
-            if (pGam->getBest(SiCluster::Y)) Tkr_No_Y_Trks += 1;
-            if (pGam->getPair(SiCluster::X)) Tkr_No_X_Trks += 1;
-            if (pGam->getPair(SiCluster::Y)) Tkr_No_Y_Trks += 1;
+            if (!pGam->empty())
+            {
+                if (!pGam->getBest(SiCluster::X)->empty()) Tkr_No_X_Trks += 1;
+                if (!pGam->getBest(SiCluster::Y)->empty()) Tkr_No_Y_Trks += 1;
+                if (!pGam->getPair(SiCluster::X)->empty()) Tkr_No_X_Trks += 1;
+                if (!pGam->getPair(SiCluster::Y)->empty()) Tkr_No_Y_Trks += 1;
+            }
         }
 
+        // Count number of tracks in the particles
+        int nParticles = pRecObjs->numParticles();
+
+        while(nParticles--)
+        {
+            GFparticle* pPart = pRecObjs->Particle(nParticles);
+
+            if (!pPart->empty())
+            {
+                if (!pPart->getXGFtrack()->empty()) Tkr_No_X_Trks += 1;
+                if (!pPart->getYGFtrack()->empty()) Tkr_No_Y_Trks += 1;
+            }
+        }
+
+        // Total number of tracks is just the sum
         Tkr_No_Tracks   = Tkr_No_X_Trks + Tkr_No_Y_Trks;
     
 
-        GFgamma*      gamma   = pRecObjs->Gamma(0);
+        // Right now we are assuming that the first gamma is the "right" gamma
+        GFgamma* gamma  = pRecObjs->Gamma(0);
 
-        if (!gamma)         return sc;
+        // If the gamma has no tracks then no point in going on 
         if (gamma->empty()) return sc;
 
         GFtrack* _Xbest = gamma->getXpair()->getBest();
         GFtrack* _Ybest = gamma->getYpair()->getBest();
-    
-//        data.addData(i_Kal_Energy,gamma->RCenergy());
-//        data.addData(i_Kal_Energy_X, gamma->getXpair()->RCenergy());
-//        data.addData(i_Kal_Energy_Y, gamma->getYpair()->RCenergy());
     
         // Gamma quality
         double type = 0;
@@ -234,20 +249,6 @@ StatusCode TkrTupleValues::calcTupleValues(SiClusters* pClusters, SiRecObjs* pRe
         Tkr_No_Gaps_1st     = _Xbest->numFirstGaps()+_Ybest->numFirstGaps();
         Tkr_No_Noise        = _Xbest->numNoise()+_Ybest->numNoise();
         Tkr_No_Noise_1st    = _Xbest->numFirstNoise()+_Ybest->numFirstNoise();
-    
-        int nxhits = _Xbest->numDataPoints();
-        int nyhits = _Ybest->numDataPoints();
-    
-        if (!gamma->getXpair()->getPair()->empty()) 
-        {
-            int nhits = gamma->getXpair()->getPair()->numDataPoints();
-            if (nhits < nxhits) nxhits = nhits;
-        }
-        if (!gamma->getYpair()->getPair()->empty()) 
-        {
-            int nhits = gamma->getYpair()->getPair()->numDataPoints();
-            if (nhits< nyhits) nyhits = nhits;
-        }
 
         // Pair reconstruction
         Tkr_Fit_XNhits      = _Xbest->nhits();
@@ -263,11 +264,6 @@ StatusCode TkrTupleValues::calcTupleValues(SiClusters* pClusters, SiRecObjs* pRe
 
 
         //Calculate the vertices and directions for everyone...
-//        m_firstLayer = gamma->firstLayer();
-//        m_fitType = 0; // need some work
-//        m_xFactor =XENE;
-//        m_yFactor = XENE;
-    
         Point  x1 = GFdata::doVertex(gamma->getBest(SiCluster::X)->ray(),
                                      gamma->getBest(SiCluster::Y)->ray());
         Vector t1 = GFdata::doDirection(gamma->getBest(SiCluster::X)->direction(),
@@ -329,8 +325,6 @@ StatusCode TkrTupleValues::calcTupleValues(SiClusters* pClusters, SiRecObjs* pRe
             Tkr_YKalEne     = _Ypair->RCenergy();
             Tkr_YKalThetaMS = _Ypair->KalThetaMS();
         }
-    
-//        data.addData(i_e_frac, (m_xFactor+m_yFactor)/2.);
 
         Tkr_errSlopeX       = gamma->getXpair()->errorSlope();
         Tkr_errSlopeY       = gamma->getYpair()->errorSlope();
@@ -345,55 +339,9 @@ StatusCode TkrTupleValues::calcTupleValues(SiClusters* pClusters, SiRecObjs* pRe
         int y_layer         = _Ybest->firstLayer();
         int diffXY          = x_layer - y_layer;
         Tkr_Diff_1st_Hit    = diffXY;
-    
-        // Tracker Recon Analysis Variables
-        //----------------------------------
-    
-        // compute the tracker veto parameters
 
-        // ******* Take Note *******
-//        if(cal == 0)
-//        {
-//            return;
-//        }
-//        m_tkrVeto->compute();
-    
-        // compute the tower/track boundary parameters
-//        m_twrBounds->compute();
-    
-        // compute the "Active_Dist" parameter
-//        m_activeDist->compute();
-    
-        double Zdiff_XY= gamma->getXpair()->vertex().z()-gamma->getYpair()->vertex().z();
-//        data.addData(i_Zdiff_XY, Zdiff_XY);
-        Point firstHit = gamma->getFirstHit();
-        double Zdiff_plane = gamma->vertex().z()-firstHit.z();
-//        data.addData(i_Zdiff_plane,Zdiff_plane);
-    
-        // compute the extra hits parameters
-//        m_extraHits->compute();
-    
-        // compute the CsI corrected energy
-//        m_Ecorr->compute();
-    
-        // make sure the data member for the CsICorrEnergy is set...
-//        m_CsICorrEnergy = m_Ecorr->result()->energyCorr();
-    
-        // kink in the first segment
-//        double fitkink,pairkink,fitkinkN,pairkinkN;
-//        fitkink = TAna_kink(pairkink, fitkinkN, pairkinkN);
-//        data.addData(i_fit_kink,fitkink);
-//        data.addData(i_pair_kink,pairkink);
-//        data.addData(i_fit_kinkN,fitkinkN);
-//        data.addData(i_pair_kinkN,pairkinkN);
-    
-        // hits in the previos and next plane
-//        double previousHits, firstHits, nextHits;
-//        firstHits = TAna_densityHits(previousHits, nextHits);
-//        data.addData(i_hits_previous,previousHits);
-//        data.addData(i_hits_first,firstHits);
-//        data.addData(i_hits_next,nextHits);
-        
+        // Calculate the fit kink quantities
+        calcFitKink(gamma);
     }
     
     return sc;
@@ -474,8 +422,6 @@ StatusCode TkrTupleValues::fillTupleValues(INTupleWriterSvc* pSvc, const char* p
         if ((sc = pSvc->addItem(pName, "TKR_YChisq_1st",      Tkr_YChisq_1st     )).isFailure()) return sc;
         if ((sc = pSvc->addItem(pName, "TKR_YKalEne",         Tkr_YKalEne        )).isFailure()) return sc;
         if ((sc = pSvc->addItem(pName, "TKR_YKalThetaMS",     Tkr_YKalThetaMS    )).isFailure()) return sc;
-    
-//        data.addData(i_e_frac, (m_xFactor+m_yFactor)/2.);
 
         if ((sc = pSvc->addItem(pName, "TKR_errSlopeX",       Tkr_errSlopeX      )).isFailure()) return sc;
         if ((sc = pSvc->addItem(pName, "TKR_errSlopeY",       Tkr_errSlopeY      )).isFailure()) return sc;
@@ -492,7 +438,7 @@ StatusCode TkrTupleValues::fillTupleValues(INTupleWriterSvc* pSvc, const char* p
         if ((sc = pSvc->addItem(pName, "TKR_Fit_Kink",        Tkr_Fit_Kink       )).isFailure()) return sc;
         if ((sc = pSvc->addItem(pName, "TKR_Fit_KinkN",       Tkr_Fit_KinkN      )).isFailure()) return sc;
         if ((sc = pSvc->addItem(pName, "TKR_Pair_Kink",       Tkr_Pair_Kink      )).isFailure()) return sc;
-        if ((sc = pSvc->addItem(pName, "TKR_Pair_Kink",       Tkr_Fit_KinkN      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Pair_KinkN",      Tkr_Fit_KinkN      )).isFailure()) return sc;
     }
     
     return sc;
