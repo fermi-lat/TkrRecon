@@ -17,7 +17,7 @@
 
 #include "TkrRecon/SiClusters.h"
 #include "TkrRecon/SiRecObjs.h"
-#include "TkrRecon/TkrGeometrySvc.h"
+#include "TkrRecon/ITkrGeometrySvc.h"
 
 //----------------------------------------------
 //
@@ -51,7 +51,7 @@ private:
 private:
 
 	// Geometry information
-	TkrGeometrySvc* pTrackerGeo;
+	ITkrGeometrySvc* pTrackerGeo;
 	
 	// clusters information
 	SiClusters* m_SiClusters;
