@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.5 2004/04/20 19:27:19 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.6 2004/04/20 22:03:39 usher Exp $
  */
 
 // Tool and Gaudi related stuff
@@ -120,7 +120,8 @@ const IToolFactory& KalmanTrackFitToolFactory = s_factory;
 
 KalmanTrackFitTool::KalmanTrackFitTool(const std::string& type, const std::string& name, const IInterface* parent) :
                     AlgTool(type, name, parent), m_Qmat(0), m_Hmat(0), m_Tmat(0), m_KalmanFit(0), 
-                                                 m_nMeasPerPlane(0), m_nParams(0), m_fitErrs(0)
+                                                 m_nMeasPerPlane(0), m_nParams(0), m_fitErrs(0),
+                                                 m_HitEnergy(0)
 {
     //Declare the additional interface
     declareInterface<ITkrFitTool>(this);
@@ -571,24 +572,29 @@ void KalmanTrackFitTool::getInitialFitHit(Event::TkrKalFitTrack& track, Event::T
 
     Point initPosition = track.getInitialPosition();
 
-    for(int idx = 0; idx < track.getNumHits(); idx++)
+    int nHitsX = 0;
+    int nHitsY = 0;
+
+    for(int idx = 0; idx < track.getNumHits() && (nHitsX < 2 || nHitsY < 2); idx++)
     {
         Event::TkrFitPlane& fitPlane = track[idx];
         Event::TkrCluster*  cluster  = clusterCol.getHit(fitPlane.getIDHit());
 
         Point  pos  = fitPlane.getPoint(Event::TkrFitHit::MEAS);
 
-        if (cluster->v() == Event::TkrCluster::X)
+        if (cluster->v() == Event::TkrCluster::X && nHitsX < 2)
         {
             x_measCoords.push_back(pos.x() - initPosition.x());
             x_measErrs.push_back(cluster->size() * m_tkrGeo->siResolution());
             x_zCoords.push_back(pos.z() - initPosition.z());
+            nHitsX++;
         }
-        else
+        else if (nHitsY < 2)
         {
             y_measCoords.push_back(pos.y() - initPosition.y());
             y_measErrs.push_back(cluster->size() * m_tkrGeo->siResolution());
             y_zCoords.push_back(pos.z() - initPosition.z());
+            nHitsY++;
         }
     }
 
@@ -600,6 +606,9 @@ void KalmanTrackFitTool::getInitialFitHit(Event::TkrKalFitTrack& track, Event::T
     Vector              trackDir(track.getInitialDirection());
     Event::TkrFitPar    stateFitPar(track.getInitialPosition().x(), trackDir.x()/trackDir.z(),
                                     track.getInitialPosition().y(), trackDir.y()/trackDir.z());
+
+    double initPosX = lineFitX.getPosAt(0.) + initPosition.x();
+    double initPosY = lineFitY.getPosAt(0.) + initPosition.y();
 
     Event::TkrFitPar stateFitPar1(initPosition.x(), lineFitX.getFitSlope(),
                                   initPosition.y(), lineFitY.getFitSlope());
@@ -615,11 +624,11 @@ void KalmanTrackFitTool::getInitialFitHit(Event::TkrKalFitTrack& track, Event::T
 ///    stateCovMat(4,4) += m_control->getIniErrSlope() * m_control->getIniErrSlope();
     KFmatrix initCovMat(4,4);
     initCovMat(1,1) = track[0].getHit(Event::TkrFitHit::MEAS).getCov()(1,1);
-    ////initCovMat(2,2) = 10. * lineFitX.getFitSlopeErr() * lineFitX.getFitSlopeErr();
+    initCovMat(2,2) = lineFitX.getFitSlopeErr() * lineFitX.getFitSlopeErr();
     initCovMat(3,3) = track[0].getHit(Event::TkrFitHit::MEAS).getCov()(3,3);
-    ////initCovMat(4,4) = 10. * lineFitY.getFitSlopeErr() * lineFitY.getFitSlopeErr();
-    initCovMat(2,2) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
-    initCovMat(4,4) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
+    initCovMat(4,4) = lineFitY.getFitSlopeErr() * lineFitY.getFitSlopeErr();
+    ////initCovMat(2,2) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
+    ////initCovMat(4,4) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
 
     Event::TkrFitMatrix stateCovMat(initCovMat);
 
