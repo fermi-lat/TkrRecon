@@ -1,6 +1,5 @@
-
 #include "TkrRecon/Track/GFgamma.h"
-#include "TkrRecon/Track/GFtutor.h"
+
 //-------------------------------------------------------------------------
 //
 //   Gamma
@@ -141,9 +140,9 @@ void GFgamma::draw(gui::DisplayRep& v)
 	_mYpair->draw(v);
 
     // draw reconstructed gamma
-    v.setColor("yellow");
-    v.moveTo(this->vertex());
-    v.lineTo(this->vertex()-300.*this->direction());
+//    v.setColor("yellow");
+//    v.moveTo(this->vertex());
+//    v.lineTo(this->vertex()-300.*this->direction());
     v.setColor("black");
 
 
@@ -175,8 +174,8 @@ Point GFgamma::getFirstHit() const
     double xx = _mXpair->_mGFbest->vertex().x();
     double yy = _mYpair->_mGFbest->vertex().y();
     
-    if (zy > zx) xx = _mXpair->_mGFbest->position(zy-zx);
-    else yy = _mYpair->_mGFbest->position(zx-zy);
+//    if (zy > zx) xx = _mXpair->_mGFbest->position(zy-zx);
+//    else yy = _mYpair->_mGFbest->position(zx-zy);
     
     double zz = (zy > zx? zy : zx);
     
@@ -315,11 +314,11 @@ void GFgamma::loadGFdata()
 {
     m_quality = _mXpair->Q() + _mYpair->Q();
     
-    m_direction = GFdata::doDirection(_mXpair->direction(),_mYpair->direction());
+//    m_direction = GFdata::doDirection(_mXpair->direction(),_mYpair->direction());
     
-    Ray XRay = Ray(_mXpair->vertex(),_mXpair->direction());
-    Ray YRay = Ray(_mYpair->vertex(),_mYpair->direction());
-    m_vertex=GFbase::doVertex( XRay, YRay);
+ //   Ray XRay = Ray(_mXpair->vertex(),_mXpair->direction());
+//    Ray YRay = Ray(_mYpair->vertex(),_mYpair->direction());
+//    m_vertex=GFbase::doVertex( XRay, YRay);
     
     m_RCenergy = 0.5*(_mXpair->RCenergy()+_mYpair->RCenergy());
     
@@ -521,12 +520,12 @@ void GFgamma::associateAnaStep(GFtrack* _GFtrack1, GFtrack* _GFtrack2)
     if (_GFtrack1->numDataPoints() == 0) return;
     if (_GFtrack1->status() != FOUND) return;
     
-    if (!_GFtrack2->m_alive) {
-		if (_GFtrack2->numDataPoints() < GFcontrol::minSegmentHits) _GFtrack1->clear();
-        _GFtrack1->kill();
-    } else {
-	_GFtrack1->associateOrthStep(_GFtrack2);
-    }
+//    if (!_GFtrack2->m_alive) {
+//		if (_GFtrack2->numDataPoints() < GFcontrol::minSegmentHits) _GFtrack1->clear();
+//        _GFtrack1->kill();
+//    } else {
+//	_GFtrack1->associateOrthStep(_GFtrack2);
+//    }
 }
 //#########################################################################
 void GFgamma::associateFit() 
@@ -534,10 +533,10 @@ void GFgamma::associateFit()
 {
     bool fix = m_fixTopology;
     KalHit::TYPE typ = KalHit::SMOOTH;
-    _mXpair->_mGFbest->associateOrthGFtrack(_mYpair->_mGFbest, fix, typ);
-    _mYpair->_mGFbest->associateOrthGFtrack(_mXpair->_mGFbest, fix, typ);
-    _mXpair->_mGFpair->associateOrthGFtrack(_mYpair->_mGFpair, fix, typ);
-    _mYpair->_mGFpair->associateOrthGFtrack(_mXpair->_mGFpair, fix, typ);
+//    _mXpair->_mGFbest->associateOrthGFtrack(_mYpair->_mGFbest, fix, typ);
+//    _mYpair->_mGFbest->associateOrthGFtrack(_mXpair->_mGFbest, fix, typ);
+//    _mXpair->_mGFpair->associateOrthGFtrack(_mYpair->_mGFpair, fix, typ);
+//    _mYpair->_mGFpair->associateOrthGFtrack(_mXpair->_mGFpair, fix, typ);
 }
 
 //#########################################################################
