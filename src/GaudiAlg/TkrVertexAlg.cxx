@@ -17,7 +17,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.20 2004/02/12 05:18:32 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.21 2004/02/17 18:19:39 cohen Exp $
  */
 
 #include "GaudiKernel/IToolSvc.h"
@@ -116,32 +116,22 @@ StatusCode TkrVertexAlg::execute()
     // If vertices already exist then we need to delete them
     if (pVtxCol)
     {
-        //Iterative recon, need to also delete entries in relational table
-        SmartDataPtr<Event::TkrVertexTabList> vtxTable(eventSvc(),EventModel::TkrRecon::TkrVertexTab);
-        Event::TkrVertexTab                   tkrVertexTab(vtxTable);
-
-        //Loop over the vertex collection, extracting vertices one at a time
-        //Note: cannot make iterators work probably because Gaudi ObjectVector erase method
-        //      does not return an iterator ... Use this method instead. 
+        //Loop through and delete all TkrVertex contained objects in the collection
         int colSize = pVtxCol->size();
         while(colSize--)
         {
-            Event::TkrVertexCol::iterator     vtxColIter = pVtxCol->begin();
-            Event::TkrVertex*                 tkrVertex  = *vtxColIter;
-            int                               tabSize    = vtxTable->size();
-            std::vector<Event::TkrVertexRel*> vtxRels    = tkrVertexTab.getRelByFirst(tkrVertex);
+            pVtxCol->pop_back();
+        }
 
-            // Loop over relations containing this TkrVertex, deleting them as we go
-            std::vector<Event::TkrVertexRel*>::iterator vtxRelIter;
-            std::vector<Event::TkrVertexRel*>::iterator endRelIter = vtxRels.end();
-            for(vtxRelIter = vtxRels.begin(); vtxRelIter != vtxRels.end(); vtxRelIter++)
-            {
-                Event::TkrVertexRel* relation = *vtxRelIter;
+        //do the same for all relations between the vertices and tracks
+        //since we delete all of them, don't worry about "erase"ing properly
+        SmartDataPtr<Event::TkrVertexTabList> vtxTable(eventSvc(),EventModel::TkrRecon::TkrVertexTab);
+        Event::TkrVertexTab                   tkrVertexTab(vtxTable);
+        int                                   relTabSize = vtxTable->size();
 
-                tkrVertexTab.erase(relation);
-            }
-
-            pVtxCol->erase(vtxColIter);
+        while(relTabSize--)
+        {
+            vtxTable->pop_back();
         }
     }
     else  
