@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Mar 12 15:36:36 PST 2003
+TkrRecon/src/Track
+
+Added Files:
+	TkrTrackEnergyTool.cxx TkrTrackEnergyTool.h 
+Log Message:
+New tool for estimating individual track energies
+
+    *
+------------------------------------------------------------
 User: usher  Wed Mar 12 15:35:01 PST 2003
 TkrRecon/src/Vertex/Combo
 
