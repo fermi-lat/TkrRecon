@@ -1,4 +1,30 @@
 ------------------------------------------------------------
+User: atwood  Fri Jan 11 15:44:56 PST 2002
+TkrRecon/src/Track
+
+Modified Files:
+	GFcontrol.cxx GFpair.cxx GFtrack.cxx SiRecObjs.cxx 
+Added Files:
+	TkrBase.cxx TkrComboPR.cxx TkrFitTrack.cxx TkrPoints.cxx 
+Log Message:
+
+GFControl modified to "control" new TkrComboPR
+
+GFPair modified to still compile... not used anymore however
+ 
+GFTrack modified to compile ... not used anymore
+
+SiRecObjs modified to call new Tkrxxxx routines
+
+TkrBase - new base class for tracking
+
+TkrCombo - new combinatoric 3D Pr
+
+TkrFitTrack - new 3D fitted track class
+
+TkrPoints - 3D space points for PR
+    *
+------------------------------------------------------------
 User: atwood  Fri Jan 11 15:40:44 PST 2002
 TkrRecon/TkrRecon/Track
 
