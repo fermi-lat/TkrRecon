@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Tue Jan 28 09:28:42 PST 2003
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+Fixed a bug in the way the total energy is divided up in the case of short tracks
+    *
+------------------------------------------------------------
 User: lsrea  Sun Jan 26 16:38:58 PST 2003
 TkrRecon/src/GaudiAlg
 
