@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon Feb 28 17:03:35 PST 2005
+TkrRecon/src/Cluster
+
+Removed Files:
+	TkrMakeClusters.cxx TkrMakeClusters.h 
+Log Message:
+about to tag
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r3p11, operation: add
 Package: TkrRecon
