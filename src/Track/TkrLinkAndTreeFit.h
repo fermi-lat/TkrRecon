@@ -4,19 +4,22 @@
 
 #include <vector>
 #include "GaudiKernel/MsgStream.h"
-#include "TkrRecon/PatRec/TkrCandidates.h"
-#include "TkrRecon/Track/TkrTracks.h"
-#include "gui/DisplayRep.h"
+#include "GlastEvent/Recon/TkrRecon/TkrPatCandCol.h"
+#include "GlastEvent/Recon/TkrRecon/TkrFitTrackCol.h"
+#include "TkrRecon/ITkrGeometrySvc.h"
 
-class TkrLinkAndTreeFit : public TkrTracks
+namespace TkrRecon { //Namespace
+
+class TkrLinkAndTreeFit : public TkrFitTrackCol
 {
 public:
     TkrLinkAndTreeFit() {}
-    TkrLinkAndTreeFit(ITkrGeometrySvc* pTkrGeo, TkrClusters* pTkrClus, TkrCandidates* pTkrCand, double CalEnergy);
+    TkrLinkAndTreeFit(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus, TkrPatCandCol* pTkrCand, double CalEnergy);
 
     ~TkrLinkAndTreeFit() {}
     
 private:
 };
 
+}; //Namespace
 #endif

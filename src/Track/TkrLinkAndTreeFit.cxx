@@ -1,17 +1,22 @@
 #include "src/Track/TkrLinkAndTreeFit.h"
 #include "src/TrackFit/KalFitTrack/KalFitTrack.h"
 #include "TkrRecon/Track/GFcontrol.h"
+#include "TkrRecon/Track/GFtutor.h"
 
 //
 // Feeds Link and Tree pattern recognition tracks to Kalman Filter
 //
 
-TkrLinkAndTreeFit::TkrLinkAndTreeFit(ITkrGeometrySvc* pTkrGeo, TkrClusters* pTkrClus, TkrCandidates* pTkrCand, double CalEnergy) :
-                   TkrTracks(pTkrGeo, pTkrClus)
+using namespace TkrRecon;
+
+TkrLinkAndTreeFit::TkrLinkAndTreeFit(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus, TkrPatCandCol* pTkrCand, double CalEnergy)
 {
     int              trkCount = 0;
     int              numCands = pTkrCand->getNumCands();
     CandTrkVectorPtr cands    = pTkrCand->getTrackPtr();
+
+    // Store cluster and geometry information for the subclasses
+    GFtutor::load(pTkrClus, pTkrGeo);
 
     //A question is how to dole out the cal energy to each track 
     //in the fit. I propose the completely ad hoc solution that 
@@ -71,7 +76,7 @@ TkrLinkAndTreeFit::TkrLinkAndTreeFit(ITkrGeometrySvc* pTkrGeo, TkrClusters* pTkr
         //If some new hits have been added, redo the fit
 //        if (numHits < track->getNumHits()) track->doFit();
         
-        if (!track->empty()) 
+        if (!track->empty(GFcontrol::minSegmentHits)) 
         {
             addTrack(track);
             track->flagAllHits();
