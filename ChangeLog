@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: burnett  Fri Aug 31 09:30:36 PDT 2001
+TkrRecon/mgr requirements
+
+Modified Files:
+	requirements 
+Log Message:
+clean up the interface data lib to only include what is needed by clients (acdRecon now)
+
+    *
+------------------------------------------------------------
 User: lsrea  Sat Aug 25 14:42:30 PDT 2001
 TkrRecon/src/test badchannellist_nsbf53_10sigma_recon.dat badchannellist_nsbf54_10sigma_recon.dat badchannellist_nsbf55_10sigma_recon.dat
 
