@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.8 2004/02/18 20:49:11 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.9 2004/02/19 22:52:44 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -42,8 +42,6 @@ private:
     /// private method to build an individual Monte Carlo track
     Event::TkrPatCand* buildTrack(const Event::McParticle* mcPart);
 
-    IParticlePropertySvc*  m_ppsvc;
-
     IMcBuildRelTablesTool* m_mcBuildInfo;
 };
 
@@ -55,10 +53,10 @@ const IToolFactory& MonteCarloFindTrackToolFactory = s_factory;
 //
 
 MonteCarloFindTrackTool::MonteCarloFindTrackTool(const std::string& type, const std::string& name, const IInterface* parent) :
-                    PatRecBaseTool(type, name, parent), m_ppsvc(0), m_mcBuildInfo(0)
+                    PatRecBaseTool(type, name, parent), m_mcBuildInfo(0)
 {
 	return;
-    }
+}
 
 //
 // Initialization of the tool here
@@ -68,11 +66,6 @@ StatusCode MonteCarloFindTrackTool::initialize()
 {	
     PatRecBaseTool::initialize();
     StatusCode sc   = StatusCode::SUCCESS;
-
-    if( (sc = service("ParticlePropertySvc", m_ppsvc)).isFailure() ) 
-    {
-        throw GaudiException("Service [ParticlePropertySvc] not found", name(), sc);
-    }
 
     if ( (sc = toolSvc()->retrieveTool("McBuildRelTablesTool", m_mcBuildInfo)).isFailure() )
     {
@@ -139,6 +132,9 @@ StatusCode MonteCarloFindTrackTool::findTracks()
         Event::TkrPatCand* patCand = buildTrack(*partIter);
         if (patCand) pTkrCands->push_back(patCand);
     }
+
+    // Complete the MC relational tables
+    m_mcBuildInfo->buildMcPatCandRelations();
 
     return sc;
 }
@@ -216,7 +212,6 @@ Event::TkrPatCand* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* 
                 Hep3Vector                     partDir  = posHit->globalExitPoint() - posHit->globalEntryPoint();
                 Point                          startPos = Point(partPos.x(),partPos.y(),partPos.z());
                 Ray                            testRay  = Ray(startPos, partDir.unit());
-//                double                         energy   = mcPart->initialFourMomentum().e();      //Is this right for this test?
                 double                         energy   = posHit->particleEnergy(); 
                 double                         enErr    = 0.01 * energy;     // Gotta have something here...
                 double                         type     = 0.;
@@ -244,7 +239,7 @@ Event::TkrPatCand* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* 
                 if (numClusHits++ < 8 && planeDelta < -1)
                 {
                     numGaps++;
-                    if (planeDelta > gapSize) gapSize = -(planeDelta+1);
+                    if (-planeDelta > gapSize) gapSize = -(planeDelta+1);
                 }
 
                 lastPlane = curPlane;
@@ -254,7 +249,8 @@ Event::TkrPatCand* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* 
         // Make sure we can fit this track
         // Require at least 5 clusters, no more than 1 gap, a max gap size of 2 layers, or 
         // a gap size of 1 layer if in the first 6 hits (for short tracks)
-        if ((numClusHits < 5) || (numGaps > 1) || (gapSize > 2) || (numClusHits < 6 && gapSize > 1))
+        //if ((numClusHits < 5) || (numGaps > 1) || (gapSize > 2) || (numClusHits < 6 && gapSize > 1))
+        if ((numClusHits < 5) || (numGaps > 2) || (gapSize > 2) || (numClusHits < 6 && gapSize > 1))
         {
             delete patCand;
             patCand = 0;
@@ -266,18 +262,6 @@ Event::TkrPatCand* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* 
  
             // Get the MC info we want from the TDS
             SmartDataPtr<Event::McIntegratingHitVector> intHits(m_dataSvc, EventModel::MC::McIntegratingHitCol);
-/*
-            // Loop through McPositionHits to build McSiLayerHits 
-            double lastHitEne = (hitVec.back()->getSecond()->getSecond())->particleEnergy();
-            double totEnergy  = 0.;
-            int    numIntHits = intHits->size();
-            Event::McIntegratingHitVector::const_iterator hit;
-            for (hit = intHits->begin(); hit != intHits->end(); hit++ ) 
-            {
-                totEnergy += (*hit)->totalEnergy();
-            }
-            patCand->setEnergy(lastHitEne);
-*/
         }
     }
     return patCand;
