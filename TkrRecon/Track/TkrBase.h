@@ -15,7 +15,7 @@
 //           Nov., 2001
 //---------------------------------------------------------------
 
-class TkrBase : public DataObject
+class TkrBase
 {
 public:
     
