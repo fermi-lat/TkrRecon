@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetFitTool.cxx,v 1.8 2003/05/27 18:24:55 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetFitTool.cxx,v 1.9 2003/05/27 22:23:32 usher Exp $
 //
 // Description:
 //      Tool for performing the fit of Neural Net Pat Rec candidate tracks
@@ -105,8 +105,10 @@ StatusCode TkrNeuralNetFitTool::doTrackFit(Event::TkrPatCand* patCand)
     Event::CandHitVectorPtr candPtr = patCand->getHitIterBegin();
     while(numHits--)
     {
-        Event::TkrPatCandHit candHit = *candPtr++;
-        fitter->addMeasHit(candHit);
+        ////Event::TkrPatCandHit candHit = *candPtr++;
+        ////fitter->addMeasHit(candHit);
+        Event::TkrPatCandHit* candHit = *candPtr++;
+        fitter->addMeasHit(*candHit);
     }
     track->setType(type);  
         
