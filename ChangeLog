@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Jun  5 10:05:46 PDT 2002
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	TkrComboVtxRep.cxx 
+Log Message:
+Fix display of vertex direction (follow correct convention)
+
+    *
+------------------------------------------------------------
 User: usher  Tue Jun  4 12:39:05 PDT 2002
 TkrRecon/src/Cluster
 
