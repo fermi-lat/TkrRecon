@@ -71,9 +71,13 @@ ComboVtxTool, VtxKalFitTool or VtxSingleTrkTool. The first of these
 follows the TkrComboVtxRecon method of finding and reconstructing 
 vertices from the TkrFitTrack objects. VtxKalFitTool finds and reconstructs
 vertices in the case of more than one TkrFitTrack objects using a Kalman 
-Filter vertexing algorithm. VtxSingleTrkTool returns a vertex for the 
+Filter vertexing algorithm. For more information, follow this 
+<A HREF="../../doc/KalVtx/KalVtx.html"> link</A>.
+
+VtxSingleTrkTool returns a vertex for the 
 case of single tracks (fairly frequent). All methods return TkrVertex 
 objects which are stored in the TDS TkrVertexCol collection. 
+
 
 TkrReconAlg: The main algorithm controlling the above reconstruction sequence. 
  *
