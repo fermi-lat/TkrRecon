@@ -82,10 +82,16 @@ StatusCode TkrNtupleAlg::finalize()
 TkrTupleValues::TkrTupleValues()
 //################################
 {
+    int nLyrs = NPLANES;
+
+    Tkr_HitsPerLyr.clear();
+    while(nLyrs--) {Tkr_HitsPerLyr.push_back(0);}
+
     Tkr_Cnv_Lyr_Hits = 0;
     Tkr_Max_controller_hits = 0;
     Tkr_Fst_Cnv_Lyr = 0;
     Tkr_NCnv_Lyrs_Hit = 0;
+
     Tkr_No_X_Trks = 0;
     Tkr_No_Y_Trks = 0;
     Tkr_No_Tracks = 0;
@@ -173,6 +179,8 @@ StatusCode TkrTupleValues::calcTupleValues(SiClusters* pClusters, SiRecObjs* pRe
                 Tkr_Fst_Cnv_Lyr    = planeIdx;
                 Tkr_NCnv_Lyrs_Hit += 1;
             }
+
+            Tkr_HitsPerLyr[planeIdx] = hitCount;
         }
 
         Tkr_Cnv_Lyr_Hits = pClusters->nHits();
@@ -358,6 +366,26 @@ StatusCode TkrTupleValues::fillTupleValues(INTupleWriterSvc* pSvc, const char* p
         if ((sc = pSvc->addItem(pName, "TKR_Max_controller_hits", Tkr_Max_controller_hits)).isFailure()) return sc;
         if ((sc = pSvc->addItem(pName, "TKR_Fst_Cnv_Lyr",         Tkr_Fst_Cnv_Lyr        )).isFailure()) return sc;
         if ((sc = pSvc->addItem(pName, "TKR_NCnv_Lyrs_Hit",       Tkr_NCnv_Lyrs_Hit      )).isFailure()) return sc;
+
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_0",       Tkr_HitsPerLyr[0]      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_1",       Tkr_HitsPerLyr[1]      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_2",       Tkr_HitsPerLyr[2]      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_3",       Tkr_HitsPerLyr[3]      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_4",       Tkr_HitsPerLyr[4]      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_5",       Tkr_HitsPerLyr[5]      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_6",       Tkr_HitsPerLyr[6]      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_7",       Tkr_HitsPerLyr[7]      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_8",       Tkr_HitsPerLyr[8]      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_9",       Tkr_HitsPerLyr[9]      )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_10",      Tkr_HitsPerLyr[10]     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_11",      Tkr_HitsPerLyr[11]     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_12",      Tkr_HitsPerLyr[12]     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_13",      Tkr_HitsPerLyr[13]     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_14",      Tkr_HitsPerLyr[14]     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_15",      Tkr_HitsPerLyr[15]     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_16",      Tkr_HitsPerLyr[16]     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_17",      Tkr_HitsPerLyr[17]     )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "TKR_Hits_In_Lyr_18",      Tkr_HitsPerLyr[18]     )).isFailure()) return sc;
 
         //Reconstructed stuff starts here        
         if ((sc = pSvc->addItem(pName, "TKR_No_X_Trks",       Tkr_No_X_Trks      )).isFailure()) return sc;

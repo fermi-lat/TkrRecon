@@ -64,6 +64,9 @@ private:
     double Tkr_Max_controller_hits;
     double Tkr_Fst_Cnv_Lyr;
     double Tkr_NCnv_Lyrs_Hit;
+
+    std::vector<double> Tkr_HitsPerLyr;
+
     //Stuff from SiRecObjs
     double Tkr_No_X_Trks;
     double Tkr_No_Y_Trks;
