@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Mon Feb  7 09:42:33 PST 2005
+TkrRecon/src/test
+
+Modified Files:
+	jobOptions.txt 
+Added Files:
+	particle.cdf 
+Log Message:
+Allow ParticlePropertySvc to find the (added) particle.cdf file. Note that ParticlePropertySvc does NOT expand environment variables in the file name, hence the ../src/test... somewhat dangerous but does work
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r3p5, operation: add
 Package: TkrRecon
