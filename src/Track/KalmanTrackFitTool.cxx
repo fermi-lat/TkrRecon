@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.15 2004/11/16 03:36:37 atwood Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.16 2004/11/16 04:51:33 usher Exp $
  */
 
 // to turn one debug variables
@@ -471,11 +471,13 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
 
     // The current plane
     idents::TkrId referenceTkrId = referenceHit.getTkrId();
-    double        referenceZ     = referenceHit.getZPlane();
+ //   double        referenceZ     = referenceHit.getZPlane();
+	double referenceZ  = referenceHit.getZPlane();
 
     // The plane to fit (the next plane)
     idents::TkrId filterTkrId    = filterHit.getTkrId();
-    double        filterZ        = filterHit.getZPlane();
+ //   double        filterZ        = filterHit.getZPlane();
+	double filterZ  = filterHit.getZPlane();
 
     // Delta z for next to current plane
     double        deltaZ         = filterZ - referenceZ;
@@ -487,7 +489,7 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
     KFmatrix& Q = (*m_Qmat)(curStateVec, referenceZ, m_HitEnergy->getHitEnergy(referenceHit.getEnergy()), filterZ);
 
     // Do we have a measurement at this hit?
-    if (filterHit.getStatusBits() && Event::TkrTrackHit::HASMEASURED)
+    if (filterHit.getStatusBits() & Event::TkrTrackHit::HITONFIT)
     {
         // Measured hits in TDS format
         TkrTrkParams  measPar(filterHit.getTrackParams(Event::TkrTrackHit::MEASURED));
@@ -616,7 +618,7 @@ double KalmanTrackFitTool::doSmoother(Event::TkrTrack& track)
 
         double chiSqKF =  0.;
         
-        if (currentPlane.getStatusBits() && Event::TkrTrackHit::HASMEASURED)
+        if (currentPlane.getStatusBits() & Event::TkrTrackHit::HITONFIT)
               chiSqKF = m_KalmanFit->chiSqSmooth(measVec, measCovMat, H(tkrId));
 
         chiSqSmooth += chiSqKF;
