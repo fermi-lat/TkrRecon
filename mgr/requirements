@@ -20,19 +20,17 @@ include_path $(TKRRECONROOT)
 
 private
 
-# this for MSVCC, to fix incompatibilities, turn off warnings
-macro_append cppflags ""\
-       VisualC " /FI$(ntconfigfile)" 
 
 # note that the debug versions of the used libraries are inserted below
 
 macro TkrRecon_shlibflags   "$(libraryshr_linkopts) $(use_linkopts)" \
-      VisualC        "$(componentshr_linkopts) $(use_linkopts) $(Win32Debug)"
+      VisualC        "DataObject.obj $(componentshr_linkopts) $(use_linkopts) $(Win32Debug)"
 
 # build this for testing
 
+macro jobOptions "" VisualC "test/jobOptions.txt"
+
 application test \
-        test/*.cxx 
-#test/*.h test/*.txt
+        test/*.cxx $(jobOptions)
 
 
