@@ -5,41 +5,42 @@
 /// This should be done in the constructor.
 
 //#############################################################################
-TkrBestCandRep::TkrBestCandRep(TkrCandidates** ppCands, ITkrGeometrySvc* pTkrGeometry)
+TkrBestCandRep::TkrBestCandRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySvc* pTkrGeometry)
 //#############################################################################
 {
-	ppTkrCandidates = ppCands;
-    pTkrGeo         = pTkrGeometry;
+    dps     = dataProviderSvc;
+    pTkrGeo = pTkrGeometry;
 }
 //-------------------- private ----------------------
 //##############################################
 void TkrBestCandRep::update()
 //##############################################
 {
-    TkrCandidates*    pTkrCandidates = *ppTkrCandidates;
-    TkrLinkAndTreePR* pTkrCands      = dynamic_cast<TkrLinkAndTreePR*>(pTkrCandidates);
+    TkrCandidates* pTkrCandidates = SmartDataPtr<TkrCandidates>(dps,"/Event/TkrRecon/TkrCandidates");
 
-    //Zero out the pointer so we don't accidentally try to draw the event
-    *ppTkrCandidates = 0;
+    if (pTkrCandidates)
+    {
+        TkrLinkAndTree* pTkrCands = dynamic_cast<TkrLinkAndTree*>(pTkrCandidates);
 
-	//Now see if we can do the drawing
-	if (pTkrCands)
-	{
-		gui::DisplayRep* pDisplay = this;
-	    if (pTkrCands->getNumTrees(X) > 0)
-        {
-		    setColor("green");
-		    TkrDrawBestCand(pTkrCands, X);
+	    //Now see if we can do the drawing
+	    if (pTkrCands)
+	    {
+		    gui::DisplayRep* pDisplay = this;
+	        if (pTkrCands->getNumTrees(X) > 0)
+            {
+		        setColor("green");
+		        TkrDrawBestCand(pTkrCands, X);
+            }
+
+	        //Draw the links for the "best" track
+	        if (pTkrCands->getNumTrees(Y) > 0)
+            {
+		        setColor("aquamarine");
+		        TkrDrawBestCand(pTkrCands, Y);
+            }
+
+	        setColor("blue");
         }
-
-	    //Draw the links for the "best" track
-	    if (pTkrCands->getNumTrees(Y) > 0)
-        {
-		    setColor("aquamarine");
-		    TkrDrawBestCand(pTkrCands, Y);
-        }
-
-	    setColor("blue");
     }
 
     return;
@@ -58,7 +59,7 @@ const char* pBstColors[] = {bstcol_blue,   bstcol_violet, bstcol_turquoise,
 
 void TkrBestCandRep::TkrDrawBestCand(TkrCandidates* pTkrCandidates, TkrPlaneType plane)
 {
-    TkrLinkAndTreePR* pTkrCands      = dynamic_cast<TkrLinkAndTreePR*>(pTkrCandidates);
+    TkrLinkAndTree* pTkrCands      = dynamic_cast<TkrLinkAndTree*>(pTkrCandidates);
 
     //Draw the candidate tracks
     TkrLinkForest* pForest  = pTkrCands->getForest(plane);

@@ -11,7 +11,9 @@
 
 #include <vector>
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
-#include "TkrRecon/Track/TkrLinkAndTreeFit.h"
+#include "TkrRecon/Services/TkrInitSvc.h"
+#include "TkrRecon/Track/TkrTracks.h"
+#include "src/Track/TkrLinkAndTreeTrackFit.h"
 
 #include "GlastEvent/Recon/ICsIClusters.h"
 
@@ -29,7 +31,7 @@ const IAlgFactory& TkrReconAlgFactory = Factory;
 /// Algorithm parameters which can be set at run time must be declared.
 /// This should be done in the constructor.
 
-IGismoSvc* TkrReconAlg::m_gismoSvc; 
+IRecoSvc* TkrReconAlg::m_gismoSvc; 
 
 //#############################################################################
 TkrReconAlg::TkrReconAlg(const std::string& name, ISvcLocator* pSvcLocator) :
@@ -42,28 +44,20 @@ Algorithm(name, pSvcLocator)
 StatusCode TkrReconAlg::initialize()
 //###################################################
 {
-	//Look for the geometry service
-	StatusCode sc = service("TkrGeometrySvc", pTrackerGeo);
-
-        // Look for GismoGenerator Service
-        sc = service("GismoSvc", m_gismoSvc);
-
-	m_SiRecObjs   = 0;
-	m_TkrClusters = 0;
-
-	return StatusCode::SUCCESS;
-}
-//###################################################
-StatusCode TkrReconAlg::execute()
-//###################################################
-{
     MsgStream log(msgSvc(), name());
-    StatusCode sc = StatusCode::SUCCESS;
 
-	log << MSG::DEBUG << "------- Recon of new Event --------" << endreq;
+    //Initialization service
+    TkrInitSvc* pTkrInitSvc = 0;
+    StatusCode  sc          = service("TkrInitSvc", pTkrInitSvc);
+
+    // Look for GismoGenerator Service
+    sc = service("RecoSvc", m_gismoSvc);
+
+    //Track fit information
+    m_TrackFit = pTkrInitSvc->setTrackFit();
 
     // Here we retrieve the sub directory
-    DataObject* pnode=0;
+    DataObject* pnode = 0;
 
     sc = eventSvc()->retrieveObject( "/Event/TkrRecon", pnode );
     
@@ -74,14 +68,28 @@ StatusCode TkrReconAlg::execute()
             log << MSG::ERROR << "Could not create Raw directory" << endreq;
             return sc;
         }
-    }
+    }   
 
-    
+	m_SiRecObjs   = 0;
+	m_TkrClusters = 0;
+
+	return sc;
+}
+
+//###################################################
+StatusCode TkrReconAlg::execute()
+//###################################################
+{
+    MsgStream log(msgSvc(), name());
+    StatusCode sc = StatusCode::SUCCESS;
+
+	log << MSG::DEBUG << "------- Recon of new Event --------" << endreq;
+
     //Recover pointer to the reconstructed clusters
     m_TkrClusters = SmartDataPtr<TkrClusters>(eventSvc(),"/Event/TkrRecon/TkrClusters"); 
 
     //Find the patter recon tracks
-    TkrCandidates* pTrkCands = SmartDataPtr<TkrCandidates>(eventSvc(),"/Event/TkrRecon/TkrCandidates");
+    TkrCandidates* pTkrCands = SmartDataPtr<TkrCandidates>(eventSvc(),"/Event/TkrRecon/TkrCandidates");
 
     //Recover pointer to Cal Cluster info    
     ICsIClusterList* pCalClusters = SmartDataPtr<ICsIClusterList>(eventSvc(),"/Event/CalRecon/CsIClusterList");
@@ -107,24 +115,15 @@ StatusCode TkrReconAlg::execute()
     }
 
     //Reconstruct the pattern recognized tracks
-    TkrLinkAndTreeFit* tracks = new TkrLinkAndTreeFit(pTrackerGeo, m_TkrClusters, pTrkCands, CalEnergy);
+    TkrTracks* tracks = m_TrackFit->doTrackFit(m_TkrClusters, pTkrCands, CalEnergy);
 
     sc = eventSvc()->registerObject("/Event/TkrRecon/TkrTracks", tracks);
 
     tracks->writeOut(log);
-    
-    //Now reconstruct any tracks the event might have. 
-    m_SiRecObjs = new SiRecObjs(pTrackerGeo, m_TkrClusters, CalEnergy, CalPosition);
-
-    //sc = eventSvc()->registerObject("/Event/TkrRecon/SiRecObjs",m_SiRecObjs);
-
-    //Let the world know what has happened...
-    m_SiRecObjs->writeOut(log);
-
-    if (m_TkrClusters == 0 || m_SiRecObjs ==0) sc = StatusCode::FAILURE; 
 
 	return sc;
 }
+
 //##############################################
 StatusCode TkrReconAlg::finalize()
 //##############################################

@@ -5,20 +5,17 @@
 /// This should be done in the constructor.
 
 //#############################################################################
-TkrTracksRep::TkrTracksRep(TkrTracks** ppTracks)
+TkrTracksRep::TkrTracksRep(IDataProviderSvc* dataProviderSvc)
 //#############################################################################
 {
-	ppTkrTracks = ppTracks;
+	dps = dataProviderSvc;
 }
 //-------------------- private ----------------------
 //##############################################
 void TkrTracksRep::update()
 //##############################################
 {
-    TkrTracks* pTracks = *ppTkrTracks;
-
-    //Zero out the pointer so we don't accidentally try to draw the event
-    *ppTkrTracks = 0;
+    TkrTracks* pTracks = SmartDataPtr<TkrTracks>(dps,"/Event/TkrRecon/TkrTracks");
 
 	//Now see if we can do the drawing
 	if (pTracks)
