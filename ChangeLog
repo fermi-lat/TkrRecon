@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Fri Mar 29 18:52:02 PST 2002
+TkrRecon/TkrRecon
+
+Modified Files:
+	ITkrGeometrySvc.h 
+Log Message:
+allow for non-integer strip positions in cluster alg
+KalTrack: associate the segments on a track
+
+    *
+------------------------------------------------------------
 User: lsrea  Thu Mar 28 23:14:15 PST 2002
 TkrRecon/src/Track
 
