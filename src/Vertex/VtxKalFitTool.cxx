@@ -142,8 +142,6 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       // PROPAGATION
       Event::TkrFitMatrix measCov = theTrack->getTrackCov();
       //At least let's make use of the fast inversion!
-      std::cout<<"COV MATRIX:"<<measCov<<endl;
-
       measCov.invert(ifail);
       if(ifail)
         {
