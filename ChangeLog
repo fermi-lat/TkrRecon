@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Mon Mar 10 12:09:15 PST 2003
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrTrackFitAlg.cxx 
+Log Message:
+use GlastPropagatorSvc
+    *
+------------------------------------------------------------
 User: lsrea  Mon Mar 10 12:08:56 PST 2003
 TkrRecon/src
 
