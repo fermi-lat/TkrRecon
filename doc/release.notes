@@ -3,6 +3,7 @@
  * Package TkrRecon
  * Manager: Leon Rochester 
  *
+ * v5r3    18-Apr-2002  LSR   Uses new TkrDigi -- mods to GlastEvent, GlastDigi
  * v5r2    13-Apr-2002  LSR   Switchable propagator -- mods to G4Generator, GlastSvc, etc.
  * v5r1p2  10-Apr-2002  LSR   put -y kludge back dependent on jobOptions property 
  * v5r1p1  09-Apr-2002  LSR   remove "-y" kludge
