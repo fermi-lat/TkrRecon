@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 14:07:24 PST 2001
+TkrRecon/TkrRecon/PatRec
+
+Added Files:
+	BestNodeList.h LayerLink.h LayerLinkList.h LayerLinkNode.h 
+	LayerLinkTree.h LayerLinkVector.h TkrCandidates.h 
+	TkrClusterLink.h TkrClusterLinkList.h TkrClusterLinkVector.h 
+	TkrLinkForest.h TkrLinkNode.h TkrLinkTree.h TkrNodeQuality.h 
+Log Message:
+Class definitions for the Link and Tree pattern recognition. Details on 
+how this works can be found on the TkrRecon web page...
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 14:06:24 PST 2001
 TkrRecon/TkrRecon/GaudiAlg
 
