@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Mon Mar  4 11:10:20 PST 2002
+TkrRecon/TkrRecon/Vertex
+
+Added Files:
+	TkrFindVertex.h TkrVertex.h TkrVertexCol.h 
+Log Message:
+Added subfolder for Tkr vertexing public class defintions and included
+those definitions. Also modified TkrInitSvc defintion to include the 
+vertexing algorithm initialization.
+
+    *
+------------------------------------------------------------
 User: usher  Mon Mar  4 11:10:19 PST 2002
 TkrRecon/TkrRecon/Services
 
