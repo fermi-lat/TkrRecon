@@ -3,7 +3,7 @@
 #define __TKRRECOBJSREP_H
 
 #include "TkrRecon/SiRecObjs.h"
-#include "Gui/DisplayRep.h"
+#include "gui/DisplayRep.h"
 
 //----------------------------------------------
 //

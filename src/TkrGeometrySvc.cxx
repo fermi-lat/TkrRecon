@@ -3,7 +3,7 @@
 #include "Gaudi/Kernel/SvcFactory.h"
 #include "TkrRecon/TkrGeometrySvc.h"
 
-#include "xml/Ifile.h"
+#include "xml/IFile.h"
 
 static const SvcFactory<TkrGeometrySvc> s_factory;
 const ISvcFactory& TkrGeometrySvcFactory = s_factory;
