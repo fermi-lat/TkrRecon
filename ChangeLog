@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Jun  5 10:07:06 PDT 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrQueryClusters.cxx 
+Log Message:
+Correct bounds checking for legal plane number in ALL methods
+
+    *
+------------------------------------------------------------
 User: usher  Wed Jun  5 10:05:46 PDT 2002
 TkrRecon/src/Vertex/Combo
 
