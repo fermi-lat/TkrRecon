@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Tue Nov 30 17:44:48 PST 2004
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrTrackFitAlg.cxx 
+Log Message:
+Adding more description to Track Hits and Tracks
+    *
+------------------------------------------------------------
+User: usher  Tue Nov 30 17:44:48 PST 2004
 TkrRecon/TkrRecon/Track
 
 Modified Files:
