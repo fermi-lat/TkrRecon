@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Fri Oct  3 14:40:07 PDT 2003
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+Fixed error in setEnergies(...) method.  It was allowing one of the first 2 track energies to go negative (<0) on occassion. 
+    *
+------------------------------------------------------------
 User: lsrea  Sun Sep 28 13:17:20 PDT 2003
 TkrRecon/src/PatRec
 
