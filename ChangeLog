@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: usher  Tue May 13 13:19:19 PDT 2003
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	TkrComboVtxRep.cxx 
+Log Message:
+1) Modify vertex display to show primary vertex ("gamma") in yellow, 
+rest in brown. Also can display just primary or all
+2) Fix bug in TkrVertexAlg iterative recon
+
+    *
+------------------------------------------------------------
+User: usher  Tue May 13 13:19:19 PDT 2003
 TkrRecon/src/Vertex
 
 Added Files:
