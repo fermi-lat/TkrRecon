@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: usher  Thu Jun 27 12:15:04 PDT 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrInitSvc.cxx 
+Log Message:
+Make the "Combo" reconstruction the default
+
+    *
+------------------------------------------------------------
+User: usher  Thu Jun 27 12:15:04 PDT 2002
 TkrRecon/src/GaudiAlg
 
 Modified Files:
