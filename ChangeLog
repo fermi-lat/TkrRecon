@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: lsrea  Thu Jul 15 17:20:16 PDT 2004
+TkrRecon/src/Track
+
+Modified Files:
+	TkrControl.cxx TkrTrackEnergyTool.cxx 
+Log Message:
+prepare for tag v8r12p22
+Make radlen accounting more robust to accomodate peculiar EM2 setup
+Adjust calculation in slope-dependent errors for too wide/narrow clusters
+
+    *
+------------------------------------------------------------
 User: lsrea  Thu Jul 15 17:20:15 PDT 2004
 TkrRecon/src/PatRec/Combo
 
