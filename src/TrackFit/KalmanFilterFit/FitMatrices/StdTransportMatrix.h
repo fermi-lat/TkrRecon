@@ -6,7 +6,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/StdTransportMatrix.h,v 1.2 2004/09/08 15:32:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/StdTransportMatrix.h,v 1.3 2004/10/01 21:07:39 usher Exp $
  */
 
 #ifndef StdTransportMatrix_h
@@ -20,18 +20,21 @@ class StdTransportMatrix : public IKalmanFilterMatrix
 public:
 
     // Constructor 
-    StdTransportMatrix();
+    StdTransportMatrix(): m_F(4,4,1), m_I(4,4,1) {}
     virtual ~StdTransportMatrix() {};
 
-    void    trackInit(const std::vector<double>& zCoords);
-    void    accept(const KalmanFilterInit& initObj);
+    // Transport matrix depends only on deltaZ, implement the method here
+    KFmatrix& operator()(const double &deltaZ);
 
-    KFmatrix operator()(const KFvector& stateVec, const int &i, const int &j);
-    KFmatrix operator()(const int &i, const int &j);
-    KFmatrix operator()(const int &i);
+    // Other two methods return identity matrix (no transport)
+    KFmatrix& operator()(const idents::TkrId &id) {return m_I;}
+    KFmatrix& operator()(const KFvector& stateVec, const double& zStart, 
+                         const double& eStart, const double& zStop, bool forward = true)
+                                                  {return m_I;}
 
 private:
-    std::vector<double> m_zCoords;
+    KFmatrix m_F;
+    KFmatrix m_I;
 };
 
 

@@ -6,51 +6,25 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/StdProjectionMatrix.cxx,v 1.2 2004/09/08 15:32:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/StdProjectionMatrix.cxx,v 1.2 2004/10/01 21:07:39 usher Exp $
  */
 
 #include "StdProjectionMatrix.h"
 #include "src/TrackFit/KalmanFilterFit/KalmanFilterInit.h"
+#include "idents/TkrId.h"
 
 
-StdProjectionMatrix::StdProjectionMatrix() 
+StdProjectionMatrix::StdProjectionMatrix() : m_none(1,4), m_projX(1,4), m_projY(1,4)
 {
-    m_projection.clear();
+    m_projX(1,1) = 1;
+    m_projY(1,3) = 1;
 
     return;
 }
 
-void StdProjectionMatrix::trackInit(const std::vector<int> projection)
+KFmatrix& StdProjectionMatrix::operator()(const idents::TkrId &id)
 {
-    m_projection.clear();
+    if (id.getView() == idents::TkrId::eMeasureX) return m_projX;
 
-    m_projection = projection;
-
-    return;
-}
-
-void StdProjectionMatrix::accept(const KalmanFilterInit& initObj)
-{
-    initObj.init(*this);
-
-    return;
-}
-
-KFmatrix StdProjectionMatrix::operator()(const  KFvector& stateVec, const int &i, const int &j)
-{
-    return (*this)(i);
-}
-
-KFmatrix StdProjectionMatrix::operator()(const int &i, const int &j) {return (*this)(i);}
-
-KFmatrix StdProjectionMatrix::operator ()(const int &i)
-{
-    // start by creating a null matrix which (for now) is a single row with four columns
-    KFmatrix H(1, 4);
-
-    // Projection matrix picks out one of the two coordinates, depending upon the view
-    if (m_projection[i] == 0) H(1,1) = 1;
-    else                      H(1,3) = 1;
-
-    return H;
+    return m_projY;
 }

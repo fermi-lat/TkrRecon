@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/ThreeDProjectionMatrix.h,v 1.2 2004/09/08 15:32:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/ThreeDProjectionMatrix.h,v 1.3 2004/10/01 21:07:39 usher Exp $
  */
 
 #ifndef ThreeDProjectionMatrix_h
@@ -23,15 +23,18 @@ public:
     ThreeDProjectionMatrix();
     virtual ~ThreeDProjectionMatrix() {};
 
-    void     trackInit(const std::vector<int> projection);
-    void     accept(const KalmanFilterInit& initObj);
+    // Implements the projection method
+    KFmatrix& operator()(const idents::TkrId &id)  {return m_H;}
 
-    KFmatrix operator()(const  KFvector& stateVec, const int &i, const int &j);
-    KFmatrix operator()(const int &i, const int &j);
-    KFmatrix operator()(const int &i);
+    // These methods do nothing here
+    KFmatrix& operator()(const double &deltaZ)     {return m_none;}
+    KFmatrix& operator()(const KFvector& stateVec, const double& zStart, 
+                         const double& eStart, const double& zStop, bool forward = true)
+                                                   {return m_none;}
 
 private:
     KFmatrix m_H;
+    KFmatrix m_none;
 };
 
 

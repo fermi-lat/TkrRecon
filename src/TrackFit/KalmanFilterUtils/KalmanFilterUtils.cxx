@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterUtils/KalmanFilterUtils.cxx,v 1.2 2004/09/08 15:32:47 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterUtils/KalmanFilterUtils.cxx,v 1.3 2004/09/23 21:30:30 usher Exp $
  */
 
 //Include class definition
@@ -14,20 +14,14 @@
 //Exception handler
 #include "Utilities/TkrException.h"
 
-KalmanFilterUtils::KalmanFilterUtils(IKalmanFilterMatrix& tMat, IKalmanFilterMatrix& pMat, IKalmanFilterMatrix& qMat) :
-                   m_F(tMat), m_H(pMat), m_Q(qMat)
+KFvector KalmanFilterUtils::resid(const KFvector& measVec, const KFvector& kfVec, const KFmatrix& H)
 {
-    return;
+    return measVec - H * kfVec;
 }
 
-KFvector KalmanFilterUtils::resid(const KFvector& measVec, const KFvector& kfVec, int j)
+KFmatrix KalmanFilterUtils::residCovMat(const KFmatrix& measCov, const KFmatrix& kfCov, const KFmatrix& H)
 {
-    return measVec - m_H(j) * kfVec;
-}
-
-KFmatrix KalmanFilterUtils::residCovMat(const KFmatrix& measCov, const KFmatrix& kfCov, int j)
-{
-    return measCov - m_H(j) * kfCov * m_H(j).T();
+    return measCov - H * kfCov * H.T();
 }
 
 double KalmanFilterUtils::chiSquare(const KFvector& resid, const KFmatrix& residCov)
@@ -44,22 +38,18 @@ double KalmanFilterUtils::chiSquare(const KFvector& resid, const KFmatrix& resid
     return chiVec(1);
 }
 
-void KalmanFilterUtils::Predict(const KFvector& stateVeck1, const KFmatrix& covMatk1, int k, int k1)
+void KalmanFilterUtils::Predict(const KFvector& stateVeck1, const KFmatrix& covMatk1,
+                                const KFmatrix& F, const KFmatrix& Q, bool forward)
 {
     // Calculated predicted values for state vector and covariance matrix
     //
-    // Start by getting a local copy of the transport matrix F 
-    // transport is from point k1 to point k
-    const KFmatrix F = m_F(k,k1);
-
     // Predicted state vector
     m_predStateVec = F * stateVeck1;
 
     // Predicted covariance matrix
-    // NOTE: If k > k1 then we are predicting new value
-    //       If k < k1 then we are smoothing
-    KFmatrix Q = m_Q(stateVeck1, k, k1);
-    if (k > k1)
+    // NOTE: If forward == true then we are predicting new value
+    //       If forward == false then we are smoothing
+    if (forward)
     {
         // Prediction (going forwards) leads to increases in process noise errors
         m_predCovMat   = F * covMatk1 * F.T() + Q;
@@ -83,22 +73,21 @@ KFmatrix KalmanFilterUtils::CovMatExtrap()
     return m_predCovMat;
 }
 
-double KalmanFilterUtils::chiSqExtrap(const KFvector& measVec, const KFmatrix& measCov, int j)
+double KalmanFilterUtils::chiSqExtrap(const KFvector& measVec, const KFmatrix& measCov, const KFmatrix& H)
 {
-    return chiSquare(residExtrap(measVec, j), resCovExtrap(measCov, j));
+    return chiSquare(residExtrap(measVec, H), resCovExtrap(measCov, H));
 }
 
 // Weighted Means Filter
 void KalmanFilterUtils::Filter(const KFvector& stateVec, const KFmatrix& stateCovMat, 
                                const KFvector& measVec,  const KFmatrix& measCovMat,
-                               int i, int j)
+                               const KFmatrix& F, const KFmatrix& H, const KFmatrix& Q)
 {
     // Predict the new state vector and covariance matrix
-    Predict(stateVec, stateCovMat, i, j);
+    Predict(stateVec, stateCovMat, F, Q, true);
 
     // Update the covariance matrix first
     int       matInvErr = 0;
-    KFmatrix H          = m_H(i);
     KFmatrix CjPredInv  = m_predCovMat;
     KFmatrix measCovInv = measCovMat;
     
@@ -132,9 +121,9 @@ KFmatrix KalmanFilterUtils::CovMatFilter()
     return m_filterCovMat;
 }
 
-double KalmanFilterUtils::chiSqFilter(const KFvector& measVec, const KFmatrix& measCov, int j)
+double KalmanFilterUtils::chiSqFilter(const KFvector& measVec, const KFmatrix& measCov, const KFmatrix& H)
 {
-    return chiSquare(residFilter(measVec, j), resCovFilter(measCov, j));
+    return chiSquare(residFilter(measVec, H), resCovFilter(measCov, H));
 }
 
 //
@@ -142,14 +131,13 @@ double KalmanFilterUtils::chiSqFilter(const KFvector& measVec, const KFmatrix& m
 //
 void KalmanFilterUtils::Smooth(const KFvector& fStateVeck,  const KFmatrix& fStateCovMatk, 
                                const KFvector& sStateVeck1, const KFmatrix& sStateCovMatk1,
-                               int k, int k1)
+                               const KFmatrix& F, const KFmatrix& Q)
 {
     // Calculates the "smoothed" state vector and covariance matrix at the point k, given 
     // the values at the point k+1. 
     //
     // Start by predicting the values at k, given the smoothed state vector at k+1
-//    Predict(sStateVeck1, sStateCovMatk1, k, k1);
-    Predict(fStateVeck, fStateCovMatk, k1, k);
+    Predict(fStateVeck, fStateCovMatk, F, Q, true);
 
     // Calculate the A matrix
     int       matInvErr     = 0;
@@ -159,7 +147,7 @@ void KalmanFilterUtils::Smooth(const KFvector& fStateVeck,  const KFmatrix& fSta
 
     if (matInvErr) throw(TkrException("Failed to invert predicted covariance matrix in KalmanFilterUtils::Smooth "));
 
-    KFmatrix A = fStateCovMatk * m_F(k1,k).T() * predCovMatInv;
+    KFmatrix A = fStateCovMatk * F.T() * predCovMatInv;
 
     // Now calculated the smoothed covariance matrix 
     //m_smoothCovMat = fStateCovMatk + A * (sStateCovMatk1 - m_predCovMat) * A.T();
@@ -183,7 +171,7 @@ KFmatrix KalmanFilterUtils::CovMatSmooth()
     return m_smoothCovMat;
 }
 
-double KalmanFilterUtils::chiSqSmooth(const KFvector& measVec, const KFmatrix& measCov, int j)
+double KalmanFilterUtils::chiSqSmooth(const KFvector& measVec, const KFmatrix& measCov, const KFmatrix& H)
 {
-    return chiSquare(residSmooth(measVec, j), resCovSmooth(measCov, j));
+    return chiSquare(residSmooth(measVec, H), resCovSmooth(measCov, H));
 }
