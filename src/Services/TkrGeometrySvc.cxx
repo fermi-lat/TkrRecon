@@ -159,7 +159,6 @@ HepPoint3D TkrGeometrySvc::getDoubleStripPosition(int tower, int layer, int view
 	StatusCode sc = p_GlastDetSvc->getTransform3DByID(volId, &volTransform);
 	double stripLclX = p_GlastDetSvc->stripLocalXDouble(stripid);
 	HepPoint3D p(stripLclX,0.,0.);
-	//if (view==1) {p = -p;} // this is a kludge until the detModel gets fixed
 	p = volTransform*p;
 	return p;
 }
