@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Thu Apr 11 12:22:17 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	GFcontrol.cxx 
+Log Message:
+consolidating all the minEnergy's: now all come from GFcontrol.h
+
+    *
+------------------------------------------------------------
+User: lsrea  Thu Apr 11 12:22:17 PDT 2002
 TkrRecon/src/GaudiAlg
 
 Modified Files:
