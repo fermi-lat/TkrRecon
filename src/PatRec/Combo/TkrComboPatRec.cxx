@@ -23,9 +23,17 @@ Implementation of a Combinatoric Pattern recognition for GLAST
 
 using namespace Event;
 
-//Constructor emulates the "old" SiRecObjs
 TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters, double CalEnergy, Point CalPosition)
 {
+   // Purpose and Method: Constructor - Does a search for tracks
+   //                     Then it sets the track energies
+   //                     Finally it formats the data for output
+   // Inputs:  Pointer to Detector Geometery, pointer to TrkClusters, the Cal Energy,
+   //          and Cal Energy Centroid
+   // Outputs: The TkrPatCands Bank from which the final tracks fits are done
+   // Dependencies: None
+   // Restrictions and Caveats:  None
+
     //Check on pClusters
     if(pClusters == 0) return;
 
@@ -55,10 +63,17 @@ TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pCluster
 
 //-----------  Private drivers  ----------------------------- 
 
-//This is approx. equivalent to "searchGammas" routine in the "old" SiRecObjs
 void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
 {
-
+   // Purpose and Method: Oversees the track search: If there is significant Cal Energy
+   //                     A "best" track is first found using the Cal Energy Centroid as 
+   //                     a seed point - If no Cal Energy - a "Blind" search is done 
+   //                     After the first search, the hits on the best track are flagged and 
+   //                     a blind search is done to find "the rest." 
+   // Inputs:  the Cal Energy and Cal Energy Centroid
+   // Outputs: The internal bank of class "Candidate" tracks 
+   // Dependencies: None
+   // Restrictions and Caveats:  None
     double ene    = m_control->getFEneParticle()*CalEnergy;
     m_energy = ene; //for testing 2000.; //
     
@@ -152,7 +167,12 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
 
 void TkrComboPatRec::loadOutput()
 {
-    // Load Track Candidates into output class TkrCandidates
+   // Purpose and Method: Re-formats internal Candidate class to TkrPatCand Class
+   // Inputs:  None
+   // Outputs: The TkrPatCands Bank from which the final tracks fits are done
+   // Dependencies: None
+   // Restrictions and Caveats:  None.
+
     if (m_candidates.size() > 0) {
         
         TkrComboPatRec::iterator hypo;
@@ -199,11 +219,18 @@ void TkrComboPatRec::loadOutput()
     
 }
 
-//Find the "Global Event Energy" and constraint the track energies
 void TkrComboPatRec::setEnergies(double calEnergy)
 {
-    // Use hit counting + CsI energies
-    //if(calEnergy <= m_control->getMinEnergy()) return; //May not be a good idea
+   // Purpose and Method: finds the "Global Event Energy" and constrainds the
+   //                     first two track energies to sum to it.
+   // Inputs:  Calorimeter Energy
+   // Outputs: Sets the "constrained" energy for all Candidates
+   //          Note: This is the energy that will be used for the 
+   //          final track fit. 
+   // Dependencies: None
+   // Restrictions and Caveats:  None.
+
+    // Use hit counting + CsI energies to compute Event Energy 
     double cal_Energy = (calEnergy > m_control->getMinEnergy()/2.) ? 
                          calEnergy : m_control->getMinEnergy()/2.;
 
@@ -326,8 +353,16 @@ void TkrComboPatRec::setEnergies(double calEnergy)
 }
 
 void TkrComboPatRec::findBlindCandidates()
-{   // Method to generate track hypothesis from just the 
-    // hits in the tracker.
+{   
+   // Purpose and Method: Does a combinator search for tracks. Assumes
+   //                     tracks start in layer furthest from the calorimeter
+   //                     First finds 3 (x,y) pairs which line up and then does
+   //                     first KalFitTrack fit using the "findHits method to fill in 
+   //                     the rest of the hits.
+   // Inputs:  None
+   // Outputs: The TkrPatCands Bank from which the final tracks fits are done
+   // Dependencies: None
+   // Restrictions and Caveats:  None.
     
     int max_planes = m_tkrGeo->numLayers();
     
@@ -423,9 +458,17 @@ void TkrComboPatRec::findBlindCandidates()
 }
 
 void TkrComboPatRec::findCalCandidates()
-{   // Method to generate track hypothesis using the calorimeter 
-    // energy centroid as a seed. Allow a gap between first two
-    // hits but none between next two if first two had a gap
+{   
+   // Purpose and Method: Does a search for tracks assuming tracks point to 
+   //                     Calorimeter energy centroid.
+   //                     tracks start in layer furthest from the calorimeter
+   //                     First finds 3 (x,y) pairs which line up and then does
+   //                     first KalFitTrack fit using the "findHits method to fill in 
+   //                     the rest of the hits.
+   // Inputs:  None
+   // Outputs: The TkrPatCands Bank from which the final tracks fits are done
+   // Dependencies: None
+   // Restrictions and Caveats:  None.gap
     
     int max_planes = m_tkrGeo->numLayers();
     int localBestHitCount = 0; 
@@ -523,7 +566,11 @@ void TkrComboPatRec::findCalCandidates()
 
 float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
 {
-    // Extrapolate to the next paired x-y space point from layer.   
+   // Purpose and Method: Finds the 3rd hit for findBlindCandidates()
+   // Inputs:  The layer ( 0 - 17) inwhich to search, the track trajectory
+   // Outputs: The sigma (std. dev.) for the "found" and the deflection angle
+   // Dependencies: None
+   // Restrictions and Caveats:  None.
     deflection = 0.;
     int nlayers = 0;
     
@@ -558,7 +605,14 @@ float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
 
 bool TkrComboPatRec::incorporate(Candidate* trial)
 {
-    // This method inserts the trial into the internal list of hypothesises
+   // Purpose and Method: Adds the trial candidate to the list of accepted candidates
+   //                     Checks for hit overlap and orders candidates according 
+   //                     to "best" -> "worst" - see constructor for "Candidate" 
+   //                     for definition of ordering parameter. 
+   // Inputs:  the present trial
+   // Outputs: bool - true if trial was added; false - trial deleted
+   // Restrictions and Caveats:  None.    
+    
     bool added = false;
 
     // Check if this track duplicates another already present
@@ -619,6 +673,16 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
     , m_gap(g)
     , m_type(0)
 {
+   // Purpose and Method: Constructor for internal Candidate list. Does a first 
+   //                     KalFitTrack fit - to find all the hits, chisq, etc.
+   // Inputs:  TrkClusterCol pointer, Geometry Pointer, layer for KalFitTrack to 
+   //          in, tower no. in which to start, the track energy, starting point 
+   //          direction, the 3-point-track deflection, the sigma - search cut for 
+   //          KalFitTrack to use, the 3-point gap hit ocunt, and the present top
+   //          most layer in which a track starts
+   // Outputs: A Combo Pat. Rec. Candidate
+   // Dependencies: None
+   // Restrictions and Caveats:  None.
     // Set up controls
           TkrControl* control = TkrControl::getPtr();
 
@@ -686,6 +750,12 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
 
 TkrComboPatRec::Candidate::~Candidate() 
 {
+   // Purpose and Method: destructor - needs to be present to delete the
+   //                     KalFitTrack 
+   // Inputs:  None
+   // Outputs: None
+   // Dependencies: None
+   // Restrictions and Caveats:  None.
     if(m_track !=0) {
         delete m_track;
     }
@@ -693,6 +763,15 @@ TkrComboPatRec::Candidate::~Candidate()
 
 int TkrComboPatRec::Candidate::adjustType(int incr) 
 {
+   // Purpose and Method: Makes changes to the Pat. Rec. Type. 
+   //                     1's Digit  =  no. of Leading Hits
+   //                    10's Digit  =  Energy type: 10 = Min.; 20 = Kalman energy
+   //                                   30 = Constrained Energy (see TkrComboPatRec::setEnergies())
+   // Inputs:  The change to be made 
+   // Outputs: The new Pat. Rec. Type.
+   // Dependencies: None 
+   // Restrictions and Caveats:  None.
+
     int hits = m_type%10;
     int ene  = (m_type/10)%10;
     ene *= 10;

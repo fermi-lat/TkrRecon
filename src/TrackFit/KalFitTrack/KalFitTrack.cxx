@@ -41,8 +41,18 @@ KalFitTrack::KalFitTrack(Event::TkrClusterCol* clusters, ITkrGeometrySvc* geo, i
                              m_clusters(clusters),
                              m_tkrGeo(geo)
 {
-    // Initialization for KalFitTrack
-    m_energy0 = energy; //"100MeV -> pB = 151.4 1Gev -> 1095.4
+   // Purpose and Method: Constructor - Initialization for KalFitTrack
+ 
+   // Inputs:  Pointer to Detector Geometery, pointer to TrkClusters, the Cal Energy,
+   //          and Cal Energy Centroid, the first layer on the track
+   //          the tower in which the track starts, the search region cut, the track 
+   //          energy and the starting trajectory. 
+   // Outputs: KalFitTrack
+   // Dependencies: None
+   // Restrictions and Caveats:  None
+
+    // Track energy - sets MS errors 
+    m_energy0 = energy;           //"100MeV -> pB = 151.4 1Gev -> 1095.4
                                  // 10 GeV -> 10104.3 
     m_status  = EMPTY;      
 
@@ -56,6 +66,12 @@ KalFitTrack::KalFitTrack(Event::TkrClusterCol* clusters, ITkrGeometrySvc* geo, i
 
 void KalFitTrack::flagAllHits(int iflag)
 {
+   // Purpose and Method: Flag all clusters as having been used
+   // Inputs: flag that is passed on the TkrCluster (!= 0 means flagged) 
+   // Outputs: None
+   // Dependencies: None
+   // Restrictions and Caveats:  None
+
     TkrFitPlaneConPtr hitPtr = getHitIterBegin();
 
     while(hitPtr < getHitIterEnd()) {
@@ -66,6 +82,12 @@ void KalFitTrack::flagAllHits(int iflag)
 
 void KalFitTrack::unFlagAllHits()
 {
+   // Purpose and Method: Unflag all clusters as having been used
+   // Inputs: None
+   // Outputs: None
+   // Dependencies: None
+   // Restrictions and Caveats:  None
+
     TkrFitPlaneConPtr hitPtr = getHitIterBegin();
 
     while(hitPtr < getHitIterEnd()) {
@@ -76,6 +98,12 @@ void KalFitTrack::unFlagAllHits()
 
 void KalFitTrack::unFlagHit(int num)
 {
+   // Purpose and Method: Unflag a specfic cluster
+   // Inputs: Index of cluster to unflag
+   // Outputs: None
+   // Dependencies: None
+   // Restrictions and Caveats:  None
+
     TkrFitPlaneConPtr hitPtr = getHitIterBegin();
     TkrFitPlane hitplane     = hitPtr[num];
     m_clusters->unflagHit(hitplane.getProjection(), hitplane.getIDHit());
@@ -83,12 +111,24 @@ void KalFitTrack::unFlagHit(int num)
 
 void KalFitTrack::clear()
 {   
+   // Purpose and Method: Set to NULL all calculated cov. matrices & parameter vecs. 
+   // Inputs: None 
+   // Outputs: None
+   // Dependencies: None
+   // Restrictions and Caveats:  None
+
     TkrFitTrack::clear();
     ini();
 }
 
 void KalFitTrack::addMeasHit(const TkrPatCandHit& candHit)
 {
+   // Purpose and Method: Add a hit (TkrCluster) to this KalFitTrack
+   // Inputs: Hit from Pat. Rec. Track
+   // Outputs: None
+   // Dependencies: None
+   // Restrictions and Caveats:  None
+
     Point       planePos = candHit.Position();
     int         clusIdx  = candHit.HitIndex();
     TkrFitPlane newPlane(clusIdx, candHit.PlaneIndex(), getStartEnergy(),
@@ -108,6 +148,14 @@ void KalFitTrack::addMeasHit(const TkrPatCandHit& candHit)
 void KalFitTrack::addMeasHit(int clusIdx, int planeID, TkrCluster::view proj, double zPlane,
                              int before_hit)
 {
+   // Purpose and Method: Added a TkrCluster  to this KalFitTrack
+   // Inputs: TkrCluster Index, Layer being created, projection (X:Y), 
+   //         Z location of Layer, index of layer before which to add
+   //         new layer 
+   // Outputs: None
+   // Dependencies: None
+   // Restrictions and Caveats:  None
+
     TkrFitPlane newPlane(clusIdx, planeID, getStartEnergy(),
                          zPlane, proj);
 
@@ -124,6 +172,13 @@ void KalFitTrack::addMeasHit(int clusIdx, int planeID, TkrCluster::view proj, do
 
 int KalFitTrack::compareFits(KalFitTrack& ktrack)
 {
+   // Purpose and Method: Compute number of TkrClusters in common with
+   //                     this KalFitTrack
+   // Inputs: the KalFitTrack to be compared with 
+   // Outputs: Number of shared TkrClusters
+   // Dependencies: None
+   // Restrictions and Caveats:  None
+
     int numComData=0;
     if (m_hits.size()==0||m_hits.size()==0) 
         return numComData;
@@ -139,6 +194,16 @@ int KalFitTrack::compareFits(KalFitTrack& ktrack)
 // Drives using the Kalman Filter as pattern rec too
 void KalFitTrack::findHits() 
 { 
+   // Purpose and Method: Performs a Kalman filter step through the 
+   //                     GLAST Tracker.  At each new plane the 
+   //                     nearest hit is searched for and if found 
+   //                     within search cut limit, it is added to 
+   //                     the track
+   // Inputs: None (starts from constructor parameters)
+   // Outputs: None
+   // Dependencies: None
+   // Restrictions and Caveats:  None
+
     TkrFitPlane oriKplane = lastKPlane();
     
     int  kplane       = oriKplane.getIDPlane() + 1;
@@ -216,6 +281,13 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
                                             int kplane, TkrFitPlane& nextKplane,
                                             TkrFitHit::TYPE type)
 {
+   // Purpose and Method: Projects fit to the next plane and searchs for the 
+   //                     the nearest hit within cut limit
+   // Inputs: The previous Plane and its type (FIT, PRED, SMOOTH, etc.)  
+   // Outputs: The status (FOUND or EMPTY). Also returns the next plane
+   // Dependencies: None
+   // Restrictions and Caveats:  None
+
     Status statushit = EMPTY;
     int num_steps    = 0;
     double arc_total = 0;
@@ -296,6 +368,12 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
 
 TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer, double &arc_min, TkrFitHit::TYPE type) 
 {
+   // Purpose and Method: Porject forwards to the next plane creating the Prediction
+   // Inputs: The previous plane and the layer to which to project 
+   // Outputs: the next plane (PREDICTED)
+   // Dependencies: None
+   // Restrictions and Caveats:  None
+
     // The z end position of the next klayer plane
     KalmanFilter KF(m_clusters, m_tkrGeo);
     double       zEnd; 
@@ -360,7 +438,14 @@ TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer, dou
 }
 
 void KalFitTrack::incorporateFoundHit(TkrFitPlane& nextKplane, int indexhit)
-{			
+{
+   // Purpose and Method: Added the now found hit to this track - makes the 
+   //                     MEASured cov & par. 
+   // Inputs: flag that is passed on the TkrCluster (!= 0 means flagged) 
+   // Outputs: None
+   // Dependencies: None
+   // Restrictions and Caveats:  None
+
     TkrCluster::view planeView = nextKplane.getProjection();
 
     Point  nearHit   = m_clusters->position(planeView, indexhit);
@@ -401,6 +486,15 @@ void KalFitTrack::incorporateFoundHit(TkrFitPlane& nextKplane, int indexhit)
 double KalFitTrack::sigmaFoundHit(const TkrFitPlane& previousKplane, const TkrFitPlane& nextKplane,
                                   int& indexhit, double& radiushit)
 {
+   // Purpose and Method: Does the actual hit finding. Calls TkrQueryClusters
+   // Inputs: the previous plane, then present plane, and min. distance 
+   //         from the PREDicted hit (radiushit). Initially this is set to zero
+   //         but subsequent calls extend search outwards
+   // Outputs: the normalized residual to new hit and the index of the new hit
+   //          (indexhit)
+   // Dependencies: None
+   // Restrictions and Caveats:  None
+
     indexhit  = -1;
     double residual  = 1e6;
     double sigmahit = 1e6;
@@ -453,6 +547,17 @@ double KalFitTrack::sigmaFoundHit(const TkrFitPlane& previousKplane, const TkrFi
 double KalFitTrack::sigmaFoundHit(Point center, int nextLayer, int prevLayer, 
                                   int& indexhit, double& radiushit)
 {
+   // Purpose and Method: Does the actual hit finding. Calls TkrQueryClusters. 
+   //          Similar to last method - used to add leading hits to the track
+   // Inputs: the space point about which to search, 
+   //         the previous plane, then present plane, and min. distance 
+   //         from the PREDicted hit (radiushit). Initially this is set to zero
+   //         but subsequent calls extend search outwards.          
+   // Outputs: the normalized residual to new hit and the index of the new hit
+   //          (indexhit)
+   // Dependencies: None
+   // Restrictions and Caveats:  None
+
     indexhit  = -1;
     double residual  = 1e6;
     double sigmahit = 1e6;
@@ -504,7 +609,13 @@ double KalFitTrack::sigmaFoundHit(Point center, int nextLayer, int prevLayer,
 bool KalFitTrack::foundHit(int& indexhit, double& min_dist, double max_dist,
                            double error, const Point& centerX, const Point& nearHit)
 {
-    // This member function desides whether to keep the hit
+  // Purpose and Method: Desides whether to keep the hit
+  // Inputs: The TkrCluster index to be added, (min_dist returned), 
+  //         max. allow distance in porjection between nearHit and Cluster,
+  //         centerX is the center of this plane.
+  // Outputs: bool - TRUE if hit kept, FALSE if rejected
+  // Dependencies: None
+  // Restrictions and Caveats:  None
 
     bool done = true;    
     if (indexhit < 0) return done;
@@ -538,6 +649,13 @@ bool KalFitTrack::foundHit(int& indexhit, double& min_dist, double max_dist,
 
 void KalFitTrack::ini()
 {
+  // Purpose and Method: Initialize Kalman Fit - Sets all cov's & calc.
+  //         parameters to NULL
+  // Inputs: None
+  // Outputs: None
+  // Dependencies: None
+  // Restrictions and Caveats:  None
+
     m_x0           = Point(0., 0., 0.);
     m_dir          = Vector(0., 0., 0.);
     m_rmsResid     = 0.;
@@ -560,6 +678,14 @@ void KalFitTrack::ini()
 
 void KalFitTrack::finish()
 {
+  // Purpose and Method: Kalman clean-up.  Translates fit parameters
+  //         back to direction cosines and a point, computes the 
+  //         chisquareds, computes the Kalman Energy (MS determined energy)
+  // Inputs: None
+  // Outputs: None
+  // Dependencies: None
+  // Restrictions and Caveats:  None
+
     // Compute the fit variables  
     if (m_chisq>=0) {
         int    nplanes = getNumHits();
@@ -596,7 +722,7 @@ void KalFitTrack::finish()
         m_rmsResid=sqrt(m_rmsResid/(1.*nplanes));
     }
     
-    //   Energy calculations
+    // Energy calculations
     eneDetermination();
     
     // Segment Calculation
@@ -609,9 +735,14 @@ void KalFitTrack::finish()
 
 int KalFitTrack::addLeadingHits(int top_layer)
 {
-    //This method projects backwards from the start of the track
-    // to pick-up possible un-paired x & y hits.  Returns the 
-    // the number of hits added
+  // Purpose and Method: This method projects backwards from 
+  //             the start of the track to pick-up possible un-paired x & y hits. 
+  //             Returns the the number of hits added
+  // Inputs: layer from which to start the search
+  // Outputs: no. of added hits (planes)
+  // Dependencies: None
+  // Restrictions and Caveats:  None
+
     
     int  added_hit_count = 0;
     double       arc_min = 0.; 
@@ -674,6 +805,14 @@ int KalFitTrack::addLeadingHits(int top_layer)
 
 void KalFitTrack::doFit()
 {
+  // Purpose and Method: Does the formal Kalman process
+  //         First - the Filter step then the (reverse) Smoothing
+  //         step. 
+  // Inputs: None
+  // Outputs: None
+  // Dependencies: None
+  // Restrictions and Caveats:  None
+
     KalmanFilter KF(m_clusters, m_tkrGeo);
 
     if (getNumHits() < 3) {
@@ -731,6 +870,11 @@ void KalFitTrack::doFit()
 
 void KalFitTrack::filterStep(int iplane) 
 {
+  // Purpose and Method: The Filter step for the specified plane
+  // Inputs: index of plane to "Filter"
+  // Outputs: None
+  // Dependencies: None
+  // Restrictions and Caveats:  None
     KalmanFilter KF(m_clusters, m_tkrGeo);
 
     TkrFitHit hitp = KF.predicted(m_hits[iplane],m_hits[iplane+1]);
@@ -755,8 +899,15 @@ void KalFitTrack::filterStep(int iplane)
 
 double KalFitTrack::computeQuality() const
 { 
- //   double quality = 20./(1.+m_chisqSegment) + 
- //               3.*(m_nxHits+m_nyHits-4. - .5*(m_Xgaps+m_Ygaps));
+  // Purpose and Method: Ascribes a "quality" for each track.
+  //         Somewhat arbitrary - main components are number
+  //         of hits and Smoothed Chisq.  Long tracks are 
+  //         high quality - tracks are penalized by the size 
+  //         of chisquared. 
+  // Inputs: None
+  // Outputs: Quality parameter
+  // Dependencies: None
+  // Restrictions and Caveats:  None
 
     int num_Hits = (m_nxHits <= 8) ? m_nxHits:8;
     if(m_nyHits > 8) num_Hits += 8; 
@@ -773,6 +924,12 @@ double KalFitTrack::computeQuality() const
 
 TkrFitPlane KalFitTrack::firstKPlane() const
 {
+  // Purpose and Method: Establishes the starting plane for the 
+  //          Kalman Filter process
+  // Inputs: None
+  // Outputs: a TkrFitPlane
+  // Dependencies: None
+  // Restrictions and Caveats:  None
     if (m_hits.size() == 0) {
         std::cout << "ERROR KalFitTrack::thisKPlane " << endreq;
         return originalKPlane();
@@ -782,6 +939,11 @@ TkrFitPlane KalFitTrack::firstKPlane() const
 
 TkrFitPlane KalFitTrack::lastKPlane() const
 {
+  // Purpose and Method: Returns the last plane (hit) on this track
+  // Inputs: None
+  // Outputs: a TkrFitPlane
+  // Dependencies: None
+  // Restrictions and Caveats:  None
     if (m_hits.size() == 0) return originalKPlane();
 
     return m_hits.back();
@@ -789,6 +951,11 @@ TkrFitPlane KalFitTrack::lastKPlane() const
 
 TkrFitPlane KalFitTrack::previousKPlane() const 
 {
+  // Purpose and Method: Returns the previous plane (hit) on this track
+  // Inputs: None
+  // Outputs: a TkrFitPlane
+  // Dependencies: None
+  // Restrictions and Caveats:  backs up two planes...     
     if (m_hits.size() <= 1) {
         //std::cout << "ERROR KalFitTrack::previousKPlane " << endreq;
         return originalKPlane();
@@ -800,8 +967,13 @@ TkrFitPlane KalFitTrack::previousKPlane() const
 
 TkrFitPlane KalFitTrack::originalKPlane() const
 {  
-    // Create a fake first plane.... 
-    // Back off incoming vertex to cause the first hit to be picked up
+  // Purpose and Method: Creates a fake first plane.
+  //     Back off incoming vertex to cause the first hit to be picked up
+  // Inputs: None
+  // Outputs: a TkrFitPlane
+  // Dependencies: None
+  // Restrictions and Caveats:  None
+
     Ray testRay(m_ray.position(),m_ray.direction());
     double backup_dist = 5./fabs(m_ray.direction().z()); //Backup a bit 
     Point x_ini = testRay.position(-backup_dist); 
@@ -835,7 +1007,14 @@ TkrFitPlane KalFitTrack::originalKPlane() const
 
 
 TkrFitHit KalFitTrack::generateFirstFitHit(TkrFitPar parguess)
-{   
+{  
+  // Purpose and Method: Set parameters for the first hit
+  //          Errors are somewhat arbitrary. 
+  // Inputs: Input Parameters from Pat.Rec.
+  // Outputs: a TkrFitHit
+  // Dependencies: None
+  // Restrictions and Caveats:  None
+
     double energy = m_hits[1].getEnergy();
     if (energy == 0.) energy = m_energy0;
 
@@ -855,8 +1034,12 @@ TkrFitHit KalFitTrack::generateFirstFitHit(TkrFitPar parguess)
 
 TkrFitPar KalFitTrack::guessParameters()
 {  
-    // Provides an estimate of the track parameters based on the first 
-    // two (x,y) pairs of SSD hits
+  // Purpose and Method: Makes "guess" for the track 
+  //        parameters from the first few hits on the track
+  // Inputs: None
+  // Outputs: a TkrFitPar
+  // Dependencies: None
+  // Restrictions and Caveats:  None
 
     int nplanes=m_hits.size();
     if (nplanes<4) {
@@ -921,6 +1104,14 @@ TkrFitPar KalFitTrack::guessParameters()
 }
 void KalFitTrack::eneDetermination()
 {
+  // Purpose and Method:Computes the track energy from the amount
+  //     of multiple scattering alongthe track. (refered to as 
+  //     the KalEnergy). 
+  // Inputs: None
+  // Outputs: sets kalEnergy and its error for this track
+  // Dependencies: None
+  // Restrictions and Caveats:  None
+
     int nplanes = m_hits.size()-2; // Assume last 2 hits are x,y pair
                                    // No new info. here - using SMOOTHED
 
@@ -1010,6 +1201,13 @@ void KalFitTrack::eneDetermination()
 
 double KalFitTrack::getKink(int kplane) const
 {
+  // Purpose and Method: Computes the 3D angle between two
+  //         track segments (3 pairs of (x,y) hits)
+  // Inputs: plane where the kink is located
+  // Outputs: the kink angle
+  // Dependencies: None
+  // Restrictions and Caveats:  None
+
     //Only valid past first 2 planes 
     if(kplane < 2 )
         return 10.; // Rogue value  - Invalid arg.
@@ -1053,6 +1251,14 @@ double KalFitTrack::getKink(int kplane) const
 
 double KalFitTrack::getKinkNorma(int kplane) const
 {
+  // Purpose and Method: Computes the normalized 3D kink angle.
+  //          (see KalFitTrack::kink()). Normalization is based on
+  //          expected multiple scattering
+  // Inputs: plane where kink is located
+  // Outputs: no. of sigmas for the measured kink
+  // Dependencies: None
+  // Restrictions and Caveats:  None
+
     double kink_angle = getKink(kplane); 
     if(kink_angle > 3.) return kink_angle;
 
@@ -1083,6 +1289,13 @@ int KalFitTrack::computeNumSegmentPoints(TkrFitHit::TYPE typ)
 
 double KalFitTrack::computeChiSqSegment(int nhits, TkrFitHit::TYPE typ)
 {
+  // Purpose and Method: Computes the chisquared for the first
+  //            portion of the track
+  // Inputs: no. of hits to include and the chisquared type (FILTER or SMOOTH)
+  // Outputs: chisquared/D.F.
+  // Dependencies: None
+  // Restrictions and Caveats:  None
+
     double chi2 = 0;
     int ihit =0;
     for (ihit =0; ihit < nhits; ihit++) {
@@ -1094,8 +1307,15 @@ double KalFitTrack::computeChiSqSegment(int nhits, TkrFitHit::TYPE typ)
 
 
 int KalFitTrack::okClusterSize(TkrCluster::view axis, int indexhit, double slope)			 
-//########################################################
 {
+  // Purpose and Method: Checks on that the size of the cluster
+  //          is O.K.
+  // Inputs: Projection (X:Y), cluster index, track slope for this proj.
+  // Outputs: int - = 0 if cluster is too small, 1 = if it fits
+  //                = 2 if oversized
+  // Dependencies: None
+  // Restrictions and Caveats:  None
+
     int icluster = 0;
     
     int size = (int) m_clusters->size(axis,indexhit);
@@ -1114,4 +1334,3 @@ int KalFitTrack::okClusterSize(TkrCluster::view axis, int indexhit, double slope
     
     return icluster;
 }
-
