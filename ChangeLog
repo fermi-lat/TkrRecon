@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: lsrea  Tue Jun  1 15:04:15 PDT 2004
+TkrRecon/src/Services
+
+Modified Files:
+	TkrInitSvc.cxx 
+Log Message:
+prepare for tag v8r12p17
+Add code to break tracks at tower boundaries
+controlled by property TkrInitSvc.TkrTrackAcrossTowers, defaults to true, of course!
+
+    *
+------------------------------------------------------------
+User: lsrea  Tue Jun  1 15:04:15 PDT 2004
 TkrRecon/doc
 
 Modified Files:
