@@ -65,10 +65,16 @@ void TkrBase::writeOut(MsgStream& log) const
   // Outputs:  None
   // Dependencies: None
   // Restrictions and Caveats:  None
-    log << MSG::DEBUG << " --- TkrBase::writeOut --- " << endreq;
-    log << MSG::DEBUG << " Position      = " << position().x() << " " <<position().y() << " " << position().z() << endreq;
-    log << MSG::DEBUG << " Direction     = " << direction().x() << " " << direction().y() << " " << direction().z() << endreq;
-    log << MSG::DEBUG << " Energy        = " << energy() << endreq;
-    log << MSG::DEBUG << " first Layer   = " << firstLayer() << endreq;
-    log << MSG::DEBUG << " Tower         = " << tower() << endreq;
+    log << MSG::DEBUG;
+    if (log.isActive()) {
+        log << " --- TkrBase::writeOut --- " << endreq 
+        << " Position      = " << position().x() 
+        << " " <<position().y() << " " << position().z() << endreq 
+        << " Direction     = " << direction().x() << " " 
+        << direction().y() << " " << direction().z() << endreq
+        << " Energy        = " << energy() << endreq
+        << " first Layer   = " << firstLayer() << endreq
+        << " Tower         = " << tower();
+    }
+    log << endreq;
 }

@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.13 2002/09/05 16:42:30 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.14 2002/10/10 08:43:11 cohen Exp $
 //
 // Description:
 //      Handles the Gaudi part of the vertex reconstruction
@@ -51,7 +51,11 @@ StatusCode TkrVertexAlg::initialize()
 
     setProperties();
     
-    log << MSG::DEBUG << "Initializing TkrVertexAlg"<<endreq;
+    log << MSG::DEBUG; 
+    if (log.isActive() ) {
+        log << "Initializing TkrVertexAlg";
+    }
+    log <<endreq;
 
     return StatusCode::SUCCESS;
 }
@@ -100,7 +104,11 @@ StatusCode TkrVertexAlg::execute()
             VtxToolName = std::string("DEFAULT");
         }
 
-        log << MSG::DEBUG << "Vertexing performed with: "<< VtxToolName.c_str() <<endreq;
+        log << MSG::DEBUG;
+        if (log.isActive()) {
+            log << "Vertexing performed with: "<< VtxToolName.c_str();
+        }
+        log <<endreq;
 
         // Look up (and instantiate if necessary) a private version of the tool
         sc = toolSvc()->retrieveTool(VtxToolName.c_str(), m_VtxTool, this);
