@@ -112,36 +112,33 @@ StatusCode SiClustersAlg::finalize()
 StatusCode SiClustersAlg::retrieve()
 //##############################################
 {
-	StatusCode sc = StatusCode::SUCCESS;
-
+    StatusCode sc = StatusCode::SUCCESS;
+    
     MsgStream log(msgSvc(), name());
-        DataObject* pnode =0;
-    sc = eventSvc()->retrieveObject( "/Event", pnode );
-    
+
+    /*! Check to see if we can get the subdirectory. If not create it
+    */
+    DataObject* pnode =0;
+    sc = eventSvc()->retrieveObject("/Event/TkrRecon", pnode);
+
     if( sc.isFailure() ) {
-        log << MSG::ERROR << "Could not retrieve Event directory" << endreq;
-        return sc;
-    }
-    
-    sc = eventSvc()->retrieveObject( "/Event/Raw", pnode );
-    
-    if( sc.isFailure() ) {
-        sc = eventSvc()->registerObject("/Event/Raw",new DataObject);
+        sc = eventSvc()->registerObject("/Event/TkrRecon",new DataObject);
         if( sc.isFailure() ) {
             
             log << MSG::ERROR << "Could not create Raw directory" << endreq;
             return sc;
         }
     }
+    
     m_SiClusters = new SiClusters();
-    sc = eventSvc()->registerObject("/Event/Raw","SiClusters",m_SiClusters);
-
-	// m_SiClusters = SmartDataPtr<SiClusters>(eventSvc(),"/Event/Recon/TkrRecon"); 
-	m_SiLayers   = SmartDataPtr<SiLayers>(eventSvc(),"/Event/Raw/SiLayers");
-
-	if (m_SiClusters == 0 || m_SiLayers ==0) sc = StatusCode::FAILURE;
-	return sc;
+    sc = eventSvc()->registerObject("/Event/TkrRecon/SiClusters",m_SiClusters);
+    
+    m_SiLayers   = SmartDataPtr<SiLayers>(eventSvc(),"/Event/TkrRecon/SiLayers");
+    
+    if (m_SiClusters == 0 || m_SiLayers ==0) sc = StatusCode::FAILURE;
+    return sc;
 }
+
 //###################################################
 Point SiClustersAlg::position(int iplane, SiCluster::view v, double strip)
 //###################################################

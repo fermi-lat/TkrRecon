@@ -86,55 +86,53 @@ StatusCode SiRecObjsAlg::finalize()
 	//	
 	return StatusCode::SUCCESS;
 }
+
 //----------- private --------------------------
 //##############################################
 StatusCode SiRecObjsAlg::retrieve()
 //##############################################
 {
-	StatusCode sc = StatusCode::SUCCESS;
-
+    StatusCode sc = StatusCode::SUCCESS;
+    
     MsgStream log(msgSvc(), name());
-        DataObject* pnode =0;
-    sc = eventSvc()->retrieveObject( "/Event", pnode );
+
+    // Here we retrieve the sub directory
+    DataObject* pnode=0;
+
+    sc = eventSvc()->retrieveObject( "/Event/TkrRecon", pnode );
     
     if( sc.isFailure() ) {
-        log << MSG::ERROR << "Could not retrieve Event directory" << endreq;
-        return sc;
-    }
-    
-    sc = eventSvc()->retrieveObject( "/Event/Raw", pnode );
-    
-    if( sc.isFailure() ) {
-        sc = eventSvc()->registerObject("/Event/Raw",new DataObject);
+        sc = eventSvc()->registerObject("/Event/TkrRecon",new DataObject);
         if( sc.isFailure() ) {
             
             log << MSG::ERROR << "Could not create Raw directory" << endreq;
             return sc;
         }
     }
-	m_SiRecObjs = new SiRecObjs();
-	m_SiRecObjs->clear();
-	sc = eventSvc()->registerObject("/Event/Raw/SiRecObjs",m_SiRecObjs);
-
-	m_SiClusters = SmartDataPtr<SiClusters>(eventSvc(),"/Event/Raw/SiClusters"); 
-
-
-	// m_cal we need to retrieve the Cal Recon data
-	/*	if (m_cal->num()) {
-		double ene = 0.001*m_cal->Cluster(0)->energyCorrected();
-		if (ene >= m_CsIEnergy) {
-		m_CsIEnergy = ene;
-		m_CsIPosition = m_cal->Cluster(0)->position();
-	}
-	*/
-	//! for the moment use:
-	double MINENE = 0.03;
-	m_CsIEnergy = MINENE;
-	m_CsIPosition = Point(0.,0.,0.);
-
-	if (m_SiClusters == 0 || m_SiRecObjs ==0) sc = StatusCode::FAILURE; 
-	return sc;
+    m_SiRecObjs = new SiRecObjs();
+    m_SiRecObjs->clear();
+    sc = eventSvc()->registerObject("/Event/TkrRecon/SiRecObjs",m_SiRecObjs);
+    
+    m_SiClusters = SmartDataPtr<SiClusters>(eventSvc(),"/Event/TkrRecon/SiClusters"); 
+    
+    
+    // m_cal we need to retrieve the Cal Recon data
+    /*	if (m_cal->num()) {
+    double ene = 0.001*m_cal->Cluster(0)->energyCorrected();
+    if (ene >= m_CsIEnergy) {
+    m_CsIEnergy = ene;
+    m_CsIPosition = m_cal->Cluster(0)->position();
+    }
+    */
+    //! for the moment use:
+    double MINENE = 0.03;
+    m_CsIEnergy = MINENE;
+    m_CsIPosition = Point(0.,0.,0.);
+    
+    if (m_SiClusters == 0 || m_SiRecObjs ==0) sc = StatusCode::FAILURE; 
+    return sc;
 }
+
 //##############################################
 void SiRecObjsAlg::searchGammas()
 //##############################################

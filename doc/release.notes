@@ -1,8 +1,7 @@
-package GlastSvc
+package TkrRecon
 
-package manager:T.Burnett
+package manager:I.Gable
 
-! 20000829 THB: use new class instrument/Instrument for GlastDetector stuff.
-! 20000701  Created by HSG.
+! 20010213 IG: Jose remade pacakage out of TBRecon code
 
 !======================================================================

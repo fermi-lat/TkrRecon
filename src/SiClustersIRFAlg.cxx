@@ -117,23 +117,19 @@ StatusCode SiClustersIRFAlg::retrieve()
     //test of Toby's stuff
     DataObject* pnode=0;
 
-    sc = eventSvc()->retrieveObject( "/Event", pnode );
+    
+    sc = eventSvc()->retrieveObject( "/Event/TkrRecon", pnode );
     
     if( sc.isFailure() ) {
-        log << MSG::ERROR << "Could not retrieve Event directory" << endreq;
-        return sc;
-    }
-    
-    sc = eventSvc()->retrieveObject( "/Event/Raw", pnode );
-    
-    if( sc.isFailure() ) {
-        sc = eventSvc()->registerObject("/Event/Raw",m_SiClusters);
+        sc = eventSvc()->registerObject("/Event/TkrRecon",pnode);
         if( sc.isFailure() ) {
             
             log << MSG::ERROR << "Could not create Raw directory" << endreq;
             return sc;
         }
     }
+
+    sc = eventSvc()->registerObject("/Event/TkrRecon/SiClusters", m_SiClusters);
         
     m_SiData = SmartDataPtr<TdSiData>(eventSvc(),"/Event/Raw/TdSiDatas");
     

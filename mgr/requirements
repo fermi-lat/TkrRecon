@@ -1,20 +1,24 @@
 package TkrRecon
-version v1
+version v1r2
 
 branches src mgr doc
 
 use GlastSvc
-#use reconstruction 
 use gui
 
 library TkrRecon  *.cpp *.cxx ../TkrRecon/*.h  Dll/*.cpp
 
-macro TkrRecon Dir  "$(TKRRECONROOT)/$(DEBUGDIR)"
+macro TkrReconDir  "$(TKRRECONROOT)/$(DEBUGDIR)"
 
 macro TkrRecon_linkopts   " " 
 macro TkrRecon_stamps     
 
 set   TkrReconShr           "${TKRRECONROOT}/${DEBUGDIR}/libTkrRecon"
+
+macro TkrRecon_linkopts   "$(TkrReconDir)/libTkrRecon.lib  " \
+      LinuxStatic         "$(TkrReconDir)/libTkrRecon.a -u TkrRecon_loadRef" \
+      VisualCStatic       "$(TkrReconDir)/libTkrRecon.lib /include:_TkrRecon_loadRef"
+
 
 include_path $(TKRRECONROOT)
 
