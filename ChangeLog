@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sat Feb 19 14:40:28 PST 2005
+TkrRecon/src/PatRec/MonteCarlo
+
+Modified Files:
+	MonteCarloFindTrackTool.cxx 
+Log Message:
+Fix problem with occasionally missing pointer to particle properties
+    *
+------------------------------------------------------------
 User: usher  Fri Feb 18 23:03:54 PST 2005
 TkrRecon/src/Track
 
