@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Mar  1 20:37:16 PST 2005
+TkrRecon/TkrRecon/Track
+
+Modified Files:
+	ITkrFitTool.h 
+Log Message:
+Modifications to speed up code: 1) Pat Rec now does partial fit (doSmootherFit and calculate quality), 2) calculation of active distance removed from Process Noise matrix calculation and 3) moved to TrackFitUtils as an end of track fit processing task
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r4p0, operation: add
 Package: TkrRecon
