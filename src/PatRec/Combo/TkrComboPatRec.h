@@ -20,7 +20,6 @@
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "src/TrackFit/KalFitTrack/KalFitTrack.h"
-#include "TkrRecon/Track/TkrBase.h"
 #include "geometry/Ray.h"
 
 #include <vector>
@@ -96,6 +95,10 @@ private:
     int m_BestHitCount;// highest hit count on a track this event
     int m_TopLayer;    // Upper most layer in which a track was found
     int m_firstLayer;  // Find first hit layer once
+
+    // pointers to clusters and geometry
+    ITkrGeometrySvc* m_tkrGeo;
+    TkrClusterCol*   m_clusters;
 };
 
 #endif
