@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Nov 10 14:24:04 PST 2004
+TkrRecon/src/Track
+
+Modified Files:
+	TrackFitUtils.cxx 
+Log Message:
+added compareTrack method.  Fixed shared hits for gaps
+    *
+------------------------------------------------------------
 User: atwood  Wed Nov 10 14:21:25 PST 2004
 TkrRecon/src/Track
 
