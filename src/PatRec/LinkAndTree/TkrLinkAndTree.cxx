@@ -239,7 +239,7 @@ void TkrLinkAndTree::buildCand3D()
 
             int layerX          = m_tkrGeom->getPlane(pTopClusterX->getTkrId());
             int layerY          = m_tkrGeom->getPlane(pTopClusterY->getTkrId());
-            int    layer        = std::min(layerX, layerY);
+            //int    layer        = std::min(layerX, layerY);
 
             xTopX += xSlope * (z - zTopX);
             yTopY += ySlope * (z - zTopY);
@@ -247,8 +247,8 @@ void TkrLinkAndTree::buildCand3D()
             Point  start(xTopX,yTopY,z);
             Vector vDir(-xSlope,-ySlope,-1.);
             Ray    initDir(start,vDir.unit());
-            double quality = TkrNodeX->getQuality()->getAngleRMS()
-                           + TkrNodeY->getQuality()->getAngleRMS();
+            //double quality = TkrNodeX->getQuality()->getAngleRMS()
+            //               + TkrNodeY->getQuality()->getAngleRMS();
 
             TkrTrack* newTrack = new TkrTrack(); ///layer,pTopClusterX->tower(),energy,1.,quality,initDir);
 

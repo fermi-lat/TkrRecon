@@ -122,7 +122,7 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
     // Compute the fit variables  
     if (track.getChiSquareSmooth() >= 0) 
     {
-        int                 nplanes    = track.getNumHits();
+        //int                 nplanes    = track.getNumHits();
         Event::TkrTrackHit* firstPlane = track[0];
         Point               x0         = firstPlane->getPoint(Event::TkrTrackHit::SMOOTHED);
         Vector              dir        = firstPlane->getDirection(Event::TkrTrackHit::SMOOTHED);

@@ -24,7 +24,7 @@ void TkrClustersRep::update()
 
     if (pClusters)
     {
-        int    nHits      = pClusters->size();
+        //int    nHits      = pClusters->size();
         double stripPitch = m_tkrGeom->siStripPitch();
         double towerPitch = m_tkrGeom->towerPitch();
         
