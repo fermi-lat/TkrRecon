@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Fri May 18 12:01:01 PDT 2001
+TkrRecon/src TkrGeometrySvc.cxx
+
+Modified Files:
+	TkrGeometrySvc.cxx 
+Log Message:
+Fixed a bug encountered while looking at balloon data... I hate to say this but "How did this thing ever work?"
+Also, refined geometry constants
+
+    *
+------------------------------------------------------------
 User: lsrea  Thu May 17 22:06:55 PDT 2001
 TkrRecon/xml Tkr_Balloon.xml Tkr_Flight.xml Tkr_TestBeam.xml
 
