@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: lsrea  Thu May 10 17:14:47 PDT 2001
+TkrRecon/xml Tkr_Flight.xml
+
+Modified Files:
+	Tkr_Flight.xml 
+Log Message:
+Fix bugs in TkrGeometrySvc.cxx which affect flight instrument
+Modify Tkr_Flight.xml to better reflect current instrument.xml
+
+    *
+------------------------------------------------------------
+User: lsrea  Thu May 10 17:14:47 PDT 2001
 TkrRecon/src TkrGeometrySvc.cxx
 
 Modified Files:
