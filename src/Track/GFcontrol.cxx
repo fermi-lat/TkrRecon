@@ -3,7 +3,7 @@
 
 
 int	  GFcontrol::gammaTries          = 1;
-int       GFcontrol::particleTries       = 5;
+int       GFcontrol::particleTries       = 3;
 int       GFcontrol::maxCandidates       = 2;
 
 double    GFcontrol::FEneParticle        = 1.;
@@ -13,7 +13,7 @@ double    GFcontrol::sigmaCut            = 6.;
 int	  GFcontrol::error	         = 0;
 int	  GFcontrol::maxConsecutiveGaps  = 6;	    // max consecutive Gaps - Stop
 int	  GFcontrol::minSegmentHits      = 6;	    // min number of hits for segment
-double	  GFcontrol::minEnergy	         = 0.5;     // min tracking energy GeV
+double	  GFcontrol::minEnergy	         = 0.03;     // min tracking energy GeV
 double	  GFcontrol::XEne 	         = 0.50;    // initial sharing of the energy
 
 double	  GFcontrol::iniErrorSlope       = 0.17;    // 10 deg
