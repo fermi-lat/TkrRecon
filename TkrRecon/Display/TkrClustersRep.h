@@ -3,7 +3,7 @@
 #define __TkrClustersRep_H
 
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
-#include "TkrRecon/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 
 #include "gui/DisplayRep.h"
 #include "GaudiKernel/IDataProviderSvc.h"

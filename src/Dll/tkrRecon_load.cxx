@@ -22,7 +22,7 @@ DECLARE_FACTORY_ENTRIES(TkrRecon)
     DECLARE_ALGORITHM( TkrVertexAlg            );
     DECLARE_ALGORITHM( TkrDisplayAlg           );
 
-    DECLARE_SERVICE(   TkrGeometrySvc          );
+    //DECLARE_SERVICE(   TkrGeometrySvc          );
     DECLARE_SERVICE(   TkrInitSvc              );
     //DECLARE_SERVICE(   TkrBadStripsSvc         );
 

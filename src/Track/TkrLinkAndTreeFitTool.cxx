@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease/TkrRecon/src/Track/TkrLinkAndTreeFitTool.cxx,v 1.3 2002/08/29 19:18:47 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrLinkAndTreeFitTool.cxx,v 1.4 2002/12/19 21:59:18 usher Exp $
 //
 // Description:
 //      Tool for performing the fit of Link and Tree Pat Rec candidate tracks
@@ -34,7 +34,7 @@ TkrLinkAndTreeFitTool::TkrLinkAndTreeFitTool(const std::string& type, const std:
     IService*   iService = 0;
     StatusCode  sc       = serviceLocator()->getService("TkrGeometrySvc", iService, true);
 
-    pTkrGeoSvc = dynamic_cast<TkrGeometrySvc*>(iService);
+    pTkrGeoSvc = dynamic_cast<ITkrGeometrySvc*>(iService);
 
     //Locate and store a pointer to the data service
     sc         = serviceLocator()->getService("EventDataSvc", iService);

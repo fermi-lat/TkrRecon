@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/LinkAndTree/LinkAndTreeFindTrackTool.cxx,v 1.4 2002/09/05 16:25:33 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/LinkAndTree/LinkAndTreeFindTrackTool.cxx,v 1.5 2002/10/09 23:44:10 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the Link and Tree approach
@@ -35,7 +35,7 @@ LinkAndTreeFindTrackTool::LinkAndTreeFindTrackTool(const std::string& type, cons
     IService*   iService = 0;
     StatusCode  sc       = serviceLocator()->getService("TkrGeometrySvc", iService, true);
 
-    m_tkrGeo  = dynamic_cast<TkrGeometrySvc*>(iService);
+    m_tkrGeo  = dynamic_cast<ITkrGeometrySvc*>(iService);
 
     //Locate and store a pointer to the data service
     sc        = serviceLocator()->getService("EventDataSvc", iService);

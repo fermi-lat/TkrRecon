@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.4 2002/09/05 16:25:32 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.5 2002/10/09 23:44:10 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -36,7 +36,7 @@ ComboFindTrackTool::ComboFindTrackTool(const std::string& type, const std::strin
     IService*   iService = 0;
     StatusCode  sc       = serviceLocator()->getService("TkrGeometrySvc", iService, true);
 
-    m_tkrGeo  = dynamic_cast<TkrGeometrySvc*>(iService);
+    m_tkrGeo  = dynamic_cast<ITkrGeometrySvc*>(iService);
 
     //Locate and store a pointer to the data service
     sc        = serviceLocator()->getService("EventDataSvc", iService);

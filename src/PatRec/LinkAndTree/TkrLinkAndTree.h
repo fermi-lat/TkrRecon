@@ -5,7 +5,7 @@
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "src/PatRec/LinkAndTree/TkrLinkForest.h"
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
-#include "TkrRecon/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 
 //
 //------------------------------------------------------------------------

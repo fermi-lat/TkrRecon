@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.6 2002/09/06 06:59:54 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.7 2002/12/19 21:59:18 usher Exp $
 //
 // Description:
 //      Tool for performing the fit of Combo Pat Rec candidate tracks
@@ -35,7 +35,7 @@ TkrComboFitTool::TkrComboFitTool(const std::string& type, const std::string& nam
     IService*   iService = 0;
     StatusCode  sc       = serviceLocator()->getService("TkrGeometrySvc", iService, true);
 
-    pTkrGeoSvc = dynamic_cast<TkrGeometrySvc*>(iService);
+    pTkrGeoSvc = dynamic_cast<ITkrGeometrySvc*>(iService);
 
     //Locate and store a pointer to the data service
     sc         = serviceLocator()->getService("EventDataSvc", iService);

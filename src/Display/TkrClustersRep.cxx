@@ -1,5 +1,5 @@
 #include "TkrRecon/Display/TkrClustersRep.h"
-#include "TkrRecon/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 #include "Event/TopLevel/EventModel.h"
 
 //------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease/TkrRecon/src/GaudiAlg/TkrMeritTool.cxx,v 1.3 2002/11/01 01:01:48 lsrea Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrMeritTool.cxx,v 1.4 2002/12/19 21:59:18 usher Exp $
 
 // Include files
 
@@ -21,7 +21,7 @@
 #include "Event/Recon/CalRecon/CalXtalRecData.h"
 #include "Event/Recon/AcdRecon/AcdRecon.h"
 
-#include "TkrRecon/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrRecon/Cluster/TkrQueryClusters.h"
 #include "GlastSvc/Reco/IReconTool.h"
 

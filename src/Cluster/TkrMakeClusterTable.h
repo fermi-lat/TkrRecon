@@ -8,7 +8,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusterTable.h,v 1.14 2002/09/02 21:15:03 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusterTable.h,v 1.1 2002/10/08 22:30:17 lsrea Exp $
 */
 
 #include "Event/Recon/TkrRecon/TkrCluster.h"
@@ -19,7 +19,7 @@
 #include "Event/RelTable/RelTable.h"
 #include "Event/RelTable/Relation.h"
 #include "Event/MonteCarlo/McPositionHit.h"
-#include "TkrRecon/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 
 class TkrMakeClusterTable
 {

@@ -2,7 +2,7 @@
 #ifndef TkrComboVtxRep_H
 #define TkrComboVtxRep_H
 
-#include "TkrRecon/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 #include "gui/DisplayRep.h"
 #include "GaudiKernel/IDataProviderSvc.h"
 #include "GaudiKernel/SmartDataPtr.h"
