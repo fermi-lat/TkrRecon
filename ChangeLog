@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: lsrea  Wed Oct 16 12:23:28 PDT 2002
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+ready for v8r4p4 (bug fix in TkrMakeClusters)
+    *
+------------------------------------------------------------
+User: lsrea  Wed Oct 16 12:23:28 PDT 2002
 TkrRecon/cmt
 
 Modified Files:
