@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: lsrea  Fri Feb  8 15:06:16 PST 2002
+TkrRecon/src/Cluster
+
+Added Files:
+	TkrCluster.cxx TkrClusters.cxx 
+Removed Files:
+	TkrCluster.cpp TkrClusters.cpp 
+Log Message:
+File extensions changed by the maurauding documentarian
+
+    *
+------------------------------------------------------------
 User: usher  Thu Feb  7 10:36:41 PST 2002
 TkrRecon/src/PatRec/Combo
 
