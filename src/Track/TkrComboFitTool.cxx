@@ -8,7 +8,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.16 2004/09/07 22:15:52 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.16.2.1 2004/10/20 14:06:47 lsrea Exp $
 */
 
 #include "src/Track/TkrComboFitTool.h"
@@ -32,6 +32,8 @@
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrFailureModeSvc.h"
 #include "../src/Track/ITkrAlignHitsTool.h"
+
+#include <stdexcept>
 
 class TkrComboFitTool : public AlgTool, virtual public ITkrFitTool
 {
