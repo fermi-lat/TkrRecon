@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.8 2002/07/25 09:12:24 burnett Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.9 2002/08/20 19:43:16 usher Exp $
 //
 // Description:
 //      Handles the Gaudi part of the vertex reconstruction
@@ -28,12 +28,11 @@
 #include "TkrRecon/GaudiAlg/TkrVertexAlg.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
 
-
-using namespace Event;
-
+// Used by Gaudi for identifying this algorithm
 static const AlgFactory<TkrVertexAlg>  Factory;
 const IAlgFactory& TkrVertexAlgFactory = Factory;
 
+// Standard Gaudi Constructor format
 TkrVertexAlg::TkrVertexAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator)  
 { 
@@ -43,15 +42,20 @@ Algorithm(name, pSvcLocator)
 
 StatusCode TkrVertexAlg::initialize()
 {
+    // Purpose and Method: Initialization method for the vertexing algorithm
+    // Inputs:  None
+    // Outputs:  StatusCode upon completetion
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
     MsgStream log(msgSvc(), name());
 
     setProperties();
     
     log << MSG::DEBUG << "Initializing TkrVertexAlg"<<endreq;
 
-    //Look for the geometry service
+    // Look for the geometry service
     TkrInitSvc* pTkrInitSvc = 0;
-
     StatusCode sc = service("TkrInitSvc", pTkrInitSvc, true);
     if (sc.isFailure()) {
         log << MSG::ERROR << "TkrInitSvc is required for this algorithm." << endreq;
@@ -64,31 +68,46 @@ StatusCode TkrVertexAlg::initialize()
 
 StatusCode TkrVertexAlg::execute()
 {
+    // Purpose and Method: Method called for each event
+    // Inputs:  None
+    // Outputs:  StatusCode upon completetion
+    // Dependencies: The value of m_VertexerType which determines exactly which 
+    //               vertexing tool is used. 
+    // Restrictions and Caveats:  None
+
     StatusCode sc = StatusCode::SUCCESS;
   
     MsgStream log(msgSvc(), name());
     log << MSG::DEBUG << "Executing TkrVertexAlg"<<endreq;
   
-    //Find the pattern recon tracks
-    TkrFitTrackCol* pTkrTracks = SmartDataPtr<TkrFitTrackCol>(eventSvc(),EventModel::TkrRecon::TkrFitTrackCol);
+    // Recover the collection of Fit tracks
+    Event::TkrFitTrackCol* pTkrTracks = SmartDataPtr<Event::TkrFitTrackCol>(eventSvc(),EventModel::TkrRecon::TkrFitTrackCol);
 
-    TkrVertexCol*   pVtxCol = new TkrVertexCol(); 
+    // Create a vertex collection class
+    Event::TkrVertexCol*   pVtxCol = new Event::TkrVertexCol(); 
 
+    // If we have fit tracks then proceed with the vertexing
     if(pTkrTracks->size() > 0)
     {
         std::string VtxToolName;
-  
+
+        // The particular choice of vertex tool is allowed to change from event
+        // to event. This is used to determine which tool to activate for a particular
+        // event.
         if(m_VertexerType == std::string("DEFAULT"))
         {
+            // Use the "Combo" vertexing
             VtxToolName = std::string("ComboVtxTool");
         }
         else if(m_VertexerType == std::string("COMBO"))
         { 
+            // Alternate implementation of the "Combo" vertexing
             if(pTkrTracks->size() == 1) { VtxToolName = std::string("VtxSingleTrkTool");}
             else                        { VtxToolName = std::string("VtxComboTrkTool");}
         }
         else if(m_VertexerType == std::string("KALMAN"))
         {
+            // Kalman Filter vertexing, tool depends upon the number of tracks
             if(pTkrTracks->size() == 1) { VtxToolName = std::string("VtxSingleTrkTool");}
             else                        { VtxToolName = std::string("VtxKalFitTool");}
         }
@@ -100,15 +119,17 @@ StatusCode TkrVertexAlg::execute()
 
         log << MSG::INFO << "Vertexing performed with: "<< VtxToolName.c_str() <<endreq;
 
+        // Look up (and instantiate if necessary) a private version of the tool
         sc = toolSvc()->retrieveTool(VtxToolName.c_str(), m_VtxTool, this);
 
         if (sc.isSuccess())
         {
+            // This tells the tool to perform the vertexing
             sc = m_VtxTool->retrieveVtxCol(*pVtxCol);
         }
     }
 
-    //Register this object in the TDS
+    //Register the vertex collection object in the TDS
     sc = eventSvc()->registerObject("/Event/TkrRecon/TkrVertexCol",pVtxCol);
   
   return sc;

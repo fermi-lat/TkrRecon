@@ -1,36 +1,45 @@
-
 #ifndef __TKRVERTEXALG_H
 #define __TKRVERTEXALG_H 1
 
 #include "GaudiKernel/Algorithm.h"
 #include "src/Vertex/IVtxBaseTool.h"
 
-
 /** 
-* @class TkrVertexAlg
-*
-* @brief Algorithm to construct TkrVertexCol and its contents
-*
-* 01-03-2002 
-*
-* Adapted and augmented from vertex finding code in Atwood/Hernando code
-*
-* @author Tracy Usher, Leon Rochester
-*
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrVertexAlg.h,v 1.5 2002/07/22 13:45:53 cohen Exp $
-*/
+ * @class TkrVertexAlg
+ *
+ * @brief TkrRecon Gaudi Algorithm for controlling the search for and fitting
+ *        of all possible vertices from the collection of fit tracks. 
+ *        Gaudi Tools are used to implement a particular type of vertex algorithm, 
+ *        and this algorithm controls their creation and use. 
+ *        The algorithm depends upon input from the track finding and fitting
+ *        stages of TkrRecon. Results are output to the TDS class TkrVertex
+ *
+ * 01-03-2002 
+ *
+ * Adapted and augmented from vertex finding code in Atwood/Hernando code
+ *
+ * @author The Tracking Software Group
+ *
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrVertexAlg.h,v 1.6 2002/08/20 19:54:31 usher Exp $
+ */
 
 class TkrVertexAlg : public Algorithm
 {
 public:
+    // Standard Gaudi Algorithm constructor format
     TkrVertexAlg(const std::string& name, ISvcLocator* pSvcLocator); 
     virtual ~TkrVertexAlg() {}
+
+    // The thee phases in the life of a Gaudi Algorithm
     StatusCode initialize();
     StatusCode execute();
     StatusCode finalize();
     
 private:
-    std::string m_VertexerType;
+    // Type of vertexing algorithm to run
+    std::string   m_VertexerType;
+
+    // Yet another fine tool from Sears
     IVtxBaseTool* m_VtxTool;
 };
 

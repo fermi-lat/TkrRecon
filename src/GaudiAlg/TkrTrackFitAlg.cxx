@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.00 2002/06/27 19:15:04 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.1 2002/08/20 19:43:16 usher Exp $
 //
 // Description:
 //      Controls the track fitting
@@ -29,15 +29,14 @@
 #include "GlastSvc/Reco/IPropagatorSvc.h"
 #include "GaudiKernel/IToolSvc.h"
 
-using namespace Event;
-
+// Used by Gaudi for identifying this algorithm
 static const AlgFactory<TkrTrackFitAlg>  Factory;
 const IAlgFactory& TkrTrackFitAlgFactory = Factory;
 
+// Static pointer to the propagator
 IKalmanParticle* TkrTrackFitAlg::m_KalParticle = 0;
 
-using namespace Event;
-
+// Standard Gaudi Constructor format
 TkrTrackFitAlg::TkrTrackFitAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator) 
 {
@@ -48,6 +47,14 @@ Algorithm(name, pSvcLocator)
 
 StatusCode TkrTrackFitAlg::initialize()
 {
+    // Purpose and Method: Initialization method for the track fitting algorithm
+    // Inputs:  None
+    // Outputs:  StatusCode upon completetion
+    // Dependencies: Value of m_PropagatorType determining the particular propagator
+    //               to use, and m_TrackFitType which determines exactly which fit tool 
+    //               to set up. 
+    // Restrictions and Caveats:  None
+
     StatusCode sc = StatusCode::SUCCESS;
 
     MsgStream log(msgSvc(), name());
@@ -72,18 +79,22 @@ StatusCode TkrTrackFitAlg::initialize()
 	    log << MSG::INFO << "Using Gismo Particle Propagator" << endreq;
     }
 
-    // Track fit information
+    // Depending upon the value of the m_TrackFitType parameter, set up the 
+    // Gaudi Tool for performing the track fit. 
     if (m_TrackFitType == "Combo")
     {
-        sc = toolSvc()->retrieveTool("TkrComboFitTool", fitTool);
+        // Set up for the track fit using Combo candidate tracks as input
+        sc = toolSvc()->retrieveTool("TkrComboFitTool", m_FitTool);
     }
     else if (m_TrackFitType == "LinkAndTree")
     {
-        sc = toolSvc()->retrieveTool("TkrLinkAndTreeFitTool", fitTool);
+        // Set up for the track fit using Link And Tree candidate tracks as input
+        sc = toolSvc()->retrieveTool("TkrLinkAndTreeFitTool", m_FitTool);
     }
     else if (m_TrackFitType == "NeuralNet")
     {
-        sc = toolSvc()->retrieveTool("TkrNeuralNetFitTool", fitTool);
+        // Set up for the track fit using the Neural Net candidate tracks as input
+        sc = toolSvc()->retrieveTool("TkrNeuralNetFitTool", m_FitTool);
     }
     else
     {
@@ -96,30 +107,39 @@ StatusCode TkrTrackFitAlg::initialize()
 
 StatusCode TkrTrackFitAlg::execute()
 {
+    // Purpose and Method: Method called for each event
+    // Inputs:  None
+    // Outputs:  StatusCode upon completetion
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
     MsgStream log(msgSvc(), name());
     StatusCode sc = StatusCode::SUCCESS;
 
 	log << MSG::DEBUG << "------- Recon of new Event --------" << endreq;
 
     // Recover pointer to the reconstructed clusters
-    Event::TkrClusterCol* TkrClusters = SmartDataPtr<TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol); 
+    Event::TkrClusterCol* TkrClusters = SmartDataPtr<Event::TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol); 
 
-    // Find the patter recon tracks
-    TkrPatCandCol* pTkrCands = SmartDataPtr<TkrPatCandCol>(eventSvc(),EventModel::TkrRecon::TkrPatCandCol);
+    // Find the collection of candidate tracks
+    Event::TkrPatCandCol* pTkrCands   = SmartDataPtr<Event::TkrPatCandCol>(eventSvc(),EventModel::TkrRecon::TkrPatCandCol);
 
-    // Test the track fit tool here
-    TkrFitTrackCol* tracks = new TkrFitTrackCol();
+    // Create a new Fit Track collection object and register in the TDS. 
+    // At this point it will have no tracks in it
+    Event::TkrFitTrackCol* tracks = new Event::TkrFitTrackCol();
     sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrFitTrackCol, tracks);
 
-    int              numCands = pTkrCands->getNumCands();
-    CandTrkVectorPtr cands    = pTkrCands->getTrackPtr();
+    // Ok, now set up to loop over candidate tracks
+    int                     numCands = pTkrCands->getNumCands();
+    Event::CandTrkVectorPtr cands    = pTkrCands->getTrackPtr();
     
-    //Go through each candidate and pass to the fitter
+    // Go through each candidate and pass to the Gaudi Tool performing the fit
+    // Note that the Gaudi tool will add successfully fit tracks to the fit track collection
     while(numCands--) 
     {
-        TkrPatCand* pCand = *cands++;
+        Event::TkrPatCand* pCand = *cands++;
 
-        fitTool->doTrackFit(pCand);
+        m_FitTool->doTrackFit(pCand);
     }
 
 	return sc;
