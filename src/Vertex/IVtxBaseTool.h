@@ -28,5 +28,7 @@ class IVtxBaseTool : virtual public IAlgTool
   /// within the TkrVertexAlg scope.}  
   virtual StatusCode retrieveVtxCol(Event::TkrVertexCol& VtxList)=0;
 
+  virtual StatusCode findVtxs()=0; 
+
 };
 #endif

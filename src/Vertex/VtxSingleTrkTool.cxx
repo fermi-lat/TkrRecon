@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Vertex/VtxSingleTrkTool.cxx,v 1.2 2004/09/08 15:32:48 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxSingleTrkTool.cxx,v 1.6 2004/09/23 21:30:32 usher Exp $
 // Description:
 //      Simple vertexing tool for single track event
 //
@@ -31,7 +31,7 @@ StatusCode VtxSingleTrkTool::doVtxFit(Event::TkrVertexCol& theVtxCol)
 //                           I kept a "list" syntax in order to allow for 
 //                           broader use, for instance assignment of single 
 //                           track vertices to unused tracks.
-
+/*
   Event::TkrFitTrackCol* m_theTracks = 
     SmartDataPtr<Event::TkrFitTrackCol>
     (m_evtSvc,EventModel::TkrRecon::TkrFitTrackCol);
@@ -52,5 +52,6 @@ StatusCode VtxSingleTrkTool::doVtxFit(Event::TkrVertexCol& theVtxCol)
       
       theVtxCol.push_back(vertex); 
     }
+	*/
   return StatusCode::SUCCESS;
 }

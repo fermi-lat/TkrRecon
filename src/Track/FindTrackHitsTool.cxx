@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.11 2004/11/23 19:23:17 atwood Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.12 2004/12/01 01:44:49 usher Exp $
  */
 
 // to turn one debug variables
@@ -96,7 +96,9 @@ private:
 	/// Declared properties to control behavior
 
 	bool m_trackAcrossTowers;  // TRUE allows form multi-tower tracking
-	double m_sigma;            // size of search region in sigmas
+	double m_sigma;            // Size of search region in sigmas for accepting hit SSD clusters
+	double m_rej_sigma;        // The rejection track limit for being inside an active area with no cluster
+	double m_max_gap_dist;     // Max. allowed error in mm when testing for gap edges
 };
 
 static ToolFactory<FindTrackHitsTool> s_factory;
@@ -116,8 +118,10 @@ AlgTool(type, name, parent)
 
     //Declare the fit track property
 	declareProperty("TrackAcrossTowers",    m_trackAcrossTowers=true);
-	declareProperty("SearchRegionSigmaSize", m_sigma = 5.); 
-  
+	declareProperty("SearchRegionSigmaSize", m_sigma = 9.); 
+	declareProperty("GapRejectionSigmaSize", m_rej_sigma = 2.); 
+	declareProperty("GapMaxRejectionSize", m_max_gap_dist = 10.); 
+
     return;
 }
 
@@ -243,10 +247,16 @@ StatusCode FindTrackHitsTool::findTrackHits(Event::TkrTrack* track)
 
 	// Check the minimum criterion for a "found" track: 4 deg. of freedom req. 5 hits
 	// at least 2 in each projection
-	if((track->getNumXHits() + track->getNumYHits() < 5) ||
-		track->getNumXHits() <= 2 || track->getNumYHits() <= 2) sc = StatusCode::FAILURE;
+	if((track->getNumXHits()+ track->getNumYHits()) < 5 ||
+		track->getNumXHits() < 2 || track->getNumYHits() < 2) sc = StatusCode::FAILURE;
 	else track->setStatusBit(Event::TkrTrack::FOUND);
 
+
+	// Remove trailing gap hits
+	while(!track->back()->validCluster()) 
+	{
+		track->pop_back();
+	}
 	return sc;
 }
 
@@ -363,7 +373,7 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrackHit* last_hit,
 		                           Event::TkrTrackHit::HITISSSD | Event::TkrTrackHit::HASVALIDTKR;
 	    if(measIdx == 1) status_bits |= Event::TkrTrackHit::MEASURESX;
 	    else             status_bits |= Event::TkrTrackHit::MEASURESY;
-		if(t_z > 0 & !reverse) status_bits |= Event::TkrTrackHit::UPWARDS;
+		if(t_z > 0 && !reverse) status_bits |= Event::TkrTrackHit::UPWARDS;
 
         trackHit->setStatusBit((Event::TkrTrackHit::StatusBits)status_bits);
 	}
@@ -374,8 +384,9 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrackHit* last_hit,
 		double big_error = sqrt(next_params(1,1)+ next_params(3,3));
 		// Need protection for first hit which gives an error = .5*tower_width
 		if(reverse) big_error = 1000./fabs(t_z)/cur_energy;
+		if(big_error > m_max_gap_dist) big_error = m_max_gap_dist;
 		double edge_sigma = act_dist/big_error;
-		if(edge_sigma > m_sigma) return trackHit;
+		if(edge_sigma > m_rej_sigma) return trackHit;
 
 		// No cluster found  - so this a gap of some sort
 	    trackHit = new Event::TkrTrackHit();
@@ -400,7 +411,7 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrackHit* last_hit,
 		unsigned int status_bits = Event::TkrTrackHit::HASMEASURED | Event::TkrTrackHit::HITISGAP;
 	    //if(measIdx == 1) status_bits |= Event::TkrTrackHit::MEASURESX;
 	    //else             status_bits |= Event::TkrTrackHit::MEASURESY;
-		if(t_z > 0 & !reverse) status_bits |= Event::TkrTrackHit::UPWARDS;
+		if(t_z > 0 && !reverse) status_bits |= Event::TkrTrackHit::UPWARDS;
     
         trackHit->setStatusBit((Event::TkrTrackHit::StatusBits)status_bits);
 	}
@@ -521,7 +532,7 @@ Event::TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, Event::TkrTr
 	Event::TkrCluster* found_cluster = 0;
 
 	// First extract the relevant projected hit errors from the parameters
-	int layer, view; 
+	int layer, view;
 	m_tkrGeom->planeToLayer (plane, layer, view);
 	double pos_cov, slope; 
 	if(view == idents::TkrId::eMeasureX) {

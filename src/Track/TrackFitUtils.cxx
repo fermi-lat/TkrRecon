@@ -236,7 +236,7 @@ double TrackFitUtils::computeQuality(const Event::TkrTrack& track) const
     
     // Calc. How many hits are possible?
     //int num_max = 2*(m_tkrGeom->numPlanes() - layer);
-    int num_max = 2*layer;
+    int num_max = 2*(layer+1); //Layers start at zero...
     if(num_max > 16) num_max = 16;
     
     // Don't allow more then 8 of each projection
@@ -401,7 +401,7 @@ double TrackFitUtils::computeChiSqSegment(const Event::TkrTrack& track, int nhit
     return chi2;
 }
 
-void TrackFitUtils::setSharedHitsStatus(Event::TkrTrack& track)
+void TrackFitUtils::setSharedHitsStatus(Event::TkrTrack& track, int maxShare)
 {
     // Purpose and Method: Sets the shared hit status for a given track
     //         ** Original code taken from KalFitter **
@@ -416,19 +416,20 @@ void TrackFitUtils::setSharedHitsStatus(Event::TkrTrack& track)
                 
     int i_Hit = 0; 
     int i_share = 0;
-	int i = 0;
-    while(plane != track.end() && i_Hit < 6) 
+
+    while(plane != track.end()) 
     {
-       i++;
 	   // First hits (x & y) are shared: gamma conversion vertex
-       if(i < 2 && (*plane)->validCluster()) { 
-            unFlagHit(track, i);
+       if(i_Hit < 2 && (*plane)->validCluster()) { 
+            unFlagHit(track, i_Hit);
             i_Hit++;
             i_share++;
+			plane++;
             continue;
         }
 	   if(!(*plane)->validCluster()) {
 		   plane++;
+		   i_Hit++;
 		   continue;
 	   }
 
@@ -445,7 +446,7 @@ void TrackFitUtils::setSharedHitsStatus(Event::TkrTrack& track)
             unFlagHit(track, i_Hit);
             i_share++;
         }
-        if(i_share >= 5) break; 
+        if(i_share >= maxShare) break; 
         i_Hit++;
         plane++;
     }
