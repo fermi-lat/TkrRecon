@@ -112,28 +112,27 @@ StatusCode McReconAlg::execute() {
 	}
 
 	HepLorentzVector vec = mcVert->finalFourMomentum();
-	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_xDir",(float)vec.x());
-	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_yDir",(float)vec.y());
-	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_zDir",(float)vec.z());
+	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_xDir",vec.x());
+	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_yDir",vec.y());
+	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_zDir",vec.z());
+
+	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Energy",vec.e());
+
+	if(sc.isFailure())
+	{
+		log << MSG::ERROR << "Failed to get MC Direction and Energy" << endreq;
+	}
 
 	HepPoint3D pos = mcVert->finalPosition();
-
-	float x = (float) pos.x();
-	float y = (float) pos.y();
-	float z = (float) pos.z();
-	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_X0",(float)pos.x());
-	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Y0",(float)pos.x()); 
-	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Z0",(float)pos.x());
+	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_X0",pos.x());
+	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Y0",pos.x()); 
+	sc = m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Z0",pos.x());
 	
-	//m_ntupleWriteSvc->addItem(m_tupleName.c_str(),"MC_Energy",(float)blah)
-	//get it's McVertex
-
-	//get the properties that we need and then we're going to add them 
-	// the tuple items 
-
-	//done
+	if(sc.isFailure())
+	{
+		log << MSG::ERROR << "Failed to get MC Position" << endreq;
+	}
 	
-
     return sc;
 }
 
