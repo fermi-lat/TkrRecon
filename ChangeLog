@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Mon Dec 20 16:10:16 PST 2004
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx TrackFitUtils.cxx 
+Log Message:
+Bill's latest updates to TkrRecon
+    *
+------------------------------------------------------------
+User: usher  Mon Dec 20 16:10:16 PST 2004
 TkrRecon/src/PatRec/Combo
 
 Modified Files:
