@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.22 2004/12/13 23:50:41 atwood Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.23 2004/12/15 15:25:06 atwood Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -63,7 +63,7 @@ protected:
 
     class Candidate
     {
-	friend ComboFindTrackTool;
+	//friend ComboFindTrackTool;
     public:
 		Candidate(double e, Point x, Vector t, double chi_cut,
 			      IFindTrackHitsTool *hit_finder, ITkrFitTool *fitter);

@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.14 2004/12/15 15:28:03 atwood Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.15 2004/12/16 05:04:22 usher Exp $
  */
 
 // to turn one debug variables
@@ -651,7 +651,7 @@ int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
 
         // Fill in a temporary filter parameter set
 		double arc_len = m_propagatorTool->getArcLen(); 
-		Event::TkrTrackParams& next_params = m_propagatorTool->getTrackParams(arc_len, cur_energy, true);
+		Event::TkrTrackParams next_params = m_propagatorTool->getTrackParams(arc_len, cur_energy, true);
 		next_params(2) = -next_params(2);
 		next_params(4) = -next_params(4); 
 		Event::TkrTrackParams& filter_params = trackHit->getTrackParams(Event::TkrTrackHit::FILTERED);
