@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.32 2005/01/28 20:06:33 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.33 2005/02/04 22:29:25 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -48,11 +48,12 @@ class ComboFindTrackTool : public PatRecBaseTool
 public:
     enum searchDirection {DOWN, UP};
     enum energyType {DEFAULT, CALONLY, USER, MC};
+    enum trialReturn {FITSUCCEEDED, FITFAILED, DUPLICATE };
 
     /// Standard Gaudi Tool interface constructor
     ComboFindTrackTool(const std::string& type, const std::string& name, 
         const IInterface* parent);
-    virtual ~ComboFindTrackTool() {}
+    virtual ~ComboFindTrackTool();
 
     /// @brief Method to find candidate tracks. 
     /// Will retrieve the necessary information from the TDS, including 
@@ -123,7 +124,7 @@ private:
     void findReverseCandidates();
 
     /// Internal utilities
-    bool  terminateAfterThisCandidate(int layer, int& trials, 
+    trialReturn  tryCandidate(int layer, int& trials, 
         int& localBestHitCount, Ray& testRay);
     float findNextPoint(int layer, Ray& testRay, float& cosKink);
     bool  incorporate(Candidate* cand);
@@ -185,14 +186,14 @@ ComboFindTrackTool::ComboFindTrackTool(const std::string& type,
 PatRecBaseTool(type, name, parent)
 {
     //Declare the control parameters for Combo Pat Rec. Defaults appear here
-    declareProperty("MinEnergy",       m_minEnergy = 30);
-    declareProperty("SigmaCut",        m_sigmaCut  = 9);
-    declareProperty("FirstTrkEnergyFrac",  m_1stTkrEFrac = .80);
+    declareProperty("MinEnergy",       m_minEnergy = 30.);
+    declareProperty("SigmaCut",        m_sigmaCut  = 9.);
+    declareProperty("FirstTrkEnergyFrac",  m_1stTkrEFrac = 0.80);
     declareProperty("MinTermHitCount", m_termHitCnt = 16);
     declareProperty("MaxNoCandidates", m_maxCandidates = 10);
     declareProperty("MaxChisq",        m_maxChiSqCut = 40.); 
     declareProperty("NumSharedFirstClusters", m_hitShares = 6);
-    declareProperty("MaxNumberTrials", m_maxTrials = 50); 
+    declareProperty("MaxNumberTrials", m_maxTrials = 30); 
     declareProperty("FoVLimit",        m_PatRecFoV = .19);
     declareProperty("MinCosKink",      m_minCosKink = .7);
     declareProperty("MaxTripletRes",   m_maxTripRes = 30.);
@@ -205,7 +206,14 @@ PatRecBaseTool(type, name, parent)
     declareProperty("AddLeadingHits",  m_leadingHits=true);
     declareProperty("ReverseLayerPenalty", m_reverseLayerPenalty=1);
     declareProperty("MaxDeltaFirstLayer",  m_maxDeltaFirstLayer=1);
+
+    m_fitUtils = 0;
     return;
+}
+
+ComboFindTrackTool::~ComboFindTrackTool ()
+{
+    if(m_fitUtils) delete m_fitUtils;
 }
 
 StatusCode ComboFindTrackTool::initialize()
@@ -217,6 +225,8 @@ StatusCode ComboFindTrackTool::initialize()
     //Set the properties
     setProperties();
 
+    m_fitUtils = new TrackFitUtils(m_tkrGeom, 0);
+    
     if      (energyTypeStr=="Default") { m_energyType = DEFAULT; }
     else if (energyTypeStr=="CALOnly") { m_energyType = CALONLY; }
     else if (energyTypeStr=="User")    { m_energyType = USER; }
@@ -339,9 +349,6 @@ void ComboFindTrackTool::searchCandidates()
     // Restrictions and Caveats:  None
 
     MsgStream msgLog(msgSvc(), name());
-
-    TrackFitUtils fitUtils = TrackFitUtils(m_tkrGeom, 0);
-    m_fitUtils = &fitUtils;
 
     //Clear all flag hits
     int num_hits = m_tkrClus->size();
@@ -553,7 +560,7 @@ void ComboFindTrackTool::findBlindCandidates()
 
             int jlayer = ilayer-1;
             // Allows at most m_maxFirstGaps between first 2 hits
-            for(int igap=0; igap<=m_maxFirstGaps && jlayer >= lastJLayer; igap++,jlayer--) {
+            for(int igap=0; igap<=m_maxFirstGaps && jlayer >= lastJLayer; ++igap, --jlayer) {
                 // Tests for terminating gap loop
                 if(trials >m_maxTrials) break; 
                 //   If we already have one track at this level or above,
@@ -582,19 +589,18 @@ void ComboFindTrackTool::findBlindCandidates()
                     // See if there is a third hit - 
                     // Allow up to a total of m_maxTotalGaps for first 3 found XY hits
                     int klayer = jlayer-1;
-                    for(; igap <= m_maxTotalGaps && klayer>=lastKLayer; ++igap) {
+                    for(; igap <= m_maxTotalGaps && klayer>=lastKLayer; ++igap, --klayer) {
                         float cosKink; 
                         float sigma = findNextPoint(klayer, testRay, cosKink);
 
                         // If good hit found: make a trial fit & store it away
                         if(sigma < m_sigmaCut && cosKink > m_minCosKink) {
-                            if (terminateAfterThisCandidate(ilayer, trials, 
-                                localBestHitCount, testRay)) break;
+                            tryCandidate(ilayer, trials, localBestHitCount, testRay);
+                            // whatever happens, bail, no other track will be found with this ray
+                            break;
                         }
-                        klayer--;
                     }  // end klayer
                 } // end 2nd points
-                //jlayer--;
             }  // end jlayer
         }  // end 1st points
     } // end ilayer
@@ -680,8 +686,8 @@ void ComboFindTrackTool::findCalCandidates()
 
                     Ray testRay = p1->getRayTo(p2);
                     //Do a trial track fit
-                    if (terminateAfterThisCandidate(ilayer, trials, 
-                        localBestHitCount, testRay)) break;
+                    tryCandidate(ilayer, trials, localBestHitCount, testRay);
+                    // for now, need to test all the combos, sigh
                 } // end ktrys
             } // end klayer
         }  // end 1st points
@@ -778,7 +784,7 @@ void ComboFindTrackTool::findReverseCandidates()
             }
             int jlayer = ilayer+1;
             // Allows at most m_maxFirstGaps between first 2 hits
-            for(int igap=0; igap<=m_maxFirstGaps && jlayer<=lastJLayer; ++igap) {
+            for(int igap=0; igap<=m_maxFirstGaps && jlayer<=lastJLayer; ++igap, ++jlayer) {
                  // Tests for terminating gap loop
                 if(trials >m_maxTrials) break; 
                 // This says: 
@@ -801,18 +807,17 @@ void ComboFindTrackTool::findReverseCandidates()
                     // See if there is a third hit - 
                     // Allow up to a total of m_maxTotalGaps for the first 3 XY hits
                     int klayer = jlayer+1;
-                    for(; igap < m_maxTotalGaps && klayer<=lastKLayer; ++igap) {
+                    for(; igap < m_maxTotalGaps && klayer<=lastKLayer; ++igap, ++klayer) {
                         float cosKink; 
                         float sigma = findNextPoint(klayer, testRay, cosKink);
                         // If good hit found: make a trial fit & store it away
                         if(sigma < m_sigmaCut && cosKink > m_minCosKink) {
-                            if (terminateAfterThisCandidate(ilayer, trials, 
-                                localBestHitCount, testRay)) break;
+                            tryCandidate(ilayer, trials, localBestHitCount, testRay);
+                            // no more tracks to find with this ray, so bail
+                            break;
                         }
-                        klayer++;
                     } // end klayer
                 } // end 2nd points
-                jlayer++;
             } // end jlayer
         } // end 1st points
     } // end ilayer
@@ -998,21 +1003,21 @@ ComboFindTrackTool::Candidate::~Candidate()
     if(m_track !=0)  delete m_track;
 }
 
-bool ComboFindTrackTool::terminateAfterThisCandidate(int firstLayer, int& trials, 
-                                                     int& localBestHitCount, Ray& testRay)
+ComboFindTrackTool::trialReturn ComboFindTrackTool::tryCandidate(int firstLayer, int& trials, 
+                                         int& localBestHitCount, Ray& testRay)
 {
     // Purpose and Method: generates a trial candidate, tests for acceptance
-    //    and terminates the inner loop if a track is found, or if the trial
-    //    candidate duplicates another track.
+    //    and passes back info so that caller can decide whether to terminate
     //                     
     // Inputs:  current first layer, number of trials, localBestHitCount and
     //    trial ray
-    // Outputs: None
+    // Outputs: completion status, currently FITFAILED, DUPLICATE, FITSUCCEEDED
     // Dependencies: None
     // Restrictions and Caveats:  None.
 
     int  layerFound;
     bool trackFound;
+
     if (m_searchDirection==DOWN) {
         layerFound = m_topLayerFound;
         trackFound = m_downwardTrackFound;
@@ -1028,7 +1033,7 @@ bool ComboFindTrackTool::terminateAfterThisCandidate(int firstLayer, int& trials
     if(trial->track()->getStatusBits() == 0) {
         delete trial;
         // if trial doesn't work, return to continue searching
-        return false;
+        return FITFAILED;
     }
     setTrackQuality(trial);
     if(trial->track()->getQuality() > m_minQuality) {
@@ -1036,11 +1041,11 @@ bool ComboFindTrackTool::terminateAfterThisCandidate(int firstLayer, int& trials
         if(num_trial_hits > localBestHitCount) 
             localBestHitCount = num_trial_hits; 
     }
-    trials++;
+    //trials++;
     // if trial duplicates existing candidate, stop search at this level
     // incorporate() has deleted the trial already
-    if(!incorporate(trial)) return true;
-    //trials++;
+    if(!incorporate(trial)) return DUPLICATE;
+    trials++;
 
     trial->track()->setStatusBit(Event::TkrTrack::PRCALSRCH);
     Point x_start   = trial->track()->getInitialPosition();
@@ -1053,6 +1058,5 @@ bool ComboFindTrackTool::terminateAfterThisCandidate(int firstLayer, int& trials
         m_botLayerFound = std::min(layerFound,new_start);
         m_upwardTrackFound = true;
     }
-    // if track is accepted, terminate the search at this level
-    return true;
+    return FITSUCCEEDED;
 }
