@@ -27,7 +27,7 @@ Service(name, pSvcLocator)
 
 StatusCode TkrBadStripsSvc::initialize()
 {
-    bool debug = true;
+    bool debug = false;
 
     MsgStream log(msgSvc(), name());
     StatusCode sc = StatusCode::SUCCESS;
@@ -49,7 +49,6 @@ StatusCode TkrBadStripsSvc::initialize()
 
 	//test 1
 	log << MSG::DEBUG << "Test 1"<< endreq;
-	log << MSG::INFO << "and info 1" << endreq;
 
     xml::IFile::extractEnvVar(&m_badStripsFile);    
     log << MSG::INFO << "Input file for bad strips: " << m_badStripsFile << endreq;
@@ -82,40 +81,25 @@ StatusCode TkrBadStripsSvc::initialize()
         return StatusCode::FAILURE;
     }//
 	
-
-    // test of output
-	log << MSG::DEBUG << "This is a test" << endreq;
-
     size = m_ntowers*m_nlayers*m_nviews;    
     makeCol(size);
     
     readFromFile(&file);
-	//more test
-	//log << MSG::DEBUG << "And again" << endreq;
 	
 	file.close();
-
-	//more test
-	//log << MSG::DEBUG << "One more time" << endreq;
-	//log << MSG::INFO << "and info 2" << endreq;
 	
-
-    
-	/*
-	//if(debug) {
-        log << MSG::DEBUG<< "m_stripsCol has " << 
-            m_stripsCol.size() << " elements" << endreq;
-        for (int i = 0; i < m_stripsCol.size(); i++) {
-            log << "Element " << i << ": " ;
-            v_strips v = m_stripsCol[i];
-            log << MSG::DEBUG << v.size() << " strips" << endreq;
-            for (int j = 0; j < v.size(); j++) {
-                log << v[j] << " " ;
-            }
-            log << MSG::DEBUG << endreq;
-        }
-    //}
-	*/
+	log << MSG::DEBUG<< "m_stripsCol has " << 
+		m_stripsCol.size() << " elements" << endreq;
+	for (int i = 0; i < m_stripsCol.size(); i++) {
+		log << "Element " << i << ": " ;
+		v_strips v = m_stripsCol[i];
+		log << MSG::DEBUG << v.size() << " strips" << endreq;
+		for (int j = 0; j < v.size(); j++) {
+			log << v[j] << " " ;
+		}
+		log << MSG::DEBUG << endreq;
+	}
+	
            
     return sc;
 }
@@ -135,19 +119,24 @@ void TkrBadStripsSvc::makeCol(const int size)
 
 void TkrBadStripsSvc::readFromFile(std::ifstream* file)
 {    
-    bool debug = true;
+    bool debug = false;
 	bool read = true;
 	bool makestrips = true;
 
     MsgStream log(msgSvc(), name());
     
     int nStrips = 0;
+	std::string junk;
 
     while(read && !file->eof()) {
         int tower;
 		int sequence;
 
         *file >> tower ;
+		if(tower==-1) { // comment line, just skip 
+			std::getline(*file, junk);
+			continue;
+		}
         if (file->eof()) break;
         *file >> sequence;
         // kludge until the geometry supplies this info
@@ -185,7 +174,6 @@ void TkrBadStripsSvc::addStrip(v_strips* v, const int strip) {
     v->push_back(tagged_strip);
     int size = v->size();
     int capa = v->capacity();
-    //std::cout << "size/cap " << size << " " << capa << std::endl;
     return;
 }
 
