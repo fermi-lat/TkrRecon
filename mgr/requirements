@@ -6,8 +6,6 @@ branches src mgr doc
 use GlastSvc
 use gui
 
-library TkrRecon  *.cpp *.cxx ../TkrRecon/*.h  Dll/*.cpp
-
 macro TkrReconDir  "$(TKRRECONROOT)/$(DEBUGDIR)"
 
 macro TkrRecon_linkopts   " " 
@@ -15,14 +13,15 @@ macro TkrRecon_stamps
 
 set   TkrReconShr           "${TKRRECONROOT}/${DEBUGDIR}/libTkrRecon"
 
-path_append LD_LIBRARY_PATH "${TKRRECONROOT}/${DEBUGDIR}/"
-
 # have a seperate library to export the tracker recon data classes 
-library TkrReconData -no_share detGeo.cpp SiClusters.cpp SiLayers.cpp KalFit.cxx GFcontrol.cpp trackerGeo.cpp
+library TkrReconData -no_share *.cpp *.cxx
 
 macro TkrRecon_linkopts   "$(TkrReconDir)/libTkrReconData.a  " \
       VisualC             "$(TkrReconDir)/libTkrReconData.lib  " 
 
+library TkrRecon  *.cpp *.cxx ../TkrRecon/*.h  Dll/*.cpp
+
+path_append LD_LIBRARY_PATH "${TKRRECONROOT}/${DEBUGDIR}/"
 
 include_path $(TKRRECONROOT)
 
