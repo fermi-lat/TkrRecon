@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: lsrea  Sat May 10 14:03:12 PDT 2003
+TkrRecon/src/Services
+
+Modified Files:
+	TkrInitSvc.cxx 
+Log Message:
+Beef up error reporting
+prepare for tag v8r9p8
+
+    *
+------------------------------------------------------------
+User: lsrea  Sat May 10 14:03:12 PDT 2003
 TkrRecon/doc
 
 Modified Files:
