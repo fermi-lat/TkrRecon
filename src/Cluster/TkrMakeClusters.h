@@ -28,7 +28,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.19 2003/03/13 19:13:22 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.20 2004/02/16 18:59:08 cohen Exp $
 */
 
 #include <vector>
@@ -72,6 +72,9 @@ public:
         int view) const;
            
 private:
+    double calculateCorrectedToT( 
+        Event::TkrDigi* pDigi, int tower, int layer, int view, 
+        int strip0, int stripf, int& rawToT, int& end) const;
     
     /// Keep pointer to the geometry service
     ITkrGeometrySvc*  m_pTkrGeo;
@@ -79,8 +82,8 @@ private:
     /// Keep pointer to the bad strip service
     ITkrBadStripsSvc* m_pBadStrips;
 
-    /// Keep pointer to the alignment service
-    ITkrAlignmentSvc* m_pAlignment;
+    /// Keep pointer to the ToT service
+    ITkrToTSvc* m_pToT;
 };
 
 #endif // TKRMAKECLUSTERS

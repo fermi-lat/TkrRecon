@@ -12,7 +12,7 @@
 *
 * @authors Bill Atwood, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.14 2002/09/22 20:32:47 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.15 2002/12/03 19:47:16 lsrea Exp $
 */
 
 #include <vector>

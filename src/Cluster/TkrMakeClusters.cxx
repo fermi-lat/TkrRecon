@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.20 2003/04/10 17:35:40 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.21 2004/03/25 21:45:05 cohen Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, 
@@ -7,8 +7,6 @@
 // Author(s):
 //      Tracy Usher     
 //      Leon Rochester     
-
-
 
 #include "src/Cluster/TkrMakeClusters.h"
 #include "idents/GlastAxis.h"
@@ -31,7 +29,7 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
     
     m_pBadStrips = m_pTkrGeo->getTkrBadStripsSvc();
 
-    m_pAlignment = m_pTkrGeo->getTkrAlignmentSvc();
+    m_pToT = m_pTkrGeo->getTkrToTSvc();
     
     //Initialize the cluster lists...
     pClus->ini();
@@ -98,6 +96,7 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
             // at the same time!
             // debug: std::cout << "this pointer " << it <<" next " << it+1 << " end " << mergedHits.end() << std::endl;
             nextStrip = *(++it);
+            stripCol_it nextIter = it;
             // debug: std::cout << " got past next!" << std::endl;
             
             //If we have a gap, then make a cluster
@@ -112,31 +111,80 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
                     int stripf = highStrip.getStripNumber();
                     Point pos = position(layer, TkrCluster::intToView(view), 
                         strip0, stripf, tower);
-                    /*
-                    HepPoint3D hepPos(pos.x(), pos.y(), pos.z());
-                   
-                    if (m_pAlignment && m_pAlignment->alignRec()) {
-                        int ladder = strip0/m_pTkrGeo->ladderNStrips();
-                        m_pAlignment->moveCluster(tower, digiLayer, view, ladder, hepPos);
-                    }
-                   
-                    pos = Point(hepPos.x(), hepPos.y(), hepPos.z());
-                    */
+
+                    // code to generate 1st order corrected ToT
+                   int end;
+                   int rawToT;
+                   double ToT = calculateCorrectedToT(
+                        pDigi, tower, layer, view, strip0, stripf,
+                        rawToT, end);
+
                     TkrCluster* cl = new TkrCluster(nclusters, layer, view, 
-                        strip0, stripf, 
-                        pos, pDigi->getToTForStrip(stripf), tower);
+                        strip0, stripf, pos, ToT, tower, rawToT, end);
                     pClus->addCluster(cl);
                     nclusters++;   
                 } 
                 lowStrip = nextStrip;  // start a new cluster with this strip
+                stripCol_it lowIter = nextIter;
                 nBad = 0;
             }
             // debug: std::cout << "on to next strip..." << std::endl;
             highStrip = nextStrip; // add strip to this cluster
+            stripCol_it hiIter = nextIter;
         }
     }
 }
 
+double TkrMakeClusters::calculateCorrectedToT(
+    TkrDigi* pDigi, int tower, int layer, int view, 
+    int strip0, int stripf, int& rawToT, int& end) const
+{
+    int lastStrip = pDigi->getLastController0Strip();
+    if(strip0<=lastStrip) {
+        if (stripf<=lastStrip) end = 0; else end = 2;
+    } else end = 1;
+
+    if (end<2) { 
+        rawToT = pDigi->getToT(end);
+    } else {
+        // bit of a kludge for when the cluster overlaps the splitPoint
+        rawToT = (pDigi->getToT(0)*(lastStrip-strip0+1)
+            + pDigi->getToT(1)*(stripf-lastStrip))/(stripf-strip0+1);
+    }
+
+    typedef std::vector<double> mipsVec;
+    typedef mipsVec::const_iterator mIter;
+    unsigned int size = stripf-strip0+1;
+    mipsVec totVec(size);                   
+    double mips;
+    int strip, i=0;                   
+    // what is the flag for an invalid ToT?
+    // could use bad strip, but ToTSvc should know too
+
+    for (strip=strip0; strip<=stripf; ++strip, ++i) {
+        int rawToT = pDigi->getToTForStrip(strip);
+        mips = m_pToT->getMipsFromToT(rawToT, 
+            tower, layer, view, strip);              
+        totVec[i] = mips;
+    }
+
+    // now pick the answer
+    // 1 strip is easy, for 2, pick the lowest, otherwise pick lowest of 
+    // the interior strips
+    // We'll do better when we do this for real
+
+    double ToT;
+    if (stripf==strip0) {
+        ToT = totVec[0];
+    } else if (stripf-strip0==1) {                       
+        ToT = std::min(totVec[0],totVec[1]);
+    } else {
+        mIter it1 = totVec.begin()++;
+        mIter it2 = totVec.end()--;
+        ToT = *std::min_element(it1, it2);
+    }
+    return ToT;
+}
 
 Point TkrMakeClusters::position(const int layer, TkrCluster::view v,
                                 const int strip0, const int stripf, 
@@ -150,12 +198,14 @@ Point TkrMakeClusters::position(const int layer, TkrCluster::view v,
     
     // this converts from recon numbering to physical numbering of layers.
     int digiLayer = m_pTkrGeo->reverseLayerNumber(layer);
-    double strip = 0.5*(strip0 + stripf);
+    //double strip = 0.5*(strip0 + stripf);
     HepPoint3D p = m_pTkrGeo->getStripPosition(tower, digiLayer, 
-        (int) v, strip);
+        (int) v, (double)strip0);
+    p += m_pTkrGeo->getStripPosition(tower, digiLayer, 
+        (int) v, (double)stripf);
+    p *= 0.5;
     Point p1(p.x(), p.y(), p.z());
-    return p1;
-    
+    return p1; 
 }
 
 bool TkrMakeClusters::isGapBetween(const TaggedStrip &lowStrip, 
