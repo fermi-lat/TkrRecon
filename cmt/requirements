@@ -1,5 +1,5 @@
 package TkrRecon
-version v8r9p2
+version v8r9p3
 
 branches src mgr doc
 
@@ -23,7 +23,7 @@ private
 #-----------------------
 # everything below here is private
 
-use RootIo v6*
+use RootIo v*
 use RootPolicy v2r*
 
 #the following prepend makes the includes folder available locally: avoid the package_include
