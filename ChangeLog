@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Dec 22 09:52:56 PST 2004
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx 
+Log Message:
+Hopefully fix special case which can lead to a negative contribution to smoothed chisquare at first hit
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r0p5, operation: add
 Package: TkrRecon
