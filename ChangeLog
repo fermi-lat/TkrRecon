@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Nov 10 15:38:22 PST 2004
+TkrRecon/src/Track
+
+Modified Files:
+	TrackFitUtils.h 
+Log Message:
+added compareTracks member function
+    *
+------------------------------------------------------------
 User: atwood  Wed Nov 10 14:24:04 PST 2004
 TkrRecon/src/Track
 
