@@ -14,15 +14,15 @@
  * TkrComboVtxRecon.cxx
  *
  * @author Johann Cohen-Tanugi
- * $Header$
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxSingleTrkTool.h,v 1.3 2002/09/01 22:37:41 cohen Exp $
  */
 class VtxSingleTrkTool : public VtxBaseTool
 {
  public:
   // Constructor
   VtxSingleTrkTool( const std::string& type, 
-		    const std::string& name, 
-		    const IInterface* parent)
+                    const std::string& name, 
+                    const IInterface* parent)
     : VtxBaseTool(type, name, parent) {}
   
   // Standard Destructor

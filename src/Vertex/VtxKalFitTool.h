@@ -19,14 +19,14 @@
  * 
  *
  * @author Johann Cohen-Tanugi
- * $Header$
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.h,v 1.7 2002/09/01 22:37:41 cohen Exp $
  */
 class VtxKalFitTool : public VtxBaseTool
 {
  public:
   VtxKalFitTool( const std::string& type,
-		 const std::string& name,
-		 const IInterface* parent);
+                 const std::string& name,
+                 const IInterface* parent);
 
   virtual ~VtxKalFitTool() { }
 
@@ -34,34 +34,40 @@ class VtxKalFitTool : public VtxBaseTool
   StatusCode initialize();
 
   ///@brief Finds start estimate of vertex and its Cov matrix
-  /// First estimate is first hit of first track on the list, which is the best fitted track.
+  /// First estimate is first hit of first track on the list, which is 
+  /// the best fitted track.
   StatusCode initVertex(Event::TkrFitTrackCol&);
 
   ///main method: implements the filter
   StatusCode doVtxFit(Event::TkrVertexCol&);
 
-  ///@brief bring geometrical momentum (Sx,Sy,E) close to current vertex estimate.
-  ///In theory this method should return the geometrical momentum at POCA to current vertex estimate
+  ///@brief bring geometrical momentum (Sx,Sy,E) close to current vtx estimate.
+  ///In theory this method should return the geometrical momentum at POCA to
+  ///current vertex estimate
   ///(arbitrary yet reasonnable choice, advocated by Luchsinger et al.). 
   ///In our case only the energy might be changed by this.
-  HepVector computeQatVtx(const Event::TkrFitTrack& /*theTrack*/,const HepVector /*theVertex*/);
+  HepVector computeQatVtx(const Event::TkrFitTrack& /*theTrack*/,
+                          const HepVector /*theVertex*/);
 
   ///@brief Get the weight matrix G = Cov(m)^-1 with m the track parameters 
-  ///Cov(m) is first propagated back to the vertex estimate, before being inverted.
+  ///Cov(m) is first propagated back to the vertex estimate, before being 
+  ///inverted.
   ///@param theTrack: current fitted track;
   ///@param Vtx:      current vertex estimates;
   ///@return The weight matrix is returned as an HepSymMatrix object.
-  HepSymMatrix computeWeightMatrix(const Event::TkrFitTrack& theTrack,const HepVector Vtx);
+  HepSymMatrix computeWeightMatrix(const Event::TkrFitTrack& theTrack,
+                                   const HepVector Vtx);
 
-  ///@brief propagate Cov matrix from first hit location to vicinity of current Vertex estimate.
+  ///@brief propagate Cov from first hit location to current Vtx estimate.
   ///@param CovMatrix TkrFitMatrix object to be propagated;
   ///@param Vtx Current estimate of the vertex; 
   Event::TkrFitMatrix propagCovToVtx(const Event::TkrFitMatrix, 
-				     const HepVector);
+                                     const HepVector);
 
   ///@brief returns (X,Sx,Y,Sy,E) as an HepVector.
-  ///(X,Sx,Y,Sy) are the track fitted parameters, E is its estimated energy. These play for
-  ///the Kalman vertexer the role of measurement vector, the measurement error being their Cov. matrix.
+  ///(X,Sx,Y,Sy) are the track fitted parameters, E is its estimated energy. 
+  ///These play for the Kalman vertexer the role of measurement vector, 
+  ///the measurement error being their Cov. matrix.
   HepVector getTkrParVec(const Event::TkrFitTrack& /*theTrack*/);
 
  private:

@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header$
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxSingleTrkTool.cxx,v 1.3 2002/09/01 22:37:41 cohen Exp $
 // Description:
 //      Simple vertexing tool for single track event
 //
@@ -20,27 +20,33 @@ const IToolFactory& VtxSingleTrkToolFactory = s_factory;
 
 StatusCode VtxSingleTrkTool::doVtxFit(Event::TkrVertexCol& theVtxCol)
 {
-// Purpose and Method: Vertex is created for every track separately, located at first hit.
+// Purpose and Method: Vertex is created for every track separately, located 
+//                     at first hit.
 // Inputs: TkrFitTrackCol object retrieved from TDS with EventSvc
 // Output: returns StatusCode and list of vertices as argument   
 // Dependencies: EventSvc needed
 // 
-// Restrictions and Caveats: This class is parimarily intended for TkrFitTrackCol singleton
-//                           I kept a "list" syntax in order to allow for broader use
-//                           for instance assignment of single track vertices to unused tracks.
+// Restrictions and Caveats: This class is parimarily intended for 
+//                           TkrFitTrackCol singleton
+//                           I kept a "list" syntax in order to allow for 
+//                           broader use, for instance assignment of single 
+//                           track vertices to unused tracks.
 
-  Event::TkrFitTrackCol* m_theTracks = SmartDataPtr<Event::TkrFitTrackCol>(m_evtSvc,EventModel::TkrRecon::TkrFitTrackCol);
+  Event::TkrFitTrackCol* m_theTracks = 
+    SmartDataPtr<Event::TkrFitTrackCol>
+    (m_evtSvc,EventModel::TkrRecon::TkrFitTrackCol);
   
   Event::TkrFitConPtr itr = m_theTracks->begin();
   while(itr != m_theTracks->end())
     {
       Event::TkrFitTrack* theTrack = *itr++;
-      Event::TkrVertex* vertex = new Event::TkrVertex(theTrack->getLayer(),
-						      theTrack->getTower(),
-						      theTrack->getEnergy(), 0.,
-						      Ray(theTrack->getPosition(),
-							  theTrack->getDirection())
-						      );
+      Event::TkrVertex* 
+        vertex = new Event::TkrVertex(theTrack->getLayer(),
+                                      theTrack->getTower(),
+                                      theTrack->getEnergy(), 0.,
+                                      Ray(theTrack->getPosition(),
+                                          theTrack->getDirection())
+                                      );
       vertex->addTrack(theTrack);
       
       theVtxCol.push_back(vertex); 
