@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Mon Aug  4 13:04:40 PDT 2003
+TkrRecon/src/Track
+
+Modified Files:
+	TkrComboFitTool.cxx TkrLinkAndTreeFitTool.cxx 
+	TkrNeuralNetFitTool.cxx 
+Log Message:
+Slight modifications to reflect that the pattern candidate track hits are now
+stored in an ObjectVector and not a std::vector
+
+    *
+------------------------------------------------------------
 User: usher  Mon Aug  4 12:59:32 PDT 2003
 TkrRecon/TkrRecon/Display
 
