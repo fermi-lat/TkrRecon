@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.1 2003/08/04 20:17:35 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.2 2003/08/06 16:42:23 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -109,24 +109,26 @@ StatusCode MonteCarloFindTrackTool::findTracks()
     // If it doesn't exist then we need to build the MC structure
     if (mcEvent == 0)
     {
-        //This builds the Monte Carlo event structure - basically a description of the event
-        mcEvent = new Event::McEventStructure(m_dataSvc, m_ppsvc);
-
-        // Register ourselves in the temporary TDS
-        DataObject* pNode = 0;
+        //First make sure the Tracker MC TDS section has been established
+        DataObject* pNode;
         sc = m_dataSvc->retrieveObject(TkrEventModel::MC::Event, pNode);
         if ( sc.isFailure() ) 
         {
             sc = m_dataSvc->registerObject(TkrEventModel::MC::Event, new DataObject);
             if( sc.isFailure() ) 
             {
-                return sc;
+                throw GaudiException("Unable to establish the Tracker MC TDS section", name(), sc);
             }
         }
+
+        //This builds the Monte Carlo event structure - basically a description of the event
+        mcEvent = new Event::McEventStructure(m_dataSvc, m_ppsvc);
+
+        // Register ourselves in the temporary TDS
         sc = m_dataSvc->registerObject(TkrEventModel::MC::McEventStructure,mcEvent);
         if (sc.isFailure())
         {
-            return sc;
+            throw GaudiException("Cannot store the McEventStructure in the TDS", name(), sc);
         }
 
         //This builds the Monte Carlo tracks
