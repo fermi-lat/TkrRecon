@@ -28,7 +28,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.18 2003/01/27 00:38:58 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.19 2003/03/13 19:13:22 lsrea Exp $
 */
 
 #include <vector>
@@ -84,3 +84,4 @@ private:
 };
 
 #endif // TKRMAKECLUSTERS
+
