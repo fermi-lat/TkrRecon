@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Fri Jul  6 12:14:08 PDT 2001
+TkrRecon/src TkrBadStripsSvc.cxx
+
+Modified Files:
+	TkrBadStripsSvc.cxx 
+Log Message:
+Fix to help with Linux build, doesn't change windows function
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Jul  6 11:47:51 PDT 2001
 TkrRecon/xml Tkr_Flight.xml
 
