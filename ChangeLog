@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Mon Jul 22 13:53:00 PDT 2002
+TkrRecon/TkrRecon/Track
+
+Modified Files:
+	GFcontrol.h 
+Log Message:
+Added min. number if hits to terminate ComboPR parameter
+    *
+------------------------------------------------------------
 User: atwood  Mon Jul 22 13:51:18 PDT 2002
 TkrRecon/src/PatRec/Combo
 
