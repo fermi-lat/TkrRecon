@@ -5,7 +5,7 @@
 #include <vector>
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/DataObject.h"
-#include "TkrRecon/Track/GFcandidates.h"
+#include "src/PatRec/Combo/GFcandidates.h"
 #include "TkrRecon/Track/TkrFitTrack.h"
 #include "GlastEvent/Recon/ISiRecObjs.h"
 

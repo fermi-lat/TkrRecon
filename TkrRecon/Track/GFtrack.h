@@ -3,7 +3,7 @@
 #define __GFTRACK_H 1
 
 #include "GaudiKernel/MsgStream.h"
-#include "TkrRecon/Track/GFsegment.h"
+#include "src/PatRec/Combo/GFsegment.h"
 
 class GFtrack: public GFbase, public KalTrack
 {    
