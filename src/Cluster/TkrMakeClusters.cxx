@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.18 2003/01/27 00:38:58 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.19 2003/03/13 19:13:22 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, 
@@ -112,12 +112,16 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
                     int stripf = highStrip.getStripNumber();
                     Point pos = position(layer, TkrCluster::intToView(view), 
                         strip0, stripf, tower);
+                    /*
                     HepPoint3D hepPos(pos.x(), pos.y(), pos.z());
+                   
                     if (m_pAlignment && m_pAlignment->alignRec()) {
                         int ladder = strip0/m_pTkrGeo->ladderNStrips();
                         m_pAlignment->moveCluster(tower, digiLayer, view, ladder, hepPos);
                     }
+                   
                     pos = Point(hepPos.x(), hepPos.y(), hepPos.z());
+                    */
                     TkrCluster* cl = new TkrCluster(nclusters, layer, view, 
                         strip0, stripf, 
                         pos, pDigi->getToTForStrip(stripf), tower);
