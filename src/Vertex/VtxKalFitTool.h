@@ -40,15 +40,18 @@ class VtxKalFitTool : public VtxBaseTool
   ///main method: implements the filter
   StatusCode doVtxFit(Event::TkrVertexCol&);
 
-  double const getChi2() {return m_chi2;}
-
   //bring momentum (Sx,Sy) to Zref. currently does nothing
-  HepVector computeQatZref(const Event::TkrFitTrack& theTrack);
+  HepVector computeQatZref(const Event::TkrFitTrack& /*theTrack*/);
 
   //@brief propagate Cov matrix from first hit location to Zref plane
   //method not yet implemented
   Event::TkrFitMatrix propagCovToVtx(const Event::TkrFitMatrix, 
 				     const HepVector);
+
+  //@brief (X,Sx,Y,Sy) are returned as an HepVector.
+  //(X,Sx,Y,Sy) are the track fitted parameters. They play for
+  //the Kalman vertexer the role of measurement vector. 
+  HepVector getTkrParVec(const Event::TkrFitTrack& /*theTrack*/);
 
  private:
 
@@ -67,8 +70,9 @@ class VtxKalFitTool : public VtxBaseTool
   ///returns TkrFitMatrix as an HepSymMatrix
   HepSymMatrix getHepSymCov(const Event::TkrFitMatrix& );
 
+  ///Compute Transformation matrix (Sx,Sy)->(ux,uy,uz)
+  HepMatrix SlopeToDir(HepVector /*Q*/);
 
-  double m_chi2;
 
   std::vector<HepVector>    m_VtxEstimates;
   std::vector<HepSymMatrix> m_VtxCovEstimates;

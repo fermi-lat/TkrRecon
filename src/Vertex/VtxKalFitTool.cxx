@@ -14,7 +14,7 @@ const IToolFactory& VtxKalFitToolFactory = s_factory;
 VtxKalFitTool::VtxKalFitTool(const std::string& type, 
 			     const std::string& name, 
 			     const IInterface* parent)                        
-  : VtxBaseTool(type, name, parent), m_chi2(0.0)
+  : VtxBaseTool(type, name, parent)
 {
   //max tolerated chi2 increase by track
   declareProperty("maxChi2Contrib", m_chi2max = 10); 
@@ -50,6 +50,7 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
   m_W.erase(m_W.begin(),m_W.end());
 
   int    ifail      = 0; //flag for matrix inversion check
+  double totalChi2  = 0; 
 
   MsgStream log(msgSvc(), name());
  
@@ -82,27 +83,20 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       Event::TkrFitTrack* theTrack  = *tkrIter++;
       
       //Step 1: define new point for linearization:
+      //-------------------------------------------
       //paragraph before eq(4): last estimated vertex and POCA of track to the former are good
       //new starting points for linearisation of the measurement equation:
       
       //current estimations of vertex and its Cov. Matrix:
-      HepVector    x = m_VtxEstimates.back();
+      HepVector    Vtx = m_VtxEstimates.back();
       HepSymMatrix C = m_VtxCovEstimates.back();
 
-      //(X,SX,Y,SY) track parameters:
-      Event::TkrFitPar par0 = theTrack->getTrackPar();
+      // Track parameters (X,Sx,Y,Sy) as Measurement Vector m
+      HepVector m = getTkrParVec(*theTrack);
 
-      HepVector par(4,0);
-      par(1) = par0.getXPosition();
-      par(2) = par0.getXSlope();
-      par(3) = par0.getYPosition();
-      par(4) = par0.getYSlope();
-
-      //std::cout<<"INITIAL (UX,UY,UZ) OF TRACK "<<theTrack->getDirection()<<endl;
       // get "momentum" vector of track at ZRef
       HepVector    q = computeQatZref(*theTrack); 
 
-      //Only C^(-1) is needed from now on:
       C.invert(ifail);
       if(ifail) 
         {
@@ -111,14 +105,15 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
         }
 
       // Now computes A, B and c0 at linearization point:
-      HepMatrix A  = computeMatrixA(x,q);
-      HepMatrix B  = computeMatrixB(x,q);
-      HepVector h0 = computeVectorH(x,q);
-      HepVector c0 = h0 - A*x - B*q;
+      HepMatrix A  = computeMatrixA(Vtx,q);
+      HepMatrix B  = computeMatrixB(Vtx,q);
+      HepVector h0 = computeVectorH(Vtx,q);
+      HepVector c0 = h0 - A*Vtx - B*q;
 
 
       //Step 2: Compute Covariance matrices
-      Event::TkrFitMatrix measCov = propagCovToVtx(theTrack->getTrackCov(),x);
+      //-----------------------------------
+      Event::TkrFitMatrix measCov = propagCovToVtx(theTrack->getTrackCov(), Vtx);
       measCov.invert(ifail);
       if(ifail)
         {
@@ -152,32 +147,29 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
 
 
       //Step 3: Update vertex estimation and check chi2
-
+      //-----------------------------------------------
       //new vertex and momentum at vertex for current track:
-      HepVector newX = newC*(C*x + A.T()*Gb*(par-c0));
-      HepVector newQ   = W*B.T()*invG*(par-c0-A*newX);      
+      HepVector newVtx = newC*(C*Vtx + A.T()*Gb*(m-c0));
+      HepVector newQ   = W*B.T()*invG*(m-c0-A*newVtx);      
 
 
-      HepVector r = par - c0 - A*newX - B*newQ;
-      HepVector dx = newX - x;
+      HepVector r = m - c0 - A*newVtx - B*newQ;
+      HepVector dx = newVtx - Vtx;
       double chi2f = invG.similarity(r) + C.similarity(dx);// returns r.T()*G*r + dx.T()*C*dx SCALAR
 
-      //      std::cout<<"NEW VERTEX POSITION"<< newX<<endl;
-      //      std::cout<<"NEW PARAM of current track"<< newQ<<endl;
-      //      std::cout<<"CHI2f "<<chi2f<<endl;
       if(chi2f < m_chi2max) 
         {
 	  usedTracks.push_back(theTrack);
-          m_chi2 += chi2f;
+          totalChi2 += chi2f;
 	  m_A.push_back(A);
-	  m_m.push_back(par);
+	  m_m.push_back(m);
 	  m_c0.push_back(c0);
 	  m_B.push_back(B);
 	  m_G.push_back(invG);
 	  m_W.push_back(W);
 
 	  //keep new updates
-          m_VtxEstimates.push_back(newX);
+          m_VtxEstimates.push_back(newVtx);
           m_VtxCovEstimates.push_back(newC);
 	  sc = StatusCode::SUCCESS;
 	}
@@ -196,7 +188,7 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
   //**************************
 
   //Final estimates:
-  HepVector    Vtx   = m_VtxEstimates.back();
+  HepVector Vtx      = m_VtxEstimates.back();
   HepSymMatrix CovXX = m_VtxCovEstimates.back();
 
   Vector totQ;
@@ -238,37 +230,18 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       
       //Cov Matrix of Physical Momentum:
       //-------------------------------
-      double sx = Q[0];
-      double sy = Q[1];
-      
-      //Transformation: (Sx,Sy,E) -> (Eux,Euy,Euz)
-      HepMatrix T(2,3,0);
-      T(1,1) = 1+sy*sy;
-      T(1,2) = sx*sy;
-      T(1,3) = sx;
-      T(2,1) = sx*sy;
-      T(2,2) = 1+sx*sx;
-      T(2,3) = sy;
-      
-      HepSymMatrix tmp = newD.similarityT(T);
-      tmp /= (1+sx*sx+sy*sy);
-            
-      totCovQ += tmp;
+      HepMatrix T = SlopeToDir(Q);
+      totCovQ += newD.similarityT(T);
       
       //all this and m_Skew should be fed to TkrVertex and the tracks
       m_Q.push_back(Q);
       m_CovQQ.push_back(newD);
       m_CovXQ.push_back(newE);
       
-      //	  std::cout<<"FINAL (ux,uy,uz) OF TRACK "<<i<<":"<<momentum<<endl;
-      //	  std::cout<<"FINAL ENERGY OF TRACK "<<i<<": "<<theUsedTrack->getEnergy()<<endl;
       i++;
     }
   
   
-  //  std::cout<<"GAMMA DIR ()UX,UY,UZ COV MATRIX"<<totCovQ<<endl;
-  
-
   //********************************
   //Creating the TkrVertex instance:
   //********************************
@@ -282,11 +255,10 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
 						  );
 
   tkrIter = usedTracks.begin();
-  while(tkrIter != theTracks->end())
-    { 
-      vertex->addTrack(*tkrIter++);
-    }
-  
+  while(tkrIter != usedTracks.end()) vertex->addTrack(*tkrIter++);
+
+  vertex->writeOut(log);
+
   VtxCol.push_back(vertex); 
 
   return StatusCode::SUCCESS;
@@ -352,13 +324,22 @@ HepMatrix VtxKalFitTool::computeMatrixB(const HepVector x, const HepVector q)
   return B;
 }
 
+
+HepVector VtxKalFitTool::getTkrParVec(const Event::TkrFitTrack& theTrack)
+{
+  // par0 = (X,SX,Y,SY) 
+  Event::TkrFitPar par0 = theTrack.getTrackPar();
+  HepVector m(4,0);
+  m(1) = par0.getXPosition();
+  m(2) = par0.getXSlope();
+  m(3) = par0.getYPosition();
+  m(4) = par0.getYSlope();
+  return m;
+}
+
+
 HepVector VtxKalFitTool::computeQatZref(const Event::TkrFitTrack& theTrack)
 {
-  //This is the most involving part: need to bring parameters and 
-  //errors at the reference plane m_Zref, but it might be absurd
-  //if a less good track has a hit above the best track...
-
-  //dummy for now:
   HepVector q(2);
   q[0] = theTrack.getTrackPar().getXSlope();
   q[1] = theTrack.getTrackPar().getYSlope();
@@ -390,6 +371,24 @@ HepSymMatrix VtxKalFitTool::getHepSymCov(const Event::TkrFitMatrix& measCov)
   G(2,4) = measCov.getcovSxSy();
   G(4,2) = measCov.getcovSySx();
   return G;
+}
+
+
+HepMatrix VtxKalFitTool::SlopeToDir(HepVector Q)
+{
+      double sx = Q[0];
+      double sy = Q[1];
+      
+      //Transformation: (Sx,Sy,E) -> (Eux,Euy,Euz)
+      HepMatrix T(2,3,0);
+      T(1,1) = 1+sy*sy;
+      T(1,2) = sx*sy;
+      T(1,3) = sx;
+      T(2,1) = sx*sy;
+      T(2,2) = 1+sx*sx;
+      T(2,3) = sy;
+      T /= sqrt(1+sx*sx+sy*sy);
+      return T;
 }
 
 
