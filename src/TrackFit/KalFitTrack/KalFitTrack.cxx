@@ -228,6 +228,8 @@ void KalFitTrack::findHits()
     
     TkrFitHit::TYPE type = TkrFitHit::FIT;
     Status statushit     = FOUND;
+    bool trackAcrossTowers = false;
+    int trackTower = -1;
 
     while( -1 < kplane && kplane < m_tkrGeo->numPlanes()) 
     {
@@ -240,6 +242,17 @@ void KalFitTrack::findHits()
         if (step_counter > 1) type = TkrFitHit::FIT;
         statushit = nextKPlane(prevKplane, kplane, nextKplane, type); 
         if (statushit != FOUND) break;
+        if (!m_control->trackAcrossTowers()) {
+            int hitID = nextKplane.getIDHit();
+            int thisTower = m_clusters->getHit(hitID)->tower();
+            if (trackTower==-1) {
+                trackTower = thisTower;
+            } else {
+                if (trackTower!=thisTower) {
+                      break;
+                }
+            }
+        }
         
         kplane = nextKplane.getIDPlane();
         lstgaps = kplane - prevKplane.getIDPlane()-1; 
