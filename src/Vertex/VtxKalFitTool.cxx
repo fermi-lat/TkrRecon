@@ -77,12 +77,12 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
 
       if(theTrack->getQuality()<0) continue;
 
-      std::cout<<"INFO OF NEW TRACK: "<<endl;
-      std::cout<<"Direction "<<theTrack->getDirection()<<endl;
-      std::cout<<"Position " <<theTrack->getPosition()<<endl;
-      std::cout<<"Energy "   <<theTrack->getEnergy()<<endl;
-      std::cout<<"# HITS "   <<theTrack->getNumHits()<<endl;
-      std::cout<<"Quality "  <<theTrack->getQuality()<<endl;
+      log<<MSG::DEBUG<<"INFO OF NEW TRACK: "<<endreq;
+      //      log<<MSG::DEBUG<<"Direction "<<theTrack->getDirection()<<endreq;
+      //     log<<MSG::DEBUG<<"Position " <<theTrack->getPosition()<<endreq;
+      log<<MSG::DEBUG<<"Energy "   <<theTrack->getEnergy()<<endreq;
+      log<<MSG::DEBUG<<"# HITS "   <<theTrack->getNumHits()<<endreq;
+      log<<MSG::DEBUG<<"Quality "  <<theTrack->getQuality()<<endreq;
 
 
       //Step 1: define new point for linearization:
@@ -148,7 +148,7 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       HepVector dx = newVtx - Vtx;
       double chi2f = G.similarity(r) + invC.similarity(dx);// returns r.T()*G*r + dx.T()*C*dx SCALAR
       
-      std::cout<<"chi2f= "<<chi2f<<", and chi2max= "<<m_chi2max<<endl;
+      log<<MSG::DEBUG<<"chi2f= "<<chi2f<<", and chi2max= "<<m_chi2max<<endreq;
       if(chi2f < m_chi2max) 
         {
           totalChi2 += chi2f;
@@ -241,9 +241,9 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
       HepMatrix Ti = SlopeToDir(Qi);
       totCovP += CovQQ[i].similarityT(Ti);
 
-      //std::cout<<"CovQQ "<<CovQQ[i]<<endl;
-      //std::cout<<"Matrix T "<<Ti<<endl;
-      //std::cout<<"totCovP "<<totCovP<<endl;
+      //log<<MSG::DEBUG<<"CovQQ "<<CovQQ[i]<<endreq;
+      //log<<MSG::DEBUG<<"Matrix T "<<Ti<<endreq;
+      //log<<MSG::DEBUG<<"totCovP "<<totCovP<<endreq;
       
       
       HepSymMatrix Cov_ij(3,0);
@@ -254,20 +254,20 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
 	  HepMatrix Tj = SlopeToDir(Qj);
 	  
 	  HepMatrix Qij = Ti.T()*Tmp_list[i]*CovXX*Tmp_list[j].T()*Tj;
-	  //	  std::cout<<Qj<<Tj<<Qij<<endl;    
+	  //	  log<<MSG::DEBUG<<Qj<<Tj<<Qij<<endreq;    
 	  HepSymMatrix tmp;
 	  tmp.assign(Qij + Qij.T()); 
 	  Cov_ij += tmp;
 
 	  totCovP += Cov_ij;
 	}
-      //      std::cout<<totCovXP<<CovXQ[i]<<endl;
+      //      log<<MSG::DEBUG<<totCovXP<<CovXQ[i]<<endreq;
 
       totCovXP += CovXQ[i]*Ti;
       i++;
     }
-  //  std::cout<<"totP "<<totP<<endl;
-  //  std::cout<<"totCovP "<<totCovP<<endl;
+  //  log<<MSG::DEBUG<<"totP "<<totP<<endreq;
+  //  log<<MSG::DEBUG<<"totCovP "<<totCovP<<endreq;
   
 
   //********************************
