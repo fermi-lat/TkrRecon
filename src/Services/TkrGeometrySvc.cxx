@@ -116,12 +116,14 @@ StatusCode TkrGeometrySvc::initialize()
         return sc;
     }
 
+    /*
     // get the GeometrySvc
     for (int i = 0; i<18;i++) {
         std::cout << "Layer " << i << " " << getReconLayerZ(i, 0) << " " 
             << getReconLayerZ(i,1) << " " << getReconLayerZ(i)
             << std::endl;
     }
+    */
 
 
     return sc;
