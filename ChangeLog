@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: tlindner  Thu Jan 11 11:17:59 PST 2001
+TkrRecon/src/test TkrTest.cxx
+
+Modified Files:
+	TkrTest.cxx 
+Log Message:
+added linux-specifc FATAL definition
+    *
+------------------------------------------------------------
 User: tlindner  Thu Jan 11 11:16:56 PST 2001
 TkrRecon/mgr requirements
 
