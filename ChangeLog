@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Sat Mar 30 12:40:54 PST 2002
+TkrRecon/src/TrackFit
+
+Modified Files:
+	KalTrack.cxx 
+Log Message:
+Fixed the dotted lines (connecting the track segments) in the display.
+
+    *
+------------------------------------------------------------
 User: lsrea  Sat Mar 30 00:34:40 PST 2002
 TkrRecon/src/Services
 
