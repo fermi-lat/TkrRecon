@@ -41,7 +41,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrVertexCol* verte
             
             //Check that the DOCA is not too big
             if ((dist < 5. && doca.arcLenRay1() <= 15. && doca.arcLenRay2() <= 15.) ||
-                (dist < 1. && t1t2 < .005)) {
+                (dist < 1.5 && t1t2 < .07)) {
 
                 Point  gamPos;
                 Vector gamDir;
