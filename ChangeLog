@@ -1,4 +1,24 @@
 ------------------------------------------------------------
+User: usher  Tue Mar 23 16:03:27 PST 2004
+TkrRecon/src/TrackFit/KalmanFilterFit
+
+Added Files:
+	GlastMatrix.h GlastProcNoiseMatrix.cxx GlastProcNoiseMatrix.h 
+	GlastProjectionMatrix.cxx GlastProjectionMatrix.h 
+	GlastTransportMatrix.cxx GlastTransportMatrix.h GlastVector.h 
+	MonteCarloHitEnergy.cxx MonteCarloHitEnergy.h 
+	NoProcNoiseMatrix.cxx NoProcNoiseMatrix.h RadLossHitEnergy.cxx 
+	RadLossHitEnergy.h 
+Log Message:
+A series of classes for implementing a generic Kalman Filter track fit for testing
+These include:
+1) A process noise matrix class GlastProcNoiseMatrix
+2) A transport matrix GlastTransportMatrix
+3) A projection matrix GlastProjectionMatrix
+4) various utility classes for setting hit energies, etc. 
+
+    *
+------------------------------------------------------------
 User: usher  Tue Mar 23 15:59:50 PST 2004
 TkrRecon/src/TrackFit/KalmanFilterFit
 
