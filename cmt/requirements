@@ -1,9 +1,5 @@
 package TkrRecon
-<<<<<<< requirements
-version v10r5p1
-=======
-version v10r5p1
->>>>>>> 1.103
+version v10r5p2
 
 author Tracy Usher    <usher@slac.stanford.edu>
 author Leon Rochester <lsrea@slac.stanford.edu>
