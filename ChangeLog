@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: burnett  Sun May 26 19:43:45 PDT 2002
+TkrRecon/TkrRecon/Services
+
+Modified Files:
+	TkrGeometrySvc.h 
+Log Message:
+
+adjustments required by the wafer geometry.
+    *
+------------------------------------------------------------
 User: burnett  Sun May 26 14:20:59 PDT 2002
 TkrRecon/src/Services
 
