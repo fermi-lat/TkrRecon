@@ -22,12 +22,14 @@ interfaces ComboFindTrackTool, LinkAndTreeFindTrackTool and
 NeuralNetFindTrackTool, respectively. 
  *
 In order to simplify the interface to the casual user, the Tracker
-reconstruction chain is control by a top level algorithm, TkrReconAlg, 
+reconstruction chain is controlled by a top level algorithm, TkrReconAlg, 
 which treats the major driver algorithms as Gaudi subalgorithms. 
  *
-A diagram of the program flow can be seen
-<A href= "../images/Tkr_diagram.gif>here</A>.
-
+The following attempts to illustrate the above
+ *
+ \image html ../images/Tkr_diagram.gif
+ *
+ *
 @section algorithms Major algorithms
 
 The algorithms themselves don't contain the "algorithms." They merely handle
@@ -49,7 +51,7 @@ TkrCandidateCol).
 TkrTrackFitAlg: The work of this algorithm is currently done by one of 
 TkrComboFitTool, TkrLinkAndTreeFitTool or TkrNeuralNetFitTool. These tools 
 take the candidate tracks from their respective pattern recognition 
-analogues and the perform a Kalman Filter track fit on them through 
+analogues and perform a Kalman Filter track fit on them through 
 the use of the KalFitTrack class. This allows for the slight differences 
 which may exist in the output of a particular pattern recognition 
 implementation. Successfully fit tracks, appearing to the TDS as 
@@ -57,7 +59,7 @@ TkrFitTrack objects, are then stored in the TDS TkrFitTrackCol collection.
  *
 TkrVertexAlg: The work of this algorithm is currently done by one of 
 ComboVtxTool, VtxKalFitTool or VtxSingleTrkTool. The first of these 
-follows uses the TkrComboVtxRecon method of finding and reconstructing 
+follows the TkrComboVtxRecon method of finding and reconstructing 
 vertices from the TkrFitTrack objects. VtxKalFitTool finds and reconstructs
 vertices in the case of more than one TkrFitTrack objects using a Kalman 
 Filter vertexing algorithm. VtxSingleTrkTool returns a vertex for the 
@@ -107,8 +109,6 @@ is to put the constants in an xml file, and to make them properties
 as well, so that they can be over-written from the jobOptions.
  *
 Consolidate references to geometry - remove from GFtutor and other places
- *
-Remove GFtutor
  *
 Root out last hardwired numbers
  *
