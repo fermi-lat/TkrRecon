@@ -1,0 +1,56 @@
+
+<source_library>
+   <!--
+       $Header: /nfs/slac/g/glast/ground/cvs/tkrApp/src/test_sources.xml,v 1.3 2002/04/02 03:06:41 lsrea Exp $
+       Some simple test flux definitions for debugging
+    -->
+
+    <source name="muon_pencil_side">
+       <spectrum> 
+         <particle name="mu+"><energy e="2"/> </particle>
+           <direction theta="90" phi="45" />
+           <launch_point x="500" y="500" z="0" />
+       </spectrum>
+     </source>
+
+    <source name="muon_pencil">
+       <spectrum> 
+         <particle name="mu+"><energy e="2"/> </particle>
+           <direction theta="70" phi="45" />
+           <launch_point x="700" y="700" z="800" />
+       </spectrum>
+     </source>
+
+    <source name="muon_pencil_1">
+       <spectrum> 
+         <particle name="mu+"><energy e="2"/> </particle>
+           <direction theta="10" phi="110" />
+           <launch_point x="150" y="150" z="800" />
+       </spectrum>
+     </source>
+
+    <source name="muon_patch">
+       <spectrum> 
+         <particle name="mu+"><energy e="10"/> </particle>
+           <direction theta="0" phi="0" />
+           <patch xmin="-700" xmax="700" ymin="-700" ymax="700" />
+       </spectrum>
+     </source>
+
+    <source name="gamma_test">
+       <spectrum> 
+         <particle name="gamma"><energy e="1.0"/> </particle>
+           <direction theta="0" phi="0" />
+           <launch_point x="50" y="50" z="1000" />
+       </spectrum>
+     </source>
+
+    <source name="gamma_patch_for_G4">
+       <spectrum> 
+         <particle name="gamma"><energy e="10"/> </particle>
+           <direction theta="0" phi="0" />
+           <patch />
+       </spectrum>
+     </source>
+
+</source_library>
