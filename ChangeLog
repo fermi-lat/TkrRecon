@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Thu May 13 15:37:02 PDT 2004
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+prepare for tag v8r12p16; fix for uninit. pointer in KalmanTrackFitTool
+
+    *
+------------------------------------------------------------
 User: usher  Thu May 13 15:26:01 PDT 2004
 TkrRecon/src/Track
 
