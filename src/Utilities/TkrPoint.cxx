@@ -6,7 +6,7 @@
 *
 * @authors b. allgood, w. atwood and l. rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoint.cxx,v 1.5 2004/11/02 22:55:44 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoint.cxx,v 1.6 2004/11/03 20:17:22 lsrea Exp $
 */
 
 #include "src/Utilities/TkrPoint.h"
@@ -47,13 +47,20 @@ Ray TkrPoint::getRayTo(const TkrPoint* point) const
     double z2y = point->m_pYCluster->position().z();
     double slopeY = (y1-y2)/(z1y-z2y);
 
-    // move both coordinates to my z
-	double zAve = 0.5*(z1x+z1y);
+    // move both coordinates to furthest Z
+	double z0;
+	if(z1x > z2x) { //Normal downwards direction
+		z0 = std::max(z1x,z1y);
+	    x1 += (z0 - z1x)*slopeX;
+        y1 += (z0 - z1y)*slopeY;
+	}
+	else { //Reverse direction
+		double z0 = std::min(z1x,z1y);
+	    x1 += (z0 - z1x)*slopeX;
+        y1 += (z0 - z1y)*slopeY;
+	}
 
-	x1 += (zAve - z1x)*slopeX;
-    y1 += (zAve - z1y)*slopeY;
-
-    Point origin(x1, y1, zAve);
+    Point origin(x1, y1, z0);
     Vector dir   = Vector(-slopeX, -slopeY, -1.);
     dir = dir.unit();
     if ((z1x-z2x)<0) dir *= -1.0;
