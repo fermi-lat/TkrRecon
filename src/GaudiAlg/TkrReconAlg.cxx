@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.24 2003/05/27 22:23:31 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.25 2003/09/27 18:53:27 burnett Exp $
  */
 
 
@@ -150,7 +150,6 @@ StatusCode TkrReconAlg::initialize()
             return StatusCode::FAILURE;
         }
     }
-
 
     // Set the property controlling the type of track fitting to perform
     m_TkrTrackFitAlg->setProperty("TrackFitType", m_TrackerReconType);

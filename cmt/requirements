@@ -41,7 +41,7 @@ apply_pattern package_Cshlibflags
 macro TkrRecon_headers   "" WIN32 "\
  ../TkrRecon/Cluster/*.h\
  ../TkrRecon/PatRec/*.h\
- ../TkrRecon/Track/*.h ../TkrRecon/TrackFit/*.h \
+ ../TkrRecon/Track/*.h \
  ../TkrRecon/Vertex/*.h  \
  ../TkrRecon/GaudiAlg/*.h ../TkrRecon/Display/*.h ../TkrRecon/Services/*.h"
 
@@ -62,6 +62,8 @@ library TkrRecon  $(TkrRecon_headers)  \
   -s=Track $(source)\
   -s=TrackFit $(source)\
   -s=TrackFit/KalmanFilter $(source)\
+  -s=TrackFit/KalmanFilterUtils $(source)\
+  -s=TrackFit/KalmanFilterFit $(source)\
   -s=TrackFit/KalFitTrack $(source)\
   -s=Utilities $(source)\
   -s=Vertex  $(source)\
