@@ -30,13 +30,14 @@ TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pCluster
 {
     //Store the cluster info
     GFtutor::load(pClusters, pTkrGeo);
-
+    
     //Clear all flag hits
     int num_hits = pClusters->nHits();
     for(int i=0; i<num_hits; i++) pClusters->unflagHit(TkrCluster::X,i);
     
     // Internal init's 
     m_BestHitCount = 0;
+    m_firstLayer = 0; 
     m_TopLayer     = GFtutor::numPlanes(); 
     
     //Search for candidate tracks
@@ -65,7 +66,7 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
     m_Pcal   = CalPosition;
     
     //Determine what to do based on status of Cal energy and position
-    if(ene < GFcontrol::minEnergy || m_Pcal.mag() == 0.) 
+    if(ene <= GFcontrol::minEnergy || m_Pcal.mag() == 0.) 
     {   // This path use no calorimeter energy - 
         findBlindCandidates();
     }
@@ -73,6 +74,7 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
     {   // This path first finds the "best" candidate the points to the 
         // Calorimeter cluster - 
         findCalCandidates();
+        if(m_candidates.size()==0) findBlindCandidates();//Is this a good idea?
     }
     
     // Remove "Best Track" and then find  the rest...  
@@ -132,6 +134,7 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
         
         // Now with these hits "off the table" find other tracks
         m_energy = (.7*m_energy > GFcontrol::minEnergy) ? .7*m_energy:GFcontrol::minEnergy;
+        int best_first_layer = best_tkr->getLayer();
         findBlindCandidates();
     }
     
@@ -184,8 +187,10 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
 void TkrComboPatRec::setEnergies(double calEnergy)
 {
     // Use hit counting + CsI energies
-    if(calEnergy <= GFcontrol::minEnergy) return;
-    
+    //if(calEnergy <= GFcontrol::minEnergy) return; //May not be a good idea
+    double cal_Energy = (calEnergy > GFcontrol::minEnergy) ? 
+                         calEnergy : GFcontrol::minEnergy;
+
     // Get best track ray
     TkrPatCand*  first_track = getTrack(0);              
     Ray r1 = first_track->getRay();
@@ -210,7 +215,7 @@ void TkrComboPatRec::setEnergies(double calEnergy)
         double xms = 0.;
         double yms = 0.;
         if(iplane > top_plane) {
-            TkrFitMatrix Q = kalPart->mScat_Covr(calEnergy/2., arc_len);
+            TkrFitMatrix Q = kalPart->mScat_Covr(cal_Energy/2., arc_len);
             xms = Q.getcovX0X0();
             yms = Q.getcovY0Y0();
         }
@@ -229,7 +234,7 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     double ene_trks   = .3*num_thin_hits + 1.3*num_thck_hits; // Coefs are MeV/hit
     double ene_xing   = 1.6*(max_planes-top_plane+1);                 // Coef is MeV/plane
     
-    double ene_total  =  (ene_trks + ene_xing)/fabs(dir_ini.z()) + calEnergy;
+    double ene_total  =  (ene_trks + ene_xing)/fabs(dir_ini.z()) + cal_Energy;
     
     // Now constrain the energies of the first 2 tracks
     int num_cands = getNumCands(); 
@@ -276,11 +281,12 @@ void TkrComboPatRec::findBlindCandidates()
     int max_planes = GFtutor::numPlanes();
     
     int localBestHitCount = 0; 
+    bool valid_hits = false;
     
-    for (int ilayer = 0 ; ilayer < max_planes-2; ilayer++)
+    for (int ilayer = m_firstLayer; ilayer < max_planes-2; ilayer++)
     { 
         // Termination Criterion
-        if(localBestHitCount > 10 && ilayer - m_TopLayer > 2) break;
+        if(localBestHitCount > 10 && ilayer - m_TopLayer > 1) break;
         
         // Create space point loops and check for hits
         TkrPoints first_Hit(ilayer);
@@ -289,20 +295,22 @@ void TkrComboPatRec::findBlindCandidates()
         while(!first_Hit.finished()) {
             Point x1(first_Hit.getSpacePoint());
             if(x1.mag() < .001) continue;
-            
+            if(m_firstLayer == 0 && !valid_hits) {
+                m_firstLayer = ilayer;
+                valid_hits = true;
+            }
             int itwr = first_Hit.tower();
             
-            for(int igap=1; igap<5; igap++) {
+            //allows up to 2 blank layers
+            for(int igap=1; igap<3 && ilayer+igap <max_planes; igap++) {
                 // Tests for terminating gap loop
-                if(localBestHitCount+1> (max_planes-(ilayer+igap))*2 && igap > 2 ) break;
-                if(ilayer+igap > max_planes-1 ) break;
+                if(localBestHitCount > 0 && 
+                  (localBestHitCount+2 > (max_planes-(ilayer+igap)-2)*2)) break;
                 
-                TkrPoints secnd_Hit(ilayer+igap);
-                if(secnd_Hit.finished()) continue;
-                
+                TkrPoints secnd_Hit(ilayer+igap);               
                 while(!secnd_Hit.finished()) {
                     Point x2(secnd_Hit.getSpacePoint());
-                    if(x2.mag() < .001) continue;
+                    if(x2.x()==0.) continue; //Flag Hits can mask the true finish.
                     
                     // Check relative locations of the x and y co-ordinates and correct
                     double deltaX = x2.x()-x1.x();
@@ -322,24 +330,28 @@ void TkrComboPatRec::findBlindCandidates()
                     if(fabs(testRay.direction().z()) < .19) continue; 
                     
                     int gap;
-                    float deflection; 
-                    //                float arc_min = sqrt(deltaX*deltaX + deltaY*deltaY + 
-                    //                                   (deltaZx*deltaZx + deltaZy*deltaZy)/2.); 
-                    float sigma = findNextHit(ilayer+igap, testRay, deflection, gap);
-                    if(sigma > m_cut || deflection < .8) { //Try again with a gap
-                        sigma = findNextHit(ilayer+igap+1, testRay, deflection, gap);
-                        if(sigma > 2*m_cut || deflection < .8) continue;
-                    }
+                    float deflection, sigma; 
                     
-                    if (gap <= GFcontrol::maxConsecutiveGaps) {
-                        Candidate* trial = new Candidate(ilayer, itwr, m_energy, x1, VDir, 
-                            deflection, m_cut, gap); 
-                        if(trial->track()->getQuality() > 10) {
-                            int num_trial_hits = trial->track()->getNumHits();
-                            if(num_trial_hits > localBestHitCount) localBestHitCount = num_trial_hits; 
+                    //Again allow up to blank layers depending on 1st 2 hits
+                    int gap_max  = 3-igap;
+                    if(gap_max < 1) gap_max = 1;
+                    for(gap = 0; gap < gap_max; gap++) {
+                        sigma = findNextHit(ilayer+igap+gap, testRay, deflection);
+                        if(sigma < m_cut && deflection > .7) {        
+                            Candidate* trial = new Candidate(ilayer, itwr, m_energy, x1, VDir, 
+                                deflection, m_cut, gap); 
+                            if(trial->track()->status() == KalFitTrack::EMPTY) {
+                                delete trial;
+                                continue;
+                            }
+                            if(trial->track()->getQuality() > 10) {
+                                int num_trial_hits = trial->track()->getNumHits();
+                                if(num_trial_hits > localBestHitCount) localBestHitCount = num_trial_hits; 
+                            }
+                            incorporate(trial);
+                            if(ilayer < m_TopLayer) m_TopLayer = ilayer;
+                            break;
                         }
-                        incorporate(trial);
-                        if(ilayer < m_TopLayer) m_TopLayer = ilayer;
                     }
                 }
             }
@@ -353,12 +365,14 @@ void TkrComboPatRec::findCalCandidates()
     // energy centroid as a seed. Allow a gap between first two
     // hits but none between next two if first two had a gap
     
-    int max_planes = GFtutor::numPlanes();    
+    int max_planes = GFtutor::numPlanes();
+    int localBestHitCount = 0; 
+    bool valid_hits = false; 
     
     for (int ilayer = 0 ; ilayer < max_planes-2; ilayer++)
     { 
         // Should we continue?  
-        if(m_BestHitCount > (max_planes-ilayer)*2 - 5) break;  
+        if(localBestHitCount > 10 && ilayer - m_TopLayer > 1) break;
         
         // Create space point loop and check for hits
         TkrPoints first_Hit(ilayer);
@@ -366,6 +380,10 @@ void TkrComboPatRec::findCalCandidates()
         while(!first_Hit.finished()) {
             Point x1(first_Hit.getSpacePoint());
             if(x1.mag() < .001) continue;
+            if(m_firstLayer == 0 && !valid_hits) {
+                m_firstLayer = ilayer;
+                valid_hits   = true;
+            }
             int itwr = first_Hit.tower(); 
             
             Vector t1(m_Pcal.x()-x1.x(),m_Pcal.y()-x1.y(),m_Pcal.z()-x1.z());
@@ -378,7 +396,7 @@ void TkrComboPatRec::findCalCandidates()
             if(x_size > (3+3*fabs(t1.x()/t1.z()))) continue; 
             if(y_size > (3+3*fabs(t1.y()/t1.z()))) continue; 
             
-            int max_layer = ilayer+4; // allows up to 2 gaps
+            int max_layer = ilayer+3; // allows up to 1 gaps
             if(max_layer > max_planes-1) max_layer =max_planes-1;
             for(int klayer=ilayer+1; klayer < max_layer; klayer++) {
                 TkrPoints secnd_Hit(klayer);
@@ -411,9 +429,13 @@ void TkrComboPatRec::findCalCandidates()
                     int gap = klayer - (ilayer+1); 
                     double deflection = 1.;
                     Vector t_trial = Vector(-deltaX/deltaZx, -deltaY/deltaZy, -1.).unit();
-                                        
+                    
                     Candidate *trial = new Candidate(ilayer, itwr, m_energy, x1, t_trial, 
                         deflection, m_cut, gap); 
+                    if(trial->track()->status() == KalFitTrack::EMPTY) {
+                        delete trial;
+                        continue;
+                    }
                     incorporate(trial);
                     if(ilayer < m_TopLayer) m_TopLayer = ilayer;
                 }
@@ -423,50 +445,18 @@ void TkrComboPatRec::findCalCandidates()
     return;   
 }
 
-float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection, int &gap)
+float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
 {
-    // Extrapolate the next paired x-y space point from layer. 
-    
-    gap = 0;
+    // Extrapolate to the next paired x-y space point from layer.   
     deflection = 0.;
     int nlayers = 0;
-    /*
-    Point x_ini = traj.position();
-    Vector dir_ini = traj.direction();
     
-      float arc_min = 3.0/fabs(dir_ini.z()) + arc_len; //Hardwired 3 mm dist to cross XY gap
-      IKalmanParticle* kalPart = TkrReconAlg::m_KalParticle;
-      kalPart->setStepStart(x_ini, dir_ini, arc_min);
-      if(kalPart->trackToNextPlane()) {
-      m_arclen = kalPart->arcLength();
-      nlayers = (m_arclen - arc_len)*fabs(dir_ini.z())/(GFtutor::trayGap()-4.5);
-      if(nlayers < 1) nlayers =1;
-      gap = nlayers-1;
-      }
-      else return m_cut+1;    
-      
-        TkrPoints next_Hit(layer+nlayers);
-        if(next_Hit.finished()) return m_cut+1;
-        
-          Point x_pred(traj.position(m_arclen));
-          
-            double resid =0.;
-            m_nextHit = next_Hit.getNearestPointOutside(x_pred, resid);
-            if(resid > 300.) return m_cut+1; // Hardwired 300 mm max miss
-            
-              deflection = dir_ini * ((m_nextHit-x_ini).unit()); 
-              TkrFitMatrix Q = kalPart->mScat_Covr(m_energy, m_arclen);
-              double sig_meas = 5.*GFtutor::siStripPitch()/fabs(dir_ini.z()); // Big errors for PR
-              float denom = sqrt(Q.getcovX0X0() + Q.getcovY0Y0() + sig_meas*sig_meas);
-              if(denom > 25.) denom = 25.;   // Hardwire in max Error of 25 mm
-              return resid/denom;  
-    */
     TkrPoints next_Hit(layer+1);
     if(next_Hit.finished()) return m_cut+1;
     
     Point sample_x(next_Hit.getSpacePoint()); 
     if(sample_x.mag() < .001) return m_cut+1; //Required because of hti sharing
-
+    
     double costh = fabs(traj.direction().z());    
     //    m_arclen = GFtutor::trayGap()/costh + arc_len; 
     m_arclen = (traj.position().z() - sample_x.z())/costh; 
@@ -493,12 +483,7 @@ float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection, int &
 void TkrComboPatRec::incorporate(Candidate* trial)
 {
     // This method inserts the trial into the internal list of hypothesises
-    
-    // Check that a valid triall exists
-    if(trial->track()->status() == KalFitTrack::EMPTY) {
-        delete trial;
-        return;
-    }
+
     // Check if this track duplicates another already present
     int numTrialHits = trial->track()->getNumHits();
     for (unsigned int i =0; i <m_candidates.size(); i++) {
@@ -550,14 +535,57 @@ m_deflection(d)
 , m_sigma(s)
 , m_gap(g)
 {
-    // Do a priliminary Fit
+    // Do a priliminary Fit using TkrKalTrack to find the rest of the hits
     Ray testRay(x,t);   
     m_track = new KalFitTrack(layer, twr, m_sigma, e, testRay); 
     m_track->findHits();
     m_track->doFit();
+
+    // Check X**2 for the Track
+    if(m_track->getChiSquare() > GFcontrol::maxChisqCut) {
+        m_track->setStatus(KalFitTrack::EMPTY);
+        return;
+    }
     
-    double pr_quality = m_track->getQuality()-6.*layer + m_track->getKalEnergy(); 
-    setQuality(m_track->getQuality()-6.*layer);
+    m_deflection = m_track->getKink(2); //Angle between 1st 2 segs.
+    if(m_deflection > 3.) m_deflection = 0.;
+    else  m_deflection = cos(m_deflection);
+    
+    double sigmas_def = m_track->getKinkNorma(2);
+    if(sigmas_def > 9.) sigmas_def = 1.; 
+    
+    //Set CLuster size penalty
+    double size_penalty = 0.; 
+    TkrFitPlaneConPtr pln_pointer = m_track->getHitIterBegin();
+    
+    int i_Hit = 0; 
+    int i_share = 0;
+    while(pln_pointer != m_track->getHitIterEnd()) {
+        
+        TkrFitPlane plane = *pln_pointer;
+        TkrCluster::view hit_proj = plane.getProjection();
+        TkrFitPar tkr_par = plane.getHit(TkrFitHit::FIT).getPar();
+        double slope = tkr_par.getYSlope();
+        if(hit_proj == TkrCluster::X) {
+            slope = tkr_par.getXSlope();
+        }        
+        int hit_Id = plane.getIDHit();;
+        double cls_size = GFtutor::_DATA->size(hit_proj, hit_Id);        
+        double prj_size = 400.*fabs(slope)/228. + 2.;
+        double over_size = cls_size-prj_size;
+        
+        if(over_size > 0) {
+            if(i_Hit < 6)       size_penalty +=    over_size;
+            else if(i_Hit < 12) size_penalty += .5*over_size;
+            else break;
+        }
+        i_Hit++;
+        pln_pointer++;
+    }
+
+    // The parameter sets the order of the tracks to be considered
+    double pr_quality = m_track->getQuality() - 1.5*sigmas_def - 7.*layer - size_penalty;   
+    setQuality(pr_quality);
 }
 
 TkrComboPatRec::Candidate::~Candidate() 
