@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Wed Nov  7 21:54:16 PST 2001
+TkrRecon/src/Track
+
+Added Files:
+	GFbase.cxx GFcandidates.cpp GFcontrol.cpp GFdata.cxx 
+	GFgamma.cpp GFpair.cpp GFparticle.cpp GFsegment.cpp 
+	GFtrack.cpp GFtutor.cpp SiRecObjs.cpp 
+Log Message:
+Add source code to subfolders for implementing the TkrRecon classes
+    *
+------------------------------------------------------------
 User: usher  Wed Nov  7 21:54:15 PST 2001
 TkrRecon/src/Services
 
