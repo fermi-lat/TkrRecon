@@ -770,7 +770,14 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
         layer, twr, m_sigma, e, testRay); 
     m_track->findHits();
     if(m_track->status()==KalFitTrack::EMPTY) return; 
-    m_track->doFit(); 
+    try {
+        m_track->doFit(); 
+    } catch(std::domain_error e) {
+        std::cout << "TkrComboPatRec: " << e.what() << std::endl;
+        std::cout << "                We delete this track and continue." << std::endl;
+        m_track->setStatus(KalFitTrack::EMPTY);
+        return;
+    }
     int more_hits = m_track->addLeadingHits(layer);
     if(more_hits > 0) m_track->doFit(); 
     m_type = more_hits; 

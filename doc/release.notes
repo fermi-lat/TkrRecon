@@ -3,7 +3,7 @@
 @verbatim
   Manager: Leon Rochester 
 
-  v9r0p2gr2 06-Oct-2004  TU   Fix up the call deltaReconPoint in AlignHitsTool
+  v9r0p2gr3 19-Oct-2004 LSR  Catch exception from propagator
   v9r0p2gr1 23-Sep-2004  TU   Branch to GlastRelease-v4r5, tag "base" TkrRecon
   v9r0p3?   17-Sep-2004  TU   Create patch branch for GlastRelease v4r5
   v9r0p2   09-Sep-2004  LSR  Move energy loss out of TkrFitPlane
