@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Thu Aug  7 09:09:05 PDT 2003
+TkrRecon/src/MonteCarlo
+
+Modified Files:
+	McBuildPatCandTab.cxx McBuildTracks.cxx 
+Log Message:
+Fix include paths
+
+    *
+------------------------------------------------------------
 User: lsrea  Thu Aug  7 07:30:44 PDT 2003
 TkrRecon/doc
 
