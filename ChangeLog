@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Tue Jan  4 08:38:40 PST 2005
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx 
+Log Message:
+Major change:  trials counter move to BEFORE the incorporatestep.  This will now count duplicate tracks as trials.  The maxTrials parameter was increase from 30 to 50 to compensate.
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r1p2, operation: add
 Package: TkrRecon
