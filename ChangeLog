@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: lsrea  Sat Aug 25 14:42:30 PDT 2001
+TkrRecon/src/test badchannellist_nsbf53_10sigma_recon.dat badchannellist_nsbf54_10sigma_recon.dat badchannellist_nsbf55_10sigma_recon.dat
+
+Added Files:
+	badchannellist_nsbf53_10sigma_recon.dat 
+	badchannellist_nsbf54_10sigma_recon.dat 
+	badchannellist_nsbf55_10sigma_recon.dat 
+Log Message:
+Taka's bad strips files for balloon flight runs 53, 54 and 55
+
+    *
+------------------------------------------------------------
 User: lsrea  Sun Aug  5 17:48:09 PDT 2001
 TkrRecon/src GFgamma.cpp
 
