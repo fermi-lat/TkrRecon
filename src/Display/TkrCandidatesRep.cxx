@@ -16,7 +16,8 @@ TkrCandidatesRep::TkrCandidatesRep(TkrCandidates** ppCands, ITkrGeometrySvc* pTk
 void TkrCandidatesRep::update()
 //##############################################
 {
-    TkrCandidates* pTkrCands = *ppTkrCandidates;
+    TkrCandidates*    pTkrCandidates = *ppTkrCandidates;
+    TkrLinkAndTreePR* pTkrCands      = dynamic_cast<TkrLinkAndTreePR*>(pTkrCandidates);
 
     //Zero out the pointer so we don't accidentally try to draw the event
     *ppTkrCandidates = 0;
@@ -55,58 +56,29 @@ const char color_aquamarine[] = "aquamarine";
 const char* pColors[] = {color_blue,   color_violet, color_turquoise,
                          color_orange, color_maroon, color_aquamarine};
 
-void TkrCandidatesRep::TkrDrawCandidates(TkrCandidates* pTkrCands, TkrPlaneType plane)
+void TkrCandidatesRep::TkrDrawCandidates(TkrCandidates* pTkrCandidates, TkrPlaneType plane)
 {
+    TkrLinkAndTreePR* pTkrCands      = dynamic_cast<TkrLinkAndTreePR*>(pTkrCandidates);
+
     //Draw the candidate tracks
     TkrLinkForest* pForest  = pTkrCands->getForest(plane);
     int            nTrees   = pForest->getNumTrees();
 	treeListPtr    treePtr  = pForest->getListStart();
-	bool           fullTree = true;
     int            colorIdx = 0;
 
 	//messageManager::instance()->message(" ****************************************");
 	//messageManager::instance()->message(" Number of trees found:", numTrees);
 
 	//Only plot two longest, straightest trees
-	if (nTrees > 2) nTrees = 2;
+	if (nTrees > 6) nTrees = 6;
 
 	while(nTrees--)
     {
         TkrLinkTree* pTree = &(*treePtr++);
 
-		//messageManager::instance()->message(" Tree Height:", pTree->getTreeHeight());
-
-	    //We draw the full tree in green...
-	    if (fullTree)
-        {
-            setColor("green");
-		    drawFullTree(pTree->getHeadNode());
-        }
-
-	    //Now come back and do the "best" set of links in the tree
-        int nBest = pTree->getNumBestVectors();
-        bestNodeVecPtr nodeVecPtr = pTree->getNodeVectorPtr();
-
-        //Don't draw best track right now...
-        nBest = 0;
-
-        while(nBest--)
-        {
-
-            BestNodeList*   pNodeList = *nodeVecPtr++;
-     	    int             nNodes    = pNodeList->getNumNodes();
-	        linkNodeListPtr nodePtr   = pNodeList->getNodeList();
-
-	        setColor(pColors[colorIdx]);
-
-	        while(nNodes--)
-            {
-                LayerLinkNode* pNode   = *nodePtr++;
-		        TkrLinkNode*   pTkrNode = dynamic_cast<TkrLinkNode*>(pNode);
-
-		        drawLinkNode(pTkrNode);
-            }
-        }
+        //Draw the full tree
+        setColor(pColors[colorIdx]);
+		drawFullTree(pTree->getHeadNode());
 
 	    //Put a marker at the tree head
 	    TkrLinkNode*    pTkrNode  = dynamic_cast<TkrLinkNode*>(pTree->getHeadNode());
@@ -123,8 +95,6 @@ void TkrCandidatesRep::TkrDrawCandidates(TkrCandidates* pTkrCands, TkrPlaneType 
 
 	    setColor(pColors[colorIdx]);
 	    markerAt(Point(x,y,z));
-
-		//fullTree = false;
 
 		colorIdx = ++colorIdx % 6;
     }
