@@ -166,8 +166,17 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitPlane& kplaneNext)
     TkrFitPar    pp      = hit.getPar();
     TkrFitMatrix Ck      = hit.getCov();
     
-    double       ene     = start.getEnergy();
-        if( ene <=0 || ene > 1e6 ){
+//    double       ene     = start.getEnergy();
+//        if( ene <=0 || ene > 1e6 ){
+//        throw( TkrException("bad energy in KalmanFilter") );
+//    }
+    double ene = 0.;
+    try
+    {
+        ene = start.getEnergy();
+    }
+    catch(...)
+    {
         throw( TkrException("bad energy in KalmanFilter") );
     }
 
