@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Mon Jun  4 15:07:34 PDT 2001
+TkrRecon/src GFcandidates.cpp SiClusters.cpp SiClustersAlg.cxx TkrClustersRep.cxx
+
+Modified Files:
+	GFcandidates.cpp SiClusters.cpp SiClustersAlg.cxx 
+	TkrClustersRep.cxx 
+Log Message:
+Modifications for updating SiClusters to search for clusters near a given point
+
+    *
+------------------------------------------------------------
 User: usher  Mon Jun  4 14:57:28 PDT 2001
 TkrRecon/TkrRecon SiClusters.h
 
