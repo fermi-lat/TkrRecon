@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.21 2005/01/25 20:04:49 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.22 2005/01/31 22:43:18 lsrea Exp $
  */
 
 // to turn one debug variables
@@ -39,6 +39,15 @@
 #include "TkrUtil/TkrCovMatrix.h"
 #include "geometry/Ray.h"
 
+using namespace Event;
+
+namespace {
+    int xPosIdx = TkrTrackParams::xPosIdx;
+    int yPosIdx = TkrTrackParams::yPosIdx;
+    int xSlpIdx = TkrTrackParams::xSlpIdx;
+    int ySlpIdx = TkrTrackParams::ySlpIdx;
+}
+
 class FindTrackHitsTool : public AlgTool, virtual public IFindTrackHitsTool
 {
 public:
@@ -50,22 +59,22 @@ public:
     StatusCode initialize();
 
     /// @brief This method attempts to find all hits associated to a given track
-    StatusCode findTrackHits(Event::TkrTrack* track);
+    StatusCode findTrackHits(TkrTrack* track);
 
     /// @brief This method will attempt to find the "next" hit associated to a track
-    Event::TkrTrackHit* findNextHit(Event::TkrTrackHit* trackhit, bool reverse);
+    TkrTrackHit* findNextHit(TkrTrackHit* trackhit, bool reverse);
 
 	
     /// @brief This method will attempt to find the hits prior to the first hit on track
-	int addLeadingHits(Event::TkrTrack* track);
+	int addLeadingHits(TkrTrack* track);
 
 private:
     /// Private member methods
 	/// Method to setup the first hit on a track
-	Event::TkrTrackHit* setFirstHit(Event::TkrTrack* track);
+	TkrTrackHit* setFirstHit(TkrTrack* track);
 
 	/// Method to find the nearest cluster to the projected track params in the plane
-	Event::TkrCluster* findNearestCluster(int plane, Event::TkrTrackParams* param);
+	TkrCluster* findNearestCluster(int plane, TkrTrackParams* param);
 
 	/// Method to filter the ith step
     void filterStep(int i) {return;} 
@@ -92,7 +101,7 @@ private:
     ITkrQueryClustersTool* m_clusTool;
 
 	/// Pointer to the TkrClusters
-	Event::TkrClusterCol* m_clusters; 
+	TkrClusterCol* m_clusters; 
 
 	/// Declared properties to control behavior
 
@@ -102,6 +111,7 @@ private:
 	double m_rej_sigma;        // The rejection track limit for being inside an active area with no cluster
 	double m_max_gap_dist;     // Max. allowed error in mm when testing for gap edges
 	double m_max_slope;        // Max. allowed abs(slope)
+    int    m_maxLeadingHits;   // Max. number of leading hits to add
 };
 
 static ToolFactory<FindTrackHitsTool> s_factory;
@@ -120,12 +130,13 @@ AlgTool(type, name, parent)
     declareInterface<IFindTrackHitsTool>(this);
 
     //Declare the fit track property
-	declareProperty("TrackAcrossTowers",    m_trackAcrossTowers=true);
+	declareProperty("TrackAcrossTowers",     m_trackAcrossTowers=true);
 	declareProperty("SearchRegionSigmaSize", m_sigma = 9.); 
-	declareProperty("LeadingHitsSigmaSize", m_LHsigma = 3.); 
+	declareProperty("LeadingHitsSigmaSize",  m_LHsigma = 3.); 
 	declareProperty("GapRejectionSigmaSize", m_rej_sigma = 2.); 
-	declareProperty("GapMaxRejectionSize", m_max_gap_dist = 10.); 
-	declareProperty("MaxAllowedSlope", m_max_slope = 5.); 
+	declareProperty("GapMaxRejectionSize",   m_max_gap_dist = 10.); 
+	declareProperty("MaxAllowedSlope",       m_max_slope = 5.);
+    declareProperty("MaxLeadingHits",        m_maxLeadingHits = 2);
 
     return;
 }
@@ -190,7 +201,7 @@ StatusCode FindTrackHitsTool::initialize()
       }
 
 	// Retrieve the pointer to the reconstructed clusters
-    m_clusters = SmartDataPtr<Event::TkrClusterCol>(m_dataSvc,EventModel::TkrRecon::TkrClusterCol);
+    m_clusters = SmartDataPtr<TkrClusterCol>(m_dataSvc,EventModel::TkrRecon::TkrClusterCol);
 
     // Set up control
     m_control = TkrControl::getPtr();
@@ -198,7 +209,7 @@ StatusCode FindTrackHitsTool::initialize()
     return sc;
 }
 
-StatusCode FindTrackHitsTool::findTrackHits(Event::TkrTrack* track)
+StatusCode FindTrackHitsTool::findTrackHits(TkrTrack* track)
 {
    // Purpose and Method: Performs a Kalman filter step through the 
    //                     GLAST Tracker.  At each new plane the 
@@ -213,11 +224,11 @@ StatusCode FindTrackHitsTool::findTrackHits(Event::TkrTrack* track)
     StatusCode sc = StatusCode::SUCCESS;
 
     // Set the first hit on the track here
-    Event::TkrTrackHit* lastHit = setFirstHit(track);
+    TkrTrackHit* lastHit = setFirstHit(track);
 	if(!lastHit) return StatusCode::FAILURE;
 
 	if(lastHit->hitUsedOnFit()) {
-		if(lastHit->getStatusBits() & Event::TkrTrackHit::MEASURESX) {
+		if(lastHit->getStatusBits() & TkrTrackHit::MEASURESX) {
 			int numX = track->getNumXHits() + 1;
 			track->setNumXHits(numX);
 		}
@@ -229,7 +240,7 @@ StatusCode FindTrackHitsTool::findTrackHits(Event::TkrTrack* track)
     track->push_back(lastHit);
 
     // Loop until no more track hits found
-    while(Event::TkrTrackHit* trackHit = findNextHit(lastHit, false))
+    while(TkrTrackHit* trackHit = findNextHit(lastHit, false))
     {
         // Run the filter
         m_tkrFitTool->doFilterStep(*lastHit, *trackHit);
@@ -237,7 +248,7 @@ StatusCode FindTrackHitsTool::findTrackHits(Event::TkrTrack* track)
         // Add this to the track itself
         track->push_back(trackHit);
 		if(trackHit->hitUsedOnFit()) {
-			if(trackHit->getStatusBits() & Event::TkrTrackHit::MEASURESX) {
+			if(trackHit->getStatusBits() & TkrTrackHit::MEASURESX) {
 				int numX = track->getNumXHits() + 1;
 			    track->setNumXHits(numX);
 		    }
@@ -246,9 +257,9 @@ StatusCode FindTrackHitsTool::findTrackHits(Event::TkrTrack* track)
 			    track->setNumYHits(numY);
 		    }
 		// Check that the new slopes are within boungs
-		    double  meas_slope = trackHit->getMeasuredSlope(Event::TkrTrackHit::FILTERED);
+		    double  meas_slope = trackHit->getMeasuredSlope(TkrTrackHit::FILTERED);
 		    if(fabs(meas_slope) > m_max_slope) break;
-		    double  non_meas_slope = trackHit->getNonMeasuredSlope(Event::TkrTrackHit::FILTERED);
+		    double  non_meas_slope = trackHit->getNonMeasuredSlope(TkrTrackHit::FILTERED);
 		    if(fabs(non_meas_slope) > m_max_slope) break;
 		}
 
@@ -260,7 +271,7 @@ StatusCode FindTrackHitsTool::findTrackHits(Event::TkrTrack* track)
 	// at least 2 in each projection
 	if((track->getNumXHits()+ track->getNumYHits()) < 5 ||
 		track->getNumXHits() < 2 || track->getNumYHits() < 2) sc = StatusCode::FAILURE;
-	else track->setStatusBit(Event::TkrTrack::FOUND);
+	else track->setStatusBit(TkrTrack::FOUND);
 
 
 	// Remove trailing gap hits
@@ -271,7 +282,7 @@ StatusCode FindTrackHitsTool::findTrackHits(Event::TkrTrack* track)
 	return sc;
 }
 
-Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrackHit* last_hit, bool reverse)
+TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
 {
     // Purpose and Method: Finds the next z-plane crossing and searches for a hit 
 	//                     to associated with the given track. This is independent of
@@ -282,11 +293,11 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrackHit* last_hit,
     // Dependencies: Depends on external services and tools looked up at initialization 
     // Restrictions and Caveats:  None
 
-    Event::TkrTrackHit* trackHit = 0;
+    TkrTrackHit* trackHit = 0;
 
 	// Get starting position and direction
-	Point start_pos = last_hit->getPoint(Event::TkrTrackHit::FILTERED);
-	Vector start_dir = last_hit->getDirection(Event::TkrTrackHit::FILTERED); 
+	Point start_pos = last_hit->getPoint(TkrTrackHit::FILTERED);
+	Vector start_dir = last_hit->getDirection(TkrTrackHit::FILTERED); 
 	if(reverse) start_dir = -start_dir;  //reverse direction
 
     // Check that starting position is inside LAT
@@ -346,7 +357,7 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrackHit* last_hit,
 	}
 
 	// Setup the propagator and transport the track parameters along this step
-    Event::TkrTrackParams last_params = last_hit->getTrackParams(Event::TkrTrackHit::FILTERED);
+    TkrTrackParams last_params = last_hit->getTrackParams(TkrTrackHit::FILTERED);
 
 	if(reverse || t_z > 0) m_propagatorTool->setStepStart(last_params, start_pos.z(), true);
 	else                   m_propagatorTool->setStepStart(last_params, start_pos.z(), false);
@@ -354,47 +365,51 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrackHit* last_hit,
 	m_propagatorTool->step(arc_len);
 	//double rad_len = m_propagatorTool->getRadLength(arc_len);
 	double cur_energy = last_hit->getEnergy();
-	Event::TkrTrackParams next_params = m_propagatorTool->getTrackParams(arc_len, cur_energy, true);
+	TkrTrackParams next_params = m_propagatorTool->getTrackParams(arc_len, cur_energy, true);
 
 	// See if there is a TkrCluster to associate with this track in this plane
-	Event::TkrCluster *cluster = findNearestCluster(next_plane, &next_params);
+	TkrCluster *cluster = findNearestCluster(next_plane, &next_params);
    
     // There will be a new TkrTrackHit - make one and begin filling it up
 	// If there was a found cluster - set up the hit
+
+    unsigned int status_bits = 0;
+    double sigma_alt = m_tkrGeom->trayWidth()/sqrt(12.);
+    int measIdx, nonmIdx;
+
 	if(cluster) {
-		trackHit = new Event::TkrTrackHit(cluster, cluster->getTkrId(),
+		trackHit = new TkrTrackHit(cluster, cluster->getTkrId(),
                                           cluster->position().z(),   
                                           0., 0., 0., 0., 0.);
 		// Retrieve a reference to the measured parameters (for setting)
-        Event::TkrTrackParams& params = trackHit->getTrackParams(Event::TkrTrackHit::MEASURED);
+        TkrTrackParams& params = trackHit->getTrackParams(TkrTrackHit::MEASURED);
 		// Set measured track parameters
-        params(1) = cluster->position().x();
-        params(2) = 0.;
-        params(3) = cluster->position().y();
-        params(4) = 0.;
+        params(xPosIdx) = cluster->position().x();
+        params(xSlpIdx) = 0.;
+        params(yPosIdx) = cluster->position().y();
+        params(ySlpIdx) = 0.;
 
-        int    measIdx   = trackHit->getParamIndex(Event::TkrTrackHit::SSDMEASURED,    Event::TkrTrackParams::Position);
-        int    nonmIdx   = trackHit->getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Position);
+        measIdx   = trackHit->getParamIndex(TkrTrackHit::SSDMEASURED,    TkrTrackParams::Position);
+        nonmIdx   = trackHit->getParamIndex(TkrTrackHit::SSDNONMEASURED, TkrTrackParams::Position);
         double sigma     = m_tkrGeom->siResolution();
-        double sigma_alt = m_tkrGeom->trayWidth() / sqrt(12.);
 
         params(measIdx,measIdx) = sigma * sigma;
         params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
 
 		// Last: set the hit status bits
-	    unsigned int status_bits = Event::TkrTrackHit::HITONFIT | Event::TkrTrackHit::HASMEASURED |
-		                           Event::TkrTrackHit::HITISSSD | Event::TkrTrackHit::HASVALIDTKR;
-	    if(measIdx == 1) status_bits |= Event::TkrTrackHit::MEASURESX;
-	    else             status_bits |= Event::TkrTrackHit::MEASURESY;
-		if(t_z > 0 && !reverse) status_bits |= Event::TkrTrackHit::UPWARDS;
+	    unsigned int status_bits = TkrTrackHit::HITONFIT | TkrTrackHit::HASMEASURED |
+		                           TkrTrackHit::HITISSSD | TkrTrackHit::HASVALIDTKR;
+	    if(measIdx == xPosIdx) status_bits |= TkrTrackHit::MEASURESX;
+	    else                   status_bits |= TkrTrackHit::MEASURESY;
+		if(t_z > 0 && !reverse) status_bits |= TkrTrackHit::UPWARDS;
 
-        trackHit->setStatusBit((Event::TkrTrackHit::StatusBits)status_bits);
+        trackHit->setStatusBit((TkrTrackHit::StatusBits)status_bits);
 	}
     else 
     {
 		// Check if we should terminate this track
 	    double act_dist = m_propagatorTool->isInsideActArea();
-		double big_error = sqrt(next_params(1,1)+ next_params(3,3));
+		double big_error = sqrt(next_params(xPosIdx,xPosIdx)+ next_params(yPosIdx,yPosIdx));
 		// Need protection for first hit which gives an error = .5*tower_width
 		if(reverse) big_error = 1000./fabs(t_z)/cur_energy;
 		if(big_error > m_max_gap_dist) big_error = m_max_gap_dist;
@@ -406,31 +421,32 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrackHit* last_hit,
         // make up a TkrId for this hit... 
         // For now, use the nominal tower, tray, face and view
 
-        int layer = m_tkrGeom->getLayer(next_plane);
-        int view  = m_tkrGeom->getView(next_plane);
-
         m_tkrGeom->truncateCoord(end_pos.x(),   towerPitch, numX, jXTower);
         m_tkrGeom->truncateCoord(end_pos.y(),   towerPitch, numY, jYTower);
 
         int tray, face;
+        int layer = m_tkrGeom->getLayer(next_plane);
+        int view  = m_tkrGeom->getView(next_plane);
+
         m_tkrGeom->layerToTray(layer, view, tray, face);
         idents::TkrId tkrId = idents::TkrId(jXTower, jYTower, tray, 
             (face == idents::TkrId::eTKRSiTop), view);
         double planeZ = m_tkrGeom->getPlaneZ(next_plane);
 
-        trackHit = new Event::TkrTrackHit(0, tkrId, planeZ, 0., 0., 0., 0., 0.); 
+        trackHit = new TkrTrackHit(0, tkrId, planeZ, 0., 0., 0., 0., 0.); 
 
-
-
-	    //trackHit = new Event::TkrTrackHit();
-		//trackHit->setZPlane(m_tkrGeom->getPlaneZ(next_plane));
 		// Retrieve a reference to the measured parameters (for setting)
-        Event::TkrTrackParams& params = trackHit->getTrackParams(Event::TkrTrackHit::MEASURED);
+        TkrTrackParams& params = trackHit->getTrackParams(TkrTrackHit::MEASURED);
 
         // find out whether there are dead clusters in this plane.
         // should we restrict ourselves to one tower?
 
-        Event::TkrCluster* badCluster = m_clusTool->nearestBadClusterOutside(view, layer, 0.0, end_pos);
+        // also, phase space for a gap is usually much bigger than for a dead strip
+        // so need to compare distance to gap with distance to bad strip, and maybe
+        // also look at the number of dead strips with 3 sigma of the hit position
+        // before deciding if this is a gap or a dead strip.
+
+        TkrCluster* badCluster = m_clusTool->nearestBadClusterOutside(view, layer, 0.0, end_pos);
         double distance;
         double width;
         if(badCluster) {
@@ -452,32 +468,44 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrackHit* last_hit,
         // if badCluster exists, we have distance and width
         // inTower, iXTower, iYTower, xActiveDist, yActiveDist, xGap, yGap
         
-        params(1) = end_pos.x();
-        params(2) = 0.;
-        params(3) = end_pos.y();
-        params(4) = 0.;
-        // NEED NEW CODE HERE to sort out gap constraints
-        int    measIdx   = 1;
-        int    nonmIdx   = 3;
-        double sigma     = 1.;
-        double sigma_alt = m_tkrGeom->trayWidth()/sqrt(12.);
+        params(xPosIdx) = end_pos.x();
+        params(xSlpIdx) = 0.;
+        params(yPosIdx) = end_pos.y();
+        params(ySlpIdx) = 0.;
+        // some code to sort out gaps, etc.
+        // still to do: dead strips
+        double sigma;
+        measIdx = xPosIdx;
+        nonmIdx = yPosIdx;
+
+        unsigned int status_bits = TkrTrackHit::HASMEASURED;
+
+        if(inTower) { // a gap , could use deaddist/sqrt(12);
+            sigma = m_tkrGeom->siDeadDistance();
+            if(yGap<0) { std::swap(measIdx, nonmIdx);}
+            // set some bits
+            status_bits |= TkrTrackHit::HITISGAP;
+            if(measIdx==xPosIdx) {status_bits |= TkrTrackHit::MEASURESX;}
+            else                 {status_bits |= TkrTrackHit::MEASURESY;}
+        } else { 
+            sigma = sigma_alt; // not really right, but big
+            // set some bits
+            status_bits |= TkrTrackHit::HITISTWR;
+        }
 
         params(measIdx,measIdx) = sigma * sigma;
         params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
 
-		// Last: set the hit status bits
-		unsigned int status_bits = Event::TkrTrackHit::HASMEASURED | Event::TkrTrackHit::HITISGAP;
-	    //if(measIdx == 1) status_bits |= Event::TkrTrackHit::MEASURESX;
-	    //else             status_bits |= Event::TkrTrackHit::MEASURESY;
-		if(t_z > 0 && !reverse) status_bits |= Event::TkrTrackHit::UPWARDS;
-    
-        trackHit->setStatusBit((Event::TkrTrackHit::StatusBits)status_bits);
+        if(t_z > 0 && !reverse) status_bits |= TkrTrackHit::UPWARDS;
+
+        // store the status bit word
+        trackHit->setStatusBit((TkrTrackHit::StatusBits)status_bits);
 	}
 
    return trackHit;
 }
 
-Event::TkrTrackHit* FindTrackHitsTool::setFirstHit(Event::TkrTrack* track)
+TkrTrackHit* FindTrackHitsTool::setFirstHit(TkrTrack* track)
 {
     // Purpose and Method: make the first hit on a track 
     // Inputs:  a TkrTrack
@@ -486,7 +514,7 @@ Event::TkrTrackHit* FindTrackHitsTool::setFirstHit(Event::TkrTrack* track)
     // Dependencies: Depends on external services and tools looked up at initialization 
     // Restrictions and Caveats:  None
 
-    Event::TkrTrackHit* trackHit = 0;
+    TkrTrackHit* trackHit = 0;
 
     // Get starting position and direction
 	Vector start_dir = track->getInitialDirection();
@@ -511,15 +539,15 @@ Event::TkrTrackHit* FindTrackHitsTool::setFirstHit(Event::TkrTrack* track)
     // See if there is a TkrCluster to associate with this track in this plane
 	double x_slope = start_dir.x()/start_dir.z();
 	double y_slope = start_dir.y()/start_dir.z();
-	Event::TkrTrackParams first_params(end_pos.x(), x_slope, end_pos.y(), y_slope,
+	TkrTrackParams first_params(end_pos.x(), x_slope, end_pos.y(), y_slope,
 		                               5., 0., 0., 0., 0., 0., 0., 5., 0., 0.);
-	Event::TkrCluster *cluster = findNearestCluster(nearest_plane, &first_params);
+	TkrCluster *cluster = findNearestCluster(nearest_plane, &first_params);
    
 	// If no cluster was a found return a NULL hit
 	if(!cluster) return trackHit; 
 
 	// A cluster was found - now make the first hit
-    trackHit = new Event::TkrTrackHit(cluster, cluster->getTkrId(),
+    trackHit = new TkrTrackHit(cluster, cluster->getTkrId(),
                                       cluster->position().z(),   
                                       track->getInitialEnergy(),
 									  0., 0., 0., 0.);
@@ -532,53 +560,55 @@ Event::TkrTrackHit* FindTrackHitsTool::setFirstHit(Event::TkrTrack* track)
     // Retrieve a reference to the measured parameters (for setting)
     // Interestingly, vs compiler does not like to reassign the reference, hence use 
     // different names for measPar and filtPar instead of one variable. Don't ask me why!
-    Event::TkrTrackParams& measPar = trackHit->getTrackParams(Event::TkrTrackHit::MEASURED);
+    TkrTrackParams& measPar = trackHit->getTrackParams(TkrTrackHit::MEASURED);
 	// Set measured track parameters
-    measPar(1) = cluster->position().x();
-    measPar(2) = 0.;
-    measPar(3) = cluster->position().y();
-    measPar(4) = 0.;
+    measPar(xPosIdx) = cluster->position().x();
+    measPar(xSlpIdx) = 0.;
+    measPar(yPosIdx) = cluster->position().y();
+    measPar(xSlpIdx) = 0.;
 
-    int    measIdx   = trackHit->getParamIndex(Event::TkrTrackHit::SSDMEASURED,    Event::TkrTrackParams::Position);
-    int    nonmIdx   = trackHit->getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Position);
+    int    measIdx   = trackHit->getParamIndex(TkrTrackHit::SSDMEASURED,    TkrTrackParams::Position);
+    int    nonmIdx   = trackHit->getParamIndex(TkrTrackHit::SSDNONMEASURED, TkrTrackParams::Position);
     double sigma     = m_tkrGeom->siResolution();
     double sigma_alt = m_tkrGeom->trayWidth()/sqrt(12.);
 
-    measPar(measIdx,measIdx) = sigma * sigma;
-    measPar(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
+    measPar(measIdx, measIdx) = sigma * sigma;
+    measPar(nonmIdx, nonmIdx) = sigma_alt * sigma_alt;
 
 	// Now do the same for the FILTERED params
-    Event::TkrTrackParams& filtPar = trackHit->getTrackParams(Event::TkrTrackHit::FILTERED);
+    TkrTrackParams& filtPar = trackHit->getTrackParams(TkrTrackHit::FILTERED);
 	filtPar = first_params;
 
 	// Make the cov. matrix from the hit position & set the slope elements
 	// using the control parameters
-	filtPar(measIdx,measIdx) = sigma * sigma;
-    filtPar(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
-	filtPar(2,2) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
-    filtPar(4,4) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
+	filtPar(measIdx, measIdx) = sigma * sigma;
+    filtPar(nonmIdx, nonmIdx) = sigma_alt * sigma_alt;
+	filtPar(xSlpIdx, xSlpIdx) = 
+        m_control->getIniErrSlope() * m_control->getIniErrSlope();
+    filtPar(ySlpIdx, ySlpIdx) = 
+        m_control->getIniErrSlope() * m_control->getIniErrSlope();
 
 	// And now do the same for the PREDICTED params
-    Event::TkrTrackParams& predPar = trackHit->getTrackParams(Event::TkrTrackHit::PREDICTED);
+    TkrTrackParams& predPar = trackHit->getTrackParams(TkrTrackHit::PREDICTED);
     predPar = filtPar;
 
     // Last: set the hit status bits
-	unsigned int status_bits = Event::TkrTrackHit::HITONFIT     | Event::TkrTrackHit::HASMEASURED |
-                               Event::TkrTrackHit::HASPREDICTED | Event::TkrTrackHit::HASFILTERED | 
-                               Event::TkrTrackHit::HITISSSD;
-	if(view == idents::TkrId::eMeasureX) status_bits |= Event::TkrTrackHit::MEASURESX;
-	else                                 status_bits |= Event::TkrTrackHit::MEASURESY;
-	status_bits |= Event::TkrTrackHit::HASVALIDTKR;
-	if(t_z > 0) status_bits |= Event::TkrTrackHit::UPWARDS;
+	unsigned int status_bits = TkrTrackHit::HITONFIT     | TkrTrackHit::HASMEASURED |
+                               TkrTrackHit::HASPREDICTED | TkrTrackHit::HASFILTERED | 
+                               TkrTrackHit::HITISSSD;
+	if(view == idents::TkrId::eMeasureX) status_bits |= TkrTrackHit::MEASURESX;
+	else                                 status_bits |= TkrTrackHit::MEASURESY;
+	status_bits |= TkrTrackHit::HASVALIDTKR;
+	if(t_z > 0) status_bits |= TkrTrackHit::UPWARDS;
 
 	// Update the TkrTrackHit status bits
-	trackHit->setStatusBit((Event::TkrTrackHit::StatusBits)status_bits);
+	trackHit->setStatusBit((TkrTrackHit::StatusBits)status_bits);
        
 	// Done! 
 	return trackHit;
 }
 
-Event::TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, Event::TkrTrackParams* params)
+TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, TkrTrackParams* params)
 {
     // Purpose and Method: to find the nearest SSD cluster to the given position in 
 	//                     in the given plane
@@ -588,7 +618,7 @@ Event::TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, Event::TkrTr
     // Dependencies: Depends on external services and tools looked up at initialization 
     // Restrictions and Caveats:  None
 
-	Event::TkrCluster* found_cluster = 0;
+	TkrCluster* found_cluster = 0;
 
 	// First extract the relevant projected hit errors from the parameters
 	int layer, view;
@@ -623,7 +653,7 @@ Event::TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, Event::TkrTr
     // no longer used...
     //bool done = false;
 	//int indexHit = -1; 
-    while (Event::TkrCluster* cluster = m_clusTool->nearestClusterOutside(view, layer, min_dist, center)) 
+    while (TkrCluster* cluster = m_clusTool->nearestClusterOutside(view, layer, min_dist, center)) 
     {
         Point nearHit = cluster->position();
 
@@ -670,14 +700,14 @@ Event::TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, Event::TkrTr
 class FTTrackHitSort
 {
   public:
-      //bool operator()(Event::TkrTrackHit* patHitLeft, Event::TkrTrackHit* patHitRight)
-      bool operator()(SmartRef<Event::TkrTrackHit> patHitLeft, SmartRef<Event::TkrTrackHit> patHitRight)
+      //bool operator()(TkrTrackHit* patHitLeft, TkrTrackHit* patHitRight)
+      bool operator()(SmartRef<TkrTrackHit> patHitLeft, SmartRef<TkrTrackHit> patHitRight)
     {
         return patHitLeft->getZPlane() >  patHitRight->getZPlane();;
     }
 };
 
-int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
+int FindTrackHitsTool::addLeadingHits(TkrTrack* track)
 {
   // Purpose and Method: This method projects backwards from 
   //             the start of the track to pick-up possible un-paired x & y hits. 
@@ -689,16 +719,16 @@ int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
 
 	// Store the hit search region sigma and replace with control for adding hits
     double sigma_temp = m_sigma; 
-	m_sigma  = m_LHsigma; 
+    m_sigma  = m_LHsigma; 
 
-	// Get the first hit on the track
-	Event::TkrTrackHit* lastHit = (*track)[0];
+    // Get the first hit on the track
+    TkrTrackHit* lastHit = (*track)[0];
 
     // Store away filtered parameters 
-    Event::TkrTrackParams lastHitParams = lastHit->getTrackParams(Event::TkrTrackHit::FILTERED);
+    TkrTrackParams lastHitParams = lastHit->getTrackParams(TkrTrackHit::FILTERED);
 
     // Set filtered params to smoothed (to get "proper" errors and directions)
-    lastHit->getTrackParams(Event::TkrTrackHit::FILTERED) = lastHit->getTrackParams(Event::TkrTrackHit::SMOOTHED);
+    lastHit->getTrackParams(TkrTrackHit::FILTERED) = lastHit->getTrackParams(TkrTrackHit::SMOOTHED);
 
 	double cur_energy  = lastHit->getEnergy();
 	Point  initial_pos = track->getInitialPosition();
@@ -706,7 +736,7 @@ int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
 	// Loop until no more track hits found
 	int  planes_crossed  = 0;
 	int  added_hits      = 0; 
-    while(Event::TkrTrackHit* trackHit = findNextHit(lastHit, true))
+    while(TkrTrackHit* trackHit = findNextHit(lastHit, true))
     {
 		// Check to see that a SSD cluster was found
 		planes_crossed++;
@@ -718,16 +748,16 @@ int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
 
         // Fill in a temporary filter parameter set
 		double arc_len = m_propagatorTool->getArcLen(); 
-		Event::TkrTrackParams next_params = m_propagatorTool->getTrackParams(arc_len, cur_energy, true);
+		TkrTrackParams next_params = m_propagatorTool->getTrackParams(arc_len, cur_energy, true);
         //This is a bug
 		//next_params(2) = -next_params(2);
 		//next_params(4) = -next_params(4); 
-		Event::TkrTrackParams& filter_params = trackHit->getTrackParams(Event::TkrTrackHit::FILTERED);
+		TkrTrackParams& filter_params = trackHit->getTrackParams(TkrTrackHit::FILTERED);
 		filter_params = next_params;
-		trackHit->setStatusBit(Event::TkrTrackHit::HASFILTERED);
-		Event::TkrTrackParams& predParams = trackHit->getTrackParams(Event::TkrTrackHit::PREDICTED);
+		trackHit->setStatusBit(TkrTrackHit::HASFILTERED);
+		TkrTrackParams& predParams = trackHit->getTrackParams(TkrTrackHit::PREDICTED);
 		predParams = next_params;
-		trackHit->setStatusBit(Event::TkrTrackHit::HASPREDICTED);
+		trackHit->setStatusBit(TkrTrackHit::HASPREDICTED);
 
         // Set the filtered and predicted hits
         //m_tkrFitTool->doFilterStep(*lastHit, *trackHit);
@@ -743,8 +773,8 @@ int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
         // Update the last hit
         lastHit = trackHit;
 
-		// Limited the number of leading hits to 2 or less
-		if(planes_crossed == 2) break;
+		// Limited the number of leading hits to m_maxLeadingHits or less
+		if(planes_crossed == m_maxLeadingHits) break;
 	}
 
     // Have we added some hits (or think we have?)?
@@ -772,37 +802,38 @@ int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
         if (added_hits > 0)
         {
             // The following was stolen for set first hit method. Should be done better?
-            int    measIdx   = lastHit->getParamIndex(Event::TkrTrackHit::SSDMEASURED,    Event::TkrTrackParams::Position);
-            int    nonmIdx   = lastHit->getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Position);
+            int    measIdx   = lastHit->getParamIndex(TkrTrackHit::SSDMEASURED,    TkrTrackParams::Position);
+            int    nonmIdx   = lastHit->getParamIndex(TkrTrackHit::SSDNONMEASURED, TkrTrackParams::Position);
             double sigma     = m_tkrGeom->siResolution();
             double sigma_alt = m_tkrGeom->trayWidth()/sqrt(12.);
 
 	        // Now do the same for the FILTERED params
-            Event::TkrTrackParams& filtPar = lastHit->getTrackParams(Event::TkrTrackHit::FILTERED);
+            TkrTrackParams& filtPar = lastHit->getTrackParams(TkrTrackHit::FILTERED);
 
             // Set the initial measured coordinate (important for chi-square...)
-            filtPar(measIdx) = lastHit->getMeasuredPosition(Event::TkrTrackHit::MEASURED);
+            filtPar(measIdx) = lastHit->getMeasuredPosition(TkrTrackHit::MEASURED);
 
 	        // Make the cov. matrix from the hit position & set the slope elements
 	        // using the control parameters
 	        filtPar(measIdx,measIdx) = sigma * sigma;
             filtPar(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
-	        filtPar(2,2) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
-            filtPar(4,4) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
 
-            filtPar(1,2) = 0.;
-            filtPar(1,3) = 0.;
-            filtPar(1,4) = 0.;
-            filtPar(2,3) = 0.;
-            filtPar(2,4) = 0.;
-            filtPar(3,4) = 0.;
+	        filtPar(xSlpIdx,xSlpIdx) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
+            filtPar(ySlpIdx,ySlpIdx) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
+
+            filtPar(xPosIdx,xSlpIdx) = 0.;
+            filtPar(xPosIdx,yPosIdx) = 0.;
+            filtPar(xPosIdx,ySlpIdx) = 0.;
+            filtPar(xSlpIdx,yPosIdx) = 0.;
+            filtPar(xSlpIdx,ySlpIdx) = 0.;
+            filtPar(yPosIdx,ySlpIdx) = 0.;
 
 	        // And now do the same for the PREDICTED params
-            Event::TkrTrackParams& predPar = lastHit->getTrackParams(Event::TkrTrackHit::PREDICTED);
+            TkrTrackParams& predPar = lastHit->getTrackParams(TkrTrackHit::PREDICTED);
             predPar = filtPar;
 
             // Finally, reset the initial position of the track
-            track->setInitialPosition(lastHit->getPoint(Event::TkrTrackHit::FILTERED));
+            track->setInitialPosition(lastHit->getPoint(TkrTrackHit::FILTERED));
         }
     }
 
@@ -810,7 +841,7 @@ int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
     if (added_hits == 0)
     {
         // Restore the filtered hit parameters
-        lastHit->getTrackParams(Event::TkrTrackHit::FILTERED) = lastHitParams;
+        lastHit->getTrackParams(TkrTrackHit::FILTERED) = lastHitParams;
     }
 
 
