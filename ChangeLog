@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: allgood  Mon Apr  1 11:39:53 PST 2002
+TkrRecon/src/Display
+
+Added Files:
+	TkrDispCompleteNet.cxx 
+Log Message:
+Display class for displaying the entire Neural Net, mainly for debugging.
+    *
+------------------------------------------------------------
 User: allgood  Mon Apr  1 11:39:35 PST 2002
 TkrRecon/src/Display
 
