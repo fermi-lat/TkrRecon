@@ -5,7 +5,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/McTrackTool.h,v 1.1 2003/03/12 23:36:36 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/MonteCarlo/McEventStructure.h,v 1.1 2003/08/04 19:57:40 usher Exp $
  */
 #include "GaudiKernel/IDataProviderSvc.h"
 #include "GaudiKernel/IParticlePropertySvc.h"
@@ -54,6 +54,8 @@ public:
     const int                               getNumAssociated()      const {return m_associated.size();}
     Event::McParticleRefVec::const_iterator beginAssociated()       const {return m_associated.begin();}
     Event::McParticleRefVec::const_iterator endAssociated()         const {return m_associated.end();}
+
+    Event::McParticleRefVec                 getTrackVector();
 
 private:
     bool isPrimaryDaughter(const Event::McParticle* mcPart);

@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/McTrackTool.h,v 1.1 2003/03/12 23:36:36 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/MonteCarlo/McEventStructure.cxx,v 1.1 2003/08/04 20:11:24 usher Exp $
  */
 #include "TkrRecon/MonteCarlo/McEventStructure.h"
 #include "GaudiKernel/SmartDataPtr.h"
@@ -23,22 +23,6 @@ Event::McEventStructure::McEventStructure(IDataProviderSvc* dataSvc, IParticlePr
     m_secondaries.clear();
     m_associated.clear();
 
-/*    // Register ourselves in the temporary TDS
-    DataObject* pNode = 0;
-    StatusCode  sc    = dataSvc->retrieveObject("/Event/tmp", pNode);
-    if ( sc.isFailure() ) {
-        sc = dataSvc->registerObject("/Event/tmp", new DataObject);
-        if( sc.isFailure() ) 
-        {
-            return;
-        }
-    }
-    sc = dataSvc->registerObject("/Event/tmp/McEventStructure",this);
-    if (sc.isFailure())
-    {
-        return;
-    }
-*/
     SmartDataPtr<Event::McParticleCol> mcParts(dataSvc, EventModel::MC::McParticleCol);
     Event::McParticleCol::iterator mcPartIter;
 
@@ -142,4 +126,21 @@ bool Event::McEventStructure::isPrimaryDaughter(const Event::McParticle* mcPart)
 
     return false;
 }
+
+Event::McParticleRefVec Event::McEventStructure::getTrackVector()
+{
+    Event::McParticleRefVec trackVec;
+
+    trackVec.clear();
+
+    if (m_primary->statusFlags() & Event::McParticle::POSHIT) trackVec.push_back(m_primary);
+
+    Event::McParticleRefVec::const_iterator refIter;
+
+    for(refIter = m_secondaries.begin(); refIter != m_secondaries.end(); refIter++) trackVec.push_back(*refIter);
+    for(refIter = m_associated.begin();  refIter != m_associated.end();  refIter++) trackVec.push_back(*refIter);
+
+    return trackVec;
+}
+
 

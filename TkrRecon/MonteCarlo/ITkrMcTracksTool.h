@@ -32,8 +32,34 @@ class ITkrMcTracksTool : virtual public IAlgTool
     /// @brief Returns primary McParticle
     virtual const Event::McParticleRef  getPrimaryParticle()=0;
 
+    /// @brief Returns secondary particles
+    virtual int                         getNumSecondaries()=0;
+    virtual const Event::McParticleRef  getSecondary(int mcPartIdx)=0;
+
+    /// @brief Returns associated particles
+    virtual int                         getNumAssociated()=0;
+    virtual const Event::McParticleRef  getAssociated(int mcPartIdx)=0;
+
     /// @brief Returns a vector of hits associated as one McParticle track
     virtual const Event::McPartToHitVec getMcPartTrack(const Event::McParticleRef mcPart)=0;
+
+    /// @brief Returns number of Tracker (cluster) hits for a given track
+    virtual const int                   getNumClusterHits(const Event::McParticleRef mcPart)=0;
+
+    /// @brief Returns number of shared Tracker (cluster) hits for a given track
+    virtual const int                   getNumSharedTrackHits(const Event::McParticleRef mcPart)=0;
+
+    /// @brief Returns number of gaps and their sizes (in layers) for a given track
+    virtual const int                   getNumGaps(const Event::McParticleRef mcPart)=0;
+    virtual const int                   getGapSize(const Event::McParticleRef mcPart, int gapIdx)=0;
+    virtual const int                   getGapStartHitNo(const Event::McParticleRef mcPart, int gapIdx)=0;
+
+    /// @brief Returns the "straightness" of a given track
+    virtual const double                getTrackStraightness(const Event::McParticleRef mcPart)=0;
+
+    /// @brief Compares two tracks and returns information on shared hits (if any)
+    virtual const unsigned int          getSharedHitInfo(const Event::McParticleRef mcPart)=0;
+    virtual const unsigned int          getSharedHitInfo(const Event::McParticleRef mcPart1, const Event::McParticleRef mcPart2)=0;
 
 };
 #endif
