@@ -3,6 +3,7 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v8r12p21 18-Jun-2004  HMK   Pick up latest RootPolicy version
   v8r12p20 17-Jun-2004  LSR  Fix a bunch of unix warnings
   v8r12p19 14-Jun-2004  TU   Ok, "last" bug fix and get Line2DFit tagged too
   v8r12p18 14-Jun-2004  TU   "Improvements" to MC pattern recognition
