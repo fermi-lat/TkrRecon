@@ -4,7 +4,7 @@
 
 #include "Event/Recon/TkrRecon/TkrVertex.h"
 #include "Event/Recon/TkrRecon/TkrPatCandCol.h"
-#include "Event/Recon/TkrRecon/TkrFitTrackCol.h"
+#include "Event/Recon/TkrRecon/TkrFitTrack.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 
 //

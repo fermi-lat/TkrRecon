@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.13 2002/05/12 05:53:00 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.14 2002/05/13 15:54:29 usher Exp $
 //
 // Description:
 //      Controls the track fitting
@@ -13,7 +13,7 @@
 #include <vector>
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
-#include "Event/Recon/TkrRecon/TkrFitTrackCol.h"
+#include "Event/Recon/TkrRecon/TkrFitTrack.h"
 #include "src/Track/TkrLinkAndTreeTrackFit.h"
 #include "TkrRecon/Track/GFcontrol.h"
 
@@ -123,7 +123,8 @@ StatusCode TkrReconAlg::execute()
 
     sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrFitTrackCol, tracks);
 
-    tracks->writeOut(log);
+    //JCT I need to fix that
+    //    tracks->writeOut(log);
 
 	return sc;
 }
