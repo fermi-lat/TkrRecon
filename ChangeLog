@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: usher  Thu Sep 23 14:30:28 PDT 2004
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	NeuralNetFindTrackTool.cxx NeuralNetFindTrackTool.h 
+	TkrNeuralNet.cxx TkrNeuralNet.h TkrNeuron.h 
+Log Message:
+Significant updates to TkrRecon:
+1) New TkrCluster, TkrTrack, TkrTrackHit and TkrTrackParams usage 
+2) Beginnings of code rearrangement to better reflect usage
+    *
+------------------------------------------------------------
+User: usher  Thu Sep 23 14:30:28 PDT 2004
 TkrRecon/src/PatRec/MonteCarlo
 
 Modified Files:
