@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.16 2004/10/03 18:19:20 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.17 2004/10/12 19:03:36 lsrea Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -347,8 +347,8 @@ Event::TkrTrackHit* MonteCarloFindTrackTool::newTkrTrackHit(const idents::TkrId 
     params(3) = cluster->position().y();
     params(4) = 0.;
 
-    int    measIdx   = hit->getParamIndex(true,false);
-    int    nonmIdx   = hit->getParamIndex(false,false);
+    int    measIdx   = hit->getParamIndex(Event::TkrTrackHit::SSDMEASURED,    Event::TkrTrackParams::Position);
+    int    nonmIdx   = hit->getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Position);
     double sigma     = m_tkrGeom->siResolution();
     double sigma_alt = m_tkrGeom->trayWidth() * oneOverSqrt12;
 
