@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: cohen  Mon Jul 22 06:45:53 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrVertexAlg.cxx 
+Log Message:
+a test redesign of TkrVertexAlg to make use of all the vertexers, including the DEFAULT TkrComboVtxRecon
+    *
+------------------------------------------------------------
+User: cohen  Mon Jul 22 06:45:53 PDT 2002
 TkrRecon/TkrRecon/GaudiAlg
 
 Modified Files:
