@@ -75,19 +75,14 @@ StatusCode SiLayersIRFAlg::retrieve()
     m_SiLayers = new SiLayers();
     m_SiLayers->clear();
     
+    /*! Check to see if we can get the subdirectory. If not create it
+    */
     DataObject* pnode=0;
-    
-    sc = eventSvc()->retrieveObject( "/Event", pnode );
-    
-    if( sc.isFailure() ) {
-        log << MSG::ERROR << "Could not retrieve Event directory" << endreq;
-        return sc;
-    }
-    
-    sc = eventSvc()->retrieveObject( "/Event/Raw", pnode );
+
+    sc = eventSvc()->retrieveObject( "/Event/TkrRecon", pnode );
     
     if( sc.isFailure() ) {
-        sc = eventSvc()->registerObject("/Event/Raw",new DataObject);
+        sc = eventSvc()->registerObject("/Event/TkrRecon",new DataObject);
         if( sc.isFailure() ) {
             
             log << MSG::ERROR << "Could not create Raw directory" << endreq;
@@ -95,7 +90,7 @@ StatusCode SiLayersIRFAlg::retrieve()
         }
     }
 
-    sc = eventSvc()->registerObject( "/Event/Raw/SiLayers", m_SiLayers );
+    sc = eventSvc()->registerObject( "/Event/TkrRecon/SiLayers", m_SiLayers );
 
 
     
