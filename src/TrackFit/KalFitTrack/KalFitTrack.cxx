@@ -737,7 +737,7 @@ TkrFitHit KalFitTrack::generateFirstFitHit()
 
 void KalFitTrack::eneDetermination()
 {
-    int nplanes = m_nxHits+m_nyHits;
+    int nplanes = m_hits.size();
     double totalRad = 0.;
     double eneSum = 0.;
     double thetaSum = 0.;
