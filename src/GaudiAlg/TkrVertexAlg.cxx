@@ -17,7 +17,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.18 2003/04/10 17:35:40 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.19 2003/05/13 20:19:18 usher Exp $
  */
 
 #include "GaudiKernel/IToolSvc.h"
@@ -119,20 +119,31 @@ StatusCode TkrVertexAlg::execute()
     {
         //Iterative recon, need to also delete entries in relational table
         SmartDataPtr<Event::TkrVertexTabList> vtxTable(eventSvc(),EventModel::TkrRecon::TkrVertexTab);
+        Event::TkrVertexCol::iterator vtxColIter;
+        Event::TkrVertexCol::iterator endColIter = pVtxCol->end();
 
-        Event::TkrVertexTabList::iterator vtxRelIter = vtxTable->begin();
-
-        // Loop over TDS relational table
-        Event::TkrVertex* lastVertex = 0;
-        int               tabSize    = vtxTable->size();
-        for (int idx = 0; idx < tabSize; idx++) 
+        //Loop over the vertex collection, extracting vertices one at a time
+        for(vtxColIter = pVtxCol->begin(); vtxColIter != endColIter; vtxColIter++)
         {
-            Event::TkrVertexRel*  relation  = *vtxRelIter;
-            Event::TkrVertex*     tkrVertex = relation->getFirst();
+            Event::TkrVertex*                 tkrVertex = *vtxColIter;
+            int                               tabSize   = vtxTable->size();
+            Event::TkrVertexTab               tkrVertexTab(vtxTable);
+            std::vector<Event::TkrVertexRel*> vtxRels   = tkrVertexTab.getRelByFirst(tkrVertex);
 
-            if (tkrVertex != lastVertex) delete tkrVertex;
-            lastVertex = tkrVertex;
-            vtxTable->erase(vtxRelIter++);
+            // Loop over relations containing this TkrVertex, deleting them as we go
+            std::vector<Event::TkrVertexRel*>::iterator vtxRelIter;
+            std::vector<Event::TkrVertexRel*>::iterator endRelIter = vtxRels.end();
+            for(vtxRelIter = vtxRels.begin(); vtxRelIter != endRelIter; vtxRelIter++)
+            {
+                Event::TkrVertexRel* relation = *vtxRelIter;
+
+                vtxTable->remove(relation);
+                delete relation;
+            }
+
+            // Now remove and delete the TkrVertex
+            pVtxCol->remove(tkrVertex);
+            delete tkrVertex;
         }
     }
     else  
