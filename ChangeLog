@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: lsrea  Mon Jul 16 09:34:06 PDT 2001
+TkrRecon/src SiClustersAlg.cxx TkrBadStripsSvc.cxx
+
+Modified Files:
+	SiClustersAlg.cxx TkrBadStripsSvc.cxx 
+Log Message:
+changed the implementation of m_stripsCol to use an array rather than a vector,
+     to help with getting the Linux version up.
+Also, fixed the includes to consistently use the interface classes.
+
+    *
+------------------------------------------------------------
+User: lsrea  Mon Jul 16 09:34:06 PDT 2001
 TkrRecon/TkrRecon ITkrBadStripsSvc.h SiClustersAlg.h TkrBadStripsSvc.h
 
 Modified Files:
