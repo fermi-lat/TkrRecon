@@ -1,8 +1,9 @@
 /** @file release.notes
 @brief Package TkrRecon
 @verbatim
-  Manager: Leon Rochester 
+  Managers: Tracy Usher, Leon Rochester 
 
+  v10r5p0  01-Mar-2005  TU   Relatively major modifications intended to speed up code
   v10r4p0  01-Mar-2005  LSR  fix unix warnings/semi-bugs; remove root data files
   v10r4    28-Feb-2005  LSR  FindTrackHitsTool -- many changes, mostly to handle no-cluster case
                              ClusterAlg -- uses TkrMakeClustersSvc
