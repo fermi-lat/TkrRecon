@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Mon Aug 18 17:17:54 PDT 2003
+TkrRecon/src/MonteCarlo
+
+Modified Files:
+	McBuildTracks.cxx McEventStructure.cxx McLayerHit.cxx 
+	TkrMcTracksTool.cxx 
+Log Message:
+Modifications to the Recon/MC relations stuff, mostly to build up TkrMcTracksTool
+to include a number of useful functions (and to provide examples on how to access
+some of the available information)
+
+    *
+------------------------------------------------------------
 User: usher  Mon Aug 18 17:17:53 PDT 2003
 TkrRecon/src/GaudiAlg
 
