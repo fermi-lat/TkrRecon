@@ -93,7 +93,7 @@ StatusCode TkrReconAlg::execute()
     }
 
     //Provide for some lower cutoff energy...
-    if (CalEnergy < 0.03)
+    if (CalEnergy < 30.0) //MeV
     {
         //! for the moment use:
         double MINENE = 30.0;  //MeV
