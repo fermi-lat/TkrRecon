@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.15 2002/10/08 22:30:17 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.16 2002/10/16 18:44:41 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, 
@@ -38,7 +38,7 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
     TkrDigiCol::const_iterator ppDigi = pTkrDigiCol->begin();
     int nclusters = 0;  // for debugging
     
-    for (ppDigi; ppDigi!= pTkrDigiCol->end(); ppDigi++) {
+    for (; ppDigi!= pTkrDigiCol->end(); ppDigi++) {
         // each digi contains the digitized hits from one layer of one tower
         TkrDigi* pDigi = *ppDigi;
 

@@ -66,7 +66,7 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int &
         start.setNextProj(planeProjection);
 
         arc_min = TkrFitPart->arcLength();
-        nlayers = arc_min*fabs(dir_ini.z())/29.0; //mm
+        nlayers = static_cast<int> (arc_min*fabs(dir_ini.z())/29.0); //mm
     }
     else 
     {
@@ -92,7 +92,7 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int &
     return hitpred;
 } 
 
-TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int klayer, double &zend,
+TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ, int /*klayer*/, double &zend,
                            double &arc_min)
 {
     // Extrapolate by arc_min

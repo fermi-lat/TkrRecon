@@ -315,7 +315,7 @@ void LayerLinkTree::sortNodes(linkNodeVector* nodes)
     int               nodeIdx  = 0;
 
     //Outer loop over elements in the list
-    while(nodeIdx < nodes->size()-1)
+    while(nodeIdx < nNodes-1)
     {
         LayerLinkNode* pNode   = nodeIter[nodeIdx];   //Start element
         LayerLinkNode* pBest   = pNode;               //Will be better element
@@ -323,7 +323,7 @@ void LayerLinkTree::sortNodes(linkNodeVector* nodes)
         int            loopIdx = nodeIdx + 1;
 
         //Inner loop over remaining elements in the list
-        while(loopIdx < nodes->size())
+        while(loopIdx < nNodes)
         {
             LayerLinkNode* pTest = nodeIter[loopIdx];
 

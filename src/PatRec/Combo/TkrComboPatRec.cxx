@@ -681,7 +681,6 @@ float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
     int nThin  = m_tkrGeo->numLayers() - nThick - nNoCnv;
 
     deflection = 0.;
-    int nlayers = 0;
     
     TkrPoints next_Hit(layer+1, m_clusters);
     if(next_Hit.finished()) return m_cut+1;
@@ -730,7 +729,8 @@ bool TkrComboPatRec::incorporate(Candidate* trial)
 
     // Check if this track duplicates another already present
     int numTrialHits = trial->track()->getNumHits();
-    for (unsigned int i =0; i <m_candidates.size(); i++) {
+    int i;
+    for (i=0; i <m_candidates.size(); i++) {
         int numHitsOverLapped = 
             (m_candidates[i]->track())->compareFits( *trial->track()); 
         int numHits = m_candidates[i]->track()->getNumHits();
@@ -753,7 +753,7 @@ bool TkrComboPatRec::incorporate(Candidate* trial)
     if(m_BestHitCount < numTrialHits) m_BestHitCount = numTrialHits;
     bool ienter = false;
     int num_cans = m_candidates.size();
-    for (i =0; i <num_cans; i++) {
+    for (i=0; i <num_cans; i++) {
         if (trial->quality() > m_candidates[i]->quality()) {
             m_candidates.insert(&m_candidates[i],trial);
             ienter = true;
@@ -780,7 +780,7 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
                                      ITkrGeometrySvc* geometry,
                                      int layer, int twr, double e, 
                                      Point x, Vector t, 
-                                     float d, float s, int g, int top): 
+                                     float d, float s, int g, int /*top*/): 
       m_deflection(d)
     , m_sigma(s)
     , m_gap(g)
@@ -791,7 +791,7 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
    // Inputs:  TrkClusterCol pointer, Geometry Pointer, layer for KalFitTrack to 
    //          in, tower no. in which to start, the track energy, starting point 
    //          direction, the 3-point-track deflection, the sigma - search cut for 
-   //          KalFitTrack to use, the 3-point gap hit ocunt, and the present top
+   //          KalFitTrack to use, the 3-point gap hit count, and the present top
    //          most layer in which a track starts
    // Outputs: A Combo Pat. Rec. Candidate
    // Dependencies: None
@@ -827,7 +827,7 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
     TkrFitPlaneConPtr pln_pointer = m_track->getHitIterBegin();
     
     int i_Hit = 0; 
-    int i_share = 0;
+    //int i_share = 0;
     while(pln_pointer != m_track->getHitIterEnd()) {
         
         TkrFitPlane plane = *pln_pointer;
