@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Oct 22 11:37:38 PDT 2004
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrVertexAlg.cxx 
+Log Message:
+Fix problem with looking up Track <-> Vertex relational table on iteration
+    *
+------------------------------------------------------------
 User: lsrea  Fri Oct 22 11:21:40 PDT 2004
 TkrRecon/src/PatRec/KalFitTrack
 
