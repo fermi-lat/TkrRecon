@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.32 2005/02/19 07:03:54 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.33 2005/02/20 19:05:25 usher Exp $
  */
 
 // to turn one debug variables
@@ -105,6 +105,9 @@ private:
     /// Study "memory" of smoother in fit
     int        doSmootherMemory(Event::TkrTrack* track);
 
+    /// This will allow residuals at a plane without it being in the fit
+    void       doResidualsCalc(Event::TkrTrack& track);
+
     /// Pointer to the local Tracker geometry service and IPropagator
     ITkrGeometrySvc*     m_tkrGeom;
     IPropagator*         m_propagator;
@@ -127,6 +130,7 @@ private:
 
     /// Diagnostic running
     bool                 m_RunSmootherMemory;
+    bool                 m_RunResidualsFit;
     int                  m_MinSegmentHits;
     double               m_SegmentRes;
 
@@ -179,6 +183,7 @@ m_KalmanFit(0), m_nMeasPerPlane(0), m_nParams(0), m_fitErrs(0)
     declareProperty("SegmentMinDelta",   m_SegmentRes=0.005);
 
     declareProperty("RunRecursiveFit",   m_runRecursiveFit=false);
+    declareProperty("RunResidualsFit",   m_RunResidualsFit=false);
     declareProperty("FracDifference",    m_fracDifference = 0.01);
     declareProperty("MaxIterations",     m_maxIterations = 5);
 
@@ -419,9 +424,19 @@ StatusCode KalmanTrackFitTool::doTrackReFit(Event::TkrTrack* track)
 
         // Now recursively fit to "improve" the energy determination
         numIterations = doRecursiveFit(numIterations, *track);
+
+        // Song and dance for residuals if wanted
+        if (m_RunResidualsFit)
+        {
+            doResidualsCalc(*track);
+            doKalmanFit(*track);
+        }
     }
     else
     {
+        // Do residuals fit first 
+        if (m_RunResidualsFit) doResidualsCalc(*track);
+
         // Run the Kalman Filter to do the track fit
         doKalmanFit(*track);
     }
@@ -507,7 +522,10 @@ int KalmanTrackFitTool::doSmootherMemory(Event::TkrTrack* track)
             int matInvErr = 0;
             myTrkCov.invert(matInvErr);
 
-            if (matInvErr) throw(TkrException("Failed to invert residuals covariance matrix in KalmanTrackFitTool::doSmootherMemory "));
+            if (matInvErr)
+            {
+                throw(TkrException("Failed to invert residuals covariance matrix in KalmanTrackFitTool::doSmootherMemory "));
+            }
                 
             //covDiff.invert(matInvErr);
 
@@ -521,6 +539,55 @@ int KalmanTrackFitTool::doSmootherMemory(Event::TkrTrack* track)
     delete myTrack;
 
     return numSegmentHits;
+}
+
+void KalmanTrackFitTool::doResidualsCalc(Event::TkrTrack& track)
+{
+    // Purpose and Method: Diagnostic code for performance of the smoother
+    // Inputs: a reference to a fully fit track
+    // Outputs: None
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
+    // We keep track of the hits, so we know when to run filter/smoother and when not too
+    int hitNum = 0;
+    int hitMax = track.size() - 1;
+
+    // Loop over the track hits running the filter 
+    for(Event::TkrTrackHitVecItr hitIter = track.begin(); hitIter != track.end(); hitIter++)
+    {
+        // Make a copy of this hit
+        Event::TkrTrackHit* hit = *hitIter;
+
+        // If more more than 2 hits from track start, and not last hit on track, then run filter/smoother
+        if ((++hitNum > 2 && hitNum < hitMax) && hit->hitUsedOnFit())
+        {
+            // Save current hit status bits
+            unsigned int hitOnFitStatusBit = hit->getStatusBits() & Event::TkrTrackHit::HITONFIT;
+
+            // Clear the hit on fit bit
+            hit->clearStatusBit(Event::TkrTrackHit::HITONFIT);
+
+            // Run filter and smoother
+            doFilter(track);
+            doSmoother(track);
+
+            // Copy smoother results for this hit over to the (unused) reverse filter params
+            Event::TkrTrackParams& revParams = hit->getTrackParams(Event::TkrTrackHit::REVFIT);
+            revParams = hit->getTrackParams(Event::TkrTrackHit::SMOOTHED);
+
+            // Restore the hit on fit status bit
+            hit->setStatusBit(hitOnFitStatusBit);
+        }
+        // Otherwise we make sure the reverse filter params are zero
+        else
+        {
+            Event::TkrTrackParams& revParams = hit->getTrackParams(Event::TkrTrackHit::REVFIT);
+            revParams = Event::TkrTrackParams();
+        }
+    }
+
+    return;
 }
 
 int KalmanTrackFitTool::doRecursiveFit(int numIterations, Event::TkrTrack& track)
