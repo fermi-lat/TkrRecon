@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: burnett  Thu Jan 15 17:09:17 PST 2004
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrDisplayAlg.cxx 
+Log Message:
+disable MC recon display
+    *
+------------------------------------------------------------
 User: burnett  Tue Jan 13 16:10:20 PST 2004
 TkrRecon/src/Display
 
