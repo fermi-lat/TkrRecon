@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: lsrea  Wed Oct 20 07:06:47 PDT 2004
+TkrRecon/doc
+
+Modified Files:
+      Tag: GlastRelease-v4r5
+	release.notes 
+Log Message:
+Prepare for tag v9r0p2gr5
+Catch one more exception; clean up hard-wired rl_min
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Oct 20 07:06:46 PDT 2004
 TkrRecon/cmt
 
