@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Fri Feb  4 23:29:52 PST 2005
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx 
+Log Message:
+start filling in the TkrTrackHit status bits: first cut at gaps
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Feb  4 23:13:51 PST 2005
 TkrRecon/src/PatRec/Combo
 
