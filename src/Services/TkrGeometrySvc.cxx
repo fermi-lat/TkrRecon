@@ -24,7 +24,9 @@ Service(name, pSvcLocator)
 
 StatusCode TkrGeometrySvc::initialize()
 {
-    // Purpose: load up constants from GlastDetSvc
+    // Purpose: load up constants from GlastDetSvc and do some calcs
+    // Inputs:  none
+    // Output:  TkrGeometrySvc statics initialized
     
     StatusCode sc = StatusCode::SUCCESS;
     
@@ -65,7 +67,7 @@ StatusCode TkrGeometrySvc::initialize()
     sc = m_pDetSvc->getNumericConstByName("ladderGap", &m_ladderGap);
     sc = m_pDetSvc->getNumericConstByName("ssdGap", &m_ladderInnerGap);
     
-    // fill up the m_volId arrays
+    // fill up the m_volId arrays, used for providing volId prefixes
     
     for(int tower=0;tower<m_numX*m_numY;tower++) {
         idents::VolumeIdentifier vId;
@@ -130,10 +132,7 @@ StatusCode TkrGeometrySvc::initialize()
         double z1 = (T1.getTranslation()).z();
         double z2 = (T2.getTranslation()).z();
         double trayPitch = z1 - z2;
-        if (trayPitch<m_trayHeight) { m_trayHeight = trayPitch;}
-        
-        //std::cout << "layer " << ilayer << " z1/2 " 
-        //       << z1 <<" "<< z2 <<" trayPitch " << trayPitch << std::endl;
+        if (trayPitch<m_trayHeight) { m_trayHeight = trayPitch;}        
     }
     if(sc.isFailure()){
         log << MSG::WARNING 
