@@ -9,7 +9,8 @@ apply_pattern packageShr
 
 use GlastSvc
 use GuiSvc
-use ntupleWriterSvc
+use geometry
+use xml
 
 private 
 #-----------------------
