@@ -3,6 +3,8 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v8r11p8 06-jan-2004  LSR   Fix the MC stuff
+  v8r11p7 09-jan-2004  TU    Shuffle MC stuff around
   v8r11p6 06-jan-2004  LSR   Fix the odd-even effect, and add QED constraint and reciprocal energies
                              to the SetEnergies() method
   v8r11p5 04-oct-2003  THB   Fix the fix

@@ -9,7 +9,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrBuildMcRelationsAlg.cxx,v 1.3 2003/08/19 00:17:53 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrBuildMcRelationsAlg.cxx,v 1.4 2004/01/09 20:36:07 usher Exp $
  */
 
 #include "GaudiKernel/MsgStream.h"
@@ -29,7 +29,7 @@
 #include "TkrRecon/MonteCarlo/McPatCand.h"
 #include "src/MonteCarlo/McBuildTracks.h"
 
-#include "TkrRecon/MonteCarlo/ITkrMcTracksTool.h"
+#include "TkrUtil/ITkrMcTracksTool.h"
 
 class TkrBuildMcRelationsAlg : public Algorithm
 {
@@ -145,7 +145,7 @@ void TkrBuildMcRelationsAlg::buildPatCandRelations()
     SmartDataPtr<Event::ClusToLyrHitTabList> tkrTable(eventSvc(),EventModel::MC::McClusToLyrHitTab);
     Event::ClusToLyrHitTab clusToLyrHitTab(tkrTable);
     SmartDataPtr<Event::McPartToHitTabList> partTable(eventSvc(),EventModel::MC::McPartToHitTab);
-    Event::McPartToHitTab mcPartToHitTab(partTable);
+    //Event::McPartToHitTab mcPartToHitTab(partTable);
 
     //Create the pattern track relational tables
     Event::PatHitToLyrHitTab  patHitToLyrHitTab;
