@@ -1,5 +1,19 @@
 ------------------------------------------------------------
 User: igable  Sun Jun  3 16:51:45 PDT 2001
+TkrRecon/src/Dll TkrRecon_load.cpp
+
+Modified Files:
+	TkrRecon_load.cpp 
+Log Message:
+Add algorithm to fill MC related tuple items from /Event/MC/McVextexCol
+
+It still needs some touch up.
+
+Thanks Tracy and Leon for letting me dump it here for now.
+
+    *
+------------------------------------------------------------
+User: igable  Sun Jun  3 16:51:45 PDT 2001
 TkrRecon/mgr requirements
 
 Modified Files:
