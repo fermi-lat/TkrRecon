@@ -1334,7 +1334,10 @@ void KalFitter::eneDetermination()
     double y_cls_size = 1.;
 
     Vector t0(0.,0.,0.); 
-    int old_Plane_Id = (*m_track)[0].getIDPlane(); 
+    int old_Plane_Id = (*m_track)[0].getIDPlane();
+
+    // smallest radlen to include step in energy calculation
+    const double rl_min = 1.e-4;
 
     for (int iplane = 0; iplane < nplanes; iplane++) { 
         // Get the last cluster size for range estimation
@@ -1370,8 +1373,8 @@ void KalFitter::eneDetermination()
         double t0t1 = t0*t1;
         double theta = acos(t0t1);
         double rl_factor = radLen;
-
-        if(rl_factor>1.e-4) {
+        
+        if(rl_factor>rl_min) {
         eSumCount += 1.; 
         tSumCount += 1./rl_factor; 
         eneSum += (theta * e_factor)*(theta * e_factor)/rl_factor; 
@@ -1398,7 +1401,7 @@ void KalFitter::eneDetermination()
         range_limit = totalRad * 50.; // 10 MeV = 15% rad. len
     }
 
-    m_track->setKalThetaMS(sqrt(thetaSum/2./std::max(1.e-4,tSumCount)));
+    m_track->setKalThetaMS(sqrt(thetaSum/2./std::max(rl_min,tSumCount)));
     double e_inv = sqrt(eneSum  /2./eSumCount);
     double kalEnergy = 13.6 / e_inv;
 
