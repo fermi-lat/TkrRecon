@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Tue Apr 30 09:58:55 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrClusterAlg.cxx 
+Log Message:
+fixed include for TkrMakeClusters.h
+
+    *
+------------------------------------------------------------
+User: lsrea  Tue Apr 30 09:58:55 PDT 2002
 TkrRecon/src/Cluster
 
 Modified Files:
