@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Tue Mar 26 21:31:23 PST 2002
+TkrRecon/xml
+
+Modified Files:
+	Tkr_Flight.xml 
+Log Message:
+Adjusted TkrGeometrySvc tray spacing to better match detModel.
+It's going away soon, but it can't hurt!
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Mar 26 21:06:14 PST 2002
 TkrRecon/src/Display
 
