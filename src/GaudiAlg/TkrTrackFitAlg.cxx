@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.6 2003/01/23 21:55:35 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.7 2003/01/29 23:20:26 lsrea Exp $
 //
 // Description:
 //      Controls the track fitting
@@ -25,7 +25,7 @@
 
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 
-#include "GlastSvc/Reco/IPropagatorTool.h"
+#include "GlastSvc/Reco/IPropagatorSvc.h"
 #include "GaudiKernel/IToolSvc.h"
 
 // Used by Gaudi for identifying this algorithm
@@ -40,7 +40,7 @@ TkrTrackFitAlg::TkrTrackFitAlg(const std::string& name, ISvcLocator* pSvcLocator
 Algorithm(name, pSvcLocator) 
 {
     // Variable to switch propagators
-    declareProperty("PropagatorType", m_PropagatorType=1);
+    declareProperty("PropagatorType", m_PropagatorType=-1);
     declareProperty("TrackFitType",   m_TrackFitType="Combo");
 }
 
@@ -60,22 +60,24 @@ StatusCode TkrTrackFitAlg::initialize()
 
     log << MSG::INFO << "TkrTrackFitAlg Initialization" << endreq;
 
-    // Which propagator to use?
-    IPropagatorTool* propTool = 0;
-    if (m_PropagatorType == 0)
-    {
-        // Look for the G4PropagatorSvc service
-        sc = toolSvc()->retrieveTool("G4PropagatorTool", propTool);
-        log << MSG::INFO << "Using Geant4 Particle Propagator" << endreq;
+    // deal with obsolete property PropagatorType
+    if (m_PropagatorType!=-1) {
+        log << MSG::INFO << endreq << "Propagator type " << m_PropagatorType 
+            << " requested, but" << endreq 
+            <<"Propagator type is now set in GlastPropagatorSvc!"
+            << endreq
+            << "No action taken!" << endreq << endreq;
     }
-    else
-    {
-        // Look for GismoGenerator Service
-        sc = toolSvc()->retrieveTool("RecoTool", propTool);
-        log << MSG::INFO << "Using Gismo Particle Propagator" << endreq;
+    
+    // pick up the chosen propagator
+    IPropagatorSvc* pPropSvc = 0;
+    if (service("GlastPropagatorSvc", pPropSvc).isFailure()) {
+        log << MSG::ERROR << "Couldn't find the GlastPropagatorSvc!" << endreq;
+        return StatusCode::FAILURE;
     }
-    m_KalParticle = propTool->getPropagator();
-
+    
+    m_KalParticle = pPropSvc->getPropagator();
+    
     // Depending upon the value of the m_TrackFitType parameter, set up the 
     // Gaudi Tool for performing the track fit. 
     if (m_TrackFitType == "Combo")
