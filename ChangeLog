@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue Mar  6 12:04:03 PST 2001
+TkrRecon/TkrRecon TkrGeometrySvc.h
+
+Added Files:
+	TkrGeometrySvc.h 
+Log Message:
+The tracker geometry service. This class replaces the old trackerGeo class
+
+    *
+------------------------------------------------------------
 User: usher  Tue Mar  6 12:00:10 PST 2001
 TkrRecon/TkrRecon TkrRecObjsRep.h
 
