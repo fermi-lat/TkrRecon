@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Tue Mar  6 12:09:36 PST 2001
+TkrRecon/src TkrGeometrySvc.cxx
+
+Added Files:
+	TkrGeometrySvc.cxx 
+Log Message:
+Source code for implementing the TkrGeometrySvc. This service provides the
+specific geometry to the tracker code and replaces the old trackerGeo class.
+
+    *
+------------------------------------------------------------
 User: usher  Tue Mar  6 12:08:32 PST 2001
 TkrRecon/src TkrDisplayAlg.cxx
 
