@@ -250,10 +250,10 @@ bool SiClustersAlg::isGoodCluster(const int lowStrip, const int highStrip, const
 
     // for now, just require at least 1 good hit in the cluster
     // later maybe cut on number of strips < some maximum
-	if (nBad>0 && highHit-lowHit+1>nBad) {
-		std::cout << "cluster with some bad hits "<<
-			highHit-lowHit+1 << " " << nBad << std::endl;
-	}
+	    //if (nBad>0 && highHit-lowHit+1>nBad) {
+		    //std::cout << "cluster with some bad hits "<<
+			//highHit-lowHit+1 << " " << nBad << std::endl;
+	    //}
     return ((highHit-lowHit+1)>nBad);
 }
 
