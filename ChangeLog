@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: allgood  Mon Apr  1 11:39:35 PST 2002
+TkrRecon/src/Display
+
+Added Files:
+	TkrDispActiveNet.cxx 
+Log Message:
+Display class for displaying the active Neurons in the Neural Net, mainly for debugging.
+    *
+------------------------------------------------------------
 User: allgood  Mon Apr  1 11:39:10 PST 2002
 TkrRecon/TkrRecon/Display
 
