@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue Mar 23 16:06:54 PST 2004
+TkrRecon/src/TrackFit/KalmanFilter
+
+Modified Files:
+	KalmanFilter.cxx 
+Log Message:
+Throw an exception (hopefully) for bad energy
+
+    *
+------------------------------------------------------------
 User: usher  Tue Mar 23 16:05:28 PST 2004
 TkrRecon/src/TrackFit/KalmanFilterUtils
 
