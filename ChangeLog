@@ -1,4 +1,19 @@
 ------------------------------------------------------------
+User: usher  Mon Apr 19 15:36:08 PDT 2004
+TkrRecon/src/TrackFit/KalmanFilterUtils
+
+Modified Files:
+	KalmanFilterUtils.cxx KalmanFilterUtils.h 
+Added Files:
+	IKalmanFilterMatrix.h 
+Removed Files:
+	ProcNoiseMatrix.h ProjectionMatrix.h TransportMatrix.h 
+Log Message:
+Replace previous implementation of Kalman Filter matrices with a generic interface,
+update KalmanFilterUtils to reflect this change
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Apr 13 11:33:55 PDT 2004
 TkrRecon/src/Track
 
