@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Fri May 31 10:04:34 PDT 2002
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	TkrComboVtxRecon.h TkrComboVtxRep.cxx TkrComboVtxRep.h 
+Log Message:
+first migration to STL convention: TkrVertexCol class removed and TkrVertex modified to inherit from ContainedObject and define TkrVertexCol as an ObjectVector type
+    *
+------------------------------------------------------------
 User: cohen  Fri May 31 10:04:33 PDT 2002
 TkrRecon/src/GaudiAlg
 
