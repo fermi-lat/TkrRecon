@@ -65,7 +65,7 @@ void TkrCandidate3DRep::update()
  
                 zCur = hitCoord.z();
 
-                if (abs(zPrev-zCur) < 2.5) //mm
+                if (fabs(zPrev-zCur) < 2.5) //mm
                 {
                     Point newPoint(x,y,0.5*(zCur+zPrev));
                     moveTo(strtPoint);

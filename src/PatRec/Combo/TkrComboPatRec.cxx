@@ -682,7 +682,6 @@ float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
     int nThin  = m_tkrGeo->numLayers() - nThick - nNoCnv;
 
     deflection = 0.;
-    int nlayers = 0;
     
     TkrPoints next_Hit(layer+1, m_clusters);
     if(next_Hit.finished()) return m_cut+1;
@@ -782,7 +781,7 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
                                      ITkrGeometrySvc* geometry,
                                      int layer, int twr, double e, 
                                      Point x, Vector t, 
-                                     float d, float s, int g, int top): 
+                                     float d, float s, int g, int /* top */): 
       m_deflection(d)
     , m_sigma(s)
     , m_gap(g)
@@ -829,7 +828,6 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
     TkrFitPlaneConPtr pln_pointer = m_track->getHitIterBegin();
     
     int i_Hit = 0; 
-    int i_share = 0;
     while(pln_pointer != m_track->getHitIterEnd()) {
         
         TkrFitPlane plane = *pln_pointer;
