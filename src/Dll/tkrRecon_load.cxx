@@ -30,6 +30,11 @@ void TkrRecon_load() {
     DLL_DECL_ALGORITHM( TkrReconAlg     );
     DLL_DECL_ALGORITHM( TkrVertexAlg    );
     DLL_DECL_ALGORITHM( TkrDisplayAlg   );
+    //
+    //UNCOMMENT THE 2 LINES BELOW IF YOU WANT TO TEST  TkrnewVertexAlg
+    //    DLL_DECL_ALGORITHM( TkrnewVertexAlg      );
+    //    DLL_DECL_ALGORITHM( DocaVtxAlg      );
+    //
 //    DLL_DECL_ALGORITHM( McReconAlg      );
 //    DLL_DECL_ALGORITHM( TkrNtupleAlg    );
 //    DLL_DECL_ALGORITHM( RecNtupleAlg    );
