@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: usher  Tue Apr 20 10:21:03 PDT 2004
+TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy
+
+Modified Files:
+	BetheBlockHitEnergy.h IFitHitEnergy.h MonteCarloHitEnergy.h 
+	RadLossHitEnergy.h 
+Log Message:
+Fix linux compilation warnings and errors. Also set requirements file to look for GlastPolicy v*
+
+    *
+------------------------------------------------------------
+User: usher  Tue Apr 20 10:21:03 PDT 2004
 TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors
 
 Modified Files:
