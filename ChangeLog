@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Thu Sep  5 09:42:30 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrDisplayAlg.cxx TkrFindAlg.cxx TkrReconAlg.cxx 
+	TkrTrackFitAlg.cxx TkrVertexAlg.cxx 
+Log Message:
+untabify
+    *
+------------------------------------------------------------
 User: lsrea  Thu Sep  5 09:42:29 PDT 2002
 TkrRecon/TkrRecon/GaudiAlg
 
