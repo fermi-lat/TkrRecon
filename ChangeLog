@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Thu Mar 28 18:09:42 PST 2002
+TkrRecon/TkrRecon
+
+Modified Files:
+	ITkrGeometrySvc.h 
+Log Message:
+First try at getting strip position from stripid, using detModel
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Mar 27 17:57:10 PST 2002
 TkrRecon/xml
 
