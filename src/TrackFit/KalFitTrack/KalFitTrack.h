@@ -38,6 +38,8 @@ public:
     inline int    numSegmentPoints()         const{return m_numSegmentPoints;}
     inline double chiSquareSegment(double penaltyGap = 0.)  
                                              const{return m_chisqSegment + penaltyGap*getNumGaps();}
+    inline int    getNumXHits()              const{return m_nxHits;}
+    inline int    getNumYHits()              const{return m_nyHits;}
 
     /// Access errors at track start
     double        getErrorXPosition()      const;
@@ -64,12 +66,10 @@ private:
     void          ini();
     double        computeQuality() const;
     void          clear();
-    TkrFitHit generateFirstFitHit();
+    TkrFitHit     generateFirstFitHit();
     void          finish();
     void          filterStep(int iplane);
-
-    double        computeChiSqSegment(int nhits, TkrFitHit::TYPE typ = TkrFitHit::SMOOTH);
-        
+       
     // Finds the next hit layer using particle propagator
     TkrFitPlane   projectedKPlane(TkrFitPlane previous, int klayer, double& arc_min, TkrFitHit::TYPE type = TkrFitHit::FIT);
 
@@ -90,9 +90,10 @@ private:
     // Energy Part
     void          eneDetermination();
     
-    // segment Part
+    // segment Part: First protion that influences direction
     int           computeNumSegmentPoints(TkrFitHit::TYPE typ = TkrFitHit::SMOOTH);
-    
+    double        computeChiSqSegment(int nhits, TkrFitHit::TYPE typ = TkrFitHit::SMOOTH);
+     
     // Input Data
     const Ray m_ray; 
    
