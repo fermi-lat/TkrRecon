@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Thu Jun 27 12:15:04 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrReconAlg.cxx 
+Log Message:
+Make the "Combo" reconstruction the default
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Jun 21 18:12:59 PDT 2002
 TkrRecon/src/Services
 
