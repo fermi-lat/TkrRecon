@@ -3,6 +3,7 @@
  * Package TkrRecon
  * Manager: Leon Rochester 
  *
+ * v5r5    24-Apr-2002  LSR   Tagged the latest changes
  * v5r4    19-Apr-2002  LSR   Fixed for recon mode of geometry
  * v5r3    18-Apr-2002  LSR   Uses new TkrDigi -- mods to GlastEvent, GlastDigi
  * v5r2    13-Apr-2002  LSR   Switchable propagator -- mods to G4Generator, GlastSvc, etc.
