@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Dec 17 09:05:05 PST 2003
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx 
+Log Message:
+Fixed bug in addleadinghits(..) algorithm causing even-odd layer effect.
+    *
+------------------------------------------------------------
 User: usher  Thu Oct 23 10:46:16 PDT 2003
 TkrRecon/src/PatRec/Combo
 
