@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Fri Jun  1 17:27:48 PDT 2001
+TkrRecon/TkrRecon ITkrGeometrySvc.h TkrGeometrySvc.h
+
+Modified Files:
+	ITkrGeometrySvc.h TkrGeometrySvc.h 
+Log Message:
+TkrGeometrySvc and its interface didn't quite match...
+
+    *
+------------------------------------------------------------
 User: usher  Fri Jun  1 13:51:40 PDT 2001
 TkrRecon/src TkrNtupleAlg.cpp
 
