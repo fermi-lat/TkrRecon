@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Sun Jan 27 11:19:42 PST 2002
+TkrRecon/TkrRecon/Display
+
+Modified Files:
+	TkrBestCandRep.h TkrCandidatesRep.h 
+Added Files:
+	TkrCandidate3DRep.h TkrTracksRep.h 
+Log Message:
+New files: Class definitions for drawing 3D candidate and fit tracks
+old files: Mod's for drawing 2D pattern candidate projections
+
+    *
+------------------------------------------------------------
 User: atwood  Fri Jan 11 15:50:17 PST 2002
 TkrRecon/src/TrackFit
 
