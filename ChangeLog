@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Fri May 31 10:05:30 PDT 2002
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+ask for compilation of the DocaVtx directory
+    *
+------------------------------------------------------------
 User: cohen  Fri May 31 10:04:34 PDT 2002
 TkrRecon/src/Vertex/DocaVtx
 
