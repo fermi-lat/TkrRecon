@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: usher  Fri Oct  1 12:49:08 PDT 2004
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitter.cxx KalFitter.h 
+Log Message:
+Modifications needed to:
+1) Reflect new form of TkrCluster and use of TkrId's
+2) Final (?) mods to convert to TkrTrack for output of pat rec and track fit
+    *
+------------------------------------------------------------
+User: usher  Fri Oct  1 12:49:08 PDT 2004
 TkrRecon/src/PatRec/LinkAndTree
 
 Modified Files:
