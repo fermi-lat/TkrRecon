@@ -13,7 +13,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitTrack.h,v 1.19 2002/09/06 06:59:53 lsrea Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitTrack.h,v 1.20 2002/11/03 01:29:00 atwood Exp $
 */
 
 #ifndef __KalFitTrack_H
@@ -55,6 +55,7 @@ public:
     inline int    getNumYHits()              const{return m_nyHits;}
     inline double getKalEnergyError()        const{return m_KalEnergyErr;}
     inline int    getType()                  const{return m_type;}
+    inline double getTkrCalRadlen()          const{return m_TkrCal_radlen;}
 
     /// Access errors at track start
     double        getErrorXPosition()      const;
@@ -138,6 +139,7 @@ private:
     int    m_nxHits;
     int    m_nyHits;
     double m_KalEnergyErr;
+    double m_TkrCal_radlen; 
 
     /// Pointers to clusters, geoemtry, and control parameters
     Event::TkrClusterCol* m_clusters;
