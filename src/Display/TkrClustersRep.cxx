@@ -39,7 +39,7 @@ void TkrClustersRep::update()
 			double      y        = clusPos.y();
 			double      z        = clusPos.z();
 	
-			double      delta    =  0.6;
+			double      delta    =  20.*stripPitch;
 			double      Offset   = -0.5 * towerPitch;
 
 			//Draw a cross at the position of the cluster center
