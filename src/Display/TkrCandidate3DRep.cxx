@@ -44,8 +44,8 @@ void TkrCandidate3DRep::update()
             Point  strtPoint = pTkrCand->position();
             double x         = strtPoint.x();
             double y         = strtPoint.y();
-            double zCur      = strtPoint.z() + 10.;
-            double zPrev     = strtPoint.z() + 100.;
+            double zCur      = strtPoint.z() + 100.; //mm
+            double zPrev     = strtPoint.z() + 1000.; //mm
 
 	        setColor(p3dColors[colorIdx]);
             markerAt(strtPoint);
@@ -63,7 +63,7 @@ void TkrCandidate3DRep::update()
 
                 zCur = hitCoord.z();
 
-                if (abs(zPrev-zCur) < 0.25)
+                if (abs(zPrev-zCur) < 2.5) //mm
                 {
                     Point newPoint(x,y,0.5*(zCur+zPrev));
                     moveTo(strtPoint);
