@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Jun 14 16:33:03 PDT 2004
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+Prepare to tag v8r12p19
+
+    *
+------------------------------------------------------------
 User: usher  Mon Jun 14 16:31:25 PDT 2004
 TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy
 
