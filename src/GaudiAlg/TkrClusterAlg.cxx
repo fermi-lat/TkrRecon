@@ -4,9 +4,6 @@
 #include "GaudiKernel/IDataProviderSvc.h"
 #include "GaudiKernel/SmartDataPtr.h"
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
-#include "gui/DisplayControl.h"
-#include "GuiSvc/IGuiSvc.h"
-#include "gui/GuiMgr.h"
 #include "Event/TopLevel/EventModel.h"
 
 #include "TkrRecon/GaudiAlg/TkrClusterAlg.h"

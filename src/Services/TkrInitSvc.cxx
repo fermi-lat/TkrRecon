@@ -41,9 +41,9 @@ StatusCode TkrInitSvc::initialize()
     Service::initialize();
     setProperties();
     MsgStream log(msgSvc(), name());
-
+    
     sc = service("TkrGeometrySvc", pTkrGeo, true);
-
+    
     return sc;
 }
 
@@ -75,46 +75,46 @@ const IID&  TkrInitSvc::type () const {
 TkrPatRecon* TkrInitSvc::setPatRecon()
 {
     TkrPatRecon* pRecon = 0;
-
+    
     if      (m_TrackerReconType == 0) pRecon = new TkrLinkAndTreePR(pTkrGeo);
     else if (m_TrackerReconType == 1) pRecon = new TkrComboPR(pTkrGeo);
-	else if (m_TrackerReconType == 2) pRecon = new TkrNeuralNetPR(pTkrGeo);
-
+    else if (m_TrackerReconType == 2) pRecon = new TkrNeuralNetPR(pTkrGeo);
+    
     return pRecon;
 }
 
 // Set up the particular display routines
-void TkrInitSvc::setDisplayRtns(gui::DisplayControl& display, IDataProviderSvc* dps)
+void TkrInitSvc::setDisplayRtns(gui::DisplayControl::DisplaySubMenu& display, IDataProviderSvc* dps)
 {
     //Link and Tree display routines
     if (m_TrackerReconType == 0)
     {
-		//Set up the display rep for the reconstructed objects
-		display.add(new TkrCandidatesRep(dps, pTkrGeo), "PatRec: Trees");
-
-		//Set up the display rep for the reconstructed objects
-		display.add(new TkrBestCandRep(dps, pTkrGeo), "PatRec: Best");
-
-		//Set up the display rep for the reconstructed objects
-		display.add(new TkrCandidate3DRep(dps, pTkrGeo), "PatRec: 3D Cands");
+        //Set up the display rep for the reconstructed objects
+        display.add(new TkrCandidatesRep(dps, pTkrGeo), "PatRec: Trees");
+        
+        //Set up the display rep for the reconstructed objects
+        display.add(new TkrBestCandRep(dps, pTkrGeo), "PatRec: Best");
+        
+        //Set up the display rep for the reconstructed objects
+        display.add(new TkrCandidate3DRep(dps, pTkrGeo), "PatRec: 3D Cands");
     }
-	//TkrCombo display routines
-	else if (m_TrackerReconType == 1)
-	{
-	}
-	//Neural Net display routines
-	else if (m_TrackerReconType == 2)
-	{
-		//Set up the display rep for the complete Neural Network
-		display.add(new TkrDispCompleteNet(dps, pTkrGeo), "PatRec: Complete NN");
-
-		display.add(new TkrDispActiveNet(dps, pTkrGeo), "PatRec: Active NN");
-
-	}
-
+    //TkrCombo display routines
+    else if (m_TrackerReconType == 1)
+    {
+    }
+    //Neural Net display routines
+    else if (m_TrackerReconType == 2)
+    {
+        //Set up the display rep for the complete Neural Network
+        display.add(new TkrDispCompleteNet(dps, pTkrGeo), "PatRec: Complete NN");
+        
+        display.add(new TkrDispActiveNet(dps, pTkrGeo), "PatRec: Active NN");
+        
+    }
+    
     //Vertex display routines
     display.add(new TkrComboVtxRep(dps, pTkrGeo), "Gamma Vertex");
-
+    
     return;
 }
 
@@ -122,11 +122,11 @@ void TkrInitSvc::setDisplayRtns(gui::DisplayControl& display, IDataProviderSvc* 
 TkrTrackFit* TkrInitSvc::setTrackFit()
 {
     TkrTrackFit* pTrackFit = 0;
-
+    
     if      (m_TrackerReconType == 0) pTrackFit = new TkrLinkAndTreeTrackFit(pTkrGeo);
     else if (m_TrackerReconType == 1) pTrackFit = new TkrComboTrackFit(pTkrGeo);
-	else if (m_TrackerReconType == 2) pTrackFit = new TkrNeuralNetTrackFit(pTkrGeo);
-
+    else if (m_TrackerReconType == 2) pTrackFit = new TkrNeuralNetTrackFit(pTkrGeo);
+    
     return pTrackFit;
 }
 
@@ -134,6 +134,6 @@ TkrTrackFit* TkrInitSvc::setTrackFit()
 TkrFindVertex* TkrInitSvc::setVertexing()
 {
     TkrFindVertex* pFindVertex = new TkrComboVtx(pTkrGeo);
-
+    
     return pFindVertex;
 }
