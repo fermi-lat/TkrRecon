@@ -53,7 +53,7 @@ int GFtutor::okClusterSize(TkrCluster::view axis, int indexhit,
     int size = (int) GFtutor::_DATA->size(axis,indexhit);
     
     double distance = GFtutor::siThickness()*fabs(slope)/
-		GFtutor::siStripPitch();
+		                 GFtutor::siStripPitch();
     distance = distance - 1.;
     int idistance = (int) distance;
     if (idistance < 1) idistance = 1;
