@@ -24,7 +24,7 @@ public:
     TkrComboPR(ITkrGeometrySvc* pTkrGeo) {pGeometry = pTkrGeo;}
    ~TkrComboPR() {}
 
-    TkrCandidates* doPatRecon(TkrClusters* pTkrClus, double energy, Point position)
+    TkrPatCandCol* doPatRecon(TkrClusterCol* pTkrClus, double energy, Point position)
     {return new TkrComboPatRec(pGeometry, pTkrClus, energy, position);}
 
 private:

@@ -6,8 +6,8 @@
 #ifndef __TKRCOMBOPATREC_H
 #define __TKRCOMBOPATREC_H
 
-#include "TkrRecon/PatRec/TkrCandidates.h"
-#include "TkrRecon/Cluster/TkrClusters.h"
+#include "GlastEvent/Recon/TkrRecon/TkrPatCandCol.h"
+#include "GlastEvent/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "src/TrackFit/KalFitTrack/KalFitTrack.h"
 #include "TkrRecon/Track/TkrBase.h"
@@ -15,10 +15,12 @@
 
 #include <vector>
 
-class TkrComboPatRec : public TkrCandidates
+using namespace TkrRecon;
+
+class TkrComboPatRec : public TkrPatCandCol
 {
 public:
-	TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusters* pClusters, double CalEnergy, Point CalPosition);
+	TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters, double CalEnergy, Point CalPosition);
    ~TkrComboPatRec();
 private:
 
@@ -67,7 +69,7 @@ private:
     
     // data members
     CandidateList  m_candidates;  // List of found hypothesises
-    TkrFitTrackCol m_tracks;      // List of attempted fits
+    TkrFitCol      m_tracks;      // List of attempted fits
 
     Point m_Pcal;      // Calorimeter seed point
     Point m_nextHit;   // Space point transfer space

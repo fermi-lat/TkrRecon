@@ -24,7 +24,7 @@ public:
     TkrComboVtx(ITkrGeometrySvc* pTkrGeo) {pGeometry = pTkrGeo;}
    ~TkrComboVtx() {}
 
-    TkrVertexCol* doVertexRecon(TkrTracks* pTracks, TkrCandidates* pCandTracks)
+    TkrVertexCol* doVertexRecon(TkrFitTrackCol* pTracks, TkrPatCandCol* pCandTracks)
     {return new TkrComboVtxRecon(pGeometry, pTracks, pCandTracks);}
 
 private:

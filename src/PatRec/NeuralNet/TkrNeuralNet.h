@@ -13,13 +13,13 @@
 * @todo Impliment graph searching function to better pick out candidate tracks.
 * @todo Move global parameter definitions to joboptions file
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/TkrNeuralNet.h,v 1.1 2002/04/01 19:20:05 allgood Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/TkrNeuralNet.h,v 1.2 2002/04/23 16:28:41 usher Exp $
 */
 
 #ifndef __TKR_NEURALNET_H
 #define __TKR_NEURALNET_H
 
-#include "TkrRecon/PatRec/TkrCandidates.h"
+#include "GlastEvent/Recon/TkrRecon/TkrPatCandCol.h"
 #include "src/TrackFit/KalFitTrack/KalFitTrack.h"
 #include "src/PatRec/NeuralNet/TkrNeuron.h"
 #include "TkrRecon/Track/TkrPoints.h"
@@ -27,8 +27,9 @@
 #include "TkrRecon/Track/TkrBase.h"
 #include <vector>
 
+using namespace TkrRecon;
 
-class TkrNeuralNet : public TkrCandidates 
+class TkrNeuralNet : public TkrPatCandCol 
 {
 public:
 
@@ -42,7 +43,7 @@ public:
 
 
 	// constructor
-	TkrNeuralNet(ITkrGeometrySvc* pTkrGeo, TkrClusters* pClusters,
+	TkrNeuralNet(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters,
 		double calEne = 0., Point calHit = Point(0.,0.,0.));
 
 	// destructor
@@ -139,7 +140,7 @@ private:
     /// list of candidate tracks to be passed to the Kalman fit.
 	CandidateList  m_candidates;
     /// list of tracks to be used with Kalman fit.
-	TkrFitTrackCol m_tracks;
+	TkrFitCol      m_tracks;
     /// list of all neurons
 	TkrNeuronList  m_neuronList;
     /// list of all (x,y,z) points (not all are used in neurons)

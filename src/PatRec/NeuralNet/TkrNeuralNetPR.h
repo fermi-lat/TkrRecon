@@ -7,7 +7,7 @@
 *
 * @authors b. allgood and w. atwood
 *
-* $Header$
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/TkrNeuralNetPR.h,v 1.1 2002/04/01 19:21:35 allgood Exp $
 */
 
 #ifndef __TKRNEURALNETPR_H
@@ -22,7 +22,7 @@ public:
     TkrNeuralNetPR(ITkrGeometrySvc* pTkrGeo) {pGeometry = pTkrGeo;}
    ~TkrNeuralNetPR() {}
 
-    TkrCandidates* doPatRecon(TkrClusters* pTkrClus, double energy, 
+    TkrPatCandCol* doPatRecon(TkrClusterCol* pTkrClus, double energy, 
                               Point position)
 	{return new TkrNeuralNet(pGeometry, pTkrClus, energy, position);}
 

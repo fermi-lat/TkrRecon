@@ -40,7 +40,7 @@ TkrPlaneType TkrClusterLinkVector::intToPlaneType(int view)
 
 
 //Constructor for the case that there is actually something to do
-TkrClusterLinkVector::TkrClusterLinkVector(TkrClusters *pClusters, int layerNum, TkrPlaneType plane)
+TkrClusterLinkVector::TkrClusterLinkVector(TkrClusterCol *pClusters, int layerNum, TkrPlaneType plane)
 {
 	linkLayer = layerNum;
 	planeType = plane;

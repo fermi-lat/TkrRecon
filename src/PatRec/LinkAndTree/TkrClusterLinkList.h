@@ -19,7 +19,7 @@ class TkrClusterLinkList : public LayerLinkList
 	int          numLinksInLayer;
 public:
 	TkrClusterLinkList();
-	TkrClusterLinkList(TkrClusters* pClusters, TkrPlaneType view);
+	TkrClusterLinkList(TkrClusterCol* pClusters, TkrPlaneType view);
    ~TkrClusterLinkList();
 
 	int getNumLinksTotal()  {return numLinksTotal;};

@@ -24,7 +24,7 @@ public:
     TkrLinkAndTreePR(ITkrGeometrySvc* pTkrGeo) {pGeometry = pTkrGeo;}
    ~TkrLinkAndTreePR() {}
 
-    TkrCandidates* doPatRecon(TkrClusters* pTkrClus, double energy=0., Point point=Point())
+    TkrPatCandCol* doPatRecon(TkrClusterCol* pTkrClus, double energy=0., Point point=Point())
     {return new TkrLinkAndTree(pGeometry, pTkrClus);}
 
 private:
