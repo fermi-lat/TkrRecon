@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.21 2004/12/01 01:44:49 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.22 2004/12/13 23:50:41 atwood Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -14,7 +14,6 @@
 #include "GaudiKernel/DataSvc.h"
 
 #include "Event/Recon/TkrRecon/TkrCluster.h"
-#include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "Event/Recon/TkrRecon/TkrTrackHit.h"
 #include "Event/Recon/TkrRecon/TkrTrack.h"
 #include "Event/Recon/CalRecon/CalCluster.h"
@@ -112,7 +111,6 @@ private:
 	int m_termHitCnt;    // Min. no. of hits on best track to terminate search
 	int m_maxCandidates; // Max. allowed number of candidate tracks
     double m_maxChiSqCut;// Max allow Combo Pat. Rec. Chisq. (1st fit)
-    int m_maxFirstGaps;  // Max no. gaps allowed in first 3 hits
 	int m_hitShares;     // Number of first clusters which can be shared
 	int m_maxTrials;     // Max. number of trial candidates to test
 	double m_PatRecFoV;  // Max. cos(theta) for track trials
@@ -154,8 +152,7 @@ ComboFindTrackTool::ComboFindTrackTool(const std::string& type, const std::strin
 	declareProperty("FirstTrkEnergyFrac", m_1stTkrEFrac = .80);
 	declareProperty("MinTermHitCount", m_termHitCnt = 16);
 	declareProperty("MaxNoCandidates", m_maxCandidates = 10);
-	declareProperty("MaxChisq", m_maxChiSqCut = 20.0); 
-	declareProperty("MaxFirstGaps", m_maxFirstGaps = 2);
+	declareProperty("MaxChisq", m_maxChiSqCut = 40.); 
 	declareProperty("NumSharedFirstClusters", m_hitShares = 6);
 	declareProperty("MaxNumberTrials" , m_maxTrials = 30); 
 	declareProperty("FoVLimit", m_PatRecFoV = .19);
@@ -820,7 +817,7 @@ ComboFindTrackTool::Candidate::Candidate(double e, Point x, Vector t, double chi
 
     fitter->doTrackFit(m_track); 
     m_addedHits = 0;
-//	if(t.z() < 0.) m_addedHits = hit_finder->addLeadingHits(m_track);
+	if(t.z() < 0.) m_addedHits = hit_finder->addLeadingHits(m_track);
 	if(m_addedHits > 0) fitter->doTrackFit(m_track);
 
     // Check X**2 for the Track
@@ -832,24 +829,24 @@ ComboFindTrackTool::Candidate::Candidate(double e, Point x, Vector t, double chi
 
 void ComboFindTrackTool::setTkrQuality(ComboFindTrackTool::Candidate *can_track)
 {
-    //Angle between 1st 2 segs.
-	int more_hits = can_track->addedHits();  
-   // double sigmas_def = m_track->getKinkNorma(2+ more_hits);
-   // if(sigmas_def > 9.) sigmas_def = 1.; 
-	double sigmas_def = 0.;
+	// Retrive TkrTrack from candidate
+	Event::TkrTrack *tkr_track = can_track->track();
+
+	// Setup the utility class compute kink anlge
+    TrackFitUtils fitUtil(m_tkrGeom, 0);
+
+    //Angle between 1st 2 segs. normalize to MS expectation
+    double sigmas_def = fitUtil.firstKinkNorm(*tkr_track);
     
     //Set Cluster size penalty
     double size_penalty = 0.; 
-	Event::TkrTrack *tkr_track = can_track->track();
 	Point x = tkr_track->getInitialPosition();
 	Vector t = tkr_track->getInitialDirection();
 	Event::TkrTrackHitVecItr pln_pointer = tkr_track->begin();   
     int i_Hit = 0; 
     while(pln_pointer != tkr_track->end()) 
     {
-        
 		Event::TkrTrackHit* plane = *pln_pointer++;
-
         if (!(plane->getStatusBits() & Event::TkrTrackHit::HITONFIT)) continue;
    
         Event::TkrClusterPtr cluster = plane->getClusterPtr();
@@ -860,7 +857,7 @@ void ComboFindTrackTool::setTkrQuality(ComboFindTrackTool::Candidate *can_track)
         double prj_size  = m_tkrGeom->siThickness()*fabs(slope)/
                            m_tkrGeom->siStripPitch() + 2.;
         double over_size = cls_size - prj_size;
-        if(over_size > 5.) over_size = 5.;// Limit effect rouge large clusters
+        if(over_size > 5.) over_size = 5.;// Limit effect of rogue large clusters
         if(over_size > 0) {
             if(i_Hit < 6)       size_penalty +=    over_size;
             else if(i_Hit < 12) size_penalty += .5*over_size;
@@ -873,6 +870,8 @@ void ComboFindTrackTool::setTkrQuality(ComboFindTrackTool::Candidate *can_track)
 	if(t.z() > 0 ) first_layer = m_tkrGeom->getLayer(top_plane);
 	int delta_firstLayer = first_layer - m_TopLayer;
 	if(m_TopLayer == 18) delta_firstLayer = 0;; 
+
+	int more_hits = can_track->addedHits(); 
 
     // This parameter sets the order of the tracks to be considered
     // Penalities: big kinks at start, begining later in stack, and
