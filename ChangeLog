@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Fri Jul 13 12:36:41 PDT 2001
+TkrRecon/src TkrBadStripsSvc.cxx
+
+Modified Files:
+	TkrBadStripsSvc.cxx 
+Log Message:
+Modified to accept comment lines in badstrips files
+   signalled by -1 as first token in line.
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Jul 13 12:33:57 PDT 2001
 TkrRecon/src/test gsfc_02-Jul-2001_v2.txt
 
