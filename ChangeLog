@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Thu Oct 10 12:46:00 PDT 2002
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx TkrComboPatRec.h 
+Log Message:
+Latest Energy opt. coef's .  Global PatRec/Energy Type defined
+    *
+------------------------------------------------------------
 User: lsrea  Thu Oct 10 11:56:07 PDT 2002
 TkrRecon/src/Services
 
