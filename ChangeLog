@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Thu Jul 18 14:18:27 PDT 2002
+TkrRecon/TkrRecon/Track
+
+Modified Files:
+	GFcontrol.h 
+Log Message:
+Removed all un-used parameters - a first step to eliminating this
+    *
+------------------------------------------------------------
 User: atwood  Thu Jul 18 14:17:02 PDT 2002
 TkrRecon/src/TrackFit/KalmanFilter
 
