@@ -3,6 +3,7 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v10r3p8  15-Feb-2005  TU   fix small problem in slope corrected errors, "improve" MC Pat Rec
   v10r3p7  10-Feb-2005  LSR  fix many unix warnings + some other cleanup
   v10r3p6  07-Feb-2005  LSR  TkrCluster; put tracks back into old event display
   v10r3p5  06-Feb-2005  LSR  Redo eneDetermination, now called computeMSEnergy

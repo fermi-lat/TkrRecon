@@ -8,7 +8,7 @@
  *
  * @author Tracy Usher (editor) from version implemented by Leon Rochester (due to Bill Atwood)
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.5 2004/10/12 19:03:39 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.6 2005/02/11 07:14:53 lsrea Exp $
  */
 
 #include "SlopeCorrectedMeasErrs.h"
@@ -38,14 +38,16 @@ TkrCovMatrix SlopeCorrectedMeasErrs::computeMeasErrs(const Event::TkrTrackParams
     double clusWid = const_cast<Event::TkrCluster&>(cluster).size();
 
 
-    int measured = Event::TkrTrackParams::xPosIdx;
-    int other    = Event::TkrTrackParams::yPosIdx;
+    int    measured = Event::TkrTrackParams::xPosIdx;
+    int    other    = Event::TkrTrackParams::yPosIdx;
+    double slope    = newPars.getxSlope();
 
-    if(cluster.getTkrId().getView() == idents::TkrId::eMeasureY) {
+    if(cluster.getTkrId().getView() == idents::TkrId::eMeasureY) 
+    {
         std::swap(measured, other);
+        slope = newPars.getySlope();
     }
 
-    double slope = newPars(measured);
     double error = getError(clusWid, slope);
     
     newCov(measured, measured) = error*error;
