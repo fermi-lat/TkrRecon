@@ -10,13 +10,12 @@
 * 
 * @authors b. allgood and w. atwood 
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Display/TkrDispActiveNet.h,v 1.5 2002/10/09 23:44:08 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Display/TkrDispActiveNet.h,v 1.6 2003/01/10 19:43:21 lsrea Exp $
 */
 
 #ifndef __TKRDISPACTIVENET_H
 #define __TKRDISPACTIVENET_H
 
-#include "src/PatRec/NeuralNet/TkrNeuralNet.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "gui/DisplayRep.h"
