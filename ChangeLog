@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Fri Nov  5 15:28:02 PST 2004
+TkrRecon/src/PatRec/Combo
+
+Removed Files:
+	TkrComboPatRec.cxx TkrComboPatRec.h 
+Log Message:
+Functionality moved to ComboPatRecTool
+    *
+------------------------------------------------------------
 User: atwood  Fri Nov  5 10:28:56 PST 2004
 TkrRecon/src/PatRec/Combo
 
