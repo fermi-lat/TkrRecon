@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Fri Aug 23 02:30:05 PDT 2002
+TkrRecon/src/Vertex
+
+Modified Files:
+	VtxKalFitTool.cxx 
+Log Message:
+fix cout problem, but Point and Vector object cannot use it, so 2 lines are commented out until fix
+    *
+------------------------------------------------------------
 User: usher  Thu Aug 22 14:08:19 PDT 2002
 TkrRecon/cmt
 
