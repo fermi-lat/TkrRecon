@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.13 2003/08/06 21:56:22 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.14 2003/08/17 17:39:47 cohen Exp $
 //
 // Description:
 //      Contains the implementation of the methods for setting up the TkrRecon display
@@ -30,7 +30,7 @@
 #include "TkrRecon/Display/TkrDispCompleteNet.h"
 #include "TkrRecon/Display/TkrDispActiveNet.h"
 
-#include "TkrRecon/Display/TkrMcTracksRep.h"
+//THB #include "TkrRecon/Display/TkrMcTracksRep.h"
 
 #include "src/Vertex/Combo/TkrComboVtxRep.h"
 #include "src/Vertex/TkrGammaRep.h"
@@ -128,7 +128,7 @@ StatusCode TkrDisplayAlg::initialize()
         tkrmenu.add(new TkrComboVtxRep(eventSvc(), pTkrGeo), "All Vertices");
 
         //Monte Carlo if it exists
-        tkrmenu.add(new TkrMcTracksRep(eventSvc()), "Monte Carlo Tracks");
+//THB         tkrmenu.add(new TkrMcTracksRep(eventSvc()), "Monte Carlo Tracks");
     }
     
     return sc;
