@@ -2,6 +2,7 @@
 #ifndef __TkrFitTrack_H
 #define __TkrFitTrack_H 1
 
+#include <vector>
 #include "GaudiKernel/MsgStream.h"
 #include "TkrRecon/Track/TkrBase.h"
 #include "TkrRecon/TrackFit/KalTrack.h"
@@ -110,5 +111,9 @@ private:
     int m_nxHits;
     int m_nyHits;
 };
+
+//Following typedefs for containing fit track objects
+typedef std::vector<TkrFitTrack*>            TkrVector;
+typedef std::vector<TkrFitTrack*>::iterator  TkrVectorPtr;
 
 #endif
