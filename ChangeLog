@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue Nov  9 15:21:03 PST 2004
+TkrRecon/TkrRecon/Track
+
+Added Files:
+	IFindTrackHitsTool.h 
+Log Message:
+Add interface and tool for using Kalman Filter to find hits
+
+    *
+------------------------------------------------------------
 User: usher  Tue Nov  9 13:27:46 PST 2004
 TkrRecon/src/Track
 
