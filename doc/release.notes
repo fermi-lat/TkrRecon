@@ -3,6 +3,7 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v8r12p19 14-Jun-2004  TU   Ok, "last" bug fix and get Line2DFit tagged too
   v8r12p18 14-Jun-2004  TU   "Improvements" to MC pattern recognition
   v8r12p17 01-Jun-2004  LSR  Add code to break tracks at tower boundaries
                              using flag in TkrInitSvc... defaults off, of course!
