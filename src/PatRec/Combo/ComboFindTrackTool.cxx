@@ -1,3 +1,12 @@
+// File and Version Information:
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.2 2002/08/29 19:18:47 usher Exp $
+//
+// Description:
+//      Tool for find candidate tracks via the "Combo" approach
+//
+// Author:
+//      The Tracking Software Group  
+
 #include "src/PatRec/Combo/ComboFindTrackTool.h"
 #include "GaudiKernel/ToolFactory.h"
 #include "GaudiKernel/SmartDataPtr.h"
