@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Nov 17 16:34:45 PST 2004
+TkrRecon/src/Track
+
+Modified Files:
+	KalmanTrackFitTool.cxx 
+Log Message:
+Implement "doSmoothStep" method. This uses the Q matrix from the filter step, does not call propagator. 
+    *
+------------------------------------------------------------
 User: usher  Tue Nov 16 20:36:06 PST 2004
 TkrRecon/src/Track
 
