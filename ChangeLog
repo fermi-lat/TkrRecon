@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Tue May  7 15:45:12 PDT 2002
+TkrRecon/TkrRecon/GaudiAlg
+
+Modified Files:
+	TkrClusterAlg.h TkrDisplayAlg.h TkrFindAlg.h TkrReconAlg.h 
+	TkrVertexAlg.h 
+Log Message:
+Modifications made to reflect the movement of TDS output classes to GlastEvent
+
+    *
+------------------------------------------------------------
 User: usher  Tue May  7 15:44:33 PDT 2002
 TkrRecon/TkrRecon/Display
 
