@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: allgood  Mon Apr  1 11:27:01 PST 2002
+TkrRecon/src/Track
+
+Added Files:
+	TkrNeuralNetTrackFit.cxx 
+Log Message:
+Track fit driver for Neural Net PatRec algorithm
+    *
+------------------------------------------------------------
 User: allgood  Mon Apr  1 11:26:47 PST 2002
 TkrRecon/src/Track
 
