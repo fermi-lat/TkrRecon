@@ -97,7 +97,7 @@ StatusCode SiLayersIRFAlg::retrieve()
         and get the part important to the Tkr.
     */
 
-    SmartDataPtr<TdGlastData> glastData(eventSvc(),"/Event/Data/TdGlastData");
+    SmartDataPtr<TdGlastData> glastData(eventSvc(),"/Event/TdGlastData");
     // get the rdSiData object from the TDS by a converter
     m_SiData   = glastData->getSiData();
     

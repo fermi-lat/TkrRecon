@@ -134,7 +134,7 @@ StatusCode SiClustersIRFAlg::retrieve()
     */
     sc = eventSvc()->registerObject("/Event/TkrRecon/SiClusters", m_SiClusters);
         
-    SmartDataPtr<TdGlastData> glastData(eventSvc(),"/Event/Data/TdGlastData");
+    SmartDataPtr<TdGlastData> glastData(eventSvc(),"/Event/TdGlastData");
 
     m_SiData = glastData->getSiData();
     
