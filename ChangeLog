@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Fri May 24 04:08:57 PDT 2002
+TkrRecon/src/Dll
+
+Modified Files:
+	tkrRecon_load.cxx 
+Log Message:
+added 2 DLL_DECL to use new TkrnewVertexAlg. Commented out for now
+    *
+------------------------------------------------------------
 User: cohen  Fri May 24 04:04:58 PDT 2002
 TkrRecon/src/Vertex/DocaVtx
 
