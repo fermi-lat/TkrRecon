@@ -40,11 +40,19 @@ class VtxKalFitTool : public VtxBaseTool
   ///main method: implements the filter
   StatusCode doVtxFit(Event::TkrVertexCol&);
 
-  //bring momentum (Sx,Sy) to Zref. currently does nothing
-  HepVector computeQatZref(const Event::TkrFitTrack& /*theTrack*/);
+  ///@brief bring geometrical momentum (Sx,Sy,E) close to current vertex estimate.
+  ///In theory this method should return the geometrical
+  ///momentum at POCA to vtx (conventional but reasonnable choice, advocated by the author of the paper). 
+  ///In our case only the energy could possibly be changed by that.
+  ///This is not yet implemented.
+  HepVector computeQatVtx(const Event::TkrFitTrack& /*theTrack*/,const HepVector /*theVertex*/);
 
-  //@brief propagate Cov matrix from first hit location to Zref plane
-  //method not yet implemented
+  ///@brief Get the weight matrix G = Cov(m)^-1 with m the track parameters 
+  ///Cov(m) is first propagated back to the vertex estimate, before being inverted.
+  HepSymMatrix computeWeightMatrix(const Event::TkrFitTrack& theTrack,const HepVector Vtx);
+
+  ///@brief propagate Cov matrix from first hit location to Zref plane
+  ///method not yet implemented
   Event::TkrFitMatrix propagCovToVtx(const Event::TkrFitMatrix, 
 				     const HepVector);
 
@@ -73,27 +81,9 @@ class VtxKalFitTool : public VtxBaseTool
   ///Compute Transformation matrix (Sx,Sy)->(ux,uy,uz)
   HepMatrix SlopeToDir(HepVector /*Q*/);
 
-
+  ///Vector of successive estimates.
   std::vector<HepVector>    m_VtxEstimates;
   std::vector<HepSymMatrix> m_VtxCovEstimates;
 
-  std::vector<double>       m_chi2f;
-  std::vector<HepVector>    m_c0;
-  std::vector<HepMatrix>    m_A;
-  std::vector<HepMatrix>    m_B;
-  std::vector<HepSymMatrix> m_C;
-  std::vector<HepSymMatrix> m_D;
-  std::vector<HepMatrix>    m_E;
-  std::vector<HepMatrix>    m_G;
-  std::vector<HepSymMatrix>    m_W;
-
-  //Final matrices:
-  HepSymMatrix m_CovXX;
-  std::vector<HepVector>    m_m;
-  std::vector<HepVector>    m_Q;
-  std::vector<HepMatrix>    m_CovQQ;
-  std::vector<HepMatrix>    m_CovXQ;
-  std::vector<HepMatrix>    m_Skew;
-  
 };
 #endif
