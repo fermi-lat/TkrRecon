@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Sun Sep 22 13:32:47 PDT 2002
+TkrRecon/TkrRecon/Cluster
+
+Modified Files:
+	TkrQueryClusters.h 
+Log Message:
+fix up "const"s
+    *
+------------------------------------------------------------
 User: lsrea  Wed Sep 18 16:41:01 PDT 2002
 TkrRecon/src/Services
 
