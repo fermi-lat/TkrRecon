@@ -1,5 +1,20 @@
 ------------------------------------------------------------
 User: usher  Tue May 27 15:23:32 PDT 2003
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitter.cxx 
+Log Message:
+Several modifications:
+1) Update Display algorithm to be subalgorithm of TkrReconAlg, enables passing the selected
+recon type directly to display alg instead of having to put in the job options file
+2) Modify KalFitter.cxx as per request of Johann so will compile on Linux
+3) Minor changes to Neural Net pat rec to return only unique tracks
+4) Update Neural Net and Link and Tree fit methods to properly make relational tables
+
+    *
+------------------------------------------------------------
+User: usher  Tue May 27 15:23:32 PDT 2003
 TkrRecon/src/Track
 
 Modified Files:
