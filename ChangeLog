@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: lsrea  Tue Nov  2 14:55:44 PST 2004
+TkrRecon/src/Utilities
+
+Modified Files:
+	TkrPoint.cxx TkrPoint.h TkrPoints.cxx TkrPoints.h 
+Log Message:
+merge of TkrComboPatRec and ComboFindTrackTool
+new TkrPoint/TkrPoints and mods to PatRec code: NeuralNet compiles, Combo works
+fix debug printout in TkrVertexAlg... output to log as MSG::DEBUG
+
+    *
+------------------------------------------------------------
+User: lsrea  Tue Nov  2 14:55:44 PST 2004
 TkrRecon/src/PatRec/NeuralNet
 
 Modified Files:
