@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Oct 21 14:53:21 PDT 2004
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+loadOutput ALWAYS puts a TkrTrackCol into the TDS (prevent downstream crashes)
+    *
+------------------------------------------------------------
 User: lsrea  Wed Oct 20 11:20:35 PDT 2004
 TkrRecon/src/Track
 
