@@ -15,10 +15,10 @@
 #include "geometry/Point.h"
 #include "GaudiKernel/Algorithm.h"
 
+#include "TkrRecon/Track/TkrTrackFit.h"
 #include "TkrRecon/Cluster/TkrClusters.h"
 #include "TkrRecon/Track/SiRecObjs.h"
-#include "TkrRecon/ITkrGeometrySvc.h"
-#include "GismoGenerator/IGismoSvc.h"
+#include "GlastSvc/Reco/IRecoSvc.h"
 
 //----------------------------------------------
 //
@@ -44,15 +44,15 @@ public:
 	StatusCode execute();
 	StatusCode finalize();
 
-        static IGismoSvc* m_gismoSvc; 
+    static IRecoSvc* m_gismoSvc; 
 	
 private:
-
-	// Geometry information
-	ITkrGeometrySvc* pTrackerGeo;
 	
 	// clusters information
 	TkrClusters* m_TkrClusters;
+
+    // Fit control information
+    TkrTrackFit* m_TrackFit;
 
 	// tracking objects information
 	SiRecObjs*   m_SiRecObjs;

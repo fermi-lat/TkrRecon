@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/KalFit.h,v 1.2 2001/02/13 01:50:33 igable Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/TrackFit/KalHit.h,v 1.1 2001/11/26 21:48:20 usher Exp $
 //----------------------------------------
 //
 //      Kalman Filter Objects Declarations
@@ -17,7 +17,6 @@
 
 
 class Ray; 
-class IGismoSvc;
 
 class KalHit
 {   // Class to link a parameter vector and a covariance matrix together

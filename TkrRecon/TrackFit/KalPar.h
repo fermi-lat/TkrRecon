@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/KalFit.h,v 1.2 2001/02/13 01:50:33 igable Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/TrackFit/KalPar.h,v 1.1 2001/11/26 21:48:20 usher Exp $
 //----------------------------------------
 //
 //      Part of the KALMAN Filter Objects Declarations
@@ -14,7 +14,6 @@
 #include "CLHEP/Matrix/Vector.h"
 
 class Ray; 
-class IGismoSvc;
 
 class KalPar : public HepVector
 {

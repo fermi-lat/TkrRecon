@@ -4,6 +4,8 @@
 
 #include "TkrRecon/Cluster/TkrClusters.h"
 #include "gui/DisplayRep.h"
+#include "GaudiKernel/IDataProviderSvc.h"
+#include "GaudiKernel/SmartDataPtr.h"
 
 //----------------------------------------------
 //
@@ -21,7 +23,7 @@ class TkrClustersRep : public gui::DisplayRep
 {
 public:
 	//! Constructor of this form must be provided
-	TkrClustersRep(TkrClusters** pClus);
+	TkrClustersRep(IDataProviderSvc* dps);
 	virtual ~TkrClustersRep() {}
 
 	//This function called to do the display
@@ -29,7 +31,7 @@ public:
 
 private:
 	//Here we keep a pointer to the pointer to the cluster data...
-	TkrClusters** ppClusters;
+    IDataProviderSvc* dps;
 };
       
 #endif

@@ -2,10 +2,11 @@
 #ifndef __TKRCANDIDATESREP_H
 #define __TKRCANDIDATESREP_H
 
-//#include "TkrRecon/PatRec/TkrCandidates.h"
-#include "TkrRecon/PatRec/TkrLinkAndTreePR.h"
+#include "src/PatRec/LinkAndTree/TkrLinkAndTree.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "gui/DisplayRep.h"
+#include "GaudiKernel/IDataProviderSvc.h"
+#include "GaudiKernel/SmartDataPtr.h"
 
 //----------------------------------------------
 //
@@ -21,8 +22,7 @@ class TkrCandidatesRep : public gui::DisplayRep
 {
 public:
 	//! Constructor of this form must be provided
-	//TkrCandidatesRep(TkrCandidates** pTkrCandidates, ITkrGeometrySvc* pTkrGeo);
-	TkrCandidatesRep(TkrCandidates** pTkrCandidates, ITkrGeometrySvc* pTkrGeo);
+	TkrCandidatesRep(IDataProviderSvc* dps, ITkrGeometrySvc* pTkrGeo);
 	virtual ~TkrCandidatesRep() {}
 
 	void update();
@@ -32,8 +32,8 @@ private:
     void drawFullTree(LayerLinkNode* pNode);
     void drawLinkNode(TkrLinkNode* pTkrNode);
 
-	TkrCandidates**  ppTkrCandidates;
-    ITkrGeometrySvc* pTkrGeo;
+    IDataProviderSvc* dps;
+    ITkrGeometrySvc*  pTkrGeo;
 };
       
 #endif

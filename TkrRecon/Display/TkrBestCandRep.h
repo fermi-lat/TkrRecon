@@ -2,10 +2,11 @@
 #ifndef __TKRBESTCANDREP_H
 #define __TKRBESTCANDREP_H
 
-//#include "TkrRecon/PatRec/TkrCandidates.h"
-#include "TkrRecon/PatRec/TkrLinkAndTreePR.h"
+#include "src/PatRec/LinkAndTree/TkrLinkAndTree.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "gui/DisplayRep.h"
+#include "GaudiKernel/IDataProviderSvc.h"
+#include "GaudiKernel/SmartDataPtr.h"
 
 //----------------------------------------------
 //
@@ -21,7 +22,7 @@ class TkrBestCandRep : public gui::DisplayRep
 {
 public:
 	//! Constructor of this form must be provided
-	TkrBestCandRep(TkrCandidates** pTkrCandidates, ITkrGeometrySvc* pTkrGeo);
+	TkrBestCandRep(IDataProviderSvc* dps, ITkrGeometrySvc* pTkrGeo);
 	virtual ~TkrBestCandRep() {}
 
 	void update();
@@ -30,8 +31,8 @@ private:
     void TkrDrawBestCand(TkrCandidates* pTkrCands, TkrPlaneType plane);
     void drawLinkNode(TkrLinkNode* pTkrNode);
 
-	TkrCandidates**  ppTkrCandidates;
-    ITkrGeometrySvc* pTkrGeo;
+    IDataProviderSvc* dps;
+    ITkrGeometrySvc*  pTkrGeo;
 };
       
 #endif

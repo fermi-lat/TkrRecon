@@ -8,6 +8,8 @@
 #include "TkrRecon/PatRec/TkrCandidates.h"
 #include "TkrRecon/Track/TkrTracks.h"
 
+#include "gui/DisplayRep.h"
+
 
 //----------------------------------------------
 //
@@ -39,12 +41,8 @@ protected:
 
 private:
 
-	TkrClusters*   m_TkrClusters;
-    TkrCandidates* m_TkrCandidates;
-    TkrCandidates* m_TkrBestCands;
-    TkrCandidates* m_TkrCandidate3D;
-	SiRecObjs*     m_SiRecObjs;
-    TkrTracks*     m_Tracks;
+    gui::DisplayRep* m_ClustersRep;         //For displaying the clustered strip hits
+    TkrTracks*       m_Tracks;
 };
       
 #endif

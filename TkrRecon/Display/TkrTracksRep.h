@@ -4,6 +4,8 @@
 
 #include "TkrRecon/Track/TkrTracks.h"
 #include "gui/DisplayRep.h"
+#include "GaudiKernel/IDataProviderSvc.h"
+#include "GaudiKernel/SmartDataPtr.h"
 
 //----------------------------------------------
 //
@@ -19,13 +21,13 @@ class TkrTracksRep : public gui::DisplayRep
 {
 public:
 	//! Constructor of this form must be provided
-	TkrTracksRep(TkrTracks** pTracks);
+	TkrTracksRep(IDataProviderSvc* dps);
 	virtual ~TkrTracksRep() {}
 
 	void update();
 
 private:
-	TkrTracks** ppTkrTracks;
+    IDataProviderSvc* dps;
 };
       
 #endif

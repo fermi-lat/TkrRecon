@@ -2,7 +2,7 @@
 #ifndef __TKRFINDALG_H
 #define __TKRFINDALG_H 1
 
-#include "TkrRecon/ITkrGeometrySvc.h"
+#include "TkrRecon/PatRec/TkrPatRecon.h"
 
 #include "GaudiKernel/Algorithm.h"
 
@@ -31,7 +31,7 @@ public:
     
 private:
     
-    ITkrGeometrySvc*  pTkrGeo;
+    TkrPatRecon* pPatRecon;
 };
 
 #endif

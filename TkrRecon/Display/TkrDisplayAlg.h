@@ -4,7 +4,6 @@
 
 #include "GaudiKernel/Algorithm.h"
 #include "TkrRecon/Cluster/TkrClusters.h"
-#include "TkrRecon/Track/SiRecObjs.h"
 
 
 //----------------------------------------------
@@ -31,14 +30,7 @@ public:
 	//! mandatory
 	StatusCode finalize();
 
-protected:
-
-	StatusCode retrieve();
-
 private:
-
-	TkrClusters* m_TkrClusters;
-	SiRecObjs*   m_SiRecObjs;
 };
       
 #endif
