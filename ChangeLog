@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: tlindner  Tue Apr 10 18:50:55 PDT 2001
+TkrRecon/src SiClustersAlg.cxx TkrDisplayAlg.cxx TkrGeometrySvc.cxx
+
+Modified Files:
+	SiClustersAlg.cxx TkrDisplayAlg.cxx TkrGeometrySvc.cxx 
+Log Message:
+Fix capitalization
+    *
+------------------------------------------------------------
 User: tlindner  Tue Apr 10 18:36:07 PDT 2001
 TkrRecon/TkrRecon TkrGeometrySvc.h
 
