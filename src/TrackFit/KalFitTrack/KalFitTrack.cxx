@@ -16,10 +16,9 @@
 //------------------------------------------------------------------------------
 
 
-#include "KalFitTrack.h" 
-#include "src/TrackFit/KalmanFilter/KalmanFilter.h"      
-#include "TkrRecon/Track/GFtutor.h"
-#include "TkrRecon/Track/GFcontrol.h"
+#include "KalFitTrack.h"
+#include "src/TrackFit/KalmanFilter/KalmanFilter.h"
+#include "src/TrackFit/KalFitTrack/GFcontrol.h"
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
 #include "TkrRecon/Cluster/TkrQueryClusters.h"
 
@@ -31,12 +30,14 @@ using namespace Event;
 //
 //-----------------------------------------------------
 
-KalFitTrack::KalFitTrack(int ilyr, int itwr, double sigmaCut,double energy, const Ray& testRay) :
+KalFitTrack::KalFitTrack(Event::TkrClusterCol* clusters, ITkrGeometrySvc* geo, int ilyr, int itwr, double sigmaCut,double energy, const Ray& testRay) :
                              m_iLayer(ilyr),
                              m_iTower(itwr),
                              m_status(EMPTY),
                              m_sigma(sigmaCut),
-                             m_ray(testRay)
+                             m_ray(testRay),
+                             m_clusters(clusters),
+                             m_tkrGeo(geo)
 {
     // Initialization for KalFitTrack
     m_energy0 = energy; //"100MeV -> pB = 151.4 1Gev -> 1095.4
@@ -54,7 +55,7 @@ void KalFitTrack::flagAllHits(int iflag)
 
     while(hitPtr < getHitIterEnd()) {
         TkrFitPlane hitplane = *hitPtr++; 
-        GFtutor::_DATA->flagHit(hitplane.getProjection(),hitplane.getIDHit(), iflag);
+        m_clusters->flagHit(hitplane.getProjection(),hitplane.getIDHit(), iflag);
     }
 }
 
@@ -64,7 +65,7 @@ void KalFitTrack::unFlagAllHits()
 
     while(hitPtr < getHitIterEnd()) {
         TkrFitPlane hitplane = *hitPtr++; 
-        GFtutor::_DATA->unflagHit(hitplane.getProjection(),hitplane.getIDHit());
+        m_clusters->unflagHit(hitplane.getProjection(),hitplane.getIDHit());
     }
 }  
 
@@ -72,7 +73,7 @@ void KalFitTrack::unFlagHit(int num)
 {
     TkrFitPlaneConPtr hitPtr = getHitIterBegin();
     TkrFitPlane hitplane     = hitPtr[num];
-    GFtutor::_DATA->unflagHit(hitplane.getProjection(), hitplane.getIDHit());
+    m_clusters->unflagHit(hitplane.getProjection(), hitplane.getIDHit());
 }  
 
 void KalFitTrack::clear()
@@ -126,7 +127,7 @@ void KalFitTrack::findHits()
     TkrFitHit::TYPE type = TkrFitHit::FIT;
     Status statushit     = FOUND;
 
-    while( -1 < kplane && kplane < GFtutor::numPlanes()) 
+    while( -1 < kplane && kplane < m_tkrGeo->numPlanes()) 
     {
         step_counter++; 
         TkrFitPlane prevKplane;
@@ -180,7 +181,7 @@ void KalFitTrack::findHits()
             }
         }
         // Check if there are any planes left.... Last plane is a Y plane, #17
-        if(kplane == GFtutor::numPlanes()-1 && nextKplane.getProjection()==TkrCluster::Y) break; 
+        if(kplane == m_tkrGeo->numPlanes()-1 && nextKplane.getProjection()==TkrCluster::Y) break; 
     }
 }
 
@@ -206,7 +207,7 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
         
         // Check that we haven't fall off the end of the stack
         kplane = nextKplane.getIDPlane();
-        if(kplane > GFtutor::numPlanes()) break;
+        if(kplane > m_tkrGeo->numPlanes()) break;
 
         arc_total = arc_min;
         num_steps++; 
@@ -274,7 +275,7 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
 TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer, double &arc_min, TkrFitHit::TYPE type) 
 {
     // The z end position of the next klayer plane
-    KalmanFilter KF;
+    KalmanFilter KF(m_clusters, m_tkrGeo);
     double       zEnd; 
     double       actDist; 
     TkrFitHit    predhit;
@@ -287,14 +288,12 @@ TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer, dou
     double y_slope = prevKplane.getHit(TkrFitHit::FIT).getPar().getYSlope();
     Vector t_hat   = Vector(-x_slope,-y_slope, -1.).unit(); 
 
-    ITkrGeometrySvc * geoPtr = GFtutor::pTrackerGeo;
-
     int next_layer = klayer; 
     double arc_x, arc_y; 
     while(next_layer < 5+old_layer && next_layer < 18) { // Limit Gap to 3 missed x-y planes
-        int rev_layer = geoPtr->ilayer(next_layer);      //  Control Parameter needed
-        double zx = geoPtr->getStripPosition(old_tower, rev_layer, TkrCluster::X, 751).z();
-        double zy = geoPtr->getStripPosition(old_tower, rev_layer, TkrCluster::Y, 751).z();
+        int rev_layer = m_tkrGeo->ilayer(next_layer);      //  Control Parameter needed
+        double zx = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::X, 751).z();
+        double zy = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::Y, 751).z();
         
         double d_xz = old_z - zx;
         double d_yz = old_z - zy;
@@ -342,16 +341,16 @@ void KalFitTrack::incorporateFoundHit(TkrFitPlane& nextKplane, int indexhit)
 {			
     TkrCluster::view planeView = nextKplane.getProjection();
 
-    Point  nearHit   = GFtutor::_DATA->position(planeView, indexhit);
+    Point  nearHit   = m_clusters->position(planeView, indexhit);
     double x0        = nearHit.x();
     double y0        = nearHit.y();
     double z0        = nearHit.z();
     
     TkrFitPar measpar(x0,0.,y0,0.);
     
-    double sigma     = GFtutor::siResolution();
-    double sigma_alt = GFtutor::trayWidth()/sqrt(12.); //mm before not really important to have prescise
-    double size      = GFtutor::_DATA->size(planeView,indexhit);
+    double sigma     = m_tkrGeo->siResolution();
+    double sigma_alt = m_tkrGeo->trayWidth()/sqrt(12.); //mm before not really important to have prescise
+    double size      = m_clusters->size(planeView,indexhit);
     
     double cx, cy;
     if(planeView == TkrCluster::X) 
@@ -384,7 +383,7 @@ double KalFitTrack::sigmaFoundHit(const TkrFitPlane& previousKplane, const TkrFi
     double residual  = 1e6;
     double sigmahit = 1e6;
     
-    double MAX_RADIUS = .55*GFtutor::trayWidth()/2.;
+    double MAX_RADIUS = .55*m_tkrGeo->trayWidth()/2.;
     
     TkrFitHit hitp = nextKplane.getHit(TkrFitHit::PRED);
     m_axis = nextKplane.getProjection();
@@ -392,11 +391,11 @@ double KalFitTrack::sigmaFoundHit(const TkrFitPlane& previousKplane, const TkrFi
     double zError = 0.; 
     if(m_axis == TkrCluster::X) {
         tError = sqrt(hitp.getCov().getcovX0X0());
-        zError=GFtutor::siThickness()*hitp.getPar().getXSlope();
+        zError=m_tkrGeo->siThickness()*hitp.getPar().getXSlope();
     }
     else {
         tError = sqrt(hitp.getCov().getcovY0Y0());
-        zError=GFtutor::siThickness()*hitp.getPar().getYSlope();
+        zError=m_tkrGeo->siThickness()*hitp.getPar().getYSlope();
     }
     double rError=sqrt(tError*tError+zError*zError);
     double max_dist=2.*m_sigma*rError; 
@@ -415,7 +414,7 @@ double KalFitTrack::sigmaFoundHit(const TkrFitPlane& previousKplane, const TkrFi
     double min_dist = -1.;
     bool done = false;
     while (!done) {
-        TkrQueryClusters query(GFtutor::_DATA);
+        TkrQueryClusters query(m_clusters);
         nearHit = query.nearestHitOutside(m_axis, klayer, min_dist, center, indexhit);
         done = foundHit(indexhit, min_dist, max_dist, rError, center, nearHit);
     }
@@ -441,16 +440,16 @@ bool KalFitTrack::foundHit(int& indexhit, double& min_dist, double max_dist,
                         fabs(nearHit.x()-centerX.x()): fabs(nearHit.y()-centerX.y()));
     double outsideTower = (m_axis == TkrCluster::Y? 
                         fabs(nearHit.x()-centerX.x()): fabs(nearHit.y()-centerX.y()));
-    outsideTower -= GFtutor::trayWidth()/2.;
+    outsideTower -= m_tkrGeo->trayWidth()/2.;
 
     // Does measured co-ordinate fall outside search region?
     if (deltaStrip < max_dist){
-        if (GFtutor::_DATA->hitFlagged(m_axis, indexhit)) done = false;
+        if (m_clusters->hitFlagged(m_axis, indexhit)) done = false;
     } else indexhit = -1; // outside region 
     
     // Check that Cluster size is o.k.
     if (indexhit > 0 ) {
-        if (GFtutor::okClusterSize(m_axis,indexhit,0.) == 0) done = false;
+        if (okClusterSize(m_axis,indexhit,0.) == 0) done = false;
     }
 
     // Check if predicted hit is inside this tower
@@ -458,7 +457,7 @@ bool KalFitTrack::foundHit(int& indexhit, double& min_dist, double max_dist,
     
     if (done == false) {
         indexhit = -1;
-        min_dist = deltaStrip + 0.5*GFtutor::siResolution();
+        min_dist = deltaStrip + 0.5*m_tkrGeo->siResolution();
     }
     
     return done;
@@ -537,7 +536,7 @@ void KalFitTrack::finish()
 
 void KalFitTrack::doFit()
 {
-    KalmanFilter KF;
+    KalmanFilter KF(m_clusters, m_tkrGeo);
 
     if (getNumHits() < 3) {
         clear();
@@ -594,7 +593,7 @@ void KalFitTrack::doFit()
 
 void KalFitTrack::filterStep(int iplane) 
 {
-    KalmanFilter KF;
+    KalmanFilter KF(m_clusters, m_tkrGeo);
 
     TkrFitHit hitp = KF.predicted(m_hits[iplane],m_hits[iplane+1]);
 
@@ -676,7 +675,7 @@ TkrFitPlane KalFitTrack::originalKPlane() const
     double sigma2Position = GFcontrol::iniErrorPosition * GFcontrol::iniErrorPosition;
     TkrFitMatrix covfit(1);
 
-    double sigma_alt = GFtutor::trayWidth(); //Big error... 
+    double sigma_alt = m_tkrGeo->trayWidth(); //Big error... 
     if(m_axis == TkrCluster::X) {
         covfit(1,1) = sigma2Position;
         covfit(3,3) = sigma_alt*sigma_alt;
@@ -807,10 +806,10 @@ void KalFitTrack::eneDetermination()
        TkrCluster::view hit_proj = m_hits[iplane].getProjection();
        int hit_Id = m_hits[iplane].getIDHit();
        if(hit_proj == TkrCluster::X) {
-           x_cls_size = GFtutor::_DATA->size(hit_proj, hit_Id);
+           x_cls_size = m_clusters->size(hit_proj, hit_Id);
        }
        else {
-           y_cls_size = GFtutor::_DATA->size(hit_proj, hit_Id);
+           y_cls_size = m_clusters->size(hit_proj, hit_Id);
        }
         if(m_hits[iplane].getIDPlane() == old_Plane_Id) {
             sX += m_hits[iplane].getHit(TkrFitHit::SMOOTH).getPar().getXSlope();
@@ -853,10 +852,10 @@ void KalFitTrack::eneDetermination()
 
     // Set a max. energy based on range 
     //        - use cluster size as indicator of range-out
-    double prj_size_x = GFtutor::siThickness()*fabs(sX)/
-                        GFtutor::siStripPitch()             + 1.;
-    double prj_size_y = GFtutor::siThickness()*fabs(sY)/
-                        GFtutor::siStripPitch()             + 1.;
+    double prj_size_x = m_tkrGeo->siThickness()*fabs(sX)/
+                        m_tkrGeo->siStripPitch()             + 1.;
+    double prj_size_y = m_tkrGeo->siThickness()*fabs(sY)/
+                        m_tkrGeo->siStripPitch()             + 1.;
     double range_limit = 10000;  // 10 GeV max... 
     if((x_cls_size - prj_size_x) > 2 || (y_cls_size - prj_size_y) > 2) {
         range_limit = totalRad * 50.; // 10 MeV = 15% rad. len
@@ -953,5 +952,28 @@ double KalFitTrack::computeChiSqSegment(int nhits, TkrFitHit::TYPE typ)
     }
     chi2 /= (nhits-4.);
     return chi2;
+}
+
+
+int KalFitTrack::okClusterSize(TkrCluster::view axis, int indexhit, double slope)			 
+//########################################################
+{
+    int icluster = 0;
+    
+    int size = (int) m_clusters->size(axis,indexhit);
+    
+    double distance = m_tkrGeo->siThickness()*fabs(slope)/
+		                 m_tkrGeo->siStripPitch();
+    distance = distance - 1.;
+    int idistance = (int) distance;
+    if (idistance < 1) idistance = 1;
+    
+    if (size < idistance) icluster = 0;
+    else if (size == idistance) icluster = 1;
+    else if (size > idistance) icluster = 2;
+    
+    if (icluster == 0 && size >=2 && idistance >=2) icluster = 1;
+    
+    return icluster;
 }
 

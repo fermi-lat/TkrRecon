@@ -14,14 +14,14 @@
 
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "Event/Recon/TkrRecon/TkrFitPlane.h"
-#include "TkrRecon/Track/GFcontrol.h"
+#include "TkrRecon/ITkrGeometrySvc.h"
 
 namespace Event {
 
 class KalmanFilter
 {
 public:
-    KalmanFilter() {};
+    KalmanFilter(TkrClusterCol* clusters, ITkrGeometrySvc* geo);
    ~KalmanFilter() {};
 
     typedef TkrCluster::view AXIS;
@@ -33,7 +33,7 @@ public:
 
     TkrFitHit filter(TkrFitPlane& filterPlane);
     TkrFitHit smoother(TkrFitPlane& start, const TkrFitPlane& kplast);
-    void computeMeasCov(TkrFitPlane& filterPlane, TkrFitPar pars);
+    void      computeMeasCov(TkrFitPlane& filterPlane, TkrFitPar pars);
 
     // Access functions
     double getRadLength()                     const {return m_radLength;}
@@ -42,9 +42,11 @@ public:
    
 private:
     // Local Temporary Varibles to store addition propagation Info.
-    double m_radLength;       // rad. lengths for this step
-    double m_activeDist;      // the insideActiveArea parameter
-    TkrFitMatrix m_Qmaterial; // The cov. matrix for last projection
+    double                m_radLength;       // rad. lengths for this step
+    double                m_activeDist;      // the insideActiveArea parameter
+    TkrFitMatrix          m_Qmaterial;       // The cov. matrix for last projection
+    Event::TkrClusterCol* m_clusters;
+    ITkrGeometrySvc*      m_tkrGeo;
 };
 
 }; //Namespace
