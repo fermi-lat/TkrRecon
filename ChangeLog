@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Thu Jul 18 14:17:02 PDT 2002
+TkrRecon/src/TrackFit/KalmanFilter
+
+Modified Files:
+	KalmanFilter.cxx KalmanFilter.h 
+Log Message:
+Clean up - removed un-used functions - left the auto find next SSD layer though
+    *
+------------------------------------------------------------
 User: atwood  Thu Jul 18 14:15:46 PDT 2002
 TkrRecon/src/Track
 
