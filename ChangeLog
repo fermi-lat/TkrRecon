@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Fri Oct  1 12:49:06 PDT 2004
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusterTable.cxx TkrMakeClusters.cxx TkrMakeClusters.h 
+Log Message:
+Modifications needed to:
+1) Reflect new form of TkrCluster and use of TkrId's
+2) Final (?) mods to convert to TkrTrack for output of pat rec and track fit
+    *
+------------------------------------------------------------
 User: usher  Fri Sep 24 08:16:04 PDT 2004
 TkrRecon/cmt
 
