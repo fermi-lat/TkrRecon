@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Mon Jul 22 13:48:34 PDT 2002
+TkrRecon/src/TrackFit/KalmanFilter
+
+Modified Files:
+	KalmanFilter.cxx 
+Log Message:
+clean up 
+    *
+------------------------------------------------------------
 User: atwood  Mon Jul 22 13:47:57 PDT 2002
 TkrRecon/src/TrackFit/KalFitTrack
 
