@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Thu Jun 21 13:11:27 PDT 2001
+TkrRecon/src TkrClustersRep.cxx
+
+Modified Files:
+	TkrClustersRep.cxx 
+Log Message:
+Move the dashed green line to keep people guessing
+
+    *
+------------------------------------------------------------
 User: kyoung  Wed Jun 20 15:15:27 PDT 2001
 TkrRecon/src TkrGeometrySvc.cxx
 
