@@ -309,7 +309,7 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
         
         // Check that we haven't fall off the end of the stack
         kplane = nextKplane.getIDPlane();
-        if(kplane > m_tkrGeo->numPlanes()) break;
+        if(kplane > m_tkrGeo->numPlanes()-1) break;
 
         arc_total = arc_min;
         num_steps++; 
