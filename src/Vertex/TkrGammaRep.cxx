@@ -1,4 +1,4 @@
-#include "src/Vertex/Combo/TkrComboVtxRep.h"
+#include "src/Vertex/TkrGammaRep.h"
 #include "Event/Recon/TkrRecon/TkrVertex.h"
 
 //------------------------------------------------------------------------------
@@ -6,7 +6,7 @@
 /// This should be done in the constructor.
 
 //#############################################################################
-TkrComboVtxRep::TkrComboVtxRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySvc* pTkrGeometry)
+TkrGammaRep::TkrGammaRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySvc* pTkrGeometry)
 //#############################################################################
 {
     dps     = dataProviderSvc;
@@ -14,7 +14,7 @@ TkrComboVtxRep::TkrComboVtxRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySv
 }
 //-------------------- private ----------------------
 //##############################################
-void TkrComboVtxRep::update()
+void TkrGammaRep::update()
 //##############################################
 {
     Event::TkrVertexCol* pVertices = SmartDataPtr<Event::TkrVertexCol>(dps,"/Event/TkrRecon/TkrVertexCol");
@@ -22,18 +22,16 @@ void TkrComboVtxRep::update()
     //Now see if we can do the drawing
     if (pVertices)
     {
-      //gui::DisplayRep* pDisplay = this;
-      
-        Event::TkrVertexCol::const_iterator iter;
-
-        for(iter = pVertices->begin() + 1; iter < pVertices->end(); ++iter)
+        if (pVertices->size() > 0)
         {
+            Event::TkrVertexCol::const_iterator iter = pVertices->begin();
+
             const Event::TkrVertex& pVertex = **iter;
       
             Point startPoint = Point(pVertex.getPosition());
       
             // draw reconstructed gamma
-            setColor("brown");
+            setColor("yellow");
             markerAt(startPoint);
             moveTo(startPoint);
             lineTo(startPoint - 1000.*pVertex.getDirection());
