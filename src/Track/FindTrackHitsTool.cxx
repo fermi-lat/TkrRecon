@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.18 2004/12/22 17:52:56 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.19 2004/12/26 23:30:05 lsrea Exp $
  */
 
 // to turn one debug variables
@@ -687,8 +687,15 @@ int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
 
 	// Get the first hit on the track
 	Event::TkrTrackHit* lastHit = (*track)[0];
-	double cur_energy = lastHit->getEnergy();
-	Point initial_pos  = track->getInitialPosition();
+
+    // Store away filtered parameters 
+    Event::TkrTrackParams lastHitParams = lastHit->getTrackParams(Event::TkrTrackHit::FILTERED);
+
+    // Set filtered params to smoothed (to get "proper" errors and directions)
+    lastHit->getTrackParams(Event::TkrTrackHit::FILTERED) = lastHit->getTrackParams(Event::TkrTrackHit::SMOOTHED);
+
+	double cur_energy  = lastHit->getEnergy();
+	Point  initial_pos = track->getInitialPosition();
 
 	// Loop until no more track hits found
 	int  planes_crossed  = 0;
@@ -706,8 +713,9 @@ int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
         // Fill in a temporary filter parameter set
 		double arc_len = m_propagatorTool->getArcLen(); 
 		Event::TkrTrackParams next_params = m_propagatorTool->getTrackParams(arc_len, cur_energy, true);
-		next_params(2) = -next_params(2);
-		next_params(4) = -next_params(4); 
+        //This is a bug
+		//next_params(2) = -next_params(2);
+		//next_params(4) = -next_params(4); 
 		Event::TkrTrackParams& filter_params = trackHit->getTrackParams(Event::TkrTrackHit::FILTERED);
 		filter_params = next_params;
 		trackHit->setStatusBit(Event::TkrTrackHit::HASFILTERED);
@@ -733,6 +741,7 @@ int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
 		if(planes_crossed == 2) break;
 	}
 
+    // Have we added some hits (or think we have?)?
     if (added_hits > 0)
     {
         // Trap the case where the first added plane didn't have a SSD Cluster
@@ -744,6 +753,9 @@ int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
             added_hits--;
             track->erase(track->begin());
             track->setInitialPosition(initial_pos);   //Should this be something else?
+
+            // Don't forget to delete the "erased" hit
+            delete lastHit;
 
             // Update to the new last added hit
             lastHit = (*track)[0];
@@ -786,6 +798,13 @@ int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track)
             // Finally, reset the initial position of the track
             track->setInitialPosition(lastHit->getPoint(Event::TkrTrackHit::FILTERED));
         }
+    }
+
+    // Check to see that no hits have been added (in the end)
+    if (added_hits == 0)
+    {
+        // Restore the filtered hit parameters
+        lastHit->getTrackParams(Event::TkrTrackHit::FILTERED) = lastHitParams;
     }
 
 
