@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.10 2004/10/04 16:07:24 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.11 2004/10/12 19:03:37 lsrea Exp $
  */
 
 // to turn one debug variables
@@ -151,7 +151,7 @@ m_KalmanFit(0), m_nMeasPerPlane(0), m_nParams(0), m_fitErrs(0)
     declareProperty("HitEnergyType",    m_HitEnergyType="eRadLoss");
     declareProperty("DoMultScatMat",    m_MultScatMat=true);
     declareProperty("FitMeasHitOnly",   m_FitMeasOnly=true);
-    declareProperty("MeasHitErrorType", m_HitErrorType="Standard");
+    declareProperty("MeasHitErrorType", m_HitErrorType="SlopeCorrected");
     
     return;
 }
@@ -298,7 +298,7 @@ void KalmanTrackFitTool::setClusErrCompType(const std::string& clusErrorType)
         {
             m_fitErrs   = new ClusWidMeasErrs(m_tkrGeom);
         }
-        else if (m_HitErrorType == "StandardErrs")
+        else if (m_HitErrorType == "Standard")
         {
             m_fitErrs   = new StandardMeasErrs(m_tkrGeom);
         }

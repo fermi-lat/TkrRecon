@@ -17,7 +17,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.24 2004/09/23 21:30:26 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.25 2004/10/22 18:37:38 usher Exp $
  */
 
 #include "GaudiKernel/IToolSvc.h"
@@ -110,6 +110,7 @@ StatusCode TkrVertexAlg::execute()
   
     // Recover the collection of Fit tracks
     Event::TkrTrackCol* pTkrTracks = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
+    //std::cout << "TkrVertexAlg::execute: " << pTkrTracks->size() << " tracks to vertex" << std::endl;
     
     // Retrieve the information on vertices
     SmartDataPtr<Event::TkrVertexCol> pVtxCol(eventSvc(), EventModel::TkrRecon::TkrVertexCol);
@@ -187,6 +188,8 @@ StatusCode TkrVertexAlg::execute()
 
         // This tells the tool to perform the vertexing
         sc = m_VtxTool->retrieveVtxCol(*pVtxCol);
+        std::cout << "TkrVertexAlg::execute: " << pVtxCol->size() << " vertices found" << std::endl;
+
     }
   
     return sc;

@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.16 2004/09/23 21:30:26 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.17 2004/10/22 17:52:42 usher Exp $
  */
 
 #include <vector>
@@ -78,7 +78,7 @@ Algorithm(name, pSvcLocator)
 {
     // Controls which fit to use
     declareProperty("TrackFitType",  m_TrackFitType="Combo");
-    declareProperty("UseGenericFit", m_GenericFit=false);
+    declareProperty("UseGenericFit", m_GenericFit=true);
 }
 
 StatusCode TkrTrackFitAlg::initialize()
@@ -172,11 +172,23 @@ StatusCode TkrTrackFitAlg::doTrackFit()
     Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
 
     // Ok, now set up to loop over candidate tracks
+    //std::cout << "TkrTrackFitAlg::doTrackFit: " << trackCol->size() << " tracks to fit" << std::endl;
     for(Event::TkrTrackColPtr trackIter = trackCol->begin(); trackIter != trackCol->end(); trackIter++)
     {
         Event::TkrTrack* track = *trackIter;
 
         m_FitTool->doTrackFit(track);
+
+        /*
+        Event::TkrTrack thisTrack = *track;
+        Event::TkrTrackHitVecItr hIter;
+        int iHit = 0;
+        for (hIter=thisTrack.begin();hIter!=thisTrack.end(); ++iHit,++hIter) {
+            Event::TkrTrackHit& plane = **hIter;
+            Point planePos = plane.getPoint(Event::TkrTrackHit::SMOOTHED);
+            std::cout << "Hit " << iHit << ": " << planePos << std::endl;
+        }
+        */
     }
 
     return sc;
@@ -201,6 +213,7 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
   
     // Find the collection of candidate tracks
     Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
+    //std::cout << "TkrTrackFitAlg::doTrackFit: " << trackCol->size() << " tracks to refit" << std::endl;
 
     // Recover pointer to Cal Cluster info  
     Event::CalClusterCol* pCalClusters = SmartDataPtr<Event::CalClusterCol>(eventSvc(),EventModel::CalRecon::CalClusterCol);
