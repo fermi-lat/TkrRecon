@@ -3,11 +3,12 @@
 @verbatim
   Manager: Leon Rochester 
 
-  v8r12p1320-Apr-2004  TU    This fixes bug introduced by Johann during previous linux compile fixes
-  v8r12p1220-Apr-2004  TU    This does fix the linux errors
-  v8r12p1120-Apr-2004  TU    Updates to fix linux errors/warnings in the updates to the generic fit
-  v8r12p1019-Apr-2004  TU    Updates to generic fit 
-  v8r12p9 13-Apr-2004  LSR   First go at slope-dependent errors; default is "good old errors"\
+  v8r12p14 10-May-2004  LSR  Tag before fixing first-hit-view bug
+  v8r12p13 20-Apr-2004  TU   This fixes bug introduced by Johann during previous linux compile fixes
+  v8r12p12 20-Apr-2004  TU   This does fix the linux errors
+  v8r12p11 20-Apr-2004  TU   Updates to fix linux errors/warnings in the updates to the generic fit
+  v8r12p10 19-Apr-2004  TU   Updates to generic fit 
+  v8r12p9  13-Apr-2004  LSR  First go at slope-dependent errors; default is "good old errors"\
   ...                  JCT   Fix unix errors and warnings
   v8r12p3 17-Feb-2004  TU    Tag to get "fixed" iterative recon stuff
   v8r12p1 15-jan-2004  THB   "Fix" the MC stuff
