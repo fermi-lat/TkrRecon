@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Thu Feb 19 14:52:44 PST 2004
+TkrRecon/src/Display
+
+Modified Files:
+	TkrPatCandRep.cxx 
+Log Message:
+MC Analysis stuff moved into new McToolBox package, modify MC Pat Rec to use the
+new interface to this stuff. Get ready to increment the tag 
+
+    *
+------------------------------------------------------------
 User: usher  Thu Feb 19 14:52:43 PST 2004
 TkrRecon/doc
 
