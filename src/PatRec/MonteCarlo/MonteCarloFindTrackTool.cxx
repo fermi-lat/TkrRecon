@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.17 2004/10/12 19:03:36 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.18 2004/11/15 21:17:49 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -304,7 +304,7 @@ Event::TkrTrack* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* mc
             m_tdsTracks->push_back(candTrack);
 
             // Set status to indicate track has been "found"
-            candTrack->setStatusBit(Event::TkrTrack::Found);
+            candTrack->setStatusBit(Event::TkrTrack::FOUND);
 
             // Sort in decreasing z position of the planes (downward going tracks)
             // Eventually leave in time ordered fashion??

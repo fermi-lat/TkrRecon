@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.21 2004/11/18 22:43:30 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.22 2004/11/21 22:53:24 usher Exp $
  */
 
 // to turn one debug variables
@@ -348,7 +348,7 @@ StatusCode KalmanTrackFitTool::doTrackFit(Event::TkrTrack* track)
     doFinalFitCalculations(*track);
 
     // Set the bit to confirm completion
-    track->setStatusBit(Event::TkrTrack::OnePass);
+    track->setStatusBit(Event::TkrTrack::ONEPASS);
 
     return sc;
 }
@@ -363,7 +363,7 @@ StatusCode KalmanTrackFitTool::doTrackReFit(Event::TkrTrack* track)
     doTrackFit(track);
 
     // Set the bit to confirm completion
-    track->setStatusBit(Event::TkrTrack::TwoPass);
+    track->setStatusBit(Event::TkrTrack::TWOPASS);
     
     return sc;
 }
@@ -398,8 +398,10 @@ void KalmanTrackFitTool::doKalmanFit(Event::TkrTrack& track)
     track.setChiSquareFilter(chiSqFit);
     track.setChiSquareSmooth(chiSqSmooth);
     track.setNDegreesOfFreedom(numDegFree);
-    track.setStatusBit(Event::TkrTrack::Filtered);
-    track.setStatusBit(Event::TkrTrack::Smoothed);
+    track.setStatusBit(Event::TkrTrack::FILTERED);
+    track.setStatusBit(Event::TkrTrack::SMOOTHED);
+	if( m_HitEnergyType=="eRadLoss")  track.setStatusBit(Event::TkrTrack::RADELOSS);
+	if( m_HitEnergyType=="MuRadLoss") track.setStatusBit(Event::TkrTrack::MIPELOSS);
     
     return;
 }
@@ -415,7 +417,7 @@ void KalmanTrackFitTool::doFinalFitCalculations(Event::TkrTrack& track)
     if (track.getNumHits() >= m_control->getMinSegmentHits()) 
     {
         //Its a keeper
-        track.setStatusBit(Event::TkrTrack::Filtered);
+        track.setStatusBit(Event::TkrTrack::FILTERED);
 
         //Add the track to the collection in the TDS
         Event::TkrTrackCol* pFitTracks = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol); 
