@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 16:35:43 PST 2001
+TkrRecon/mgr
+
+Modified Files:
+	requirements 
+Log Message:
+Temporarily need TkrReconAlg in TkrReconData for acdRecon to link
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 14:34:41 PST 2001
 TkrRecon/mgr
 
