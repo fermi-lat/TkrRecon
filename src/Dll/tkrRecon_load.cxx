@@ -26,8 +26,9 @@ void TkrRecon_load() {
     DLL_DECL_SERVICE(   TkrInitSvc      );
     DLL_DECL_SERVICE(   TkrBadStripsSvc );
     DLL_DECL_ALGORITHM( TkrClusterAlg   );
-    DLL_DECL_ALGORITHM( TkrReconAlg     );
     DLL_DECL_ALGORITHM( TkrFindAlg      );
+    DLL_DECL_ALGORITHM( TkrReconAlg     );
+    DLL_DECL_ALGORITHM( TkrVertexAlg    );
     DLL_DECL_ALGORITHM( TkrDisplayAlg   );
     DLL_DECL_ALGORITHM( McReconAlg      );
     DLL_DECL_ALGORITHM( TkrNtupleAlg    );
