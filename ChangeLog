@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Tue Jul 30 17:41:04 PDT 2002
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx KalFitTrack.h 
+Log Message:
+Fixed error in assignment of measurement errors. Implemented access func's for #x hits and #y hits
+    *
+------------------------------------------------------------
 User: atwood  Tue Jul 30 17:38:57 PDT 2002
 TkrRecon/src/Cluster
 
