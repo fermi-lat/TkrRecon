@@ -18,14 +18,16 @@ private
 
 
 
-
-apply_pattern package_include
+#the following prepend makes the includes folder available locally: avoid the package_include
+#apply_pattern package_include
+macro_prepend includes "-i $(TRKRECONROOT) " WIN32 "/I $(TKRRECONROOT) "
 
 macro TkrRecon_stamps     
 
 apply_pattern package_Cshlibflags 
 
 apply_pattern package_headers
+
 
 macro_append TkrCluster_headers   "" WIN32 " ../TkrRecon/Cluster/*.h ../src/Cluster/*.h"
 macro_append TkrPatRec_headers    "" WIN32 " ../TkrRecon/PatRec/*.h ../src/PatRec/LinkAndTree/*.h ../src/PatRec/Combo/*.h ../src/PatRec/NeuralNet/*.h"
