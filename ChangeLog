@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: lsrea  Wed Jan 29 15:20:27 PST 2003
+TkrRecon/src/Vertex
+
+Modified Files:
+	VtxKalFitTool.cxx 
+Log Message:
+more MSG::DEBUG fixes
+    *
+------------------------------------------------------------
+User: lsrea  Wed Jan 29 15:20:27 PST 2003
 TkrRecon/src/Utilities
 
 Modified Files:
