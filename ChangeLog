@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Wed Oct 30 06:57:09 PST 2002
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+fixed a bug: "const foo = 1.1;" compiles, and yields foo = 1!
+    *
+------------------------------------------------------------
 User: kuss  Fri Oct 25 08:31:56 PDT 2002
 TkrRecon/src/PatRec/NeuralNet
 
