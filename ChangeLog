@@ -1,4 +1,23 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 26 13:40:31 PST 2001
+TkrRecon/src/Track
+
+Modified Files:
+	GFdata.cxx 
+Added Files:
+	GFcandidates.cxx GFcontrol.cxx GFgamma.cxx GFpair.cxx 
+	GFparticle.cxx GFsegment.cxx GFtrack.cxx GFtutor.cxx 
+	SiRecObjs.cxx 
+Removed Files:
+	GFcandidates.cpp GFcontrol.cpp GFgamma.cpp GFpair.cpp 
+	GFparticle.cpp GFsegment.cpp GFtrack.cpp GFtutor.cpp 
+	SiRecObjs.cpp 
+Log Message:
+New Tracking code which uses KalParticle (ie RCparticle) in Kalman Filter fit.
+Also, renamed .cpp files to .cxx 
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Nov 21 09:59:29 PST 2001
 TkrRecon/xml
 
