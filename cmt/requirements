@@ -1,5 +1,5 @@
 package TkrRecon
-version v10r1p1
+version v10r1p2
 
 author Tracy Usher    <usher@slac.stanford.edu>
 author Leon Rochester <lsrea@slac.stanford.edu>
@@ -16,7 +16,7 @@ use Event      v*
 use GlastSvc   v9*
 use GuiSvc
 use geometry
-use xml
+#use xml
 use TkrUtil    v3r*
 
 use G4Propagator v*
