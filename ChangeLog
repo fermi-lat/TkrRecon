@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: igable  Tue Feb 20 17:54:09 PST 2001
+TkrRecon/src/test TBIOTest.cxx tbsim_test_r4.root
+
+Added Files:
+	TBIOTest.cxx tbsim_test_r4.root 
+Log Message:
+Changes to make TBIOROOT put SiLayers into the TDS properly. Run the build 
+test program in this package to run TkrRecon using TB data.
+
+The writing of root files has not been fixed yet.
+
+    *
+------------------------------------------------------------
 User: tlindner  Wed Feb 14 15:54:32 PST 2001
 TkrRecon/mgr requirements
 
