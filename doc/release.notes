@@ -3,6 +3,8 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v10r3p2  28-Jan-2005  LSR  Improve error handling output in TkrReconAlg
+                                Suppress per-event reporting, as requested by Toby
   v10r3p1  26-Jan-2005  TU   Fix energy on iterative recon
   v10r3    25-Jan-2005  TU   TkrCluster stuff + unix warnings
   v10r2p2  19-Jan-2005  TU   Bug fix for release mode crashes (ComboFindTrackTool)

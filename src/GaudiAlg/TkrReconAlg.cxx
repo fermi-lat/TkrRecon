@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.28 2004/12/16 05:04:21 usher Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.29 2005/01/20 01:39:20 lsrea Exp $
 */
 
 
@@ -51,13 +51,18 @@ namespace {
 class TkrErrorRecord 
 {
 public:
-    TkrErrorRecord (int run, int event, double time) :
-      m_run(run), m_event(event), m_time(time) {}
+    TkrErrorRecord (int run, int event, double time, std::string errorString) :
+      m_run(run), m_event(event), m_time(time), m_errorString(errorString) {}
       virtual ~TkrErrorRecord() {}
-
+      int         getRun()         {return m_run;}
+      int         getEvent()       {return m_event;}
+      double      getLastTime()    {return m_time;}
+      std::string getErrorString() {return m_errorString;}
+private:
       int    m_run;
       int    m_event;
       double m_time;
+      std::string m_errorString;
 };
 
 typedef std::vector<TkrErrorRecord*> errorVec;
@@ -77,6 +82,7 @@ public:
             delete *iter;
         }
         m_errorArray.clear();
+        m_stage = "";
     }
 
     // The thee phases in the life of a Gaudi Algorithm
@@ -85,7 +91,7 @@ public:
     StatusCode finalize();
 
 private:
-    StatusCode handleError();
+    StatusCode handleError(std::string errorString);
     int         m_errorCount;
     bool        m_saveBadEvents;
 
@@ -105,6 +111,7 @@ private:
 
     int m_eventCount;
     bool m_testExceptions;
+    std::string m_stage;
 
     // this is because 2 copies of TkrReconAlg are instantiated: "FirstPass" and "Iteration"
     static bool s_failed;
@@ -142,9 +149,10 @@ StatusCode TkrReconAlg::initialize()
     MsgStream log(msgSvc(), name());
     StatusCode sc = StatusCode::SUCCESS;
 
-    log << MSG::INFO << "TkrReconAlg Initialization" << endreq;
+    log << MSG::INFO << "TkrReconAlg Initialization";
+    if( (sc=setProperties()).isFailure()) log << " didn't work!";
+    log << endreq;
 
-    if( (sc=setProperties()).isFailure()) std::cout << "didin't work!" << std::endl;
     m_errorCount = 0;
     m_lastTime   = 0.0;
     m_eventCount = -1;
@@ -256,30 +264,30 @@ StatusCode TkrReconAlg::execute()
 
     } else {
         if(s_failed) {
-            log << MSG::ERROR << "Iteration skipped because of failure at FirstPass" << endreq;
             return StatusCode::SUCCESS;
         }
     }
 
+    std::string stageFailed = "Stage failed";
+
     try {
         // Call clustering if in first pass mode
+        m_stage = "TkrClusterAlg";
         if (m_TkrClusterAlg) sc = m_TkrClusterAlg->execute();
         if (sc.isFailure())
         {
-            log << MSG::ERROR << " TkrClusterAlg FAILED to execute!" << endreq;
-            return handleError();
+            return handleError(stageFailed);
         }
 
         
         // throw some exceptions to test the logging, maybe make an option later
+        m_stage = "TestExceptions";
         if (m_testExceptions) {
-            if(m_eventCount%4==1) {
-                log << MSG::ERROR << "Testing TkrException " << endreq;
-                throw TkrException("this is a message");
+            if(m_eventCount%5==1) {
+                throw TkrException("Testing TkrException ");
             }
 
-            if(m_eventCount%4==2) {
-                log << MSG::ERROR << "Testing devide-by-zero" << endreq;
+            if(m_eventCount%5==2) {
                 int i = 0;
                 int j = 1;
                 int k = j/i;
@@ -288,52 +296,52 @@ StatusCode TkrReconAlg::execute()
         }
 
         // Call track finding if in first pass mode
+        m_stage = "TkrFindAlg";
         if (m_TkrFindAlg) sc = m_TkrFindAlg->execute();
         if (sc.isFailure())
         {
-            log << MSG::ERROR << " TkrFindAlg FAILED to execute!" << endreq ;
-            return handleError();
+            return handleError(stageFailed);
         }
 
         // Call track fit
+        m_stage = "TkrTrackFitAlg";
         sc = m_TkrTrackFitAlg->execute();
+        if (m_testExceptions && m_eventCount%5==3) sc = StatusCode::FAILURE;
+
         if (sc.isFailure())
         {
-            log << MSG::ERROR << " TkrTrackFitAlg FAILED to execute!" << endreq ;
-            return handleError();
+            return handleError(stageFailed);
         }
 
         // Call vertexing
+        m_stage = "TkrVertexAlg";
         sc = m_TkrVertexAlg->execute();
+        if (name()=="Iteration" && m_testExceptions && m_eventCount%5==4) sc = StatusCode::FAILURE;
         if (sc.isFailure())
         {
-            log << MSG::ERROR << " TkrVertexAlg FAILED to execute!" << endreq ;
-            return handleError();
+            return handleError(stageFailed);
         }
 
     }catch( TkrException& e ){
-        log << MSG::ERROR << "Caught TkrException: " << e.what() << endreq;
-        return handleError();
+        //log << MSG::ERROR << "Caught TkrException: " << e.what() << endreq;
+        return handleError(e.what());
 
     }catch( std::exception& e) {
-        log << MSG::ERROR << "Caught standard exception: " << e.what() << endreq;
-        return handleError();
+        //log << MSG::ERROR << "Caught standard exception: " << e.what() << endreq;
+        return handleError(e.what());
 
     }catch(...){
-        log << MSG::ERROR  << "Unknown exception" << endreq;
-        return handleError();
+        //log << MSG::ERROR  << "Unknown exception" << endreq;
+        return handleError("Unknown Exception");
     }
 
     m_lastTime = m_header->time();
     return sc;
 }
 
-StatusCode TkrReconAlg::handleError() 
+StatusCode TkrReconAlg::handleError(std::string errorString) 
 {
     MsgStream log(msgSvc(), name());
-
-    std::string messageEnd;
-    messageEnd = (s_saveBadEvents ? "be saved." : "kill job.");
 
     SmartDataPtr<LdfEvent::EventSummaryData> summaryTds(eventSvc(), "/Event/EventSummary"); 
     if (!summaryTds) {
@@ -352,11 +360,10 @@ StatusCode TkrReconAlg::handleError()
     ++m_errorCount;
     int run     = m_header->run();
     int event   = m_header->event();
-    log << MSG::ERROR << "====>> Run " << run << " Event " << event 
-        << " Time " << doubleToString(m_lastTime)
-        << " failed, event will " << messageEnd << endreq;
 
-    TkrErrorRecord* errorRec = new TkrErrorRecord(run, event, m_lastTime);
+    errorString = m_stage+": "+errorString;
+ 
+    TkrErrorRecord* errorRec = new TkrErrorRecord(run, event, m_lastTime, errorString);
     m_errorArray.push_back(errorRec);
 
     StatusCode sc = StatusCode::FAILURE;
@@ -371,12 +378,20 @@ StatusCode TkrReconAlg::finalize()
     MsgStream log(msgSvc(), name());
     StatusCode sc = StatusCode::SUCCESS;
 
-    log << MSG::INFO << "====>> " << m_errorCount << " failed events in this run" << endreq;
+    if (s_saveBadEvents) {
+        log << MSG::INFO << endreq;
+        log << MSG::INFO << "====>> " << m_errorCount 
+            << (m_errorCount==1 ? " event" : " events") << " failed in this run" << endreq;
+        log << MSG::INFO << endreq;
+    }
     errorIter iter;
     for (iter=m_errorArray.begin(); iter!=m_errorArray.end();++iter) {
         TkrErrorRecord* pError = *iter;
-        log << MSG::INFO << "Run " << pError->m_run << " event " << pError->m_event
-            << " time " << doubleToString(pError->m_time) << endreq;
+        std::stringstream errorStream;
+        errorStream << "Run " << pError->getRun() << " Event " << pError->getEvent() 
+            << " Time " << doubleToString(pError->getLastTime());
+        log << MSG::INFO << errorStream.str() << endreq;
+        log << MSG::INFO << "   " << pError->getErrorString() << endreq;
     }
     return sc;
 }
