@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: lsrea  Sun Jan  2 15:53:47 PST 2005
+TkrRecon/src/PatRec/LinkAndTree
+
+Modified Files:
+	TkrClusterLink.h TkrClusterLinkList.cxx 
+	TkrClusterLinkVector.cxx TkrLinkAndTree.cxx TkrLinkAndTree.h 
+Log Message:
+prepare for tag v10r1p1: remove more reverseLayer() calls; cleanup on ComboFindTrackTool, not done yet
+
+    *
+------------------------------------------------------------
+User: lsrea  Sun Jan  2 15:53:47 PST 2005
 TkrRecon/src/PatRec/Combo
 
 Modified Files:
