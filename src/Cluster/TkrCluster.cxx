@@ -4,8 +4,8 @@
 //       TkrCluster
 //---------------------------------------------------
 
-TkrCluster::TkrCluster(int id, int v, int ilayer, 
-                       int istrip0, int istripf, double ToT, int tower)
+TkrCluster::TkrCluster(int id, int ilayer, int v,
+                       int istrip0, int istripf, Point position, double ToT, int tower)
 					   
 {
 	// Purpose and method: makes a cluster with attributes
@@ -20,8 +20,6 @@ TkrCluster::TkrCluster(int id, int v, int ilayer,
 	// Dependencies: none
 	// Caveats: none
 	
-	ini();
-	
     m_id     = id;
 	m_view   = intToView(v);
 	
@@ -29,10 +27,8 @@ TkrCluster::TkrCluster(int id, int v, int ilayer,
 	
 	m_strip0 = istrip0;
 	m_stripf = istripf;
-	m_chip   = (int) m_strip0/64;
 	
-	m_strip  = 0.5*(m_strip0+m_stripf);
-	m_size   = fabs(m_stripf-m_strip0+1);
+	m_position = position;
 	
 	m_ToT    = ToT;
     m_tower  = tower;
@@ -54,25 +50,20 @@ void TkrCluster::writeOut(MsgStream& log) const
 }
 //---------  Private --------------------------------
 
-void TkrCluster::ini()
 
-{	
-	// Purpose: sets cluster attributes to illegal values
-	// Inputs:  None
-	// Outputs: None
-	
-	m_chip   = -1;
-	m_flag   = 0;
-	m_id     = -1;
-	m_plane  = -1;
-	m_position = Point(999., 999., 0.);
-	m_size   = 1;
-	m_strip  = -1.;
-	m_strip0 = -1;
-	m_stripf = -1;
-	m_ToT    = 0.;
-	m_tower  = 0;
-	m_view   = TkrCluster::XY;
+int TkrCluster::chip()     
+{ 
+	return m_strip0/64;
+}
+
+double TkrCluster::strip() 
+{ 
+	return 0.5*(m_strip0+m_stripf);
+}
+
+double TkrCluster::size()  
+{ 
+	return fabs(m_stripf-m_strip0) + 1.;
 }
 
 TkrCluster::view TkrCluster::intToView(int iv)

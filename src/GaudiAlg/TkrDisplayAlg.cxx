@@ -52,7 +52,9 @@ StatusCode TkrDisplayAlg::initialize()
         gui::DisplayControl& display = guiSvc->guiMgr()->display();
 
 		//Set up the display rep for Clusters
-		display.add(new TkrClustersRep(eventSvc()), "Clusters");
+		TkrClustersRep*  p_clRep = new TkrClustersRep(eventSvc());
+		display.add(p_clRep, "Clusters");
+		p_clRep->setTkrGeo(pTkrGeo);
 
         //This call sets up recon specific display routines
         pTkrInitSvc->setDisplayRtns(display, eventSvc());

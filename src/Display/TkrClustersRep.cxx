@@ -1,4 +1,5 @@
 #include "TkrRecon/Display/TkrClustersRep.h"
+#include "TkrRecon/ITkrGeometrySvc.h"
 
 
 //------------------------------------------------------------------------------
@@ -24,8 +25,8 @@ void TkrClustersRep::update()
     if (pClusters)
     {
 		int    nHits      = pClusters->nHits();
-		double stripPitch = pClusters->stripPitch();
-		double towerPitch = pClusters->towerPitch();
+		double stripPitch = pTkrGeo->siStripPitch();
+		double towerPitch = pTkrGeo->towerPitch();
 		
 		setColor("green");
 
@@ -81,4 +82,6 @@ void TkrClustersRep::update()
 
     return;
 }
+
+ITkrGeometrySvc * pTkrGeo;
 

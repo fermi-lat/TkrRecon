@@ -20,7 +20,7 @@
 * Adapted from SiCluster of Jose Hernando
 *
 * @author Tracy Usher, Leon Rochester
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrCluster.h,v 1.4 2002/02/25 06:37:46 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrCluster.h,v 1.5 2002/02/26 07:09:02 lsrea Exp $
 */
 
 class TkrCluster
@@ -50,14 +50,12 @@ public:
     * @param ToT 
     * @param tower tower number
     */
-    TkrCluster(int id, int v, int ilayer, 
-        int istrip0, int istripf, double ToT, int tower = 0);
+    TkrCluster(int id, int ilayer, int v, 
+        int istrip0, int istripf, Point position, double ToT, int tower = 0);
     virtual ~TkrCluster() {}
     
     
     // set methods
-    inline void setPosition(Point p)    {m_position = p;}
-    inline void setID(int id)    {m_id = id;}
     inline void flag(int flag=1) {m_flag = flag;}
     inline void unflag()         {m_flag = 0;}
 	
@@ -66,24 +64,21 @@ public:
     inline int id()        const {return m_id;}
     inline int plane()     const {return m_plane;}
     inline view v()        const {return m_view;}
-    inline int chip()      const {return m_chip;}
-    inline double strip()  const {return m_strip;}
     inline int firstStrip()    const {return m_strip0;}
     inline int lastStrip()     const {return m_stripf;}
+
+	int chip();
+	double strip();
+	double size ();
     
     Point position()       const {return m_position;}
-    inline double size()   const {return m_size;}
     
     /// returns true if the cluster has been flagged
     bool hitFlagged()      const {return (m_flag!=0);}
     
     /// writes out the information of the cluster if msglevel is set to debug
     void writeOut(MsgStream& log) const;
-	/// Why protected???    
-protected:
     
-    /// initializes the member variables of the cluster (to illegal values!) Why do we need this?
-    void ini();
     /// converts the view integer to enum view
     static enum view intToView(int);
     /// converts enum to int; guarantees that X->0 and Y->1
@@ -97,18 +92,11 @@ private:
     int m_plane;
     /// view (X or Y [XY is illegal here)
     TkrCluster::view m_view;
-    /// chip number [redundant, calculated from m_strip0]
-    int m_chip;
     
     /// initial strip address of the cluster
     int m_strip0;
     /// final strip address of the cluster
     int m_stripf;
-    /// centroid of the cluster (in strips) [m_strip0, m_stripf gives same info!]
-    double m_strip;
-    
-    /// size of the cluster (number of strips) [m_strip0, m_stripf gives same info!]
-    double m_size;
     /// ToT value of the cluster
     double m_ToT;
     /// space position of the cluster

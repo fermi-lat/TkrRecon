@@ -166,7 +166,7 @@ void TkrNeuralNet::relax()
 	do{
 
         // shuffle the list
-		std::random_shuffle(tmpList.begin(),tmpList.end());
+		std::random_shuffle(tmpList.begin(),tmpList.end());  //just for now
 
 		cumActivityDiff = 0.0;
 
