@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Thu Sep  5 09:42:29 PDT 2002
+TkrRecon/TkrRecon/GaudiAlg
+
+Modified Files:
+	TkrDisplayAlg.h TkrReconAlg.h TkrTrackFitAlg.h 
+Log Message:
+untabify
+    *
+------------------------------------------------------------
 User: lsrea  Thu Sep  5 09:30:55 PDT 2002
 TkrRecon/src/Vertex
 
