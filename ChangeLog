@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Thu Nov 18 14:43:30 PST 2004
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx KalmanTrackFitTool.cxx TrackFitUtils.cxx 
+Log Message:
+Bill's latest updates, Combo Pat Rec working again
+
+    *
+------------------------------------------------------------
 User: usher  Thu Nov 18 14:43:29 PST 2004
 TkrRecon/src/PatRec/Combo
 
