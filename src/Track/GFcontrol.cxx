@@ -8,7 +8,7 @@ int       GFcontrol::maxCandidates       = 2;
 
 double    GFcontrol::FEneParticle        = 1.;
 double    GFcontrol::FEne                = 0.66;
-double    GFcontrol::sigmaCut            = 6.;
+double    GFcontrol::sigmaCut            = 9.0;
 
 int	      GFcontrol::error	             = 0;
 int	      GFcontrol::maxConsecutiveGaps  = 6;	    // max consecutive Gaps - Stop
