@@ -8,6 +8,8 @@
 //------------------------------------------------------------------------------
 
 #include "TkrRecon/Display/TkrDispActiveNet.h"
+#include "src/PatRec/NeuralNet/TkrNeuralNet.h"
+#include "src/PatRec/NeuralNet/TkrNeuron.h"
 #include "Event/TopLevel/EventModel.h"
 
 //------------------------------------------------------------------------------
@@ -38,13 +40,24 @@ TkrDispActiveNet::TkrDispActiveNet(IDataProviderSvc* dataProviderSvc,
 
 void TkrDispActiveNet::update()
 {
-    TkrPatCandCol* pTkrPatCandCol = SmartDataPtr<TkrPatCandCol>(dps,EventModel::TkrRecon::TkrPatCandCol);
+    Event::TkrPatCandCol* pTkrPatCandCol = 
+      SmartDataPtr<Event::TkrPatCandCol>(dps, EventModel::TkrRecon::TkrPatCandCol);
 
     //Now see if we can do the drawing
     if (pTkrPatCandCol)
     {
 
-        TkrNeuralNet* pTkrNeuralNet = dynamic_cast<TkrNeuralNet*>(pTkrPatCandCol);
+      DataObject* dataObj;
+      std::string s("/Event/NeuralNet");
+      StatusCode sc = dps->retrieveObject(s,dataObj);
+      if(sc.isFailure())
+	{
+	  std::cout<<"WARNING: NeuralNet could not be retrieved from TDS"<<std::endl;
+	  return;
+	}
+
+      TkrNeuralNet* pTkrNeuralNet = dynamic_cast<TkrNeuralNet*>(dataObj);
+      //        TkrNeuralNet* pTkrNeuralNet = dynamic_cast<TkrNeuralNet*>(pTkrPatCandCol);
 
         //int numDispNeurons = pTkrNeuralNet->numNeurons();
         int colorIdx      = 1;
@@ -52,8 +65,8 @@ void TkrDispActiveNet::update()
 
         //gui::DisplayRep* pDisplay = this;
 
-        TkrNeuralNet::TkrNeuronList tmpList = pTkrNeuralNet->neurons();
-        TkrNeuralNet::TkrNeuronList::const_iterator hypo;
+        TkrNeuronList tmpList = pTkrNeuralNet->neurons();
+        TkrNeuronList::const_iterator hypo;
 
         for(hypo  = tmpList.begin(); 
         hypo != tmpList.end();   hypo++){

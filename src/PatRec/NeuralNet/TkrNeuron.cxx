@@ -10,11 +10,10 @@
 //------------------------------------------------------------------------------
 
 #include "src/PatRec/NeuralNet/TkrNeuron.h"
-#include "src/PatRec/NeuralNet/TkrNeuralNet.h"
 
 // constructor
 TkrNeuron::TkrNeuron(TkrPoint* pnt0, TkrPoint* pnt1, float act=0.0):
-m_pnt0(pnt0),m_pnt1(pnt1)
+  m_pnt0(pnt0),m_pnt1(pnt1)
 {
     m_l = pnt1->getLayer() - pnt0->getLayer();
     m_direction = (pnt0->getPoint() - pnt1->getPoint()).unit();
@@ -56,25 +55,41 @@ TkrNeuron* TkrNeuron::getNextNeuron(position pos, unsigned int syn) const
 }
 
 // pre: syn is not larger than the size of list.
-float TkrNeuron::getWieght(position pos, unsigned int syn) const
+float TkrNeuron::getWeight(position pos, unsigned int syn) const
 {
-
     if(pos == top){
-        return m_synapseList0[syn]->getWieght();
+        return m_synapseList0[syn]->getWeight();
     }else{
-        return m_synapseList1[syn]->getWieght();
+        return m_synapseList1[syn]->getWeight();
     }
-
 }
 
-void TkrNeuron::addConnection(float (TkrNeuralNet::*func)(TkrNeuron*,TkrNeuron*),
-                              TkrNeuralNet* const net, position pos, 
-                              TkrNeuron* neuron)
+// calcWeight()
+// This function returns the weight value for the two neurons' connection.
+float TkrNeuron::calcWeight(TkrNeuron* neuron2, double lambda, double mu)
+{
+    // If the neurons are joined at the bottom or at the top the weight is zero.
+    if(((this)->getPnt(top) == neuron2->getPnt(top)) || 
+        ((this)->getPnt(bottom) == neuron2->getPnt(bottom))) return 0.0;
+
+    float tmp = pow((this)->getDirection().dot(neuron2->getDirection()),lambda);
+
+    // to avoid negative weights, retrun 0 if agnle is > 90 degrees.
+    if(tmp < 0.8) return 0.0;  
+
+    tmp /= pow((double) (this)->getLayerDiff(), mu) + 
+        pow((double) neuron2->getLayerDiff(), mu);
+
+    return ((float) tmp);
+}
+
+
+void TkrNeuron::addConnection(position pos, TkrNeuron* neuron,double lambda,double mu)
 {
 
-    float wieght = (net->*func)(this,neuron);
+    float weight = calcWeight(neuron, lambda, mu);
 
-    Synapse* connection = new Synapse(neuron,wieght);
+    Synapse* connection = new Synapse(neuron,weight);
 
     if(pos == top){
         m_synapseList0.push_back(connection);
@@ -85,8 +100,51 @@ void TkrNeuron::addConnection(float (TkrNeuralNet::*func)(TkrNeuron*,TkrNeuron*)
     return;
 }
 
+
 inline bool TkrNeuron::operator==(const TkrNeuron& neuron) const
 {
-    return(getPnt(top) == neuron.getPnt(top) && 
-        getPnt(bottom) == neuron.getPnt(bottom));
+    return (getPnt(top) == neuron.getPnt(top) && 
+	    getPnt(bottom) == neuron.getPnt(bottom));
+}
+
+
+// update()
+// This function updates a given neurons activity level based on the update
+// rule.  Neurons which are incoming or outgoing reinforce the neuron.
+// Neurons which are competing detract from the neurons activity.
+void TkrNeuron::update(float temp, double gamma, double alpha_up, double alpha_do)
+{
+  float tmp1 = 0.0;  // for reinforcing from the neurons activity.
+  float tmp2 = 0.0;  // for detracting from the neurons activity.
+  float tmp3 = 0.0;  // for detracting from the neurons activity.
+  
+  unsigned int i;
+  unsigned int j;
+  for(i=0, j=0;i < numSynapse(bottom); i++){
+    if(getNextNeuron(bottom, i)->getPnt(top) == getPnt(bottom)) 
+      tmp1 +=(getWeight(bottom, i)) * 
+	(getNextNeuron(bottom, i)->getActivity());
+    else{
+      tmp2 += getNextNeuron(bottom, i)->getActivity();
+      j++;
+    }
+  }
+  
+  for(i = 0;i < numSynapse(top); i++){
+    if(getNextNeuron(top, i)->getPnt(bottom) == getPnt(top))
+      tmp1 +=(getWeight(top, i)) * 
+	(getNextNeuron(top, i)->getActivity());
+    else{
+      tmp3 += getNextNeuron(top, i)->getActivity();
+    }
+  }
+  
+  tmp1 *= (float) gamma;
+  tmp2 *= (float) alpha_up;
+  tmp3 *= (float) alpha_do;
+  
+  // update the neuron
+  setActivity((0.5*(1+tanh((1/temp)*(tmp1-tmp2-tmp3+(getBias()))))));
+  
+  return;
 }
