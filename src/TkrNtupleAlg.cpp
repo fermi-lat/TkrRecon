@@ -33,8 +33,7 @@ StatusCode TkrNtupleAlg::initialize()
     setProperties();
 
     // get a pointer to our ntupleWriterSvc
-    sc = serviceLocator()->getService("ntupleWriterSvc", 
-        IID_INTupleWriterSvc, reinterpret_cast<IInterface*&>( ntupleWriteSvc));
+    sc = service("ntupleWriterSvc", ntupleWriteSvc);
 
     if( sc.isFailure() ) 
     {
@@ -55,14 +54,14 @@ StatusCode TkrNtupleAlg::execute()
     StatusCode sc = StatusCode::SUCCESS;
 
     //Create the tuple class
-    TkrTupleValues* pTuple = new TkrTupleValues();
+    TkrTupleValues pTuple;
     
     SiRecObjs*  pSiRecObjs  = SmartDataPtr<SiRecObjs>(eventSvc(),"/Event/TkrRecon/SiRecObjs");
 	SiClusters* pSiClusters = SmartDataPtr<SiClusters>(eventSvc(),"/Event/TkrRecon/SiClusters");
 
-    if ((sc = pTuple->calcTupleValues(pSiClusters, pSiRecObjs)).isFailure()) return sc;
+    if ((sc = pTuple.calcTupleValues(pSiClusters, pSiRecObjs)).isFailure()) return sc;
 
-    return pTuple->fillTupleValues(ntupleWriteSvc, m_tupleName.c_str());
+    return pTuple.fillTupleValues(ntupleWriteSvc, m_tupleName.c_str());
 }
 //###############################
 StatusCode TkrNtupleAlg::finalize() 

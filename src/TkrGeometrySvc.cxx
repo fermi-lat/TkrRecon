@@ -33,6 +33,8 @@ StatusCode TkrGeometrySvc::initialize()
     
     Service::initialize();
     setProperties();
+    MsgStream log(msgSvc(), name());
+
     
     xml::IFile xmlFile(m_xmlFile.c_str());
   
@@ -51,7 +53,7 @@ StatusCode TkrGeometrySvc::initialize()
         m_ladderMixed     = xmlFile.getInt(   "tkr", "ladderMixed");
 
         m_Z0              = xmlFile.getDouble("tkr", "Z0");      
-        std::cout << "z0 = "  << m_Z0 << std::endl;
+        log << MSG::INFO <<  "z0 = "  << m_Z0 << endreq;
         m_towerPitch      = xmlFile.getDouble("tkr", "towerPitch");
         m_trayWidth       = xmlFile.getDouble("tkr", "trayWidth");
         m_trayHeight      = xmlFile.getDouble("tkr", "trayHeight");
