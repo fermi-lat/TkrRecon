@@ -13,7 +13,8 @@
 static const AlgFactory<TkrClusterAlg>  Factory;
 const IAlgFactory& TkrClusterAlgFactory = Factory;
 
-TkrClusterAlg::TkrClusterAlg(const std::string& name, ISvcLocator* pSvcLocator) :
+TkrClusterAlg::TkrClusterAlg(const std::string& name, 
+                             ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator)  { }
 
 using namespace Event;
@@ -30,14 +31,16 @@ StatusCode TkrClusterAlg::initialize()
     MsgStream log(msgSvc(), name());
     
     //Look for the geometry service
-    StatusCode sc = service("TkrGeometrySvc", pTkrGeo, true);
+    StatusCode sc = service("TkrGeometrySvc", m_pTkrGeo, true);
     if (sc.isFailure()) {
-        log << MSG::ERROR << "TkrGeometrySvc is required for this algorithm." << endreq;
+        log << MSG::ERROR << "TkrGeometrySvc is required for this algorithm." 
+            << endreq;
         return sc;
     }
     // TkrBadStripsSvc is not required for this algorithm
-    // There are some shenanigans below to ensure that the algorithm runs without it.
-    sc = service("TkrBadStripsSvc", pBadStrips, false);
+    // There are some shenanigans below to ensure that the algorithm 
+    // runs without it.
+    sc = service("TkrBadStripsSvc", m_pBadStrips, false);
     if (sc.isFailure()) {
         log << MSG::INFO << "Algorithm will not filter bad hits." << endreq;   
     }
@@ -71,29 +74,33 @@ StatusCode TkrClusterAlg::execute()
     
     if( sc.isFailure() ) 
     {
-        sc = eventSvc()->registerObject(EventModel::TkrRecon::Event,new DataObject);
+        sc = eventSvc()->registerObject(EventModel::TkrRecon::Event,
+            new DataObject);
         if( sc.isFailure() ) 
         {
-            log << MSG::ERROR << "Could not create TkrRecon directory" << endreq;
+            log << MSG::ERROR << "Could not create TkrRecon directory" 
+                << endreq;
             return sc;
         }
     }
     
     // Recover a pointer to the raw digi objects
-    m_TkrDigis   = SmartDataPtr<TkrDigiCol>(eventSvc(),EventModel::Digi::TkrDigiCol);
+    m_TkrDigis   = SmartDataPtr<TkrDigiCol>(eventSvc(),
+        EventModel::Digi::TkrDigiCol);
     
     // Create the TkrClusterCol TDS object
     m_TkrClusterCol = new TkrClusterCol();
     // Register the object in the TDS
-    sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrClusterCol,m_TkrClusterCol);
+    sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrClusterCol,
+        m_TkrClusterCol);
     
 	// make the clusters
-    TkrMakeClusters maker(m_TkrClusterCol, pTkrGeo, pBadStrips, m_TkrDigis);
+    TkrMakeClusters maker(m_TkrClusterCol, m_pTkrGeo, m_pBadStrips, m_TkrDigis);
 
     // This call is to initialize the static variables in TkrQueryClusters
 	TkrQueryClusters query(m_TkrClusterCol);
-	query.setTowerPitch(pTkrGeo->towerPitch());
-    query.setNumLayers(pTkrGeo->numLayers());
+	query.setTowerPitch(m_pTkrGeo->towerPitch());
+    query.setNumLayers(m_pTkrGeo->numLayers());
 
 	if (m_TkrClusterCol == 0 || m_TkrDigis ==0) sc = StatusCode::FAILURE;
     return sc;
@@ -108,5 +115,3 @@ StatusCode TkrClusterAlg::finalize()
 {	
     return StatusCode::SUCCESS;
 }
-
-

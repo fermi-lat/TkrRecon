@@ -11,7 +11,7 @@
 *
 * @authors Bill Atwood, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.9 2002/08/31 20:14:55 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.10 2002/08/31 21:30:49 lsrea Exp $
 */
 
 #include <vector>
@@ -24,28 +24,35 @@
 class TkrQueryClusters
 {
 public:
-	
+    
     TkrQueryClusters(Event::TkrClusterCol* pClus):m_pClus(pClus) {};
     ~TkrQueryClusters() {};
 
-	/// returns the mean space point in for a given view and layer
+    /// returns the mean space point in for a given view and layer
     Point meanHit(Event::TkrCluster::view v, int layer);
-	/** returns the mean space point for a given layer, view, within "inDistance" of a point Pini
-	*  in the measurement view, and within one tower in the other view.
-	*/
-    Point meanHitInside(Event::TkrCluster::view v, int layer, double inDistance, Point Pini);
-	/** returns the nearest point outside of "inDistance" of a point "Pini" in the measured view, 
-	*  within one tower in the other view, and a ref. to the id
-	*/
-    Point nearestHitOutside(Event::TkrCluster::view v, int layer, double inDistance, 
-		Point Pini, int& id);
-	
-	/// Finds the number of clusters with measured distances inside a square of side 2*inDistance of a point
+    /** returns the mean space point for a given layer, view, within 
+    * "inDistance" of a point Pini in the measurement view, and within 
+    * one tower in the other view.
+    */
+    Point meanHitInside (Event::TkrCluster::view v, int layer, 
+        double inDistance, Point Pini);
+    /** returns the nearest point outside of "inDistance" of a point "Pini"
+    * in the measured view, within one tower in the other view, and a ref. 
+    * to the id
+    */
+    Point nearestHitOutside(Event::TkrCluster::view v, int layer, 
+        double inDistance, Point Pini, int& id);
+    
+    /// Finds the number of clusters with measured distances 
+    /// inside a square of side 2*inDistance of a point
     int numberOfHitsNear( int layer, double inDistance, Point& x0);
-	/// Finds the number of clusters with measured distances inside a rectangle of side 2*dX by 2*dY of a point
+    /// Finds the number of clusters with measured distances 
+    /// inside a rectangle of side 2*dX by 2*dY of a point
     int numberOfHitsNear( int layer, double dX, double dY, Point& x0);
-    /// Finds the number of clusters within "inDistance" of a point and within one tower.
-    int numberOfHitsNear( Event::TkrCluster::view v, int layer, double inDistance, Point& x0);
+    /// Finds the number of clusters within "inDistance" of a point 
+    /// and within one tower.
+    int numberOfHitsNear( Event::TkrCluster::view v, int layer, 
+        double inDistance, Point& x0);
 
     void setTowerPitch(int pitch) { s_towerPitch = pitch;}
     void setNumLayers(int num)    { s_numLayers = num;}
@@ -56,10 +63,10 @@ public:
     
 
 private:
-	/// pointer to the TkrClusterCol
+    /// pointer to the TkrClusterCol
     Event::TkrClusterCol* m_pClus;
 
-    /// gets filled with towerPitch 	
+    /// gets filled with towerPitch     
     static double s_towerPitch;
     /// gets filled with numLayers
     static int s_numLayers;
