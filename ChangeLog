@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: cohen  Thu Sep  5 05:44:19 PDT 2002
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrTrackFitAlg.cxx 
+Log Message:
+a few small fixes to avoid some gcc warnings
+    *
+------------------------------------------------------------
+User: cohen  Thu Sep  5 05:44:19 PDT 2002
 TkrRecon/src/Display
 
 Modified Files:
