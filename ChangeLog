@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Aug 21 08:45:10 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	TkrControl.cxx TkrControl.h 
+Log Message:
+Modify inline definitions for unix build (I hope)
+
+    *
+------------------------------------------------------------
 User: usher  Wed Aug 21 08:31:33 PDT 2002
 TkrRecon/src/Track
 
