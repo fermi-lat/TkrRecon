@@ -9,7 +9,7 @@
 #include "TkrRecon/PatRec/TkrCandidates.h"
 #include "TkrRecon/Cluster/TkrClusters.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
-#include "TkrRecon/Track/TkrFitTrack.h"
+#include "src/TrackFit/KalFitTrack/KalFitTrack.h"
 #include "geometry/Ray.h"
 
 #include <vector>
@@ -64,8 +64,8 @@ private:
     void  incorporate(Candidate);
     
     // data members
-    CandidateList m_candidates;  // List of found hypothesises
-    TkrVector     m_tracks;      // List of attempted fits
+    CandidateList  m_candidates;  // List of found hypothesises
+    TkrFitTrackCol m_tracks;      // List of attempted fits
 
     Point m_Pcal;      // Calorimeter seed point
     Point m_nextHit;   // Space point transfer space

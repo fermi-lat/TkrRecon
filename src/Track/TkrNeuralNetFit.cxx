@@ -8,6 +8,7 @@
 //------------------------------------------------------------------------------
 
 #include "src/Track/TkrNeuralNetFit.h"
+#include "src/TrackFit/KalFitTrack/KalFitTrack.h"
 #include "TkrRecon/Track/GFcontrol.h"
 
 //
@@ -34,8 +35,10 @@ TkrNeuralNetFit::TkrNeuralNetFit(ITkrGeometrySvc* pTkrGeo, TkrClusters* pTkrClus
         double energy   = pCand->energy();
                 
 
-        TkrFitTrack* track = new TkrFitTrack(iniLayer, iniTower, GFcontrol::sigmaCut,
-                                             energy, testRay);                 
+        KalFitTrack* track = new KalFitTrack(iniLayer, iniTower, GFcontrol::sigmaCut, energy, testRay);                 
+
+        track->findHits();
+        track->doFit();
         
         if (!track->empty()) 
         {

@@ -1,4 +1,3 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/TrackFit/KalMatrix.h,v 1.1 2001/11/26 21:48:20 usher Exp $
 //----------------------------------------
 //
 //      Kalman Filter Objects Declarations
@@ -8,12 +7,12 @@
 //      
 //----------------------------------------
 
-#ifndef _KALMATRIX_H
-#define _KALMATRIX_H 1
+#ifndef _TkrFitMatrix_H
+#define _TkrFitMatrix_H 1
 
 #include "CLHEP/Matrix/Matrix.h"
 
-class KalMatrix : public HepMatrix
+class TkrFitMatrix : public HepMatrix
 {
     // Kalman matrices: block diagonal 2 - 2x2's as a 4x4 matrix. 
     // Upper block: X - projection; Lower Block: Y - projection
@@ -22,19 +21,19 @@ class KalMatrix : public HepMatrix
 public:
     // Constructors:
     // A null matrix
-    KalMatrix() : HepMatrix(4, 4, 0) {}
+    TkrFitMatrix() : HepMatrix(4, 4, 0) {}
 
     // Init from a CLHEP matrix 
-    KalMatrix(const HepMatrix &A) : HepMatrix(A) {}
+    TkrFitMatrix(const HepMatrix &A) : HepMatrix(A) {}
 
     // Special constructor to produce propagation matrix F
-    KalMatrix(double step) : HepMatrix(4, 4, 1){
+    TkrFitMatrix(double step) : HepMatrix(4, 4, 1){
 	operator()(1,2) = step;
         operator()(3,4) = step;
     }
 
     // Special constructor to  produce matrix H
-    KalMatrix(int one) : HepMatrix(4, 4, 1){
+    TkrFitMatrix(int one) : HepMatrix(4, 4, 1){
 	operator()(2,2) = 0.;
         operator()(4,4) = 0.;
     }
@@ -48,5 +47,5 @@ public:
     inline double getcovY0Sy()  const {return operator()(3,4);}
 };
 
-#endif _KALMATRIX_H
+#endif 
 

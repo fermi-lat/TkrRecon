@@ -1,4 +1,5 @@
 #include "src/Track/TkrLinkAndTreeFit.h"
+#include "src/TrackFit/KalFitTrack/KalFitTrack.h"
 #include "TkrRecon/Track/GFcontrol.h"
 
 //
@@ -44,9 +45,22 @@ TkrLinkAndTreeFit::TkrLinkAndTreeFit(ITkrGeometrySvc* pTkrGeo, TkrClusters* pTkr
         Ray    testRay  = pCand->ray();
         double eneFrac  = (double)(pCand->numPatCandHits())/totalTrackLength;
         double energy   = eneFrac * CalEnergy;
-                
 
-        TkrFitTrack* track = new TkrFitTrack(iniLayer, iniTower, GFcontrol::sigmaCut, energy, testRay);                 
+        KalFitTrack* track = new KalFitTrack(iniLayer, iniTower, GFcontrol::sigmaCut, energy, testRay);                 
+
+        //Now fill the hits from the pattern track
+        int              numHits = pCand->numPatCandHits();
+        CandHitVectorPtr candPtr = pCand->getCandHitPtr();
+
+        while(numHits--)
+        {
+            TkrPatCandHit candHit = *candPtr++;
+
+            track->addMeasHit(candHit);
+        }
+
+        //Now do the track fit
+        track->doFit();
         
         if (!track->empty()) 
         {

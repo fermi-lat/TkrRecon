@@ -18,8 +18,8 @@ TkrTracks::TkrTracks(ITkrGeometrySvc* pTkrGeo, TkrClusters* pTkrClus)
 
 TkrTracks::~TkrTracks()
 {
-    int          numTracks = getNumTracks();
-    TkrVectorPtr trks      = getTrackPtr();
+    int               numTracks = getNumTracks();
+    TkrFitTrackColPtr trks      = getTrackPtr();
 
     while(numTracks--) delete *trks++;
 }

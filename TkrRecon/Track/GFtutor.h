@@ -5,28 +5,17 @@
 #include "TkrRecon/Cluster/TkrClusters.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 
-class GFsegment;
-class GFtrack;
-class GFparticle;
-class GFpair;
-class GFgamma;
-
 //############################################
 class GFtutor
 //############################################
 {
 public:
 
-	friend class GFsegment;
-	friend class GFtrack;
-	friend class GFparticle;
-	friend class GFpair;
-	friend class GFgamma;
-	friend class GFcandidates;
-	friend class GFdata;
-	friend class GFbase;
 	friend class KalPlane;
-        friend class TkrFitTrack;
+    friend class TkrFitTrack;
+    friend class KalFitTrack;
+    friend class KalFindFitTrack;
+    friend class TkrFitPlane;
 
 	static void GFtutor::load(TkrClusters* scl, ITkrGeometrySvc* pTrkGeo);
 	static void GFtutor::setVeto(bool vt) {CUT_veto = vt;}

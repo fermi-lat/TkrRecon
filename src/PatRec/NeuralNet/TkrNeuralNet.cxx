@@ -226,8 +226,11 @@ void TkrNeuralNet::buildCand()
                 float energy   = (*hypo).energy();
                 
 
-                TkrFitTrack* _track = new TkrFitTrack(iniLayer, iniTower, 
-                                      GFcontrol::sigmaCut, energy, testRay); 
+                KalFitTrack* _track = new KalFitTrack(iniLayer, iniTower, GFcontrol::sigmaCut, energy, testRay); 
+
+                _track->findHits();
+                _track->doFit();
+
                 if (!_track->empty()) 
                 {
                     //Keep pointer to the track temporarily
@@ -252,11 +255,11 @@ void TkrNeuralNet::buildCand()
     // real fit
     if (m_tracks.size())
     {
-        TkrVectorPtr iter = m_tracks.begin();
+        TkrFitTrackColPtr iter = m_tracks.begin();
 
         while(iter != m_tracks.end())
         {
-            TkrFitTrack* pTrack = *iter++;
+            KalFitTrack* pTrack = (KalFitTrack*)(*iter++);
 
             pTrack->unFlagAllHits();
         }

@@ -29,7 +29,7 @@ TkrComboPatRec::~TkrComboPatRec()
 {
     if (m_tracks.size())
     {
-        TkrVectorPtr iter = m_tracks.begin();
+        TkrFitTrackColPtr iter = m_tracks.begin();
 
         while(iter != m_tracks.end())
         {
@@ -89,8 +89,11 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
                 float energy   = (*hypo).energy();
                 
 
-                TkrFitTrack* _track = new TkrFitTrack(iniLayer, iniTower, 
-                                      GFcontrol::sigmaCut, energy, testRay); 
+                KalFitTrack* _track = new KalFitTrack(iniLayer, iniTower, GFcontrol::sigmaCut, energy, testRay); 
+
+                _track->findHits();
+                _track->doFit();
+
                 if (!_track->empty()) 
                 {
                     //Keep pointer to the track temporarily
@@ -125,11 +128,11 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
     //Ok, go through all the attempted track fits and unflag the hits for the real fit
     if (m_tracks.size())
     {
-        TkrVectorPtr iter = m_tracks.begin();
+        TkrFitTrackColPtr iter = m_tracks.begin();
 
         while(iter != m_tracks.end())
         {
-            TkrFitTrack* pTrack = *iter++;
+            KalFitTrack* pTrack = (KalFitTrack*)(*iter++);
 
             pTrack->unFlagAllHits();
         }
@@ -271,7 +274,7 @@ float TkrComboPatRec::findNextHit(int layer, float arc_len, Ray& traj, float &de
         }
     }
     
-    KalMatrix Q = kalPart->mScat_Covr(m_energy, m_arclen); 
+    TkrFitMatrix Q = kalPart->mScat_Covr(m_energy, m_arclen); 
     float sig_meas = .004*m_arclen; 
     float sigma = deflection/sqrt(Q.getcovX0X0() + Q.getcovY0Y0() + sig_meas*sig_meas);
     
@@ -287,8 +290,8 @@ void TkrComboPatRec::incorporate(Candidate trial)
     Ray testRay  = trial.ray();
     float energy = trial.energy();
     
-    TkrFitTrack track(iniLayer, iniTower, m_cut, energy, testRay); 
-    trial.setQuality(track.quality()-6.*iniLayer);
+    KalFitTrack track(iniLayer, iniTower, m_cut, energy, testRay); 
+    trial.setQuality(track.getQuality()-6.*iniLayer);
  
     bool ienter = false;
     for (unsigned int i =0; i <m_candidates.size(); i++) {

@@ -33,8 +33,8 @@ public:
     int  getNumTracks()                {return m_tracks.size();}
 
     // Pointers to track info
-    TkrVectorPtr getTrackPtr()         {return m_tracks.begin();}
-    TkrVectorPtr getTrackEnd()         {return m_tracks.end();}
+    TkrFitTrackColPtr getTrackPtr()    {return m_tracks.begin();}
+    TkrFitTrackColPtr getTrackEnd()    {return m_tracks.end();}
 
     /// Utilities 
     void writeOut(MsgStream& log) const; 
@@ -42,7 +42,7 @@ public:
 protected:	
     
 private:
-    TkrVector m_tracks;
+    TkrFitTrackCol m_tracks;
 };
 
 //Following typedefs for containing fit track objects

@@ -1,20 +1,20 @@
 
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalPar.cxx,v 1.1 2001/11/26 21:51:11 usher Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/TkrFitPar.cxx,v 1.2 2002/02/14 18:46:07 burnett Exp $
 
 //----------------------------------------------------------------------
 //    
 //    Implementation of the Kalman Filter Functions
-//                KalPar 
+//                TkrFitPar 
 //
 //      Original due to Jose Hernando-Angel circa 1997-1999
 //      Re-written to combine both X and Y projections (2001) 
 //      
 //-----------------------------------------------------------------------
 
-#include "TkrRecon/TrackFit/KalPar.h"
+#include "TkrRecon/TrackFit/TkrFitPar.h"
 #include "geometry/Ray.h"
 
-KalPar::KalPar(const Ray &ray) : HepVector(4)
+TkrFitPar::TkrFitPar(const Ray &ray) : HepVector(4)
 {
     Vector dir = ray.direction();
     Point  x0  = ray.position();
@@ -28,7 +28,7 @@ KalPar::KalPar(const Ray &ray) : HepVector(4)
     operator[](3) = y_slope;
 }
 
-KalPar::KalPar(const Ray *ray) : HepVector(4)
+TkrFitPar::TkrFitPar(const Ray *ray) : HepVector(4)
 {
     Vector dir = ray->direction();
     Point  x0  = ray->position();
