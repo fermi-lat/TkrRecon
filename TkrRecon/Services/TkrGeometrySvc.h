@@ -19,7 +19,7 @@ enum { NVIEWS=2, NPLANES=18, NTOWERS=16};
  * 
  * @author Leon Rochester
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometrySvc.h,v 1.10 2002/05/01 04:10:34 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometrySvc.h,v 1.11 2002/05/27 02:43:45 burnett Exp $
  */
 class TkrGeometrySvc : public Service,
         virtual public ITkrGeometrySvc
@@ -39,6 +39,7 @@ public:
     int    numYTowers()      {return m_numY;} 
     int    numViews()        {return m_nviews;}	
     int    numLayers()       {return m_nlayers;}
+	int    nWaferAcross()    {return m_nWaferAcross;}
 
     int    numPlanes()       {return m_nlayers;}
 
@@ -88,7 +89,9 @@ private:
 	/// two views, always!
 	int    m_nviews;        
  	/// total number of x-y layers
-   int    m_nlayers;       
+    int    m_nlayers; 
+    ///  number of wafers in a ladder
+    int m_nWaferAcross;
 
 	/// Distance between centers of adjacent towers
     double m_towerPitch;

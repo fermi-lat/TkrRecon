@@ -43,6 +43,9 @@ StatusCode TkrGeometrySvc::initialize()
     sc = p_GlastDetSvc->getNumericConstByName("xNum", &temp);
     m_numY = temp + .1;
     
+	sc = p_GlastDetSvc->getNumericConstByName("nWaferAcross", &temp);
+	m_nWaferAcross = temp + .1;
+
     m_nviews = 2;
     
     sc = p_GlastDetSvc->getNumericConstByName("numTrays", &temp);
@@ -157,8 +160,8 @@ HepPoint3D TkrGeometrySvc::getDoubleStripPosition(int tower, int layer, int view
     MsgStream log(msgSvc(), name());
 
     // offsets from the corner wafer to the full plane
-    static double ladderOffset = 0.5*(m_numX-1)*(m_siWaferSide + m_ladderGap);
-    static double ssdOffset    = 0.5*(m_numY-1)*(m_siWaferSide + m_ladderInnerGap);
+    static double ladderOffset = 0.5*(nWaferAcross()-1)*(m_siWaferSide + m_ladderGap);
+    static double ssdOffset    = 0.5*(nWaferAcross()-1)*(m_siWaferSide + m_ladderInnerGap);
     
     HepTransform3D volTransform;
     idents::VolumeIdentifier volId;
