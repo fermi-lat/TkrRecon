@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Wed Oct 30 22:42:42 PST 2002
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	TkrComboVtxRecon.cxx 
+Log Message:
+Bill's rework, to better handle hi-energy gammas.
+    *
+------------------------------------------------------------
 User: lsrea  Wed Oct 30 06:57:09 PST 2002
 TkrRecon/src/PatRec/Combo
 
