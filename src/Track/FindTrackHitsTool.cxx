@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.1 2004/11/09 23:21:03 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.2 2004/11/10 22:21:24 atwood Exp $
  */
 
 // to turn one debug variables
@@ -19,7 +19,8 @@
 #include "GaudiKernel/GaudiException.h" 
 #include "GaudiKernel/IParticlePropertySvc.h"
 #include "TkrRecon/Track/IFindTrackHitsTool.h"
-#include "src/TrackFit/KalmanFilterFit/TrackEnergy/RadLossHitEnergy.h"
+#include "TkrRecon/Track/ITkrFitTool.h"
+//#include "src/TrackFit/KalmanFilterFit/TrackEnergy/RadLossHitEnergy.h"
 
 // TDS related stuff
 #include "Event/Recon/TkrRecon/TkrTrack.h"
@@ -58,6 +59,15 @@ public:
 	int FindTrackHitsTool::addLeadingHits(Event::TkrTrack* track);
 
 private:
+    /// Private member methods
+	/// Method to setup the first hit on a track
+	Event::TkrTrackHit* setFirstHit(Event::TkrTrack* track);
+
+	/// Method to find the nearest cluster to the projected track params in the plane
+	Event::TkrCluster* findNearestCluster(int plane, Event::TkrTrackParams* param);
+
+	/// Method to filter the ith step
+    void filterStep(int i) {return;} 
 
     /// Pointer to the local Tracker geometry service
     ITkrGeometrySvc*     m_tkrGeom;
@@ -67,6 +77,9 @@ private:
 
     /// Pointer to the G4 propagator
     IPropagator*         m_propagatorTool;
+
+    /// Pointer to the Kalman Filter tool
+    ITkrFitTool*         m_tkrFitTool;
 
     /// Pointer to the Gaudi data provider service
     IDataProviderSvc*    m_dataSvc;
@@ -79,15 +92,6 @@ private:
 
 	/// Pointer to the TkrClusters
 	Event::TkrClusterCol* m_clusters; 
-
-	/// Method to setup the first hit on a track
-	Event::TkrTrackHit* setFirstHit(Event::TkrTrack* track);
-
-	/// Method to find the nearest cluster to the projected track params in the plane
-	Event::TkrCluster* findNearestCluster(int plane, Event::TkrTrackParams* param);
-
-	/// Method to filter the ith step
-	void filterStep(int i); 
 
 	/// Declared properties to control behavior
 
@@ -159,10 +163,15 @@ StatusCode FindTrackHitsTool::initialize()
     }
 
     //Locate a pointer to the G4Propagator
-    IPropagator* propagatorTool = 0;
-    if( (sc = toolSvc()->retrieveTool("G4PropagationTool", propagatorTool)).isFailure() )
+    if( (sc = toolSvc()->retrieveTool("G4PropagationTool", m_propagatorTool)).isFailure() )
     {
         throw GaudiException("ToolSvc could not find G4PropagationTool", name(), sc);
+    }
+
+    //Locate a pointer to the track fit tool
+    if( (sc = toolSvc()->retrieveTool("KalmanTrackFitTool", m_tkrFitTool)).isFailure() )
+    {
+        throw GaudiException("ToolSvc could not find KalmanTrackFitTool", name(), sc);
     }
 
 	//Locate a pointer to the TrkQueryClusterTool
@@ -195,30 +204,23 @@ StatusCode FindTrackHitsTool::findTrackHits(Event::TkrTrack* track)
     StatusCode sc = StatusCode::SUCCESS;
 
 	bool filter = false;
-	
 
-	while(1) { // Loop until trackHit = 0 / see break point below
+    // Set the first hit on the track here
+    Event::TkrTrackHit* lastHit = setFirstHit(track);
 
-       Event::TkrTrackHit* trackHit = findNextHit(track);
-	   if(trackHit == 0) break;
+    track->push_back(lastHit);
 
-	   // Check on whether to add this hit to the track
+    // Loop until no more track hits found
+    while(Event::TkrTrackHit* trackHit = findNextHit(track))
+    {
+        // Run the filter
+        m_tkrFitTool->doFilterStep(*lastHit, *trackHit);
 
+        // Add this to the track itself
+        track->push_back(trackHit);
 
-       // Add this to the track itself
-       track->push_back(trackHit);
-
-	   int  num_hits = track->getNumHits();  
-
-	   // Filter this last step (updates FIT parameters/cov. portion of hit)
-       if (filter) filterStep(num_hits-1);
-       else { 
-	   // See if there are enough hits to start the filtering process: req. 2x & 2y
-           if(track->getNumXHits() >= 2 && track->getNumYHits() >= 2) {
-               for(int i=0; i<num_hits-1; i++) filterStep(i);
-               filter = true;
-           } 
-        }
+        // update the "last" hit
+        lastHit = trackHit;
 	}
 
 	// Check the minimum criterian for a "found" track
@@ -242,13 +244,10 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrack* track)
 	// Find out the number of hits presently on this track
 	int num_hits = track->getNumHits();
 
-	// Special case: first hit on the track
-	if(num_hits == 0) return setFirstHit(track); 
-
 	// Get starting position and direction
 	Point start_pos;
 	Vector start_dir; 
-	SmartRef<Event::TkrTrackHit> last_hit = (*track)[num_hits-1];
+	SmartRef<Event::TkrTrackHit> last_hit = track->back();
 	start_pos = last_hit->getPoint(Event::TkrTrackHit::FILTERED);
 	start_dir = last_hit->getDirection(Event::TkrTrackHit::FILTERED);
 
@@ -264,7 +263,7 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrack* track)
 	if(delta_z < .1) delta_z  = 0.; //This is the usual case - avoid roundoff crap
 	if(nearest_plane == num_planes-1 || nearest_plane == 0) {
 		// Going out the top or bottom? 
-		if(t_z*delta_z <= 0 ) return trackHit;
+		if(t_z*delta_z <= 0 && delta_z != 0.) return trackHit;
 	}
 	int next_plane = nearest_plane;
 	if(t_z > 0 && nearest_plane < num_planes - 1) { //Going upwards
@@ -328,8 +327,8 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrack* track)
         params(3) = cluster->position().y();
         params(4) = 0.;
 
-        int    measIdx   = trackHit->getParamIndex(true,false);
-        int    nonmIdx   = trackHit->getParamIndex(false,false);
+        int    measIdx   = trackHit->getParamIndex(Event::TkrTrackHit::SSDMEASURED,    Event::TkrTrackParams::Position);
+        int    nonmIdx   = trackHit->getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Position);
         double sigma     = m_tkrGeom->siResolution();
         double sigma_alt = m_tkrGeom->trayWidth() / sqrt(12.);
 
@@ -355,9 +354,9 @@ Event::TkrTrackHit* FindTrackHitsTool::findNextHit(Event::TkrTrack* track)
         params(measIdx,measIdx) = sigma * sigma;
         params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
 	}
-    IFitHitEnergy* m_HitEnergy = new RadLossHitEnergy();
-	double energy = m_HitEnergy->updateHitEnergy(cur_energy, rad_len);
-    trackHit->setEnergy(energy);
+    //IFitHitEnergy* m_HitEnergy = new RadLossHitEnergy();
+	//double energy = m_HitEnergy->updateHitEnergy(cur_energy, rad_len);
+    //trackHit->setEnergy(energy);
     trackHit->setStatusBit(Event::TkrTrackHit::HASMEASURED);
      /*   
         int indexhit = -1;
@@ -418,24 +417,24 @@ Event::TkrTrackHit* FindTrackHitsTool::setFirstHit(Event::TkrTrack* track)
     Event::TkrTrackHit* trackHit = 0;
 
     // Get starting position and direction
-	Vector start_dir  = track->getInitialDirection();
-	Point start_pos = track->getInitialPosition(); 
+	Vector start_dir = track->getInitialDirection();
+	Point  start_pos = track->getInitialPosition(); 
 
     // Check that starting position is inside LAT
 	if(!m_tkrGeom->isInActiveLAT(start_pos)) return trackHit;
 
 	// Find the delta(z) for this step
-	int num_planes = m_tkrGeom->numPlanes();
+	int num_planes    = m_tkrGeom->numPlanes();
     int nearest_plane = m_tkrGeom->getPlane(start_pos.z());
 
 	// Find the closest plane in z and use it irrespective of track direction
-	double delta_z  = m_tkrGeom->getPlaneZ(nearest_plane) - start_pos.z(); 
-	int next_plane  = nearest_plane;
+	double delta_z    = m_tkrGeom->getPlaneZ(nearest_plane) - start_pos.z(); 
+	int    next_plane = nearest_plane;
 
 	// Establish the trajectory to check end point
-	Ray traj(start_pos, start_dir);
-	double t_z = start_dir.z(); 
-	Point end_pos = traj.position(delta_z/t_z); 
+	Ray    traj(start_pos, start_dir);
+	double t_z     = start_dir.z(); 
+	Point  end_pos = traj.position(delta_z/t_z); 
 
     // See if there is a TkrCluster to associate with this track in this plane
 	double x_slope = start_dir.x()/start_dir.z();
@@ -459,33 +458,35 @@ Event::TkrTrackHit* FindTrackHitsTool::setFirstHit(Event::TkrTrack* track)
     //trackHit->setActiveDist(const double d); How to set this?  
 
     // Retrieve a reference to the measured parameters (for setting)
-    Event::TkrTrackParams& params = trackHit->getTrackParams(Event::TkrTrackHit::MEASURED);
+    // Interestingly, vs compiler does not like to reassign the reference, hence use 
+    // different names for measPar and filtPar instead of one variable. Don't ask me why!
+    Event::TkrTrackParams& measPar = trackHit->getTrackParams(Event::TkrTrackHit::MEASURED);
 	// Set measured track parameters
-    params(1) = cluster->position().x();
-    params(2) = 0.;
-    params(3) = cluster->position().y();
-    params(4) = 0.;
+    measPar(1) = cluster->position().x();
+    measPar(2) = 0.;
+    measPar(3) = cluster->position().y();
+    measPar(4) = 0.;
 
-    int    measIdx   = trackHit->getParamIndex(true,false);
-    int    nonmIdx   = trackHit->getParamIndex(false,false);
+    int    measIdx   = trackHit->getParamIndex(Event::TkrTrackHit::SSDMEASURED,    Event::TkrTrackParams::Position);
+    int    nonmIdx   = trackHit->getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Position);
     double sigma     = m_tkrGeom->siResolution();
     double sigma_alt = m_tkrGeom->trayWidth()/sqrt(12.);
 
-    params(measIdx,measIdx) = sigma * sigma;
-    params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
+    measPar(measIdx,measIdx) = sigma * sigma;
+    measPar(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
 
 	// Now do the same for the FILTERED params
-	params = trackHit->getTrackParams(Event::TkrTrackHit::FILTERED);
-	params(1) = cluster->position().x();
-    params(2) = 0.;
-    params(3) = cluster->position().y();
-    params(4) = 0.;
+    Event::TkrTrackParams& filtPar = trackHit->getTrackParams(Event::TkrTrackHit::FILTERED);
+	filtPar(1) = start_pos.x();
+    filtPar(2) = x_slope;
+    filtPar(3) = start_pos.y();
+    filtPar(4) = y_slope;
 	// Make the cov. matrix from the hit position & set the slope elements
 	// using the control parameters
-	params(measIdx,measIdx) = sigma * sigma;
-    params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
-	params(2,2) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
-    params(4,4) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
+	filtPar(measIdx,measIdx) = sigma * sigma;
+    filtPar(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
+	filtPar(2,2) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
+    filtPar(4,4) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
 
     // Last: set the hit status bits
 	unsigned int status_bits = Event::TkrTrackHit::HITONFIT    | Event::TkrTrackHit::HASMEASURED |
@@ -508,11 +509,13 @@ Event::TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, Event::TkrTr
     // Dependencies: Depends on external services and tools looked up at initialization 
     // Restrictions and Caveats:  None
 
+	Event::TkrCluster* found_cluster = 0;
+
 	// First extract the relevant projected hit errors from the parameters
 	int layer, view; 
 	m_tkrGeom->planeToLayer (plane, layer, view);
 	double pos_cov, slope; 
-	if(view != idents::TkrId::eMeasureX) {
+	if(view == idents::TkrId::eMeasureX) {
 		pos_cov = params->getxPosxPos();
 		slope   = params->getxSlope();
 	}
@@ -531,7 +534,7 @@ Event::TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, Event::TkrTr
 	double max_dist = std::max(m_sigma*rError, m_tkrGeom->trayWidth()/4.);  
     
     double x0=params->getxPosition();
-    double y0=params->getxPosition();
+    double y0=params->getyPosition();
     double z0=m_tkrGeom->getPlaneZ(plane);
     Point center(x0,y0,z0);
     Point nearHit(0.,0.,z0);
@@ -540,48 +543,46 @@ Event::TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, Event::TkrTr
     double min_dist = -1.;
     bool done = false;
 	int indexHit = -1; 
-    while (!done) {
-		done = true; 
-        nearHit = m_clusTool->nearestHitOutside(view, m_tkrGeom->reverseLayerNumber(layer), 
-                                                min_dist, center, indexHit);
-		// Check if a cluster was found
-		if (indexHit < 0) break; 
+    while (Event::TkrCluster* cluster = m_clusTool->nearestClusterOutside(view, layer, min_dist, center)) 
+    {
+        Point nearHit = cluster->position();
 
+        // Get difference from cluster center to desired position
         double deltaStrip = (view == idents::TkrId::eMeasureX) ? 
                              fabs(nearHit.x()-center.x()): fabs(nearHit.y()-center.y());
 
+        // update min_dist in case we need to search again
+        min_dist = deltaStrip + 0.5*m_tkrGeom->siResolution();
+
         // Does measured co-ordinate fall outside search region?
-        if (deltaStrip < max_dist){
-            if ((*m_clusters)[indexHit]->hitFlagged()) done = false;
+        if (deltaStrip < max_dist)
+        {
+            // Is this cluster already in use?
+            if (cluster->hitFlagged()) continue; // look for another one
         } 
-		else break;  // outside region 
+		else break;  // outside region, cluster search has failed 
     
         // Check that Cluster size is o.k.
-        if (indexHit > 0 && done) {
-			int meas_cluster_size = (int) (*m_clusters)[indexHit]->size();
+        //if (indexHit > 0 && done) {
+        int    meas_cluster_size = (int) cluster->size();
 
-            double num_strips_hit = m_tkrGeom->siThickness()*fabs(slope)/
-                                    m_tkrGeom->siStripPitch();
-			int pred_cluster_size = std::max(num_strips_hit - 1., 1.);
+        double num_strips_hit    = m_tkrGeom->siThickness()*fabs(slope)/m_tkrGeom->siStripPitch();
+	    int    pred_cluster_size = std::max(num_strips_hit - 1., 1.);
             
-			// Only care if meas. cluster size is too small
-            if (meas_cluster_size < pred_cluster_size) done = false;
-        }
+		// Only care if meas. cluster size is too small
+        if (meas_cluster_size < pred_cluster_size) continue; // look for another one
 
         // Check if predicted hit is inside this tower
 		double outsideTower = (view == idents::TkrId::eMeasureY) ? 
                              fabs(nearHit.x()-center.x()): fabs(nearHit.y()-center.y());
         outsideTower -= m_tkrGeom->trayWidth()/2.;
-        if(outsideTower > 3. && deltaStrip/rError > 2.5 ) done = false;
-    
-        if(done == false) {
-            indexHit = -1;
-            min_dist = deltaStrip + 0.5*m_tkrGeom->siResolution();
-        }
+        if(outsideTower > 3. && deltaStrip/rError > 2.5 ) continue; // look for another one
+
+        // If here then good cluster
+        found_cluster = cluster;
+        break;
     }
     // Return a pointer to the found cluster
-	Event::TkrCluster* found_cluster = 0;
-	if(indexHit > 0) found_cluster = (*m_clusters)[indexHit];
     return found_cluster;
 }
 
