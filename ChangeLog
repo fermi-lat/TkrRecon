@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: burnett  Wed Oct 10 14:11:14 PDT 2001
+TkrRecon/mgr requirements
+
+Modified Files:
+	requirements 
+Log Message:
+reorder to build on unix with CMT v1r9
+    *
+------------------------------------------------------------
 User: usher  Wed Oct 10 08:35:01 PDT 2001
 TkrRecon/src GFcontrol.cpp GFparticle.cpp
 
