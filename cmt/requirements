@@ -58,7 +58,8 @@ library TkrRecon  $(TkrRecon_headers)  \
   -s=PatRec/LinkAndTree $(source)\
   -s=PatRec/Combo $(source)\
   -s=PatRec/NeuralNet $(source)\
-  -s=PatRec/MonteCarlo $(source)\	 
+  -s=PatRec/MonteCarlo $(source)\
+  -s=PatRec/KalFitTrack $(source)\	 
   -s=PatRec/Utilities $(source)\
   -s=Track $(source)\
   -s=TrackFit $(source)\
