@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.16 2002/10/16 18:44:41 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.17 2002/11/01 01:01:47 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, 
@@ -19,6 +19,7 @@ using namespace Event;
 TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
                                  ITkrGeometrySvc* pTkrGeoSvc, 
                                  ITkrBadStripsSvc* pBadStripsSvc, 
+                                 ITkrAlignmentSvc* pAlignmentSvc,
                                  TkrDigiCol* pTkrDigiCol)
 {
     // Purpose: Makes Clusters from TkrDigis
@@ -31,6 +32,8 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
     m_pTkrGeo    = pTkrGeoSvc;
     
     m_pBadStrips = pBadStripsSvc;
+
+    m_pAlignment = pAlignmentSvc;
     
     //Initialize the cluster lists...
     pClus->ini();
@@ -43,6 +46,7 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
         TkrDigi* pDigi = *ppDigi;
 
         int digiLayer  =  pDigi->getBilayer();
+        int layer      =  m_pTkrGeo->reverseLayerNumber(digiLayer);
         int view       =  pDigi->getView();
         int tower      = (pDigi->getTower()).id();
                
@@ -106,11 +110,16 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
                 if (kept = isGoodCluster(lowStrip, highStrip, nBad)) {
                     // debug: std::cout << "good!" << std::endl;
                     // it's good... make a new cluster
-                    int layer = m_pTkrGeo->reverseLayerNumber(digiLayer);
                     int strip0 = lowStrip.getStripNumber();
                     int stripf = highStrip.getStripNumber();
                     Point pos = position(layer, TkrCluster::intToView(view), 
                         strip0, stripf, tower);
+                    HepPoint3D hepPos(pos.x(), pos.y(), pos.z());
+                    if (m_pAlignment && m_pAlignment->alignRec()) {
+                        int ladder = strip0/m_pTkrGeo->ladderNStrips();
+                        m_pAlignment->moveCluster(tower, digiLayer, view, ladder, hepPos);
+                    }
+                    pos = Point(hepPos.x(), hepPos.y(), hepPos.z());
                     TkrCluster* cl = new TkrCluster(nclusters, layer, view, 
                         strip0, stripf, 
                         pos, pDigi->getToTForStrip(stripf), tower);

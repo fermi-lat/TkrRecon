@@ -13,7 +13,7 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrClusterAlg.h,v 1.10 2003/01/07 00:07:50 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrClusterAlg.h,v 1.11 2003/01/10 19:43:22 lsrea Exp $
 */
 
 #include <vector>
@@ -21,6 +21,7 @@
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrBadStripsSvc.h"
+#include "TkrUtil/ITkrAlignmentSvc.h"
 
 #include "Event/Digi/TkrDigi.h"
 
@@ -45,6 +46,8 @@ private:
     ITkrGeometrySvc*         m_pTkrGeo;
     /// pointer to bad strips service
     ITkrBadStripsSvc*        m_pBadStrips;
+    /// pointer to AlignmentSvc
+    ITkrAlignmentSvc*        m_pAlignment;
     
     /// pointer to Tkr digis
     Event::TkrDigiCol*       m_TkrDigis;
