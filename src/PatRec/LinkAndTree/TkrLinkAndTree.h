@@ -23,7 +23,7 @@
 class TkrLinkAndTree : public TkrPatCandCol 
 {
 public:
-    TkrLinkAndTree(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus);
+    TkrLinkAndTree(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pTkrClus, double energy);
    ~TkrLinkAndTree();
 
         //Return information
@@ -56,6 +56,8 @@ private:
 
         //Data members
     int                 numClusters;
+
+    double              m_energy;
 
     TkrClusterLinkList* pLinkListX;
     int                 numLinksX;

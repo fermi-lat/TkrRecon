@@ -222,13 +222,12 @@ void TkrNeuralNet::buildCand()
             
             for(hypo  = m_candidates.begin(); 
                 hypo != m_candidates.end();   hypo++){
-                
+
                 int   iniLayer = (*hypo).firstLayer();
                 int   iniTower = (*hypo).tower();
                 Ray   testRay  = (*hypo).ray();
                 float energy   = (*hypo).energy();
-                
-
+         
                 KalFitTrack* _track = new KalFitTrack(m_clusters, m_tkrGeo, 
                     iniLayer, iniTower, 
                     control->getSigmaCut(), energy, testRay); 
@@ -242,8 +241,19 @@ void TkrNeuralNet::buildCand()
                     m_tracks.push_back(_track);
 
                     //Keep this track (but as a candidate)
-                    TkrPatCand* newTrack = new TkrPatCand(_track->getLayer(),
-                        _track->getTower(),energy,1.,_track->getQuality(),_track->getRay());
+                    TkrPatCand* newTrack = new TkrPatCand(iniLayer, iniTower, energy, 1., 1,_track->getRay());
+
+                    newTrack->setEnergy(energy);
+            
+                    //Add the Hits
+                    TkrFitPlaneConPtr hitPtr = _track->getHitIterBegin();
+                    while(hitPtr != _track->getHitIterEnd())
+                    {
+                        TkrFitPlane hitplane = *hitPtr++;
+                        unsigned hit_ID = hitplane.getIDHit();
+                        TkrCluster * pClus = m_clusters->getHit(hit_ID);
+                        newTrack->addCandHit(pClus);
+                    }
 
                     push_back(newTrack);
 

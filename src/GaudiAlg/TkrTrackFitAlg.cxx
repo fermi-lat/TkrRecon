@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.9 2003/03/12 23:32:21 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.10 2003/03/26 22:05:02 usher Exp $
  */
 
 #include <vector>
@@ -208,24 +208,28 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
     Event::CalClusterCol* pCalClusters = SmartDataPtr<Event::CalClusterCol>(eventSvc(),EventModel::CalRecon::CalClusterCol);
 
     double CalEnergy = pCalClusters->front()->getEnergyCorrected(); 
-    
-    // Get the energy calculation tool
-    TkrTrackEnergyTool* TrackEnergyTool = 0;
-    sc = toolSvc()->retrieveTool("TkrTrackEnergyTool", TrackEnergyTool);
+    double CalSumEne = pCalClusters->front()->getEnergySum();
 
-    TrackEnergyTool->SetTrackEnergies(CalEnergy);
-
-    // Ok, now set up to loop over candidate tracks
-    int                     numCands = pTkrCands->size();
-    Event::TkrPatCandColPtr cands    = pTkrCands->begin();
-    
-    // Go through each candidate and pass to the Gaudi Tool performing the fit
-    // Note that the Gaudi tool will add successfully fit tracks to the fit track collection
-    while(numCands--) 
+    if (CalEnergy > CalSumEne)
     {
-        Event::TkrPatCand* pCand = *cands++;
+        // Get the energy calculation tool
+        TkrTrackEnergyTool* TrackEnergyTool = 0;
+        sc = toolSvc()->retrieveTool("TkrTrackEnergyTool", TrackEnergyTool);
 
-        m_FitTool->doTrackReFit(pCand);
+        TrackEnergyTool->SetTrackEnergies(CalEnergy);
+
+        // Ok, now set up to loop over candidate tracks
+        int                     numCands = pTkrCands->size();
+        Event::TkrPatCandColPtr cands    = pTkrCands->begin();
+    
+        // Go through each candidate and pass to the Gaudi Tool performing the fit
+        // Note that the Gaudi tool will add successfully fit tracks to the fit track collection
+        while(numCands--) 
+        {
+            Event::TkrPatCand* pCand = *cands++;
+
+            m_FitTool->doTrackReFit(pCand);
+        }
     }
 
     return sc;

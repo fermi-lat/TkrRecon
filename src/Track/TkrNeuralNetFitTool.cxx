@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetFitTool.cxx,v 1.6 2003/03/13 19:13:24 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetFitTool.cxx,v 1.7 2003/03/26 22:05:03 usher Exp $
 //
 // Description:
 //      Tool for performing the fit of Neural Net Pat Rec candidate tracks
@@ -91,6 +91,7 @@ StatusCode TkrNeuralNetFitTool::doTrackFit(Event::TkrPatCand* patCand)
     int    iniTower = patCand->getTower();
     Ray    testRay  = patCand->getRay();
     double energy   = patCand->getEnergy();
+    int    type     = (int)(patCand->getQuality()); //New for testing 
         
     Event::TkrKalFitTrack* track  = new Event::TkrKalFitTrack();
     Event::KalFitter*      fitter = new Event::KalFitter(
@@ -99,7 +100,16 @@ StatusCode TkrNeuralNetFitTool::doTrackFit(Event::TkrPatCand* patCand)
         
     //track->findHits(); Using PR Solution to save time
         
-    fitter->findHits();        
+    //Now fill the hits from the pattern track
+    int  numHits = patCand->numPatCandHits();
+    Event::CandHitVectorPtr candPtr = patCand->getHitIterBegin();
+    while(numHits--)
+    {
+        Event::TkrPatCandHit candHit = *candPtr++;
+        fitter->addMeasHit(candHit);
+    }
+    track->setType(type);  
+        
     fitter->doFit();
         
     if (!track->empty(control->getMinSegmentHits())) 

@@ -8,7 +8,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.12 2003/03/24 01:27:51 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.13 2003/03/26 22:05:03 usher Exp $
  */
 
 #include "src/Track/TkrComboFitTool.h"
@@ -212,7 +212,7 @@ StatusCode TkrComboFitTool::doTrackReFit(Event::TkrPatCand* patCand)
             // Is the fit track really a TkrKalFitTrack?
             if (kalFitTrack)
             {
-                TkrControl* control = TkrControl::getPtr();   
+                TkrControl* control = TkrControl::getPtr();  
 
                 // Use KalFitter to refit the track
                 Event::KalFitter* fitter = new Event::KalFitter(pTkrClus, 
@@ -220,6 +220,30 @@ StatusCode TkrComboFitTool::doTrackReFit(Event::TkrPatCand* patCand)
                                                                 kalFitTrack, 
                                                                 control->getSigmaCut(), 
                                                                 patCand->getEnergy()); 
+
+//                //Clear the track hits (need to do this to reset the plane energies)
+//                kalFitTrack->clear();
+//
+//                //Now fill the hits from the pattern track
+//                int  numHits = patCand->numPatCandHits();
+//                Event::CandHitVectorPtr candPtr = patCand->getHitIterBegin();
+//                while(numHits--)
+//                {
+//                    Event::TkrPatCandHit candHit = *candPtr++;
+//                    fitter->addMeasHit(candHit);
+//                }
+//
+                // Reset the plane energies
+                for(Event::TkrFitPlaneColPtr planePtr = kalFitTrack->begin(); planePtr < kalFitTrack->end(); planePtr++)
+                {
+                    Event::TkrFitPlane* plane = &(*planePtr);
+
+                    plane->initializeInfo(plane->getIDHit(),plane->getIDTower(),
+                                          plane->getIDPlane(),plane->getProjection(),
+                                          plane->getNextProj(),plane->getZPlane(),
+                                          patCand->getEnergy(),plane->getRadLen(),
+                                          plane->getActiveDist());
+                }
 
                 fitter->doFit();
             
