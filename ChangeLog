@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Thu Jul 18 14:15:46 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	TkrComboFit.cxx 
+Log Message:
+Put in place a new hit sharing algorithm - shares up to 5 SSD clusters now.  
+    *
+------------------------------------------------------------
 User: atwood  Thu Jul 18 14:14:45 PDT 2002
 TkrRecon/src/Track
 
