@@ -3,6 +3,8 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v8r9p7  29-Apr-2003  LSR   replace hard-wired rad. lengths with calls to TkrGeometrySvc
+  v8r9p6  24-Apr-2003  LSR/TU  fixes for unix and mainpage.h
   v8r9p5  11-Apr-2003  LSR   don't move cluster; wait for fitting to do alignment, for real this time
   v8r9p4  08-Apr-2003  LSR   don't move cluster; wait for fitting to do alignment
   v8r9p3  25-Mar-2003  LSR   fix requirements for RootIo
