@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Mon Sep  2 00:10:22 PDT 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusters.cxx TkrMakeClusters.h 
+Log Message:
+cleanup, modify for new TkrBadStripsSvc, more doc
+    *
+------------------------------------------------------------
 User: lsrea  Mon Sep  2 00:09:17 PDT 2002
 TkrRecon/src/Services
 
