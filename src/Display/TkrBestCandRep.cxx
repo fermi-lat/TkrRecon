@@ -16,7 +16,8 @@ TkrBestCandRep::TkrBestCandRep(TkrCandidates** ppCands, ITkrGeometrySvc* pTkrGeo
 void TkrBestCandRep::update()
 //##############################################
 {
-    TkrCandidates* pTkrCands = *ppTkrCandidates;
+    TkrCandidates*    pTkrCandidates = *ppTkrCandidates;
+    TkrLinkAndTreePR* pTkrCands      = dynamic_cast<TkrLinkAndTreePR*>(pTkrCandidates);
 
     //Zero out the pointer so we don't accidentally try to draw the event
     *ppTkrCandidates = 0;
@@ -55,8 +56,10 @@ const char bstcol_aquamarine[] = "aquamarine";
 const char* pBstColors[] = {bstcol_blue,   bstcol_violet, bstcol_turquoise,
                             bstcol_orange, bstcol_maroon, bstcol_aquamarine};
 
-void TkrBestCandRep::TkrDrawBestCand(TkrCandidates* pTkrCands, TkrPlaneType plane)
+void TkrBestCandRep::TkrDrawBestCand(TkrCandidates* pTkrCandidates, TkrPlaneType plane)
 {
+    TkrLinkAndTreePR* pTkrCands      = dynamic_cast<TkrLinkAndTreePR*>(pTkrCandidates);
+
     //Draw the candidate tracks
     TkrLinkForest* pForest  = pTkrCands->getForest(plane);
     int            nTrees   = pForest->getNumTrees();
@@ -67,8 +70,8 @@ void TkrBestCandRep::TkrDrawBestCand(TkrCandidates* pTkrCands, TkrPlaneType plan
 	//messageManager::instance()->message(" ****************************************");
 	//messageManager::instance()->message(" Number of trees found:", numTrees);
 
-	//Only plot two longest, straightest trees
-	if (nTrees > 2) nTrees = 2;
+	//Only plot six longest, straightest trees
+	if (nTrees > 6) nTrees = 6;
 
 	while(nTrees--)
     {
