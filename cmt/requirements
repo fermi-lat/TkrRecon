@@ -83,4 +83,5 @@ macro jobOptions "" WIN32 "test/jobOptions.txt"
 application TkrTest \
         test/*.cxx $(jobOptions)
 
+make_fragment library_no_share
 
