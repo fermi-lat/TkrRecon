@@ -36,7 +36,7 @@ macro TkrRecon_headers   "" WIN32 "\
  ../TkrRecon/Cluster/*.h\
  ../TkrRecon/PatRec/*.h\
  ../TkrRecon/Track/*.h ../TkrRecon/TrackFit/*.h \
- ../TkrRecon/Vertex/*.h\
+ ../TkrRecon/Vertex/*.h ../TkrRecon/MonteCarlo/*.h \
  ../TkrRecon/GaudiAlg/*.h ../TkrRecon/Display/*.h ../TkrRecon/Services/*.h"
 
 macro source "*.cxx" WIN32 "*.h *.cxx"
@@ -47,10 +47,12 @@ library TkrRecon  $(TkrRecon_headers)  \
   -s=Display $(source)\
   -s=Services $(source)\
   -s=Cluster $(source)\
+  -s=MonteCarlo $(source)\
   -s=PatRec $(source)\
   -s=PatRec/LinkAndTree $(source)\
   -s=PatRec/Combo $(source)\
   -s=PatRec/NeuralNet $(source)\
+  -s=PatRec/MonteCarlo $(source)\
   -s=PatRec/Utilities $(source)\
   -s=Track $(source)\
   -s=TrackFit $(source)\
