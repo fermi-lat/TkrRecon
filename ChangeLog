@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Fri Jul 26 15:40:59 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	TkrComboFit.cxx 
+Log Message:
+Added comments on hit sharing.
+    *
+------------------------------------------------------------
 User: atwood  Fri Jul 26 15:40:32 PDT 2002
 TkrRecon/src/Track
 
