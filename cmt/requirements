@@ -1,5 +1,5 @@
 package TkrRecon
-version v8r11
+version v8r11p3
 
 branches src mgr doc
 
@@ -23,8 +23,9 @@ private
 #-----------------------
 # everything below here is private
 
-use RootIo v*
-use RootPolicy v2r*
+use RootIo v* -no_auto_imports
+use RootPolicy v2r* -no_auto_imports
+
 
 #the following prepend makes the includes folder available locally: avoid the package_include
 macro_prepend includes "-I $(TKRRECONROOT) " WIN32 "/I $(TKRRECONROOT) "

@@ -3,6 +3,7 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v8r11p3 27-Sep-2003  THB   Use new TkrException to project against bad energy
   v8r11p2 18-Aug-2003  TU    "Improvements" to Recon/MC stuff
   v8r11p1
   v8r11
