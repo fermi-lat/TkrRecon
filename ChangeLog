@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Sat Aug 31 14:30:51 PDT 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrBadStripsSvc.cxx TkrGeometryVisitor.cxx 
+Log Message:
+fixing up documentation
+
+    *
+------------------------------------------------------------
 User: lsrea  Sat Aug 31 14:30:50 PDT 2002
 TkrRecon/src/Cluster
 
