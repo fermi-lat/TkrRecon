@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: cohen  Thu Mar 25 13:45:05 PST 2004
+TkrRecon/src/TrackFit/KalmanFilterFit
+
+Modified Files:
+	GlastMatrix.h GlastProcNoiseMatrix.h GlastProjectionMatrix.h 
+	GlastTransportMatrix.h GlastVector.h IFitHitEnergy.h 
+	MonteCarloHitEnergy.h NoProcNoiseMatrix.h RadLossHitEnergy.h 
+Log Message:
+added newline at end of files
+    *
+------------------------------------------------------------
+User: cohen  Thu Mar 25 13:45:05 PST 2004
 TkrRecon/src/Cluster
 
 Modified Files:
