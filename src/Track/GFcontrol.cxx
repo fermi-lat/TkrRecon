@@ -16,6 +16,6 @@ double	  GFcontrol::minEnergy	        = 30.0; // Min tracking energy (MeV)
 double	  GFcontrol::iniErrorSlope      = 0.17; // First Hit error in Kalman: 10 deg 
 double	  GFcontrol::iniErrorPosition   = 0.10; // First Hit error in Kalman: .1 mm
 
-bool      GFcontrol::planeEnergies      = false;// Decrease particle energies by exp(-rad_len)
+bool      GFcontrol::planeEnergies      = true;// Decrease particle energies by exp(-rad_len)
 
 
