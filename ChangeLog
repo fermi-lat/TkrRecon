@@ -1,5 +1,18 @@
 ------------------------------------------------------------
 User: usher  Tue Apr 23 09:28:40 PDT 2002
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+
+Reorganization of the TkrFitTrack class. Goal was to move the actual 
+method of fitting the tracks out of the TkrFitTrack class itself in
+order to make it a "true" TDS class. 
+
+    *
+------------------------------------------------------------
+User: usher  Tue Apr 23 09:28:40 PDT 2002
 TkrRecon/TkrRecon/Vertex
 
 Modified Files:
