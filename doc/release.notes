@@ -3,6 +3,9 @@
  * Package TkrRecon
  * Manager: Leon Rochester 
  * 
+ * v8r4p2  11-Oct-2002  LSR   get the documentation right
+ * v8r4    10-Oct-2002  LSR   fix bug in TkrMakeClusterTable
+ * v8r4    10-Oct-2002  LSR   ....
  * v8r3    09-oct-2002  LSR   RelTables, new TkrPatCand.h
  * v8r2    30-sep-2002  LSR   add TkrMeritTool 
  * v8r1     8-sep-2002  LSR   Update requirements file
