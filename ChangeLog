@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Sun Oct 10 08:22:37 PDT 2004
+TkrRecon/src/Utilities
+
+Modified Files:
+	TkrPoint.cxx TkrPoint.h TkrPoints.cxx 
+Log Message:
+a bit of cleanup
+
+    *
+------------------------------------------------------------
 User: lsrea  Sat Oct  9 22:44:25 PDT 2004
 TkrRecon/src/Utilities
 
