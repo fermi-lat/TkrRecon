@@ -127,12 +127,11 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
         Point               x0         = firstPlane->getPoint(Event::TkrTrackHit::SMOOTHED);
         Vector              dir        = firstPlane->getDirection(Event::TkrTrackHit::SMOOTHED);
 
+        // Do we want to overwrite the initial position and direction? 
         track.setInitialPosition(x0);
         track.setInitialDirection(dir);
         track.setScatter(0.);
 
-        int    last_XLayer      = -1; 
-        int    last_YLayer     = -1;
         int    num_xPlanes      =  0;
         int    num_yPlanes      =  0;
         int    Xgaps            =  0;
@@ -144,7 +143,7 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
         double rad_len          = 0.; 
         int    plane_count      = 1; 
         int    numSegmentPoints = 0; 
-        bool    quit_first      = false; 
+        bool   quit_first       = false; 
 
         // Loop over the hits on the track. Note planes are layers of SSDs
         for(Event::TkrTrackHitVecItr hitPtr = track.begin(); hitPtr != track.end(); hitPtr++)
@@ -152,6 +151,7 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
             Event::TkrTrackHit* hit = *hitPtr;
             rad_len += hit->getRadLen(); 
 
+            // Look for point at which MS dominates hit error 
             if(plane_count > 4 && !quit_first) {
                 double arc_len  = (z0- hit->getZPlane())*cos_inv; 
                 double theta_ms = 13.6/start_energy * sqrt(rad_len) *
@@ -160,52 +160,53 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
                 quit_first  = plane_err > 2.*m_tkrGeom->siStripPitch();
             }
 
-            if ((hit->getStatusBits()& Event::TkrTrackHit::HITONFIT) && hit->validCluster()) { 
-
+            // Count hits used in fit which have clusters
+            if ((hit->getStatusBits()& Event::TkrTrackHit::HITONFIT) && hit->validCluster()) 
+            { 
                 if(!quit_first) numSegmentPoints++;
 
-                int this_plane = m_tkrGeom->trayToPlane(hit->getTkrId().getTray(),hit->getTkrId().getBotTop());
-                bool xPlane = hit->getTkrId().getView() == idents::TkrId::eMeasureX; 
 
                 if(hit->validSmoothedHit()) {
                     double x  = hit->getMeasuredPosition(Event::TkrTrackHit::SMOOTHED);
                     double xm = hit->getMeasuredPosition(Event::TkrTrackHit::MEASURED);
 
-                    int this_layer, view;
-                    m_tkrGeom->planeToLayer(this_plane, this_layer, view);  
+                    if (hit->getTkrId().getView() == idents::TkrId::eMeasureX) num_xPlanes++;
+                    else                                                       num_yPlanes++;
 
-                    if (xPlane) {
-                        num_xPlanes++;
-                        if(last_XLayer >= 0) {
-                            Xgaps += last_XLayer - this_layer - 1; 
-                            if(num_xPlanes < 3 || !quit_first) track.setNumXFirstGaps(Xgaps);
-                        }
-                        last_XLayer = this_layer; 
-                    }
-                    else {
-                        num_yPlanes++; 
-                        if(last_YLayer>= 0) {
-                            Ygaps += last_YLayer- this_layer - 1;
-                            if(num_yPlanes < 3 || !quit_first) track.setNumYFirstGaps(Ygaps);
-                        } 
-                        last_YLayer= this_layer;
-                    }
                     rmsResid+= (x-xm)*(x-xm);
                     plane_count++; 
                 }
             }
+            // Missing hit (gap) 
+            else
+            {
+                // What was the view of the (expected) plane with no hit?
+                bool xPlane = hit->getTkrId().getView() == idents::TkrId::eMeasureX; 
+
+                // Keep track of the gaps
+                if (hit->getTkrId().getView() == idents::TkrId::eMeasureX)
+                {
+                    Xgaps++;
+                    if (num_xPlanes < 3 || !quit_first) track.setNumXFirstGaps(Xgaps);
+                }
+                else
+                {
+                    Ygaps++;
+                    if (num_yPlanes < 3 || !quit_first) track.setNumYFirstGaps(Xgaps);
+                }
+            }
         }
+
+        // average rms residual of hits with clusters
         rmsResid=sqrt(rmsResid/(1.*plane_count));
 
+        // Set parameters in track
         track.setScatter(rmsResid);
         track.setNumSegmentPoints(numSegmentPoints);
         track.setNumXHits(num_xPlanes);
         track.setNumYHits(num_yPlanes); 
         track.setNumXGaps(Xgaps);
         track.setNumYGaps(Ygaps);
-
-        // Energy calculations
-        eneDetermination(track);
 
         // Segment Calculation
         if (track.getChiSquareFilter() >= 0) {
@@ -288,10 +289,10 @@ void TrackFitUtils::eneDetermination(Event::TkrTrack& track)
     idents::TkrId hitId = track[0]->getTkrId();
     int old_BiLayer_Id = m_tkrGeom->trayToBiLayer(hitId.getTray(),hitId.getBotTop());
 
-    for (Event::TkrTrackHitVecItr planeIter = track.begin(); planeIter != track.end(); planeIter++)
+    for (Event::TkrTrackHitVecItr hitIter = track.begin(); hitIter != track.end(); hitIter++)
     { 
         // Get the last cluster size for range estimation
-        const Event::TkrTrackHit& plane   = **planeIter;
+        const Event::TkrTrackHit& plane   = **hitIter;
 
         if (!((plane.getStatusBits() & Event::TkrTrackHit::HITONFIT)&& plane.validSmoothedHit())) continue;
 
@@ -309,7 +310,7 @@ void TrackFitUtils::eneDetermination(Event::TkrTrack& track)
             sY += plane.getTrackParams(Event::TkrTrackHit::SMOOTHED).getySlope();
             radLen += plane.getRadLen(); 
             count += 1.; 
-            if(planeIter != track.end()) continue;
+            if(hitIter != track.end()) continue;
         }
         totalRad += radLen;    
         Vector t1 = Vector(-sX/count, -sY/count, -1.).unit();
