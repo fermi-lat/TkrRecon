@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: lsrea  Fri Mar  8 16:58:06 PST 2002
+TkrRecon/TkrRecon/Display
+
+Modified Files:
+	TkrRecObjsRep.h 
+Log Message:
+Remove unused GFxxx.h, .cxx and SiRecObjs.h,.cxx files, 
+and comment out references to them in the remaining files.
+These are mainly the ntuple algorithms, which need fixing anyway.
+GFcontrol and GFtutor are still needed.
+
+    *
+------------------------------------------------------------
 User: usher  Thu Mar  7 09:33:08 PST 2002
 TkrRecon/src/TrackFit
 
