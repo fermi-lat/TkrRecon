@@ -16,41 +16,41 @@
 /** 
 * @class TkrMakeClusters
 *
-* @brief methods to generate the clusters, 
-* and methods used by subsequent algorithms to mark clusters as used.
+* @brief generates the clusters when invoked
 *
-* The methods take into account the bad strips.
+* TkrMakeClusters takes the bad strips into account by merging the list 
+* of hits in a layer with the list of known bad strips. 
+* The good and bad hits are marked, using tagGood() and tagBad(), so they can be recognized, 
+* but the mechanism is (mostly) hidden in the TkrBadStripsSvc. untag() must be invoked on the
+* tagged strips before they can be used in calculations.
+*  
+* What constititutes a gap and a good cluster is defined by the code in isGapBetween() and
+* isGoodCluster(), respectively.
+*    
+* A set of adjacent hits followed by a gap is a potential cluster. 
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.7 2002/05/11 16:06:29 lsrea Exp $
-*/
+* A gap may be a non-hit strip, or the space between ladders. 
+* For each potential cluster, we ask if it contains any good hits.  
+* If so, the cluster is added, if not, it is dropped.
+* 
+* One can imagine other criteria for dropping a cluster, such as too many hits.    
 
-//namespace Event { //Namespace
+* @author Leon Rochester
+*
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.8 2002/05/12 05:52:59 usher Exp $
+*/
 
 class TkrMakeClusters
 {
 public:
 	/// default constructor: passes pointers to services and classes, and makes the clusters
 	
-	/** The strategy for finding clusters is to merge the list 
-	* of hits in a layer with the list of known bad strips. 
-	* The good and bad hits are marked so they can be recognized, 
-	* but the mechanism is (mostly) hidden in the TkrBadStripsSvc.
-	*  
-	* What constititutes a gap and a good cluster is defined by the code in isGap and
-	* isGoodCluster, respectively.
-	*    
-	* A set of adjacent hits followed by a gap is a potential cluster. 
-	* A gap may be a non-hit strip, or the space between ladders. 
-	* For each potential cluster, we ask if it contains any good hits.  
-	* If so, the cluster is added, if not, it is dropped. 
-	* There may be other criteria for dropping a cluster, such as too many hits.      
-	*/
-
-    /// large number, used as a sentinel in the strip list
+   /// large number, used as a sentinel in the strip list
     enum {bigStripNum = 0x7FFFFF};
 
 	/// This constructor actually makes the clusters
 	/// the pointers to services and data are passed through the constructor
+
     TkrMakeClusters(Event::TkrClusterCol* pClus, 
 		ITkrGeometrySvc* pTkrGeo, ITkrBadStripsSvc* pBadStrips, 
         Event::TkrDigiCol* pTkrDigiCol);
@@ -81,14 +81,7 @@ private:
 	
     /// Keep pointer to the bad strip service
     ITkrBadStripsSvc* pBadStrips;
-		
-	// from the geometry service
-	int numViews;
-	// from the geometry service
-	int numPlanes;
-	/// cluster list
 };
 
-//}; // Namespace
 
 #endif // TKRMAKECLUSTERS

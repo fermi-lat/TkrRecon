@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrDigi/src/test/test_TkrDigi.cxx,v 1.1 2002/08/25 17:13:12 lsrea Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.1 2002/08/26 21:57:43 lsrea Exp $
 
 // Include files
 // Gaudi system includes
@@ -73,10 +73,10 @@ StatusCode test_TkrRecon::initialize(){
 //! process an event
 StatusCode test_TkrRecon::execute()
 {
-
+    
     // First stab a a test program
     // can be fleshed out as required
-
+    
     StatusCode  sc = StatusCode::SUCCESS;
     MsgStream   log( msgSvc(), name() );
     log << MSG::INFO << endreq <<  "Call " << ++m_count << ": " ;
@@ -92,8 +92,8 @@ StatusCode test_TkrRecon::execute()
     } else {
         log << digiCol->size() << " TKR digis found " << endreq;
     }
-
-        // get the cluster data from the TDS
+    
+    // get the cluster data from the TDS
     SmartDataPtr<Event::TkrClusterCol> clusterData(eventSvc(), EventModel::TkrRecon::TkrClusterCol);
     
     if (clusterData==0) {
@@ -114,7 +114,7 @@ StatusCode test_TkrRecon::execute()
     else {
         log << MSG::INFO  << candData->getNumCands() << " candidate tracks(s) found" << endreq;
     }
-
+    
     // and the TkrFitTracks
     SmartDataPtr<Event::TkrFitTrackCol> trackData(eventSvc(), EventModel::TkrRecon::TkrFitTrackCol);
     
@@ -125,16 +125,25 @@ StatusCode test_TkrRecon::execute()
     else {
         log << MSG::INFO  << trackData->size() << " Fit track(s) found" << endreq;
     }
-
+    
     // and The Vertices
     SmartDataPtr<Event::TkrVertexCol> vertexData(eventSvc(), EventModel::TkrRecon::TkrVertexCol);
-
+    
     if (vertexData==0) {
         log << MSG::INFO << "no TkrVertexCol found" << endreq;
         sc = StatusCode::FAILURE;        
         return sc;}
     else {
         log << MSG::INFO  << vertexData->size() << " Vertex/Vertices found" << endreq;
+        if (vertexData->size()>0) {
+            Event::TkrVertexCol::const_iterator vptr = vertexData->begin();
+            Point vert = (*vptr)->getPosition();
+            Vector dir = (*vptr)->getDirection();
+            log << MSG::INFO <<  "First Vertex: Position: (" << vert.x()<< "," << vert.y() 
+                << "," << vert.z() << ")"<< endreq;
+            log << MSG::INFO <<  "             Direction: (" << dir.x()<< "," << dir.y() 
+                << "," << dir.z() << ")"<< endreq;
+        }
     }
     
     return sc;

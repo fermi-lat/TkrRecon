@@ -1,10 +1,11 @@
 #include "TkrRecon/Services/TkrGeometryVisitor.h"
 #include <iostream>
+using namespace std;
 
 TkrGeometryVisitor::TkrGeometryVisitor() : m_mode("propagate") {}
 
 /*
-* This is a toy example.
+* This is a toy example, which illustrates the features of a visitor
 *
 * This visitor looks for silicon layers in tower number 9, 
 * and prints out the parameters associated with them.  
@@ -18,15 +19,23 @@ TkrGeometryVisitor::TkrGeometryVisitor() : m_mode("propagate") {}
 */
 
 IGeometry::VisitorRet
-TkrGeometryVisitor::pushShape(ShapeType s, const UintVector& idvec, std::string name, 
-							  std::string material, const DoubleVector& params, VolumeType type)
+TkrGeometryVisitor::pushShape(ShapeType s, const UintVector& idvec, string name, 
+							  string material, const DoubleVector& params, VolumeType type)
 {
-	int i;
+	// Purpose:  returns at each node of the geometry
+    // Parameters:  s -- type of shape
+    //              id -- vector of inspecified ints
+    //              name 
+    //              material
+    //              params   -- vector of the 6 transformation parameters
+    //                          followed by 3 or more dimensions, depending on th shape
+
+    int i;
     
 	// each call is further down the chain.  We will encounter the row of y-towers first
 	
 	if(name=="oneCAL") {
-		std::cout << " encountered a CAL " << std::endl;
+		cout << " encountered a CAL " << endl;
 		return AbortSubtree;
 	}
 	
@@ -42,7 +51,7 @@ TkrGeometryVisitor::pushShape(ShapeType s, const UintVector& idvec, std::string 
 		//now we can make up a TowerID
 		m_tower = idents::TowerId(m_towerX, m_towerY);
 		if(m_tower.id()==9) {
-			std::cout << "Tower " << m_tower.id() << std::endl;
+			cout << "Tower " << m_tower.id() << endl;
 		} else {
 			return AbortSubtree;
 		}	
@@ -56,12 +65,12 @@ TkrGeometryVisitor::pushShape(ShapeType s, const UintVector& idvec, std::string 
 		}
 		
 		if(m_tower.id()==9) {
-			std::cout << "     Tray " << m_tray << " " << name << " view " << m_view << std::endl;
-			std::cout << "        params " ;
+			cout << "     Tray " << m_tray << " " << name << " view " << m_view << endl;
+			cout << "        params " ;
 			for (i=0;i<9;i++) {
-				std::cout << m_param[i] << " " ;
+				cout << m_param[i] << " " ;
 			}
-			std::cout << std::endl;
+			cout << endl;
 		}
 	}
 	
@@ -71,7 +80,7 @@ TkrGeometryVisitor::pushShape(ShapeType s, const UintVector& idvec, std::string 
 		m_layer = m_tray - 1 + m_botTop;
 		
 		if (m_tower.id()==9) {
-			std::cout << "           layer " << m_layer << " topBot " << m_botTop << std::endl;
+			cout << "           layer " << m_layer << " topBot " << m_botTop << endl;
 		}
 	}
 	

@@ -80,7 +80,7 @@ StatusCode TkrBadStripsSvc::initialize()
 
     sc = service("TkrGeometrySvc", pTkrGeom, true);
     
-    m_ntowers = pTkrGeom->numYTowers()*pTkrGeom->numYTowers();
+    m_ntowers = pTkrGeom->numXTowers()*pTkrGeom->numYTowers();
 
     m_nlayers = pTkrGeom->numLayers();
     m_nviews  = pTkrGeom->numViews();
@@ -166,7 +166,7 @@ void TkrBadStripsSvc::readFromFile(std::ifstream* file)
 		int view = element/2;
 
         v_strips* v;
-        if (makestrips) v = getBadStrips(tower, layer, (TkrAxis::axis) view);
+        if (makestrips) v = getBadStrips(tower, layer, static_cast<idents::GlastAxis::axis>(view) );
         int strip = -1;
         *file >>  strip;
         while (strip>=0) {
@@ -186,7 +186,7 @@ void TkrBadStripsSvc::readFromFile(std::ifstream* file)
     return;
 }
 
-int TkrBadStripsSvc::getIndex(const int tower, const int layer, const TkrAxis::axis axis) 
+int TkrBadStripsSvc::getIndex(const int tower, const int layer, const idents::GlastAxis::axis axis) 
 {
     // Purpose:  calculate index into array of vectors
 	// Inputs:   tower, bilayer, axis
@@ -195,8 +195,8 @@ int TkrBadStripsSvc::getIndex(const int tower, const int layer, const TkrAxis::a
 	int view; 
     // this is to decouple the store from the current definition of axes
     // not that it will ever change
-    if (axis==TkrAxis::X)  {view = 0;}
-    else if (axis==TkrAxis::Y) {view = 1;}
+    if (axis==idents::GlastAxis::X)  {view = 0;}
+    else if (axis==idents::GlastAxis::Y) {view = 1;}
     else {return 0;}
     return view + m_nviews*(layer + m_nlayers*tower);
 }
@@ -212,7 +212,7 @@ void TkrBadStripsSvc::addStrip(v_strips* v, const int strip)
     return;
 }
 
-v_strips* TkrBadStripsSvc::getBadStrips(const int tower, const int layer, const TkrAxis::axis axis)
+v_strips* TkrBadStripsSvc::getBadStrips(const int tower, const int layer, const idents::GlastAxis::axis axis)
 {
     // Purpose:  return pointer to a bad strip vector
 	// Inputs:   tower, layer, axis
@@ -270,7 +270,7 @@ bool TkrBadStripsSvc::isTaggedBad(const int taggedStrip)
 
 
 bool TkrBadStripsSvc::isBadStrip(const int tower, const int layer, 
-                                 const TkrAxis::axis axis, const int strip) 
+                                 const idents::GlastAxis::axis axis, const int strip) 
 {
     // Purpose: determine if a given strip is bad
 	// Inputs:  tower, bilayer, axis, strip#

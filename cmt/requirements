@@ -14,7 +14,7 @@ use geometry
 use xml
 
 use Recon
-use G4Generator
+#use G4Generator
 
 set JOBOPTIONS ${TKRRECONROOT}/src/test/jobOptions.txt
 
