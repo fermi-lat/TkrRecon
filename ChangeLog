@@ -1,5 +1,19 @@
 ------------------------------------------------------------
 User: usher  Tue Apr 23 15:08:07 PDT 2002
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	TkrComboVtxRecon.cxx 
+Log Message:
+
+Three modifications: 1) LinkAndTreeFit now uses "hit finding" mode of fitter
+(again), 2) KalFitTrack expands the error in the non-measuring plane to avoid
+"ziz-zag" tracks at high angles, 3) TkrComboVtxRecon modified to not look at 
+already used tracks and to cut on arclength to doca position.
+
+    *
+------------------------------------------------------------
+User: usher  Tue Apr 23 15:08:07 PDT 2002
 TkrRecon/src/TrackFit/KalFitTrack
 
 Modified Files:
