@@ -7,12 +7,12 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.h,v 1.3 2003/01/10 19:43:25 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.h,v 1.4 2003/03/13 19:13:24 lsrea Exp $
  */
 
 #ifndef TKRCOMBOFITTOOL_H
 #define TKRCOMBOFITTOOL_H
-
+/*
 #include "GaudiKernel/AlgTool.h"
 #include "GaudiKernel/DataSvc.h"
 #include "TkrRecon/Track/ITkrFitTool.h"
@@ -41,5 +41,5 @@ private:
     /// Pointer to the Gaudi data provider service
     DataSvc*        pDataSvc;
 };
-
+*/
 #endif

@@ -1,11 +1,15 @@
-// File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.11 2003/03/13 19:13:24 lsrea Exp $
-//
-// Description:
-//      Tool for performing the fit of Combo Pat Rec candidate tracks
-//
-// Author:
-//      The Tracking Software Group  
+/**
+ * @class TkrComboFitTool
+ *
+ * @brief Implements a Gaudi Tool for performing a track fit. This version uses 
+ *        candidate tracks from the Combo Pattern Recognition which are then fit
+ *        with KalFitTrack 
+ *
+ * @author The Tracking Software Group
+ *
+ * File and Version Information:
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.12 2003/03/24 01:27:51 lsrea Exp $
+ */
 
 #include "src/Track/TkrComboFitTool.h"
 #include "GaudiKernel/ToolFactory.h"
@@ -19,6 +23,38 @@
 #include "src/TrackFit/KalFitTrack/KalFitter.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "src/Track/TkrControl.h"
+
+#include "GaudiKernel/AlgTool.h"
+#include "GaudiKernel/DataSvc.h"
+#include "TkrRecon/Track/ITkrFitTool.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrFailureModeSvc.h"
+
+class TkrComboFitTool : public AlgTool, virtual public ITkrFitTool
+{
+public:
+    /// Standard Gaudi Tool interface constructor
+    TkrComboFitTool(const std::string& type, const std::string& name, const IInterface* parent);
+    virtual ~TkrComboFitTool() {}
+
+    /// @brief Method to fit a single candidate track. Will retrieve any extra info 
+    ///        needed from the TDS, then create and use a new KalFitTrack object to 
+    ///        fit the track via a Kalman Filter. Successfully fit tracks are then 
+    ///        added to the collection in the TDS.
+    StatusCode doTrackFit(Event::TkrPatCand* patCand);
+
+    /// @brief Method to re-fit a single candidate track. Re-uses the existing fit track
+    StatusCode doTrackReFit(Event::TkrPatCand* patCand);
+
+private:
+    /// Pointer to the local Tracker geometry service
+    ITkrGeometrySvc*    m_geoSvc;
+    /// Pointer to the failure service
+    ITkrFailureModeSvc* pTkrFailSvc;
+
+    /// Pointer to the Gaudi data provider service
+    DataSvc*            pDataSvc;
+};
 
 static ToolFactory<TkrComboFitTool> s_factory;
 const IToolFactory& TkrComboFitToolFactory = s_factory;
@@ -37,10 +73,13 @@ TkrComboFitTool::TkrComboFitTool(const std::string& type, const std::string& nam
     IService*   iService = 0;
     StatusCode  sc       = serviceLocator()->getService("TkrGeometrySvc", iService, true);
 
-    pTkrGeoSvc = dynamic_cast<ITkrGeometrySvc*>(iService);
+    m_geoSvc = dynamic_cast<ITkrGeometrySvc*>(iService);
 
-    // which stores a pointer to the failuremode service
-    pTkrFailSvc = pTkrGeoSvc->getTkrFailureModeSvc();
+    //Locate and store a pointer to the geometry service
+    iService = 0;
+    sc = serviceLocator()->getService("TkrFailureModeSvc", iService, true);
+
+    pTkrFailSvc = dynamic_cast<ITkrFailureModeSvc*>(iService);
 
     iService = 0;
     //Locate and store a pointer to the data service
@@ -68,7 +107,7 @@ StatusCode TkrComboFitTool::doTrackFit(Event::TkrPatCand* patCand)
     TkrControl* control = TkrControl::getPtr();   
     Event::TkrKalFitTrack* track  = new Event::TkrKalFitTrack();
     Event::KalFitter*      fitter = new Event::KalFitter(
-        pTkrClus, pTkrGeoSvc, track, iniLayer, iniTower,
+        pTkrClus, m_geoSvc, track, iniLayer, iniTower,
         control->getSigmaCut(), energy, testRay);                 
         
     //track->findHits(); Using PR Solution to save time
@@ -126,8 +165,8 @@ StatusCode TkrComboFitTool::doTrackFit(Event::TkrPatCand* patCand)
                 }        
                 int hit_Id = plane.getIDHit();;
                 double cls_size = pTkrClus->size(hit_Id);        
-                double prj_size = pTkrGeoSvc->siThickness()*fabs(slope)
-                    /pTkrGeoSvc->siStripPitch() + 1.;
+                double prj_size = m_geoSvc->siThickness()*fabs(slope)
+                    /m_geoSvc->siStripPitch() + 1.;
                 if(cls_size> prj_size) {
                     fitter->unFlagHit(i_Hit);
                     i_share++;
@@ -143,6 +182,52 @@ StatusCode TkrComboFitTool::doTrackFit(Event::TkrPatCand* patCand)
     }
 
     delete fitter;
+
+    return sc;
+}
+
+
+StatusCode TkrComboFitTool::doTrackReFit(Event::TkrPatCand* patCand)
+{
+    //Always believe in success
+    StatusCode sc = StatusCode::SUCCESS;
+
+    //Retrieve the pointer to the reconstructed clusters
+    Event::TkrClusterCol* pTkrClus = SmartDataPtr<Event::TkrClusterCol>(pDataSvc,EventModel::TkrRecon::TkrClusterCol); 
+
+    // Recover the pat track - fit track relational table
+    //SmartDataPtr<Event::TkrFitTrackTabList> trackRelTab(pDataSvc,EventModel::TkrRecon::TkrTrackTab);
+    Event::TkrFitTrackTab  trackRelTab(SmartDataPtr<Event::TkrFitTrackTabList >(pDataSvc,EventModel::TkrRecon::TkrTrackTab));
+
+    // Make sure we have some tracks to work with here!
+    if (trackRelTab.getAllRelations())
+    {
+        Event::TkrFitTrackBase* baseFitTrack = trackRelTab.getRelByFirst(patCand)[0]->getSecond();
+
+        // Does fit track really exist?
+        if (baseFitTrack)
+        {
+            Event::TkrKalFitTrack*  kalFitTrack  = dynamic_cast<Event::TkrKalFitTrack*>(baseFitTrack);
+
+            // Is the fit track really a TkrKalFitTrack?
+            if (kalFitTrack)
+            {
+                TkrControl* control = TkrControl::getPtr();   
+
+                // Use KalFitter to refit the track
+                Event::KalFitter* fitter = new Event::KalFitter(pTkrClus, 
+                                                                m_geoSvc, 
+                                                                kalFitTrack, 
+                                                                control->getSigmaCut(), 
+                                                                patCand->getEnergy()); 
+
+                fitter->doFit();
+            
+                delete fitter;
+            }
+        }
+    }
+
 
     return sc;
 }

@@ -1,9 +1,9 @@
 #ifndef __TKRVERTEXALG_H
 #define __TKRVERTEXALG_H 1
-
+/*
 #include "GaudiKernel/Algorithm.h"
 #include "src/Vertex/IVtxBaseTool.h"
-
+*/
 /** 
  * @class TkrVertexAlg
  *
@@ -20,9 +20,9 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrVertexAlg.h,v 1.6 2002/08/20 19:54:31 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrVertexAlg.h,v 1.7 2002/08/28 22:55:46 usher Exp $
  */
-
+/*
 class TkrVertexAlg : public Algorithm
 {
 public:
@@ -42,5 +42,5 @@ private:
     // Yet another fine tool from Sears
     IVtxBaseTool* m_VtxTool;
 };
-
+*/
 #endif // __TKRVERTEXALG_H

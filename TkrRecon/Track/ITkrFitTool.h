@@ -26,5 +26,8 @@ class ITkrFitTool : virtual public IAlgTool
   /// @brief Given a pattern track, perform the track fit
   virtual StatusCode doTrackFit(Event::TkrPatCand* patCand)=0;
 
+  /// @brief Given a pattern track, perform the track re-fit
+  virtual StatusCode doTrackReFit(Event::TkrPatCand* patCand)=0;
+
 };
 #endif

@@ -1,21 +1,29 @@
-// File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.7 2003/01/29 23:20:26 lsrea Exp $
-//
-// Description:
-//      Controls the track fitting
-//
-// Adapted from SiRecObjsAlg by Bill Atwood and Jose Hernando (05-Feb-1999)
-//
-// Author:
-//      Tracy Usher       
 
+/** 
+ * @class TkrTrackFitAlg
+ *
+ * @brief TkrRecon Gaudi Algorithm for controlling the fit of candidate tracks. 
+ *        Gaudi Tools are used to implement a particular type of track fit, in 
+ *        particular allowing a match to the output of a particular pattern 
+ *        recognition algorithm. This algorithm controls their creation and use. 
+ *        This algorithm depends upon input from the clustering and track finding
+ *        stages of TkrRecon. Results are output to the TDS class TkrFitTrack
+ *        Algorithm has two modes: First Pass and Iteration
+ * 
+ * @author The Tracking Software Group
+ *
+ * File and Version Information:
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.9 2003/03/12 23:32:21 usher Exp $
+ */
 
 #include <vector>
-#include "TkrRecon/GaudiAlg/TkrTrackFitAlg.h"
+
+#include "GaudiKernel/Algorithm.h"
+
+#include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "Event/Recon/TkrRecon/TkrFitTrack.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "Event/Recon/TkrRecon/TkrTrackTab.h"
-
 #include "Event/Recon/CalRecon/CalCluster.h"
 #include "Event/TopLevel/EventModel.h"
 
@@ -29,6 +37,34 @@
 #include "GlastSvc/Reco/IPropagatorSvc.h"
 #include "GlastSvc/Reco/IPropagatorTool.h"
 #include "GaudiKernel/IToolSvc.h"
+
+#include "src/Track/TkrTrackEnergyTool.h"
+#include "TkrRecon/Track/ITkrFitTool.h"
+
+class TkrTrackFitAlg : public Algorithm
+{
+public:
+    // Standard Gaudi Algorithm constructor format
+    TkrTrackFitAlg(const std::string& name, ISvcLocator* pSvcLocator); 
+    virtual ~TkrTrackFitAlg() {}
+
+    // The thee phases in the life of a Gaudi Algorithm
+    StatusCode initialize();
+    StatusCode execute();
+    StatusCode finalize();
+    
+private:
+
+    /// First pass track fit
+    StatusCode doTrackFit();
+    StatusCode doTrackReFit();
+
+    /// Type of fit to perform
+    std::string  m_TrackFitType;
+
+    /// Always use Sears Craftsmen tools for the job
+    ITkrFitTool* m_FitTool;
+};
 
 // Used by Gaudi for identifying this algorithm
 static const AlgFactory<TkrTrackFitAlg>  Factory;
@@ -92,17 +128,31 @@ StatusCode TkrTrackFitAlg::execute()
     // Dependencies: None
     // Restrictions and Caveats:  None
 
+    StatusCode sc = StatusCode::SUCCESS;
+
+    // What to do depends upon first track fit or iteration
+    if (name() != "TkrFitIter") sc = doTrackFit();
+    else                        sc = doTrackReFit();
+
+    return sc;
+}
+
+StatusCode TkrTrackFitAlg::doTrackFit()
+{
+    // Purpose and Method: Called each event for initial (first) track fit
+    // Inputs:  None
+    // Outputs:  StatusCode upon completetion
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
     MsgStream log(msgSvc(), name());
     StatusCode sc = StatusCode::SUCCESS;
 
     log << MSG::DEBUG; 
     if (log.isActive()) {
-        log << "------- Recon of new Event --------";
+        log << "------- TkrRecon First Track Fit --------";
     }
     log << endreq;
-
-    // Recover pointer to the reconstructed clusters NOT USED
-    //    Event::TkrClusterCol* TkrClusters = SmartDataPtr<Event::TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol); 
 
     // Find the collection of candidate tracks
     Event::TkrPatCandCol* pTkrCands   = SmartDataPtr<Event::TkrPatCandCol>(eventSvc(),EventModel::TkrRecon::TkrPatCandCol);
@@ -129,6 +179,53 @@ StatusCode TkrTrackFitAlg::execute()
         Event::TkrPatCand* pCand = *cands++;
 
         m_FitTool->doTrackFit(pCand);
+    }
+
+    return sc;
+}
+
+StatusCode TkrTrackFitAlg::doTrackReFit()
+{
+    // Purpose and Method: Called each event for iteration of the track fit
+    // Inputs:  None
+    // Outputs:  StatusCode upon completetion
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
+    MsgStream log(msgSvc(), name());
+    StatusCode sc = StatusCode::SUCCESS;
+
+    log << MSG::DEBUG; 
+    if (log.isActive()) {
+        log << "------- TkrRecon Track Fit Iteration --------";
+    }
+    log << endreq;
+  
+    // Find the collection of candidate tracks
+    Event::TkrPatCandCol* pTkrCands    = SmartDataPtr<Event::TkrPatCandCol>(eventSvc(),EventModel::TkrRecon::TkrPatCandCol);
+
+    // Recover pointer to Cal Cluster info  
+    Event::CalClusterCol* pCalClusters = SmartDataPtr<Event::CalClusterCol>(eventSvc(),EventModel::CalRecon::CalClusterCol);
+
+    double CalEnergy = pCalClusters->front()->getEnergyCorrected(); 
+    
+    // Get the energy calculation tool
+    TkrTrackEnergyTool* TrackEnergyTool = 0;
+    sc = toolSvc()->retrieveTool("TkrTrackEnergyTool", TrackEnergyTool);
+
+    TrackEnergyTool->SetTrackEnergies(CalEnergy);
+
+    // Ok, now set up to loop over candidate tracks
+    int                     numCands = pTkrCands->size();
+    Event::TkrPatCandColPtr cands    = pTkrCands->begin();
+    
+    // Go through each candidate and pass to the Gaudi Tool performing the fit
+    // Note that the Gaudi tool will add successfully fit tracks to the fit track collection
+    while(numCands--) 
+    {
+        Event::TkrPatCand* pCand = *cands++;
+
+        m_FitTool->doTrackReFit(pCand);
     }
 
     return sc;
