@@ -18,7 +18,7 @@ class TkrRecObjsRep : public gui::DisplayRep
 {
 public:
 	//! Constructor of this form must be provided
-	TkrRecObjsRep(/*SiRecObjs** pClus*/);
+	TkrRecObjsRep();
 	virtual ~TkrRecObjsRep() {}
 
 	void update();

@@ -21,13 +21,13 @@ using namespace Event;
 
 StatusCode TkrClusterAlg::initialize()
 {
-	
+    
     // Purpose and Method:  initializes TkrClusterAlg
     // Inputs:  None
     // Outputs: TkrGeometrySvc will be created if not already present
     // Dependencies:
     // Restrictions and Caveats:  None
-	
+    
     MsgStream log(msgSvc(), name());
     
     //Look for the geometry service
@@ -58,11 +58,11 @@ StatusCode TkrClusterAlg::execute()
     // Purpose and Method: makes TkrClusterCol
     // Inputs:  None
     // Outputs:  A StatusCode which denotes success or failure.
-	// TDS Input: TkrDigiCol
-	// TDS Output: TkrClusterCol
+    // TDS Input: TkrDigiCol
+    // TDS Output: TkrClusterCol
     // Restrictions and Caveats:  None
-	
-	
+    
+    
     StatusCode sc = StatusCode::SUCCESS;
     
     MsgStream log(msgSvc(), name());
@@ -94,17 +94,17 @@ StatusCode TkrClusterAlg::execute()
     sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrClusterCol,
         m_TkrClusterCol);
     
-	// make the clusters
+    // make the clusters
     TkrMakeClusters maker(m_TkrClusterCol, m_pTkrGeo, m_pBadStrips, m_TkrDigis);
 
     // This call is to initialize the static variables in TkrQueryClusters
-	TkrQueryClusters query(m_TkrClusterCol);
-	query.setTowerPitch(m_pTkrGeo->towerPitch());
+    TkrQueryClusters query(m_TkrClusterCol);
+    query.setTowerPitch(m_pTkrGeo->towerPitch());
     query.setNumLayers(m_pTkrGeo->numLayers());
 
-	if (m_TkrClusterCol == 0 || m_TkrDigis ==0) sc = StatusCode::FAILURE;
+    if (m_TkrClusterCol == 0 || m_TkrDigis ==0) sc = StatusCode::FAILURE;
     return sc;
-	
+    
     m_TkrClusterCol->writeOut(log);
     
     return sc;
@@ -112,6 +112,6 @@ StatusCode TkrClusterAlg::execute()
 
 
 StatusCode TkrClusterAlg::finalize()
-{	
+{   
     return StatusCode::SUCCESS;
 }

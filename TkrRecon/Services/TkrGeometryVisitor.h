@@ -11,7 +11,7 @@
 *
 * @author Leon Rochester 
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometryVisitor.h,v 1.4 2002/08/31 21:30:50 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometryVisitor.h,v 1.5 2002/09/02 17:31:26 lsrea Exp $
 */
 
 #include "GlastSvc/GlastDetSvc/IGeometry.h"
@@ -22,11 +22,11 @@ class TkrGeometryVisitor: public IGeometry
 {
 public:
 
-	TkrGeometryVisitor();
+    TkrGeometryVisitor();
 
-	~TkrGeometryVisitor() {}
+    ~TkrGeometryVisitor() {}
    
-	/// Standard interface to the detModel
+    /// Standard interface to the detModel
     virtual IGeometry::VisitorRet pushShape(ShapeType s, const UintVector& id, 
         std::string name, std::string material, const DoubleVector& params, 
         VolumeType type);
@@ -43,17 +43,17 @@ private:
 
     /// Store the relevant information from each call
 
-	idents::TowerId m_tower;
-	int m_towerX;
-	int m_towerY;
-	int m_tray;
-	int m_botTop;
-	int m_view;
-	int m_layer;
+    idents::TowerId m_tower;
+    int m_towerX;
+    int m_towerY;
+    int m_tray;
+    int m_botTop;
+    int m_view;
+    int m_layer;
 
-	double m_param[9];
+    double m_param[9];
 
-	/// mode for traversing geometry
+    /// mode for traversing geometry
     std::string m_mode;
 
 

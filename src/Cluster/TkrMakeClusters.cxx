@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.11 2002/09/02 21:15:03 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.12 2002/09/02 21:55:03 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, 
@@ -104,7 +104,7 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
             if (isGapBetween(highStrip, nextStrip)) {
                 // there's a gap... see if the current cluster is good...
                 //log << MSG::DEBUG << "Test Cluster: " << lowStrip << " "
-                //	           << highStrip << " " << nBad << endreq;
+                //             << highStrip << " " << nBad << endreq;
                 if (kept = isGoodCluster(lowStrip, highStrip, nBad)) {
                     // it's good... make a new cluster
                     int layer = m_pTkrGeo->reverseLayerNumber(digiLayer);
@@ -141,7 +141,8 @@ Point TkrMakeClusters::position(const int layer, TkrCluster::view v,
     // this converts from recon numbering to physical numbering of layers.
     int digiLayer = m_pTkrGeo->reverseLayerNumber(layer);
     double strip = 0.5*(strip0 + stripf);
-    HepPoint3D p = m_pTkrGeo->getStripPosition(tower, digiLayer, (int) v, strip);
+    HepPoint3D p = m_pTkrGeo->getStripPosition(tower, digiLayer, 
+        (int) v, strip);
     Point p1(p.x(), p.y(), p.z());
     return p1;
     
