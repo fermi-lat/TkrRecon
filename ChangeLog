@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Sun Jan 26 16:38:58 PST 2003
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusters.cxx TkrMakeClusters.h 
+Log Message:
+added calls to alignment service
+    *
+------------------------------------------------------------
 User: lsrea  Sun Jan 26 16:38:57 PST 2003
 TkrRecon/TkrRecon/GaudiAlg
 
