@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Fri Jun 21 18:12:58 PDT 2002
+TkrRecon/TkrRecon/Services
+
+Modified Files:
+	TkrGeometrySvc.h 
+Log Message:
+Fixed a bug introduced during recent geometry upheavals.
+TkrRecon now works properly for one-tower instruments
+
+    *
+------------------------------------------------------------
 User: atwood  Thu Jun 20 16:21:44 PDT 2002
 TkrRecon/src/Vertex/Combo
 
