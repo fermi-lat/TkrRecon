@@ -22,9 +22,12 @@
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
 #include "TkrRecon/Cluster/TkrQueryClusters.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrFailureModeSvc.h"
 #include "src/Track/TkrControl.h"
+#include "idents/TowerId.h"
 
 #include <algorithm>
+#include <cmath>
 
 using namespace Event;
 
@@ -34,14 +37,18 @@ using namespace Event;
 //
 //-----------------------------------------------------
 
-KalFitTrack::KalFitTrack(Event::TkrClusterCol* clusters, ITkrGeometrySvc* geo, int ilyr, int itwr, double sigmaCut,double energy, const Ray& testRay) :
-                             m_ray(testRay),
-                             m_status(EMPTY),
-                             m_iLayer(ilyr),
-                             m_iTower(itwr),
-                             m_sigma(sigmaCut),
-                             m_clusters(clusters),
-                             m_tkrGeo(geo)
+KalFitTrack::KalFitTrack(Event::TkrClusterCol* clusters, 
+                         ITkrGeometrySvc* geo, 
+                         int ilyr, int itwr, double sigmaCut,
+                         double energy, const Ray& testRay) :
+                            m_ray(testRay),
+                            m_status(EMPTY),
+                            m_iLayer(ilyr),
+                            m_iTower(itwr),
+                            m_sigma(sigmaCut),
+                            m_clusters(clusters),
+                            m_tkrGeo(geo),
+                            m_tkrFail(m_tkrGeo->getTkrFailureModeSvc())
 {
    // Purpose and Method: Constructor - Initialization for KalFitTrack
  
@@ -215,7 +222,7 @@ void KalFitTrack::findHits()
     int  kplane       = oriKplane.getIDPlane() + 1;
     int  lstgaps      = 0;
     int  step_counter = 0; 
-    bool filter       = m_nxHits >= 2 && m_nyHits >= 2 ? true : false;
+    bool filter       = (m_nxHits >= 2 && m_nyHits >= 2);
     
     TkrFitHit::TYPE type = TkrFitHit::FIT;
     Status statushit     = FOUND;
@@ -246,26 +253,19 @@ void KalFitTrack::findHits()
 
         int num_planes = getNumHits();
         if (filter) filterStep(num_planes-2);
-        else 
-        {
-            if(m_nxHits >= 2 && m_nyHits >= 2) 
-            {
+        else {
+            if(m_nxHits >= 2 && m_nyHits >= 2) {
                 for(int i=0; i<num_planes-1; i++) filterStep(i);
                 filter = true;
-            }
-            else 
-            {
+            } else {
                 TkrFitHit hitpred = nextKplane.getHit(TkrFitHit::PRED);
                 TkrFitHit hitmeas = nextKplane.getHit(TkrFitHit::MEAS);
-                if(nextKplane.getProjection() == TkrCluster::X) 
-                {
+                if(nextKplane.getProjection() == TkrCluster::X) {
                     TkrFitPar p(hitmeas.getPar().getXPosition(),hitpred.getPar().getXSlope(),
                         hitpred.getPar().getYPosition(),hitpred.getPar().getYSlope());
                     TkrFitHit hitfit(TkrFitHit::FIT,p,hitpred.getCov());
                     m_hits[num_planes-1].setHit(hitfit);
-                }
-                else 
-                {
+                } else {
                     TkrFitPar p(hitpred.getPar().getXPosition(),hitpred.getPar().getXSlope(),
                         hitmeas.getPar().getYPosition(),hitpred.getPar().getYSlope());
                     TkrFitHit hitfit(TkrFitHit::FIT,p,hitpred.getCov());
@@ -297,7 +297,15 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
     Status statushit = EMPTY;
     int num_steps    = 0;
     double arc_total = 0;
-    
+
+    // for later
+    int numX = m_tkrGeo->numXTowers();
+    int numY = m_tkrGeo->numYTowers();
+    double towerPitch = m_tkrGeo->towerPitch();
+
+    Point  x0;
+    Vector t0;
+
     while(statushit == EMPTY && num_steps < 7) {// Control parameter: Gaps 
         
         double arc_min = arc_total;
@@ -311,28 +319,18 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
 
         arc_total = arc_min;
         num_steps++; 
-        
+
         double zend    = nextKplane.getZPlane(); 
-        double arc_len = (zend - m_ray.position().z())/m_ray.direction().z(); 
-        if(nextKplane.getProjection() == TkrCluster::X) {
-            if(m_nxHits <= 2) 
-            {
-                Point x0 = m_ray.position(arc_len); 
-                Vector t0 =m_ray.direction(); 
-                TkrFitPar par(x0.x(), t0.x()/t0.z(), x0.y(), t0.y()/t0.z());
-                TkrFitHit hitp = nextKplane.getHit(TkrFitHit::PRED);
-                nextKplane.setHit(TkrFitHit(type, par, hitp.getCov()));
-            }
-        }
-        else  {
-            if(m_nyHits <= 2) 
-            {
-                Point x0 = m_ray.position(arc_len); 
-                Vector t0 =m_ray.direction(); 
-                TkrFitPar par(x0.x(), t0.x()/t0.z(), x0.y(),t0.y()/t0.z());
-                TkrFitHit hitp = nextKplane.getHit(TkrFitHit::PRED);
-                nextKplane.setHit(TkrFitHit(type, par, hitp.getCov()));
-            }
+        double arc_len = (zend - m_ray.position().z())/m_ray.direction().z();
+
+        TkrCluster::view nextProj = nextKplane.getProjection();
+        if (((nextProj == TkrCluster::X) && (m_nxHits <= 2)) || 
+            ((nextProj == TkrCluster::Y) && (m_nyHits <= 2))) {
+            x0 = m_ray.position(arc_len); 
+            t0 = m_ray.direction(); 
+            TkrFitPar par(x0.x(), t0.x()/t0.z(), x0.y(), t0.y()/t0.z());
+            TkrFitHit hitp = nextKplane.getHit(TkrFitHit::PRED);
+            nextKplane.setHit(TkrFitHit(type, par, hitp.getCov()));
         }
         
         int indexhit = -1;
@@ -345,7 +343,22 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
         else {
             double act_dist = nextKplane.getActiveDist();
             if(act_dist < 0.) continue; 
-        
+            if (m_tkrFail) {
+                //get the tower from the position... not the best!
+                int xTower = floor(x0.x() +towerPitch*(0.5*numX))/towerPitch;
+                int yTower = floor(x0.y() +towerPitch*(0.5*numY))/towerPitch;
+                int nextTower = idents::TowerId(xTower,yTower).id();
+
+                int nextLayer = m_tkrGeo->reverseLayerNumber(nextKplane.getIDPlane());
+                int nextView  = nextKplane.getProjection();
+                bool failed = m_tkrFail->isFailed(nextTower, nextLayer, nextView);
+                //std::cout << "KalFitTrack: Failed: " << failed << " " 
+                //    " act_dist " << act_dist << " id "
+                //    << nextTower << " " << nextLayer
+                //    << " " << nextView << std::endl;
+                if (failed) continue;
+            }
+                
             //Use the PREDICTED hit to set tolerance
             double pos_err = nextKplane.getHit(TkrFitHit::PRED).getCov().getcovX0X0();
             if(nextKplane.getProjection() == TkrCluster::Y) {
@@ -363,7 +376,8 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
 }
 
 
-TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer, double &arc_min, TkrFitHit::TYPE type) 
+TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer, 
+                                         double &arc_min, TkrFitHit::TYPE type) 
 {
    // Purpose and Method: Porject forwards to the next plane creating the Prediction
    // Inputs: The previous plane and the layer to which to project 
@@ -387,7 +401,7 @@ TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer, dou
 
     int next_layer = klayer; 
     double arc_x, arc_y; 
-    while(next_layer < 5+old_layer && next_layer < 18) { // Limit Gap to 3 missed x-y planes
+    while(next_layer < 5+old_layer && next_layer < m_tkrGeo->numLayers()) { // Limit Gap to 3 missed x-y planes
         int rev_layer = m_tkrGeo->reverseLayerNumber(next_layer);      //  Control Parameter needed
         double zx = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::X, 751).z();
         double zy = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::Y, 751).z();

@@ -15,7 +15,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/TkrComboPatRec.h,v 1.19 2002/10/10 19:46:00 atwood Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/TkrComboPatRec.h,v 1.20 2003/01/10 19:43:24 lsrea Exp $
 */
 
 #ifndef __TKRCOMBOPATREC_H
@@ -25,6 +25,7 @@
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "src/Track/TkrControl.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrFailureModeSvc.h"
 #include "src/TrackFit/KalFitTrack/KalFitTrack.h"
 #include "geometry/Ray.h"
 
@@ -37,7 +38,9 @@ using namespace Event;
 class TkrComboPatRec : public TkrPatCandCol
 {
 public:
-    TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters, double CalEnergy, Point CalPosition);
+    TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, 
+        ITkrFailureModeSvc* pTkrFail,
+        TkrClusterCol* pClusters, double CalEnergy, Point CalPosition);
         ~TkrComboPatRec() {};
 
 private:
@@ -46,6 +49,7 @@ private:
     public:
         Candidate(TkrClusterCol* clusters,
                   ITkrGeometrySvc* geometry,
+                  ITkrFailureModeSvc* failure,
                   int layer, int twr, double e, 
                   Point x, Vector t, float d, float s, int g, int top);
         ~Candidate();
@@ -110,6 +114,7 @@ private:
 
     /// Pointers to clusters, geometry, and control parameters
     ITkrGeometrySvc* m_tkrGeo;
+    ITkrFailureModeSvc* m_tkrFail;
     TkrClusterCol*   m_clusters;
     TkrControl*      m_control; 
 

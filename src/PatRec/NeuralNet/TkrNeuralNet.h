@@ -13,7 +13,7 @@
 * @todo Impliment graph searching function to better pick out candidate tracks.
 * @todo Move global parameter definitions to joboptions file
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/TkrNeuralNet.h,v 1.10 2002/09/05 16:25:34 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/TkrNeuralNet.h,v 1.11 2002/10/09 23:44:11 usher Exp $
 */
 
 #ifndef __TKR_NEURALNET_H
@@ -154,6 +154,7 @@ private:
 
     // pointers to clusters and geometry
     ITkrGeometrySvc* m_tkrGeo;
+    ITkrFailureModeSvc* m_tkrFail;
     TkrClusterCol*   m_clusters;
 };
 

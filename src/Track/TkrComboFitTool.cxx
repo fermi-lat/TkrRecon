@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.9 2003/01/10 20:13:22 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.10 2003/03/12 23:35:00 usher Exp $
 //
 // Description:
 //      Tool for performing the fit of Combo Pat Rec candidate tracks
@@ -39,6 +39,14 @@ TkrComboFitTool::TkrComboFitTool(const std::string& type, const std::string& nam
 
     pTkrGeoSvc = dynamic_cast<ITkrGeometrySvc*>(iService);
 
+    //Locate and store a pointer to the geometry service
+    iService = 0;
+    sc = serviceLocator()->getService("TkrFailureModeSvc", iService, true);
+
+    pTkrFailSvc = dynamic_cast<ITkrFailureModeSvc*>(iService);
+
+
+    iService = 0;
     //Locate and store a pointer to the data service
     sc         = serviceLocator()->getService("EventDataSvc", iService);
     pDataSvc   = dynamic_cast<DataSvc*>(iService);
@@ -63,8 +71,9 @@ StatusCode TkrComboFitTool::doTrackFit(Event::TkrPatCand* patCand)
         
     TkrControl* control = TkrControl::getPtr();   
     Event::TkrKalFitTrack* track  = new Event::TkrKalFitTrack();
-    Event::KalFitter*      fitter = new Event::KalFitter(pTkrClus, pTkrGeoSvc, track, iniLayer, iniTower,
-                                                           control->getSigmaCut(), energy, testRay);                 
+    Event::KalFitter*      fitter = new Event::KalFitter(
+        pTkrClus, pTkrGeoSvc, track, iniLayer, iniTower,
+        control->getSigmaCut(), energy, testRay);                 
         
     //track->findHits(); Using PR Solution to save time
         

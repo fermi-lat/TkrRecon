@@ -28,7 +28,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.17 2003/01/10 19:43:23 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.18 2003/01/27 00:38:58 lsrea Exp $
 */
 
 #include <vector>
@@ -54,8 +54,6 @@ public:
     
     TkrMakeClusters(Event::TkrClusterCol* pClus, 
         ITkrGeometrySvc* m_pTkrGeo, 
-        ITkrBadStripsSvc* m_pBadStrips,
-        ITkrAlignmentSvc* m_pAlignment,
         Event::TkrDigiCol* pTkrDigiCol);
     
     ~TkrMakeClusters() { }

@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.17 2002/11/01 01:01:47 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.18 2003/01/27 00:38:58 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, 
@@ -18,8 +18,6 @@ using namespace Event;
 
 TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
                                  ITkrGeometrySvc* pTkrGeoSvc, 
-                                 ITkrBadStripsSvc* pBadStripsSvc, 
-                                 ITkrAlignmentSvc* pAlignmentSvc,
                                  TkrDigiCol* pTkrDigiCol)
 {
     // Purpose: Makes Clusters from TkrDigis
@@ -31,9 +29,9 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
 
     m_pTkrGeo    = pTkrGeoSvc;
     
-    m_pBadStrips = pBadStripsSvc;
+    m_pBadStrips = m_pTkrGeo->getTkrBadStripsSvc();
 
-    m_pAlignment = pAlignmentSvc;
+    m_pAlignment = m_pTkrGeo->getTkrAlignmentSvc();
     
     //Initialize the cluster lists...
     pClus->ini();

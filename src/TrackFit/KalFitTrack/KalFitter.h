@@ -13,7 +13,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitter.h,v 1.1 2002/12/19 21:59:19 usher Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitter.h,v 1.2 2003/03/12 23:35:00 usher Exp $
 */
 
 #ifndef __KalFitter_H
@@ -26,6 +26,7 @@
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 
 class ITkrGeometrySvc;
+class ITkrFailureModeSvc;
 class TkrControl;
 
 namespace Event {
@@ -33,8 +34,12 @@ namespace Event {
 class KalFitter
 {    
 public:
-    KalFitter(TkrClusterCol* clusters, ITkrGeometrySvc* geo, TkrKalFitTrack* track, int layer, int tower, double sigmaCut, double energy, const Ray& testRay);
-    KalFitter(TkrClusterCol* clusters, ITkrGeometrySvc* geo, TkrKalFitTrack* track, double sigmaCut, double energy);
+
+    KalFitter(TkrClusterCol* clusters, ITkrGeometrySvc* geo,
+        TkrKalFitTrack* track, int layer, int tower, double sigmaCut, 
+        double energy, const Ray& testRay);
+    KalFitter(TkrClusterCol* clusters, ITkrGeometrySvc* geo,
+        TkrKalFitTrack* track, double sigmaCut, double energy);
    ~KalFitter() {}
 
     /// Hit Finding & Fitting
@@ -109,6 +114,7 @@ private:
     /// Pointers to clusters, geoemtry, and control parameters
     Event::TkrClusterCol* m_clusters;
     ITkrGeometrySvc*      m_tkrGeo;
+    ITkrFailureModeSvc*   m_tkrFail;
     TkrControl*           m_control;
 };
 

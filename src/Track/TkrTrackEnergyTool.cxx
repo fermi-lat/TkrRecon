@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.0 2003/01/10 19:43:25 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.1 2003/03/12 23:36:36 usher Exp $
  */
 #include "src/Track/TkrTrackEnergyTool.h"
 
@@ -15,6 +15,8 @@
 #include "src/TrackFit/KalFitTrack/KalFitter.h"
 #include "TkrRecon/Cluster/TkrQueryClusters.h"
 #include "TkrRecon/GaudiAlg/TkrTrackFitAlg.h"
+
+#include <algorithm>
 
 static ToolFactory<TkrTrackEnergyTool> s_factory;
 const IToolFactory& TkrTrackEnergyToolFactory = s_factory;

@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetFitTool.cxx,v 1.4 2002/12/19 21:59:18 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetFitTool.cxx,v 1.5 2003/01/10 19:43:25 lsrea Exp $
 //
 // Description:
 //      Tool for performing the fit of Neural Net Pat Rec candidate tracks
@@ -61,8 +61,9 @@ StatusCode TkrNeuralNetFitTool::doTrackFit(Event::TkrPatCand* patCand)
     double energy   = patCand->getEnergy();
         
     Event::TkrKalFitTrack* track  = new Event::TkrKalFitTrack();
-    Event::KalFitter*      fitter = new Event::KalFitter(pTkrClus, pTkrGeoSvc, track, iniLayer, iniTower, 
-                                               control->getSigmaCut(), energy, testRay);                 
+    Event::KalFitter*      fitter = new Event::KalFitter(
+        pTkrClus, pTkrGeoSvc, track, iniLayer, iniTower, 
+        control->getSigmaCut(), energy, testRay);                 
         
     //track->findHits(); Using PR Solution to save time
         

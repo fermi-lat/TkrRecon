@@ -229,8 +229,9 @@ void TkrNeuralNet::buildCand()
                 float energy   = (*hypo).energy();
                 
 
-                KalFitTrack* _track = new KalFitTrack(m_clusters, m_tkrGeo, iniLayer, iniTower, 
-                                           control->getSigmaCut(), energy, testRay); 
+                KalFitTrack* _track = new KalFitTrack(m_clusters, m_tkrGeo, 
+                    iniLayer, iniTower, 
+                    control->getSigmaCut(), energy, testRay); 
 
                 _track->findHits();
                 _track->doFit();
