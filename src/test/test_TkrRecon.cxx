@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.2 2002/08/31 17:51:42 lsrea Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.3 2002/09/02 17:32:49 lsrea Exp $
 
 // Include files
 // Gaudi system includes
@@ -16,7 +16,6 @@
 
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "Event/Recon/TkrRecon/TkrCluster.h"
-#include "Event/Recon/TkrRecon/TkrPatCandCol.h"
 #include "Event/Recon/TkrRecon/TkrFitTrack.h"
 #include "Event/Recon/TkrRecon/TkrFitPlane.h"
 #include "Event/Recon/TkrRecon/TkrVertex.h"
@@ -33,7 +32,7 @@
 *
 * @author Leon Rochester
 *
-* $Header$
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.3 2002/09/02 17:32:49 lsrea Exp $
 */
 
 class test_TkrRecon : public Algorithm {
