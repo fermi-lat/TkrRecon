@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: usher  Mon Mar  4 11:22:53 PST 2002
+TkrRecon/src/GaudiAlg
+
+Added Files:
+	TkrVertexAlg.cxx 
+Log Message:
+Added new Gaudi algorithm for driving the Tkr Vertexing
+Modified the package requirements file to pick up the vertexing
+code. 
+
+    *
+------------------------------------------------------------
+User: usher  Mon Mar  4 11:22:53 PST 2002
 TkrRecon/cmt
 
 Modified Files:
