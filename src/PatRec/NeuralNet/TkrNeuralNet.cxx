@@ -225,7 +225,7 @@ void TkrNeuralNet::buildCand()
 
                 int   iniLayer = (*hypo).firstLayer();
                 int   iniTower = (*hypo).tower();
-                Ray   testRay  = (*hypo).ray();
+                Ray   testRay  = Ray((*hypo).ray().position(),-(*hypo).ray().direction());
                 float energy   = (*hypo).energy();
          
                 KalFitTrack* _track = new KalFitTrack(m_clusters, m_tkrGeo, 
@@ -257,7 +257,7 @@ void TkrNeuralNet::buildCand()
 
                     push_back(newTrack);
 
-                    //_track->flagAllHits();
+                    _track->flagAllHits();
 
                 } 
                 else delete _track;
