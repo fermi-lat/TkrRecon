@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Dec 15 07:25:06 PST 2004
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx 
+Log Message:
+Enabled leading hits
+    *
+------------------------------------------------------------
 TAG
 Tag name: v9r0p2gr9, operation: add
 Package: TkrRecon
