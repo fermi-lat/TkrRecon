@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Tue Mar  6 12:07:11 PST 2001
+TkrRecon/src TkrRecObjsRep.cxx
+
+Added Files:
+	TkrRecObjsRep.cxx 
+Log Message:
+Source code for implementing the TkrRecObjsRep class, responsible for the display
+of reconstructed objects (gammas and single particles) in the tracker display.
+
+    *
+------------------------------------------------------------
 User: usher  Tue Mar  6 12:06:06 PST 2001
 TkrRecon/src TkrClustersRep.cxx
 
