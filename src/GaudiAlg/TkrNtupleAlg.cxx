@@ -56,10 +56,10 @@ StatusCode TkrNtupleAlg::execute()
     //Create the tuple class
     TkrTupleValues pTuple;
     
-    SiRecObjs*   pSiRecObjs   = SmartDataPtr<SiRecObjs>(eventSvc(),"/Event/TkrRecon/SiRecObjs");
+    //SiRecObjs*   pSiRecObjs   = SmartDataPtr<SiRecObjs>(eventSvc(),"/Event/TkrRecon/SiRecObjs");
 	TkrClusters* pTkrClusters = SmartDataPtr<TkrClusters>(eventSvc(),"/Event/TkrRecon/TkrClusters");
 
-    if ((sc = pTuple.calcTupleValues(pTkrClusters, pSiRecObjs)).isFailure()) return sc;
+    //if ((sc = pTuple.calcTupleValues(pTkrClusters, pSiRecObjs)).isFailure()) return sc;
 
     return pTuple.fillTupleValues(ntupleWriteSvc, m_tupleName.c_str());
 }
@@ -161,6 +161,7 @@ TkrTupleValues::TkrTupleValues()
     Tkr_Pair_KinkN = 0;
 };
 
+/*
 //################################
 StatusCode TkrTupleValues::calcTupleValues(TkrClusters* pClusters, SiRecObjs* pRecObjs)
 //################################
@@ -192,23 +193,6 @@ StatusCode TkrTupleValues::calcTupleValues(TkrClusters* pClusters, SiRecObjs* pR
     if (pRecObjs)
     {
         unsigned int  ngammas = pRecObjs->numGammas();
-/*
-        if (ngammas == 0)   return sc;
-
-        //Count the number of tracks in the two gammas
-        while(ngammas--)
-        {
-            GFgamma* pGam = pRecObjs->Gamma(ngammas);
-
-            if (!pGam->empty())
-            {
-                if (!pGam->getBest(TkrCluster::X)->empty()) Tkr_No_X_Trks += 1;
-                if (!pGam->getBest(TkrCluster::Y)->empty()) Tkr_No_Y_Trks += 1;
-                if (!pGam->getPair(TkrCluster::X)->empty()) Tkr_No_X_Trks += 1;
-                if (!pGam->getPair(TkrCluster::Y)->empty()) Tkr_No_Y_Trks += 1;
-            }
-        }
-*/
         // Count number of tracks in the particles
         int nParticles = pRecObjs->numParticles();
         if(nParticles < 1) return sc;
@@ -227,32 +211,6 @@ StatusCode TkrTupleValues::calcTupleValues(TkrClusters* pClusters, SiRecObjs* pR
         // Total number of tracks is just the sum
         Tkr_No_Tracks   = Tkr_No_X_Trks + Tkr_No_Y_Trks;
     
-/*
-        // Right now we are assuming that the first gamma is the "right" gamma
-        GFgamma* gamma  = pRecObjs->Gamma(0);
-
-        // If the gamma has no tracks then no point in going on 
-        if (gamma->empty()) return sc;
-
-        GFtrack* _Xbest = gamma->getXpair()->getBest();
-        GFtrack* _Ybest = gamma->getYpair()->getBest();
-
-        int      nHitsX = _Xbest->numDataPoints();
-        int      nHitsY = _Ybest->numDataPoints();
-    
-        // Gamma quality
-        double type = 0;
-        if (!gamma->empty()) type = 11;
-        if (!gamma->getPair(TkrCluster::X)->empty()) type += 1;
-        if (!gamma->getPair(TkrCluster::Y)->empty()) type += 10;
-        Tkr_Fit_Type = type;
-    
-        double topo = 0;
-        if (gamma->fix()) topo = 1.;
-        if (gamma->conflictPattern()) topo *= -1.;
-        Tkr_Fit_Topo = topo;
-<<<<<<< TkrNtupleAlg.cpp
- */   
         GFparticle* pPart = pRecObjs->Particle(0);
         Tkr_Chisq           = pPart->chiSquare();
         Tkr_Chisq_1st       = pPart->chiSquareSegment();
@@ -264,50 +222,6 @@ StatusCode TkrTupleValues::calcTupleValues(TkrClusters* pClusters, SiRecObjs* pR
  //       Tkr_No_Gaps_1st     = pPart->numFirstGaps();
         Tkr_No_Noise        = pPart->numNoise();
         Tkr_No_Noise_1st    = pPart->numFirstNoise();
-/*
-=======
-    
-        Tkr_Chisq           = _Xbest->chiSquare() + _Ybest->chiSquare();
-        Tkr_Chisq_1st       = _Xbest->chiSquareSegment() + _Ybest->chiSquareSegment();
-        Tkr_qual_X          = _Xbest->Q();
-        Tkr_qual_Y          = _Ybest->Q();
-        Tkr_qual            = _Xbest->Q() + _Ybest->Q();
-        Tkr_No_Hits         =  nHitsX + nHitsY;
-        Tkr_No_Gaps         = _Xbest->numGaps()+_Ybest->numGaps();
-        Tkr_No_Gaps_1st     = _Xbest->numFirstGaps()+_Ybest->numFirstGaps();
-        Tkr_No_Noise        = _Xbest->numNoise()+_Ybest->numNoise();
-        Tkr_No_Noise_1st    = _Xbest->numFirstNoise()+_Ybest->numFirstNoise();
-
->>>>>>> 1.10
-        // Pair reconstruction
-        Tkr_Fit_XNhits      = pPart->nhits();
-        Tkr_Fit_YNhits      = _Ybest->nhits();
-        Tkr_Fit_XChisq      = pPart->chiSquare();
-        Tkr_Fit_YChisq      = _Ybest->chiSquare();
-        Tkr_Fit_XChisq_1st  = pPart->chiSquareSegment();
-        Tkr_Fit_YChisq_1st  = _Ybest->chiSquareSegment();
-        Tkr_Fit_XKalEne     = pPart->RCenergy();
-        Tkr_Fit_YKalEne     = _Ybest->RCenergy();
-        Tkr_Fit_XKalThetaMS = pPart->KalThetaMS();
-        Tkr_Fit_YKalThetaMS = _Ybest->KalThetaMS();
-
-
-        //Calculate the vertices and directions for everyone...
-        Point  x1 = GFdata::doVertex(gamma->getBest(TkrCluster::X)->ray(),
-                                     gamma->getBest(TkrCluster::Y)->ray());
-        Vector t1 = GFdata::doDirection(gamma->getBest(TkrCluster::X)->direction(),
-                                        gamma->getBest(TkrCluster::Y)->direction());
-    
-        Point  x2 = x1;
-        Vector t2 = t1;
-        if (!gamma->getPair(TkrCluster::X)->empty() && !gamma->getPair(TkrCluster::Y)->empty()) 
-        {
-            x2 = GFdata::doVertex(gamma->getPair(TkrCluster::X)->ray(),
-                                  gamma->getPair(TkrCluster::Y)->ray());
-            t2 = GFdata::doDirection(gamma->getPair(TkrCluster::X)->direction(),
-                                     gamma->getPair(TkrCluster::Y)->direction());
-        }
-  */      
         Point  x0 = pPart->vertex();
         Vector t0 = pPart->baseDirection();
     
@@ -337,24 +251,6 @@ StatusCode TkrTupleValues::calcTupleValues(TkrClusters* pClusters, SiRecObjs* pR
     
 //        GFtrack* _Xpair = gamma->getXpair()->getPair();
 //        GFtrack* _Ypair = gamma->getYpair()->getPair();
-/*
-        if (!_Xpair->empty()) 
-        {
-            Tkr_Pair_XNhits = _Xpair->nhits();
-            Tkr_XChisq      = _Xpair->chiSquare();
-            Tkr_XChisq_1st  = _Xpair->chiSquareSegment();
-            Tkr_XKalEne     = _Xpair->RCenergy();
-            Tkr_XKalThetaMS =_Xpair->KalThetaMS();
-        }
-        if (!_Ypair->empty()) 
-        {
-            Tkr_Pair_YNhits = _Ypair->nhits();
-            Tkr_YChisq      = _Ypair->chiSquare();
-            Tkr_YChisq_1st  = _Ypair->chiSquareSegment();
-            Tkr_YKalEne     = _Ypair->RCenergy();
-            Tkr_YKalThetaMS = _Ypair->KalThetaMS();
-        }
-*/
 //        Tkr_errSlopeX       = pPart->errorSlope();
 //        Tkr_errSlopeY       = pPart->errorSlope();
         Tkr_xeneXSlope      = pPart->RCenergy();
@@ -377,6 +273,7 @@ StatusCode TkrTupleValues::calcTupleValues(TkrClusters* pClusters, SiRecObjs* pR
     
     return sc;
 }
+*/
 
 //################################
 StatusCode TkrTupleValues::fillTupleValues(INTupleWriterSvc* pSvc, const char* pName)
@@ -497,6 +394,7 @@ StatusCode TkrTupleValues::fillTupleValues(INTupleWriterSvc* pSvc, const char* p
     return sc;
 }
 
+/*
 //########################################################
 void TkrTupleValues::calcFitKink(GFgamma* pGamma)
 //########################################################
@@ -531,5 +429,5 @@ void TkrTupleValues::calcFitKink(GFgamma* pGamma)
     
     return;
 }
-
+*/
 

@@ -10,7 +10,6 @@
 #include "ntupleWriterSvc/INTupleWriterSvc.h"
 
 #include "TkrRecon/Cluster/TkrClusters.h"
-#include "TkrRecon/Track/SiRecObjs.h"
 
 //###############################
 class TkrNtupleAlg : public Algorithm
@@ -52,12 +51,12 @@ public:
     TkrTupleValues();
    ~TkrTupleValues() {return;}
 
-    StatusCode calcTupleValues(TkrClusters* pClusters, SiRecObjs* pRecObjs);
+    //StatusCode calcTupleValues(TkrClusters* pClusters, SiRecObjs* pRecObjs);
     StatusCode fillTupleValues(INTupleWriterSvc* pSvc, const char* pName);
 
 private:
     //Routines to calculate some of the values
-    void calcFitKink(GFgamma* pGamma);
+    //void calcFitKink(GFgamma* pGamma);
 
     //Stuff from TkrClusters
     double Tkr_Cnv_Lyr_Hits;
