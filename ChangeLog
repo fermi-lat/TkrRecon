@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Fri Dec 17 15:24:04 PST 2004
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx 
+Log Message:
+"Standard" set of linux complaints addressed. This builds on noric-new with MRvcmt
+    *
+------------------------------------------------------------
+User: usher  Fri Dec 17 15:24:04 PST 2004
 TkrRecon/doc
 
 Modified Files:
