@@ -26,7 +26,7 @@ void TkrMcTracksRep::update()
     if (mcEvent)
     {
         // If the primary is charged we draw it first
-        if (mcEvent->getClassificationBits() & Event::McEventStructure::CHARGED) drawTrack(mcEvent->getPrimaryParticle(),"blue");
+        if (mcEvent->getClassificationBits() & Event::McEventStructure::CHARGED) drawTrack(mcEvent->getPrimaryParticle(),"purple");
 
         // Now draw the secondaries
         Event::McParticleRefVec::const_iterator partIter;
@@ -38,7 +38,7 @@ void TkrMcTracksRep::update()
 
         for(partIter = mcEvent->beginAssociated(); partIter != mcEvent->endAssociated(); partIter++)
         {
-            drawTrack(*partIter, "brown");
+            drawTrack(*partIter, "orange");
         }
     }
 
