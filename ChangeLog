@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Dec 16 15:25:42 PST 2004
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+Modifications to point to correct includes, TkrRecon now builds on windows
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r0p1, operation: add
 Package: TkrRecon
