@@ -56,6 +56,9 @@ void TrackFitUtils::flagAllHits(Event::TkrTrack& track, int iflag)
 
     while(hitPtr != track.end()) {
         Event::TkrTrackHit* hitplane = *hitPtr++; 
+
+        if (!(hitplane->getStatusBits() & Event::TkrTrackHit::HITONFIT)) continue;
+
         Event::TkrClusterPtr cluster = hitplane->getClusterPtr();
  
         cluster->flag(iflag);
@@ -74,6 +77,9 @@ void TrackFitUtils::unFlagAllHits(Event::TkrTrack& track)
 
     while(hitPtr != track.end()) {
         Event::TkrTrackHit* hitplane = *hitPtr++; 
+
+        if (!(hitplane->getStatusBits() & Event::TkrTrackHit::HITONFIT)) continue;
+
         Event::TkrClusterPtr cluster = hitplane->getClusterPtr();
 
         cluster->unflag();
@@ -91,9 +97,13 @@ void TrackFitUtils::unFlagHit(Event::TkrTrack& track, int num)
     Event::TkrTrackHitVecItr hitPtr = track.begin();
     hitPtr += num;
     Event::TkrTrackHit* hitplane     = *hitPtr;
-    Event::TkrClusterPtr cluster = hitplane->getClusterPtr();
+
+    if (hitplane->getStatusBits() & Event::TkrTrackHit::HITONFIT)
+    {
+        Event::TkrClusterPtr cluster = hitplane->getClusterPtr();
     
-    cluster->unflag();
+        cluster->unflag();
+    }
 }  
 
 void TrackFitUtils::finish(Event::TkrTrack& track)
@@ -139,6 +149,8 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
         {
             plane_count++; 
             Event::TkrTrackHit* hit = *hitPtr;
+
+            if (!(hit->getStatusBits() & Event::TkrTrackHit::HITONFIT)) continue;
             
             if(plane_count > 2 && !quit_first) 
             {
@@ -282,9 +294,13 @@ void TrackFitUtils::eneDetermination(Event::TkrTrack& track)
     { 
         // Get the last cluster size for range estimation
         const Event::TkrTrackHit& plane   = **planeIter;
-        Event::TkrClusterPtr      cluster = plane.getClusterPtr();
-        idents::TkrId             hitId   = plane.getTkrId();
-        int                       biLayer = m_tkrGeom->trayToBiLayer(hitId.getTray(),hitId.getBotTop());
+
+        if (!(plane.getStatusBits() & Event::TkrTrackHit::HITONFIT)) continue;
+
+        // Valid hit, get cluster and id info
+        Event::TkrClusterPtr cluster = plane.getClusterPtr();
+        idents::TkrId        hitId   = plane.getTkrId();
+        int                  biLayer = m_tkrGeom->trayToBiLayer(hitId.getTray(),hitId.getBotTop());
      
         if (hitId.getView() == idents::TkrId::eMeasureX) x_cls_size = cluster->size();
         else                                             y_cls_size = cluster->size();
