@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Oct 16 16:25:42 PDT 2001
+TkrRecon/xml Tkr_Balloon.xml Tkr_TestBeam.xml
+
+Modified Files:
+	Tkr_Balloon.xml Tkr_TestBeam.xml 
+Log Message:
+TowerPitch was set to zero, resulting in no found tracks.
+
+    *
+------------------------------------------------------------
 User: burnett  Wed Oct 10 14:11:14 PDT 2001
 TkrRecon/mgr requirements
 
