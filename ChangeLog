@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Tue May  7 15:44:33 PDT 2002
+TkrRecon/TkrRecon/Display
+
+Modified Files:
+	TkrBestCandRep.h TkrCandidate3DRep.h TkrCandidatesRep.h 
+	TkrClustersRep.h TkrDispActiveNet.h TkrDispCompleteNet.h 
+	TkrTracksRep.h 
+Log Message:
+Modifications made to reflect movement of TDS output classes to GlastEvent
+
+    *
+------------------------------------------------------------
 User: usher  Tue May  7 15:43:39 PDT 2002
 TkrRecon/TkrRecon/Cluster
 
