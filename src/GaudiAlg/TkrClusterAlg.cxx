@@ -114,11 +114,9 @@ StatusCode TkrClusterAlg::execute()
     TkrQueryClusters query(m_TkrClusterCol);
     query.setTowerPitch(m_pTkrGeo->towerPitch());
     query.setNumLayers(m_pTkrGeo->numLayers());
-
     
     m_TkrClusterCol->writeOut(log);
 
- 
     // Recover a pointer to the hit<->digi RelTable
 
     SmartDataPtr< ObjectList< Relation<TkrDigi,McPositionHit> > >
@@ -139,8 +137,7 @@ StatusCode TkrClusterAlg::execute()
             cluRelTab.getAllRelations());
         if(sc.isFailure()) return sc;
 
-    }
-   
+    }   
     return sc;
 }
 
