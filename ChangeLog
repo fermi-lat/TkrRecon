@@ -1,4 +1,21 @@
 ------------------------------------------------------------
+User: usher  Wed Feb 18 12:49:11 PST 2004
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrDisplayAlg.cxx TkrTrackFitAlg.cxx 
+Removed Files:
+	TkrBuildMcRelationsAlg.cxx 
+Log Message:
+the previous temporary implementation out of TkrRecon into its own package. This
+results in removing a large number of now obsolete routines and then modifying 
+1) the cmt requirements file to reflect this,
+2) The MC pat rec to use the new implementation
+3) The display to remove old stuff
+Also... fix TkrTrackEnergyTool to project track to face of cal.
+
+    *
+------------------------------------------------------------
 User: usher  Wed Feb 18 12:49:10 PST 2004
 TkrRecon/src/Dll
 
