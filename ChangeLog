@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Fri Aug 23 08:10:29 PDT 2002
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+fix linux linking error
+    *
+------------------------------------------------------------
 User: cohen  Fri Aug 23 02:30:05 PDT 2002
 TkrRecon/src/Vertex
 
