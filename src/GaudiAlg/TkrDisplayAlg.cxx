@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.10 2003/05/13 20:19:18 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.11 2003/06/18 20:36:55 usher Exp $
 //
 // Description:
 //      Contains the implementation of the methods for setting up the TkrRecon display
@@ -28,6 +28,8 @@
 // Display stuff for NeuralNet PatRec Alg
 #include "TkrRecon/Display/TkrDispCompleteNet.h"
 #include "TkrRecon/Display/TkrDispActiveNet.h"
+
+#include "TkrRecon/Display/TkrMcTracksRep.h"
 
 #include "src/Vertex/Combo/TkrComboVtxRep.h"
 #include "src/Vertex/TkrGammaRep.h"
@@ -109,6 +111,12 @@ StatusCode TkrDisplayAlg::initialize()
         
             tkrmenu.add(new TkrDispActiveNet(eventSvc(), pTkrGeo), "PatRec: Active NN");
         
+        }
+        //Neural Net display routines
+        else if (m_TrackerReconType == "MonteCarlo")
+        {
+            //Set up the display rep for the complete Neural Network
+            tkrmenu.add(new TkrMcTracksRep(eventSvc()), "PatRec: Monte Carlo");
         }
         
         //Set up the display rep for the reconstructed tracks

@@ -57,8 +57,8 @@ void TkrCandidate3DRep::update()
 
             while(numHits--)
             {
-                Event::TkrPatCandHit* pHitCand = &(*hitPtr++);
-                Point                    hitCoord = pHitCand->Position();
+                Event::TkrPatCandHit* pHitCand = *hitPtr++;
+                Point                 hitCoord = pHitCand->Position();
 
                 if (pHitCand->View() == Event::TkrCluster::X) x = hitCoord.x();
                 else                                             y = hitCoord.y();
