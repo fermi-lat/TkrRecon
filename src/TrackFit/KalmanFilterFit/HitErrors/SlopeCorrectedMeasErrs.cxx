@@ -8,7 +8,7 @@
  *
  * @author Tracy Usher (editor) from version implemented by Leon Rochester (due to Bill Atwood)
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.1 2004/04/19 22:48:05 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.2 2004/06/17 18:27:36 lsrea Exp $
  */
 
 #include "SlopeCorrectedMeasErrs.h"
@@ -143,7 +143,8 @@ double SlopeCorrectedMeasErrs::getError(double strips, double slope) const
     }
     if (factor==0) 
     {
-        factor = std::max((clusterWidth - projectedWidth - 1), sqrt(0.5));
+        double delta = clusterWidth - projectedWidth - 1.;
+        factor = std::max(fabs(delta), 1.);
     } 
 
     error = factor*minErr;

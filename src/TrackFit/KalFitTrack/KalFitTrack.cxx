@@ -485,6 +485,12 @@ void KalFitTrack::incorporateFoundHit(TkrFitPlane& nextKplane, int indexhit)
     double x0        = nearHit.x();
     double y0        = nearHit.y();
     double z0        = nearHit.z();
+
+    //
+    //
+    // Here is where we do the reconstruction alignment transformation 
+    //
+    //
     
     TkrFitPar measpar(x0,0.,y0,0.);
     

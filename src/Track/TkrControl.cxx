@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrControl.cxx,v 1.7 2004/04/13 18:33:55 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrControl.cxx,v 1.8 2004/06/01 22:04:15 lsrea Exp $
 //
 // Description:
 //      Implements singleton class for storing and retrieving 
@@ -33,6 +33,7 @@ TkrControl::TkrControl()
 
     m_errorType          = 0;    // 0 -> sigma = siResolution
                                  // 1 -> sigma = first iteration of new errors
+                                 // 2 -> sigma = 2nd iteration of new errors
     m_trackAcrossTowers  = true; // false means break tracks at tower boundaries
 
     return;
