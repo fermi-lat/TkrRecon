@@ -3,6 +3,7 @@
  * Package TkrRecon
  * Manager: Leon Rochester 
  *
+ * v6r3p1   3-Jun-2002  TU    Modifications made necessary by new TkrFitTrack and TkrVertex defs (grr...)
  * v6r3    13-May-2002  THB   New TkrVertex(Col), put display buttons on a separate menu
  * v6r2    13-May-2002  TU    Final DSTF rec changes, prepend "get" to methods, consistent iters
  * v6r1    13-May-2002  TU    Cleanup from TDS move, TDS path names changed to string versions
