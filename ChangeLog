@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: usher  Tue Apr 20 10:21:02 PDT 2004
+TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices
+
+Modified Files:
+	IProcNoiseMatrix.h NoProcNoiseMatrix.h StdProcNoiseMatrix.h 
+	StdProjectionMatrix.h StdTransportMatrix.h 
+	ThreeDProjectionMatrix.h 
+Log Message:
+Fix linux compilation warnings and errors. Also set requirements file to look for GlastPolicy v*
+
+    *
+------------------------------------------------------------
+User: usher  Tue Apr 20 10:21:02 PDT 2004
 TkrRecon/src/TrackFit/KalmanFilterFit
 
 Modified Files:
