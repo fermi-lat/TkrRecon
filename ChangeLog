@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Thu Jul 18 14:14:45 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	GFcontrol.cxx 
+Log Message:
+Began the process of elimination - removed all used parameters
+    *
+------------------------------------------------------------
 User: atwood  Thu Jul 18 14:13:39 PDT 2002
 TkrRecon/src/TrackFit/KalFitTrack
 
