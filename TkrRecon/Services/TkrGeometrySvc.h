@@ -10,8 +10,6 @@
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 #include "idents/VolumeIdentifier.h"
 
-//#include <string>
-
 //----------------------------------------------
 //
 //   TkrGeometrySvc
@@ -21,10 +19,8 @@
 //----------------------------------------------
 //             Tracy Usher, SLAC, 2/28/01
 //----------------------------------------------
-//##########################################################
 class TkrGeometrySvc : public Service,
         virtual public ITkrGeometrySvc
-//##########################################################
 {
 public:
 

@@ -13,11 +13,10 @@
 *
 * @brief Contains methods that operate on the clusters and return information.
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.1 2002/04/30 01:35:48 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Cluster/TkrQueryClusters.h,v 1.2 2002/04/30 23:18:07 lsrea Exp $
 */
 
 class TkrQueryClusters
-//###################################################
 {
 public:
 	
