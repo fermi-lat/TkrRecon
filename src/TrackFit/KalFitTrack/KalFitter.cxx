@@ -834,7 +834,7 @@ void KalFitter::finish()
         }   
         
         // Compute the radiation lengths to the calorimeter front face
-        double arc_min = (m_track->getInitialPosition().z() + 26.5)/fabs(m_track->getInitialDirection().z()); 
+        double arc_min = (m_track->getInitialPosition().z() - m_tkrGeo->calZTop())/fabs(m_track->getInitialDirection().z()); 
         IKalmanParticle* TkrFitPart = m_tkrGeo->getPropagator();
          TkrFitPart->setStepStart(x0, dir, arc_min);
         m_track->setTkrCalRadLen(TkrFitPart->radLength()); 

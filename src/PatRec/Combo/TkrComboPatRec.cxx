@@ -298,11 +298,6 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     int num_last_hits = 0; 
     double arc_len    = 5./fabs(dir_ini.z()); 
 
-    // these vars are not currently used, but I'm leaving them in to avoid pitfalls later
-    double rad_thick = 0.;
-    double rad_thin  = 0.;
-    double rad_last  = 0.; 
-    
     int top_plane     = first_track->getLayer(); 
     
     int max_planes = m_tkrGeo->numLayers();
@@ -325,23 +320,6 @@ void TkrComboPatRec::setEnergies(double calEnergy)
         Point x_hit = first_track->getPosAtZ(arc_len);
         int numHits = TkrQueryClusters(m_clusters).
             numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
-
-        /* old code, new stuff below
-        // the only assumption here is that the thin layers are on top
-        // and the noConv layers are on the bottom
-        if(iplane >= nThick + nThin)   { 
-            num_last_hits += numHits; 
-            rad_last  = arc_len;  // not currently used
-        }
-        else if(iplane < nThin) {
-            num_thin_hits += numHits;
-            rad_thin  = arc_len;  // not currently used
-        } 
-        else {
-            num_thick_hits += numHits;
-            rad_thick  = arc_len; // not currently used
-        }
-        */
 
         convType type = m_tkrGeo->getReconLayerType(iplane);
         switch(type) {
@@ -384,20 +362,6 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     rad_swim = std::max(rad_swim, rad_nom + rad_min); 
     double ene_total  =  ene_trks * rad_swim/rad_nom + cal_Energy; //Scale and add cal. energy
 
-    // rad_thin, rad_thick, and rad_last are still defined and filled in code
-    /*
-    kalPart->setStepStart(x_ini, dir_ini, rad_thin);
-    rad_thin = kalPart->radLength();
-    kalPart->setStepStart(x_ini, dir_ini, rad_thick);
-    rad_thick = kalPart->radLength()-rad_thin;
-    kalPart->setStepStart(x_ini, dir_ini, rad_last);
-    rad_last = kalPart->radLength()-rad_thin-rad_thick;
-
-    m_out<<num_thin_hits<<'\t'<<num_thick_hits<<'\t'<<num_last_hits<<'\t';
-    m_out<<rad_thin<<'\t'<<rad_thick<<'\t'<<rad_last<<'\t';
-    m_out<<rad_swim<<'\t'<<rad_nom<<'\t'<<'\t';
-    m_out<<cal_Energy<<'\t'<<ene_total<<'\n';
-*/
     // Now constrain the energies of the first 2 tracks. 
     //    This isn't valid for non-gamma conversions
 
