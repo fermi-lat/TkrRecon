@@ -2,6 +2,9 @@
 #ifndef __GFCONTROL_H
 #define __GFCONTROL_H 1
 
+#include "TkrRecon/cluster/TkrClusters.h"
+#include "TkrRecon/Track/GFtutor.h"
+
 //############################################
 class GFcontrol
 //############################################
