@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Wed Feb  6 13:55:17 PST 2002
+TkrRecon/src/Track
+
+Added Files:
+	TkrComboFit.cxx TkrComboFit.h TkrComboTrackFit.cxx 
+	TkrComboTrackFit.h TkrLinkAndTreeFit.h 
+	TkrLinkAndTreeTrackFit.cxx TkrLinkAndTreeTrackFit.h 
+Log Message:
+These classes drive the track fitting on the results of the particular pattern
+recognition algorithm
+
+    *
+------------------------------------------------------------
 User: usher  Wed Feb  6 13:53:27 PST 2002
 TkrRecon/src/Track
 
