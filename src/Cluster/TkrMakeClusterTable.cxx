@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusterTable.cxx,v 1.13 2002/09/02 23:31:05 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusterTable.cxx,v 1.1 2002/10/08 22:30:17 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusterTable has the methods for making the clusters, 
@@ -11,6 +11,7 @@
 
 
 #include "src/Cluster/TkrMakeClusterTable.h"
+#include "facilities/Util.h"
 #include <algorithm>
 
 using namespace Event;
@@ -30,40 +31,62 @@ TkrMakeClusterTable::TkrMakeClusterTable(const TkrClusterCol* pClus,
 
     TkrDigiCol::const_iterator itD = pDigi->begin();
 
-    // go through all the clusters: these are in the same order as the digis
     int clsSize = pClus->nHits();
 
-    // go thru the clusters
+    // go through all the clusters: these are in the same order as the digis
     for (int iclu=0; iclu<clsSize; iclu++) {
         TkrCluster* p_clu = pClus->getHit(iclu);
+        int firstStrip = p_clu->firstStrip();
+        int lastStrip  = p_clu->lastStrip();
+        // turn into strings for comparison
+        std::string lowStrip;
+        std::string highStrip;
+        facilities::Util::itoa(firstStrip, lowStrip);
+        while(lowStrip.size()<4) { lowStrip = " "+lowStrip;}
+        facilities::Util::itoa(lastStrip, highStrip);
+        while(highStrip.size()<4) { highStrip = " "+highStrip;}
         TkrDigi* p_digi = *itD;
-        //std::cout << "dOrder: " << (int)*p_digi << " cOrder: " << digiOrder(p_clu) << std::endl;
-        while (digiOrder(p_clu)!=*p_digi && itD<pDigi->end()) {
+        int order = digiOrder(p_clu);
+        while (order!=*p_digi && itD!=pDigi->end()) {
             p_digi = (*itD++);
-            //std::cout << "dOrder: " << (int)*p_digi << " cOrder: " << digiOrder(p_clu) << std::endl;
         }
         if (itD==pDigi->end()) return;
         // cluster and digi match; get the McHits
-        std::vector<Relation<TkrDigi, McPositionHit> *> hitsByDigi = digiHitsTab.getRelByFirst(p_digi);
-        // collect the hits
+        std::vector<Relation<TkrDigi, McPositionHit> *> relsByDigi = digiHitsTab.getRelByFirst(p_digi);
+        // collect the corresponding hits
         std::vector<McPositionHit*> mcHits;
-        for(int irel=0;irel<hitsByDigi.size();irel++) {
-            McPositionHit* theHit = hitsByDigi[irel]->getSecond();
+        for(int irel=0;irel<relsByDigi.size();irel++) {
+            McPositionHit* theHit = relsByDigi[irel]->getSecond();
+            // is this hit already in the list?
             if(std::find(mcHits.begin(),mcHits.end(), theHit)==mcHits.end()) {
-                mcHits.push_back(theHit);
+                // if not, does the info contain any strip in the cluster?
+                
+                std::vector<std::string> info = relsByDigi[irel]->getInfos();
+                std::vector<std::string>::const_iterator itI;
+                
+                for (itI=info.begin(); itI!=info.end(); itI++) {
+                    std::string thisStrip= *itI;
+                    if(thisStrip<lowStrip)  {continue;}
+                    if(thisStrip>highStrip) {continue;}
+                    // in range, add the hit, and get out
+                    mcHits.push_back(theHit);
+                    break;
+                }
             }
         }
-        //std::cout << "Cluster pointer " << p_clu << std::endl;
-        //std::cout << "Hit pointers " ;
+
+        std::cout << "Cluster pointer " << p_clu << std::endl;
+        std::cout << "Hit pointers " ;
         // make a relation with the current cluster and each McHit
-        for(int ihit=0; ihit<mcHits.size();ihit++) {
-            McPositionHit* theHit = mcHits[ihit];
-            //std::cout << theHit << " " ;
+        std::vector<McPositionHit*>::const_iterator itH;
+        for(itH=mcHits.begin(); itH!=mcHits.end();itH++) {
+            McPositionHit* theHit = *itH;
+            std::cout << theHit << " " ;
             Relation<TkrCluster, McPositionHit>* rel 
                 = new Relation<TkrCluster, McPositionHit>(p_clu, theHit);
             clustHitsTab.addRelation(rel);
         }
-        //std::cout << std::endl;      
+        std::cout << std::endl;
     }   
 }
 
