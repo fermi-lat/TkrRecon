@@ -7,7 +7,7 @@
 
 #include "src/TrackFit/KalFitTrack/KalFitTrack.h"
 #include "src/TrackFit/KalFitTrack/GFcontrol.h"
-#include "src/PatRec/Combo/GFtutor.h"
+#include "src/PatRec/Utilities/GFtutor.h"
 
 static ToolFactory<TkrComboFitTool> s_factory;
 const IToolFactory& TkrComboFitToolFactory = s_factory;
