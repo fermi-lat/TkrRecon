@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: atwood  Mon Dec 13 15:50:42 PST 2004
+TkrRecon/src/Vertex
+
+Modified Files:
+	IVtxBaseTool.h VtxBaseTool.cxx VtxBaseTool.h VtxKalFitTool.cxx 
+	VtxSingleTrkTool.cxx 
+Log Message:
+New vertexing version.  Many bugs found and fixed in Combo, etc.
+
+    *
+------------------------------------------------------------
 User: atwood  Mon Dec 13 15:50:41 PST 2004
 TkrRecon/src/Track
 
