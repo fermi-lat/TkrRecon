@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Fri May 24 09:01:17 PDT 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrQueryClusters.cxx 
+Log Message:
+Kludge temporary fix to prevent TkrRecon crashes of past few days
+
+    *
+------------------------------------------------------------
 User: cohen  Fri May 24 04:08:57 PDT 2002
 TkrRecon/src/Dll
 
