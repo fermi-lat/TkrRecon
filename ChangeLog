@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Mon Dec  2 10:09:07 PST 2002
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx 
+Log Message:
+Fixed bug in acos(t1*t0) - sometimes dot-prod > 1.   Set KalEnergy limit to 100 GeV. 
+    *
+------------------------------------------------------------
 User: kuss  Fri Nov 29 01:37:52 PST 2002
 TkrRecon/src/TrackFit/KalFitTrack
 
