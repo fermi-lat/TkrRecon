@@ -1,3 +1,13 @@
+//----------------------------------------
+//
+//      Kalman Filter for Glast
+//
+//      Original due to Jose Hernando-Angle circa 1997-1999
+//      Re-written to combine both X and Y projections (2001)
+//
+//      W. B. Atwood, UCSC, Nov., 2001 
+//      
+//----------------------------------------
 
 #ifndef __KalFitTrack_H
 #define __KalFitTrack_H 1
@@ -24,6 +34,7 @@ public:
     /// Access 
     inline Point  getPosAtZ(double deltaZ)   const{return m_x0+deltaZ*m_dir;} 
     inline Vector getDirection()             const{return m_dir;}
+    inline double getStartEnergy()           const{return m_energy0;}
     inline int    numSegmentPoints()         const{return m_numSegmentPoints;}
     inline double chiSquareSegment(double penaltyGap = 0.)  
                                              const{return m_chisqSegment + penaltyGap*getNumGaps();}
