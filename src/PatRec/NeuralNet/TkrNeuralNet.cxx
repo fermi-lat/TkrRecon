@@ -255,7 +255,7 @@ void TkrNeuralNet::buildCand()
     // real fit
     if (m_tracks.size())
     {
-        TkrFitColPtr iter = m_tracks.begin();
+        TkrFitTrackCol::iterator iter = m_tracks.begin();
 
         while(iter != m_tracks.end())
         {

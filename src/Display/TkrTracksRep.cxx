@@ -27,17 +27,17 @@ void TkrTracksRep::update()
 
         pDisplay->setColor("blue");
 
-        int numTracks = pTracks->getNumTracks();
+        int numTracks = pTracks->size();
 
         if (numTracks > 0) 
         {
             int trkIdx = 0;
-
-            while(trkIdx < numTracks)
+	    TkrFitTrackCol::const_iterator it;
+            for(it = pTracks->begin(); it != pTracks->end(); ++it)
             {
-                TkrFitTrack* track = pTracks->getTrack(trkIdx++);
+                const TkrFitTrack& track = **it;
 
-                pDisplay->markerAt(track->getPosition());
+                pDisplay->markerAt(track.getPosition());
 
                 drawChiSq(track);
                 drawTrack(track);
@@ -48,15 +48,15 @@ void TkrTracksRep::update()
     return;
 }
 
-void TkrTracksRep::drawChiSq(TkrFitTrack* track)
+void TkrTracksRep::drawChiSq(TkrFitTrack& track)
 {
     gui::DisplayRep* pDisplay = this;
     TkrFitHit::TYPE  fit      = TkrFitHit::SMOOTH;
     TkrFitHit::TYPE  typ      = TkrFitHit::SMOOTH;
 
-    TkrFitPlaneConPtr hitIter = track->getHitIterBegin();
+    TkrFitPlaneConPtr hitIter = track.getHitIterBegin();
 
-    while(hitIter < track->getHitIterEnd())
+    while(hitIter < track.getHitIterEnd())
     {
         TkrFitPlane plane = *hitIter++;
 
@@ -88,15 +88,15 @@ void TkrTracksRep::drawChiSq(TkrFitTrack* track)
     }
 }
 
-void TkrTracksRep::drawTrack(TkrFitTrack* track)
+void TkrTracksRep::drawTrack(TkrFitTrack& track)
 {
     gui::DisplayRep* pDisplay = this;
     TkrFitHit::TYPE  fit      = TkrFitHit::SMOOTH;
     TkrFitHit::TYPE  typ      = TkrFitHit::SMOOTH;
 
-    TkrFitPlaneConPtr hitIter = track->getHitIterBegin();
+    TkrFitPlaneConPtr hitIter = track.getHitIterBegin();
 
-    while(hitIter < track->getHitIterEnd()-1)
+    while(hitIter < track.getHitIterEnd()-1)
     {
         TkrFitPlane plane     = *hitIter++;
         TkrFitPlane planeNext = *hitIter;

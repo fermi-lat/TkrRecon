@@ -13,7 +13,7 @@
 * @todo Impliment graph searching function to better pick out candidate tracks.
 * @todo Move global parameter definitions to joboptions file
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/TkrNeuralNet.h,v 1.4 2002/05/10 21:53:57 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/TkrNeuralNet.h,v 1.5 2002/05/12 05:53:01 usher Exp $
 */
 
 #ifndef __TKR_NEURALNET_H
@@ -140,7 +140,7 @@ private:
     /// list of candidate tracks to be passed to the Kalman fit.
 	CandidateList  m_candidates;
     /// list of tracks to be used with Kalman fit.
-	TkrFitCol      m_tracks;
+	TkrFitTrackCol      m_tracks;
     /// list of all neurons
 	TkrNeuronList  m_neuronList;
     /// list of all (x,y,z) points (not all are used in neurons)

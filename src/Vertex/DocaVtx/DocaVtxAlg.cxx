@@ -4,7 +4,7 @@
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/SmartDataPtr.h"
 #include "Event/TopLevel/EventModel.h"
-#include "Event/Recon/TkrRecon/TkrFitTrackCol.h"
+#include "Event/Recon/TkrRecon/TkrFitTrack.h"
 
 //From TkrComboVtxRecon:
 #include "src/Vertex/Combo/RayDoca.h"
@@ -42,7 +42,7 @@ StatusCode DocaVtxAlg::execute()
   //AND NOW WE BRUTALLY PASTE TKRCOMBOVTXRECON:
   
   //Define a vector to contain a list of "isolated" tracks
-    int   numTracks = pTracks->getNumTracks();
+    int   numTracks = pTracks->size();
     bool* unused    = new bool[numTracks];
     
     while(numTracks--) unused[numTracks] = true;
@@ -51,16 +51,16 @@ StatusCode DocaVtxAlg::execute()
     int   trk1Idx = 0;
 
     //Loop over the number of Fit tracks
-    TkrFitColPtr pTrack1 = pTracks->getTrackIterBegin();
+    TkrFitTrackCol::iterator pTrack1 = pTracks->begin();
 
-    while(pTrack1 < pTracks->getTrackIterEnd() && unused[trk1Idx])
+    while(pTrack1 < pTracks->end() && unused[trk1Idx])
     {
         TkrFitTrack* track1  = *pTrack1++;
-        TkrFitColPtr pTrack2 = pTrack1;
+        TkrFitTrackCol::iterator pTrack2 = pTrack1;
         int          trk2Idx = trk1Idx + 1;
 
 	
-	while(pTrack2 < pTracks->getTrackIterEnd() && unused[trk2Idx])
+	while(pTrack2 < pTracks->end() && unused[trk2Idx])
         {
 	  TkrFitTrack* track2 = *pTrack2++;
 
@@ -148,13 +148,12 @@ StatusCode DocaVtxAlg::execute()
 
 
     //Go through unused list looking for isolated tracks
-    numTracks = pTracks->getNumTracks();
-
-    while(numTracks--)
-    {
+    TkrFitTrackCol::iterator it;
+    for(it=pTracks->begin(); it != pTracks->end(); ++it)
+      {
         if (unused[numTracks])
         {
-            TkrFitTrack* track1 = pTracks->getTrack(numTracks);
+            TkrFitTrack* track1 = *it;
 
             TkrVertex* vertex = new TkrVertex(track1->getLayer(),track1->getTower(),track1->getEnergy(),0.,Ray(track1->getPosition(),track1->getDirection()));
 

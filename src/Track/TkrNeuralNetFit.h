@@ -9,7 +9,7 @@
 *
 * @authors b. allgood and w. atwood
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetFit.h,v 1.3 2002/05/10 21:53:57 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetFit.h,v 1.4 2002/05/12 05:53:02 usher Exp $
 */
 
 #ifndef TKRNEURALNETFIT_H
@@ -18,7 +18,7 @@
 #include <vector>
 #include "GaudiKernel/MsgStream.h"
 #include "Event/Recon/TkrRecon/TkrPatCandCol.h"
-#include "Event/Recon/TkrRecon/TkrFitTrackCol.h"
+#include "Event/Recon/TkrRecon/TkrFitTrack.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 
 namespace Event { //Namespace
