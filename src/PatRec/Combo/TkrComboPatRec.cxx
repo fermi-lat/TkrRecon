@@ -35,9 +35,6 @@ namespace {
     const        _thickCoeff     = 1.97;
     const        _noradCoeff     = 0.35;
 
-    const int    _lastThickLayer = 6; 
-    const int    _lastThinLayer  = 2;
-
     const double _thinConvRadLen  = 0.03;
     const double _thickConvRadLen = 0.18;
     const double _trayRadLen      = 0.015;
@@ -261,6 +258,13 @@ void TkrComboPatRec::setEnergies(double calEnergy)
 
     // Use hit counting + CsI energies to compute Event Energy 
 
+    // some useful numbers from geometry
+    // this depends on the constants below being correct
+    // which is *not* guaranteed!
+    int nThick = m_tkrGeo->numSuperGlast();
+    int nNoCnv = m_tkrGeo->numNoConverter();
+    int nThin  = m_tkrGeo->numLayers() - nThick - nNoCnv;
+    
     double cal_Energy = std::max(calEnergy, 0.5*m_control->getMinEnergy());
 
     // TOTAL KULDGE HERE - Cal Energies are found to be too low by ~20%
@@ -280,7 +284,7 @@ void TkrComboPatRec::setEnergies(double calEnergy)
 
     // Setup summed var's and loop over all layers between x_ini & cal
     int num_thin_hits = 0;
-    int num_thck_hits = 0;
+    int num_thick_hits = 0;
     int num_last_hits = 0; 
     double arc_len    = 5./fabs(dir_ini.z()); 
     double rad_thick = 0.;
@@ -307,21 +311,23 @@ void TkrComboPatRec::setEnergies(double calEnergy)
         // Assume location of shower center in given by 1st track
         Point x_hit = first_track->getPosAtZ(arc_len);
         int numHits = TkrQueryClusters(m_clusters).
-                                       numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
-        // assumes 2-4-n structure
-        if(iplane < m_tkrGeo->numLayers()-_lastThickLayer)   { 
-            num_thin_hits += numHits; 
-            rad_thin  = arc_len;
-        }
-        else if(iplane < m_tkrGeo->numLayers()-_lastThinLayer) {
-            num_thck_hits += numHits;
-            rad_thick  = arc_len;
-        }
-        else {
-            num_last_hits += numHits;
+            numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
+
+        // the only assumption here is that the thin layers are on top
+        // and the noConv layers are on the bottom
+        if(iplane >= nThick + nThin)   { 
+            num_last_hits += numHits; 
             rad_last  = arc_len;
         }
-        
+        else if(iplane < nThin) {
+            num_thin_hits += numHits;
+            rad_thin  = arc_len;
+        }
+        else {
+            num_thick_hits += numHits;
+            rad_thick  = arc_len;
+        }
+
         // Increment arc-length
         //arc_len += m_tkrGeo->trayHeight()/fabs(dir_ini.z());
         int nextPlane = iplane+1;
@@ -330,16 +336,17 @@ void TkrComboPatRec::setEnergies(double calEnergy)
         arc_len += fabs( deltaZ/dir_ini.z()); 
     }
     
-    //double ene_trks   = .4*num_thin_hits + 1.7*num_thck_hits; // Coefs are MeV/hit
+    //double ene_trks   = .4*num_thin_hits + 1.7*num_thick_hits; // Coefs are MeV/hit
     //double ene_xing   = 1.6*(max_planes-top_plane+1);       // Coef is MeV/plane
     // Optimized Coefs = .6 , 1.85, and .32
 
-    double ene_trks   = _thinCoeff*num_thin_hits + _thickCoeff*num_thck_hits +
+    double ene_trks   = _thinCoeff*num_thin_hits + _thickCoeff*num_thick_hits +
         _noradCoeff*num_last_hits; // Coefs are MeV/hit - 2nd Round optimization
  
-    int thin_planes  = std::max(0, m_tkrGeo->numLayers()-_lastThickLayer - top_plane);
-    int thick_planes = std::max(0, max_planes - top_plane - thin_planes-_lastThinLayer);
-    int norad_planes = std::max(0, max_planes - top_plane - thick_planes - thin_planes);
+    // a bit more obvious now!
+    int thin_planes  = std::min(nThin,  std::max(0, nThin          - top_plane) );
+    int thick_planes = std::min(nThick, std::max(0, nThin + nThick - top_plane) );
+    int norad_planes = std::min(nNoCnv, std::max(0, max_planes     - top_plane) );
 
     //Just the radiators
     double rad_nom  = _thinConvRadLen*thin_planes 
@@ -359,7 +366,7 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     kalPart->setStepStart(x_ini, dir_ini, rad_last);
     rad_last = kalPart->radLength()-rad_thin-rad_thick;
 
-    m_out<<num_thin_hits<<'\t'<<num_thck_hits<<'\t'<<num_last_hits<<'\t';
+    m_out<<num_thin_hits<<'\t'<<num_thick_hits<<'\t'<<num_last_hits<<'\t';
     m_out<<rad_thin<<'\t'<<rad_thick<<'\t'<<rad_last<<'\t';
     m_out<<rad_swim<<'\t'<<rad_nom<<'\t'<<'\t';
     m_out<<cal_Energy<<'\t'<<ene_total<<'\n';
@@ -661,6 +668,13 @@ float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
    // Dependencies: None
    // Restrictions and Caveats:  None.
 
+    // some useful numbers from geometry
+    // this depends on the constants below being correct
+    // which is *not* guaranteed!
+    int nThick = m_tkrGeo->numSuperGlast();
+    int nNoCnv = m_tkrGeo->numNoConverter();
+    int nThin  = m_tkrGeo->numLayers() - nThick - nNoCnv;
+
     deflection = 0.;
     int nlayers = 0;
     
@@ -681,10 +695,12 @@ float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
     
     deflection = traj.direction() * ((m_nextHit-traj.position()).unit());
     
-    //Hardwire in rad. lengths
-    double rad_len = 
-        (layer < m_tkrGeo->numLayers() - _lastThickLayer) ?
-        _thinConvRadLen+_trayRadLen : _thickConvRadLen+_trayRadLen ; 
+    //Radlens defined locally for now
+    double rad_len = _trayRadLen;
+    if(layer >= nThick + nThin) {}
+    else if(layer < nThin)      {rad_len += _thinConvRadLen; }
+    else                        {rad_len += _thickConvRadLen;}
+
     rad_len /= costh; 
     double theta_MS = 13.6/m_energy * sqrt(rad_len)*(1+.038*log(rad_len));
     double dist_MS  = m_arclen *theta_MS/1.72/costh; 

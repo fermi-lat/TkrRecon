@@ -15,7 +15,7 @@
  * 
  * @author Leon Rochester
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometrySvc.h,v 1.16 2002/10/10 18:56:06 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometrySvc.h,v 1.17 2002/10/11 19:29:59 lsrea Exp $
  */
 
 #include "GaudiKernel/Service.h"
@@ -44,6 +44,8 @@ public:
     int    numYTowers()      {return m_numY;} 
     int    numViews()        {return m_nviews;} 
     int    numLayers()       {return m_nlayers;}
+    int    numNoConverter()  {return m_nNoConverter;}
+    int    numSuperGlast()   {return m_nSuperGlast;}
     int    nWaferAcross()    {return m_nWaferAcross;}
 
     int    numPlanes()       {return m_nlayers;}
@@ -96,6 +98,10 @@ private:
     int    m_nviews;        
     /// total number of x-y layers
     int    m_nlayers; 
+    /// number of no-converter layers
+    int m_nNoConverter;
+    /// number of superglast layers
+    int m_nSuperGlast;
     ///  number of wafers in a ladder
     int m_nWaferAcross;
 
