@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: burnett  Thu Feb 14 10:47:03 PST 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrClusters.cxx 
+Log Message:
+workaround for for scope problem
+    *
+------------------------------------------------------------
 User: burnett  Thu Feb 14 10:46:07 PST 2002
 TkrRecon/src/TrackFit
 
