@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Tue Nov  9 13:27:45 PST 2004
+TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices
+
+Modified Files:
+	IProcNoiseMatrix.h NoProcNoiseMatrix.cxx NoProcNoiseMatrix.h 
+	StdProcNoiseMatrix.cxx StdProcNoiseMatrix.h 
+	StdProjectionMatrix.cxx StdProjectionMatrix.h 
+	StdTransportMatrix.cxx StdTransportMatrix.h 
+	ThreeDProjectionMatrix.cxx ThreeDProjectionMatrix.h 
+Log Message:
+Modifications to the generic fit to remove dependences on "plane id" and allow for interchanging fit matrix, energy loss, etc., classes during the fit
+    *
+------------------------------------------------------------
 User: lsrea  Fri Nov  5 15:28:02 PST 2004
 TkrRecon/src/PatRec/Combo
 
