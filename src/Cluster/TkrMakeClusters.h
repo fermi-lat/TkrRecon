@@ -28,7 +28,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.16 2003/01/06 19:03:51 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.17 2003/01/10 19:43:23 lsrea Exp $
 */
 
 #include <vector>
@@ -41,6 +41,7 @@
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrBadStripsSvc.h"
+#include "TkrUtil/ITkrAlignmentSvc.h"
 
 class TkrMakeClusters
 {
@@ -52,7 +53,9 @@ public:
     /// the pointers to services and data are passed through the constructor
     
     TkrMakeClusters(Event::TkrClusterCol* pClus, 
-        ITkrGeometrySvc* m_pTkrGeo, ITkrBadStripsSvc* m_pBadStrips, 
+        ITkrGeometrySvc* m_pTkrGeo, 
+        ITkrBadStripsSvc* m_pBadStrips,
+        ITkrAlignmentSvc* m_pAlignment,
         Event::TkrDigiCol* pTkrDigiCol);
     
     ~TkrMakeClusters() { }
@@ -77,6 +80,9 @@ private:
     
     /// Keep pointer to the bad strip service
     ITkrBadStripsSvc* m_pBadStrips;
+
+    /// Keep pointer to the alignment service
+    ITkrAlignmentSvc* m_pAlignment;
 };
 
 #endif // TKRMAKECLUSTERS

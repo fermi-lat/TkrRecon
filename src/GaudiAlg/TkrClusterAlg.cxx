@@ -46,6 +46,14 @@ StatusCode TkrClusterAlg::initialize()
         log << MSG::INFO << "Algorithm will not filter bad hits." << endreq;   
     }
     
+    // TkrAlignmentSvc is not required for this algorithm
+    // There are some shenanigans below to ensure that the algorithm 
+    // runs without it.
+    sc = service("TkrAlignmentSvc", m_pAlignment, false);
+    if (sc.isFailure()) {
+        log << MSG::INFO << "Algorithm will not filter bad hits." << endreq;   
+    }
+    
     //Initialize the rest of the data members
     m_TkrClusterCol = 0;
     m_TkrDigis      = 0; 
@@ -97,7 +105,8 @@ StatusCode TkrClusterAlg::execute()
         m_TkrClusterCol);
     
     // make the clusters
-    TkrMakeClusters maker(m_TkrClusterCol, m_pTkrGeo, m_pBadStrips, m_TkrDigis);
+    TkrMakeClusters maker(m_TkrClusterCol, m_pTkrGeo, m_pBadStrips, 
+        m_pAlignment, m_TkrDigis);
 
     if (m_TkrClusterCol == 0) return StatusCode::FAILURE;
 
