@@ -470,11 +470,12 @@ void GFpair::removeWorseStep(GFtrack* _GFtrack1, GFtrack* _GFtrack2)
     int kplane2 = _GFtrack2->previousKPlane().getIDPlane();
     
     // the closest track first
-    if (kplane1 != kplane2) {
-	if (kplane1 > kplane2) _GFtrack2->removeStep();
-	else  _GFtrack1->removeStep();
-	return;
-    }
+//    if (kplane1 != kplane2) 
+//    {
+//	    if (kplane1 > kplane2) _GFtrack2->removeStep();
+//	    else  _GFtrack1->removeStep();
+//	    return;
+//    }
     
     int nhits1 = _GFtrack1->numDataPoints();
     int nhits2 = _GFtrack2->numDataPoints();
