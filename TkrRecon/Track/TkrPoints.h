@@ -33,6 +33,8 @@ public:
     int tower() const     {return m_tower;}
     int xID() const       {return m_xID;}
     int yID() const       {return m_yID;}
+    double xSize() const  {return m_xSize;}
+    double ySize() const  {return m_ySize;}
     bool x_Layer() const  {return m_isX;}
     
 	std::vector<TkrPoint> getAllLayerPoints();
@@ -55,6 +57,8 @@ private:
     int m_tower;
     int m_xID;
     int m_yID;
+    double m_xSize;
+    double m_ySize;
 };
 
 #endif
