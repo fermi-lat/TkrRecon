@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Thu May 13 15:26:01 PDT 2004
+TkrRecon/src/Track
+
+Modified Files:
+	KalmanTrackFitTool.cxx 
+Log Message:
+Fix bug, forgot to set pointer to hit energy object to zero in constructor
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon May 10 16:42:39 PDT 2004
 TkrRecon/src/TrackFit/KalFitTrack
 
