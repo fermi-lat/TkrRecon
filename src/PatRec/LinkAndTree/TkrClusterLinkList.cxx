@@ -34,7 +34,7 @@ TkrClusterLinkList::TkrClusterLinkList(ITkrQueryClustersTool* clusTool, TkrPlane
         while(layerNum--)
         {
             //std::vector<TkrCluster*> pClus = pClusters->getHits((TkrCluster::view)plane, layerNum);
-            Event::TkrClusterVec pClus = clusTool->getClustersReverseLayer((TkrCluster::view)plane, layerNum);
+            Event::TkrClusterVec pClus = clusTool->getClustersReverseLayer(plane, layerNum);
 
             if (pClus.size() > 0)
             {

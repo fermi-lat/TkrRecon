@@ -66,7 +66,7 @@ void TkrTracksRep::drawChiSq(const TkrFitTrackBase& track)
         double x0, y0, z0, xl, xr, yl, yr;
         double delta= plane.getDeltaChiSq(typ)*10.; //Scale factor! We're in mm now!
 
-        if(prj == TkrCluster::X){
+        if(prj == idents::TkrId::eMeasureX){
             x0 = plane.getHit(typ).getPar().getXPosition();
             y0 = plane.getHit(fit).getPar().getYPosition(); 
             z0 = plane.getZPlane()+0.1;
@@ -107,8 +107,8 @@ void TkrTracksRep::drawTrack(const TkrFitTrackBase& track)
         double x0, y0, z0;
 
         TkrFitHit::TYPE xtyp, ytyp;
-        xtyp = (prj == TkrCluster::X ? typ : fit);
-        ytyp = (prj == TkrCluster::X ? fit : typ);
+        xtyp = (prj == idents::TkrId::eMeasureX ? typ : fit);
+        ytyp = (prj == idents::TkrId::eMeasureX ? fit : typ);
 
         // this sets up the track segment to the next plane
     
@@ -132,8 +132,8 @@ void TkrTracksRep::drawTrack(const TkrFitTrackBase& track)
 
         prj = plane.getNextProj();
 
-        xtyp = (prj == TkrCluster::X ? typ : fit);
-        ytyp = (prj == TkrCluster::X ? fit : typ);
+        xtyp = (prj == idents::TkrId::eMeasureX ? typ : fit);
+        ytyp = (prj == idents::TkrId::eMeasureX ? fit : typ);
 
         x0 = planeNext.getHit(xtyp).getPar().getXPosition();
         y0 = planeNext.getHit(ytyp).getPar().getYPosition(); 

@@ -45,7 +45,7 @@ void TkrClustersRep::update()
             double      Offset   = -0.5 * towerPitch;
 
             //Draw a cross at the position of the cluster center
-            if (pCluster->v() == Event::TkrCluster::X)
+            if (pCluster->getTkrId().getView() == idents::TkrId::eMeasureX)
             {
                 Offset += y;
                 moveTo(Point(x - delta, Offset, z - delta));
@@ -67,7 +67,7 @@ void TkrClustersRep::update()
             {
                 double stripWid = 0.5 * pCluster->size() * stripPitch;
 
-                if (pCluster->v() == Event::TkrCluster::X)
+                if (pCluster->getTkrId().getView() == idents::TkrId::eMeasureX)
                 {
                     moveTo(Point(x - stripWid, Offset, z));
                     lineTo(Point(x + stripWid, Offset, z));

@@ -13,7 +13,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitTrack.h,v 1.24 2004/09/09 20:39:56 lsrea Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/KalFitTrack/KalFitTrack.h,v 1.1 2004/09/23 21:30:32 usher Exp $
 */
 
 #ifndef __KalFitTrack_H
@@ -44,7 +44,7 @@ public:
     void          findHits();
     void          doFit();
     void          addMeasHit(const TkrPatCandHit& candHit);
-    void          addMeasHit(int clusIdx, int planeID, TkrCluster::view proj, double zPlane,
+    void          addMeasHit(int clusIdx, int planeID, int proj, double zPlane,
                              int before_hit);  
     int           addLeadingHits(int start_layer); 
 
@@ -135,7 +135,7 @@ private:
     int    m_type; 
 
     /// Axis information: First hit orientation
-    TkrCluster::view m_axis;
+    int    m_axis;
 
     /// KalTrack data
     int    m_iLayer;

@@ -60,9 +60,9 @@ void TkrCandidate3DRep::update()
                 Event::TkrPatCandHit* pHitCand = *hitPtr++;
                 Point                 hitCoord = pHitCand->Position();
 
-                if (pHitCand->View() == Event::TkrCluster::X) x = hitCoord.x();
-                else                                             y = hitCoord.y();
- 
+                if (pHitCand->View() == idents::TkrId::eMeasureX) x = hitCoord.x();
+                else                                              y = hitCoord.y();
+  
                 zCur = hitCoord.z();
 
                 if (fabs(zPrev-zCur) < 2.5) //mm

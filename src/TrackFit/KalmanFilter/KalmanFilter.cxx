@@ -71,8 +71,8 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ,
     TkrFitPart->setStepStart(x_ini, dir_ini, arc_min);
     if(TkrFitPart->trackToNextPlane()) 
     {
-        AXIS planeProjection = TkrCluster::Y;
-        if(TkrFitPart->isXPlane()) planeProjection = TkrCluster::X; 
+        AXIS planeProjection = idents::TkrId::eMeasureY;
+        if(TkrFitPart->isXPlane()) planeProjection = idents::TkrId::eMeasureX; 
 
         start.setNextProj(planeProjection);
 
@@ -135,8 +135,8 @@ TkrFitHit KalmanFilter::predicted(TkrFitPlane& start, TkrFitHit::TYPE typ,
     IKalmanParticle* TkrFitPart = m_tkrGeo->getPropagator();
     TkrFitPart->setStepStart(x_ini, dir_ini, arc_min);
     if(arc_min >= 0) {
-        AXIS planeProjection = TkrCluster::Y;
-        if(TkrFitPart->isXPlane()) planeProjection = TkrCluster::X; 
+        AXIS planeProjection = idents::TkrId::eMeasureY;
+        if(TkrFitPart->isXPlane()) planeProjection = idents::TkrId::eMeasureX; 
         start.setNextProj(planeProjection);
     }
     else 
@@ -247,7 +247,7 @@ TkrFitHit KalmanFilter::filter(TkrFitPlane& filterPlane)
 
     // The following incorporates the meas.projection matrix H
     TkrFitMatrix G(1); // The meas. weight matrix
-    if(filterPlane.getProjection()==TkrCluster::X) {
+    if(filterPlane.getProjection()==idents::TkrId::eMeasureX) {
         G(XPOS,XPOS) = 1./meas_hit.getCov().getcovX0X0();
         G(YPOS,YPOS) = 0.;
     }
@@ -321,7 +321,7 @@ void KalmanFilter::computeMeasCov(TkrFitPlane& plane, TkrFitPar pred_pars)
     double covOther;
     double slope;
 
-    if(plane.getProjection()==TkrCluster::X) {
+    if(plane.getProjection()==idents::TkrId::eMeasureX) {
         slope = pred_pars.getXSlope();
         measured = XPOS;
         other    = YPOS;
