@@ -2,12 +2,15 @@
  * @class MonteCarloFindTrackTool
  *
  * @brief Implements a Gaudi Tool for find track candidates. This particular tool uses the 
- *        "MonteCarlo" method, described in detail in TkrMonteCarloPatRec, which is very similar to 
- *        the method employed by Glast up to the time of the PDR.
+ *        "MonteCarlo" method. Here, McPositionHits are related to their originating McParticles to
+ *        form Monte Carlo tracks. The McPositionHits are then related to their corresponding Tracker
+ *        cluster hits and these are then used to form Pattern Candidate tracks. 
+ *        The aim of this method is to allow downstream testing of fitting, vertexing and analysis 
+ *        assuming "perfect" knowledge of the pattern recognition.
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.h,v 1.7 2003/07/29 15:08:01 cohen Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.h,v 1.1 2003/08/04 20:17:35 usher Exp $
  */
 
 #ifndef MONTECARLOFINDTRACKTOOL_H
@@ -24,18 +27,14 @@ public:
     /// Standard Gaudi Tool interface constructor
     MonteCarloFindTrackTool(const std::string& type, const std::string& name, const IInterface* parent);
     virtual ~MonteCarloFindTrackTool() {}
-
-    /// @brief Method to find candidate tracks. Will retrieve the necessary information from
-    ///        the TDS, including calorimeter energy, and then use TkrMonteCarloPatRec to find all
-    ///        possible track candidates. The resulting track candidate collection is then 
-    ///        stored in the TDS for the next stage.
 	
-    /// put actual init stuff here
+    /// @brief Intialization of the tool
     StatusCode initialize();
-    /// does the work
+    /// @brief Method to association the Monte Carlo hits into Pattern Candidate tracks
     StatusCode findTracks();
 
 private:
+    /// private method to build an individual Monte Carlo track
     Event::TkrPatCand* buildTrack(const Event::McParticle* mcPart);
 
     IParticlePropertySvc* m_ppsvc;

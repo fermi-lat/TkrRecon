@@ -1,8 +1,8 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.10 2003/07/29 15:08:01 cohen Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.1 2003/08/04 20:17:35 usher Exp $
 //
 // Description:
-//      Tool for find candidate tracks via the "MonteCarlo" approach
+//      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
 //
 // Author:
 //      The Tracking Software Group  
@@ -22,7 +22,7 @@
 static ToolFactory<MonteCarloFindTrackTool> s_factory;
 const IToolFactory& MonteCarloFindTrackToolFactory = s_factory;
 //
-// Feeds MonteCarlo pattern recognition tracks to Kalman Filter
+// Class constructor, no initialization here
 //
 
 MonteCarloFindTrackTool::MonteCarloFindTrackTool(const std::string& type, const std::string& name, const IInterface* parent) :
@@ -30,6 +30,10 @@ MonteCarloFindTrackTool::MonteCarloFindTrackTool(const std::string& type, const 
 {
 	return;
 }
+
+//
+// Initialization of the tool here
+//
 
 StatusCode MonteCarloFindTrackTool::initialize()
 {	
@@ -44,7 +48,9 @@ StatusCode MonteCarloFindTrackTool::initialize()
 }
 
 
-/*! A small class to use the sort algorithm */
+//
+// Define a small class which can be used by the std::sort algorithm 
+//
 class CompareTrackHits 
 {
 public:
@@ -58,7 +64,8 @@ public:
         // Find the McPositionHit associated with the McParticle
         const Event::McPositionHit* mcPosHitLeft  = findMcPosHit(mcHitLeft);
         const Event::McPositionHit* mcPosHitRight = findMcPosHit(mcHitRight);
-        
+
+        // If McPositionHits found, sort is by the particle's time of flight
         if (mcPosHitLeft && mcPosHitRight)
         {
             leftTest = mcPosHitLeft->timeOfFlight() < mcPosHitRight->timeOfFlight();
@@ -87,6 +94,9 @@ private:
     }
 };
 
+//
+// Drives the finding of the pattern candidate tracks
+//
 
 StatusCode MonteCarloFindTrackTool::findTracks()
 {
@@ -99,7 +109,7 @@ StatusCode MonteCarloFindTrackTool::findTracks()
     // If it doesn't exist then we need to build the MC structure
     if (mcEvent == 0)
     {
-        //This builds the Monte Carlo event structure
+        //This builds the Monte Carlo event structure - basically a description of the event
         mcEvent = new Event::McEventStructure(m_dataSvc, m_ppsvc);
 
         // Register ourselves in the temporary TDS
@@ -155,6 +165,10 @@ StatusCode MonteCarloFindTrackTool::findTracks()
 
     return sc;
 }
+
+//
+// Build an individual track
+//
 
 Event::TkrPatCand* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* mcPart)
 {
@@ -227,6 +241,11 @@ Event::TkrPatCand* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* 
         {
             delete patCand;
             patCand = 0;
+        }
+        // Sort the hits
+        else
+        {
+            patCand->sortHits();
         }
     }
 
