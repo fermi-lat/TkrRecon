@@ -588,7 +588,8 @@ double KalFitTrack::sigmaFoundHit(const TkrFitPlane& /*previousKplane*/, const T
     double min_dist = -1.;
     bool done = false;
     while (!done) {
-        nearHit = m_clusTool->nearestHitOutside(m_axis, klayer, min_dist, center, indexhit);
+        nearHit = m_clusTool->nearestHitOutside(m_axis, m_tkrGeo->reverseLayerNumber(klayer), 
+            min_dist, center, indexhit);
         done = foundHit(indexhit, min_dist, max_dist, rError, center, nearHit);
     }
     
@@ -649,7 +650,8 @@ double KalFitTrack::sigmaFoundHit(Point center, int nextLayer, int prevLayer,
     bool done = false;
     int loop_count = 0;
     while (!done && loop_count++ < 4) {
-        nearHit = m_clusTool->nearestHitOutside(m_axis, nextLayer, min_dist, center, indexhit);
+        nearHit = m_clusTool->nearestHitOutside(m_axis, m_tkrGeo->reverseLayerNumber(nextLayer),
+            min_dist, center, indexhit);
         done = foundHit(indexhit, min_dist, max_dist, rError, center, nearHit);
     }
     
@@ -863,15 +865,10 @@ int KalFitTrack::addLeadingHits(int top_layer)
         if ((m_clusTool->getClustersReverseLayer(idents::TkrId::eMeasureX,next_layer).size() +
              m_clusTool->getClustersReverseLayer(idents::TkrId::eMeasureY,next_layer).size()) < 1)
         {
-        //if((m_clusters->nHits(TkrCluster::X, next_layer) + 
-        //    m_clusters->nHits(TkrCluster::Y, next_layer)) < 1) {
             next_layer--;
             continue;
         }
         //Find the Z location for the x & y planes 
-        //int rev_layer = m_tkrGeo->reverseLayerNumber(next_layer); 
-        //zx = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::X, 751).z();
-        //zy = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::Y, 751).z();
         double zx = m_tkrGeo->getReconLayerZ(next_layer, idents::TkrId::eMeasureX);
         double zy = m_tkrGeo->getReconLayerZ(next_layer, idents::TkrId::eMeasureY);
 

@@ -8,6 +8,7 @@
 TkrLinkAndTree::TkrLinkAndTree(ITkrGeometrySvc* /*pTkrGeo*/, ITkrQueryClustersTool* clusTool, double energy)
 {
     m_energy = energy;
+    //m_pTkrGeo = pTkrGeo;
 
     ini();
 
