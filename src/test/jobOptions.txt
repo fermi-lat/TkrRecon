@@ -1,33 +1,55 @@
 //##############################################################
 //
-// Job options file for CalRecon test
+//  Job options file for TkrRecon test 
+//    
+//  This job reads a short digiRootdata file (and optionally, an mcRootData file)
+//  and processes the digis through TkrRecon.
+//
+//  Tests are performed in test_TkrRecon
 //
 
-// WARNING!!!!!!!!!!!!!!!!!!!!!!
-// This JobOptions DOES NOT WORK. It needs fixing up.
+// primary DLLs
 
-ApplicationMgr.ExtSvc   = { "GlastDetSvc", "GlastEventSelector/EventSelector" , "EventCnvSvc"};
+ApplicationMgr.DLLs+= {"RootIo", "TkrRecon", "Recon"};
 
-ApplicationMgr.DLLs   = { "GlastSvc", "TkrRecon", "RootHistCnv"  };
+// ----------------------------
+// setup basic event loop stuff
+//
+ApplicationMgr.ExtSvc = { 
+    "GlastEventSelector/EventSelector" , 
+    "EventCnvSvc"
+    };
+EventPersistencySvc.CnvServices = {"EventCnvSvc"};
+EventSelector.Input = "NONE";
 
+// ----------------------------
+//  Geometry definition
+//
+ApplicationMgr.DLLs += {"GlastSvc"};
+ApplicationMgr.ExtSvc += { "GlastDetSvc"};
+GlastDetSvc.topVolume="LAT"; 
 
-ApplicationMgr.TopAlg = { "SiLayersIRFAlg", "SiClustersAlg", "SiRecObjsAlg" };
+GlastDetSvc.xmlfile="$(XMLGEODBSROOT)/xml/flight/flightSegVols.xml";
+//GlastDetSvc.visitorMode="recon";
+
+// ----------------------------
+//  topalg
+//
+
+ApplicationMgr.TopAlg = {
+    "mcRootReaderAlg",
+    "digiRootReaderAlg",
+    "TkrReconAlg",      
+    "test_TkrRecon"
+    };
+
+ApplicationMgr.ExtSvc += { "TkrGeometrySvc", "TkrInitSvc" };
 
 // Set output level threshold (2=DEBUG, 3=INFO, 4=WARNING, 5=ERROR, 6=FATAL )
-
-MessageSvc.OutputLevel      = 2;
-
-//=========================================================================
-// Persistency service setup:
-EventPersistencySvc.CnvServices = {"EventCnvSvc"};
-
-
-EventSelector.Input = "IRFFILE $(INSTRUMENTROOT)/src/test/muontest.irf";
-//want this: EventSelector.Input = "IRFFILE $(INSTRUMENTROOT)/src/test/muontest.irf";
-
-ApplicationMgr.EvtMax = 20;
-
-
+MessageSvc.OutputLevel = 3;
+ApplicationMgr.EvtMax = 5;
+mcRootReaderAlg.mcRootFile="$(TKRRECONROOT)/src/test/muon_mc.root";
+digiRootReaderAlg.digiRootFile="$(TKRRECONROOT)/src/test/muon_digi.root";
 
 //==============================================================
 //
