@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: usher  Thu Mar  7 09:33:08 PST 2002
+TkrRecon/src/Track
+
+Modified Files:
+	TkrFitTrack.cxx 
+Log Message:
+
+Modify KalTrack to leave the track energy as that from the calorimeter,
+instead of the KalEnergy() from the track fit.
+
+
+    *
+------------------------------------------------------------
 User: usher  Thu Mar  7 09:30:51 PST 2002
 TkrRecon/src/Services
 
