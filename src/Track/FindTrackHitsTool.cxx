@@ -6,7 +6,7 @@
  * @author Tracking Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.6 2004/11/17 01:15:19 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.8 2004/11/17 04:36:06 usher Exp $
  */
 
 // to turn one debug variables
@@ -205,6 +205,8 @@ StatusCode FindTrackHitsTool::findTrackHits(Event::TkrTrack* track)
 
     // Set the first hit on the track here
     Event::TkrTrackHit* lastHit = setFirstHit(track);
+	if(!lastHit) return StatusCode::FAILURE;
+
 	if(lastHit->hitUsedOnFit()) {
 		if(lastHit->getStatusBits() & Event::TkrTrackHit::MEASURESX) {
 			int numX = track->getNumXHits() + 1;
@@ -239,8 +241,10 @@ StatusCode FindTrackHitsTool::findTrackHits(Event::TkrTrack* track)
         lastHit = trackHit;
 	}
 
-	// Check the minimum criterian for a "found" track
-	if((track->getNumXHits() + track->getNumYHits() < 5)) sc = StatusCode::FAILURE;
+	// Check the minimum criterion for a "found" track: 4 deg. of freedom req. 5 hits
+	// at least 2 in each projection
+	if((track->getNumXHits() + track->getNumYHits() < 5) ||
+		track->getNumXHits() <= 2 || track->getNumYHits() <= 2) sc = StatusCode::FAILURE;
 	else track->setStatusBit(Event::TkrTrack::Found);
 	return sc;
 }
@@ -557,7 +561,7 @@ Event::TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, Event::TkrTr
 		slope   = params->getySlope();
 	}
     
-	// Error due to finite SSD thickness
+	// Error due to finite SSD thickness -matters at large angles
     double zError=m_tkrGeom->siThickness()*slope;
   
 	// Add them in quadrature
@@ -605,11 +609,12 @@ Event::TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, Event::TkrTr
 		// Only care if meas. cluster size is too small
         if (meas_cluster_size < pred_cluster_size) continue; // look for another one
 
-        // Check if predicted hit is inside this tower
+        // Check if predicted hit is inside this tower: non measured co-ordinate
 		double outsideTower = (view == idents::TkrId::eMeasureY) ? 
                              fabs(nearHit.x()-center.x()): fabs(nearHit.y()-center.y());
         outsideTower -= m_tkrGeom->trayWidth()/2.;
-        if(outsideTower > 3. && deltaStrip/rError > 2.5 ) continue; // look for another one
+		// Test is on number of sigmas in the outside co-ordinate (inside will be < 0) 
+        if(outsideTower/rError > m_sigma) continue; 
 
         // If here then good cluster
         found_cluster = cluster;

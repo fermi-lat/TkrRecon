@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.16 2004/11/16 03:36:37 atwood Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.17 2004/11/17 01:15:18 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -77,7 +77,8 @@ protected:
         float  quality()       const {return m_qual;}
         int    type()          const {return m_type;}
         double conEnergy()     const {return m_ConEnergy;}
-		Event::TkrTrack *track()         {return m_track;} 
+		Event::TkrTrack *track()         {return m_track;}
+		void nullTrackPntr()   {m_track = 0;}
         
     private:    
         float m_qual;          // Resulting track Quality 
@@ -166,6 +167,9 @@ StatusCode ComboFindTrackTool::initialize()
 {	
   PatRecBaseTool::initialize();
   StatusCode sc   = StatusCode::SUCCESS;
+
+  //Set the properties
+  setProperties();
 
   if( (sc = toolSvc()->retrieveTool("FindTrackHitsTool", m_findHitTool)).isFailure() )
     {
@@ -349,6 +353,8 @@ void ComboFindTrackTool::loadOutput()
         {
             //Keep this track (but as a candidate)
             Event::TkrTrack* newTrack = (*hypo)->track();
+			//Erase Track from Candidate
+			(*hypo)->nullTrackPntr();  
 
             // Add to the TDS collection
             trackCol->push_back(newTrack);
@@ -966,6 +972,7 @@ ComboFindTrackTool::Candidate::~Candidate()
    // Outputs: None
    // Dependencies: None
    // Restrictions and Caveats:  None.
+    if(m_track !=0)  delete m_track;
 }
 
 int ComboFindTrackTool::Candidate::adjustType(int incr) 
