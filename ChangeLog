@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Fri Aug  8 13:05:51 PDT 2003
+TkrRecon/TkrRecon/MonteCarlo
+
+Added Files:
+	ITkrMcPatCandTool.h ITkrMcTracksTool.h 
+Log Message:
+Interface class definitions for tools used to access information in the MC/Recon
+relational tables
+
+    *
+------------------------------------------------------------
 User: usher  Fri Aug  8 13:04:39 PDT 2003
 TkrRecon/src/PatRec/MonteCarlo
 
