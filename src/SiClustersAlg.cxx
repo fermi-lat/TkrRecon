@@ -125,7 +125,7 @@ StatusCode SiClustersAlg::retrieve()
         sc = eventSvc()->registerObject("/Event/TkrRecon",new DataObject);
         if( sc.isFailure() ) {
             
-            log << MSG::ERROR << "Could not create Raw directory" << endreq;
+            log << MSG::ERROR << "Could not create TkrRecon directory" << endreq;
             return sc;
         }
     }

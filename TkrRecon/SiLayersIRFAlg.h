@@ -9,7 +9,7 @@
 #include "Gaudi/Algorithm/Algorithm.h"
 
 class SiLayers;
-class TdSiData;
+class SiData;
 
 //----------------------------------------------
 //
@@ -42,7 +42,7 @@ private:
 private:
 
 	SiLayers* m_SiLayers;
-	TdSiData* m_SiData;
+	const SiData* m_SiData; // Interface of the Former TdSiData
 };
       
 #endif

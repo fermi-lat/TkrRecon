@@ -5,6 +5,7 @@
 #include <vector>
 #include "geometry/Point.h"
 
+#include "data/SiData.h"
 #include "Gaudi/Algorithm/Algorithm.h"
 
 class SiClusters;
@@ -41,7 +42,7 @@ private:
 private:
 
 	SiClusters* m_SiClusters;
-	TdSiData* m_SiData;
+	const SiData* m_SiData; //Interface of the former TdSiData;
 };
       
 #endif
