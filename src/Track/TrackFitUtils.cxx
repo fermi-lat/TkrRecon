@@ -146,6 +146,9 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
         int    numSegmentPoints = 0; 
         bool    quit_first      = false; 
 
+        // Propagator pointer
+        IPropagator* partProp = m_tkrGeom->getG4PropagationTool();
+
         // Loop over the hits on the track. Note planes are layers of SSDs
         for(Event::TkrTrackHitVecItr hitPtr = track.begin(); hitPtr != track.end(); hitPtr++)
         {
@@ -159,6 +162,12 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
                 double plane_err = cos_inv*arc_len*theta_ms/1.7321; 
                 quit_first  = plane_err > 2.*m_tkrGeom->siStripPitch();
             }
+
+            // Get the active distance here
+            partProp->setStepStart(hit->getPoint(Event::TkrTrackHit::SMOOTHED), 
+                                   hit->getDirection(Event::TkrTrackHit::SMOOTHED));
+            double actDist = partProp->isInsideActArea();
+            hit->setActiveDist(actDist);
 
             if ((hit->getStatusBits()& Event::TkrTrackHit::HITONFIT) && hit->validCluster()) { 
 
@@ -215,9 +224,9 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
 
         // Compute the radiation lengths to the calorimeter front face
         double arc_min = (track.getInitialPosition().z() - m_tkrGeom->calZTop())/fabs(track.getInitialDirection().z()); 
-        IKalmanParticle* TkrFitPart = m_tkrGeom->getPropagator();
-        TkrFitPart->setStepStart(x0, dir, arc_min);
-        track.setTkrCalRadLen(TkrFitPart->radLength()); 
+        partProp->setStepStart(x0, dir);
+        partProp->step(arc_min);
+        track.setTkrCalRadLen(partProp->getRadLength()); 
     }
 }
 

@@ -5,14 +5,14 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/StdProcNoiseMatrix.cxx,v 1.3 2004/10/12 19:03:39 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/StdProcNoiseMatrix.cxx,v 1.4 2004/11/09 21:27:45 usher Exp $
  */
 
 #include "StdProcNoiseMatrix.h"
 #include "src/TrackFit/KalmanFilterFit/KalmanFilterInit.h"
 
 StdProcNoiseMatrix::StdProcNoiseMatrix(IPropagator* propagator) : 
-                     m_propagator(propagator), m_LastStepRadLen(0.), m_LastStepActDist(0.), 
+                     m_propagator(propagator), m_LastStepRadLen(0.), 
                      m_LastStepQ(4,4), m_none(4,4)
 {
     return;
@@ -56,7 +56,6 @@ KFmatrix& StdProcNoiseMatrix::operator()(const KFvector& stateVec,
     m_LastStepQ = m_propagator->getMscatCov(arc_len, eStart); 
 
     m_LastStepRadLen  = m_propagator->getRadLength();
-    m_LastStepActDist = m_propagator->isInsideActArea();
 
     return m_LastStepQ;
 }

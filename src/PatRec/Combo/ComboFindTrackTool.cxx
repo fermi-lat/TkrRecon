@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.35 2005/02/11 07:14:50 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.36 2005/03/01 00:55:49 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -931,10 +931,10 @@ ComboFindTrackTool::Candidate::Candidate(ComboFindTrackTool* pCFTT, Point x, Vec
     hit_finder->findTrackHits(m_track);
     if(!(m_track->getStatusBits()& Event::TkrTrack::FOUND)) return;
 
-    fitter->doTrackFit(m_track); 
+    fitter->doSmootherFit(*m_track); 
     m_addedHits = 0;
     if(leadingHits) m_addedHits = hit_finder->addLeadingHits(m_track);
-    if(m_addedHits > 0) fitter->doTrackFit(m_track);
+    if(m_addedHits > 0) fitter->doSmootherFit(*m_track);
 
     // Check X**2 for the Track
     if(m_track->getChiSquareSmooth() > chi_cut) {
@@ -993,7 +993,11 @@ void ComboFindTrackTool::setTrackQuality(ComboFindTrackTool::Candidate *can_trac
     // This parameter sets the order of the tracks to be considered
     // Penalities: big kinks at start, begining later in stack, and
     //             using lots of oversized clusters.  
-    double pr_quality = tkr_track->getQuality() - 1.5*sigmas_def - 
+    double trkQuality = m_fitUtils->computeQuality(*tkr_track);
+    tkr_track->setQuality(trkQuality);
+    //**double pr_quality = tkr_track->getQuality() - 1.5*sigmas_def - 
+    //**    7.* delta_firstLayer - size_penalty - 4.*more_hits;
+    double pr_quality = trkQuality - 1.5*sigmas_def - 
         7.* delta_firstLayer - size_penalty - 4.*more_hits;   
     can_track->setQuality(pr_quality);
 }
