@@ -9,8 +9,8 @@
 
 #include "src/PatRec/NeuralNet/TkrNeuralNet.h"
 #include "src/Track/TkrControl.h"
-#include "src/PatRec/Utilities/TkrPoints.h"
-#include "src/PatRec/Utilities/TkrPoint.h"
+#include "src/Utilities/TkrPoints.h"
+#include "src/Utilities/TkrPoint.h"
 #include <math.h>
 #include <time.h>
 #include <stdlib.h>

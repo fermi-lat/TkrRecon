@@ -14,7 +14,7 @@ Implementation of a Combinatoric Pattern recognition for GLAST
 */
 
 #include "src/PatRec/Combo/TkrComboPatRec.h"
-#include "src/PatRec/Utilities/TkrPoints.h"
+#include "src/Utilities/TkrPoints.h"
 #include "TkrRecon/Cluster/TkrQueryClusters.h"
 #include "TkrRecon/GaudiAlg/TkrTrackFitAlg.h"
 #include "GlastSvc/Reco/IKalmanParticle.h"
