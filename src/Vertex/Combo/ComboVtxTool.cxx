@@ -5,6 +5,7 @@
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/ISvcLocator.h"
 #include "Event/Recon/TkrRecon/TkrFitTrack.h"
+#include "Event/Recon/TkrRecon/TkrTrack.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "Event/Recon/TkrRecon/TkrVertex.h"
 #include "Event/Recon/TkrRecon/TkrVertexTab.h"
@@ -39,11 +40,11 @@ StatusCode ComboVtxTool::retrieveVtxCol(Event::TkrVertexCol& vertexCol)
     StatusCode sc = StatusCode::SUCCESS;
 
     //Retrieve the pointer to the reconstructed clusters
-    Event::TkrFitTrackCol* tracks     = SmartDataPtr<Event::TkrFitTrackCol>(pDataSvc,EventModel::TkrRecon::TkrFitTrackCol); 
-    Event::TkrPatCandCol*  candidates = SmartDataPtr<Event::TkrPatCandCol>(pDataSvc,EventModel::TkrRecon::TkrPatCandCol); 
+    Event::TkrTrackCol*   tracks     = SmartDataPtr<Event::TkrTrackCol>(pDataSvc,EventModel::TkrRecon::TkrTrackCol); 
+    Event::TkrPatCandCol* candidates = SmartDataPtr<Event::TkrPatCandCol>(pDataSvc,EventModel::TkrRecon::TkrPatCandCol); 
 
-    Event::TkrVertexTab 
-        vertexRelTab(SmartDataPtr<Event::TkrVertexTabList >(pDataSvc,EventModel::TkrRecon::TkrVertexTab));
+    Event::TkrVertexTrackTab 
+        vertexRelTab(SmartDataPtr<Event::TkrVertexTrackTabList >(pDataSvc,EventModel::TkrRecon::TkrVertexTrackTab));
 
     //Ok, this will do the combo vertexing putting the results into the already defined vertex 
     //collection "vertexCol"

@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrNeuralNetFitTool.cxx,v 1.9 2003/05/27 22:23:32 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Track/TkrNeuralNetFitTool.cxx,v 1.2 2004/09/08 15:32:45 usher Exp $
 //
 // Description:
 //      Tool for performing the fit of Neural Net Pat Rec candidate tracks
@@ -11,8 +11,9 @@
 #include "GaudiKernel/SmartDataPtr.h"
 #include "GaudiKernel/AlgTool.h"
 #include "GaudiKernel/DataSvc.h"
+#include "GaudiKernel/GaudiException.h" 
 
-#include "Event/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "Event/TopLevel/EventModel.h"
 #include "Event/Recon/TkrRecon/TkrTrackTab.h"
 #include "Event/Recon/TkrRecon/TkrKalFitTrack.h"
@@ -23,6 +24,7 @@
 #include "TkrRecon/Track/ITkrFitTool.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrFailureModeSvc.h"
+#include "TkrUtil/ITkrQueryClustersTool.h"
 
 class TkrNeuralNetFitTool : public AlgTool, virtual public ITkrFitTool
 {
@@ -31,20 +33,26 @@ public:
     TkrNeuralNetFitTool(const std::string& type, const std::string& name, const IInterface* parent);
     virtual ~TkrNeuralNetFitTool() {}
 
+    StatusCode initialize();
+
     /// @brief Method to fit a single candidate track. Will retrieve any extra info 
     ///        needed from the TDS, then create and use a new KalFitTrack object to 
     ///        fit the track via a Kalman Filter. Successfully fit tracks are then 
     ///        added to the collection in the TDS.
     StatusCode doTrackFit(Event::TkrPatCand* patCand);
+    StatusCode doTrackFit(Event::TkrTrack*   patCand)  {return StatusCode::SUCCESS;}
 
     /// @brief Method to re-fit a single candidate track. 
     StatusCode doTrackReFit(Event::TkrPatCand* patCand);
+    StatusCode doTrackReFit(Event::TkrTrack*   patCand) {return StatusCode::SUCCESS;}
 
 private:
     /// Pointer to the local Tracker geometry service
     ITkrGeometrySvc* m_geoSvc;
     /// Pointer to failure mode service
     ITkrFailureModeSvc* pTkrFail;
+    /// Pointer to the cluster tool
+    ITkrQueryClustersTool* m_clusTool;
 
     /// Pointer to the Gaudi data provider service
     DataSvc*        pDataSvc;
@@ -62,17 +70,36 @@ TkrNeuralNetFitTool::TkrNeuralNetFitTool(const std::string& type, const std::str
     //Declare the additional interface
     declareInterface<ITkrFitTool>(this);
 
+    return;
+}
+
+StatusCode TkrNeuralNetFitTool::initialize()
+{
+    StatusCode sc = StatusCode::SUCCESS;
+
     //Locate and store a pointer to the geometry service
     IService*   iService = 0;
-    StatusCode  sc       = serviceLocator()->getService("TkrGeometrySvc", iService, true);
+    if ((sc = serviceLocator()->getService("TkrGeometrySvc", iService, true)).isFailure())
+    {
+        throw GaudiException("Service [TkrGeometrySvc] not found", name(), sc);
+    }
 
     m_geoSvc = dynamic_cast<ITkrGeometrySvc*>(iService);
 
     //Locate and store a pointer to the data service
-    sc         = serviceLocator()->getService("EventDataSvc", iService);
+    if ((sc = serviceLocator()->getService("EventDataSvc", iService)).isFailure())
+    {
+        throw GaudiException("Service [EventDataSvc] not found", name(), sc);
+    }
+
     pDataSvc   = dynamic_cast<DataSvc*>(iService);
+
+    if ((sc = toolSvc()->retrieveTool("TkrQueryClustersTool", m_clusTool)).isFailure())
+    {
+        throw GaudiException("Service [TkrQueryClustersTool] not found", name(), sc);
+    }
     
-    return;
+    return sc;
 }
 
 StatusCode TkrNeuralNetFitTool::doTrackFit(Event::TkrPatCand* patCand)
@@ -95,7 +122,7 @@ StatusCode TkrNeuralNetFitTool::doTrackFit(Event::TkrPatCand* patCand)
         
     Event::TkrKalFitTrack* track  = new Event::TkrKalFitTrack();
     Event::KalFitter*      fitter = new Event::KalFitter(
-        pTkrClus, m_geoSvc, track, iniLayer, iniTower, 
+        pTkrClus, m_geoSvc, m_clusTool, track, iniLayer, iniTower, 
         control->getSigmaCut(), energy, testRay);                 
         
     //track->findHits(); Using PR Solution to save time

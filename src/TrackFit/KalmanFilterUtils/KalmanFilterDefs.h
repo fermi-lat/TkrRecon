@@ -8,20 +8,24 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterUtils/KalmanFilterDefs.h,v 1.1 2004/03/24 00:05:28 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterUtils/KalmanFilterDefs.h,v 1.2 2004/09/08 15:32:47 usher Exp $
  */
 
 #ifndef KalmanFilterDefs_h
 #define KalmanFilterDefs_h
 
 
-#include "src/TrackFit/KalmanFilterFit/GlastVector.h"
-#include "src/TrackFit/KalmanFilterFit/GlastMatrix.h"
-//#include "CLHEP/Matrix/Vector.h"
-//#include "CLHEP/Matrix/Matrix.h"
+#include "TkrUtil/TkrTrkParams.h"
+#include "TkrUtil/TkrCovMatrix.h"
+//#include "src/TrackFit/KalmanFilterFit/GlastVector.h"
+//#include "src/TrackFit/KalmanFilterFit/GlastMatrix.h"
+////#include "CLHEP/Matrix/Vector.h"
+////#include "CLHEP/Matrix/Matrix.h"
 
-typedef GlastMatrix KFmatrix;
-typedef GlastVector KFvector;
+//typedef GlastMatrix KFmatrix;
+//typedef GlastVector KFvector;
+typedef TkrCovMatrix KFmatrix;
+typedef TkrTrkParams KFvector;
 
 //#include "Event/Recon/TkrRecon/TkrFitPar.h"
 //#include "Event/Recon/TkrRecon/TkrFitMatrix.h"

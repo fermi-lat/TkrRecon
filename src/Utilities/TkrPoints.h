@@ -11,7 +11,7 @@
  *
  * @authors Bill Atwood
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoint.h,v 1.1 2002/08/22 21:07:18 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Utilities/TkrPoints.h,v 1.2 2004/09/08 15:32:48 usher Exp $
  *
 */
 
@@ -19,7 +19,8 @@
 #define __TkrPoints_H 1
 
 #include "src/Utilities/TkrPoint.h"
-#include "Event/Recon/TkrRecon/TkrClusterCol.h"
+//#include "Event/Recon/TkrRecon/TkrClusterCol.h"
+#include "TkrUtil/ITkrQueryClustersTool.h"
 #include "geometry/Point.h"
 #include <vector>
 
@@ -31,7 +32,7 @@ class TkrPoints
 public:
     
     /// Construction - Destruction
-    TkrPoints(int ini_layer, Event::TkrClusterCol* clusters);
+    TkrPoints(int ini_layer, ITkrQueryClustersTool* clusTool);
     ~TkrPoints() {}
     
     /// Combinatoric access
@@ -61,8 +62,10 @@ private:
     
     /// Data 
     std::vector<TkrPoint> m_pointList;
-    std::vector<Event::TkrCluster*> m_xHitList;
-    std::vector<Event::TkrCluster*> m_yHitList;  
+    //std::vector<Event::TkrCluster*> m_xHitList;
+    //std::vector<Event::TkrCluster*> m_yHitList;  
+    Event::TkrClusterVec m_xHitList;
+    Event::TkrClusterVec m_yHitList;  
     bool m_end;
     bool m_isX;
     int m_layer; 
@@ -75,7 +78,7 @@ private:
     int m_yID;
     double m_xSize;
     double m_ySize;
-    Event::TkrClusterCol* m_clusters; 
+    ITkrQueryClustersTool* m_clusTool; 
 };
 
 #endif

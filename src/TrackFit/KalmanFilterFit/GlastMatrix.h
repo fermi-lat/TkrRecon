@@ -6,14 +6,14 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/GlastMatrix.h,v 1.2 2004/03/25 21:45:05 cohen Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/GlastMatrix.h,v 1.2 2004/09/08 15:32:46 usher Exp $
  */
 
 #ifndef GlastMatrix_h
 #define GlastMatrix_h
 
 #include "CLHEP/Matrix/Matrix.h"
-#include "Event/Recon/TkrRecon/TkrFitMatrix.h"
+#include "Event/Recon/TkrRecon/TkrTrackParams.h"
 
 class GlastMatrix : public HepMatrix
 {
@@ -32,10 +32,10 @@ public:
     GlastMatrix(const HepVector &m1) : HepMatrix(m1){}
     // Constructors from SymMatrix, DiagMatrix and Vector.
 
-    inline GlastMatrix(const Event::TkrFitMatrix& m1);
+    inline GlastMatrix(Event::TkrTrackParams& m1);
 };
 
-GlastMatrix::GlastMatrix(const Event::TkrFitMatrix& m1) : HepMatrix(4,4)
+GlastMatrix::GlastMatrix(Event::TkrTrackParams& m1) : HepMatrix(4,4)
 {
     (*this)(1,1) = m1(1,1);
     (*this)(1,2) = m1(1,2);

@@ -6,17 +6,10 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.7 2004/06/17 18:27:35 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.2 2004/09/08 15:32:45 usher Exp $
  */
+
 #include "src/Track/TkrTrackEnergyTool.h"
-
-#include "GaudiKernel/ToolFactory.h"
-#include "GaudiKernel/SmartDataPtr.h"
-#include "src/TrackFit/KalFitTrack/KalFitter.h"
-#include "TkrRecon/Cluster/TkrQueryClusters.h"
-#include "TkrRecon/GaudiAlg/TkrTrackFitAlg.h"
-
-#include <algorithm>
 
 static ToolFactory<TkrTrackEnergyTool> s_factory;
 const IToolFactory& TkrTrackEnergyToolFactory = s_factory;
@@ -66,13 +59,25 @@ StatusCode TkrTrackEnergyTool::initialize()
     //Locate and store a pointer to the geometry service
     IService*   iService = 0;
 
-    sc        = serviceLocator()->getService("TkrGeometrySvc", iService, true);
+    if ((sc = serviceLocator()->getService("TkrGeometrySvc", iService, true)).isFailure())
+    {
+        throw GaudiException("Service [TkrGeometrySvc] not found", name(), sc);
+    }
+
     m_tkrGeo  = dynamic_cast<ITkrGeometrySvc*>(iService);
     m_control = TkrControl::getPtr();
 
     //Locate and store a pointer to the data service
-    sc        = serviceLocator()->getService("EventDataSvc", iService);
+    if ((sc = serviceLocator()->getService("EventDataSvc", iService)).isFailure())
+    {
+        throw GaudiException("Service [EventDataSvc] not found", name(), sc);
+    }
     m_dataSvc = dynamic_cast<DataSvc*>(iService);
+
+    if ((sc = toolSvc()->retrieveTool("TkrQueryClustersTool", m_clusTool)).isFailure())
+    {
+        throw GaudiException("Service [TkrQueryClustersTool] not found", name(), sc);
+    }
     
     return sc;
 }
@@ -218,8 +223,7 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrPatCand* track, double CalEn
 
         // Assume location of shower center in given by 1st track
         Point x_hit = getPosAtZ(track, arc_len);
-        int numHits = TkrQueryClusters(pTkrClus).
-            numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
+        int numHits = m_clusTool->numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
          
         convType type = m_tkrGeo->getReconLayerType(iplane);
         switch(type) {

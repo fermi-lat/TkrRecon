@@ -40,7 +40,7 @@ TkrPlaneType TkrClusterLinkVector::intToPlaneType(int view)
 
 
 //Constructor for the case that there is actually something to do
-TkrClusterLinkVector::TkrClusterLinkVector(TkrClusterCol *pClusters, int layerNum, TkrPlaneType plane)
+TkrClusterLinkVector::TkrClusterLinkVector(ITkrQueryClustersTool* clusTool, int layerNum, TkrPlaneType plane)
 {
     linkLayer = layerNum;
     planeType = plane;
@@ -52,14 +52,16 @@ TkrClusterLinkVector::TkrClusterLinkVector(TkrClusterCol *pClusters, int layerNu
     }
     else
     {
-        std::vector<TkrCluster*> pClusTop = pClusters->getHits((TkrCluster::view)plane, layerNum);
+        //std::vector<TkrCluster*> pClusTop = pClusters->getHits((TkrCluster::view)plane, layerNum);
+        Event::TkrClusterVec pClusTop = clusTool->getClustersReverseLayer((TkrCluster::view)plane, layerNum);
 
         int nHitsTop = pClusTop.size();
 
         //Loop over number of hits in this layer
         while(nHitsTop--)
         {
-            std::vector<TkrCluster*> pClusBot = pClusters->getHits((TkrCluster::view)plane, layerNum+1);
+            //std::vector<TkrCluster*> pClusBot = pClusters->getHits((TkrCluster::view)plane, layerNum+1);
+            Event::TkrClusterVec pClusBot = clusTool->getClustersReverseLayer((TkrCluster::view)plane, layerNum+1);
 
             int nHitsBot = pClusBot.size();
 

@@ -15,7 +15,9 @@ Implementation of a Combinatoric Pattern recognition for GLAST
 
 #include "src/PatRec/Combo/TkrComboPatRec.h"
 #include "src/Utilities/TkrPoints.h"
-#include "TkrRecon/Cluster/TkrQueryClusters.h"
+#include "GaudiKernel/SmartDataPtr.h"
+#include "Event/TopLevel/EventModel.h"
+#include "Utilities/TkrException.h"
 
 //#include <fstream>
 
@@ -40,7 +42,9 @@ namespace {
 using namespace Event;
 
 
-TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo,
+TkrComboPatRec::TkrComboPatRec(IDataProviderSvc* dataSvc,
+                               ITkrQueryClustersTool* clusTool,
+                               ITkrGeometrySvc* pTkrGeo, 
                                TkrClusterCol* pClusters, 
                                double CalEnergy, Point CalPosition)
 {
@@ -57,12 +61,14 @@ TkrComboPatRec::TkrComboPatRec(ITkrGeometrySvc* pTkrGeo,
     if(pClusters == 0) return;
 
      //Clear all flag hits
-    int num_hits = pClusters->nHits();
-    for(int i=0; i<num_hits; i++) pClusters->unflagHit(i);
+    int num_hits = pClusters->size();
+    for(int i=0; i<num_hits; i++) (*pClusters)[i]->unflag();
     
     // Internal init's 
+    m_dataSvc      = dataSvc;
     m_clusters     = pClusters;
     m_tkrGeo       = pTkrGeo;
+    m_clusTool     = clusTool;
     m_tkrFail      = pTkrGeo->getTkrFailureModeSvc();
     m_control = TkrControl::getPtr();
     
@@ -152,7 +158,7 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
                 slope = tkr_par.getXSlope();
             }        
             int hit_Id = plane.getIDHit();;
-            double cls_size = m_clusters->size(hit_Id); 
+            double cls_size = (*m_clusters)[hit_Id]->size(); 
             double prj_size = m_tkrGeo->siThickness()*fabs(slope)/
                               m_tkrGeo->siStripPitch()             + 1.;
             if(cls_size> prj_size) {
@@ -181,49 +187,126 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
     }
 }
 
+// Define a class for sorting
+class candTrackHitSort
+{
+  public:
+      bool operator()(Event::TkrTrackHit* patHitLeft, Event::TkrTrackHit* patHitRight)
+    {
+        return patHitLeft->getZPlane() >  patHitRight->getZPlane();;
+    }
+};
+
 void TkrComboPatRec::loadOutput()
 {
-   // Purpose and Method: Re-formats internal Candidate class to TkrPatCand Class
-   // Inputs:  None
-   // Outputs: The TkrPatCands Bank from which the final tracks fits are done
-   // Dependencies: None
-   // Restrictions and Caveats:  None.
+    // Purpose and Method: Re-formats internal Candidate class to TkrPatCand Class
+    // Inputs:  None
+    // Outputs: The TkrPatCands Bank from which the final tracks fits are done
+    // Dependencies: None
+    // Restrictions and Caveats:  None.
 
-    if (!m_candidates.empty()) {
+    // use this for errors
+    const double oneOverSqrt12 = 1./sqrt(12.);
+
+    if (!m_candidates.empty()) 
+    {
+        // Retrieve a pointer (if it exists) to existing fit track collection
+        Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol);
+
+        // If no pointer then create it
+        if (trackCol == 0)
+        {
+            trackCol = new Event::TkrTrackCol();
+    
+            if ((m_dataSvc->registerObject(EventModel::TkrRecon::TkrTrackCol,    trackCol)).isFailure())
+                throw TkrException("Failed to create Fit Track Collection!");
+        }
+
+        // We will also need the collection of track hits
+        Event::TkrTrackHitCol* trackHitCol = SmartDataPtr<Event::TkrTrackHitCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackHitCol);
+
+        // Ditto here, make it if it doesn't exist
+        if (trackHitCol == 0)
+        {
+            trackHitCol = new Event::TkrTrackHitCol();
+
+            if ((m_dataSvc->registerObject(EventModel::TkrRecon::TkrTrackHitCol, trackHitCol)).isFailure())
+                throw TkrException("Failed to create Fit Track Hit Collection!");
+        }
         
         TkrComboPatRec::iterator hypo;
         
-        for(hypo  = m_candidates.begin(); hypo != m_candidates.end();   hypo++){
-            
-            int    iniLayer = (*hypo)->track()->getLayer();
-            int    iniTower = (*hypo)->track()->getTower();
+        for(hypo  = m_candidates.begin(); hypo != m_candidates.end();   hypo++)
+        {
             Ray    testRay  = (*hypo)->track()->getRay();
             double energy   = (*hypo)->conEnergy(); // Which energy to use?  
             double enErr    = (*hypo)->track()->getKalEnergyError();
- //         float  quality  = (*hypo)->track()->getQuality();
+            double quality  = (*hypo)->track()->getQuality();
             double type     = (*hypo)->type();
             
             //Keep this track (but as a candidate)
-//           TkrPatCand* newTrack = new TkrPatCand(iniLayer,iniTower,energy,quality,testRay);
-             TkrPatCand* newTrack = new TkrPatCand(iniLayer,iniTower,energy,enErr,type,testRay);
-          
-            newTrack->setEnergy(energy);
-            
-            //Add the Hits
-            TkrFitPlaneConPtr hitPtr = (*hypo)->track()->getHitIterBegin();
-            while(hitPtr != (*hypo)->track()->getHitIterEnd())
+            Event::TkrTrack* newTrack = new Event::TkrTrack();
+
+            // Add to the TDS collection
+            trackCol->push_back(newTrack);
+
+            newTrack->setInitialPosition(testRay.position());
+            newTrack->setInitialDirection(testRay.direction());
+            newTrack->setInitialEnergy(energy);
+            newTrack->setKalEnergyError(enErr);
+            newTrack->setQuality(quality);
+            newTrack->setStatusBit(Event::TkrTrack::Found);
+
+            Event::TkrFitPlaneConPtr hitPtr = (*hypo)->track()->getHitIterBegin();
+            for(;hitPtr != (*hypo)->track()->getHitIterEnd(); hitPtr++)
             {
-                TkrFitPlane hitplane = *hitPtr++;
-                unsigned hit_ID = hitplane.getIDHit();
-                TkrCluster * pClus = m_clusters->getHit(hit_ID);
-                newTrack->addCandHit(pClus);
+                Event::TkrFitPlane hitPlane = *hitPtr;
+                unsigned int       hit_ID   = hitPlane.getIDHit();
+                //Event::TkrCluster* cluster  = m_clusters->getHit(hit_ID);
+                Event::TkrCluster* cluster  = (*m_clusters)[hit_ID];
+
+                // Get a new instance of a TkrTrackHit object
+                Event::TkrTrackHit* hit = new Event::TkrTrackHit(cluster, 
+                                                                 cluster->getTkrId(),
+                                                                 cluster->position().z(), 
+                                                                 0., 0., 0., 0., 0.);
+
+                // Retrieve a reference to the measured parameters (for setting)
+                Event::TkrTrackParams& params = hit->getTrackParams(Event::TkrTrackHit::MEASURED);
+
+                // Set measured track parameters
+                params(1) = cluster->position().x();
+                params(2) = 0.;
+                params(3) = cluster->position().y();
+                params(4) = 0.;
+
+                int    measIdx   = hit->getParamIndex(true,false);
+                int    nonmIdx   = hit->getParamIndex(false,false);
+                double sigma     = m_tkrGeo->siResolution();
+                double sigma_alt = m_tkrGeo->trayWidth() * oneOverSqrt12;
+
+                params(measIdx,measIdx) = sigma * sigma;
+                params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
+
+                hit->setEnergy(energy);
+
+                hit->setStatusBit(Event::TkrTrackHit::HASMEASURED);
+
+                // Add this hit to the collection in the TDS 
+                trackHitCol->push_back(hit);
+
+                // Add this to the track itself
+                newTrack->push_back(hit);
+
+                // Update track counter
+                if (hit->getTkrId().getView() == idents::TkrId::eMeasureX) 
+                    newTrack->setNumXHits(newTrack->getNumXHits()+1);
+                else
+                    newTrack->setNumYHits(newTrack->getNumYHits()+1);
             }
 
-            //Sort the hits by z (just in case)
-            newTrack->sortHits();
-            
-            //Store the track 
-            push_back(newTrack);
+            // Finally, sort this track in correct z order (for now)
+            std::sort(newTrack->begin(), newTrack->end(), candTrackHitSort());
         }     
     } 
     
@@ -308,8 +391,9 @@ void TkrComboPatRec::setEnergies(double calEnergy)
 
         // Assume location of shower center in given by 1st track
         Point x_hit = first_track->getPosAtZ(arc_len);
-        int numHits = TkrQueryClusters(m_clusters).
-            numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
+        //int numHits = TkrQueryClusters(m_clusters).
+        //    numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
+        int numHits = m_clusTool->numberOfHitsNear(iplane, xSprd, ySprd, x_hit);
 
         convType type = m_tkrGeo->getReconLayerType(iplane);
         switch(type) {
@@ -447,7 +531,8 @@ void TkrComboPatRec::findBlindCandidates()
                                      ilayer - m_firstLayer > 1) break;
         
         // Create space point loops and check for hits
-        TkrPoints first_Hit(ilayer, m_clusters);
+        //TkrPoints first_Hit(ilayer, m_clusters);
+        TkrPoints first_Hit(ilayer, m_clusTool);
         if(first_Hit.finished()) continue;
         
         while(!first_Hit.finished()) {
@@ -466,7 +551,8 @@ void TkrComboPatRec::findBlindCandidates()
                 if(localBestHitCount > 0 && igap > 1 &&
                   (localBestHitCount+2 > (max_planes-(ilayer+igap)-2)*2)) break;
                 
-                TkrPoints secnd_Hit(ilayer+igap, m_clusters);               
+                //TkrPoints secnd_Hit(ilayer+igap, m_clusters);               
+                TkrPoints secnd_Hit(ilayer+igap, m_clusTool);               
                 while(!secnd_Hit.finished()) {
                     if(trials > _maxTrials) break; 
                     Point x2(secnd_Hit.getSpacePoint());
@@ -501,7 +587,7 @@ void TkrComboPatRec::findBlindCandidates()
 
                         // If good hit found: make a trial fit & store it away
                         if(sigma < m_cut && deflection > .7) {        
-                            Candidate* trial = new Candidate(m_clusters, m_tkrGeo,
+                            Candidate* trial = new Candidate(m_clusters, m_tkrGeo, m_clusTool,
                                                              ilayer, itwr, m_energy, x1, VDir, 
                                                              deflection, m_cut, gap, m_TopLayer); 
                             if(trial->track()->status() == KalFitTrack::EMPTY) {
@@ -553,7 +639,8 @@ void TkrComboPatRec::findCalCandidates()
                                      ilayer - m_TopLayer > 1) break;
         
         // Create space point loop and check for hits
-        TkrPoints first_Hit(ilayer, m_clusters);
+        //TkrPoints first_Hit(ilayer, m_clusters);
+        TkrPoints first_Hit(ilayer, m_clusTool);
         
         while(!first_Hit.finished()) {
             if(trials > _maxTrials) break; 
@@ -580,7 +667,8 @@ void TkrComboPatRec::findCalCandidates()
             if(max_layer > max_planes-1) max_layer =max_planes-1;
             for(int klayer=ilayer+1; klayer < max_layer; klayer++) {
                 if(trials > _maxTrials) break; 
-                TkrPoints secnd_Hit(klayer, m_clusters);
+                //TkrPoints secnd_Hit(klayer, m_clusters);
+                TkrPoints secnd_Hit(klayer, m_clusTool);
                 if(secnd_Hit.finished()) continue;
                 
                 //Try the first 3 closest hits to 1st-hit - cal-hit line
@@ -617,7 +705,7 @@ void TkrComboPatRec::findCalCandidates()
                     double deflection = 1.;
                     Vector t_trial = Vector(-deltaX/deltaZx, -deltaY/deltaZy, -1.).unit();
                     
-                    Candidate *trial = new Candidate(m_clusters, m_tkrGeo,
+                    Candidate *trial = new Candidate(m_clusters, m_tkrGeo, m_clusTool,
                                                      ilayer, itwr, m_energy, x1, t_trial, 
                                                      deflection, m_cut, gap, m_TopLayer); 
                     if(trial->track()->status() == KalFitTrack::EMPTY) {
@@ -650,7 +738,8 @@ float TkrComboPatRec::findNextHit(int layer, Ray& traj, float &deflection)
 
     deflection = 0.;
     
-    TkrPoints next_Hit(layer+1, m_clusters);
+    //TkrPoints next_Hit(layer+1, m_clusters);
+    TkrPoints next_Hit(layer+1, m_clusTool);
     if(next_Hit.finished()) return m_cut+1;
     
     Point sample_x(next_Hit.getSpacePoint()); 
@@ -743,6 +832,7 @@ bool TkrComboPatRec::incorporate(Candidate* trial)
 
 TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
                                      ITkrGeometrySvc* geometry,
+                                     ITkrQueryClustersTool* clusTool,
                                      int layer, int twr, double e, 
                                      Point x, Vector t, 
                                      float d, float s, int g, int /* top */): 
@@ -766,7 +856,7 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
 
     // Do a prelim. Fit using TkrKalTrack to find all the hits
     Ray testRay(x,t);  
-    m_track = new KalFitTrack(clusters, geometry, 
+    m_track = new KalFitTrack(clusters, geometry, clusTool,
         layer, twr, m_sigma, e, testRay); 
     m_track->findHits();
     if(m_track->status()==KalFitTrack::EMPTY) return; 
@@ -803,7 +893,7 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
             slope = tkr_par.getXSlope();
         }        
         int    hit_Id    = plane.getIDHit();;
-        double cls_size  = clusters->size(hit_Id);        
+        double cls_size  = (*clusters)[hit_Id]->size();        
         double prj_size  = geometry->siThickness()*fabs(slope)/
                            geometry->siStripPitch() + 2.;
         double over_size = cls_size - prj_size;

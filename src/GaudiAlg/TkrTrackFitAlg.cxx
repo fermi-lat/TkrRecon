@@ -13,15 +13,16 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.14 2004/02/18 20:49:11 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.2 2004/09/08 15:32:43 usher Exp $
  */
 
 #include <vector>
 
 #include "GaudiKernel/Algorithm.h"
 
-#include "Event/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "Event/Recon/TkrRecon/TkrFitTrack.h"
+#include "Event/Recon/TkrRecon/TkrTrack.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "Event/Recon/TkrRecon/TkrTrackTab.h"
 #include "Event/Recon/CalRecon/CalCluster.h"
@@ -168,31 +169,42 @@ StatusCode TkrTrackFitAlg::doTrackFit()
     log << endreq;
 
     // Find the collection of candidate tracks
-    Event::TkrPatCandCol* pTkrCands   = SmartDataPtr<Event::TkrPatCandCol>(eventSvc(),EventModel::TkrRecon::TkrPatCandCol);
+    //Event::TkrPatCandCol* pTkrCands   = SmartDataPtr<Event::TkrPatCandCol>(eventSvc(),EventModel::TkrRecon::TkrPatCandCol);
+    Event::TkrTrackCol* pTkrCands = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
 
     // Create a new Fit Track collection object and register in the TDS. 
     // At this point it will have no tracks in it
-    Event::TkrFitTrackCol* tracks = new Event::TkrFitTrackCol();
-    sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrFitTrackCol, tracks);
+    //Event::TkrFitTrackCol* tracks = new Event::TkrFitTrackCol();
+    //sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrFitTrackCol, tracks);
+
+    //Event::TkrTrackCol* newTracks = new Event::TkrTrackCol();
+    //sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrTrackCol, newTracks);
 
     // Create a new relational table for pattern recognition and fit tracks
-    Event::TkrFitTrackTab trackRelTab;
-    trackRelTab.init();
+    //Event::TkrFitTrackTab trackRelTab;
+    //trackRelTab.init();
 
-    sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrTrackTab, trackRelTab.getAllRelations());
+    //sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrTrackTab, trackRelTab.getAllRelations());
 
     // Ok, now set up to loop over candidate tracks
-    int                     numCands = pTkrCands->size();
-    Event::TkrPatCandColPtr cands    = pTkrCands->begin();
+    for(Event::TkrTrackColPtr trackIter = pTkrCands->begin(); trackIter != pTkrCands->end(); trackIter++)
+    {
+        Event::TkrTrack* track = *trackIter;
+
+        m_FitTool->doTrackFit(track);
+    }
+
+    //int                     numCands = pTkrCands->size();
+    //Event::TkrTrackColPtr cands    = pTkrCands->begin();
     
     // Go through each candidate and pass to the Gaudi Tool performing the fit
     // Note that the Gaudi tool will add successfully fit tracks to the fit track collection
-    while(numCands--) 
-    {
-        Event::TkrPatCand* pCand = *cands++;
+    //while(numCands--) 
+    //{
+    //    Event::TkrPatCand* pCand = *cands++;
 
-        m_FitTool->doTrackFit(pCand);
-    }
+    //    m_FitTool->doTrackFit(pCand);
+    //}
 
     return sc;
 }

@@ -10,7 +10,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.h,v 1.2 2003/08/06 16:42:23 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.h,v 1.2 2004/09/08 15:32:44 usher Exp $
  */
 
 #ifndef MONTECARLOFINDTRACKTOOL_H

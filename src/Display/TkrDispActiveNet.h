@@ -10,7 +10,7 @@
 * 
 * @authors b. allgood and w. atwood 
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Display/TkrDispActiveNet.h,v 1.6 2003/01/10 19:43:21 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Display/TkrDispActiveNet.h,v 1.7 2003/07/04 14:17:26 cohen Exp $
 */
 
 #ifndef __TKRDISPACTIVENET_H

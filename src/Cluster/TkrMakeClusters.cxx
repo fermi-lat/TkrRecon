@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.20 2003/04/10 17:35:40 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.4 2004/09/08 15:32:42 usher Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, 
@@ -16,9 +16,10 @@
 
 using namespace Event;
 
-TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
+TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* clusMap,
                                  ITkrGeometrySvc* pTkrGeoSvc, 
-                                 TkrDigiCol* pTkrDigiCol)
+                                 TkrDigiCol* pTkrDigiCol,
+                                 std::set<idents::TkrId>* tkrIds)
 {
     // Purpose: Makes Clusters from TkrDigis
     // Method:  Digis are scaned and grouped into contiguous groups
@@ -34,7 +35,7 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
     m_pAlignment = m_pTkrGeo->getTkrAlignmentSvc();
     
     //Initialize the cluster lists...
-    pClus->ini();
+    pClus->clear();
     
     TkrDigiCol::const_iterator ppDigi = pTkrDigiCol->begin();
     int nclusters = 0;  // for debugging
@@ -47,6 +48,21 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
         int layer      =  m_pTkrGeo->reverseLayerNumber(digiLayer);
         int view       =  pDigi->getView();
         int tower      = (pDigi->getTower()).id();
+
+        int  towerX    = pDigi->getTower().ix();
+        int  towerY    = pDigi->getTower().iy();
+        //int  tray      = m_pTkrGeo->planeToTray(layer);
+        //bool botTop    = m_pTkrGeo->planeToBotTop(layer) == 1 ? true : false;
+        int  tray      = 0;
+        int  botTop    = 0;
+        int  measure   = view == idents::GlastAxis::X 
+                       ? idents::TkrId::eMeasureX : idents::TkrId::eMeasureY;
+
+        m_pTkrGeo->layerToTray(digiLayer, view, tray, botTop);
+
+        idents::TkrId hitId(towerX, towerY, tray, (bool)botTop, measure);
+
+        tkrIds->insert(hitId);
                
         // debug: std::cout << "digi t/l/v " << tower << " " << digiLayer << " " << view << std::endl;
         // copy the hits, and make them into TaggedStrips
@@ -122,11 +138,14 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
                    
                     pos = Point(hepPos.x(), hepPos.y(), hepPos.z());
                     */
-                    TkrCluster* cl = new TkrCluster(nclusters, layer, view, 
-                        strip0, stripf, 
-                        pos, pDigi->getToTForStrip(stripf), tower);
-                    pClus->addCluster(cl);
-                    nclusters++;   
+                    TkrCluster* cl = new TkrCluster(hitId, strip0, stripf, 
+                        pos, pDigi->getToTForStrip(stripf), nclusters);
+                    pClus->push_back(cl);
+                    nclusters++;
+
+                    //clusIdPair clusId(hitId,cl);
+                    //clusMap->insert(clusId);
+                    (*clusMap)[hitId].push_back(cl);
                 } 
                 lowStrip = nextStrip;  // start a new cluster with this strip
                 nBad = 0;

@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease/TkrRecon/src/Vertex/VtxSingleTrkTool.cxx,v 1.4 2002/09/02 19:46:15 cohen Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Vertex/VtxSingleTrkTool.cxx,v 1.2 2004/09/08 15:32:48 usher Exp $
 // Description:
 //      Simple vertexing tool for single track event
 //
@@ -47,7 +47,8 @@ StatusCode VtxSingleTrkTool::doVtxFit(Event::TkrVertexCol& theVtxCol)
                                       Ray(theTrack->getPosition(),
                                           theTrack->getDirection())
                                       );
-      vertex->addTrack(theTrack);
+      // Comment out for now (changing from TkrFitTrackBase to TkrTrack - 8/26/04 TU)
+      //vertex->addTrack(theTrack);
       
       theVtxCol.push_back(vertex); 
     }

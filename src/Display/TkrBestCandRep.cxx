@@ -1,4 +1,4 @@
-#include "TkrRecon/Display/TkrBestCandRep.h"
+#include "TkrBestCandRep.h"
 #include "Event/TopLevel/EventModel.h"
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 //------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-#include "TkrRecon/Display/TkrClustersRep.h"
+#include "TkrClustersRep.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "Event/TopLevel/EventModel.h"
 
@@ -24,17 +24,18 @@ void TkrClustersRep::update()
 
     if (pClusters)
     {
-        int    nHits      = pClusters->nHits();
+        int    nHits      = pClusters->size();
         double stripPitch = pTkrGeo->siStripPitch();
         double towerPitch = pTkrGeo->towerPitch();
         
         setColor("green");
 
         //Loop over all cluster hits in the SiClusters vector
-        while(nHits--)
+        Event::TkrClusterCol::iterator clusIter;
+        for(clusIter = pClusters->begin(); clusIter != pClusters->end(); clusIter++)
         {
-            Event::TkrCluster* pCluster = pClusters->getHit(nHits);
-            Point                 clusPos  = pCluster->position();
+            Event::TkrCluster* pCluster = *clusIter;
+            Point              clusPos  = pCluster->position();
      
             double      x        = clusPos.x();
             double      y        = clusPos.y();

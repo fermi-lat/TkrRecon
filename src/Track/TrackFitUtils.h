@@ -13,7 +13,7 @@
   *
   * @author Tracy Usher (as editor instead of author)
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TrackFitUtils.h,v 1.2 2004/04/19 23:13:24 usher Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Track/TrackFitUtils.h,v 1.2 2004/09/08 15:32:45 usher Exp $
 */
 
 #ifndef __TrackFitUtils_H
@@ -21,7 +21,9 @@
 
 #include <vector>
 #include "GaudiKernel/MsgStream.h"
-#include "Event/Recon/TkrRecon/TkrKalFitTrack.h"
+#include "TkrUtil/TkrTrkParams.h"
+#include "TkrUtil/TkrCovMatrix.h"
+#include "Event/Recon/TkrRecon/TkrTrack.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "src/TrackFit/KalmanFilterFit/TrackEnergy/IFitHitEnergy.h"
@@ -31,53 +33,41 @@ class ITkrFailureModeSvc;
 class TkrControl;
 
 // Wrap in the Event namespace (since TkrRecon TDS objects reside there)
-namespace Event {
 
 class TrackFitUtils
 {    
 public:
 
-    TrackFitUtils(TkrClusterCol* clusters, ITkrGeometrySvc* geo, IFitHitEnergy* hitEnergy);
+    TrackFitUtils(ITkrGeometrySvc* geo, IFitHitEnergy* hitEnergy);
    ~TrackFitUtils() {}
 
-    /// Create a new TkrKalFitTrack from a pattern recognition track
-    TkrKalFitTrack* newFitTrack(TkrPatCand& patCand);
+    /// Drives the final computation of track parameters
+    void   finish(Event::TkrTrack& track);
 
-    /// Add measured hit from a pattern recognition candidate hit to a track
-    void            addMeasHit(TkrKalFitTrack& track, const TkrPatCand& patCand, const TkrPatCandHit& candHit);
-    TkrFitPlane     newMeasPlane(const TkrPatCandHit& candHit, const double energy);
+    /// Compute the quality of the track
+    double computeQuality(const Event::TkrTrack& track) const;
 
-    /// Add new "hit" to an existing plane
-    void            addNewHit(TkrFitPlane& plane, TkrFitHit::TYPE type, TkrFitPar& statePar, TkrFitMatrix& stateCovMat);
+    /// Determine the energy of the track
+    void   eneDetermination(Event::TkrTrack& track);
 
-    /// Updates the material information for a given step
-    void            updateMaterials(TkrFitPlane& plane, TkrFitMatrix& Qmat, double radLen, double actDist, double energy);
-        
+    /// Segment Part: First portion that influences direction
+    double computeChiSqSegment(const Event::TkrTrack&        track, 
+                               int                           nhits, 
+                               Event::TkrTrackHit::ParamType typ = Event::TkrTrackHit::SMOOTHED);
+
     /// Operations
-    void            flagAllHits(const TkrKalFitTrack& track, int iflag=1);
-    void            unFlagAllHits(const TkrKalFitTrack& track);
-    void            unFlagHit(const TkrKalFitTrack& track,int num);
-    void            finish(TkrKalFitTrack& track);
-    void            setSharedHitsStatus(TkrKalFitTrack& track);
+    void   flagAllHits(Event::TkrTrack& track, int iflag=1);
+    void   unFlagAllHits(Event::TkrTrack& track);
+    void   unFlagHit(Event::TkrTrack& track,int num);
+    void   setSharedHitsStatus(Event::TkrTrack& track);
 
 private:    
-    /// Compute the quality of the track
-    double          computeQuality(const TkrKalFitTrack& track) const;
-    /// Determine the energy of the track
-    void            eneDetermination(TkrKalFitTrack& track);
-    /// Selecting the Hit & adding it to the fit
-    TkrFitHit       makeMeasHit(const Point& x0, const TkrCluster::view& planeView);
-    /// Segment Part: First portion that influences direction
-    double          computeChiSqSegment(const TkrKalFitTrack& track, int nhits, TkrFitHit::TYPE typ = TkrFitHit::SMOOTH);
-
     /// Pointers to clusters, geoemtry, and control parameters
-    Event::TkrClusterCol* m_clusters;
     ITkrGeometrySvc*      m_tkrGeo;
     ITkrFailureModeSvc*   m_tkrFail;
     TkrControl*           m_control;
     IFitHitEnergy*        m_hitEnergy;
 };
 
-};
 
 #endif

@@ -16,7 +16,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrReconAlg.h,v 1.15 2003/03/12 23:34:59 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/TkrRecon/GaudiAlg/TkrReconAlg.h,v 1.2 2004/09/08 15:32:41 usher Exp $
  */
 /*
 class TkrReconAlg : public Algorithm

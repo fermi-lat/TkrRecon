@@ -17,7 +17,7 @@ TkrClusterLinkList::TkrClusterLinkList()
     return;
 }
 
-TkrClusterLinkList::TkrClusterLinkList(TkrClusterCol* pClusters, TkrPlaneType plane)
+TkrClusterLinkList::TkrClusterLinkList(ITkrQueryClustersTool* clusTool, TkrPlaneType plane)
 {
     layerView       = plane;
     numLinksTotal   =  0;
@@ -33,11 +33,12 @@ TkrClusterLinkList::TkrClusterLinkList(TkrClusterCol* pClusters, TkrPlaneType pl
         //Loop is over "link" layers - incorporate two silicon layers
         while(layerNum--)
         {
-            std::vector<TkrCluster*> pClus = pClusters->getHits((TkrCluster::view)plane, layerNum);
+            //std::vector<TkrCluster*> pClus = pClusters->getHits((TkrCluster::view)plane, layerNum);
+            Event::TkrClusterVec pClus = clusTool->getClustersReverseLayer((TkrCluster::view)plane, layerNum);
 
             if (pClus.size() > 0)
             {
-                TkrClusterLinkVector* pClusLinks = new TkrClusterLinkVector(pClusters, layerNum, plane);
+                TkrClusterLinkVector* pClusLinks = new TkrClusterLinkVector(clusTool, layerNum, plane);
                 LayerLinkVector*      pVector    = pClusLinks;
                 int                   numVectors = pVector->size();
 

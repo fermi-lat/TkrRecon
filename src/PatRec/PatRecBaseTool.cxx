@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/PatRecBaseTool.cxx,v 1.2 2003/07/29 15:08:01 cohen Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/PatRec/PatRecBaseTool.cxx,v 1.2 2004/09/08 15:32:43 usher Exp $
 // Description:
 //      Implementation of the base class of concrete pattern recognition tools
 //
@@ -51,6 +51,12 @@ StatusCode PatRecBaseTool::initialize()
           log << MSG::ERROR << "Could not find EventDataSvc" << endreq;
           return fail;
       }
+      if ((toolSvc()->retrieveTool("TkrQueryClustersTool", m_clusTool)).isFailure())
+      {
+          log << MSG::ERROR << "Could not find EventDataSvc" << endreq;
+          return fail;
+      }
+
   }
   log << MSG::INFO << "PatRecBaseTool successfully initialized" << endreq;
   return sc;

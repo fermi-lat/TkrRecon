@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.15 2004/01/16 01:09:17 burnett Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.16 2004/02/18 20:49:11 usher Exp $
 //
 // Description:
 //      Contains the implementation of the methods for setting up the TkrRecon display
@@ -18,17 +18,17 @@
 #include "gui/GuiMgr.h"
 
 #include "TkrRecon/GaudiAlg/TkrDisplayAlg.h"
-#include "TkrRecon/Display/TkrClustersRep.h"
-#include "TkrRecon/Display/TkrTracksRep.h"
+#include "src/Display/TkrClustersRep.h"
+#include "src/Display/TkrTracksRep.h"
 
 #include "src/Display/TkrPatCandRep.h"
-#include "TkrRecon/Display/TkrCandidatesRep.h"
-#include "TkrRecon/Display/TkrBestCandRep.h"
-#include "TkrRecon/Display/TkrCandidate3DRep.h"
+#include "src/Display/TkrCandidatesRep.h"
+#include "src/Display/TkrBestCandRep.h"
+#include "src/Display/TkrCandidate3DRep.h"
 
 // Display stuff for NeuralNet PatRec Alg
-#include "TkrRecon/Display/TkrDispCompleteNet.h"
-#include "TkrRecon/Display/TkrDispActiveNet.h"
+#include "src/Display/TkrDispCompleteNet.h"
+#include "src/Display/TkrDispActiveNet.h"
 
 #include "src/Vertex/Combo/TkrComboVtxRep.h"
 #include "src/Vertex/TkrGammaRep.h"

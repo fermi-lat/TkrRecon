@@ -13,7 +13,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitTrack.h,v 1.23 2003/03/13 19:13:24 lsrea Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalFitTrack/KalFitTrack.h,v 1.24 2004/09/09 20:39:56 lsrea Exp $
 */
 
 #ifndef __KalFitTrack_H
@@ -26,6 +26,7 @@
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 
 class ITkrGeometrySvc;
+class ITkrQueryClustersTool;
 class ITkrFailureModeSvc;
 class TkrControl;
 
@@ -34,7 +35,7 @@ namespace Event {
 class KalFitTrack: public TkrFitTrack
 {    
 public:
-    KalFitTrack(TkrClusterCol* clusters, ITkrGeometrySvc* geo, 
+    KalFitTrack(TkrClusterCol* clusters, ITkrGeometrySvc* geo, ITkrQueryClustersTool* clusTool,
         int layer, int tower, double sigmaCut, double energy, 
         const Ray& testRay);
    ~KalFitTrack() {}
@@ -148,10 +149,11 @@ private:
     double m_TkrCal_radlen; 
 
     /// Pointers to clusters, geoemtry, and control parameters
-    Event::TkrClusterCol* m_clusters;
-    ITkrGeometrySvc*      m_tkrGeo;
-    ITkrFailureModeSvc*   m_tkrFail;
-    TkrControl*           m_control;
+    Event::TkrClusterCol*  m_clusters;
+    ITkrGeometrySvc*       m_tkrGeo;
+    ITkrFailureModeSvc*    m_tkrFail;
+    ITkrQueryClustersTool* m_clusTool;
+    TkrControl*            m_control;
 };
 
 };

@@ -1,4 +1,4 @@
-#include "TkrRecon/Display/TkrTracksRep.h"
+#include "TkrTracksRep.h"
 #include "Event/TopLevel/EventModel.h"
 
 //------------------------------------------------------------------------------

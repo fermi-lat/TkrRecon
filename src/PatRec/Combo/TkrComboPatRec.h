@@ -15,18 +15,19 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/TkrComboPatRec.h,v 1.22 2003/03/24 01:27:50 lsrea Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/PatRec/Combo/TkrComboPatRec.h,v 1.2 2004/09/08 15:32:44 usher Exp $
 */
 
 #ifndef __TKRCOMBOPATREC_H
 #define __TKRCOMBOPATREC_H
 
-#include "Event/Recon/TkrRecon/TkrPatCand.h"
-#include "Event/Recon/TkrRecon/TkrClusterCol.h"
+#include "Event/Recon/TkrRecon/TkrTrack.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "src/Track/TkrControl.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrFailureModeSvc.h"
-#include "src/TrackFit/KalFitTrack/KalFitTrack.h"
+#include "TkrUtil/ITkrQueryClustersTool.h"
+#include "src/PatRec/KalFitTrack/KalFitTrack.h"
 #include "geometry/Ray.h"
 
 #include <iostream>
@@ -35,11 +36,11 @@
 
 using namespace Event;
 
-class TkrComboPatRec : public TkrPatCandCol
+class TkrComboPatRec
 {
 public:
-    TkrComboPatRec(ITkrGeometrySvc* pTkrGeo, 
-        TkrClusterCol* pClusters, double CalEnergy, Point CalPosition);
+    TkrComboPatRec(IDataProviderSvc* dataSvc, ITkrQueryClustersTool* clusTool, 
+        ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters, double CalEnergy, Point CalPosition);
         ~TkrComboPatRec() {};
 
 private:
@@ -48,6 +49,7 @@ private:
     public:
         Candidate(TkrClusterCol* clusters,
                   ITkrGeometrySvc* geometry,
+                  ITkrQueryClustersTool* clusTool,
                   int layer, int twr, double e, 
                   Point x, Vector t, float d, float s, int g, int top);
         ~Candidate();
@@ -111,10 +113,12 @@ private:
     int m_firstLayer;  // Find first hit layer once
 
     /// Pointers to clusters, geometry, and control parameters
-    ITkrGeometrySvc* m_tkrGeo;
-    ITkrFailureModeSvc* m_tkrFail;
-    TkrClusterCol*   m_clusters;
-    TkrControl*      m_control; 
+    IDataProviderSvc*      m_dataSvc;
+    ITkrGeometrySvc*       m_tkrGeo;
+    ITkrFailureModeSvc*    m_tkrFail;
+    ITkrQueryClustersTool* m_clusTool; // Pointer to the tool to dig info out of clusters
+    TkrClusterCol*         m_clusters;
+    TkrControl*            m_control; 
 
 };
 

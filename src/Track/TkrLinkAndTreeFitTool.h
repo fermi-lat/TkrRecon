@@ -7,7 +7,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrLinkAndTreeFitTool.h,v 1.4 2003/03/13 19:13:24 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Track/TkrLinkAndTreeFitTool.h,v 1.2 2004/09/08 15:32:45 usher Exp $
  */
 
 #ifndef TKRLINKANDTREEFITTOOL_H

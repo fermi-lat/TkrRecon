@@ -7,7 +7,7 @@
 // b. allgood and w. atwood, 3/02  
 //------------------------------------------------------------------------------
 
-#include "TkrRecon/Display/TkrDispCompleteNet.h"
+#include "TkrDispCompleteNet.h"
 #include "Event/TopLevel/EventModel.h"
 #include "src/PatRec/NeuralNet/TkrNeuralNet.h"
 #include "src/PatRec/NeuralNet/TkrNeuron.h"
