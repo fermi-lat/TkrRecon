@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.13 2004/12/13 23:50:41 atwood Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.14 2004/12/16 05:04:23 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -255,20 +255,19 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrTrack* track, double CalEner
     int num_last_hits = 0; 
     double arc_len    = 5./fabs(dir_ini.z()); 
     
-	int layer       = track->front()->getTkrId().getLayer(); //numbering: bottom-up
-    int top_layer   = m_tkrGeom->reverseLayerNumber(layer);   
+	int top_layer       = m_tkrGeom->getLayer(track->front()->getTkrId()); 
     int max_layers  = m_tkrGeom->numLayers();
 
     int thin_layers  = 0;
     int thick_layers = 0;
     int norad_layers = 0;
 
-	// This loops over layers using top-down numbering (0 - 17 starting at the top)
-    for(int ilayer = top_layer; ilayer < max_layers; ilayer++) {
-        
+    int ilayer = top_layer;
+
+    while (ilayer--) { 
         double xms = 0.;
         double yms = 0.;
-        if(ilayer > top_layer) {
+        if(ilayer < top_layer) {
             HepMatrix Q = kalPart->mScat_Covr(CalEnergy/2., arc_len);
             xms = Q(1,1);
             yms = Q(3,3);
@@ -279,11 +278,10 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrTrack* track, double CalEner
         if(ySprd > m_tkrGeom->trayWidth()/2.) ySprd = m_tkrGeom->trayWidth()/2.;
 
         // Assume location of shower center in given by 1st track
-        Point x_hit = getPosAtZ(track, arc_len);
-		int rev_layer = m_tkrGeom->reverseLayerNumber(ilayer); 
-        int numHits = m_clusTool->numberOfHitsNear(rev_layer, xSprd, ySprd, x_hit);
+        Point x_hit = getPosAtZ(track, arc_len); 
+        int numHits = m_clusTool->numberOfHitsNear(ilayer, xSprd, ySprd, x_hit);
 
-        convType type = m_tkrGeom->getReconLayerType(ilayer);
+        convType type = m_tkrGeom->getLayerType(ilayer);
         switch(type) {
         case NOCONV:
             num_last_hits += numHits; 
@@ -302,10 +300,11 @@ double TkrTrackEnergyTool::getTotalEnergy(Event::TkrTrack* track, double CalEner
         }
 
         // Increment arc-length
-        int nextlayer = ilayer+1;
-        if (ilayer==max_layers-1) nextlayer--;
-        double deltaZ = m_tkrGeom->getReconLayerZ(ilayer)-m_tkrGeom->getReconLayerZ(nextlayer);
-        arc_len += fabs( deltaZ/dir_ini.z()); 
+        if (ilayer>0) {
+            int nextlayer = ilayer-1;
+            double deltaZ = m_tkrGeom->getLayerZ(ilayer)-m_tkrGeom->getLayerZ(nextlayer);
+            arc_len += fabs( deltaZ/dir_ini.z()); 
+        }
     }
     
     double ene_trks   = _thinCoeff*num_thin_hits + _thickCoeff*num_thick_hits +

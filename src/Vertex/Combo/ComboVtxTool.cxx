@@ -148,8 +148,8 @@ StatusCode ComboVtxTool::findVtxs()
 
 			if(tkr1Cls == tkr2Cls && tkr2Cls->size() < 3) 
 			{// Put vertex 1/2 way into preceeding radiator if first hit is in upper plane
-				int layer = tkr1ID.getLayer();
-				int plane = tkr1ID.getPlane();
+				int plane = m_tkrGeom->getPlane(tkr1ID);
+				int layer = m_tkrGeom->getLayer(plane);
 				double radLen = m_tkrGeom->getRadLenConv(layer);
 				if(plane%2 == 1) zVtx += radLen/2./3.5 + .4; 
 				status |= Event::TkrVertex::TWOTKRVTX | Event::TkrVertex::FIRSTHIT;

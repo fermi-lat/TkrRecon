@@ -53,7 +53,7 @@ TkrClusterLinkVector::TkrClusterLinkVector(ITkrQueryClustersTool* clusTool, int 
     else
     {
         //std::vector<TkrCluster*> pClusTop = pClusters->getHits((TkrCluster::view)plane, layerNum);
-        Event::TkrClusterVec pClusTop = clusTool->getClustersReverseLayer(plane, layerNum);
+        Event::TkrClusterVec pClusTop = clusTool->getClusters(plane, layerNum);
 
         int nHitsTop = pClusTop.size();
 
@@ -61,7 +61,7 @@ TkrClusterLinkVector::TkrClusterLinkVector(ITkrQueryClustersTool* clusTool, int 
         while(nHitsTop--)
         {
             //std::vector<TkrCluster*> pClusBot = pClusters->getHits((TkrCluster::view)plane, layerNum+1);
-            Event::TkrClusterVec pClusBot = clusTool->getClustersReverseLayer(plane, layerNum+1);
+            Event::TkrClusterVec pClusBot = clusTool->getClusters(plane, layerNum-1);
 
             int nHitsBot = pClusBot.size();
 

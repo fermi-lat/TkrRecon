@@ -1,6 +1,6 @@
 /*
-    Code to implement the SiLinkList class
-    Tracy Usher Nov 30, 2000
+Code to implement the SiLinkList class
+Tracy Usher Nov 30, 2000
 */
 
 #include "src/PatRec/LinkAndTree/TkrClusterLinkList.h"
@@ -27,18 +27,19 @@ TkrClusterLinkList::TkrClusterLinkList(ITkrQueryClustersTool* clusTool, TkrPlane
     //Do nothing if not a legal plane
     if (plane == X || plane == Y)
     {
-//      int layerNum = plane == X ? NLAYERS : NLAYERS - 1;
+        //      int layerNum = plane == X ? NLAYERS : NLAYERS - 1;
         int layerNum = NLAYERS - 1;
 
         //Loop is over "link" layers - incorporate two silicon layers
-        while(layerNum--)
-        {
+        int ilayer = 0;
+        for (;ilayer<NLAYERS; ++ ilayer) {
+            //while(layerNum--)
             //std::vector<TkrCluster*> pClus = pClusters->getHits((TkrCluster::view)plane, layerNum);
-            Event::TkrClusterVec pClus = clusTool->getClustersReverseLayer(plane, layerNum);
+            Event::TkrClusterVec pClus = clusTool->getClusters(plane, ilayer);
 
             if (pClus.size() > 0)
             {
-                TkrClusterLinkVector* pClusLinks = new TkrClusterLinkVector(clusTool, layerNum, plane);
+                TkrClusterLinkVector* pClusLinks = new TkrClusterLinkVector(clusTool, ilayer, plane);
                 LayerLinkVector*      pVector    = pClusLinks;
                 int                   numVectors = pVector->size();
 

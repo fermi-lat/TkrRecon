@@ -10,7 +10,7 @@
 * @author Leon Rochester
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.cxx,v 1.4 2004/10/12 19:03:37 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.cxx,v 1.5 2004/12/16 05:04:23 usher Exp $
 */
 
 #include "src/Track/TkrAlignHitsTool.h"
@@ -59,17 +59,18 @@ StatusCode TkrAlignHitsTool::alignHits(const Event::TkrTrack* track,
     // get the clusterCol
     Event::TkrClusterCol* m_clusCol = 
         SmartDataPtr<Event::TkrClusterCol>(m_dataSvc,EventModel::TkrRecon::TkrClusterCol); 
-/*
+
+// Don't forget to fix all this
     // loop over the planes
-    Event::TkrFitPlaneConPtr pPlane = track->begin();
+    Event::TkrTrackHitVecConItr pPlane = track->begin();
     int planeNumber = 0;
     for (; pPlane<track->end(); ++pPlane) {
-        Event::TkrFitPlane plane = *pPlane;
-        Event::TkrCluster* pClus = (*m_clusCol)[plane.getIDHit()];
+        SmartRef<Event::TkrTrackHit> plane = *pPlane;
+        const Event::TkrCluster* pClus = plane->getClusterPtr();
 
         // get the cluster info
         int view = (pClus->getTkrId().getView() == idents::TkrId::eMeasureX ? 0 : 1);
-        int layer = pClus->getTkrId().getPlane();
+        int layer = pClus->getPlane();
         int tower = pClus->tower();
         HepPoint3D pos = pClus->position();
 
@@ -168,19 +169,20 @@ StatusCode TkrAlignHitsTool::alignHits(const Event::TkrTrack* track,
         HepPoint3D  hitPoint = hit->newPos;
         HepVector3D hitSlope = hit->slope;
         //need the digiLayer for Alignment!!!
-        int digiLayer = m_tkrGeom->reverseLayerNumber(hit->layer);
+        int digiLayer = hit->layer;
         int view  = hit->view;
         int tower = hit->tower;
+        int layer = hit->layer;
 
         HepVector3D deltaPos;
         //bool rotate = false;
-        deltaPos = m_alignSvc->deltaReconPoint(hitPoint, hitSlope, digiLayer, view);
+        deltaPos = m_alignSvc->deltaReconPoint(hitPoint, hitSlope, layer, view);
 
         // store the delta
         alignVec.push_back(deltaPos[view]);
     }
     clearHits();
-*/
+
     return sc;
 }
     

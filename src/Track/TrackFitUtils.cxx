@@ -484,14 +484,14 @@ double TrackFitUtils::firstKinkNorm(Event::TkrTrack& track)
     Event::TkrTrackHit* hit1 = *hitPtr;
 	Vector t0 = hit1->getDirection(Event::TkrTrackHit::SMOOTHED);
   
-	int layer0 = (hit1->getTkrId()).getLayer();
+	int layer0 = m_tkrGeom->getLayer(hit1->getTkrId());
 	double energy = hit1->getEnergy(); 
 	double rad_len = 0.; 
 	Vector t1;
 	hitPtr++; 
 	while(hitPtr != track.end()) {
         Event::TkrTrackHit* hit = *hitPtr;
-		int next_layer = (hit->getTkrId()).getLayer(); 
+		int next_layer = m_tkrGeom->getLayer(hit->getTkrId()); 
 		if(abs(next_layer - layer0) > 1) break;
 		t1 = hit->getDirection(Event::TkrTrackHit::SMOOTHED);
 		rad_len += hit->getRadLen();
