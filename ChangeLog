@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Sat Oct  9 22:08:00 PDT 2004
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	TkrNeuron.h 
+Log Message:
+remove cluster id from TkrPoints -- retain the same interface
+remove cluster id from TkrPoint  -- requires small mod to TkrNeuron
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Oct  8 21:47:02 PDT 2004
 TkrRecon/src/TrackFit/KalFitTrack
 
