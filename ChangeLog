@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: lsrea  Wed Apr 10 08:55:54 PDT 2002
+TkrRecon/src/Services
+
+Modified Files:
+	TkrGeometrySvc.cxx 
+Log Message:
+add property reverseY to toggle "-y kludge"
+default TkrGeometrySvc.reverseY = false
+
+    *
+------------------------------------------------------------
+User: lsrea  Wed Apr 10 08:55:54 PDT 2002
 TkrRecon/TkrRecon/Services
 
 Modified Files:
