@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Fri Aug 30 11:18:31 PDT 2002
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx KalFitTrack.h 
+Log Message:
+Moved non-Event includes to .cxx
+    *
+------------------------------------------------------------
 User: atwood  Fri Aug 30 08:44:14 PDT 2002
 TkrRecon/src/Utilities
 
