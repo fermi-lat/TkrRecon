@@ -3,6 +3,7 @@
  * Package TkrRecon
  * Manager: Leon Rochester 
  *
+ * v6r4p3  23-Jul-2002  TU    Picks up upgrades and bug fixes to Combo PR/Fit from Bill Atwood
  * v6r4p2   3-Jul-2002  TU    This does fix the crashes on linux
  * v6r4p1   3-Jul-2002  TU    Various bug fixes to code by Bill Atwood (should not crash on linux now)
  * v6r4    27-Jun-2002  TU    New Combo Recon code included, make this the default recon
