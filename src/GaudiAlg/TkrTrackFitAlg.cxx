@@ -14,6 +14,7 @@
 #include "TkrRecon/GaudiAlg/TkrTrackFitAlg.h"
 #include "Event/Recon/TkrRecon/TkrFitTrack.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
+#include "Event/Recon/TkrRecon/TkrTrackTab.h"
 
 #include "Event/Recon/CalRecon/CalCluster.h"
 #include "Event/TopLevel/EventModel.h"
@@ -26,22 +27,19 @@
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 
 #include "GlastSvc/Reco/IPropagatorSvc.h"
+#include "GlastSvc/Reco/IPropagatorTool.h"
 #include "GaudiKernel/IToolSvc.h"
 
 // Used by Gaudi for identifying this algorithm
 static const AlgFactory<TkrTrackFitAlg>  Factory;
 const IAlgFactory& TkrTrackFitAlgFactory = Factory;
 
-// Static pointer to the propagator
-IKalmanParticle* TkrTrackFitAlg::m_KalParticle = 0;
-
 // Standard Gaudi Constructor format
 TkrTrackFitAlg::TkrTrackFitAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator) 
 {
-    // Variable to switch propagators
-    declareProperty("PropagatorType", m_PropagatorType=-1);
-    declareProperty("TrackFitType",   m_TrackFitType="Combo");
+    // Controls which fit to use
+    declareProperty("TrackFitType", m_TrackFitType="Combo");
 }
 
 StatusCode TkrTrackFitAlg::initialize()
@@ -60,24 +58,6 @@ StatusCode TkrTrackFitAlg::initialize()
 
     log << MSG::INFO << "TkrTrackFitAlg Initialization" << endreq;
 
-    // deal with obsolete property PropagatorType
-    if (m_PropagatorType!=-1) {
-        log << MSG::INFO << endreq << "Propagator type " << m_PropagatorType 
-            << " requested, but" << endreq 
-            <<"Propagator type is now set in GlastPropagatorSvc!"
-            << endreq
-            << "No action taken!" << endreq << endreq;
-    }
-    
-    // pick up the chosen propagator
-    IPropagatorSvc* pPropSvc = 0;
-    if (service("GlastPropagatorSvc", pPropSvc).isFailure()) {
-        log << MSG::ERROR << "Couldn't find the GlastPropagatorSvc!" << endreq;
-        return StatusCode::FAILURE;
-    }
-    
-    m_KalParticle = pPropSvc->getPropagator();
-    
     // Depending upon the value of the m_TrackFitType parameter, set up the 
     // Gaudi Tool for performing the track fit. 
     if (m_TrackFitType == "Combo")
@@ -131,6 +111,12 @@ StatusCode TkrTrackFitAlg::execute()
     // At this point it will have no tracks in it
     Event::TkrFitTrackCol* tracks = new Event::TkrFitTrackCol();
     sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrFitTrackCol, tracks);
+
+    // Create a new relational table for pattern recognition and fit tracks
+    Event::TkrFitTrackTab trackRelTab;
+    trackRelTab.init();
+
+    sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrTrackTab, trackRelTab.getAllRelations());
 
     // Ok, now set up to loop over candidate tracks
     int                     numCands = pTkrCands->size();

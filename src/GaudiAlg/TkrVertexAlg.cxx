@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.14 2002/10/10 08:43:11 cohen Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.15 2003/01/29 23:20:26 lsrea Exp $
 //
 // Description:
 //      Handles the Gaudi part of the vertex reconstruction
@@ -18,6 +18,7 @@
 #include "GaudiKernel/DataObject.h"
 
 #include "Event/TopLevel/EventModel.h"
+#include "Event/Recon/TkrRecon/TkrVertexTab.h"
 
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 
@@ -112,6 +113,13 @@ StatusCode TkrVertexAlg::execute()
 
         // Look up (and instantiate if necessary) a private version of the tool
         sc = toolSvc()->retrieveTool(VtxToolName.c_str(), m_VtxTool, this);
+
+
+        // Create a new relational table for pattern recognition and fit tracks
+        Event::TkrVertexTab vertexRelTab;
+        vertexRelTab.init();
+
+        sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrVertexTab, vertexRelTab.getAllRelations());
 
         if (sc.isSuccess())
         {
