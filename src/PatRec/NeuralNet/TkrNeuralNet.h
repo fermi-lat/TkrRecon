@@ -13,13 +13,13 @@
 * @todo Impliment graph searching function to better pick out candidate tracks.
 * @todo Move global parameter definitions to joboptions file
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/TkrNeuralNet.h,v 1.9 2002/08/22 21:04:55 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/TkrNeuralNet.h,v 1.10 2002/09/05 16:25:34 lsrea Exp $
 */
 
 #ifndef __TKR_NEURALNET_H
 #define __TKR_NEURALNET_H
 
-#include "Event/Recon/TkrRecon/TkrPatCandCol.h"
+#include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "src/TrackFit/KalFitTrack/KalFitTrack.h"
 #include "src/PatRec/NeuralNet/TkrNeuron.h"
 #include "src/Utilities/TkrBase.h"

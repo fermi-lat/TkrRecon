@@ -15,13 +15,13 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/TkrComboPatRec.h,v 1.16 2002/08/30 18:35:40 atwood Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/TkrComboPatRec.h,v 1.17 2002/09/05 16:25:32 lsrea Exp $
 */
 
 #ifndef __TKRCOMBOPATREC_H
 #define __TKRCOMBOPATREC_H
 
-#include "Event/Recon/TkrRecon/TkrPatCandCol.h"
+#include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "Event/Recon/TkrRecon/TkrClusterCol.h"
 #include "src/Track/TkrControl.h"
 #include "TkrRecon/ITkrGeometrySvc.h"

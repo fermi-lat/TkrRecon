@@ -5,7 +5,7 @@
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/ISvcLocator.h"
 #include "Event/Recon/TkrRecon/TkrFitTrack.h"
-#include "Event/Recon/TkrRecon/TkrPatCandCol.h"
+#include "Event/Recon/TkrRecon/TkrPatCand.h"
 #include "Event/Recon/TkrRecon/TkrVertex.h"
 #include "Event/TopLevel/EventModel.h"
 

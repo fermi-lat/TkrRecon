@@ -203,7 +203,7 @@ void TkrComboPatRec::loadOutput()
             }
             
             //Store the track 
-            addTrack(newTrack);
+            push_back(newTrack);
         }     
     } 
     

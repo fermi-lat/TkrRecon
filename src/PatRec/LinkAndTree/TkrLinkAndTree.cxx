@@ -264,7 +264,7 @@ void TkrLinkAndTree::buildCand3D()
                 newTrack->addCandHit(pClusLinkY->pBotClus());
             }
 
-            addTrack(newTrack);
+            push_back(newTrack);
 
             xIter++;
             yIter++;
