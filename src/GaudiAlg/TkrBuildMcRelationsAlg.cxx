@@ -9,7 +9,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/GaudiAlg/TkrBuildMcRelationsAlg.h,v 1.7 2002/08/28 22:55:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrBuildMcRelationsAlg.cxx,v 1.1 2003/08/06 21:54:39 usher Exp $
  */
 
 #include "GaudiKernel/MsgStream.h"
@@ -28,6 +28,8 @@
 #include "TkrRecon/MonteCarlo/McLayerHit.h"
 #include "TkrRecon/MonteCarlo/McPatCand.h"
 #include "src/MonteCarlo/McBuildTracks.h"
+
+#include "TkrRecon/MonteCarlo/ITkrMcTracksTool.h"
 
 class TkrBuildMcRelationsAlg : public Algorithm
 {
@@ -121,6 +123,15 @@ StatusCode TkrBuildMcRelationsAlg::execute()
 
     //Have the Monte Carlo base info, now relate to the recon info
     buildPatCandRelations();
+
+    //Quick test of our new tool
+    ITkrMcTracksTool* mcPatTool = 0;
+    sc = toolSvc()->retrieveTool("TkrMcTracksTool", mcPatTool);
+
+    int numMcTracks = mcPatTool->getNumMcTracks();
+    const unsigned long classBits = mcPatTool->getClassificationBits();
+    int nn=0;
+
         
     return sc;
 }
