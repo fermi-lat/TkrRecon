@@ -6,8 +6,8 @@
 #include "geometry/Point.h"
 #include "GlastEvent/Hits/SiLayers.h"
 #include "TkrRecon/SiClusters.h"
-#include "TkrRecon/TkrGeometrySvc.h"
-#include "TkrRecon/TkrBadStripsSvc.h"
+#include "TkrRecon/ITkrGeometrySvc.h"
+#include "TkrRecon/ITkrBadStripsSvc.h"
 
 #include "GlastEvent/Digi/TkrDigi.h"
 
@@ -53,8 +53,8 @@ protected:
     
 private:
     
-    TkrGeometrySvc* pTkrGeo;
-    TkrBadStripsSvc* pBadStrips;
+    ITkrGeometrySvc* pTkrGeo;
+    ITkrBadStripsSvc* pBadStrips;
     
     TkrDigiCol* m_TkrDigis;
     SiClusters* m_SiClusters;

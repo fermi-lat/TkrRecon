@@ -10,7 +10,6 @@
 #include <fstream>
 
 typedef std::vector<int> v_strips;
-typedef std::vector<v_strips> v_stripsCol;
 typedef v_strips::const_iterator v_strips_it;
 
 //----------------------------------------------

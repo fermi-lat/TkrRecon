@@ -6,7 +6,7 @@
 
 #include "TkrRecon/ITkrBadStripsSvc.h"
 #include "TkrRecon/TkrAxis.h"
-#include "TkrRecon/TkrGeometrySvc.h"
+#include "TkrRecon/ITkrGeometrySvc.h"
 
 #include <string>
 #include <vector>
@@ -50,11 +50,11 @@ public:
    
 private:
 
-    void makeCol(const int size);
+    //void makeCol(const int size);
     void readFromFile(std::ifstream* file);
     void addStrip(v_strips* v, const int strip);
 
-    TkrGeometrySvc* pTkrGeom;
+    ITkrGeometrySvc* pTkrGeom;
 
     std::string m_badStripsFile;  // File name for constants
 
@@ -64,7 +64,7 @@ private:
 
 
     // this will have m_towers*m_layers*m_views elements
-    v_stripsCol m_stripsCol;
+    v_strips m_stripsCol[576];
 };
 
 

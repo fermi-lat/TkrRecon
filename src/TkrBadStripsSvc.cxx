@@ -38,8 +38,8 @@ StatusCode TkrBadStripsSvc::initialize()
 
     setProperties();
 
-    int size = 0;
-    makeCol(size); //make sure that Collection is sensibly initialized
+    //int size = 0;
+    //makeCol(size); //make sure that Collection is sensibly initialized
 
     if (m_badStripsFile=="") {        
         log << MSG::INFO << "No bad strips file was requested." << endreq;
@@ -81,15 +81,18 @@ StatusCode TkrBadStripsSvc::initialize()
         return StatusCode::FAILURE;
     }//
 	
-    size = m_ntowers*m_nlayers*m_nviews;    
-    makeCol(size);
+    //int size = m_ntowers*m_nlayers*m_nviews;    
+    //makeCol(size);
     
     readFromFile(&file);
 	
 	file.close();
 	
+	//log << MSG::DEBUG<< "m_stripsCol has " << 
+		//m_stripsCol.size() << " elements" << endreq;
 	log << MSG::DEBUG<< "m_stripsCol has " << 
-		m_stripsCol.size() << " elements" << endreq;
+		576 << " elements" << endreq;
+    /*
 	for (int i = 0; i < m_stripsCol.size(); i++) {
 		log << "Element " << i << ": " ;
 		v_strips v = m_stripsCol[i];
@@ -99,7 +102,7 @@ StatusCode TkrBadStripsSvc::initialize()
 		}
 		log << MSG::DEBUG << endreq;
 	}
-	
+	*/
            
     return sc;
 }
@@ -110,11 +113,13 @@ StatusCode TkrBadStripsSvc::finalize()
     return StatusCode::SUCCESS;
 }
 
-void TkrBadStripsSvc::makeCol(const int size)
+
+/*void TkrBadStripsSvc::makeCol(const int size)
 {
   //    m_stripsCol.assign(size);
   //  return;
 }
+*/
 
 
 void TkrBadStripsSvc::readFromFile(std::ifstream* file)
@@ -188,7 +193,8 @@ v_strips* TkrBadStripsSvc::getBadStrips(const int tower, const int layer, const 
 
 v_strips* TkrBadStripsSvc::getBadStrips(const int index)
 {
-    int ind = (m_stripsCol.size()==0) ? m_stripsCol.size() : index;
+    //int ind = (m_stripsCol.size()==0) ? m_stripsCol.size() : index;
+    int ind = (index<0 || index>575) ? 0 : index;
     return &m_stripsCol[ind];
 }
 
