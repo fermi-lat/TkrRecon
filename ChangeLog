@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Fri Jul  4 07:12:27 PDT 2003
+TkrRecon/src/Display
+
+Modified Files:
+	TkrDispActiveNet.cxx TkrDispCompleteNet.cxx 
+Log Message:
+revamping NeuralNet before starting comparison studies: TkrNeuralNet remains a dataObject for the display to access it, but is not a PatCandCol anymore, NeuralNetFindTrackTool is now responsibble for building the candidate tracks, NeuralNet parameters are exposed to the jobOption file.
+    *
+------------------------------------------------------------
 User: cohen  Fri Jul  4 07:07:39 PDT 2003
 TkrRecon/src/Utilities
 
