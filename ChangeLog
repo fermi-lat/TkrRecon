@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Fri May 31 16:31:25 PDT 2002
+TkrRecon/TkrRecon/Vertex
+
+Modified Files:
+	TkrFindVertex.h 
+Log Message:
+STL Compliance of TkrFitTrackCol
+    *
+------------------------------------------------------------
 User: cohen  Fri May 31 16:31:24 PDT 2002
 TkrRecon/TkrRecon/Track
 
