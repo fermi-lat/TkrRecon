@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Thu Oct 10 14:23:42 PDT 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusterTable.cxx 
+Log Message:
+get rid of the offending lines
+    *
+------------------------------------------------------------
 User: lsrea  Thu Oct 10 14:18:24 PDT 2002
 TkrRecon/src/Cluster
 
