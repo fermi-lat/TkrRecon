@@ -12,7 +12,8 @@ class GFcontrol
 public:
 
 	//  control drivers 
-	static int maxCandidates;
+	static int    maxCandidates;
+        static int    minTermHitCount;
 
 	static double FEneParticle;
 
