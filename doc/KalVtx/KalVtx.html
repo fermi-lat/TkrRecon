@@ -1,0 +1,634 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2K.1beta (1.47)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>An Introduction to the Kalman Vertexer for GLAST</TITLE>
+<META NAME="description" CONTENT="An Introduction to the Kalman Vertexer for GLAST">
+<META NAME="keywords" CONTENT="KalVtx">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2K.1beta">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="KalVtx.css">
+
+</HEAD>
+
+<BODY >
+
+<P>
+
+<H1 ALIGN=CENTER>An Introduction to the Kalman Vertexer for GLAST</H1>
+<P ALIGN=CENTER><STRONG>Johann Cohen-Tanugi</STRONG></P>
+<P ALIGN=LEFT></P>
+<B><BIG CLASS="HUGE">The Kalman vertexer is still under construction, as well as this document! </BIG></B> 
+
+<P>
+
+<H1><A NAME="SECTION00010000000000000000">
+Miscellaneous preliminary remarks</A>
+</H1>
+
+<P>
+With respect to collider experiments, GLAST presents several peculiarities:
+
+<UL>
+<LI>tracks are straight lines, so that in principle a vertexing scheme should be much simplified, 
+as track parameters evolution along the trajectory are trivial to compute (except maybe for the energy).
+</LI>
+<LI>despite the ``granularity'' of the calorimeter, separate track by track 
+energy determination is hard. Thus, one cannot put much hope in the use of secondary vertices 
+to ``recover'' from delta rays, etc...
+</LI>
+<LI>There is no ``beam spot'', and as a result no obvious initial vertex location.
+The latter must be determined event by event. 
+</LI>
+<LI>The discretized nature of the hits position measurements is expected to limit 
+vertex determination accuracy in a non trivial way. It is also leading to an unusual
+definition of track parameters, following track reconstruction paradigm (see below).
+</LI>
+</UL>
+
+<P>
+It is important to emphasize the fact that GLAST program relies on the measurements of 
+incident gammas energy and direction. The position of the pair production vertex is not mandatory.
+It may help to analyse an event, for instance by providing an ``in converter decay'' constraint. 
+The Kalman vertexer will eventually provide for such capability.
+Nevertheless, the main purpose of the Kalman vertexer lies in the fact that 
+it provides an automated rigorous agregation of the different tracks covariance matrix. 
+This is essential for a good understanding of the reconstruction errors, that would not rely on 
+the MonteCarlo exclusively.
+
+<P>
+I note also here an interesting feature that I came aware of during a discussion with Bill Atwood:
+Given the fact that track direction errors arise primarily from MS, which is independant for each
+track, one can consider that each reconstructed track, provided that it is not too badly 
+reconstructed, is an independent estimation of the initial gamma direction, to be properly weighted
+by its error matrix. This gives rise to a prescription for gamma direction which is completely 
+different from the case where one adds the physical momentum of the tracks to make up the candidate
+photon momentum. The first prescription exemplified in TkrComboVtxRecon.cxx, amounts to the 
+following estimation:
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\begin{aligned}
+dir_\gamma &= \frac{\frac{dir_{t_1}}{C_1}+\frac{dir_{t_2}}{C_2}}{\frac{1}{C_1}+\frac{1}{C_2}}
+\quad\text{symbolic notation}\\
+\frac{1}{C(dir_\gamma)} &= \frac{1}{C(dir_{t_1})} + \frac{1}{C(dir_{t_2})}
+\end{aligned}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="458" HEIGHT="124" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1.png"
+ ALT="\begin{displaymath}\begin{aligned}dir_\gamma &amp;= \frac{\frac{dir_{t_1}}{C_1}+\fra...
+...= \frac{1}{C(dir_{t_1})} + \frac{1}{C(dir_{t_2})} \end{aligned}\end{displaymath}"></SPAN></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+whereas the logical outcome of the Kalman vertexer will be
+<A NAME="tex2html1"
+  HREF="#foot30"><SUP><SPAN CLASS="arabic">1</SPAN></SUP></A>
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\begin{aligned}
+p_\gamma &= p_{t_1} + p_{t_2} \quad\text{where $p$\  must be the physical momentum}\\
+C_\gamma &= C_1 + C_2 + Cov(1,2) + Cov(2,1)
+\end{aligned}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="518" HEIGHT="68" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2.png"
+ ALT="\begin{displaymath}\begin{aligned}p_\gamma &amp;= p_{t_1} + p_{t_2} \quad\text{where...
+...um}\ C_\gamma &amp;= C_1 + C_2 + Cov(1,2) + Cov(2,1) \end{aligned}\end{displaymath}"></SPAN></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+
+<H1><A NAME="SECTION00020000000000000000">
+Kalman Vertexer: general equations</A>
+</H1>
+Given a list of tracks <SPAN CLASS="MATH"><I>k</I></SPAN>, with their ``measured'' parameter 
+vector <SPAN CLASS="MATH"><I>m</I><SUB>k</SUB></SPAN>, a Kalman filter can be designed in order to estimate the common
+vertex of tracks. It is an iterative process: starting with an initial estimate of the vertex <SPAN CLASS="MATH"><I>x</I><SUP>0</SUP></SPAN>
+and its covariance matrix <SPAN CLASS="MATH"><I>C</I><SUP>0</SUP></SPAN>, it adds one track at a time and reestimate vertex and cov. matrix 
+at each step (filter procedure.) At the end, a smoother procedure propagate the final result to 
+all tracks in order to reestimate their parameters at the final vertex estimate.
+
+<P>
+Let's define the following:
+
+<UL>
+<LI><SPAN CLASS="MATH"><I>x</I><SUB>k</SUB></SPAN>: vertex estimate after using k tracks;
+</LI>
+<LI><SPAN CLASS="MATH"><I>x</I><SUP>t</SUP></SPAN>: true vertex;
+</LI>
+<LI><!-- MATH
+ $\htmlimage{}C_k\equiv cov(x_k-x^t)$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="153" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3.png"
+ ALT="$C_k\equiv cov(x_k-x^t)$"></SPAN>;
+</LI>
+<LI><SPAN CLASS="MATH"><I>q</I><SUB>k</SUB></SPAN>: estimate of ``geometrical'' momentum of track <SPAN CLASS="MATH"><I>k</I></SPAN> at <SPAN CLASS="MATH"><I>x</I><SUB>k</SUB></SPAN>.  ``geometrical''  is to be opposed to 
+``physical'': it is somehow related to the local direction of a track, but doesn't need 
+to be <SPAN CLASS="MATH"><I>p</I></SPAN> of <SPAN CLASS="MATH">(<I>E</I>, <I>p</I>)</SPAN> 4-vector.
+</LI>
+<LI><SPAN CLASS="MATH"><I>q</I><SUP>t</SUP><SUB>k</SUB></SPAN>: true ``geometrical'' momentum of track <SPAN CLASS="MATH"><I>k</I></SPAN> at <SPAN CLASS="MATH"><I>x</I><SUB>k</SUB></SPAN>;
+</LI>
+<LI><!-- MATH
+ $\htmlimage{}D_k\equiv cov(q_k - q^t_k)$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="153" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img4.png"
+ ALT="$D_k\equiv cov(q_k - q^t_k)$"></SPAN>;
+</LI>
+<LI><!-- MATH
+ $\htmlimage{}E_k\equiv cov((x_k-x^t) , (q_k-q^t_k))$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="248" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img5.png"
+ ALT="$E_k\equiv cov((x_k-x^t) , (q_k-q^t_k))$"></SPAN>;
+</LI>
+<LI><SPAN CLASS="MATH"><I>m</I><SUB>k</SUB></SPAN>: parameter vector of track <SPAN CLASS="MATH"><I>k</I></SPAN>;
+</LI>
+<LI><SPAN CLASS="MATH"><I>v</I><SUB>k</SUB></SPAN>: random noise on  <SPAN CLASS="MATH"><I>m</I><SUB>k</SUB></SPAN>, assumed to be gaussian;
+</LI>
+<LI><!-- MATH
+ $\htmlimage{}V_k\equiv cov(v_k)$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="110" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img6.png"
+ ALT="$V_k\equiv cov(v_k)$"></SPAN>. <!-- MATH
+ $\htmlimage{}G_k\equiv V_k^{-1}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="88" HEIGHT="43" ALIGN="MIDDLE" BORDER="0"
+ SRC="img7.png"
+ ALT="$G_k\equiv V_k^{-1}$"></SPAN> is the weight matrix of track <SPAN CLASS="MATH"><I>k</I></SPAN>. 
+</LI>
+</UL>
+
+<P>
+Then, the Kalman procedure relies on the measurement equation, which defines a mapping from <SPAN CLASS="MATH"><I>m</I><SUB>k</SUB></SPAN>
+ to the <!-- MATH
+ $(x^t,q^t_k)$
+ -->
+<SPAN CLASS="MATH">(<I>x</I><SUP>t</SUP>, <I>q</I><SUP>t</SUP><SUB>k</SUB>)</SPAN>:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\begin{aligned}
+m_k &= h_k(x^t,q^t_k) + v_k.
+\end{aligned}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="359" HEIGHT="45" ALIGN="MIDDLE" BORDER="0"
+ SRC="img8.png"
+ ALT="\begin{displaymath}\begin{aligned}m_k &amp;= h_k(x^t,q^t_k) + v_k. \end{aligned}\end{displaymath}"></SPAN></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Besides, its application requires <SPAN CLASS="MATH"><I>h</I><SUB>k</SUB></SPAN> to be linear. For <!-- MATH
+ $(x^0_k,q^0_k)$
+ -->
+<SPAN CLASS="MATH">(<I>x</I><SUP>0</SUP><SUB>k</SUB>, <I>q</I><SUP>0</SUP><SUB>k</SUB>)</SPAN> chosen in the 
+vicinity of <!-- MATH
+ $(x^t,q^t_k)$
+ -->
+<SPAN CLASS="MATH">(<I>x</I><SUP>t</SUP>, <I>q</I><SUP>t</SUP><SUB>k</SUB>)</SPAN>, linearization of <SPAN CLASS="MATH"><I>h</I><SUB>k</SUB></SPAN> yields:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\begin{aligned}
+h_k(x^t,q^t_k) &\approx c^0_k + A_k x^t + B_k q^t \\
+\text{where } A_k &= \frac{\partial h_k}{\partial x^t}\biggl\lvert_{(x^0_k,q^0_k)}\biggr.\\
+              B_k &= \frac{\partial h_k}{\partial q^t_k}\biggl\lvert_{(x^0_k,q^0_k)}\biggr.\\
+\text{and } c^0_k &= h_k(x^0_k,q^0_k) - A_k x^0_k- B_k q^0_k
+\end{aligned}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="435" HEIGHT="185" ALIGN="MIDDLE" BORDER="0"
+ SRC="img9.png"
+ ALT="\begin{displaymath}\begin{aligned}h_k(x^t,q^t_k) &amp;\approx c^0_k + A_k x^t + B_k ...
+... c^0_k &amp;= h_k(x^0_k,q^0_k) - A_k x^0_k- B_k q^0_k \end{aligned}\end{displaymath}"></SPAN></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Usually, <SPAN CLASS="MATH"><I>x</I><SUP>0</SUP><SUB>k</SUB></SPAN> is set to <SPAN CLASS="MATH"><I>x</I><SUB>k - 1</SUB></SPAN>, <I>i.e.</I> the vertex estimate after <SPAN CLASS="MATH"><I>k</I> - 1</SPAN> step, and for <SPAN CLASS="MATH"><I>q</I><SUP>0</SUP><SUB>k</SUB></SPAN> 
+the momentum of the track at the POCA to <SPAN CLASS="MATH"><I>x</I><SUP>0</SUP><SUB>k</SUB></SPAN>.
+
+<P>
+A least <SPAN CLASS="MATH"><IMG
+ WIDTH="26" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img10.png"
+ ALT="$ \chi_{2}^{}$"></SPAN> prescription allows to update information at each step, with the following filtering formula:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\begin{aligned}
+x_k &= C_k[C_{k-1}^{-1} x_{k-1} + A^T_k G^B_k(m_k-c^0_k)]\\
+q_k &= W_k B^T_k G_k (m_k - c^0_k  -  A_k x_k)\\
+C_k &= (C_{k-1}^{-1} + A^T_k G^B_k A_k)^{-1}\\
+D_k &= W_k + W_k B^T_k G_k A_k C_k A^T_k G_k B_k W_k\\
+E_k &= -C_k A^T_k G_k B_k W_k\\
+W_k &= (C_{k-1}^{-1} + A^T_k G^B_k A_k)^{-1}\\
+G^B_k &= G_k - G_k B_k W_k B^T_k G_k
+\end{aligned}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="439" HEIGHT="220" ALIGN="MIDDLE" BORDER="0"
+ SRC="img11.png"
+ ALT="\begin{displaymath}\begin{aligned}x_k &amp;= C_k[C_{k-1}^{-1} x_{k-1} + A^T_k G^B_k(...
+... A_k)^{-1} G^B_k &amp;= G_k - G_k B_k W_k B^T_k G_k \end{aligned}\end{displaymath}"></SPAN></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+The <SPAN CLASS="MATH"><IMG
+ WIDTH="26" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="img12.png"
+ ALT="$ \chi^{2}_{}$"></SPAN> increase when adding track <SPAN CLASS="MATH"><I>k</I></SPAN> is computed as:
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\begin{aligned}
+\chi^2_{KF} &= r^T_k G_k r_k + (x_k - x_{k-1})^T C_{k-1}^{-1} (x_k - x_{k-1})\\
+        r_k &= m_k - c^0_k - A_k x_k - B_k q_k.
+\end{aligned}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="471" HEIGHT="68" ALIGN="MIDDLE" BORDER="0"
+ SRC="img13.png"
+ ALT="\begin{displaymath}\begin{aligned}\chi^2_{KF} &amp;= r^T_k G_k r_k + (x_k - x_{k-1})...
+..._{k-1}) r_k &amp;= m_k - c^0_k - A_k x_k - B_k q_k. \end{aligned}\end{displaymath}"></SPAN></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+If <!-- MATH
+ $\chi^2_{KF}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="42" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="img14.png"
+ ALT="$ \chi^{2}_{KF}$"></SPAN> exceeds a user defined upper value, track <SPAN CLASS="MATH"><I>k</I></SPAN> can be discarded from 
+the fit. The total <SPAN CLASS="MATH"><IMG
+ WIDTH="26" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="img12.png"
+ ALT="$ \chi^{2}_{}$"></SPAN> is <!-- MATH
+ $\htmlimage{}\displaystyle{\chi^2_k = \chi^2_{k-1} + \chi^2_{KF}}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="147" HEIGHT="43" ALIGN="MIDDLE" BORDER="0"
+ SRC="img15.png"
+ ALT="$\displaystyle{\chi^2_k = \chi^2_{k-1} + \chi^2_{KF}}$"></SPAN>.
+
+<P>
+The smoothing step goes over all accepted tracks and recomputes <SPAN CLASS="MATH"><I>q</I><SUP>N</SUP><SUB>k</SUB></SPAN>,<SPAN CLASS="MATH"><I>D</I><SUP>N</SUP><SUB>k</SUB></SPAN> and <SPAN CLASS="MATH"><I>E</I><SUP>N</SUP><SUB>k</SUB></SPAN>, using
+the final estimates <SPAN CLASS="MATH"><I>x</I></SPAN> and <SPAN CLASS="MATH"><I>C</I></SPAN> in the filtering equations instead of <SPAN CLASS="MATH"><I>x</I><SUB>k</SUB></SPAN> and <SPAN CLASS="MATH"><I>C</I><SUB>k</SUB></SPAN>. It also 
+allows to compute:
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\begin{aligned}
+Q_{kj} &\equiv cov(q^N_k-q^t_k,q^N_j-q^t_j) = W_k B^T_k G_k A_k C A^T_j G_j B_j W_j.
+\end{aligned}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="505" HEIGHT="46" ALIGN="MIDDLE" BORDER="0"
+ SRC="img16.png"
+ ALT="\begin{displaymath}\begin{aligned}Q_{kj} &amp;\equiv cov(q^N_k-q^t_k,q^N_j-q^t_j) = W_k B^T_k G_k A_k C A^T_j G_j B_j W_j. \end{aligned}\end{displaymath}"></SPAN></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Note that, in the event that <SPAN CLASS="MATH"><I>x</I></SPAN> is noticeably different from <SPAN CLASS="MATH"><I>x</I><SUP>0</SUP></SPAN>, the whole procedure
+can be performed again with <SPAN CLASS="MATH"><I>x</I><SUP>0</SUP></SPAN> and <SPAN CLASS="MATH"><I>C</I><SUP>0</SUP></SPAN> set to <SPAN CLASS="MATH"><I>x</I></SPAN> and <SPAN CLASS="MATH"><I>C</I></SPAN> respectively.
+
+<P>
+
+<H1><A NAME="SECTION00030000000000000000">
+Implementation in GLAST software </A>
+</H1>
+
+<P>
+GLAST Track fitting uses the following parametrization (one needs a point on the track, and the latter's direction):
+
+<UL>
+<LI>Track initial direction is given by projected slopes estimated at the first hit position along the track.
+If <!-- MATH
+ $\htmlimage{}(u_x,u_y,u_z)$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="94" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img17.png"
+ ALT="$(u_x,u_y,u_z)$"></SPAN> is a unit vector along the track direction, projected slopes are defined by 
+<!-- MATH
+ $\htmlimage{}\displaystyle{S_x=\frac{u_x}{u_z}}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="75" HEIGHT="53" ALIGN="MIDDLE" BORDER="0"
+ SRC="img18.png"
+ ALT="$\displaystyle{S_x=\frac{u_x}{u_z}}$"></SPAN> and  <!-- MATH
+ $\htmlimage{}\displaystyle{S_y=\frac{u_y}{u_z}}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="74" HEIGHT="53" ALIGN="MIDDLE" BORDER="0"
+ SRC="img19.png"
+ ALT="$\displaystyle{S_y=\frac{u_y}{u_z}}$"></SPAN>.
+</LI>
+<LI>The first hit location <SPAN CLASS="MATH">(<I>X</I>, <I>Y</I>, <I>Z</I>)</SPAN> is used to complete the parametrization.
+</LI>
+<LI>The <SPAN CLASS="MATH"><I>Z</I></SPAN> coordinate depends on the discrete localization of the first hit: it is decorrelated from 
+<!-- MATH
+ $(X,S_X,Y,S_Y)$
+ -->
+<SPAN CLASS="MATH">(<I>X</I>, <I>S</I><SUB>X</SUB>, <I>Y</I>, <I>S</I><SUB>Y</SUB>)</SPAN> which are estimated by a Kalman track fitting algorithm, along with their covariance matrix. 
+The error on <SPAN CLASS="MATH"><I>Z</I></SPAN> is a matter of debate. We currently use <!-- MATH
+ $\dfrac{0.4}{\sqrt(12)}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="63" HEIGHT="61" ALIGN="MIDDLE" BORDER="0"
+ SRC="img20.png"
+ ALT="$ {\dfrac{0.4}{\sqrt(12)}}$"></SPAN>mm, that is to say a uniform 
+distribution of <SPAN CLASS="MATH"><I>Z</I></SPAN> between <SPAN CLASS="MATH"><I>X</I></SPAN>- and <SPAN CLASS="MATH"><I>Y</I></SPAN>-planes of first hit.
+</LI>
+</UL>
+
+<P>
+In order to remain consistent with the track reconstruction paradigm, we use projected slopes in order to
+parametrize the direction of the track: by definition, the ``geometrical'' momentum is the vector <!-- MATH
+ $(S_X,S_Y,E)$
+ -->
+<SPAN CLASS="MATH">(<I>S</I><SUB>X</SUB>, <I>S</I><SUB>Y</SUB>, <I>E</I>)</SPAN> 
+defined for each track.
+The track being a straight line, it doesn't change all along the track
+<A NAME="tex2html2"
+  HREF="#foot108"><SUP><SPAN CLASS="arabic">2</SPAN></SUP></A>, so that there is no extra work required to
+compute <SPAN CLASS="MATH"><I>q</I><SUP>0</SUP><SUB>k</SUB></SPAN> from the measured <SPAN CLASS="MATH"><I>q</I><SUB>k</SUB></SPAN>.
+
+<P>
+In order to determine the measurement equation, one needs to define a reference plane where ``geometrical'' 
+momentum is defined. In collider experiment, this would be, typically, the normal plane to the beamline, 
+containing the POCA on the track to the beamline (<I>i.e.</I> Z=0 axis).
+
+<P>
+In the case of GLAST, we take as reference plane the horizontal plane containing the first hit of
+the best track, which is the first one in the track list. 
+This seems a reasonable, though probably biasing, estimate for a vicinity to the true vertex.
+All tracks should have their measurement vector <SPAN CLASS="MATH"><I>m</I><SUB>k</SUB></SPAN> defined at this point
+<A NAME="tex2html3"
+  HREF="#foot110"><SUP><SPAN CLASS="arabic">3</SPAN></SUP></A>.
+As a result, the measurement equation (without noise) <!-- MATH
+ $\htmlimage{}m_k = h_k(x^t,q^t_k)$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="131" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img21.png"
+ ALT="$m_k = h_k(x^t,q^t_k)$"></SPAN> reads:
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\begin{aligned}
+X_k      &= X^t + S^t_{X}(Z_{ref} - Z^t)\\
+{S_X}_k  &= S^t_X\\
+Y_k      &= Y^t + S^t_Y(Z_{ref} - Z^t)\\
+{S_Y}_k  &= S^t_Y\\
+E_k      &= E^t_k
+\end{aligned}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="392" HEIGHT="152" ALIGN="MIDDLE" BORDER="0"
+ SRC="img22.png"
+ ALT="\begin{displaymath}\begin{aligned}X_k &amp;= X^t + S^t_{X}(Z_{ref} - Z^t) {S_X}_k ...
+...(Z_{ref} - Z^t) {S_Y}_k &amp;= S^t_Y E_k &amp;= E^t_k \end{aligned}\end{displaymath}"></SPAN></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+Matrices <SPAN CLASS="MATH"><I>A</I><SUB>k</SUB></SPAN> and <SPAN CLASS="MATH"><I>B</I><SUB>k</SUB></SPAN> are straightforward to compute:
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\begin{aligned}
+A_k &=
+\begin{pmatrix}
+1 & 0 & -{S_X}^0_k\\
+0 & 0 & 0\\
+0 & 1 & -{S_Y}^0_k\\
+0 & 0 & 0\\
+0 & 0 & 0\\
+\end{pmatrix}
+\quad\quad
+B_k &=
+\begin{pmatrix}
+Z_{ref} - Z^0_k & 0                & 0\\
+1               & 0                & 0\\
+0               & Z_{ref} - Z^0_k  & 0\\
+0               & 1                & 0\\
+0               & 0                & 1\\
+\end{pmatrix}
+\end{aligned}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="533" HEIGHT="122" ALIGN="MIDDLE" BORDER="0"
+ SRC="img23.png"
+ ALT="\begin{displaymath}\begin{aligned}A_k &amp;= \begin{pmatrix}1 &amp; 0 &amp; -{S_X}^0_k  0 ...
+..._k &amp; 0  0 &amp; 1 &amp; 0  0 &amp; 0 &amp; 1  \end{pmatrix} \end{aligned}\end{displaymath}"></SPAN></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+It is interesting to note that the measurement equation is very close to being linear:
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\begin{aligned}
+h_k(x^t,q^t_k) &= h_k(x^0_k,q^0_k) + A_k (x^t-x^0_k) + B_k (q^t_k-q^0_k) -
+\begin{pmatrix}
+(S^t_X-{S_X}^0_k)(z^t-z^0_k)\\
+0\\
+(S^t_Y-{S_Y}^0_k)(z^t-z^0_k)\\
+0\\
+0
+\end{pmatrix}
+\end{aligned}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="635" HEIGHT="122" ALIGN="MIDDLE" BORDER="0"
+ SRC="img24.png"
+ ALT="\begin{displaymath}\begin{aligned}h_k(x^t,q^t_k) &amp;= h_k(x^0_k,q^0_k) + A_k (x^t-...
+...t_Y-{S_Y}^0_k)(z^t-z^0_k)  0  0 \end{pmatrix} \end{aligned}\end{displaymath}"></SPAN></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+
+<H1><A NAME="SECTION00040000000000000000">
+On the change of parameters</A>
+</H1>
+Once it is computed, the total covariance matrix must be reformulated in the same parameters as
+the ``physical momentum'', which needs a transformation <!-- MATH
+ $\htmlimage{}(S_X,S_Y, E)\rightarrow(Eu_x,Eu_y,Eu_z)$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="262" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img25.png"
+ ALT="$(S_X,S_Y, E)\rightarrow(Eu_x,Eu_y,Eu_z)$"></SPAN>.
+
+<P>
+<P></P>
+<DIV ALIGN="CENTER" CLASS="mathdisplay"><!-- MATH
+ \begin{equation}
+\begin{aligned}
+T &= \frac{\partial(Eu_x,Eu_y,Eu_z)}{(S_X,S_Y,E)} \\
+&= \frac{sign(u_z)}{(1+S_X^2+S_Y^2)^{\frac{3}{2}}}
+\begin{pmatrix}
+E(1+S_Y^2)     & -ES_XS_Y     & S_X(1+S_X^2+S_Y^2) \\
+-ES_XS_Y       & E(1+S_X^2)   & S_Y(1+S_X^2+S_Y^2) \\
+-ES_X          & -ES_Y        & 1+S_X^2+S_Y^2
+\end{pmatrix}
+\end{aligned}
+\end{equation}
+ -->
+<TABLE CLASS="equation" CELLPADDING="0" WIDTH="100%" ALIGN="CENTER">
+<TR VALIGN="MIDDLE">
+<TD NOWRAP ALIGN="CENTER"><SPAN CLASS="MATH"><IMG
+ WIDTH="554" HEIGHT="128" ALIGN="MIDDLE" BORDER="0"
+ SRC="img26.png"
+ ALT="\begin{displaymath}\begin{aligned}T &amp;= \frac{\partial(Eu_x,Eu_y,Eu_z)}{(S_X,S_Y,...
+...)   -ES_X &amp; -ES_Y &amp; 1+S_X^2+S_Y^2 \end{pmatrix} \end{aligned}\end{displaymath}"></SPAN></TD></TR>
+</TABLE></DIV>
+<BR CLEAR="ALL"><P></P>
+
+<P>
+and the transformation formula: <!-- MATH
+ $\displaystyle{Q' = T^T\cdot Q\cdot T}$
+ -->
+<SPAN CLASS="MATH"><I>Q'</I>=<I>T</I><SUP>T . </SUP><I>Q</I><SUP> . </SUP><I>T</I></SPAN>.
+
+<P>
+
+<H1><A NAME="SECTION00050000000000000000">
+caveat and todo list</A>
+</H1>
+caveats:
+
+<UL>
+<LI>No iteration in case of a clear shift of the vertex position;
+</LI>
+<LI>No propagation of the Covariance matrix yet;
+</LI>
+<LI>Energy integration is ``fake''. Will we be able to do better?
+</LI>
+</UL>
+To do List:
+
+<UL>
+<LI>Still systematic studies needed to estimate its viability: on the top of the task list.
+</LI>
+<LI>Separation of general tools/utilities (parameter transformation, cov. propagation, etc...)
+</LI>
+<LI>To really study this vertexer, we need to enlarge TDS/PDS! 
+</LI>
+</UL>
+
+<P>
+
+<H1><A NAME="SECTION00060000000000000000">
+About this document ...</A>
+</H1>
+ <STRONG>An Introduction to the Kalman Vertexer for GLAST</STRONG><P>
+This document was generated using the
+<A HREF="http://www-dsed.llnl.gov/files/programs/unix/latex2html/manual/"><STRONG>LaTeX</STRONG>2<tt>HTML</tt></A> translator Version 2K.1beta (1.47)
+<P>
+Copyright &#169; 1993, 1994, 1995, 1996,
+<A HREF="http://cbl.leeds.ac.uk/nikos/personal.html">Nikos Drakos</A>, 
+Computer Based Learning Unit, University of Leeds.
+<BR>
+Copyright &#169; 1997, 1998, 1999,
+<A HREF="http://www.maths.mq.edu.au/~ross/">Ross Moore</A>, 
+Mathematics Department, Macquarie University, Sydney.
+<P>
+The command line arguments were: <BR>
+ <STRONG>latex2html</STRONG> <TT>-split 0 -nomath -html_version 4.0,math -white -no_navigation -noreuse KalVtx.tex</TT>
+<P>
+The translation was initiated by Johann COHEN-TANUGI on 2002-09-05
+<BR><HR><H4>Footnotes</H4>
+<DL>
+<DT><A NAME="foot30">... be</A><A NAME="foot30"
+ HREF="KalVtx.html#tex2html1"><SUP><SPAN CLASS="arabic">1</SPAN></SUP></A>
+<DD>The sum of momenta can actually not be equal to the initial momentum, as the nucleus must
+have an unknown recoil. This should be completely negligible
+
+<DT><A NAME="foot108">... track</A><A NAME="foot108"
+ HREF="KalVtx.html#tex2html2"><SUP><SPAN CLASS="arabic">2</SPAN></SUP></A>
+<DD>We assume that <SPAN CLASS="MATH"><I>E</I></SPAN> doesn't need to be reevaluated.
+
+<DT><A NAME="foot110">... point</A><A NAME="foot110"
+ HREF="KalVtx.html#tex2html3"><SUP><SPAN CLASS="arabic">3</SPAN></SUP></A>
+<DD>as well as the covariance matrix, which is the only ``extra work'' needed.
+
+</DL>
+<BR><HR>
+<ADDRESS>
+Johann COHEN-TANUGI
+2002-09-05
+</ADDRESS>
+</BODY>
+</HTML>

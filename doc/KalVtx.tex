@@ -1,0 +1,271 @@
+\documentclass[12pt,final]{article}
+
+\usepackage{graphicx}
+\usepackage{amsmath}
+
+\begin{document}
+
+\title{An Introduction to the Kalman Vertexer for GLAST}
+\author{Johann Cohen-Tanugi}
+\maketitle
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+{\bf\huge The Kalman vertexer is still under construction, as well as this document! } 
+
+
+\section{Miscellaneous preliminary remarks}
+
+With respect to collider experiments, GLAST presents several peculiarities:
+\begin{itemize}
+\item tracks are straight lines, so that in principle a vertexing scheme should be much simplified, 
+as track parameters evolution along the trajectory are trivial to compute (except maybe for the energy).
+\item despite the ``granularity'' of the calorimeter, separate track by track 
+energy determination is hard. Thus, one cannot put much hope in the use of secondary vertices 
+to ``recover'' from delta rays, etc...
+\item There is no ``beam spot'', and as a result no obvious initial vertex location.
+The latter must be determined event by event. 
+\item The discretized nature of the hits position measurements is expected to limit 
+vertex determination accuracy in a non trivial way. It is also leading to an unusual
+definition of track parameters, following track reconstruction paradigm (see below).
+\end{itemize}
+
+It is important to emphasize the fact that GLAST program relies on the measurements of 
+incident gammas energy and direction. The position of the pair production vertex is not mandatory.
+It may help to analyse an event, for instance by providing an ``in converter decay'' constraint. 
+The Kalman vertexer will eventually provide for such capability.
+Nevertheless, the main purpose of the Kalman vertexer lies in the fact that 
+it provides an automated rigorous agregation of the different tracks covariance matrix. 
+This is essential for a good understanding of the reconstruction errors, that would not rely on 
+the MonteCarlo exclusively.
+
+
+I note also here an interesting feature that I came aware of during a discussion with Bill Atwood:
+Given the fact that track direction errors arise primarily from MS, which is independant for each
+track, one can consider that each reconstructed track, provided that it is not too badly 
+reconstructed, is an independent estimation of the initial gamma direction, to be properly weighted
+by its error matrix. This gives rise to a prescription for gamma direction which is completely 
+different from the case where one adds the physical momentum of the tracks to make up the candidate
+photon momentum. The first prescription exemplified in TkrComboVtxRecon.cxx, amounts to the 
+following estimation:
+\begin{equation}
+\begin{aligned}
+dir_\gamma &= \frac{\frac{dir_{t_1}}{C_1}+\frac{dir_{t_2}}{C_2}}{\frac{1}{C_1}+\frac{1}{C_2}} 
+\quad\text{symbolic notation}\\
+\frac{1}{C(dir_\gamma)} &= \frac{1}{C(dir_{t_1})} + \frac{1}{C(dir_{t_2})}
+\end{aligned}
+\end{equation}
+
+\noindent whereas the logical outcome of the Kalman vertexer will be
+\footnote{The sum of momenta can actually not be equal to the initial momentum, as the nucleus must
+have an unknown recoil. This should be completely negligible}
+
+\begin{equation}
+\begin{aligned}
+p_\gamma &= p_{t_1} + p_{t_2} \quad\text{where $p$ must be the physical momentum}\\
+C_\gamma &= C_1 + C_2 + Cov(1,2) + Cov(2,1)
+\end{aligned}
+\end{equation}
+
+
+\section{Kalman Vertexer: general equations}
+Given a list of tracks $k$, with their ``measured'' parameter 
+vector $m_k$, a Kalman filter can be designed in order to estimate the common
+vertex of tracks. It is an iterative process: starting with an initial estimate of the vertex $x^0$
+and its covariance matrix $C^0$, it adds one track at a time and reestimate vertex and cov. matrix 
+at each step (filter procedure.) At the end, a smoother procedure propagate the final result to 
+all tracks in order to reestimate their parameters at the final vertex estimate.
+
+Let's define the following:
+\begin{itemize}
+\item $x_k$: vertex estimate after using k tracks;
+\item $x^t$: true vertex;
+\item $\htmlimage{}C_k\equiv cov(x_k-x^t)$;
+\item $q_k$: estimate of ``geometrical'' momentum of track $k$ at $x_k$.  ``geometrical''  is to be opposed to 
+``physical'': it is somehow related to the local direction of a track, but doesn't need 
+to be $p$ of $(E,p)$ 4-vector.
+\item   $q^t_k$: true ``geometrical'' momentum of track $k$ at $x_k$;
+\item $\htmlimage{}D_k\equiv cov(q_k - q^t_k)$;
+\item $\htmlimage{}E_k\equiv cov((x_k-x^t) , (q_k-q^t_k))$;
+\item $m_k$: parameter vector of track $k$;
+\item $v_k$: random noise on  $m_k$, assumed to be gaussian;
+\item $\htmlimage{}V_k\equiv cov(v_k)$. $\htmlimage{}G_k\equiv V_k^{-1}$ is the weight matrix of track $k$. 
+\end{itemize}
+
+Then, the Kalman procedure relies on the measurement equation, which defines a mapping from $m_k$
+ to the $(x^t,q^t_k)$:
+
+\begin{equation}
+\begin{aligned}
+m_k &= h_k(x^t,q^t_k) + v_k.
+\end{aligned}
+\end{equation}
+
+Besides, its application requires $h_k$ to be linear. For $(x^0_k,q^0_k)$ chosen in the 
+vicinity of $(x^t,q^t_k)$, linearization of $h_k$ yields:
+
+\begin{equation}
+\begin{aligned}
+h_k(x^t,q^t_k) &\approx c^0_k + A_k x^t + B_k q^t \\
+\text{where } A_k &= \frac{\partial h_k}{\partial x^t}\biggl\lvert_{(x^0_k,q^0_k)}\biggr.\\
+              B_k &= \frac{\partial h_k}{\partial q^t_k}\biggl\lvert_{(x^0_k,q^0_k)}\biggr.\\
+\text{and } c^0_k &= h_k(x^0_k,q^0_k) - A_k x^0_k- B_k q^0_k
+\end{aligned}
+\end{equation}
+
+Usually, $x^0_k$ is set to $x_{k-1}$, {\it i.e.} the vertex estimate after $k-1$ step, and for $q^0_k$ 
+the momentum of the track at the POCA to $x^0_k$.
+
+A least $\chi_2$ prescription allows to update information at each step, with the following filtering formula:
+
+\begin{equation}
+\begin{aligned}
+x_k &= C_k[C_{k-1}^{-1} x_{k-1} + A^T_k G^B_k(m_k-c^0_k)]\\
+q_k &= W_k B^T_k G_k (m_k - c^0_k  -  A_k x_k)\\
+C_k &= (C_{k-1}^{-1} + A^T_k G^B_k A_k)^{-1}\\
+D_k &= W_k + W_k B^T_k G_k A_k C_k A^T_k G_k B_k W_k\\
+E_k &= -C_k A^T_k G_k B_k W_k\\
+W_k &= (C_{k-1}^{-1} + A^T_k G^B_k A_k)^{-1}\\
+G^B_k &= G_k - G_k B_k W_k B^T_k G_k 
+\end{aligned}
+\end{equation}
+
+The $\chi^2$ increase when adding track $k$ is computed as:
+
+\begin{equation}
+\begin{aligned}
+\chi^2_{KF} &= r^T_k G_k r_k + (x_k - x_{k-1})^T C_{k-1}^{-1} (x_k - x_{k-1})\\
+        r_k &= m_k - c^0_k - A_k x_k - B_k q_k.
+\end{aligned}
+\end{equation}
+
+If $\chi^2_{KF}$ exceeds a user defined upper value, track $k$ can be discarded from 
+the fit. The total $\chi^2$ is $\htmlimage{}\displaystyle{\chi^2_k = \chi^2_{k-1} + \chi^2_{KF}}$.
+
+The smoothing step goes over all accepted tracks and recomputes $q^N_k$,$D^N_k$ and $E^N_k$, using
+the final estimates $x$ and $C$ in the filtering equations instead of $x_k$ and $C_k$. It also 
+allows to compute:
+\begin{equation}
+\begin{aligned}
+Q_{kj} &\equiv cov(q^N_k-q^t_k,q^N_j-q^t_j) = W_k B^T_k G_k A_k C A^T_j G_j B_j W_j.
+\end{aligned}
+\end{equation}
+
+Note that, in the event that $x$ is noticeably different from $x^0$, the whole procedure
+can be performed again with $x^0$ and $C^0$ set to $x$ and $C$ respectively.
+
+
+\section{Implementation in GLAST software }
+
+GLAST Track fitting uses the following parametrization (one needs a point on the track, and the latter's direction):
+\begin{itemize}
+\item Track initial direction is given by projected slopes estimated at the first hit position along the track.
+If $\htmlimage{}(u_x,u_y,u_z)$ is a unit vector along the track direction, projected slopes are defined by 
+$\htmlimage{}\displaystyle{S_x=\frac{u_x}{u_z}}$ and  $\htmlimage{}\displaystyle{S_y=\frac{u_y}{u_z}}$.
+\item The first hit location $(X,Y,Z)$ is used to complete the parametrization.
+\item The $Z$ coordinate depends on the discrete localization of the first hit: it is decorrelated from 
+$(X,S_X,Y,S_Y)$ which are estimated by a Kalman track fitting algorithm, along with their covariance matrix. 
+The error on $Z$ is a matter of debate. We currently use $\dfrac{0.4}{\sqrt(12)}$mm, that is to say a uniform 
+distribution of $Z$ between $X$- and $Y$-planes of first hit.
+\end{itemize}
+
+In order to remain consistent with the track reconstruction paradigm, we use projected slopes in order to
+parametrize the direction of the track: by definition, the ``geometrical'' momentum is the vector $(S_X,S_Y,E)$ 
+defined for each track.
+The track being a straight line, it doesn't change all along the track
+\footnote{We assume that $E$ doesn't need to be reevaluated.}, so that there is no extra work required to
+compute $q^0_k$ from the measured $q_k$.
+
+In order to determine the measurement equation, one needs to define a reference plane where ``geometrical'' 
+momentum is defined. In collider experiment, this would be, typically, the normal plane to the beamline, 
+containing the POCA on the track to the beamline ({\it i.e.} Z=0 axis).
+ 
+In the case of GLAST, we take as reference plane the horizontal plane containing the first hit of
+the best track, which is the first one in the track list. 
+This seems a reasonable, though probably biasing, estimate for a vicinity to the true vertex.
+All tracks should have their measurement vector $m_k$ defined at this point
+\footnote{as well as the covariance matrix, which is the only ``extra work'' needed.}.
+As a result, the measurement equation (without noise) $\htmlimage{}m_k = h_k(x^t,q^t_k)$ reads:
+\begin{equation}
+\begin{aligned}
+X_k      &= X^t + S^t_{X}(Z_{ref} - Z^t)\\
+{S_X}_k  &= S^t_X\\
+Y_k      &= Y^t + S^t_Y(Z_{ref} - Z^t)\\
+{S_Y}_k  &= S^t_Y\\
+E_k      &= E^t_k
+\end{aligned}
+\end{equation}
+
+Matrices $A_k$ and $B_k$ are straightforward to compute:
+\begin{equation}
+\begin{aligned}
+A_k &=
+\begin{pmatrix}
+1 & 0 & -{S_X}^0_k\\
+0 & 0 & 0\\
+0 & 1 & -{S_Y}^0_k\\
+0 & 0 & 0\\
+0 & 0 & 0\\
+\end{pmatrix}
+\quad\quad
+B_k &=
+\begin{pmatrix}
+Z_{ref} - Z^0_k & 0                & 0\\
+1               & 0                & 0\\
+0               & Z_{ref} - Z^0_k  & 0\\
+0               & 1                & 0\\
+0               & 0                & 1\\
+\end{pmatrix}
+\end{aligned}
+\end{equation}
+
+It is interesting to note that the measurement equation is very close to being linear:
+\begin{equation}
+\begin{aligned}
+h_k(x^t,q^t_k) &= h_k(x^0_k,q^0_k) + A_k (x^t-x^0_k) + B_k (q^t_k-q^0_k) -
+\begin{pmatrix}
+(S^t_X-{S_X}^0_k)(z^t-z^0_k)\\
+0\\
+(S^t_Y-{S_Y}^0_k)(z^t-z^0_k)\\
+0\\
+0
+\end{pmatrix}
+\end{aligned}
+\end{equation}
+
+\section{On the change of parameters}
+Once it is computed, the total covariance matrix must be reformulated in the same parameters as
+the ``physical momentum'', which needs a transformation $\htmlimage{}(S_X,S_Y, E)\rightarrow(Eu_x,Eu_y,Eu_z)$.
+
+
+\begin{equation}
+\begin{aligned}
+T &= \frac{\partial(Eu_x,Eu_y,Eu_z)}{(S_X,S_Y,E)} \\
+&= \frac{sign(u_z)}{(1+S_X^2+S_Y^2)^{\frac{3}{2}}}
+\begin{pmatrix}
+E(1+S_Y^2)     & -ES_XS_Y     & S_X(1+S_X^2+S_Y^2) \\
+-ES_XS_Y       & E(1+S_X^2)   & S_Y(1+S_X^2+S_Y^2) \\
+-ES_X          & -ES_Y        & 1+S_X^2+S_Y^2
+\end{pmatrix}
+\end{aligned}
+\end{equation}
+
+\noindent and the transformation formula: $\displaystyle{Q' = T^T\cdot Q\cdot T}$.
+
+
+
+
+\section{caveat and todo list}
+caveats:
+\begin{itemize}
+\item No iteration in case of a clear shift of the vertex position;
+\item No propagation of the Covariance matrix yet;
+\item Energy integration is ``fake''. Will we be able to do better?
+\end{itemize}
+To do List:
+\begin{itemize}
+\item Still systematic studies needed to estimate its viability: on the top of the task list.
+\item Separation of general tools/utilities (parameter transformation, cov. propagation, etc...)
+\item To really study this vertexer, we need to enlarge TDS/PDS! 
+\end{itemize}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
