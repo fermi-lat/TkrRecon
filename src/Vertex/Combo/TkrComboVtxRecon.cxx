@@ -5,34 +5,41 @@
 #include "src/Vertex/Combo/TkrComboVtxRecon.h"
 #include "src/Vertex/Combo/RayDoca.h"
 
-TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* vertexCol, TkrFitTrackCol* pTracks, TkrPatCandCol* /*pCandTracks*/)
+TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, 
+                                   TkrVertexCol* vertexCol, 
+                                   TkrFitTrackCol* pTracks, 
+                                   TkrPatCandCol* /*pCandTracks*/)
 {
-       //Define a vector to contain a list of "isolated" tracks
+
+    // if set false, tracks will not be shared among vertices
+    bool shareTracks = true; // the original code is set true
+
+    //Define a vector to contain a list of "isolated" tracks
     int    numTracks = pTracks->size();
-    bool*  unused    = new bool[numTracks];
-    
+    bool*  unused    = new bool[numTracks];    
     while(numTracks--) unused[numTracks] = true;
     
-    //Track counter
-    int   trk1Idx = 0;
-    
-    //Loop over the number of Fit tracks
-    TkrFitConPtr pTrack1 = pTracks->begin();
-    
-    while(pTrack1 != pTracks->end())
-    {
-        TkrFitTrack* track1  = *pTrack1++;
-        TkrFitConPtr pTrack2 = pTrack1;
-        int          trk2Idx = trk1Idx +1;
-        
-        while(pTrack2 < pTracks->end())
-        {
-            TkrFitTrack* track2 = *pTrack2++;
-            
 
-            RayDoca doca    = RayDoca(Ray(track1->getPosition(),track1->getDirection()),
-                                      Ray(track2->getPosition(),track2->getDirection()));
-            double  dist    = doca.docaRay1Ray2();
+    //counters and iterators
+    int trk1Idx = 0, trk2Idx;
+    TkrFitConPtr pTrack1 = pTracks->begin(), pTrack2;
+
+    // first track
+    for ( ; pTrack1!=pTracks->end(); pTrack1++, trk1Idx++)
+    {
+        if (!shareTracks && !unused[trk1Idx]) continue;
+        TkrFitTrack* track1  = *pTrack1;
+        //second track, start at the next track
+        (pTrack2 = pTrack1)++;
+        (trk2Idx = trk1Idx)++;
+        for ( ; pTrack2!=pTracks->end(); pTrack2++, trk2Idx++)
+        {
+            if (!shareTracks && !unused[trk2Idx]) continue;
+            TkrFitTrack* track2 = *pTrack2;
+
+            RayDoca doca = RayDoca(Ray(track1->getPosition(),track1->getDirection()),
+                                Ray(track2->getPosition(),track2->getDirection()));
+            double  dist = doca.docaRay1Ray2();
             
             double cost1t2 = track1->getDirection()*track2->getDirection();
             double t1t2 = acos(cost1t2);  
@@ -192,7 +199,8 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
                 gamPos *= 0.5;
                 
                 Ray        gamma  = Ray(gamPos,gamDir);
-                TkrVertex* vertex = new TkrVertex(track1->getLayer(),track1->getTower(),gamEne,dist,gamma);
+                TkrVertex* vertex = new TkrVertex(track1->getLayer(),
+                    track1->getTower(),gamEne,dist,gamma);
 //                vertex->setDist1(doca.arcLenRay1());
 //                vertex->setDist2(doca.arcLenRay2())
 //                vertex->setAngle(t1t2); 
@@ -205,7 +213,6 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
                 unused[trk2Idx] = false;
             }
         }
-        trk1Idx++;
     }
     
     
@@ -219,7 +226,9 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
 
         if (unused[trkIdx++])
         {
-            TkrVertex* vertex = new TkrVertex(track1->getLayer(),track1->getTower(),track1->getEnergy(),0.,Ray(track1->getPosition(),track1->getDirection()));
+            TkrVertex* vertex = new TkrVertex(track1->getLayer(),
+                track1->getTower(),track1->getEnergy(),0.,
+                Ray(track1->getPosition(),track1->getDirection()));
 
             vertex->addTrack(track1);
 
@@ -229,6 +238,8 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* /*pTkrGeo*/, TkrVertexCol* v
 
     //Don't leave anything dangling
     delete unused;
+    
+    std::cout << "TkrComboVtxRecon # vertices: " << vertexCol->size() << std::endl;
 
     return;
 }
