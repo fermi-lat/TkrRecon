@@ -1,7 +1,12 @@
 // Implements ntuple writing algorithm
 
 #include "TkrRecon/RecNtupleAlg.h"
-//#include "GlastEvent/Recon/ICsIClusters.h"
+
+#include "geometry/Ray.h"
+#include "geometry/Plane.h"
+#include "geometry/Intersection.h"
+#include "geometry/Point.h"
+#include "geometry/Vector.h"
 
 #include <algorithm>
 inline static double sqr(double x) {return x*x;}
@@ -69,8 +74,8 @@ StatusCode RecNtupleAlg::execute()
     
     //Retrieve pointers to the data stored in the TDS
     ICsIClusterList* pCalClusters = SmartDataPtr<ICsIClusterList>(eventSvc(),"/Event/CalRecon/CsIClusterList");
-	SiClusters*     pSiClusters  = SmartDataPtr<SiClusters>(eventSvc(),"/Event/TkrRecon/SiClusters");
-    SiRecObjs*      pSiRecObjs   = SmartDataPtr<SiRecObjs>(eventSvc(),"/Event/TkrRecon/SiRecObjs");
+	SiClusters*      pSiClusters  = SmartDataPtr<SiClusters>(eventSvc(),"/Event/TkrRecon/SiClusters");
+    SiRecObjs*       pSiRecObjs   = SmartDataPtr<SiRecObjs>(eventSvc(),"/Event/TkrRecon/SiRecObjs");
 
     if ((sc = nTuple.calcTupleValues(pCalClusters, pSiClusters, pSiRecObjs, pGeometry)).isFailure()) return sc;
 
@@ -93,6 +98,10 @@ StatusCode RecNtupleAlg::finalize()
 RecTupleValues::RecTupleValues()
 //################################
 {
+    //Calculated in calcSkirtVars
+    Rec_Tkr_SkirtX = -9999.;
+    Rec_Tkr_SkirtY = -9999.;
+
     //Calculated in TowerBoundaries
     Rec_Conv_Twr_Dist = 0;
     Rec_Fit_xV = 0;
@@ -139,6 +148,7 @@ StatusCode RecTupleValues::calcTupleValues(ICsIClusterList* pCalClusters, SiClus
         if (pGamma->empty()) return sc;
 
         // Call the routines to calculate the values
+        calcSkirtVars(pGamma);
         calcTowerBoundaries(pGamma, pGeom);
         calcActiveDistance(pGamma, pGeom);
         calcExtraHits(pSiClusters, pGamma, pGeom);
@@ -158,6 +168,8 @@ StatusCode RecTupleValues::fillTupleValues(INTupleWriterSvc* pSvc, const char* p
 
     if (pSvc)
     {
+        if ((sc = pSvc->addItem(pName, "REC_Tkr_SkirtX",        Rec_Tkr_SkirtX       )).isFailure()) return sc;
+        if ((sc = pSvc->addItem(pName, "REC_Tkr_SkirtY",        Rec_Tkr_SkirtY       )).isFailure()) return sc;
         if ((sc = pSvc->addItem(pName, "REC_Conv_Twr_Dist",     Rec_Conv_Twr_Dist    )).isFailure()) return sc;
         if ((sc = pSvc->addItem(pName, "REC_Fit_xV",            Rec_Fit_xV           )).isFailure()) return sc;
         if ((sc = pSvc->addItem(pName, "REC_Fit_yV",            Rec_Fit_yV           )).isFailure()) return sc;
@@ -174,6 +186,90 @@ StatusCode RecTupleValues::fillTupleValues(INTupleWriterSvc* pSvc, const char* p
     return sc;
 }
 
+
+//########################################################
+void RecTupleValues::calcSkirtVars(GFgamma* pGamma)
+//########################################################
+{ 
+    GFtrack* pBestX  = pGamma->getXpair()->getBest();
+    GFtrack* pBestY  = pGamma->getYpair()->getBest();
+
+    double lastHitX  = 0.;
+    double lastHitXZ = 0.;
+    double lastHitY  = 0.;
+    double lastHitYZ = 0.;
+
+    double lastSlpX  = 1.;
+    double lastSlpY  = 1.;
+
+    //Extract the position and slope of the last track hit in the X projection
+    if (!pBestX->empty())
+    {
+        int    nHits   = pBestX->numDataPoints();
+        KalHit lastHit = pBestX->kplanelist[nHits-1].getHit(KalHit::FIT);
+
+        lastHitX  = lastHit.getPar().getPosition();
+        lastSlpX  = lastHit.getPar().getSlope();
+        lastHitXZ = pBestX->kplanelist[nHits-1].getZPlane();
+    }
+
+    //Extract the position and slope of the last track hit in the Y projection
+    if (!pBestY->empty())
+    {
+        int    nHits   = pBestY->numDataPoints();
+        KalHit lastHit = pBestY->kplanelist[nHits-1].getHit(KalHit::FIT);
+
+        lastHitY  = lastHit.getPar().getPosition();
+        lastSlpY  = lastHit.getPar().getSlope();
+        lastHitYZ = pBestY->kplanelist[nHits-1].getZPlane();
+    }
+
+    //Determine a plane for the gap in the skirt
+    Point        skirt(0., 0., -14.8751);   
+    Vector       normalVec(0., 0., 1.);
+    Plane        p(skirt, normalVec);
+
+    //Find the intersection of the X track with this plane
+    Vector       dir = Vector(lastSlpX, 0., 1.).unit();
+    Point        lastHit(lastHitX, 0., lastHitXZ);
+    Ray          r(lastHit, dir);
+    Intersection intersectX(r, p);
+
+    //The call to get the intersection is:
+    // Intersection::distance(double maxStep, int sign)
+    //where maxStep is the maximum distance you want the intersecting alg to search
+    //before giving up on finding an intersection
+    //If sign + the leaving solutions are returned, if sign - entering sol.
+    double       dist = intersectX.distance(100., 1);
+
+    if (dist < FLT_MAX)
+    {
+        Point pos = r.position(dist);
+        Rec_Tkr_SkirtX = pos.x();
+    }
+
+    //Repeat for the Y track 
+    dir       = Vector(0., lastSlpY, 1.).unit();
+    lastHit   = Point(0., lastHitY, lastHitYZ);
+    r         = Ray(lastHit, dir);
+    Intersection intersectY(r, p);
+
+    //The call to get the intersection is:
+    // Intersection::distance(double maxStep, int sign)
+    //where maxStep is the maximum distance you want the intersecting alg to search
+    //before giving up on finding an intersection
+    //If sign + the leaving solutions are returned, if sign - entering sol.
+    dist = intersectY.distance(100., 1);
+
+
+    if (dist < FLT_MAX)
+    {
+        Point pos = r.position(dist);
+        Rec_Tkr_SkirtY = pos.y();
+    }
+
+    return;    
+}
     
 //########################################################
 void RecTupleValues::calcTowerBoundaries(GFgamma* pGamma, ITkrGeometrySvc* pGeom)

@@ -129,6 +129,7 @@ private:
     double Tkr_weightXSlope;
     double Tkr_weightYSlope;
     double Tkr_First_XHit;
+    double Tkr_Zbottom;
     double Tkr_Diff_1st_Hit;
     double Tkr_Fit_Kink;
     double Tkr_Fit_KinkN;

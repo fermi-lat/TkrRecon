@@ -64,10 +64,15 @@ public:
 
 private:
     //Routines to calculate some of the values
+    void calcSkirtVars(GFgamma* pGamma);
     void calcTowerBoundaries(GFgamma* pGamma, ITkrGeometrySvc* pGeom);
     void calcActiveDistance(GFgamma* pGamma, ITkrGeometrySvc* pGeom);
     void calcExtraHits(SiClusters* pSiClusters, GFgamma* pGamma, ITkrGeometrySvc* pGeom);
     void calcEnergyCorrection(GFgamma* pGamma);
+
+    //Calculated in calcSkirtVars
+    double Rec_Tkr_SkirtX;
+    double Rec_Tkr_SkirtY;
 
     //Calculated in TowerBoundaries
     double Rec_Conv_Twr_Dist;
