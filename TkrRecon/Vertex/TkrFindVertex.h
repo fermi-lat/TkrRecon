@@ -2,7 +2,7 @@
 #ifndef TkrFindVertex_H
 #define TkrFindVertex_H
 
-#include "Event/Recon/TkrRecon/TkrVertexCol.h"
+#include "Event/Recon/TkrRecon/TkrVertex.h"
 #include "Event/Recon/TkrRecon/TkrPatCandCol.h"
 #include "Event/Recon/TkrRecon/TkrFitTrackCol.h"
 

@@ -2,7 +2,6 @@
 #ifndef TkrComboVtxRep_H
 #define TkrComboVtxRep_H
 
-#include "Event/Recon/TkrRecon/TkrVertexCol.h"
 #include "TkrRecon/ITkrGeometrySvc.h"
 #include "gui/DisplayRep.h"
 #include "GaudiKernel/IDataProviderSvc.h"
