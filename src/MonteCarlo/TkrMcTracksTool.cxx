@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/MonteCarlo/TkrMcTracksTool.cxx,v 1.1 2003/08/08 20:02:41 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/MonteCarlo/TkrMcTracksTool.cxx,v 1.2 2003/08/19 00:17:54 usher Exp $
 //
 // Description:
 //      Tool for returning information from the Monte Carlo/Recon relational tables which have been constructed
@@ -61,7 +61,9 @@ public:
     const int                   getGapSize(const Event::McParticleRef mcPart, int gapIdx);
     const int                   getGapStartHitNo(const Event::McParticleRef mcPart, int gapIdx);
     /// @brief Returns the "straightness" of a given track
-    const double                getTrackStraightness(const Event::McParticleRef mcPart);
+    const double                getTrackStraightness(const Event::McParticleRef mcPart, int firstHitIdx=0, int lastHitIdx=40);
+    /// @brief Returns the "direction" defined by the first set of hits on a track
+    const Hep3Vector            getTrackDirection(const Event::McParticleRef mcPart, int firstHitIdx=0, int lastHitIdx=40);
     /// @brief Compares two tracks and returns information on shared hits (if any)
     const unsigned int          getSharedHitInfo(const Event::McParticleRef mcPart);
     const unsigned int          getSharedHitInfo(const Event::McParticleRef mcPart1, const Event::McParticleRef mcPart2);
@@ -505,21 +507,27 @@ const int TkrMcTracksTool::getGapStartHitNo(const Event::McParticleRef mcPart, i
 }
 
 
-const double TkrMcTracksTool::getTrackStraightness(const Event::McParticleRef mcPart)
+const double TkrMcTracksTool::getTrackStraightness(const Event::McParticleRef mcPart, int firstHitIdx, int lastHitIdx)
 {
     double trackAngle = 0.0;
 
     if (updateData())
     {
         Event::McPartToHitVec trackVec = m_partHitTab->getRelByFirst(mcPart);
+        int                   numHits  = trackVec.size();
 
         // Only keep going if we have enough hits to calculate an angle
-        if (trackVec.size() > 2)
+        if (numHits > 3 && lastHitIdx - firstHitIdx > 3)
         {
             std::sort(trackVec.begin(),trackVec.end(),CompareTrackHits());
 
             // Iterator over the hits in the track
-            Event::McPartToHitVec::const_iterator trackVecIter = trackVec.begin();
+            Event::McPartToHitVec::const_iterator trackVecIter = firstHitIdx < numHits
+                                                               ? trackVec.begin() + firstHitIdx
+                                                               : trackVec.begin();
+            Event::McPartToHitVec::const_iterator trackVecStop = lastHitIdx < numHits
+                                                               ? trackVec.begin() + lastHitIdx 
+                                                               : trackVec.end();
 
             // Retrieve the first McLayerHit and get its position
             Event::McLayerHit* layerHit = (*trackVecIter++)->getSecond();
@@ -536,7 +544,7 @@ const double TkrMcTracksTool::getTrackStraightness(const Event::McParticleRef mc
             hitLast = hitPos;
 
             // Now loop over the rest of the hits
-            for( ; trackVecIter != trackVec.end(); trackVecIter++)
+            for( ; trackVecIter != trackVecStop; trackVecIter++)
             {
                 // Get McLayerHit
                 layerHit = (*trackVecIter)->getSecond();
@@ -565,6 +573,79 @@ const double TkrMcTracksTool::getTrackStraightness(const Event::McParticleRef mc
     }
 
     return trackAngle;
+}
+
+
+const Hep3Vector TkrMcTracksTool::getTrackDirection(const Event::McParticleRef mcPart, int firstHitIdx, int lastHitIdx)
+{
+    double xSlope = 0.;
+    double ySlope = 0.;
+
+    if (updateData())
+    {
+        Event::McPartToHitVec trackVec = m_partHitTab->getRelByFirst(mcPart);
+        int                   numHits  = trackVec.size();
+
+        // Only keep going if we have enough hits to calculate an angle
+        if (numHits > 3 && lastHitIdx - firstHitIdx > 3)
+        {
+            std::sort(trackVec.begin(),trackVec.end(),CompareTrackHits());
+
+            // Iterator over the hits in the track
+            Event::McPartToHitVec::const_iterator trackVecIter = firstHitIdx < numHits
+                                                               ? trackVec.begin() + firstHitIdx
+                                                               : trackVec.begin();
+            Event::McPartToHitVec::const_iterator trackVecStop = lastHitIdx < numHits
+                                                               ? trackVec.begin() + lastHitIdx 
+                                                               : trackVec.end();
+
+            double xVals[2];
+            double yVals[2];
+            double zVals_x[2];
+            double zVals_y[2];
+            int    nHitsX = 0;
+            int    nHitsY = 0;
+
+            // Now loop over the rest of the hits
+            for( ; trackVecIter != trackVecStop; trackVecIter++)
+            {
+                // Get McLayerHit
+                Event::McLayerHit* layerHit = (*trackVecIter)->getSecond();
+
+                // Get the cluster
+                const Event::TkrCluster* tkrClus  = layerHit->getTkrCluster();
+
+                // Watch out for no cluster!
+                if (!tkrClus) continue;
+
+                // Check to see which orientation we have, store info accordingly
+                if (tkrClus->v() == Event::TkrCluster::X && nHitsX < 2)
+                {
+                    xVals[nHitsX]   = tkrClus->position().x();
+                    zVals_x[nHitsX] = tkrClus->position().z();
+                    nHitsX++;
+                }
+                else if (nHitsY < 2)
+                {
+                    yVals[nHitsY]   = tkrClus->position().y();
+                    zVals_y[nHitsY] = tkrClus->position().z();
+                    nHitsY++;
+                }
+
+                // No use looping forever if done
+                if (nHitsX > 1 && nHitsY > 1) break;
+            }
+
+            // if enough info then calculate new slopes
+            if (nHitsX == 2 && nHitsY == 2)
+            {
+                xSlope = (xVals[1] - xVals[0]) / (zVals_x[1] - zVals_x[0]);
+                ySlope = (yVals[1] - yVals[0]) / (zVals_y[1] - zVals_y[0]);
+            }
+        }
+    }
+
+    return Hep3Vector(-xSlope,-ySlope,-1.).unit();
 }
 
 const unsigned int TkrMcTracksTool::getSharedHitInfo(const Event::McParticleRef mcPart)

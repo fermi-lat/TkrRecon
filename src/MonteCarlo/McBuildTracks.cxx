@@ -1,4 +1,4 @@
-/**
+ /**
  * @class McBuildTracks
  *
  * @brief Implements a Gaudi Tool for setting the candidate track energies before 
@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/MonteCarlo/McBuildTracks.cxx,v 1.3 2003/08/07 16:09:05 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/MonteCarlo/McBuildTracks.cxx,v 1.4 2003/08/19 00:17:54 usher Exp $
  */
 #include "McBuildTracks.h"
 #include "GaudiKernel/SmartDataPtr.h"
