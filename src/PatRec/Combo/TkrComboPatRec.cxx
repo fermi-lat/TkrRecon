@@ -424,10 +424,12 @@ void TkrComboPatRec::setEnergies(double calEnergy)
         if(e1_con < e1_min) {// Don't let energies get too small
             e1_con = e1_min; 
             e2_con = ene_total - e1_con;
+			if(e2_con < e2_min) e2_con = e2_min; 
         }
         else if(e2_con < e2_min) {
             e2_con = e2_min; 
             e1_con = ene_total - e2_con;
+			if(e1_con < e1_min) e1_con = e1_min;
         }
         // Set the energies 
         m_candidates[0]->setConEnergy(e1_con);
