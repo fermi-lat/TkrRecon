@@ -13,11 +13,16 @@ use GuiSvc
 use geometry
 use xml
 
+use Recon
+use G4Generator
+
+set JOBOPTIONS ${TKRRECONROOT}/src/test/jobOptions.txt
+
 private 
 #-----------------------
 # everything below here is private
 
-
+use RootIo v4*
 
 #the following prepend makes the includes folder available locally: avoid the package_include
 #apply_pattern package_include
@@ -84,10 +89,7 @@ library TkrRecon               Dll/*.cxx $(libs)
 
 # build this for testing
 
-macro jobOptions "" WIN32 "test/jobOptions.txt"
-
-application TkrTest \
-        test/*.cxx $(jobOptions)
+application test_TkrRecon ${GuiMain} test/*.cxx ${Win32Resource}
 
 make_fragment library_no_share
 
