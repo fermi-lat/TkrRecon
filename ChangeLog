@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: lsrea  Thu Oct 31 17:01:50 PST 2002
+TkrRecon/src/TrackFit/KalmanFilter
+
+Modified Files:
+	KalmanFilter.cxx 
+Log Message:
+a little more work on Linux compile warnings
+    *
+------------------------------------------------------------
+User: lsrea  Thu Oct 31 17:01:50 PST 2002
 TkrRecon/src/TrackFit/KalFitTrack
 
 Modified Files:
