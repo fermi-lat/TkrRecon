@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Mon Jul 22 03:13:47 PDT 2002
+TkrRecon/src/Vertex/DocaVtx
+
+Removed Files:
+	DocaVtxAlg.cxx DocaVtxAlg.h 
+Log Message:
+removing old test DocaVtx, soon obsolete (choice of tools instead of subAlgorithms for vertexing design)
+    *
+------------------------------------------------------------
 User: cohen  Mon Jul 22 03:03:51 PDT 2002
 TkrRecon/TkrRecon/GaudiAlg
 
