@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.23 2005/01/26 21:38:01 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.24 2005/01/29 00:59:36 usher Exp $
  */
 
 #include <vector>
@@ -180,6 +180,41 @@ StatusCode TkrTrackFitAlg::doTrackFit()
         m_FitTool->doTrackFit(track);
     }
 
+    // leave this around for now, may be useful again
+    /*
+    log << MSG::DEBUG;
+    if (log.isActive()) {
+        //print out list of tracks (and hits)
+        IDataProviderSvc* dataSvc = 0;
+        if(service( "EventDataSvc", dataSvc, true ).isFailure()) 
+        {
+            log << MSG::ERROR << "Could not find EventDataSvc" << endreq;
+            return StatusCode::FAILURE;
+        }
+        Event::TkrTrackCol* trackCol =
+            SmartDataPtr<Event::TkrTrackCol>(dataSvc,EventModel::TkrRecon::TkrTrackCol);
+
+        Event::TkrTrackColConPtr iptr = trackCol->begin();
+        log << trackCol->size() << " tracks found" << endreq;
+        int count = 0;
+        for (; iptr!=trackCol->end(); ++iptr,++count) {
+            const Event::TkrTrack* track = *iptr;
+            log << track->size() << " hits in track " << count << endreq;
+            Event::TkrTrackHitVecConItr phit = track->begin();
+            int hitCount = 0;
+            for (; phit!=track->end(); ++phit, ++hitCount) {
+                const Event::TkrTrackHit* hit = *phit;
+                const Event::TkrTrackParams params = hit->getTrackParams(Event::TkrTrackHit::FILTERED);
+                const Event::TkrCluster* pClus = hit->getClusterPtr();
+                log << "hit " << hitCount << ": x/yPos " << params.getxPosition() << " " 
+                    << params.getyPosition()
+                    << ", pClus " << pClus<< endreq;
+            }
+        }
+    }
+    log << endreq;
+    */
+
     return sc;
 }
 
@@ -215,6 +250,41 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
          Event::TkrTrack* track = *trackIter;
          m_FitTool->doTrackReFit(track);
     }
+
+    // leave this around for a while, may be needed later
+    /*
+    log << MSG::DEBUG;
+    if (log.isActive()) {
+        //print out list of tracks (and hits)
+        IDataProviderSvc* dataSvc = 0;
+        if(service( "EventDataSvc", dataSvc, true ).isFailure()) 
+        {
+            log << MSG::ERROR << "Could not find EventDataSvc" << endreq;
+            return StatusCode::FAILURE;
+        }
+        Event::TkrTrackCol* trackCol =
+            SmartDataPtr<Event::TkrTrackCol>(dataSvc,EventModel::TkrRecon::TkrTrackCol);
+
+        Event::TkrTrackColConPtr iptr = trackCol->begin();
+        log << trackCol->size() << " tracks found" << endreq;
+        int count = 0;
+        for (; iptr!=trackCol->end(); ++iptr,++count) {
+            const Event::TkrTrack* track = *iptr;
+            log << track->size() << " hits in track " << count << endreq;
+            Event::TkrTrackHitVecConItr phit = track->begin();
+            int hitCount = 0;
+            for (; phit!=track->end(); ++phit, ++hitCount) {
+                const Event::TkrTrackHit* hit = *phit;
+                const Event::TkrTrackParams params = hit->getTrackParams(Event::TkrTrackHit::FILTERED);
+                const Event::TkrCluster* pClus = hit->getClusterPtr();
+                log << "hit " << hitCount << ": x/yPos " << params.getxPosition() << " " 
+                    << params.getyPosition()
+                    << ", pClus " << pClus<< endreq;
+            }
+        }
+    }
+    log << endreq;
+    */
 
     return sc;
 }

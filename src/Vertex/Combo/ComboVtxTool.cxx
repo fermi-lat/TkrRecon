@@ -221,6 +221,10 @@ Event::TkrTrackParams ComboVtxTool::getParamAve(Event::TkrTrackParams& params1,
     // Computes the cov. weight average input TkrTrackParams - also it computes the
     // Chisquare for the association
 
+    bool debug = true;
+    
+    //MsgStream log(msgSvc(), name());
+    
     KFvector vec1(params1);
     KFvector vec2(params2);
     KFmatrix cov1(params1);
@@ -245,6 +249,22 @@ Event::TkrTrackParams ComboVtxTool::getParamAve(Event::TkrTrackParams& params1,
  
     vec_ave.setParams(&aveParam);
     cov_ave.setParams(&aveParam);
+
+    // leave this around for a while, still tracking down hysteresis
+    /*
+    if (debug) {
+
+        log << MSG::INFO << "  params of first track " << endreq;
+        log.stream() << params1;
+        log << endreq;
+        log << "  params of 2nd track " << endreq;
+        log.stream() << params2;
+        log << endreq;
+        log << "  params of average " << endreq;
+        log.stream() << aveParam << endreq ;
+        log << endreq << endreq;
+    }
+    */
 
     KFmatrix cov1_res = cov1-cov_ave;
     cov1_res.invert(matInvErr);

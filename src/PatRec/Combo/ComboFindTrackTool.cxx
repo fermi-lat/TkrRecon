@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.34 2005/02/05 07:13:51 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.35 2005/02/11 07:14:50 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -686,8 +686,14 @@ void ComboFindTrackTool::findCalCandidates()
 
                     Ray testRay = p1->getRayTo(p2);
                     //Do a trial track fit
-                    tryCandidate(ilayer, trials, localBestHitCount, testRay);
                     // for now, need to test all the combos, sigh
+                    //if(1==2)std::cout << ilayer << " " << klayer << " " << k_trys << std::endl;
+                    
+                    tryCandidate(ilayer, trials, localBestHitCount, testRay);
+                    
+                    // This is essentially the old code
+                    //if(tryCandidate(ilayer, trials, 
+                    //    localBestHitCount, testRay)!=FITFAILED) break;
                 } // end ktrys
             } // end klayer
         }  // end 1st points

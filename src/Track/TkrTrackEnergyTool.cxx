@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.21 2005/02/01 00:22:06 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.22 2005/02/04 00:56:22 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -156,10 +156,9 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
         {
             // Recover pointer to Cal Cluster info  
             Event::CalClusterCol* pCalClusters = SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
-
             double CalEnergy   = pCalClusters->front()->getEnergyCorrected(); 
             double CalSumEne   = pCalClusters->front()->getEnergySum();
-            double totalEnergy = std::max(CalEnergy, CalSumEne); 
+            double totalEnergy = std::max(CalEnergy, CalSumEne);  
 
             if (totalEnergy > 0.)
             {

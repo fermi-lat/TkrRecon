@@ -3,6 +3,12 @@
 @verbatim
   Manager: Leon Rochester 
 
+  v10r4    28-Feb-2005  LSR  FindTrackHitsTool -- many changes, mostly to handle no-cluster case
+                             ClusterAlg -- uses TkrMakeClustersSvc
+                             Remove TkrMakeClusters
+                             + cleanup
+                             KalmanTrackFitTool -- add (remove-hit-and-fit method
+  v10r3p11 28-Feb-2005  LSR  Tag tracy's latest fitter option
   v10r3p10 20-Feb-2005  TU   Another day, another memory leak fix
   v10r3p9  19-Feb-2005  TU   fix a memory leak in pat rec
   v10r3p8  15-Feb-2005  TU   fix small problem in slope corrected errors, "improve" MC Pat Rec

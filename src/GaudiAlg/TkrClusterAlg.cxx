@@ -10,7 +10,7 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.21 2004/12/26 23:30:04 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.22 2005/01/25 20:04:47 lsrea Exp $
 */
 
 #include "GaudiKernel/Algorithm.h"
@@ -29,8 +29,9 @@
 #include "Event/TopLevel/EventModel.h"
 
 #include "TkrRecon/GaudiAlg/TkrClusterAlg.h"
-#include "src/Cluster/TkrMakeClusters.h"
+//#include "src/Cluster/TkrMakeClusters.h"
 #include "src/Cluster/TkrMakeClusterTable.h"
+#include "TkrUtil/ITkrMakeClustersTool.h"
 
 #include "Event/Digi/TkrDigi.h"
 
@@ -55,6 +56,8 @@ private:
     ITkrBadStripsSvc*        m_pBadStrips;
     /// pointer to AlignmentSvc
     ITkrAlignmentSvc*        m_pAlignment;
+    /// pointer to makeClustersTool
+    ITkrMakeClustersTool*    m_pMakeClusters;
     
     /// pointer to Tkr digis
     Event::TkrDigiCol*       m_TkrDigiCol;
@@ -91,24 +94,15 @@ StatusCode TkrClusterAlg::initialize()
             << endreq;
         return sc;
     }
-    
-    ITkrBadStripsSvc* pBadStrips = m_tkrGeom->getTkrBadStripsSvc();
 
-    if (pBadStrips) {
-        Event::TkrDigiCol* pDigis = pBadStrips->getBadDigiCol();
-        if (pDigis) {
-            Event::TkrClusterCol* pClusters = new Event::TkrClusterCol(0);
-            Event::TkrIdClusterMap* pMap = new Event::TkrIdClusterMap;
-
-            //std::set<idents::TkrId> tkrIds1;
-            TkrMakeClusters maker(
-                pClusters, pMap, m_tkrGeom, pDigis, ITkrBadStripsSvc::BADCLUSTERS);
-            pBadStrips->setBadClusterCol(pClusters);
-            //int clustSize = pClusters->size();
-            pBadStrips->setBadIdClusterMap(pMap);
-            //int mapSize = pMap->size();
-        }
+    m_pMakeClusters = 0;
+    if (toolSvc()->retrieveTool("TkrMakeClustersTool", m_pMakeClusters).isFailure()) {
+        log << MSG::ERROR << "Couldn't retrieve TkrMakeClusterTool" << endreq;
+        return StatusCode::FAILURE;
     }
+
+    m_pBadStrips = m_tkrGeom->getTkrBadStripsSvc();
+
     
     //Initialize the rest of the data members
     m_TkrClusterCol = 0;
@@ -116,7 +110,6 @@ StatusCode TkrClusterAlg::initialize()
 
     return StatusCode::SUCCESS;
 }
-
 
 StatusCode TkrClusterAlg::execute()
 {
@@ -126,10 +119,8 @@ StatusCode TkrClusterAlg::execute()
     // TDS Input: TkrDigiCol
     // TDS Output: TkrClusterCol
     // Restrictions and Caveats:  None
-    
-    
-    StatusCode sc = StatusCode::SUCCESS;
-    
+       
+    StatusCode sc = StatusCode::SUCCESS;   
     MsgStream log(msgSvc(), name());
     
     // Check to see if we can get the subdirectory. If not create it
@@ -167,7 +158,8 @@ StatusCode TkrClusterAlg::execute()
     
     // make the clusters
     //std::set<idents::TkrId> tkrIds;
-    TkrMakeClusters maker(m_TkrClusterCol, m_TkrIdClusterMap, m_tkrGeom, m_TkrDigiCol/*, &tkrIds*/);
+
+    m_pMakeClusters->makeClusters(m_TkrClusterCol, m_TkrIdClusterMap, m_TkrDigiCol);
 
     if (m_TkrClusterCol == 0) return StatusCode::FAILURE;
     
