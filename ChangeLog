@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: igable  Fri Mar  2 19:40:18 PST 2001
+TkrRecon/src TkrRecoAlg.cxx
+
+Removed Files:
+	TkrRecoAlg.cxx 
+Log Message:
+Remove my old junk...
+
+    *
+------------------------------------------------------------
 User: igable  Fri Mar  2 19:37:11 PST 2001
 TkrRecon/TkrRecon TkrRecoAlg.h
 
