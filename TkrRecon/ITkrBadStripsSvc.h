@@ -40,8 +40,9 @@ public:
     virtual bool isBadStrip(const v_strips* v, const int strip) = 0;
     virtual bool isTaggedBad(const int taggedStrip) = 0;
     virtual int tagField(const int strip) = 0;
-    virtual int untag(const int strip) = 0;
+    virtual int stripNumber(const int strip) = 0;
     virtual int swapForSort(const int strip) = 0;
+    virtual void sortTaggedHits(std::vector<int> * list) = 0;
     virtual int lastStrip() = 0;
  };
 

@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.8 2002/09/02 07:10:22 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.9 2002/09/02 17:31:53 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, 
@@ -21,6 +21,13 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
                                  ITkrBadStripsSvc* pBadStripsSvc, 
                                  TkrDigiCol* pTkrDigiCol)
 {
+    // Purpose: Makes Clusters from TkrDigis
+    // Method:  Digis are scaned and grouped into contiguous groups
+    // Inputs:  Digis, pointers to geometry and badstrips services
+    // Outputs:  Clusters
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
     //Save some geometry information for the display routine
     m_pTkrGeo    = pTkrGeoSvc;
     
@@ -71,7 +78,7 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
 
         // sort data and badstrips by strip number
 
-        sortMergedHits(&mergedHits);
+        sortTaggedHits(&mergedHits);
 
         // the first strip of the current potential cluster
         int lowStrip  = mergedHits[0];  
@@ -101,8 +108,8 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus,
                 if (kept = isGoodCluster(lowStrip, highStrip, nBad)) {
                     // it's good... make a new cluster
                     int layer = m_pTkrGeo->reverseLayerNumber(digiLayer);
-                    int strip0 = untag(lowStrip);
-                    int stripf = untag(highStrip);
+                    int strip0 = stripNumber(lowStrip);
+                    int stripf = stripNumber(highStrip);
                     Point pos = position(layer, TkrCluster::intToView(view), 
                         strip0, stripf, tower);
                     TkrCluster* cl = new TkrCluster(nclusters, layer, view, 
@@ -131,7 +138,6 @@ Point TkrMakeClusters::position(const int layer, TkrCluster::view v,
     // Dependencies: None
     // Restrictions and Caveats:  None
     
-    
     // this converts from recon numbering to physical numbering of layers.
     int digiLayer = m_pTkrGeo->reverseLayerNumber(layer);
     double strip = 0.5*(strip0 + stripf);
@@ -150,8 +156,8 @@ bool TkrMakeClusters::isGapBetween(const int lowStrip, const int highStrip)
     // Restrictions and Caveats:  None
     
     //Get the actual hit strip number from the tagged strips
-    int lowHit  = untag(lowStrip);
-    int highHit = untag(highStrip);
+    int lowHit  = stripNumber(lowStrip);
+    int highHit = stripNumber(highStrip);
     
     // gap between hits
     if (highHit > (lowHit + 1)) { return true; }
@@ -174,8 +180,8 @@ bool TkrMakeClusters::isGoodCluster(const int lowStrip, const int highStrip,
     // Restrictions and Caveats:  None
     
     //Get the actual hit strip number from the tagged strips
-    int lowHit  = untag(lowStrip);
-    int highHit = untag(highStrip);
+    int lowHit  = stripNumber(lowStrip);
+    int highHit = stripNumber(highStrip);
     
     // Require at least 1 good hit in the cluster    
     if ((highHit-lowHit+1)<=nBad) return false;
@@ -185,15 +191,15 @@ bool TkrMakeClusters::isGoodCluster(const int lowStrip, const int highStrip,
     return true;
 }
 
-int TkrMakeClusters::untag(const int strip)
+int TkrMakeClusters::stripNumber(const int strip)
 {
-    // Purpose and Method: untag a strip
-    // Inputs: untagged strip
-    // Outputs:  raw strip
+    // Purpose and Method: return the strip number
+    // Inputs: possibly tagged strip
+    // Outputs:  strip number
     // Dependencies: None
     // Restrictions and Caveats:  None
     
-    if (m_pBadStrips) return m_pBadStrips->untag(strip);
+    if (m_pBadStrips) return m_pBadStrips->stripNumber(strip);
     else return strip;
 }
 
@@ -220,6 +226,12 @@ v_strips* TkrMakeClusters::getBadStrips(const int tower, const int digiLayer,
 
 bool TkrMakeClusters::isTaggedBad(const int strip) 
 {
+    // Purpose: find out if a strip is tagged
+    // Inputs: strip
+    // Outputs:  true if tagged
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+    
     if (m_pBadStrips) {
         return m_pBadStrips->isTaggedBad(strip);
     } else {
@@ -229,6 +241,12 @@ bool TkrMakeClusters::isTaggedBad(const int strip)
 
 int TkrMakeClusters::tagField(const int strip) 
 {
+    // Purpose: return tag field
+    // Inputs: strip
+    // Outputs:  tag field
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+    
     if (m_pBadStrips) {
         return m_pBadStrips->tagField(strip);
     } else {
@@ -236,22 +254,28 @@ int TkrMakeClusters::tagField(const int strip)
     }
 }
 
-void TkrMakeClusters::sortMergedHits(std::vector<int> *list) 
+void TkrMakeClusters::sortTaggedHits(std::vector<int> * list) 
 {
+    // Purpose: sort the input list by strip number
+    // Method:  pass to TkrBadStripsSvc
+    // Inputs: list of strips
+    // Outputs:  sorted list
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
     // the following is a horrible kludge to do the merged sort 
     //    until I figure out how to get the predicate thing working
     
-    std::vector<int>::iterator ist;          
-    for (ist=list->begin(); ist!=list->end(); ist++) {           
-        *ist = swapForSort(*ist) ;
-    }
-    std::sort(list->begin(), list->end());         
-    for (ist=list->begin(); ist!=list->end(); ist++) {           
-        *ist = swapForSort(*ist) ;
-    }
+    m_pBadStrips->sortTaggedHits(list);
 }
     
 int TkrMakeClusters::swapForSort(const int strip) {
+    // Purpose:  swap field to make strip number most significant
+    // Method:   pass to TkrBadStripsSvc
+    // Inputs:   strip
+    // Outputs:  swapped strip
+    // Dependencies: None
+    // Restrictions and Caveats:  None
     if (m_pBadStrips) {
         return m_pBadStrips->swapForSort(strip);
     } else {
