@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Wed Sep  4 21:15:50 PDT 2002
+TkrRecon/src/Track
+
+Modified Files:
+	TkrControl.h 
+Log Message:
+fix inline declaration for unix
+    *
+------------------------------------------------------------
 User: usher  Mon Sep  2 18:25:41 PDT 2002
 TkrRecon/doc
 
