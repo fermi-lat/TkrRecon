@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Sat Feb  9 08:41:05 PST 2002
+TkrRecon/mgr
+
+Removed Files:
+	.cvsignore requirements 
+Log Message:
+continue renaming mgr/ to cmt/
+
+    *
+------------------------------------------------------------
 User: lsrea  Sat Feb  9 08:36:59 PST 2002
 TkrRecon/cmt
 
