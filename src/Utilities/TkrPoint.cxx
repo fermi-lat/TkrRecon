@@ -22,16 +22,16 @@ inline bool TkrPoint::operator==(const TkrPoint& point) const
 {
     // check for equality based on IDs, therefore there is no dependance
     // on geometry
-    return( (m_xID == point.m_xID) &&
-            (m_yID == point.m_yID) &&
-            (m_layer == point.m_layer));
+    return( (m_pClusterX == point.m_pClusterX) &&
+        (m_pClusterY == point.m_pClusterY) &&
+        (m_layer == point.m_layer));
 }
 
 inline bool TkrPoint::operator!=(const TkrPoint& point) const
 {
     // check for inequality based on IDs, therefore there is no dependance
     // on geometry
-    return( (m_xID != point.m_xID) ||
-            (m_yID != point.m_yID) ||
+    return( (m_pClusterX != point.m_pClusterX) ||
+            (m_pClusterY != point.m_pClusterY) ||
             (m_layer != point.m_layer));
 }

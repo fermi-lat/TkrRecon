@@ -7,13 +7,14 @@
 *
 * @authors b. allgood and w. atwood
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoint.h,v 1.2 2002/09/05 16:51:33 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoint.h,v 1.3 2003/07/04 14:07:39 cohen Exp $
 */
 
 #ifndef __TKRPOINT_H
 #define __TKRPOINT_H
 
 #include "geometry/Point.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
 #include <vector>
 
 class TkrPoint
@@ -21,9 +22,11 @@ class TkrPoint
 public:
 
     // constructors
-    TkrPoint(const Point& pnt,const int& tower, const int& layer, 
-             const int& xID, const int& yID):
-    m_pnt(pnt),m_tower(tower),m_layer(layer),m_xID(xID),m_yID(yID) {}
+    TkrPoint(const Point& pnt, int tower, int layer, 
+        Event::TkrCluster* xClus, Event::TkrCluster* yClus):
+    m_pnt(pnt), m_tower(tower), m_layer(layer),
+        m_pClusterX(xClus),m_pClusterY(yClus) 
+    {}
 
     // destructor
     virtual ~TkrPoint() {}
@@ -34,8 +37,8 @@ public:
     Point getPoint() const {return m_pnt;}
     int   getLayer() const {return m_layer;}
     int   getTower() const {return m_tower;}
-    int   getIdX()   const {return m_xID;}
-    int   getIdY()   const {return m_yID;}
+    Event::TkrCluster*   getClusterX()   const {return m_pClusterX;}
+    Event::TkrCluster*   getClusterY()   const {return m_pClusterY;}
     bool  sameTower(const TkrPoint& point) const;
     int   layerSeperation(const TkrPoint& point) const;
     //@}
@@ -58,8 +61,9 @@ private:
     int   m_tower;
     /// layer number of the hit
     int   m_layer;
-    /// hit ID for x and y
-    int   m_xID, m_yID;
+    /// pointer to cluster for x and y
+    Event::TkrCluster* m_pClusterX;
+    Event::TkrCluster* m_pClusterY;
 };
 
 typedef std::vector<TkrPoint> TkrPointList;
