@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: kuss  Fri Oct 25 08:31:56 PDT 2002
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	TkrNeuralNet.cxx 
+Log Message:
+fixed "ISO scope" errors for gcc v3
+
+    *
+------------------------------------------------------------
 User: lsrea  Thu Oct 17 18:28:06 PDT 2002
 TkrRecon/src/Vertex/Combo
 
