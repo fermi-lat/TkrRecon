@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Wed Oct 16 11:44:41 PDT 2002
+TkrRecon/src/Cluster
+
+Modified Files:
+	TkrMakeClusters.cxx 
+Log Message:
+fixed a horrible bug that I recently introduced... why didn't this code fail for everyone?
+    *
+------------------------------------------------------------
 User: lsrea  Mon Oct 14 11:51:28 PDT 2002
 TkrRecon/src/Services
 
