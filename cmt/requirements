@@ -65,7 +65,11 @@ library TkrRecon  $(TkrRecon_headers)  \
   -s=TrackFit/KalmanFilter $(source)\
   -s=TrackFit/KalmanFilterUtils $(source)\
   -s=TrackFit/KalmanFilterFit $(source)\
+  -s=TrackFit/KalmanFilterFit/FitMatrices $(source)\
+  -s=TrackFit/KalmanFilterFit/HitErrors $(source)\
+  -s=TrackFit/KalmanFilterFit/TrackEnergy $(source)\
   -s=TrackFit/KalFitTrack $(source)\
+  -s=TrackFit/LineFit2D $(source)\
   -s=Utilities $(source)\
   -s=Vertex  $(source)\
   -s=Vertex/Combo $(source)\
