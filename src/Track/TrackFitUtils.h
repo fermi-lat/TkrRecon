@@ -13,7 +13,7 @@
   *
   * @author Tracy Usher (as editor instead of author)
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TrackFitUtils.h,v 1.1 2004/03/23 23:59:25 usher Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TrackFitUtils.h,v 1.2 2004/04/19 23:13:24 usher Exp $
 */
 
 #ifndef __TrackFitUtils_H
@@ -44,7 +44,7 @@ public:
     TkrKalFitTrack* newFitTrack(TkrPatCand& patCand);
 
     /// Add measured hit from a pattern recognition candidate hit to a track
-    void            addMeasHit(TkrKalFitTrack& track, const TkrPatCandHit& candHit);
+    void            addMeasHit(TkrKalFitTrack& track, const TkrPatCand& patCand, const TkrPatCandHit& candHit);
     TkrFitPlane     newMeasPlane(const TkrPatCandHit& candHit, const double energy);
 
     /// Add new "hit" to an existing plane

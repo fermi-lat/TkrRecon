@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.11 2004/03/24 23:01:46 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.12 2004/04/19 23:07:25 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -215,8 +215,13 @@ Event::TkrPatCand* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* 
             Event::McPositionHit*    posHit   =  mcHitRel->getSecond();
             const Event::TkrCluster* cluster  = mcHitRel->getFirst();
 
+            // It is possible to have McPositionHit but no cluster
             if (!cluster) continue;
 
+            // Redundant? 
+            if (!patCand && posHit->mcParticle() != mcPart) continue;
+
+            // First hit so need candidate track wrapper
             if (!patCand)
             {
                 // Start to fill the hits

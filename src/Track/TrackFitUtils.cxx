@@ -119,14 +119,14 @@ TkrKalFitTrack* TrackFitUtils::newFitTrack(TkrPatCand& patCand)
     while(numHits--)
     {
         const Event::TkrPatCandHit* candHit = *candPtr++;
-        addMeasHit(*track, *candHit);
+        addMeasHit(*track, patCand, *candHit);
     }
 
     return track;
 }
 
 
-void TrackFitUtils::addMeasHit(TkrKalFitTrack& track, const TkrPatCandHit& candHit)
+void TrackFitUtils::addMeasHit(TkrKalFitTrack& track, const TkrPatCand& patCand, const TkrPatCandHit& candHit)
 {
     // Purpose and Method: Add a measured hit (TkrCluster) from pattern recognition
     //                     to the given track 
@@ -135,7 +135,7 @@ void TrackFitUtils::addMeasHit(TkrKalFitTrack& track, const TkrPatCandHit& candH
     // Dependencies: None
     // Restrictions and Caveats:  None
 
-    track.push_back(newMeasPlane(candHit, m_hitEnergy->initialHitEnergy(candHit, track.getStartEnergy())));
+    track.push_back(newMeasPlane(candHit, m_hitEnergy->initialHitEnergy(patCand, candHit, track.getStartEnergy())));
 
     if (candHit.View() == TkrCluster::X) track.setNumXHits(track.getNumXHits()+1);
     else                                 track.setNumYHits(track.getNumYHits()+1);
