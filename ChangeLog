@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Fri Jul 26 15:39:36 PDT 2002
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx TkrComboPatRec.h 
+Log Message:
+Added comments.  Change energy alg.   
+    *
+------------------------------------------------------------
 User: cohen  Thu Jul 25 06:16:28 PDT 2002
 TkrRecon/src/Vertex
 
