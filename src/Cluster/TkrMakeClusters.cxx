@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.10 2002/09/02 19:40:41 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.11 2002/09/02 21:15:03 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, 
@@ -266,7 +266,11 @@ void TkrMakeClusters::sortTaggedStrips(std::vector<int> * list)
     // the following is a horrible kludge to do the merged sort 
     //    until I figure out how to get the predicate thing working
     
-    m_pBadStrips->sortTaggedStrips(list);
+    if (m_pBadStrips) {
+        m_pBadStrips->sortTaggedStrips(list);
+    } else {
+        std::sort(list->begin(), list->end());
+    }
 }
     
 int TkrMakeClusters::swapForSort(const int strip) {
