@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue May  7 15:47:22 PDT 2002
+TkrRecon/TkrRecon/Services
+
+Modified Files:
+	TkrInitSvc.h 
+Log Message:
+Modifications made to reflect movement of TDS output classes to GlastEvent
+
+    *
+------------------------------------------------------------
 User: usher  Tue May  7 15:46:42 PDT 2002
 TkrRecon/TkrRecon/PatRec
 
