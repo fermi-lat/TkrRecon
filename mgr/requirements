@@ -23,12 +23,13 @@ private
 apply_pattern package_Cshlibflags 
 apply_pattern package_headers
 
-library TkrRecon  *.cpp *.cxx Dll/*.cpp ${TkrRecon_headers}
+
 
 # have a seperate library to export the tracker recon data classes 
 
 library TkrReconData -no_share GFgamma.cpp GFdata.cxx GFparticle.cpp GFcontrol.cpp GFsegment.cpp SiRecObjs.cpp SiClusters.cpp KalFit.cxx
 
+library TkrRecon  *.cpp *.cxx Dll/*.cpp ${TkrRecon_headers}
 
 # build this for testing
 
