@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+User: usher  Wed Feb  6 13:53:27 PST 2002
+TkrRecon/src/Track
+
+Modified Files:
+	SiRecObjs.cxx TkrLinkAndTreeFit.cxx 
+Removed Files:
+	GFbase.cxx GFcandidates.cxx GFdata.cxx GFgamma.cxx GFpair.cxx 
+	GFparticle.cxx GFpoints.cxx GFsegment.cxx GFtrack.cxx 
+	TkrComboPR.cxx 
+Log Message:
+Have moved all of the code for these classes to src/PatRec/Combo
+
+    *
+------------------------------------------------------------
 User: usher  Wed Feb  6 13:51:28 PST 2002
 TkrRecon/src/PatRec/LinkAndTree
 
