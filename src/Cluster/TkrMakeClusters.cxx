@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.4 2004/09/08 15:32:42 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.22 2004/09/23 21:30:25 usher Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, 
@@ -60,7 +60,7 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
 
         m_pTkrGeo->layerToTray(digiLayer, view, tray, botTop);
 
-        idents::TkrId hitId(towerX, towerY, tray, (bool)botTop, measure);
+        idents::TkrId hitId(towerX, towerY, tray, botTop == 1, measure);
 
         tkrIds->insert(hitId);
                
@@ -126,8 +126,7 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
                     // it's good... make a new cluster
                     int strip0 = lowStrip.getStripNumber();
                     int stripf = highStrip.getStripNumber();
-                    Point pos = position(layer, TkrCluster::intToView(view), 
-                        strip0, stripf, tower);
+                    Point pos = position(layer, view, strip0, stripf, tower);
                     /*
                     HepPoint3D hepPos(pos.x(), pos.y(), pos.z());
                    
@@ -157,7 +156,7 @@ TkrMakeClusters::TkrMakeClusters(TkrClusterCol* pClus, Event::TkrIdClusterMap* c
 }
 
 
-Point TkrMakeClusters::position(const int layer, TkrCluster::view v,
+Point TkrMakeClusters::position(const int layer, int v,
                                 const int strip0, const int stripf, 
                                 const int tower) const
 {

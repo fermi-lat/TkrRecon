@@ -14,12 +14,12 @@ void TkrPoints::ini()
     m_itot = 0;
     m_end = false;
 
-    m_xHitList = m_clusTool->getClustersReverseLayer(Event::TkrCluster::X,m_layer);
+    m_xHitList = m_clusTool->getClustersReverseLayer(idents::TkrId::eMeasureX,m_layer);
     m_xHits    = m_xHitList.size();
     //m_xHits = m_clusters->nHits(Event::TkrCluster::X,m_layer);
     //if (m_xHits > 0) m_xHitList = m_clusters->getHits(Event::TkrCluster::X,m_layer);
 
-    m_yHitList = m_clusTool->getClustersReverseLayer(Event::TkrCluster::Y,m_layer);
+    m_yHitList = m_clusTool->getClustersReverseLayer(idents::TkrId::eMeasureY,m_layer);
     m_yHits    = m_yHitList.size();
     //m_yHits = m_clusters->nHits(Event::TkrCluster::Y,m_layer);
     //if (m_yHits > 0) m_yHitList = m_clusters->getHits(Event::TkrCluster::Y,m_layer);

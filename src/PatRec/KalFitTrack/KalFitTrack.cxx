@@ -155,14 +155,14 @@ void KalFitTrack::addMeasHit(const TkrPatCandHit& candHit)
 
     m_hits.push_back(newPlane);
 
-    if(candHit.View() == TkrCluster::X) m_nxHits++;
-    else                                m_nyHits++;
+    if(candHit.View() == idents::TkrId::eMeasureX) m_nxHits++;
+    else                                           m_nyHits++;
     if(m_nxHits > 2 && m_nyHits > 2)    m_status = FOUND;
 
     return;
 }
 
-void KalFitTrack::addMeasHit(int clusIdx, int planeID, TkrCluster::view proj, double zPlane,
+void KalFitTrack::addMeasHit(int clusIdx, int planeID, int proj, double zPlane,
                              int before_hit)
 {
    // Purpose and Method: Added a TkrCluster  to this KalFitTrack
@@ -184,8 +184,8 @@ void KalFitTrack::addMeasHit(int clusIdx, int planeID, TkrCluster::view proj, do
     m_hits.insert(it, newPlane);
     //    m_hits.insert(&m_hits[before_hit], newPlane);
 
-    if(proj == TkrCluster::X) m_nxHits++;
-    else                      m_nyHits++;
+    if(proj == idents::TkrId::eMeasureX) m_nxHits++;
+    else                                 m_nyHits++;
     if(m_nxHits > 2 && m_nyHits > 2) m_status = FOUND;
 
     return;
@@ -265,8 +265,8 @@ void KalFitTrack::findHits()
             break; //Limits the size of a jump
         }
 
-        if(nextKplane.getProjection() == TkrCluster::X) m_nxHits++;
-        else                                            m_nyHits++;
+        if(nextKplane.getProjection() == idents::TkrId::eMeasureX) m_nxHits++;
+        else                                                       m_nyHits++;
         if(m_nxHits > 2 && m_nyHits > 2) m_status = FOUND;
         
         m_hits.push_back(nextKplane);
@@ -280,7 +280,7 @@ void KalFitTrack::findHits()
             } else {
                 TkrFitHit hitpred = nextKplane.getHit(TkrFitHit::PRED);
                 TkrFitHit hitmeas = nextKplane.getHit(TkrFitHit::MEAS);
-                if(nextKplane.getProjection() == TkrCluster::X) {
+                if(nextKplane.getProjection() == idents::TkrId::eMeasureX) {
                     TkrFitPar p(hitmeas.getPar().getXPosition(),hitpred.getPar().getXSlope(),
                         hitpred.getPar().getYPosition(),hitpred.getPar().getYSlope());
                     TkrFitHit hitfit(TkrFitHit::FIT,p,hitpred.getCov());
@@ -353,9 +353,9 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
         double zend    = nextKplane.getZPlane(); 
         double arc_len = (zend - m_ray.position().z())/m_ray.direction().z();
 
-        TkrCluster::view nextProj = nextKplane.getProjection();
-        if (((nextProj == TkrCluster::X) && (m_nxHits <= 2)) || 
-            ((nextProj == TkrCluster::Y) && (m_nyHits <= 2))) {
+        int nextProj = nextKplane.getProjection();
+        if (((nextProj == idents::TkrId::eMeasureX) && (m_nxHits <= 2)) || 
+            ((nextProj == idents::TkrId::eMeasureY) && (m_nyHits <= 2))) {
             x0 = m_ray.position(arc_len); 
             t0 = m_ray.direction(); 
             TkrFitPar par(x0.x(), t0.x()/t0.z(), x0.y(), t0.y()/t0.z());
@@ -395,7 +395,7 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
                 
             //Use the PREDICTED hit to set tolerance
             double pos_err = nextKplane.getHit(TkrFitHit::PRED).getCov().getcovX0X0();
-            if(nextKplane.getProjection() == TkrCluster::Y) {
+            if(nextKplane.getProjection() == idents::TkrId::eMeasureY) {
                 pos_err = nextKplane.getHit(TkrFitHit::PRED).getCov().getcovY0Y0();
             }
             pos_err = sqrt(pos_err);
@@ -439,8 +439,8 @@ TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer,
         //int rev_layer = m_tkrGeo->reverseLayerNumber(next_layer);      //  Control Parameter needed
         //zx = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::X, 751).z();
         //zy = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::Y, 751).z();
-        double zx = m_tkrGeo->getReconLayerZ(next_layer, TkrCluster::X);
-        double zy = m_tkrGeo->getReconLayerZ(next_layer, TkrCluster::Y);
+        double zx = m_tkrGeo->getReconLayerZ(next_layer, idents::TkrId::eMeasureX);
+        double zy = m_tkrGeo->getReconLayerZ(next_layer, idents::TkrId::eMeasureY);
         
         double d_xz = old_z - zx;
         double d_yz = old_z - zy;
@@ -462,8 +462,8 @@ TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer,
         }
         break;
     }
-    TkrCluster::view this_projection = (arc_min == arc_y) ?
-                             TkrCluster::Y : TkrCluster::X;
+    int this_projection = (arc_min == arc_y) 
+                        ? idents::TkrId::eMeasureY : idents::TkrId::eMeasureX;
 
     predhit = KF.predicted(prevKplane, type, next_layer, zEnd, arc_min);
     actDist = KF.getActiveDist();
@@ -479,7 +479,7 @@ TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer,
     projectedKplane.setActiveDist(actDist);
     projectedKplane.setRadLen(radLen); 
     projectedKplane.setQmaterial(Q);
-    if (m_control->getPlaneEnergies() && prevKplane.getProjection() != TkrCluster::XY
+    if (m_control->getPlaneEnergies() && prevKplane.getProjection() != idents::TkrId::eMeasureNone
         && prev_energy > m_control->getMinEnergy()/2.) { 
         //projectedKplane.setDeltaEne(prevKplane.getEnergy());
         // or try
@@ -498,7 +498,7 @@ void KalFitTrack::incorporateFoundHit(TkrFitPlane& nextKplane, int indexhit)
    // Dependencies: None
    // Restrictions and Caveats:  None
 
-    TkrCluster::view planeView = nextKplane.getProjection();
+    int planeView = nextKplane.getProjection();
 
     Point  nearHit   = (*m_clusters)[indexhit]->position();
     double x0        = nearHit.x();
@@ -518,7 +518,7 @@ void KalFitTrack::incorporateFoundHit(TkrFitPlane& nextKplane, int indexhit)
     //double size      = m_clusters->size(planeView,indexhit);
     
     double cx, cy;
-    if(planeView == TkrCluster::X) 
+    if(planeView == idents::TkrId::eMeasureX) 
     {
         cx = sigma*sigma;
         cy = sigma_alt*sigma_alt;
@@ -563,7 +563,7 @@ double KalFitTrack::sigmaFoundHit(const TkrFitPlane& /*previousKplane*/, const T
     m_axis = nextKplane.getProjection();
     double tError = 0.;
     double zError = 0.; 
-    if(m_axis == TkrCluster::X) {
+    if(m_axis == idents::TkrId::eMeasureX) {
         tError = sqrt(hitp.getCov().getcovX0X0());
         zError=m_tkrGeo->siThickness()*hitp.getPar().getXSlope();
     }
@@ -593,8 +593,8 @@ double KalFitTrack::sigmaFoundHit(const TkrFitPlane& /*previousKplane*/, const T
     }
     
     if (indexhit >= 0) {
-        if(m_axis == TkrCluster::X) residual = fabs(nearHit.x() - center.x());
-        else                        residual = fabs(nearHit.y() - center.y());
+        if(m_axis == idents::TkrId::eMeasureX) residual = fabs(nearHit.x() - center.x());
+        else                                   residual = fabs(nearHit.y() - center.y());
         if (rError > 0.) sigmahit= residual/rError;
     }
     
@@ -625,7 +625,7 @@ double KalFitTrack::sigmaFoundHit(Point center, int nextLayer, int prevLayer,
 
     double tError = 0.;
     double zError = 0.; 
-    if(m_axis == TkrCluster::X) {
+    if(m_axis == idents::TkrId::eMeasureX) {
         double cov_xx = hitp.getCov().getcovX0X0();
         double cov_sxx= hitp.getCov().getcovSxX0();
         tError = sqrt(cov_xx+900.*fabs(cov_sxx));
@@ -654,8 +654,8 @@ double KalFitTrack::sigmaFoundHit(Point center, int nextLayer, int prevLayer,
     }
     
     if (indexhit >= 0) {
-        if(m_axis == TkrCluster::X) residual = fabs(nearHit.x() - center.x());
-        else                        residual = fabs(nearHit.y() - center.y());
+        if(m_axis == idents::TkrId::eMeasureX) residual = fabs(nearHit.x() - center.x());
+        else                                   residual = fabs(nearHit.y() - center.y());
         if (rError > 0.) sigmahit= residual/rError;
     }
     
@@ -676,9 +676,9 @@ bool KalFitTrack::foundHit(int& indexhit, double& min_dist, double max_dist,
     bool done = true;    
     if (indexhit < 0) return done;
 
-    double deltaStrip = (m_axis == TkrCluster::X ? 
+    double deltaStrip = (m_axis == idents::TkrId::eMeasureX ? 
                         fabs(nearHit.x()-centerX.x()): fabs(nearHit.y()-centerX.y()));
-    double outsideTower = (m_axis == TkrCluster::Y? 
+    double outsideTower = (m_axis == idents::TkrId::eMeasureY? 
                         fabs(nearHit.x()-centerX.x()): fabs(nearHit.y()-centerX.y()));
     outsideTower -= m_tkrGeo->trayWidth()/2.;
 
@@ -788,7 +788,7 @@ void KalFitTrack::finish()
             if(!quit_first) m_numSegmentPoints++;
 
             int this_plane = hit.getIDPlane();
-            bool xPlane = (hit.getProjection() == TkrCluster::X); 
+            bool xPlane = (hit.getProjection() == idents::TkrId::eMeasureX); 
             double xm; 
             if (xPlane) {
                 num_xPlanes++;
@@ -860,8 +860,8 @@ int KalFitTrack::addLeadingHits(int top_layer)
     double arc_x, arc_y; 
     while(next_layer >= 0 && top_layer-next_layer < 2) {   // Limit additions to 2 layers
         //Check that there are hits to here
-        if ((m_clusTool->getClustersReverseLayer(TkrCluster::X,next_layer).size() +
-             m_clusTool->getClustersReverseLayer(TkrCluster::Y,next_layer).size()) < 1)
+        if ((m_clusTool->getClustersReverseLayer(idents::TkrId::eMeasureX,next_layer).size() +
+             m_clusTool->getClustersReverseLayer(idents::TkrId::eMeasureY,next_layer).size()) < 1)
         {
         //if((m_clusters->nHits(TkrCluster::X, next_layer) + 
         //    m_clusters->nHits(TkrCluster::Y, next_layer)) < 1) {
@@ -872,8 +872,8 @@ int KalFitTrack::addLeadingHits(int top_layer)
         //int rev_layer = m_tkrGeo->reverseLayerNumber(next_layer); 
         //zx = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::X, 751).z();
         //zy = m_tkrGeo->getStripPosition(old_tower, rev_layer, TkrCluster::Y, 751).z();
-        double zx = m_tkrGeo->getReconLayerZ(next_layer, TkrCluster::X);
-        double zy = m_tkrGeo->getReconLayerZ(next_layer, TkrCluster::Y);
+        double zx = m_tkrGeo->getReconLayerZ(next_layer, idents::TkrId::eMeasureX);
+        double zy = m_tkrGeo->getReconLayerZ(next_layer, idents::TkrId::eMeasureY);
 
         //Compute which one is closest 
         double d_xz = zx - old_z;
@@ -894,7 +894,7 @@ int KalFitTrack::addLeadingHits(int top_layer)
         else { 
             arc_min = (arc_x > arc_y) ? arc_x:arc_y; 
         }
-        m_axis = (arc_min==arc_y) ? TkrCluster::Y :TkrCluster::X;
+        m_axis = (arc_min==arc_y) ? idents::TkrId::eMeasureY :idents::TkrId::eMeasureX;
 
         //Project the track to this layer & search for a hit
         Point predHit = getPosAtZ(-arc_min);
@@ -1109,11 +1109,13 @@ TkrFitPlane KalFitTrack::originalKPlane() const
     int tray, botTop;
     // get the view of the top plane of this layer
     m_tkrGeo->layerToTray(m_iLayer, 0, tray, botTop);
-    TkrCluster::view axis = TkrCluster::intToView(botTop ? 0 : 1);
+    // botTop should be same convention as idents::TkrId (or it better be!)
+    //TkrCluster::view axis = TkrCluster::intToView(botTop ? 0 : 1);
+    int axis = botTop;
 
     int measured, other;
-    if (axis==TkrCluster::X) { measured = 1; other = 3; }
-    else                     { measured = 3; other = 1; }
+    if (axis == idents::TkrId::eMeasureX) { measured = 1; other = 3; }
+    else                                  { measured = 3; other = 1; }
 
     covfit(measured, measured) = sigma2Position;
     covfit(other,    other   ) = sigma_alt*sigma_alt;
@@ -1179,7 +1181,7 @@ TkrFitPar KalFitTrack::guessParameters()
 
     while(hitPtr != m_hits.end()) {
         TkrFitPlane& hit = *hitPtr++;
-        if(hit.getProjection() == TkrCluster::X && nx < 2) {
+        if(hit.getProjection() == idents::TkrId::eMeasureX && nx < 2) {
             nx++;
             if(nx == 1)  {
                 x0  = hit.getHit(TkrFitHit::MEAS).getPar().getXPosition();
@@ -1190,7 +1192,7 @@ TkrFitPar KalFitTrack::guessParameters()
                 zx1 = hit.getZPlane() + .01;
             }
         }
-        else if(hit.getProjection() == TkrCluster::Y && ny < 2) {
+        else if(hit.getProjection() == idents::TkrId::eMeasureY && ny < 2) {
             ny++;
             if(ny == 1)  {
                 y0  = hit.getHit(TkrFitHit::MEAS).getPar().getYPosition();
@@ -1256,9 +1258,9 @@ void KalFitTrack::eneDetermination()
    
     for (int iplane = 0; iplane < nplanes; iplane++) { 
        // Get the last cluster size for range estimation
-       TkrCluster::view hit_proj = m_hits[iplane].getProjection();
+       int hit_proj = m_hits[iplane].getProjection();
        int hit_Id = m_hits[iplane].getIDHit();
-       if(hit_proj == TkrCluster::X) {
+       if(hit_proj == idents::TkrId::eMeasureX) {
            x_cls_size = (*m_clusters)[hit_Id]->size();
        }
        else {

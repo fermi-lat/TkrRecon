@@ -151,10 +151,10 @@ void TkrComboPatRec::searchCandidates(double CalEnergy, Point CalPosition)
                 continue;
             }
             // For the rest - unflag according to Cluster size and Trajectory
-            TkrCluster::view hit_proj = plane.getProjection();
+            int hit_proj = plane.getProjection();
             TkrFitPar tkr_par = plane.getHit(TkrFitHit::FIT).getPar();
             double slope = tkr_par.getYSlope();
-            if(hit_proj == TkrCluster::X) {
+            if(hit_proj == idents::TkrId::eMeasureX) {
                 slope = tkr_par.getXSlope();
             }        
             int hit_Id = plane.getIDHit();;
@@ -886,10 +886,10 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
     while(pln_pointer != m_track->getHitIterEnd()) {
         
         TkrFitPlane plane = *pln_pointer;
-        TkrCluster::view hit_proj = plane.getProjection();
+        int hit_proj = plane.getProjection();
         TkrFitPar tkr_par = plane.getHit(TkrFitHit::FIT).getPar();
         double slope = tkr_par.getYSlope();
-        if(hit_proj == TkrCluster::X) {
+        if(hit_proj == idents::TkrId::eMeasureX) {
             slope = tkr_par.getXSlope();
         }        
         int    hit_Id    = plane.getIDHit();;

@@ -190,7 +190,8 @@ void TkrLinkAndTree::buildCand3D()
             }
 
             // Both should start within a layer of each other
-            int strtDiff = pTopClusterX->plane()-pTopClusterY->plane();
+            int strtDiff = pTopClusterX->getTkrId().getPlane()
+                         - pTopClusterY->getTkrId().getPlane();
             int nodeDiff = nNodesX - nNodesY;
 
             if (abs(strtDiff) > 1)
@@ -234,9 +235,9 @@ void TkrLinkAndTree::buildCand3D()
 
             double z            = zTopX > zTopY ? zTopX : zTopY;
 
-            int    layer        = pTopClusterX->plane() < pTopClusterY->plane()
-                                ? pTopClusterX->plane()
-                                : pTopClusterY->plane();
+            int    layer        = pTopClusterX->getTkrId().getPlane() < pTopClusterY->getTkrId().getPlane()
+                                ? pTopClusterX->getTkrId().getPlane()
+                                : pTopClusterY->getTkrId().getPlane();
 
             xTopX += xSlope * (z - zTopX);
             yTopY += ySlope * (z - zTopY);

@@ -11,7 +11,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilter/KalmanFilter.h,v 1.2 2004/09/08 15:32:45 usher Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilter/KalmanFilter.h,v 1.14 2004/09/23 21:30:30 usher Exp $
 */
 #ifndef _KALMANFILTER_H
 #define _KALMANFILTER_H 
@@ -30,7 +30,7 @@ public:
     KalmanFilter(TkrClusterCol* clusters, ITkrGeometrySvc* geo);
    ~KalmanFilter() {};
 
-    typedef TkrCluster::view AXIS;
+    typedef int AXIS;
    
     /// Utility functions for Kalman Filter
     TkrFitHit predicted(TkrFitPlane& start, TkrFitPlane& kpnext);

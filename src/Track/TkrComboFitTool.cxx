@@ -8,7 +8,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.2 2004/09/08 15:32:45 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrComboFitTool.cxx,v 1.17 2004/09/23 21:30:31 usher Exp $
  */
 
 #include "src/Track/TkrComboFitTool.h"
@@ -200,10 +200,10 @@ StatusCode TkrComboFitTool::doTrackFit(Event::TkrPatCand* patCand)
                 }
                 // For the rest - unflag according to Cluster size and Trajectory
                 Event::TkrFitPlane plane = *pln_pointer;
-                Event::TkrCluster::view hit_proj = plane.getProjection();
+                int hit_proj = plane.getProjection();
                 Event::TkrFitPar tkr_par = plane.getHit(Event::TkrFitHit::FIT).getPar();
                 double slope = tkr_par.getYSlope();
-                if(hit_proj == Event::TkrCluster::X) {
+                if(hit_proj == idents::TkrId::eMeasureX) {
                     slope = tkr_par.getXSlope();
                 }        
                 int hit_Id = plane.getIDHit();;

@@ -89,8 +89,8 @@ void TkrCandidatesRep::TkrDrawCandidates(TkrPatCandCol* pTkrCandidates, TkrPlane
         double          z         = pClus->position().z();
         //double          offset    = -0.5*trackerGeo::trayWidth();
 
-        if (pClus->v() == TkrCluster::X) y += 0.5 * pTkrGeo->towerPitch();
-        else                             x += 0.5 * pTkrGeo->towerPitch();
+        if (pClus->getTkrId().getView() == idents::TkrId::eMeasureX) y += 0.5 * pTkrGeo->towerPitch();
+        else                                                         x += 0.5 * pTkrGeo->towerPitch();
 
         setColor(pColors[colorIdx]);
         markerAt(Point(x,y,z));
@@ -126,8 +126,8 @@ void TkrCandidatesRep::drawLinkNode(TkrLinkNode* pTkrNode)
     double z      = pTopCluster->position().z();
     //double offset = -0.5*trackerGeo::trayWidth();
 
-    if (pTopCluster->v() == TkrCluster::X) y += 0.5 * pTkrGeo->towerPitch();
-    else                                         x += 0.5 * pTkrGeo->towerPitch();
+    if (pTopCluster->getTkrId().getView() == idents::TkrId::eMeasureX) y += 0.5 * pTkrGeo->towerPitch();
+    else                                                               x += 0.5 * pTkrGeo->towerPitch();
 
     moveTo(Point(x,y,z));
 
@@ -137,8 +137,8 @@ void TkrCandidatesRep::drawLinkNode(TkrLinkNode* pTkrNode)
     y = pBotCluster->position().y();
     z = pBotCluster->position().z();
 
-    if (pBotCluster->v() == TkrCluster::X) y += 0.5 * pTkrGeo->towerPitch();
-    else                                         x += 0.5 * pTkrGeo->towerPitch();
+    if (pBotCluster->getTkrId().getView() == idents::TkrId::eMeasureX) y += 0.5 * pTkrGeo->towerPitch();
+    else                                                               x += 0.5 * pTkrGeo->towerPitch();
 
     lineTo(Point(x,y,z));
 

@@ -50,7 +50,7 @@ public:
     TkrCluster*            pTopClus()                        {return pTopCluster;}
     TkrCluster*            pBotClus()                        {return pBotCluster;}
     Vector*                pLink()                           {return &linkVec;}
-    int                    getLayer()                        {return pTopCluster->plane();};
+    int                    getLayer()                        {return pTopCluster->getTkrId().getPlane();};
     double                 getLinkAngle()                    {return linkAngle;};
 
     //Dot product of this vector with another
