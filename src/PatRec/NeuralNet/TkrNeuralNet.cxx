@@ -8,8 +8,7 @@
 //------------------------------------------------------------------------------
 
 #include "src/PatRec/NeuralNet/TkrNeuralNet.h"
-#include "src/PatRec/Utilities/GFtutor.h"
-#include "src/TrackFit/KalFitTrack/GFcontrol.h"
+#include "src/Track/TkrControl.h"
 #include "src/PatRec/Utilities/TkrPoints.h"
 #include "src/PatRec/Utilities/TkrPoint.h"
 #include <math.h>
@@ -34,10 +33,7 @@
 TkrNeuralNet::TkrNeuralNet(ITkrGeometrySvc* pTkrGeo, TkrClusterCol* pClusters, 
                            double calEne,  Point calHit):m_energy(calEne),
                            m_Pcal(calHit), m_tkrGeo(pTkrGeo), m_clusters(pClusters)
-{  	   
-	// load the cluster info
- 	GFtutor::load(pClusters, pTkrGeo);
-	
+{ 
 	// make the neurons
 	m_numNeurons = generateNeurons(); 
 
@@ -70,7 +66,7 @@ unsigned int TkrNeuralNet::generateNeurons()
 	// This gets all of the TkrPoints in to a vector
 	for (int ilayer = 0 ; ilayer < 18; ilayer++)
 	{
-		TkrPoints tempTkrPoints(ilayer);
+		TkrPoints tempTkrPoints(ilayer, m_clusters);
         if(!tempTkrPoints.finished()){
 			TkrPointList tmpList = tempTkrPoints.getAllLayerPoints();
 			m_pointList.insert(m_pointList.end(),tmpList.begin(),tmpList.end());
@@ -215,7 +211,7 @@ void TkrNeuralNet::buildCand()
 		}
 	}
 
-
+        TkrControl * control = TkrControl::getPtr(); 
 	if (m_candidates.size() > 0) {
 		
 		TkrNeuralNet::const_iterator hypo;
@@ -229,12 +225,13 @@ void TkrNeuralNet::buildCand()
                 float energy   = (*hypo).energy();
                 
 
-                KalFitTrack* _track = new KalFitTrack(m_clusters, m_tkrGeo, iniLayer, iniTower, GFcontrol::sigmaCut, energy, testRay); 
+                KalFitTrack* _track = new KalFitTrack(m_clusters, m_tkrGeo, iniLayer, iniTower, 
+                                           control->getSigmaCut(), energy, testRay); 
 
                 _track->findHits();
                 _track->doFit();
 
-                if (!_track->empty(GFcontrol::minSegmentHits)) 
+                if (!_track->empty(control->getMinSegmentHits())) 
                 {
                     //Keep pointer to the track temporarily
                     m_tracks.push_back(_track);
