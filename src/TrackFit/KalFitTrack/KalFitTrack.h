@@ -67,7 +67,8 @@ private:
     void          ini();
     double        computeQuality() const;
     void          clear();
-    TkrFitHit     generateFirstFitHit();
+    TkrFitPar     guessParameters();
+    TkrFitHit     generateFirstFitHit(TkrFitPar pars);
     void          finish();
     void          filterStep(int iplane);
        

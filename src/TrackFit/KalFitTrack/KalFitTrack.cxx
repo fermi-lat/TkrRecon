@@ -7,17 +7,17 @@
 //      Maybe used in a PR mode to find hits along a track
 //        See findHits()
 //
-//      Can be supplied with a list of hits to fit
+//      Can be supplied with a list of hits to fit  
 //        See addMeasHit()
 //
-//	Addapted from GFtrack by JA Hernando
-//      W. B. Atwood, SCIPP/UCSC, Nov.,2001 
+//	Addapted from GFtrack by JA Hernando  
+//      W. B. Atwood, SCIPP/UCSC, Nov.,2001  
 //				
 //------------------------------------------------------------------------------
 
 
-#include "KalFitTrack.h"
-#include "src/TrackFit/KalmanFilter/KalmanFilter.h"
+#include "KalFitTrack.h" 
+#include "src/TrackFit/KalmanFilter/KalmanFilter.h"      
 #include "TkrRecon/Track/GFtutor.h"
 #include "TkrRecon/Track/GFcontrol.h"
 #include "TkrRecon/GaudiAlg/TkrReconAlg.h"
@@ -39,8 +39,9 @@ KalFitTrack::KalFitTrack(int ilyr, int itwr, double sigmaCut,double energy, cons
                              m_ray(testRay)
 {
     // Initialization for KalFitTrack
-    m_energy0 = energy; 
-    m_status  = EMPTY;
+    m_energy0 = energy; //"100MeV -> pB = 151.4 1Gev -> 1095.4
+                                 // 10 GeV -> 10104.3 
+    m_status  = EMPTY;      
 
     m_hits.clear();
     m_nxHits  = 0;
@@ -196,7 +197,7 @@ KalFitTrack::Status KalFitTrack::nextKPlane(const TkrFitPlane& previousKplane,
     int num_steps    = 0;
     double arc_total = 0;
     
-    while(statushit == EMPTY && num_steps < 4) {
+    while(statushit == EMPTY && num_steps < 7) {// Control parameter: Gaps 
         
         double arc_min = arc_total;
         nextKplane = projectedKPlane(previousKplane, kplane, arc_min, type);
@@ -290,8 +291,8 @@ TkrFitPlane KalFitTrack::projectedKPlane(TkrFitPlane prevKplane, int klayer, dou
 
     int next_layer = klayer; 
     double arc_x, arc_y; 
-    while(next_layer < 3+old_layer && next_layer < 18) { // Limit Gap to 2 missed x-y planes
-        int rev_layer = geoPtr->ilayer(next_layer);
+    while(next_layer < 5+old_layer && next_layer < 18) { // Limit Gap to 3 missed x-y planes
+        int rev_layer = geoPtr->ilayer(next_layer);      //  Control Parameter needed
         double zx = geoPtr->getStripPosition(old_tower, rev_layer, TkrCluster::X, 751).z();
         double zy = geoPtr->getStripPosition(old_tower, rev_layer, TkrCluster::Y, 751).z();
         
@@ -355,13 +356,13 @@ void KalFitTrack::incorporateFoundHit(TkrFitPlane& nextKplane, int indexhit)
     double cx, cy;
     if(planeView == TkrCluster::X) 
     {
-        cx = sigma*sigma;//*size*size;
+        cx = sigma*sigma;
         cy = sigma_alt*sigma_alt;
     }
     else 
     {
         cx = sigma_alt*sigma_alt;
-        cy = sigma*sigma;//*size*size;
+        cy = sigma*sigma;
     }
 
     TkrFitMatrix meascov(1); 
@@ -500,8 +501,8 @@ void KalFitTrack::finish()
         double y_slope = m_hits[0].getHit(TkrFitHit::SMOOTH).getPar().getYSlope();
 
         m_dir          = Vector(-1.*x_slope,-1.*y_slope,-1.).unit();
-        m_chisq       /= (2.*nplanes-4.); // 2 meas. per plane - 4 parameters in 3D fit
-        m_chisqSmooth /= (2.*nplanes-4.);  
+        m_chisq       /= (nplanes-4.); // 1 measurement per plane - 4 parameters in 3D fit
+        m_chisqSmooth /= (nplanes-4.);  
         m_rmsResid     =0.;
 
         TkrFitPlaneColPtr hitPtr = m_hits.begin();
@@ -548,9 +549,12 @@ void KalFitTrack::doFit()
     int nplanes=m_hits.size();
     if (nplanes<=4) return;
       
-    // Generate the initial hit to start the Kalman Filter
-    //----------------------------------------------------
-    TkrFitHit hitf=generateFirstFitHit();
+    // Setup the first hit meas. cov. matrix
+    TkrFitPar p_pred = guessParameters();
+    KF.computeMeasCov(m_hits[0], p_pred); 
+
+   // Generate the initial hit to start the Kalman Filter
+    TkrFitHit hitf=generateFirstFitHit(p_pred);
     if(hitf.getType() != TkrFitHit::FIT) return; // failure! 
     m_hits[0].setHit(hitf); 
 
@@ -559,7 +563,7 @@ void KalFitTrack::doFit()
     
     //  Filter 
     //------------
-    int iplane = 0;  // to be compatible with new scoping rules for (MSC_VER)
+    int iplane = 0; 
     for (iplane = 0 ; iplane<nplanes-1;iplane++) {
         filterStep(iplane);
         if(iplane > 0) m_chisq += m_hits[iplane+1].getDeltaChiSq(TkrFitHit::FIT);
@@ -616,8 +620,17 @@ double KalFitTrack::computeQuality() const
 { 
  //   double quality = 20./(1.+m_chisqSegment) + 
  //               3.*(m_nxHits+m_nyHits-4. - .5*(m_Xgaps+m_Ygaps));
-    double quality = 4*(m_nxHits+m_nyHits-4. - (m_Xgaps+m_Ygaps)) 
-                     -2.*sqrt(m_chisqSmooth); 
+
+    int num_Hits = (m_nxHits <= 8) ? m_nxHits:8;
+    if(m_nyHits > 8) num_Hits += 8; 
+    else             num_Hits  += m_nyHits;
+
+    // Overall factor of 2 is to make this ~ match older def's 
+    double quality = 4*num_Hits - 2.*sqrt(m_chisqSmooth); 
+
+
+//    double quality = 4*(m_nxHits+m_nyHits-4. - (m_Xgaps+m_Ygaps)) 
+ //                    -2.*sqrt(m_chisqSmooth); 
     return quality;
 }
 
@@ -684,13 +697,36 @@ TkrFitPlane KalFitTrack::originalKPlane() const
 }
 
 
-TkrFitHit KalFitTrack::generateFirstFitHit()
+TkrFitHit KalFitTrack::generateFirstFitHit(TkrFitPar parguess)
 {   
+    double energy = m_hits[1].getEnergy();
+    if (energy == 0.) energy = m_energy0;
+
+    //  The first error is arbitrary to a degree
+    TkrFitMatrix first_errors; 
+    first_errors(2,2) = GFcontrol::iniErrorSlope * GFcontrol::iniErrorSlope;
+    first_errors(4,4) = GFcontrol::iniErrorSlope * GFcontrol::iniErrorSlope;
+    
+    if(parguess.getXPosition()==0. && parguess.getYPosition()==0.) 
+        return TkrFitHit();
+
+    TkrFitHit hitf(TkrFitHit::FIT, parguess, 
+        (m_hits[0].getHit(TkrFitHit::MEAS)).getCov() + first_errors);
+    
+    return hitf;
+}
+
+TkrFitPar KalFitTrack::guessParameters()
+{  
+    // Provides an estimate of the track parameters based on the first 
+    // two (x,y) pairs of SSD hits
+
     int nplanes=m_hits.size();
     if (nplanes<4) {
-        std::cout << "ERROR - KalFitTrack::generateFirstFitHit - too few planes" << '\n';
-        return TkrFitHit();
+        std::cout << "ERROR - KalFitTrack::guessParameters - too few planes" << '\n';
+        return TkrFitPar();
     }
+
     //Find first two x hits and first two y hits
     double x0,x1, y0,y1, zx0, zx1, zy0,zy1; 
     int nx = 0, ny=0;
@@ -725,14 +761,11 @@ TkrFitHit KalFitTrack::generateFirstFitHit()
     }
 
     if(nx != 2 || ny!=2) {
-        std::cout << "ERROR - KalFitTrack::generateFirstFitHit: nx or ny != 2" << '\n';
-        return TkrFitHit();
+        std::cout << "ERROR - KalFitTrack::guessParameters: nx or ny != 2" << '\n';
+        return TkrFitPar();
     }
-
     double x_slope = (x1-x0)/(zx1-zx0);
     double y_slope = (y1-y0)/(zy1-zy0);
-
-    m_dir = Vector(-1.*x_slope,-1.*y_slope,-1.).unit();
 
     double x_ini, y_ini, z_ini;
     if(zx0 > zy0) {  // extrapolate the y co-ordinate back
@@ -745,27 +778,14 @@ TkrFitHit KalFitTrack::generateFirstFitHit()
         y_ini = y0;
         x_ini = x0 + x_slope*(zy0-zx0);
     }
-
-    m_x0 = Point(x_ini,y_ini,z_ini);
-    
-    double energy = m_hits[1].getEnergy();
-    if (energy == 0.) energy = m_energy0;
-    TkrFitMatrix m; 
-
-    //  The first error is arbitrary to a degree
-    m(2,2) = GFcontrol::iniErrorSlope * GFcontrol::iniErrorSlope;
-    m(4,4) = GFcontrol::iniErrorSlope * GFcontrol::iniErrorSlope;
-    
-    TkrFitPar parguess(Ray(m_x0, m_dir));
-    TkrFitHit hitf(TkrFitHit::FIT,parguess, 
-        (m_hits[0].getHit(TkrFitHit::MEAS)).getCov()+m);
-    
-    return hitf;
+        
+    TkrFitPar parguess(x_ini, x_slope, y_ini, y_slope);
+    return parguess;
 }
-
 void KalFitTrack::eneDetermination()
 {
-    int nplanes = m_hits.size();
+    int nplanes = m_hits.size()-2; // Assume last 2 hits are x,y pair
+                                   // No new info. here - using SMOOTHED
 
     double totalRad  = 0.;
     double eneSum    = 0.;
@@ -931,7 +951,7 @@ double KalFitTrack::computeChiSqSegment(int nhits, TkrFitHit::TYPE typ)
     for (ihit =0; ihit < nhits; ihit++) {
         chi2 += m_hits[ihit].getDeltaChiSq(typ);
     }
-    chi2 /= (2.*nhits-4.);
+    chi2 /= (nhits-4.);
     return chi2;
 }
 
