@@ -6,7 +6,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/MonteCarloHitEnergy.cxx,v 1.5 2004/10/01 21:07:40 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/MonteCarloHitEnergy.cxx,v 1.6 2005/02/04 00:56:22 usher Exp $
  */
 
 #include "MonteCarloHitEnergy.h"
@@ -89,7 +89,9 @@ double MonteCarloHitEnergy::initialHitEnergy(const Event::TkrTrack&    patCand,
         // This to insure that we are at the right cluster
         if (clusHitRel->getFirst() == cluster)
         {
-            energy = clusHitRel->getSecond()->particleEnergy();
+            double mass = (m_partPropSvc->findByStdHepID(m_mcParticle->particleProperty()))->mass();
+
+            energy = clusHitRel->getSecond()->particleEnergy() - mass;
             break;
         }
     }
