@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Sun Feb 20 17:19:18 PST 2005
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrReconAlg.cxx 
+Log Message:
+Beef up control, should be completely transparent as defaults reproduce previous function
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r3p10, operation: add
 Package: TkrRecon
