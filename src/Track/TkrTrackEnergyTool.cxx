@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.18 2005/01/28 23:02:12 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.19 2005/01/29 00:58:19 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -74,14 +74,11 @@ const IToolFactory& TkrTrackEnergyToolFactory = s_factory;
 namespace {
 
     // Some constants collected from the file:
-
     const double _thinCoeff       = 0.61;
     const double _thickCoeff      = 1.97;
     const double _noradCoeff      = 0.35;
 
-
-    const double _calKludge       = 1.2;
-    const int    _maxTrials       = 30;
+    //const double _calKludge       = 1.2;
 }
 
 //
@@ -255,99 +252,104 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
     return sc;
 }
 
-
 double TkrTrackEnergyTool::getTotalEnergy(Event::TkrTrack* track, double CalEnergy)
-{
-    // Use hit counting + CsI energies to compute Event Energy 
-    // these come from the actual geometry
-    //int nThick = m_tkrGeom->getNumType(SUPER);
-    //int nNoCnv = m_tkrGeom->getNumType(NOCONV);
-    //int nThin  = m_tkrGeom->getNumType(STANDARD);
-
-    double thinConvRadLen  = m_tkrGeom->getAveConv(STANDARD);
-    double thickConvRadLen = m_tkrGeom->getAveConv(SUPER);
-    double trayRadLen      = m_tkrGeom->getAveRest(ALL);
-    
-    // Set up parameters for KalParticle swim through entire tracker
+{    
     const Event::TkrTrackHit* hit = track->front();
+    int topPlane = m_tkrGeom->getPlane((hit->getTkrId()));
+    int topLayer = m_tkrGeom->getLayer(topPlane);
+    bool isTop = m_tkrGeom->isTopPlaneInLayer(topPlane);
+    double arc_len    = 0.; 
 
-    // This will back up into the middle of the converter
     double convZ   = m_tkrGeom->getConvZ(m_tkrGeom->getLayer(hit->getTkrId()));
     Vector dir_ini = hit->getDirection(Event::TkrTrackHit::SMOOTHED); 
-    Point  x_ini   = hit->getPoint(Event::TkrTrackHit::SMOOTHED) 
-                   + dir_ini * (hit->getZPlane() - convZ);
-    double arc_tot = (x_ini.z() - m_tkrGeom->calZTop()) / fabs(dir_ini.z()); // to z at top of cal
+    double secTheta = fabs(1./dir_ini.z());
+
+    //Back up the start to the middle of the preceding converter
+    // if the first hit is just under that converter
+    Point  x_ini   = hit->getPoint(Event::TkrTrackHit::SMOOTHED);
+    //Back up the start to the middle of the preceding converter
+    // if the first hit is just under that converter
+    // otherwise, just up enuf to get a run on the first plane
+    
+    double deltaZ = ( isTop ? hit->getZPlane() - convZ : 1.);
+    x_ini += dir_ini * deltaZ;
+    arc_len += deltaZ*secTheta;
+
+    double arc_tot = (x_ini.z() - m_tkrGeom->calZTop()) * secTheta; // to z at top of cal
+    double addRad = 0.;
+    if(isTop) addRad = 0.5*m_tkrGeom->getRadLenConv(topLayer);
     
     // Do the swim
     IKalmanParticle* kalPart = m_tkrGeom->getPropagator();
     kalPart->setStepStart(x_ini, dir_ini, arc_tot);
+    double radKal = kalPart->radLength();                 
 
-    // Set up summed var's and loop over all layers between x_ini & cal
-    int    num_thin_hits  = 0;
-    int    num_thick_hits = 0;
-    int    num_last_hits  = 0; 
-    int    total_layers   = track->size();
-    int    thin_layers    = 0;
-    int    thick_layers   = 0;
-    int    norad_layers   = 0;
+    // Set up summed var's and loop over all layers between track start and cal
+    int    numHits[NTYPES];
+    int    numLayers[NTYPES];
 
-    for(Event::TkrTrackHitVecConItr hitIter = track->begin(); hitIter != track->end(); hitIter++)
-    {
-        // Dereference the hit iterator
-        hit = *hitIter;
+    for(int i=0;i<NTYPES;++i) {
+        numHits[i] = 0;
+        numLayers[i] = 0;
+    }
 
-        // Get the Q matrix from the track hits (will be zero for first hit on track)
-        //Event::TkrTrackParams Q = (*hitIter)->getTrackParams(Event::TkrTrackHit::QMATERIAL);
-        const Event::TkrTrackParams& trkHit = hit->getTrackParams(Event::TkrTrackHit::SMOOTHED);
+    // need to loop over layers, because track can end before the end of the tracker
+    int layer = topLayer+1; // so the "while" works
+    double sprdMax = m_tkrGeom->trayWidth()/2.;
 
-        // 4.0 sigma and not smaller then 2mm (was 2.5 sigma)
-        double xSprd = sqrt(2. + trkHit(1,1)*16.); 
-        double ySprd = sqrt(2. + trkHit(3,3)*16.); 
-        
-        // Limit to a tower... 
-        if(xSprd > m_tkrGeom->trayWidth()/2.) xSprd = m_tkrGeom->trayWidth()/2.;
-        if(ySprd > m_tkrGeom->trayWidth()/2.) ySprd = m_tkrGeom->trayWidth()/2.;
+    while(layer--) {
+
+        HepMatrix Q = kalPart->mScat_Covr(CalEnergy/2., arc_len);
+        double xms = Q(1,1);
+        double yms = Q(3,3);
+
+        // 4.0 sigma and not smaller then 2 mm (was 2.5 sigma)& less than a tower
+        double xSprd = std::min(sqrt(4.+xms*16.), sprdMax); 
+        double ySprd = std::min(sqrt(4.+yms*16.), sprdMax);
 
         // Assume location of shower center in given by 1st track
-        Point x_hit   = hit->getPoint(Event::TkrTrackHit::SMOOTHED); 
-	    int   ilayer  = m_tkrGeom->getLayer(hit->getTkrId()); 
-        int   numHits = m_clusTool->numberOfHitsNear(ilayer, xSprd, ySprd, x_hit);
+        Point x_hit = getPosAtZ(track, arc_len); 
+ 
+        convType type = m_tkrGeom->getLayerType(layer);
+        
+        // count the layers and close hits by type
+        numHits[type] += m_clusTool->numberOfHitsNear(layer, xSprd, ySprd, x_hit, dir_ini);
+        numLayers[type]++;
+        numLayers[ALL]++;
 
-        // Increment counters based on type of converter in this layer
-        convType type = m_tkrGeom->getLayerType(ilayer);
-        switch(type) 
-        {
-            case NOCONV:
-                num_last_hits += numHits; 
-                norad_layers++;
-                break;
-            case STANDARD:
-                num_thin_hits += numHits;
-                thin_layers++;
-                break;
-            case SUPER:
-                num_thick_hits += numHits;
-                thick_layers++;
-                break;
-            default: // shouldn't happen, but I'm being nice to the compiler
-                break;
+        // Increment arc-length
+        if (layer>0) {
+            int nextlayer = layer-1;
+            deltaZ = m_tkrGeom->getLayerZ(layer)-m_tkrGeom->getLayerZ(nextlayer);
+            arc_len += fabs(deltaZ*secTheta); 
         }
     }
     
     // Energy from nearby hit counting
-    double ene_trks   = _thinCoeff*num_thin_hits + _thickCoeff*num_thick_hits +
-        _noradCoeff*num_last_hits; // Coefs are MeV/hit - 2nd Round optimization
+    double ene_trks = _thinCoeff*numHits[STANDARD] + _thickCoeff*numHits[SUPER]
+        + _noradCoeff*numHits[NOCONV]; // Coefs are MeV/hit
  
-    //Just the radiators -- divide by costheta, just like for rad_min
-    double rad_nom = (thinConvRadLen*thin_layers + thickConvRadLen*thick_layers)/fabs(dir_ini.z());
-    //The "real" rad- len 
-    double rad_swim = kalPart->radLength();                 
-    //The non-radiator
-    double rad_min  = (thin_layers + thick_layers + norad_layers) 
-                    * trayRadLen / fabs(dir_ini.z()); 
-    rad_swim = std::max(rad_swim, rad_nom + rad_min);
+    //Just the radiators
+    // addRad removes half of the first converter, if present
+    double thinConvRadLen  = m_tkrGeom->getAveConv(STANDARD);
+    double thickConvRadLen = m_tkrGeom->getAveConv(SUPER);
+    double rad_nom = 
+        (thinConvRadLen*numLayers[STANDARD] 
+            + thickConvRadLen*numLayers[SUPER] - addRad) * secTheta;
+
+    // The non-radiator stuff
+    double trayRadLen = m_tkrGeom->getAveRest(ALL);
+    double rad_min  = numLayers[ALL] * trayRadLen * secTheta;
+    double radHits = rad_nom + rad_min;
+
+    // swum radlen
+    //double radTkrCal = track->getTkrCalRadlen() + addRad;
+    //std::cout << " radTC/Kal/hits " << radTkrCal << " " << radKal << " " << radHits << std::endl;
+
+    double rad_swim = std::max(radKal, radHits);
 
     double ene_total = CalEnergy;
+    // why are we normalizing by rad_nom instead of rad_nom+rad_min???
     if (rad_nom > 0.) ene_total += ene_trks * rad_swim / rad_nom;
 
     return ene_total;
