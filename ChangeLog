@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Wed Nov  7 21:24:25 PST 2001
+TkrRecon/src/Dll
+
+Modified Files:
+	TkrRecon_load.cpp 
+Log Message:
+Clearing main folders before adding subfolders
+    *
+------------------------------------------------------------
+User: usher  Wed Nov  7 21:24:25 PST 2001
 TkrRecon/src
 
 Modified Files:
