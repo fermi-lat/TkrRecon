@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: tlindner  Thu Jan 11 11:16:56 PST 2001
+TkrRecon/mgr requirements
+
+Modified Files:
+	requirements 
+Log Message:
+added linux ld fix.  removed headers from application command
+    *
+------------------------------------------------------------
 User: igable  Mon Dec 18 16:38:50 PST 2000
 TkrRecon - Imported sources
 
