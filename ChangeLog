@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Dec 16 08:12:05 PST 2004
+TkrRecon/src/PatRec/LinkAndTree
+
+Modified Files:
+	LinkAndTreeFindTrackTool.cxx 
+Log Message:
+TkrRecon now builds with this fix (but not declared fully functional yet!)
+    *
+------------------------------------------------------------
 User: usher  Wed Dec 15 21:04:25 PST 2004
 TkrRecon/src/TrackFit/KalmanFilter
 
