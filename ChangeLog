@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Mar 26 13:50:03 PST 2002
+TkrRecon/TkrRecon/GaudiAlg
+
+Removed Files:
+	RecNtupleAlg.h TkrNtupleAlg.h 
+Log Message:
+Removing ntuple algorithms as current versions no longer needed
+    *
+------------------------------------------------------------
 User: lsrea  Sat Mar  9 10:15:51 PST 2002
 TkrRecon/doc
 
