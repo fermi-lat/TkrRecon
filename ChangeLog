@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Wed Sep  1 10:42:32 PDT 2004
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx KalFitter.cxx 
+Log Message:
+fix a little problem with last tag
+
+    *
+------------------------------------------------------------
+User: lsrea  Wed Sep  1 10:42:32 PDT 2004
 TkrRecon/doc
 
 Modified Files:
