@@ -1,5 +1,18 @@
 ------------------------------------------------------------
 User: lsrea  Fri Nov 19 12:22:01 PST 2004
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+      Tag: GlastRelease-v4r5
+	TkrReconAlg.cxx 
+Log Message:
+prepare for tag v9r0p2gr7
+    default to not crash after TkrRecon error
+    default minEnergy to 1000 if MuRadLoss is chosen
+
+    *
+------------------------------------------------------------
+User: lsrea  Fri Nov 19 12:22:01 PST 2004
 TkrRecon/src
 
 Modified Files:
