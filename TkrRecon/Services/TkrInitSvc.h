@@ -24,7 +24,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.4 2002/05/07 22:47:22 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.5 2002/05/12 05:52:58 usher Exp $
  */
 
 
@@ -44,7 +44,7 @@ public:
     Event::TkrPatRecon*     setPatRecon();
 
     /// This for initializing the particular display routines
-    void                    setDisplayRtns(gui::DisplayControl& display, IDataProviderSvc* dps);
+    void                    setDisplayRtns(gui::DisplayControl::DisplaySubMenu&, IDataProviderSvc* dps);
 
     /// This for initializing the track fit algorithm
     Event::TkrTrackFit*     setTrackFit();

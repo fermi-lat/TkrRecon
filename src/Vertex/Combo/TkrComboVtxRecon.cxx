@@ -102,7 +102,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTr
                 vertex->addTrack(track1);
                 vertex->addTrack(track2);
 
-                addVertex(vertex);
+                push_back(vertex); // addVertex(vertex);
 
                 unused[trk1Idx] = false;
                 unused[trk2Idx] = false;
@@ -128,7 +128,7 @@ TkrComboVtxRecon::TkrComboVtxRecon(ITkrGeometrySvc* pTkrGeo, TkrFitTrackCol* pTr
 
             vertex->addTrack(track1);
 
-            addVertex(vertex);
+            push_back(vertex); //addVertex(vertex);
         }
     }
 

@@ -9,9 +9,6 @@
 
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 
-#include "gui/DisplayControl.h"
-#include "GuiSvc/IGuiSvc.h"
-#include "gui/GuiMgr.h"
 
 #include "TkrRecon/GaudiAlg/TkrFindAlg.h"
 #include "TkrRecon/Services/TkrInitSvc.h"

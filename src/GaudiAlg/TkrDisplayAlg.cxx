@@ -28,42 +28,45 @@ TkrDisplayAlg::TkrDisplayAlg(const std::string& name, ISvcLocator* pSvcLocator) 
 Algorithm(name, pSvcLocator) 
 //#############################################################################
 {
-	
+    
 }
 
 //##############################################
 StatusCode TkrDisplayAlg::initialize()
 //##############################################
 {
-	//Look for the gui service
-	IGuiSvc*   guiSvc = 0;
-	StatusCode sc     = service("GuiSvc", guiSvc);
-
+    //Look for the gui service
+    IGuiSvc*   guiSvc = 0;
+    StatusCode sc     = service("GuiSvc", guiSvc);
+    if( sc.isFailure() )  return sc;
+    
     TkrInitSvc* pTkrInitSvc = 0;
     sc = service("TkrInitSvc", pTkrInitSvc);
     
     //Look for the geometry service
     ITkrGeometrySvc* pTkrGeo = 0;
     sc = service("TkrGeometrySvc", pTkrGeo, true);
-
-	//Ok, see if we can set up the display
-	if (sc.isSuccess()) 
-	{
+    
+    //Ok, see if we can set up the display
+    if (sc.isSuccess()) 
+    {
         gui::DisplayControl& display = guiSvc->guiMgr()->display();
-
-		//Set up the display rep for Clusters
-		TkrClustersRep*  p_clRep = new TkrClustersRep(eventSvc());
-		display.add(p_clRep, "Clusters");
-		p_clRep->setTkrGeo(pTkrGeo);
-
+        
+        gui::DisplayControl::DisplaySubMenu& tkrmenu = display.subMenu("TkrRecon");
+        
+        //Set up the display rep for Clusters
+        TkrClustersRep*  p_clRep = new TkrClustersRep(eventSvc());
+        tkrmenu.add(p_clRep, "Clusters");
+        p_clRep->setTkrGeo(pTkrGeo);
+        
         //This call sets up recon specific display routines
-        pTkrInitSvc->setDisplayRtns(display, eventSvc());
-
-		//Set up the display rep for the reconstructed tracks
-		display.add(new TkrTracksRep(eventSvc()), "Tracks");
-	}
-
-	return sc;
+        pTkrInitSvc->setDisplayRtns(tkrmenu, eventSvc());
+        
+        //Set up the display rep for the reconstructed tracks
+        tkrmenu.add(new TkrTracksRep(eventSvc()), "Tracks");
+    }
+    
+    return sc;
 }
 //##############################################
 StatusCode TkrDisplayAlg::execute()
@@ -76,6 +79,6 @@ StatusCode TkrDisplayAlg::execute()
 StatusCode TkrDisplayAlg::finalize()
 //##############################################
 {
-//	
-	return StatusCode::SUCCESS;
+    //	
+    return StatusCode::SUCCESS;
 }
