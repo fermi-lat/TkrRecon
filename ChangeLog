@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Fri Jun  1 12:19:27 PDT 2001
+TkrRecon/TkrRecon TkrNtupleAlg.h
+
+Added Files:
+	TkrNtupleAlg.h 
+Log Message:
+Add algorithm to output ntuple values
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon May 21 12:07:42 PDT 2001
 TkrRecon/src TkrGeometrySvc.cxx
 
