@@ -33,11 +33,11 @@ using namespace Event;
 //-----------------------------------------------------
 
 KalFitTrack::KalFitTrack(Event::TkrClusterCol* clusters, ITkrGeometrySvc* geo, int ilyr, int itwr, double sigmaCut,double energy, const Ray& testRay) :
+                             m_ray(testRay),
+                             m_status(EMPTY),
                              m_iLayer(ilyr),
                              m_iTower(itwr),
-                             m_status(EMPTY),
                              m_sigma(sigmaCut),
-                             m_ray(testRay),
                              m_clusters(clusters),
                              m_tkrGeo(geo)
 {
@@ -457,7 +457,7 @@ void KalFitTrack::incorporateFoundHit(TkrFitPlane& nextKplane, int indexhit)
     
     double sigma     = m_tkrGeo->siResolution();
     double sigma_alt = m_tkrGeo->trayWidth()/sqrt(12.); //mm before not really important to have prescise
-    double size      = m_clusters->size(planeView,indexhit);
+    //double size      = m_clusters->size(planeView,indexhit);
     
     double cx, cy;
     if(planeView == TkrCluster::X) 
@@ -483,8 +483,8 @@ void KalFitTrack::incorporateFoundHit(TkrFitPlane& nextKplane, int indexhit)
 }
 
 
-double KalFitTrack::sigmaFoundHit(const TkrFitPlane& previousKplane, const TkrFitPlane& nextKplane,
-                                  int& indexhit, double& radiushit)
+double KalFitTrack::sigmaFoundHit(const TkrFitPlane& /*previousKplane*/, const TkrFitPlane& nextKplane,
+                                  int& indexhit, double& /*radiushit*/)
 {
    // Purpose and Method: Does the actual hit finding. Calls TkrQueryClusters
    // Inputs: the previous plane, then present plane, and min. distance 
@@ -1275,7 +1275,7 @@ double KalFitTrack::getKinkNorma(int kplane) const
     return sigma_kink;
 }
 
-int KalFitTrack::computeNumSegmentPoints(TkrFitHit::TYPE typ)
+int KalFitTrack::computeNumSegmentPoints(TkrFitHit::TYPE /*typ*/)
 {
    unsigned int num_ist=0;
     

@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.14 2002/09/02 19:46:15 cohen Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.15 2002/09/02 21:51:06 usher Exp $
 // Description:                                                  
 //      Implementation of the Kalman vertexer
 //
@@ -253,7 +253,8 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& VtxCol)
 
       HepSymMatrix Cov_ij(3,0);
       int j;
-      for(j=i+1;j<usedTracks.size();j++)
+      int numTracks = usedTracks.size();
+      for(j=i+1;j<numTracks;j++)
         {
           int sgn2 = theUsedTrack->getDirection().z()>0?+1:-1;
           HepVector Qj = sQ_list[j];
@@ -388,7 +389,7 @@ HepVector VtxKalFitTool::computeVectorH(const HepVector x, const HepVector q)
 }
 
 
-HepMatrix VtxKalFitTool::computeMatrixA(const HepVector x, const HepVector q)
+HepMatrix VtxKalFitTool::computeMatrixA(const HepVector /*x*/, const HepVector q)
 {
   // Purpose and Method:  matrix A is simply {partial H}/{partial x}
   // Inputs: position and momentum at linearization point
@@ -405,7 +406,7 @@ HepMatrix VtxKalFitTool::computeMatrixA(const HepVector x, const HepVector q)
   return A;
 }
 
-HepMatrix VtxKalFitTool::computeMatrixB(const HepVector x, const HepVector q)
+HepMatrix VtxKalFitTool::computeMatrixB(const HepVector x, const HepVector /*q*/)
 {
   // Purpose and Method:  matrix B is simply {partial H}/{partial q}
   // Inputs: position x and momentum q at linearization point
@@ -446,7 +447,7 @@ HepVector VtxKalFitTool::getTkrParVec(const Event::TkrFitTrack& theTrack)
 
 
 HepVector VtxKalFitTool::computeQatVtx(const Event::TkrFitTrack& theTrack,
-                                       const HepVector theVertex)
+                                       const HepVector /*theVertex*/)
 {
   // Purpose and Method: Simple building of the geometrical momentum (Sx,Sy,E).
   //                     In general it should be computed at the POCA to the 
@@ -534,7 +535,7 @@ HepMatrix VtxKalFitTool::SlopeToDir(HepVector Q, int sign_uz)
 
 Event::TkrFitMatrix 
 VtxKalFitTool::propagCovToVtx(const Event::TkrFitMatrix Cov, 
-                              const HepVector Vtx)
+                              const HepVector /*Vtx*/)
 {
   // Purpose and Method: Propagate Cov matrix to vicinity of current 
   //                     vertex estimate

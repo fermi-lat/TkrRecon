@@ -26,7 +26,7 @@ void TkrBestCandRep::update()
 	    //Now see if we can do the drawing
 	    if (pTkrCands)
 	    {
-		    gui::DisplayRep* pDisplay = this;
+	      //    gui::DisplayRep* pDisplay = this;
 	        if (pTkrCands->getNumTrees(X) > 0)
             {
 		        setColor("green");
@@ -66,7 +66,7 @@ void TkrBestCandRep::TkrDrawBestCand(TkrPatCandCol* pTkrCandidates, TkrPlaneType
     TkrLinkForest* pForest  = pTkrCands->getForest(plane);
     int            nTrees   = pForest->getNumTrees();
 	treeListPtr    treePtr  = pForest->getListStart();
-	bool           fullTree = true;
+	//bool           fullTree = true;
     int            colorIdx = 0;
 
 	//messageManager::instance()->message(" ****************************************");

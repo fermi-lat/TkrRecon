@@ -23,7 +23,7 @@ void TkrCandidatesRep::update()
 	if (pTkrCandidates)
 	{
         TkrLinkAndTree* pTkrCands = dynamic_cast<TkrLinkAndTree*>(pTkrCandidates);
-		gui::DisplayRep*  pDisplay  = this;
+	//	gui::DisplayRep*  pDisplay  = this;
 
 	    if (pTkrCands->getNumTrees(X) > 0)
         {

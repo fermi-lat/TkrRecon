@@ -47,11 +47,11 @@ protected:
     void ini();
      
     // Output Data
-    Point  m_position;
-    Vector m_direction;
-    double m_energy;
     int m_firstLayer;
     int m_itower;    
+    Vector m_direction;
+    Point  m_position;
+    double m_energy;
 };
 
 #endif

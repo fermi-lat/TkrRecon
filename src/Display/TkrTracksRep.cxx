@@ -31,7 +31,7 @@ void TkrTracksRep::update()
 
         if (numTracks > 0) 
         {
-            int trkIdx = 0;
+	  //int trkIdx = 0;
 	        TkrFitTrackCol::const_iterator it = pTracks->begin();
 
             while(it != pTracks->end())

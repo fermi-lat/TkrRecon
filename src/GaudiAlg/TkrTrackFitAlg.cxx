@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.1 2002/08/20 19:43:16 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.2 2002/08/28 22:55:48 usher Exp $
 //
 // Description:
 //      Controls the track fitting
@@ -118,8 +118,8 @@ StatusCode TkrTrackFitAlg::execute()
 
 	log << MSG::DEBUG << "------- Recon of new Event --------" << endreq;
 
-    // Recover pointer to the reconstructed clusters
-    Event::TkrClusterCol* TkrClusters = SmartDataPtr<Event::TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol); 
+    // Recover pointer to the reconstructed clusters NOT USED
+    //    Event::TkrClusterCol* TkrClusters = SmartDataPtr<Event::TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol); 
 
     // Find the collection of candidate tracks
     Event::TkrPatCandCol* pTkrCands   = SmartDataPtr<Event::TkrPatCandCol>(eventSvc(),EventModel::TkrRecon::TkrPatCandCol);
