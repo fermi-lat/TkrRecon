@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Fri Jan 10 11:43:24 PST 2003
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrDisplayAlg.cxx TkrMeritTool.cxx 
+Log Message:
+Prepare for tag v8r6p1: move TkrGeometrySvc to Tkrutil
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Jan 10 11:43:23 PST 2003
 TkrRecon/src/Dll
 
