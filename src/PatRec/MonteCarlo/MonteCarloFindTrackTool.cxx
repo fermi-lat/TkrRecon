@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.15 2004/09/23 21:30:28 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.16 2004/10/03 18:19:20 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -46,7 +46,7 @@ private:
     Event::TkrTrackHit* newTkrTrackHit(const idents::TkrId tkrId, const Event::TkrCluster* cluster);
 
     /// Pointer to the local Tracker geometry service
-    ITkrGeometrySvc*    m_tkrGeo;
+    ITkrGeometrySvc*    m_tkrGeom;
 
     IMcBuildRelTablesTool* m_mcBuildInfo;
 
@@ -84,7 +84,7 @@ StatusCode MonteCarloFindTrackTool::initialize()
     {
         throw GaudiException("Service [TkrGeometrySvc] not found", name(), sc);
     }
-    m_tkrGeo = dynamic_cast<ITkrGeometrySvc*>(iService);
+    m_tkrGeom = dynamic_cast<ITkrGeometrySvc*>(iService);
 
     if ( (sc = toolSvc()->retrieveTool("McBuildRelTablesTool", m_mcBuildInfo)).isFailure() )
     {
@@ -349,8 +349,8 @@ Event::TkrTrackHit* MonteCarloFindTrackTool::newTkrTrackHit(const idents::TkrId 
 
     int    measIdx   = hit->getParamIndex(true,false);
     int    nonmIdx   = hit->getParamIndex(false,false);
-    double sigma     = m_tkrGeo->siResolution();
-    double sigma_alt = m_tkrGeo->trayWidth() * oneOverSqrt12;
+    double sigma     = m_tkrGeom->siResolution();
+    double sigma_alt = m_tkrGeom->trayWidth() * oneOverSqrt12;
 
     params(measIdx,measIdx) = sigma * sigma;
     params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;

@@ -6,11 +6,11 @@
 /// This should be done in the constructor.
 
 //#############################################################################
-TkrComboVtxRep::TkrComboVtxRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySvc* pTkrGeometry)
+TkrComboVtxRep::TkrComboVtxRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySvc* tkrGeom)
 //#############################################################################
 {
     dps     = dataProviderSvc;
-    pTkrGeo = pTkrGeometry;
+    m_tkrGeom = tkrGeom;
 }
 //-------------------- private ----------------------
 //##############################################

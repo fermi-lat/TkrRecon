@@ -5,14 +5,14 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/NoProcNoiseMatrix.cxx,v 1.2 2004/09/08 15:32:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/NoProcNoiseMatrix.cxx,v 1.2 2004/10/01 21:07:39 usher Exp $
  */
 
 #include "NoProcNoiseMatrix.h"
 #include "src/TrackFit/KalmanFilterFit/KalmanFilterInit.h"
 
-NoProcNoiseMatrix::NoProcNoiseMatrix(ITkrGeometrySvc* tkrGeo) : 
-                      m_tkrGeo(tkrGeo), m_LastStepRadLen(0.), m_LastStepActDist(0.), 
+NoProcNoiseMatrix::NoProcNoiseMatrix(ITkrGeometrySvc* tkrGeom) : 
+                      m_tkrGeom(tkrGeom), m_LastStepRadLen(0.), m_LastStepActDist(0.), 
                       m_LastStepQ(4,4), m_unit(4,4)
 {
     m_unit(1,1) = 1.;
@@ -77,7 +77,7 @@ KFmatrix NoProcNoiseMatrix::operator()(const KFvector& stateVec, const int &k, c
     // Step arc length
     double arc_len = fabs(deltaZ/xDir.z()); 
 
-    IKalmanParticle* TkrFitPart = m_tkrGeo->getPropagator();
+    IKalmanParticle* TkrFitPart = m_tkrGeom->getPropagator();
     TkrFitPart->setStepStart(x0, xDir, arc_len);
                           
     m_LastStepQ = KFmatrix(4,4,0); 

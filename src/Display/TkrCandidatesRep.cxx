@@ -6,11 +6,11 @@
 /// This should be done in the constructor.
 
 //#############################################################################
-TkrCandidatesRep::TkrCandidatesRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySvc* pTkrGeometry)
+TkrCandidatesRep::TkrCandidatesRep(IDataProviderSvc* dataProviderSvc, ITkrGeometrySvc* tkrGeom)
 //#############################################################################
 {
     dps     = dataProviderSvc;
-    pTkrGeo = pTkrGeometry;
+    m_tkrGeom = tkrGeom;
 }
 //-------------------- private ----------------------
 //##############################################
@@ -89,8 +89,8 @@ void TkrCandidatesRep::TkrDrawCandidates(TkrPatCandCol* pTkrCandidates, TkrPlane
         double          z         = pClus->position().z();
         //double          offset    = -0.5*trackerGeo::trayWidth();
 
-        if (pClus->getTkrId().getView() == idents::TkrId::eMeasureX) y += 0.5 * pTkrGeo->towerPitch();
-        else                                                         x += 0.5 * pTkrGeo->towerPitch();
+        if (pClus->getTkrId().getView() == idents::TkrId::eMeasureX) y += 0.5 * m_tkrGeom->towerPitch();
+        else                                                         x += 0.5 * m_tkrGeom->towerPitch();
 
         setColor(pColors[colorIdx]);
         markerAt(Point(x,y,z));
@@ -126,8 +126,8 @@ void TkrCandidatesRep::drawLinkNode(TkrLinkNode* pTkrNode)
     double z      = pTopCluster->position().z();
     //double offset = -0.5*trackerGeo::trayWidth();
 
-    if (pTopCluster->getTkrId().getView() == idents::TkrId::eMeasureX) y += 0.5 * pTkrGeo->towerPitch();
-    else                                                               x += 0.5 * pTkrGeo->towerPitch();
+    if (pTopCluster->getTkrId().getView() == idents::TkrId::eMeasureX) y += 0.5 * m_tkrGeom->towerPitch();
+    else                                                               x += 0.5 * m_tkrGeom->towerPitch();
 
     moveTo(Point(x,y,z));
 
@@ -137,8 +137,8 @@ void TkrCandidatesRep::drawLinkNode(TkrLinkNode* pTkrNode)
     y = pBotCluster->position().y();
     z = pBotCluster->position().z();
 
-    if (pBotCluster->getTkrId().getView() == idents::TkrId::eMeasureX) y += 0.5 * pTkrGeo->towerPitch();
-    else                                                               x += 0.5 * pTkrGeo->towerPitch();
+    if (pBotCluster->getTkrId().getView() == idents::TkrId::eMeasureX) y += 0.5 * m_tkrGeom->towerPitch();
+    else                                                               x += 0.5 * m_tkrGeom->towerPitch();
 
     lineTo(Point(x,y,z));
 

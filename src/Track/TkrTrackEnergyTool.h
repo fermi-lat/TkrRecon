@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Track/TkrTrackEnergyTool.h,v 1.2 2004/09/08 15:32:45 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.h,v 1.2 2004/09/23 21:30:31 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -57,7 +57,7 @@ private:
     double getTotalEnergy(Event::TkrPatCand* track, double CalEnergy);
 
     /// Pointer to the local Tracker geometry service
-    ITkrGeometrySvc*       m_tkrGeo;
+    ITkrGeometrySvc*       m_tkrGeom;
 
     /// Pointer to the cluster tool
     ITkrQueryClustersTool* m_clusTool;

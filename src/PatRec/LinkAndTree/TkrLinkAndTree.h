@@ -24,7 +24,7 @@
 class TkrLinkAndTree : public TkrPatCandCol 
 {
 public:
-    TkrLinkAndTree(ITkrGeometrySvc* pTkrGeo, ITkrQueryClustersTool* clusTool, double energy);
+    TkrLinkAndTree(ITkrGeometrySvc* tkrGeom, ITkrQueryClustersTool* clusTool, double energy);
    ~TkrLinkAndTree();
 
         //Return information
@@ -71,7 +71,7 @@ private:
 
     TkrLinkForest*      pForestY;
     int                 numTracksY;
-    //ITkrGeometrySvc*    m_pTkrGeo;
+    //ITkrGeometrySvc*    m_tkrGeom;
 };
 
 #endif

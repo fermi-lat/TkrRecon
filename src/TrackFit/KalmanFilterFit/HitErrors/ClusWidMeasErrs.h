@@ -7,7 +7,7 @@
  *
  * @author Tracy Usher (editor) 
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/ClusWidMeasErrs.h,v 1.2 2004/09/08 15:32:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/ClusWidMeasErrs.h,v 1.3 2004/10/01 21:02:05 usher Exp $
  */
 
 #ifndef ClusWidMeasErrs_h
@@ -31,7 +31,7 @@ public:
                                  const Event::TkrCluster&     cluster);
 
 private:
-    ITkrGeometrySvc* m_tkrGeo;
+    ITkrGeometrySvc* m_tkrGeom;
     TkrControl*      m_control;
 };
 

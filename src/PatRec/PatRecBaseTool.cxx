@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/PatRec/PatRecBaseTool.cxx,v 1.2 2004/09/08 15:32:43 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/PatRecBaseTool.cxx,v 1.4 2004/09/23 21:30:28 usher Exp $
 // Description:
 //      Implementation of the base class of concrete pattern recognition tools
 //
@@ -39,12 +39,12 @@ StatusCode PatRecBaseTool::initialize()
 
   if( serviceLocator() ) 
   {   
-      if(service( "TkrGeometrySvc", m_tkrGeo, true ).isFailure()) 
+      if(service( "TkrGeometrySvc", m_tkrGeom, true ).isFailure()) 
       {
           log << MSG::ERROR << "Could not find TkrGeometrySvc" << endreq;
           return fail;
       }
-      m_tkrFail = m_tkrGeo->getTkrFailureModeSvc();
+      m_tkrFail = m_tkrGeom->getTkrFailureModeSvc();
 
       if(service( "EventDataSvc", m_dataSvc, true ).isFailure()) 
       {

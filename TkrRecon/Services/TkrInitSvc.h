@@ -17,7 +17,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.12 2004/06/01 22:04:14 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.13 2004/09/09 20:39:54 lsrea Exp $
  */
 
 
@@ -34,7 +34,7 @@ public:
     StatusCode       finalize();
 
     /// This for returning the pointer to the geometry service
-    ITkrGeometrySvc* getGeometrySvc() {return pTkrGeo;}
+    ITkrGeometrySvc* getGeometrySvc() {return m_tkrGeom;}
         
     /// queryInterface - for implementing a Service this is necessary
     StatusCode       queryInterface(const IID& riid, void** ppvUnknown);
@@ -47,7 +47,7 @@ public:
 private:
 
     /// pointer to the geometry service
-    ITkrGeometrySvc* pTkrGeo;
+    ITkrGeometrySvc* m_tkrGeom;
 
     /// Variables which can be changed in TkrControl
     int              m_maxCandidates;

@@ -26,7 +26,7 @@ ComboVtxTool::ComboVtxTool( const std::string& type, const std::string& name, co
     IService*   iService = 0;
     StatusCode  sc       = serviceLocator()->getService("TkrGeometrySvc", iService, true);
 
-    pTkrGeoSvc = dynamic_cast<ITkrGeometrySvc*>(iService);
+    m_tkrGeom = dynamic_cast<ITkrGeometrySvc*>(iService);
 
     //Locate and store a pointer to the data service
     sc         = serviceLocator()->getService("EventDataSvc", iService);
@@ -48,7 +48,7 @@ StatusCode ComboVtxTool::retrieveVtxCol(Event::TkrVertexCol& vertexCol)
 
     //Ok, this will do the combo vertexing putting the results into the already defined vertex 
     //collection "vertexCol"
-    TkrComboVtxRecon vertex(pTkrGeoSvc, &vertexCol, tracks, candidates, &vertexRelTab);
+    TkrComboVtxRecon vertex(m_tkrGeom, &vertexCol, tracks, candidates, &vertexRelTab);
 
     return sc;
 }

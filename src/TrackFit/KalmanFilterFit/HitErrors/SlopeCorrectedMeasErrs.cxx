@@ -8,13 +8,13 @@
  *
  * @author Tracy Usher (editor) from version implemented by Leon Rochester (due to Bill Atwood)
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.3 2004/10/01 19:49:08 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.4 2004/10/01 21:02:05 usher Exp $
  */
 
 #include "SlopeCorrectedMeasErrs.h"
 
-SlopeCorrectedMeasErrs::SlopeCorrectedMeasErrs(ITkrGeometrySvc* tkrGeo) : 
-                  m_tkrGeo(tkrGeo), m_control(TkrControl::getPtr())
+SlopeCorrectedMeasErrs::SlopeCorrectedMeasErrs(ITkrGeometrySvc* tkrGeom) : 
+                  m_tkrGeom(tkrGeom), m_control(TkrControl::getPtr())
 {
     return;
 }
@@ -72,7 +72,7 @@ double SlopeCorrectedMeasErrs::getError(double strips, double slope) const
     // strips is the number of strips in the cluster
     // slope is the slope of the track in the measuring view
 
-    double stripAspect = m_tkrGeo->siThickness()/m_tkrGeo->siStripPitch();
+    double stripAspect = m_tkrGeom->siThickness()/m_tkrGeom->siStripPitch();
     double absSlope = fabs(slope*stripAspect);
 
     // calculation below is done in units of strips
@@ -86,9 +86,9 @@ double SlopeCorrectedMeasErrs::getError(double strips, double slope) const
 
     double error;
     double factor = 0.0;
-    double minErr = m_tkrGeo->siResolution(); 
-    double clusterWidth  = strips*m_tkrGeo->siStripPitch();
-    double projectedWidth = fabs(slope)*m_tkrGeo->siThickness();
+    double minErr = m_tkrGeom->siResolution(); 
+    double clusterWidth  = strips*m_tkrGeom->siStripPitch();
+    double projectedWidth = fabs(slope)*m_tkrGeom->siThickness();
     int    nStrips = (int) strips+.01;  // just to be safe
 
 

@@ -7,7 +7,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/Track/TkrLinkAndTreeFitTool.h,v 1.2 2004/09/08 15:32:45 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrLinkAndTreeFitTool.h,v 1.6 2004/09/23 21:30:31 usher Exp $
  */
 
 #ifndef TKRLINKANDTREEFITTOOL_H
@@ -34,7 +34,7 @@ public:
 
 private:
     /// Pointer to the local Tracker geometry service
-    ITkrGeometrySvc* pTkrGeoSvc;
+    ITkrGeometrySvc* m_tkrGeom;
     /// Pointer to the FailureModeSvc
     ITkrFailureModeSvc* pTkrFail;
 

@@ -5,10 +5,10 @@
 
 #include "src/PatRec/LinkAndTree/TkrLinkAndTree.h"
 
-TkrLinkAndTree::TkrLinkAndTree(ITkrGeometrySvc* /*pTkrGeo*/, ITkrQueryClustersTool* clusTool, double energy)
+TkrLinkAndTree::TkrLinkAndTree(ITkrGeometrySvc* /*tkrGeom*/, ITkrQueryClustersTool* clusTool, double energy)
 {
     m_energy = energy;
-    //m_pTkrGeo = pTkrGeo;
+    //m_tkrGeom = tkrGeom;
 
     ini();
 

@@ -7,13 +7,13 @@
  *
  * @author Tracy Usher (editor) taken from code authored by Bill Atwood
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/StandardMeasErrs.cxx,v 1.3 2004/10/01 19:49:08 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/StandardMeasErrs.cxx,v 1.2 2004/10/01 21:02:05 usher Exp $
  */
 
 #include "StandardMeasErrs.h"
 
-StandardMeasErrs::StandardMeasErrs(ITkrGeometrySvc* tkrGeo) : 
-                  m_tkrGeo(tkrGeo), m_control(TkrControl::getPtr())
+StandardMeasErrs::StandardMeasErrs(ITkrGeometrySvc* tkrGeom) : 
+                  m_tkrGeom(tkrGeom), m_control(TkrControl::getPtr())
 {
     return;
 }
@@ -38,7 +38,7 @@ TkrCovMatrix StandardMeasErrs::computeMeasErrs(const Event::TkrTrackParams& newP
     TkrCovMatrix newCov(4,4,1);
 
     double clusWid = const_cast<Event::TkrCluster&>(cluster).size();
-    double min_err = m_tkrGeo->siResolution();   
+    double min_err = m_tkrGeom->siResolution();   
 
     int measured, other;
     double slope;
@@ -56,8 +56,8 @@ TkrCovMatrix StandardMeasErrs::computeMeasErrs(const Event::TkrTrackParams& newP
         other    = XPOS;
     }
 
-    double wid_proj = fabs(slope * m_tkrGeo->siThickness());
-    double wid_cls  = clusWid * m_tkrGeo->siStripPitch();
+    double wid_proj = fabs(slope * m_tkrGeom->siThickness());
+    double wid_cls  = clusWid * m_tkrGeom->siStripPitch();
     double error    = (wid_cls - wid_proj) * oneOverSqrt12;
 
     error = (error > min_err) ? error : min_err; 

@@ -17,10 +17,10 @@
 /// This should be done in the constructor.
 
 TkrDispCompleteNet::TkrDispCompleteNet(IDataProviderSvc* dataProviderSvc, 
-                                       ITkrGeometrySvc* pTkrGeometry)
+                                       ITkrGeometrySvc* tkrGeom)
 {
     dps     = dataProviderSvc;
-    pTkrGeo = pTkrGeometry;
+    m_tkrGeom = tkrGeom;
 }
 
 //-------------------- private ----------------------

@@ -11,7 +11,7 @@
   *
   * @author Bill Atwood, SCIPP/UCSC
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilter/KalmanFilter.h,v 1.14 2004/09/23 21:30:30 usher Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilter/KalmanFilter.h,v 1.15 2004/10/01 19:49:09 usher Exp $
 */
 #ifndef _KALMANFILTER_H
 #define _KALMANFILTER_H 
@@ -54,7 +54,7 @@ private:
     double                m_activeDist;    // the insideActiveArea parameter
     TkrFitMatrix          m_Qmaterial;     // The cov. matrix for last projection
     Event::TkrClusterCol* m_clusters;
-    ITkrGeometrySvc*      m_tkrGeo;
+    ITkrGeometrySvc*      m_tkrGeom;
     TkrControl*           m_control;
 
     // internal method

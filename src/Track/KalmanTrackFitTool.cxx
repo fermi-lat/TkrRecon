@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.9 2004/09/23 21:30:31 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.10 2004/10/04 16:07:24 usher Exp $
  */
 
 // to turn one debug variables
@@ -97,7 +97,7 @@ private:
     void       getInitialFitHit(Event::TkrTrack& track);
 
     /// Pointer to the local Tracker geometry service
-    ITkrGeometrySvc*     m_tkrGeo;
+    ITkrGeometrySvc*     m_tkrGeom;
 
     /// Pointer to the failure service
     ITkrFailureModeSvc*  pTkrFailSvc;
@@ -188,7 +188,7 @@ StatusCode KalmanTrackFitTool::initialize()
     {
         throw GaudiException("Service [TkrGeometrySvc] not found", name(), sc);
     }
-    m_tkrGeo = dynamic_cast<ITkrGeometrySvc*>(iService);
+    m_tkrGeom = dynamic_cast<ITkrGeometrySvc*>(iService);
 
     //Locate and store a pointer to the geometry service
     iService = 0;
@@ -212,8 +212,8 @@ StatusCode KalmanTrackFitTool::initialize()
     setHitEnergyLoss(m_HitEnergyType);
 
     // Set up for multiple scattering
-    if (m_MultScatMat) m_Qmat = new StdProcNoiseMatrix(m_tkrGeo);
-    else               m_Qmat = new NoProcNoiseMatrix(m_tkrGeo);
+    if (m_MultScatMat) m_Qmat = new StdProcNoiseMatrix(m_tkrGeom);
+    else               m_Qmat = new NoProcNoiseMatrix(m_tkrGeom);
 
     // Projection matrix
     if (m_FitMeasOnly) 
@@ -292,15 +292,15 @@ void KalmanTrackFitTool::setClusErrCompType(const std::string& clusErrorType)
 
         if (m_HitErrorType == "SlopeCorrected")
         {
-            m_fitErrs   = new SlopeCorrectedMeasErrs(m_tkrGeo);
+            m_fitErrs   = new SlopeCorrectedMeasErrs(m_tkrGeom);
         }
         else if (m_HitErrorType == "ClusterWidth")
         {
-            m_fitErrs   = new ClusWidMeasErrs(m_tkrGeo);
+            m_fitErrs   = new ClusWidMeasErrs(m_tkrGeom);
         }
         else if (m_HitErrorType == "StandardErrs")
         {
-            m_fitErrs   = new StandardMeasErrs(m_tkrGeo);
+            m_fitErrs   = new StandardMeasErrs(m_tkrGeom);
         }
         else throw(std::invalid_argument("Invalid cluster error type requested"));
     }
@@ -393,7 +393,7 @@ void KalmanTrackFitTool::doKalmanFit(Event::TkrTrack& track)
 void KalmanTrackFitTool::doFinalFitCalculations(Event::TkrTrack& track)
 {
     // Get an instance of the track fit utilities
-    TrackFitUtils trackUtils(m_tkrGeo, m_HitEnergy);
+    TrackFitUtils trackUtils(m_tkrGeom, m_HitEnergy);
 
     trackUtils.finish(track);
 

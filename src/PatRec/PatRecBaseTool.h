@@ -12,7 +12,7 @@
  * @class PatRecBaseTool
  * @brief Base class for the concrete pattern recognition tools.
  * @author GLAST Tracker Software group
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/PatRec/PatRecBaseTool.h,v 1.2 2004/09/08 15:32:43 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/PatRecBaseTool.h,v 1.3 2004/09/23 21:30:28 usher Exp $
  */
 class PatRecBaseTool : public AlgTool, virtual public ITkrFindTrackTool 
 {
@@ -30,7 +30,7 @@ class PatRecBaseTool : public AlgTool, virtual public ITkrFindTrackTool
  protected:
 
   /// Pointer to the local Tracker geometry service
-  ITkrGeometrySvc*       m_tkrGeo;
+  ITkrGeometrySvc*       m_tkrGeom;
 
   /// Pointer to the local FailureMode service
   ITkrFailureModeSvc*    m_tkrFail;

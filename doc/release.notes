@@ -3,6 +3,7 @@
 @verbatim
   Manager: Leon Rochester 
 
+           12-Oct-2004  LSR  change to m_tkrGeom throughout
   v9r0p2   09-Sep-2004  LSR  Move energy loss out of TkrFitPlane
                              Add BetheBlock muon option
                              Change error default to slope-dependent errors
