@@ -13,7 +13,7 @@
   *
   * @author Tracy Usher (as editor instead of author)
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TrackFitUtils.h,v 1.9 2004/12/16 05:04:23 usher Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TrackFitUtils.h,v 1.10 2005/01/17 19:16:45 lsrea Exp $
 */
 
 #ifndef __TrackFitUtils_H
@@ -47,7 +47,7 @@ public:
     double computeQuality(const Event::TkrTrack& track) const;
 
     /// Determine the energy of the track
-    void   eneDetermination(Event::TkrTrack& track);
+    void   computeMSEnergy(Event::TkrTrack& track);
 
     /// Segment Part: First portion that influences direction
     double computeChiSqSegment(const Event::TkrTrack&        track, 
@@ -70,8 +70,35 @@ public:
     void   unFlagHit(Event::TkrTrack& track,int num);
     void   setSharedHitsStatus(Event::TkrTrack& track, int maxShare);
 
-private:    
-    /// Pointers to clusters, geoemtry, and control parameters
+    // little local class to hold the hit info for computeMSEnergy
+    class HitStuff {
+    public:
+        HitStuff() : m_sX(0.0), m_sY(0.0), m_radLen(0.0), m_count(0), 
+            m_hasXHit(false), m_hasYHit(false), m_z(0.0), m_pBeta(0.0) {}
+
+        double m_sX;
+        double m_sY;
+        double m_radLen;
+        int    m_count;
+        bool   m_hasXHit;
+        bool   m_hasYHit;
+        double m_z;
+        double m_pBeta;
+
+        Vector getDir() {
+            Vector dir(m_sX/m_count, m_sY/m_count, -1.);
+            return dir.unit();
+        }
+    };
+    typedef std::vector<HitStuff> HitStuffVec;
+    typedef HitStuffVec::iterator HitStuffVecIter;
+    // why can't I get this "friend" thing to work?
+    //friend class HitStuff;
+
+private:  
+
+    // to keep the hit info... avoid tricky loops
+    /// Pointers to clusters, geoemtry, and c+ontrol parameters
     ITkrGeometrySvc*      m_tkrGeom;
     ITkrFailureModeSvc*   m_tkrFail;
     TkrControl*           m_control;

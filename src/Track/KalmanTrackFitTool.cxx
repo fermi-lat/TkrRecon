@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.28 2005/02/04 00:56:22 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.29 2005/02/04 21:35:04 usher Exp $
  */
 
 // to turn one debug variables
@@ -390,7 +390,7 @@ StatusCode KalmanTrackFitTool::doTrackFit(Event::TkrTrack* track)
     trackUtils.finish(*track);
 
     // Kalman Energy determination (why not part of Kalman Filter itself?)
-    trackUtils.eneDetermination(*track);
+    trackUtils.computeMSEnergy(*track);
 
     // Set the bit to confirm completion
     track->setStatusBit(Event::TkrTrack::ONEPASS);
@@ -434,7 +434,7 @@ StatusCode KalmanTrackFitTool::doTrackReFit(Event::TkrTrack* track)
 
     // No Kalman Filter energy re-determination on the second pass? 
     //if (track->getStatusBits() & Event::TkrTrack::LATENERGY) trackUtils.eneDetermination(*track);
-    trackUtils.eneDetermination(*track);
+    trackUtils.computeMSEnergy(*track);
 
     // Set the bit to confirm completion
     track->setStatusBit(Event::TkrTrack::TWOPASS);
