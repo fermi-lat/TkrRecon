@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.5 2003/08/07 16:09:35 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.6 2003/08/08 20:04:39 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -20,8 +20,8 @@
 
 #include "Event/TopLevel/EventModel.h"
 #include "TkrRecon/MonteCarlo/TkrEventModel.h"
-#include "TkrRecon/MonteCarlo/McEventStructure.h"
-#include "TkrRecon/MonteCarlo/McLayerHit.h"
+#include "Event/MonteCarlo/McEventStructure.h"
+#include "Event/MonteCarlo/McSiLayerHit.h"
 #include "src/MonteCarlo/McBuildTracks.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
 
@@ -85,8 +85,8 @@ public:
     {
         bool                     leftTest   = false;
 
-        const Event::McLayerHit* mcHitLeft  = left->getSecond();
-        const Event::McLayerHit* mcHitRight = right->getSecond();
+        const Event::McSiLayerHit* mcHitLeft  = left->getSecond();
+        const Event::McSiLayerHit* mcHitRight = right->getSecond();
 
         // Find the McPositionHit associated with the McParticle
         const Event::McPositionHit* mcPosHitLeft  = findMcPosHit(mcHitLeft);
@@ -101,12 +101,12 @@ public:
         return leftTest;
     }
 private:
-    const Event::McPositionHit* findMcPosHit(const Event::McLayerHit* mcLayerHit)
+    const Event::McPositionHit* findMcPosHit(const Event::McSiLayerHit* McSiLayerHit)
     {
-        const Event::McParticle*    mcPart = mcLayerHit->getMcParticle();
+        const Event::McParticle*    mcPart = McSiLayerHit->getMcParticle();
         const Event::McPositionHit* mcHit  = 0;
 
-        const SmartRefVector<Event::McPositionHit>* mcPosHitVec = mcLayerHit->getMcPositionHitsVec();
+        const SmartRefVector<Event::McPositionHit>* mcPosHitVec = McSiLayerHit->getMcPositionHitsVec();
         for(SmartRefVector<Event::McPositionHit>::const_iterator hitIter  = mcPosHitVec->begin();
                                                                  hitIter != mcPosHitVec->end(); hitIter++)
         {
@@ -131,7 +131,7 @@ StatusCode MonteCarloFindTrackTool::findTracks()
     StatusCode sc = StatusCode::SUCCESS;
 
     // Retrieve the pointer to the McEventStructure
-    SmartDataPtr<Event::McEventStructure> mcEvent(m_dataSvc,TkrEventModel::MC::McEventStructure);
+    SmartDataPtr<Event::McEventStructure> mcEvent(m_dataSvc,EventModel::MC::McEventStructure);
 
     // If it doesn't exist then we need to build the MC structure
     if (mcEvent == 0)
@@ -152,7 +152,7 @@ StatusCode MonteCarloFindTrackTool::findTracks()
         mcEvent = new Event::McEventStructure(m_dataSvc, m_ppsvc);
 
         // Register ourselves in the temporary TDS
-        sc = m_dataSvc->registerObject(TkrEventModel::MC::McEventStructure,mcEvent);
+        sc = m_dataSvc->registerObject(EventModel::MC::McEventStructure,mcEvent);
         if (sc.isFailure())
         {
             throw GaudiException("Cannot store the McEventStructure in the TDS", name(), sc);
@@ -205,7 +205,7 @@ Event::TkrPatCand* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* 
     Event::TkrPatCand* patCand = 0;
 
     // Retrieve the McParticle to hit relational table
-    SmartDataPtr<Event::McPartToHitTabList> hitTable(m_dataSvc,TkrEventModel::MC::McPartToHitTab);
+    SmartDataPtr<Event::McPartToHitTabList> hitTable(m_dataSvc,EventModel::MC::McPartToHitTab);
     Event::McPartToHitTab mcPartToHitTab(hitTable);
 
     // Find the hits associated with this mcPart
@@ -219,7 +219,7 @@ Event::TkrPatCand* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* 
 
         // Start to fill the hits
         Event::McPartToHitRel*         mcHitRel = hitVec.front();
-        Event::McLayerHit*             lyrHit   = mcHitRel->getSecond();
+        Event::McSiLayerHit*           lyrHit   = mcHitRel->getSecond();
         const idents::VolumeIdentifier volId    = lyrHit->getVolumeIdent();
         const HepPoint3D&              partPos  = mcPart->initialPosition();
         const HepLorentzVector&        part4mom = mcPart->initialFourMomentum();
@@ -243,7 +243,7 @@ Event::TkrPatCand* MonteCarloFindTrackTool::buildTrack(const Event::McParticle* 
         for(hitIter = hitVec.begin(); hitIter != hitVec.end(); hitIter++)
         {
             Event::McPartToHitRel*   mcHitRel = *hitIter;
-            Event::McLayerHit*       lyrHit   =  mcHitRel->getSecond();
+            Event::McSiLayerHit*     lyrHit   =  mcHitRel->getSecond();
             const Event::TkrCluster* cluster  = lyrHit->getTkrCluster();
 
             const idents::VolumeIdentifier curVolumeId = lyrHit->getVolumeIdent();

@@ -34,11 +34,11 @@
 
         namespace MC {
             _EXTERN_ std::string Event;
-            _EXTERN_ std::string McEventStructure;
-            _EXTERN_ std::string McPartToHitTab;
-            _EXTERN_ std::string McClusToLyrHitTab;
-            _EXTERN_ std::string McLyrToHitTab;
-            _EXTERN_ std::string McLayerHitCol;
+//            _EXTERN_ std::string McEventStructure;
+//            _EXTERN_ std::string McPartToHitTab;
+//            _EXTERN_ std::string McClusToLyrHitTab;
+//            _EXTERN_ std::string McLyrToHitTab;
+//            _EXTERN_ std::string McSiLayerHitCol;
             _EXTERN_ std::string PatHitToLyrHit;
             _EXTERN_ std::string PatCandToMcCand;
             _EXTERN_ std::string McPatCandCol;
