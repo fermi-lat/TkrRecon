@@ -1,6 +1,6 @@
 // Implements ntuple writing algorithm
 
-#include "TkrRecon\RecNtupleAlg.h"
+#include "TkrRecon/RecNtupleAlg.h"
 
 #include <algorithm>
 inline static double sqr(double x) {return x*x;}
