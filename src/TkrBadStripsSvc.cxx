@@ -112,8 +112,8 @@ StatusCode TkrBadStripsSvc::finalize()
 
 void TkrBadStripsSvc::makeCol(const int size)
 {
-    m_stripsCol.assign(size);
-    return;
+  //    m_stripsCol.assign(size);
+  //  return;
 }
 
 
