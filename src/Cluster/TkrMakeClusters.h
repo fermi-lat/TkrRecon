@@ -23,7 +23,7 @@ enum {bigStripNum = 0x7FFFFF};
 *
 * The methods take into account the bad strips.
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.2 2002/04/30 23:18:08 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.h,v 1.3 2002/04/30 23:30:25 lsrea Exp $
 */
 
 class TkrMakeClusters
@@ -45,11 +45,13 @@ public:
 	* If so, the cluster is added, if not, it is dropped. 
 	* There may be other criteria for dropping a cluster, such as too many hits.      
 	*/
+
+	/// This constructor actually makes the clusters
 	/// the pointers to services and data are passed through the constructor
     TkrMakeClusters(TkrClusters* pClus, 
 		ITkrGeometrySvc* pTkrGeo, ITkrBadStripsSvc* pBadStrips, 
 		TkrDigiCol* pTkrDigiCol);
-	/// destructor: also deletes the clusters in the list
+
 	~TkrMakeClusters() { }
     
     /// gets the position of a cluster
