@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Apr 19 16:16:37 PDT 2004
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Modifications to requirements file to include new generic fit directory tree
+
+    *
+------------------------------------------------------------
 User: usher  Mon Apr 19 16:13:24 PDT 2004
 TkrRecon/src/Track
 
