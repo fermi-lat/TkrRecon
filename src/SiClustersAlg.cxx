@@ -10,9 +10,9 @@
 
 #include "TkrRecon/SiClustersAlg.h"
 
+#include <algorithm>
 
-const int bigStripNum = 0x7FFFFFF;
-
+const int bigStripNum = 0x7FFFFF;
 
 static const AlgFactory<SiClustersAlg>  Factory;
 const IAlgFactory& SiClustersAlgFactory = Factory;
@@ -21,112 +21,152 @@ const IAlgFactory& SiClustersAlgFactory = Factory;
 /// Algorithm parameters which can be set at run time must be declared.
 /// This should be done in the constructor.
 
-//#############################################################################
-SiClustersAlg::SiClustersAlg(const std::string& name, ISvcLocator* pSvcLocator) :
-Algorithm(name, pSvcLocator) 
-//#############################################################################
-{
-    
-}
 
-//##############################################
+    
+    /*! The strategy is to merge the list of hits in a layer with the list of known bad strips. 
+    The good and bad hits are marked so they can be recognized, but the mechanism is hidden in
+    the TkrBadStripsSvc.
+    
+    What constititutes a gap and a good cluster is defined by the code in isGap and
+    isGoodCluster, respectively.
+      
+    A set of adjacent hits followed by a gap is a potential cluster. For each potential cluster, 
+    we ask if it contains any good hits.  If so, the cluster is added, if not, it is dropped. There
+    may be other criteria for dropping a cluster, such as too many hits.
+        
+    What constititutes a gap and a good cluster is defined by the code in 
+    isGapBetweem and isGoodCluster, respectively.
+    */
+    
+    
+
+SiClustersAlg::SiClustersAlg(const std::string& name, ISvcLocator* pSvcLocator) :
+Algorithm(name, pSvcLocator)  { }
+
+
 StatusCode SiClustersAlg::initialize()
-//##############################################
 {
+    MsgStream log(msgSvc(), name());
+    
     //Look for the geometry service
-    StatusCode sc = service("TkrGeometrySvc", pTrackerGeo,true);
+    StatusCode sc = service("TkrGeometrySvc", pTkrGeo, true);
+    if (sc.isFailure()) {
+        log << MSG::ERROR << "TkrGeometrySvc is required for this algorithm." << endreq;
+        return sc;
+    }
+    //TkrBadStripsSvc is not required for this algorithm
+    //There are some shenanigans below to ensure that the algorithm runs without it.
+    sc = service("TkrBadStripsSvc", pBadStrips, false);
+    if (sc.isFailure()) {
+        log << MSG::INFO << "algorithm will not filter bad hits." << endreq;   
+    }
     
     //Initialize the rest of the data members
     m_SiClusters = 0;
     m_TkrDigis   = 0; 
     
-    return sc;
+    return StatusCode::SUCCESS;
 }
-//##############################################
+
+
 StatusCode SiClustersAlg::execute()
-//##############################################
 {
     MsgStream log(msgSvc(), name());
     
     StatusCode sc = retrieve();
-    
-    // loop in number of layers - conversion to planes!
-    TkrDigiCol::iterator pDigiIter = m_TkrDigis->begin();
-    int nclusters = 0;
-    int nlayers = m_TkrDigis->size();
+    // loop over Digis
 
-    for (int ilayer = 0; ilayer < nlayers; ilayer++) {
-        TkrDigi* layer  = pDigiIter[ilayer];
+    TkrDigiCol::const_iterator pTkrDigi = m_TkrDigis->begin();
+    int nclusters = 0;  // for debugging
+    int ndigis = m_TkrDigis->size();
+    
+    for (int idigi = 0; idigi < ndigis ; idigi++) {
+        TkrDigi* pDigi = pTkrDigi[idigi];
         
-        int     klayer = layer->layer();
-        int     iview  = layer->view();
-        int     nHits  = layer->num();
-        int     tower  = layer->tower();
+        int layer  = pDigi->layer();
+        int view   = pDigi->view();
+        int tower  = pDigi->tower();
         
-        //Copy the hit strip numbers into a local list
-        std::list<int> stripHits;
-        
-        //This copies the hit strips into a list
-        while(nHits--)
-        {
-            int stripId = layer->hit(nHits);
-            
-            //Ok, only keep the not bad strips
-            //if (!m_SiCalibLayers->isBadStrip(klayer, iview, stripId))
-            stripHits.push_back(stripId);
+        int nHits  = pDigi->num();
+
+        // the list of bad strips
+        v_strips* badStrips = 0;
+        int badStripsSize = 0;
+        if (pBadStrips) {
+            badStrips = pBadStrips->getBadStrips(tower, layer, view);
+            if (badStrips) badStripsSize = badStrips->size();
         }
+
+        //Make a local vector big enough to hold everything
+        int hitsSize = nHits + badStripsSize + 1;
+        std::vector<int> stripHits(hitsSize);
         
-        //Sort the list into ascending order
-        stripHits.sort();
+        int running_index = 0;
+        // copy and mark the hits good
+        for (int ihit = 0; ihit < nHits; ihit++,running_index++){
+            stripHits[running_index] = tagGood(pDigi->hit(ihit));
+        } 
+        // copy the bad strips, already marked
+        if (pBadStrips) {
+            for (ihit = 0; ihit< badStripsSize; ihit++,running_index++) {
+                stripHits[running_index] = (*badStrips)[ihit];
+            }
+        }
+        // add the sentinel -- guaranteed to make a gap, and it's bad
+        stripHits[running_index] = tagBad(bigStripNum);
+
+        std::sort(stripHits.begin(), stripHits.end()); 
         
-        //Add an unphysically large strip number to the end of the list
-        //This is used to mark the end of cluster addition in the loop below
-        stripHits.push_back(bigStripNum);
+        int lowStrip  = stripHits[0];  // the first strip of the current potential cluster
+        int highStrip = lowStrip;      // the last strip of the current cluster
+        int nextStrip = lowStrip;      // the next strip
+        int nBad = 0;
+        bool kept;  // for debugging
+                
+        //Loop over the rest of the strips building clusters enroute.
+        //Keep track of bad strips.
+        //Loop over all hits, except the sentinel, which is there to provide a gap
         
-        //Set up a list iterator and initialize first cluster
-        std::list<int>::iterator pStripHits = stripHits.begin();
-        int  stripIdxL = *pStripHits++;
-        int  stripIdxH = stripIdxL;
-        
-        //Loop over the rest of the hit strips building clusters enroute
-        nHits = stripHits.size() - 1;
-        while(nHits--)
-        {
-            int stripIdx = *pStripHits++;
+        for (ihit = 0; ihit < hitsSize-1; ihit++) {
+            if(pBadStrips) nBad += pBadStrips->isTaggedBad(nextStrip);
+            nextStrip = stripHits[ihit+1];
             
             //If we have a gap, then make a cluster
-            if (stripIdx > stripIdxH + 1)
-            {
-                // planes are ordered from 0-top to 15-bottom   - used by the recostruction
-                // layers are ordered from 15-top to 0-bottom   - used by the geometry
-                SiCluster* cl = new SiCluster(nclusters, iview,     pTrackerGeo->numLayers()-klayer-1,
-                    stripIdxL, stripIdxH, layer->ToT(0), tower);
-                cl->setPosition(position(cl->plane(),cl->v(),cl->strip(),cl->tower()));
-                m_SiClusters->addCluster(cl);
-                nclusters++;
-                stripIdxL = stripIdx;
+            if (isGapBetween(highStrip, nextStrip)) {
+                // there's a gap... see if the current cluster is good...
+				//log << MSG::DEBUG << "Test Cluster: " << lowStrip << " "
+				//	           << highStrip << " " << nBad << endreq;
+                if (kept = isGoodCluster(lowStrip, highStrip, nBad)) {
+                    // it's good... make a new cluster
+                    SiCluster* cl = new SiCluster(nclusters, view, 
+						pTkrGeo->numPlanes()-layer-1,
+                        untag(lowStrip), untag(highStrip), pDigi->ToT(0), tower);
+                    cl->setPosition(position(cl->plane(),cl->v(),cl->strip(), cl->tower()));
+                    m_SiClusters->addCluster(cl);
+                    nclusters++;   
+					//log << MSG::DEBUG << "   good cluster" << endreq;
+                } 
+                lowStrip = nextStrip;  // start a new cluster with this strip
+                nBad = 0;
             }
-            
-            stripIdxH = stripIdx;
+            highStrip = nextStrip; // add strip to this cluster
         }
     }
-    
     m_SiClusters->writeOut(log);
     
     return sc;
 }
 
-//##############################################
+
 StatusCode SiClustersAlg::finalize()
-//##############################################
-{
-    //	
+{	
     return StatusCode::SUCCESS;
 }
+
+
 //-------------------- private ----------------------
-//##############################################
+
 StatusCode SiClustersAlg::retrieve()
-//##############################################
 {
     StatusCode sc = StatusCode::SUCCESS;
     
@@ -146,7 +186,8 @@ StatusCode SiClustersAlg::retrieve()
         }
     }
     
-    m_SiClusters = new SiClusters(pTrackerGeo->numViews(), pTrackerGeo->numLayers(), pTrackerGeo->siStripPitch(), pTrackerGeo->towerPitch());
+    m_SiClusters = new SiClusters(pTkrGeo->numViews(), pTkrGeo->numLayers(), 
+        pTkrGeo->siStripPitch(), pTkrGeo->towerPitch());
     sc = eventSvc()->registerObject("/Event/TkrRecon/SiClusters",m_SiClusters);
     
     m_TkrDigis  = SmartDataPtr<TkrDigiCol>(eventSvc(),"/Event/TkrRecon/TkrDigis");
@@ -155,38 +196,84 @@ StatusCode SiClustersAlg::retrieve()
     return sc;
 }
 
-//###################################################
-Point SiClustersAlg::position(int iplane, SiCluster::view v, double strip, int tower)
-//###################################################
+
+Point SiClustersAlg::position(const int plane, SiCluster::view v, const double strip, const int tower)
 {
-    int iladder = (int) strip / pTrackerGeo->ladderNStrips();
-    double stripInLadder = strip - iladder*pTrackerGeo->ladderNStrips();
+    int iladder = strip / pTkrGeo->ladderNStrips();
+    double stripInLadder = strip - iladder*pTkrGeo->ladderNStrips();
     
-    tkrDetGeo::axis a = tkrDetGeo::X;
-    if (v == SiCluster::Y) a = tkrDetGeo::Y;
+    tkrDetGeo::axis a = (v==SiCluster::X) ? tkrDetGeo::X : tkrDetGeo::Y;
     
     // note the differences between layers and planes - ordering!
-    int ilayer = pTrackerGeo->numPlanes()-iplane-1;
-    // trackerDetGeo*   trkGeo   = dataManager::instance()->geo()->tracker();
+    int layer = pTkrGeo->ilayer(plane);
     
-    tkrDetGeo ladder = pTrackerGeo->getSiLadder(ilayer, a, iladder, tower);
-    // Point ladder = pTrackerGeo->ladderGap(ilayer,a,iladder);
+    tkrDetGeo ladder = pTkrGeo->getSiLadder(layer, a, iladder, tower);
     
-    //!
-    double Dstrip = ladder.position().x()-ladder.size().x();
-    if (v == SiCluster::Y)
-        Dstrip = ladder.position().y()-ladder.size().y();
+    double Dstrip = (v==SiCluster::X) ? 
+        ladder.position().x()-ladder.size().x() :
+        ladder.position().y()-ladder.size().y();
     
-    Dstrip += pTrackerGeo->siDeadDistance();
-    Dstrip += (stripInLadder+0.5)*pTrackerGeo->siStripPitch();
+    Dstrip += pTkrGeo->siDeadDistance();
+    Dstrip += (stripInLadder+0.5)*pTkrGeo->siStripPitch();
     
     Point P = ladder.position();
-    double x = P.x();
-    double y = P.y();
+    double x = (v==SiCluster::X) ? Dstrip : P.x();
+    double y = (v==SiCluster::Y) ? Dstrip : P.y();
     double z = P.z();
-    if (v == SiCluster::X) x = Dstrip;
-    else y = Dstrip;
-    
+
     P = Point(x,y,z);
     return P;
 }
+
+
+bool SiClustersAlg::isGapBetween(const int lowStrip, const int highStrip) 
+{
+    //Get the actual hit strip number from the tagged strips
+    int lowHit  = untag(lowStrip);
+    int highHit = untag(highStrip);
+
+    // gap between hits
+    if (highHit > (lowHit + 1)) { return true; }
+    
+    //edge of chip -- hardwired number may come back to plague us...
+    if((lowHit/64) < (highHit/64)) {return true; }
+    
+    return false;
+}
+
+
+bool SiClustersAlg::isGoodCluster(const int lowStrip, const int highStrip, const int nBad) 
+{
+    //Get the actual hit strip number from the tagged strips
+    int lowHit  = untag(lowStrip);
+    int highHit = untag(highStrip);
+
+    // for now, just require at least 1 good hit in the cluster
+    // later maybe cut on number of strips < some maximum
+	if (nBad>0 && highHit-lowHit+1>nBad) {
+		std::cout << "cluster with some bad hits "<<
+			highHit-lowHit+1 << " " << nBad << std::endl;
+	}
+    return ((highHit-lowHit+1)>nBad);
+}
+
+int SiClustersAlg::tagBad(const int strip)
+{
+    if (pBadStrips) return pBadStrips->tagBad(strip);
+    else return strip;
+}
+
+
+int SiClustersAlg::tagGood(const int strip)
+{
+    if (pBadStrips) return pBadStrips->tagGood(strip);
+    else return strip;
+}
+
+
+int SiClustersAlg::untag(const int strip)
+{
+    if (pBadStrips) return pBadStrips->untag(strip);
+    else return strip;
+}
+

@@ -23,6 +23,7 @@
 //! Load all  services: 
 void TkrRecon_load() {
     DLL_DECL_SERVICE(   TkrGeometrySvc );
+    DLL_DECL_SERVICE(   TkrBadStripsSvc );
     DLL_DECL_ALGORITHM( SiClustersAlg  );
     DLL_DECL_ALGORITHM( SiRecObjsAlg   );
     DLL_DECL_ALGORITHM( TkrDisplayAlg  );

@@ -7,6 +7,7 @@
 #include "GlastEvent/Hits/SiLayers.h"
 #include "TkrRecon/SiClusters.h"
 #include "TkrRecon/TkrGeometrySvc.h"
+#include "TkrRecon/TkrBadStripsSvc.h"
 
 #include "GlastEvent/Digi/TkrDigi.h"
 
@@ -25,30 +26,38 @@ class SiClustersAlg : public Algorithm
 //##########################################################
 {
 public:
-	//! Constructor of this form must be provided
-	SiClustersAlg(const std::string& name, ISvcLocator* pSvcLocator); 
-	virtual ~SiClustersAlg() {}
-	//! mandatory
-	StatusCode initialize();
-	//! mandatory
-	StatusCode execute();
-	//! mandatory
-	StatusCode finalize();
-
+    //! Constructor of this form must be provided
+    SiClustersAlg(const std::string& name, ISvcLocator* pSvcLocator); 
+    virtual ~SiClustersAlg() {}
+    //! mandatory
+    StatusCode initialize();
+    //! mandatory
+    StatusCode execute();
+    //! mandatory
+    StatusCode finalize();
+    
 protected:
+    
+    StatusCode retrieve();
+    
+    Point position(int ilayer, SiCluster::view v, double strip, int tower = 0);
+    
+    bool isGapBetween(const int lowHit, const int highHit);
+    
+    bool isGoodCluster( const int lowHit, const int highHit, const int nBad);
 
-	StatusCode retrieve();
+    int tagGood(const int strip);
+    int tagBad(const int strip);
+    int untag(const int strip);
 
-protected:
-
-	Point position(int ilayer, SiCluster::view v, double strip, int tower = 0);
-
+    
 private:
-
-	TkrGeometrySvc* pTrackerGeo;
-
+    
+    TkrGeometrySvc* pTkrGeo;
+    TkrBadStripsSvc* pBadStrips;
+    
     TkrDigiCol* m_TkrDigis;
     SiClusters* m_SiClusters;
 };
-      
+
 #endif

@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include "xml/Ifile.h"
+#include "xml/IFile.h"
 
 static const SvcFactory<TkrBadStripsSvc> s_factory;
 const ISvcFactory& TkrBadStripsSvcFactory = s_factory;
@@ -29,7 +29,7 @@ StatusCode TkrBadStripsSvc::initialize()
 {
     bool debug = true;
 
-    //MsgStream log(msgSvc(), name());
+    MsgStream log(msgSvc(), name());
     StatusCode sc = StatusCode::SUCCESS;
        
     Service::initialize();
@@ -39,30 +39,32 @@ StatusCode TkrBadStripsSvc::initialize()
     setProperties();
 
     int size = 0;
-    //makeCol(size); //make sure that Collection is sensibly initialized
+    makeCol(size); //make sure that Collection is sensibly initialized
 
     if (m_badStripsFile=="") {        
-        //log << MSG::INFO << "No bad strips file was requested." << endreq;
-        //log << MSG::INFO << "  No strip filtering will be done." << endreq;
+        log << MSG::INFO << "No bad strips file was requested." << endreq;
+        log << MSG::INFO << "  No strip filtering will be done." << endreq;
         return sc;
     }
 
 	//test 1
-	//log << MSG::DEBUG << "Test 1"<< endreq;
-	//log << MSG::INFO << "and info 1" << endreq;
+	log << MSG::DEBUG << "Test 1"<< endreq;
+	log << MSG::INFO << "and info 1" << endreq;
 
     xml::IFile::extractEnvVar(&m_badStripsFile);    
-    //log << MSG::INFO << "Input file for bad strips: " << m_badStripsFile << endreq;
+    log << MSG::INFO << "Input file for bad strips: " << m_badStripsFile << endreq;
 
 	//test 2
-	//log << MSG::DEBUG << "Test 2"<< endreq;
+	log << MSG::DEBUG << "Test 2"<< endreq;
 
     std::ifstream file;
 	file.open( m_badStripsFile.c_str());
+	
     if (!file) {
-        //log << MSG::ERROR << "  File not found: check jobOptions." << endreq;
+        log << MSG::ERROR << "  File not found: check jobOptions." << endreq;
         return StatusCode::FAILURE;
     }
+	
 
     sc = service("TkrGeometrySvc", pTkrGeom, true);
     
@@ -72,21 +74,22 @@ StatusCode TkrBadStripsSvc::initialize()
     m_nviews  = pTkrGeom->numViews();
 
     //This is to test that TkrGeometrySvc is initialized... is there a better way?
+	
     if ((m_ntowers<1) || (m_ntowers>25) || (m_nlayers<1) 
         || (m_nlayers>20) || (m_nviews != 2)) { 
-        //log << MSG::ERROR << "TkrGeometrySvc must precede BadStripsSvc"
-        //    << " in the jobOptions file." << endreq;
+        log << MSG::ERROR << "TkrGeometrySvc must precede BadStripsSvc"
+            << " in the jobOptions file." << endreq;
         return StatusCode::FAILURE;
     }//
+	
 
     // test of output
-	//log << MSG::DEBUG << "This is a test" << endreq;
+	log << MSG::DEBUG << "This is a test" << endreq;
 
     size = m_ntowers*m_nlayers*m_nviews;    
-    //makeCol(size);
+    makeCol(size);
     
-    readFromFile(file);
-
+    readFromFile(&file);
 	//more test
 	//log << MSG::DEBUG << "And again" << endreq;
 	
@@ -130,23 +133,23 @@ void TkrBadStripsSvc::makeCol(const int size)
 }
 
 
-void TkrBadStripsSvc::readFromFile(std::ifstream file)
+void TkrBadStripsSvc::readFromFile(std::ifstream* file)
 {    
     bool debug = true;
-	bool read = false;
-	bool makestrips = false;
+	bool read = true;
+	bool makestrips = true;
 
-    //MsgStream log(msgSvc(), name());
+    MsgStream log(msgSvc(), name());
     
     int nStrips = 0;
 
-    while(read && !file.eof()) {
+    while(read && !file->eof()) {
         int tower;
 		int sequence;
 
-        file >> tower ;
-        if (file.eof()) break;
-        file >> sequence;
+        *file >> tower ;
+        if (file->eof()) break;
+        *file >> sequence;
         // kludge until the geometry supplies this info
 		int layer = sequence/2;
 		int element = (sequence+3)%4;
@@ -155,17 +158,17 @@ void TkrBadStripsSvc::readFromFile(std::ifstream file)
         v_strips* v;
 		if (makestrips) v = getBadStrips(tower, layer, view);
         int strip = -1;
-        file >>  strip;
+        *file >>  strip;
         while (strip>=0) {
             if (makestrips) addStrip(v, strip);
-            file >> strip;
+            *file >> strip;
             nStrips++;
         }
 
         if (makestrips) std::sort(v->begin(), v->end());
         
     }
-    //log << MSG::INFO << nStrips << " bad strips read from file" << endreq;
+    log << MSG::INFO << nStrips << " bad strips read from file" << endreq;
    
     return;
 }
