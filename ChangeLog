@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Nov 23 09:40:17 PST 2004
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+      Tag: GlastRelease-v4r5
+	TkrReconAlg.cxx 
+Log Message:
+Remove debug printout
+    *
+------------------------------------------------------------
 TAG
 Tag name: v9r0p2gr8, operation: add
 Package: TkrRecon
