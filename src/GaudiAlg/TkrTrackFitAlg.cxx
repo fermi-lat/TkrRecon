@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.21 2004/12/16 05:04:21 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.22 2005/01/03 21:43:01 usher Exp $
  */
 
 #include <vector>
@@ -169,23 +169,11 @@ StatusCode TkrTrackFitAlg::doTrackFit()
     Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
 
     // Ok, now set up to loop over candidate tracks
-    //std::cout << "TkrTrackFitAlg::doTrackFit: " << trackCol->size() << " tracks to fit" << std::endl;
     for(Event::TkrTrackColPtr trackIter = trackCol->begin(); trackIter != trackCol->end(); trackIter++)
     {
         Event::TkrTrack* track = *trackIter;
 
         m_FitTool->doTrackFit(track);
-
-        /*
-        Event::TkrTrack thisTrack = *track;
-        Event::TkrTrackHitVecItr hIter;
-        int iHit = 0;
-        for (hIter=thisTrack.begin();hIter!=thisTrack.end(); ++iHit,++hIter) {
-            Event::TkrTrackHit& plane = **hIter;
-            Point planePos = plane.getPoint(Event::TkrTrackHit::SMOOTHED);
-            std::cout << "Hit " << iHit << ": " << planePos << std::endl;
-        }
-        */
     }
 
     return sc;
@@ -210,15 +198,15 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
   
     // Find the collection of candidate tracks
     Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
-    //std::cout << "TkrTrackFitAlg::doTrackFit: " << trackCol->size() << " tracks to refit" << std::endl;
 
 	// Check that there are tracks to fit
 	if(trackCol->size() < 1) return sc;
 
 	// Get the first track to find out the energy option used and execute default (LATENERGY)
 	Event::TkrTrack* firstTrack = *trackCol->begin();
-	if(firstTrack->getStatusBits() & Event::TkrTrack::LATENERGY) {
-    // Recover pointer to Cal Cluster info  
+	if(firstTrack->getStatusBits() & Event::TkrTrack::LATENERGY) 
+    {
+        // Recover pointer to Cal Cluster info  
         Event::CalClusterCol* pCalClusters = SmartDataPtr<Event::CalClusterCol>(eventSvc(),EventModel::CalRecon::CalClusterCol);
 
         double CalEnergy = pCalClusters->front()->getEnergyCorrected(); 
@@ -234,20 +222,25 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
 		}
 */
 		/// THIS IS A BIG CHANGE ///   
-		double cal_energy = std::max(CalEnergy, CalSumEne); // need to protect against CalEnergy = 0.   
-        // Get the energy calculation tool
-        TkrTrackEnergyTool* TrackEnergyTool = 0;
-        sc = toolSvc()->retrieveTool("TkrTrackEnergyTool", TrackEnergyTool);
+		double cal_energy = std::max(CalEnergy, CalSumEne); 
+        // need to protect against CalEnergy = 0.   
+        //if (cal_energy > 0.)
+        //{
+            // Get the energy calculation tool
+            TkrTrackEnergyTool* TrackEnergyTool = 0;
+            sc = toolSvc()->retrieveTool("TkrTrackEnergyTool", TrackEnergyTool);
 
-        TrackEnergyTool->SetTrackEnergies(cal_energy);
+            TrackEnergyTool->SetTrackEnergies(cal_energy);
+        //}
 	}
 
     // Ok, now set up to loop over candidate tracks
     for(Event::TkrTrackColPtr trackIter = trackCol->begin(); trackIter != trackCol->end(); trackIter++)
-        {
+    {
          Event::TkrTrack* track = *trackIter;
          m_FitTool->doTrackReFit(track);
-        }
+    }
+
     return sc;
 }
 
