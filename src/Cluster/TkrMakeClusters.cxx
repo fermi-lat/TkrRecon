@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.19 2003/03/13 19:13:22 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrMakeClusters.cxx,v 1.20 2003/04/10 17:35:40 lsrea Exp $
 //
 // Description:
 //      TkrMakeClusters has the methods for making the clusters, 
@@ -224,5 +224,3 @@ const stripCol* TkrMakeClusters::getBadStrips(int tower, int digiLayer,
     }
     return badStrips;
 }
-
- 

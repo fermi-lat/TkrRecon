@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TrackFit/KalmanFilterFit/GlastVector.h,v 1.0 2004/02/18 18:54:27 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/GlastVector.h,v 1.1 2004/03/24 00:03:26 usher Exp $
  */
 
 #ifndef GlastVector_h

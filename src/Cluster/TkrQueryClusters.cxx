@@ -1,4 +1,4 @@
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrQueryClusters.cxx,v 1.16 2002/09/22 20:32:48 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Cluster/TkrQueryClusters.cxx,v 1.17 2003/07/18 16:19:39 burnett Exp $
 //
 // Description:
 //      TkrQueryClusters is a container for Tkr clusters, and has the methods
