@@ -1,4 +1,19 @@
 ------------------------------------------------------------
+User: usher  Wed Feb 18 12:49:09 PST 2004
+TkrRecon/TkrRecon/Display
+
+Removed Files:
+	TkrMcTracksRep.h 
+Log Message:
+the previous temporary implementation out of TkrRecon into its own package. This
+results in removing a large number of now obsolete routines and then modifying 
+1) the cmt requirements file to reflect this,
+2) The MC pat rec to use the new implementation
+3) The display to remove old stuff
+Also... fix TkrTrackEnergyTool to project track to face of cal.
+
+    *
+------------------------------------------------------------
 User: usher  Tue Feb 17 15:04:43 PST 2004
 TkrRecon/src/GaudiAlg
 
