@@ -8,6 +8,7 @@
 
 #include "TkrRecon/GaudiAlg/TkrClusterAlg.h"
 #include "src/Cluster/TkrMakeClusters.h"
+#include "src/Cluster/TkrMakeClusterTable.h"
 #include "TkrRecon/Cluster/TkrQueryClusters.h"
 
 static const AlgFactory<TkrClusterAlg>  Factory;
@@ -87,6 +88,7 @@ StatusCode TkrClusterAlg::execute()
     // Recover a pointer to the raw digi objects
     m_TkrDigis   = SmartDataPtr<TkrDigiCol>(eventSvc(),
         EventModel::Digi::TkrDigiCol);
+    if(!m_TkrDigis) return StatusCode::SUCCESS;
     
     // Create the TkrClusterCol TDS object
     m_TkrClusterCol = new TkrClusterCol();
@@ -97,16 +99,39 @@ StatusCode TkrClusterAlg::execute()
     // make the clusters
     TkrMakeClusters maker(m_TkrClusterCol, m_pTkrGeo, m_pBadStrips, m_TkrDigis);
 
+    if (m_TkrClusterCol == 0) return StatusCode::FAILURE;
+
     // This call is to initialize the static variables in TkrQueryClusters
     TkrQueryClusters query(m_TkrClusterCol);
     query.setTowerPitch(m_pTkrGeo->towerPitch());
     query.setNumLayers(m_pTkrGeo->numLayers());
 
-    if (m_TkrClusterCol == 0 || m_TkrDigis ==0) sc = StatusCode::FAILURE;
-    return sc;
     
     m_TkrClusterCol->writeOut(log);
+
+ 
+    // Recover a pointer to the hit<->digi RelTable
+
+    SmartDataPtr< ObjectList< Relation<TkrDigi,McPositionHit> > >
+        pRelTab (eventSvc(), EventModel::Digi::TkrDigiHitTab);
     
+    if (pRelTab) {
+
+        // define and register cluster-mcHit relational table
+        
+        RelTable<TkrCluster, McPositionHit> cluRelTab;
+        cluRelTab.init();
+         
+        TkrMakeClusterTable makeTable(m_TkrClusterCol, m_TkrDigis, 
+            pRelTab, &cluRelTab,
+            m_pTkrGeo); 
+
+       sc = eventSvc()->registerObject(EventModel::Digi::TkrClusterHitTab,
+            cluRelTab.getAllRelations());
+        if(sc.isFailure()) return sc;
+
+    }
+   
     return sc;
 }
 
