@@ -97,7 +97,7 @@ also be used by other algorithms.
 TkrInitSvc: Used to initialize the TkrControl object which provides 
 parameters for controlling the TkrRecon reconstruction process. 
  *
-@section More Information
+@section information More Information
  *
 For more information, please see the Tracker Recon Group <A HREF="http://www-glast.slac.stanford.edu/software/TKR/NewTracker/TrkRecon.htm"> website. </A>
  *
