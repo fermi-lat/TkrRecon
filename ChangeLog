@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed Jul  3 12:30:47 PDT 2002
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	TkrComboPatRec.cxx 
+Log Message:
+Many changes - new hit sharing, code simplification, etc.  
+    *
+------------------------------------------------------------
 User: atwood  Wed Jul  3 12:29:31 PDT 2002
 TkrRecon/src/Track
 
