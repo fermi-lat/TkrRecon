@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Thu Jul 25 06:16:28 PDT 2002
+TkrRecon/src/Vertex
+
+Modified Files:
+	VtxKalFitTool.cxx 
+Log Message:
+removing cout noise from the public version
+    *
+------------------------------------------------------------
 User: cohen  Thu Jul 25 05:08:50 PDT 2002
 TkrRecon/src/Vertex
 
