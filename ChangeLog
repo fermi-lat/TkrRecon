@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon Jun 18 12:54:06 PDT 2001
+TkrRecon/src/test BFEMBadStrips.txt BFEM_test.txt
+
+Added Files:
+	BFEMBadStrips.txt BFEM_test.txt 
+Log Message:
+initial data files for TkrBadStripsSvc
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon Jun 18 12:53:20 PDT 2001
 TkrRecon/src TkrBadStripsSvc.cxx
 
