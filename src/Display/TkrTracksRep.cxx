@@ -34,8 +34,7 @@ void TkrTracksRep::update()
             int trkIdx = 0;
 	        TkrFitTrackCol::const_iterator it = pTracks->begin();
 
-            //for(it = pTracks->begin(); it != pTracks->end(); ++it)
-            while(it < pTracks->end())
+            while(it != pTracks->end())
             {
                 const TkrFitTrack& track = **it++;
 
