@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Mon Sep  2 17:03:22 PDT 2002
+TkrRecon/src/TrackFit/KalFitTrack
+
+Modified Files:
+	KalFitTrack.cxx 
+Log Message:
+Added documentation
+    *
+------------------------------------------------------------
 User: atwood  Mon Sep  2 17:02:51 PDT 2002
 TkrRecon/src/PatRec/Combo
 
