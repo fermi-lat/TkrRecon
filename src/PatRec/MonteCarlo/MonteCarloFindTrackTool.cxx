@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.7 2004/01/09 20:36:07 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.8 2004/02/18 20:49:11 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -23,7 +23,7 @@
 #include "Event/MonteCarlo/McIntegratingHit.h"
 #include "Event/Recon/TkrRecon/TkrPatCand.h"
 
-#include "GlastSvc/MonteCarlo/IMcBuildInfoTool.h"
+#include "GlastSvc/MonteCarlo/IMcBuildRelTablesTool.h"
 
 
 class MonteCarloFindTrackTool : public PatRecBaseTool 
@@ -42,9 +42,9 @@ private:
     /// private method to build an individual Monte Carlo track
     Event::TkrPatCand* buildTrack(const Event::McParticle* mcPart);
 
-    IParticlePropertySvc* m_ppsvc;
+    IParticlePropertySvc*  m_ppsvc;
 
-    IMcBuildInfoTool*     m_mcBuildInfo;
+    IMcBuildRelTablesTool* m_mcBuildInfo;
 };
 
 
@@ -74,9 +74,9 @@ StatusCode MonteCarloFindTrackTool::initialize()
         throw GaudiException("Service [ParticlePropertySvc] not found", name(), sc);
     }
 
-    if ( (sc = toolSvc()->retrieveTool("MciBuildInfoTool", m_mcBuildInfo)).isFailure() )
+    if ( (sc = toolSvc()->retrieveTool("McBuildRelTablesTool", m_mcBuildInfo)).isFailure() )
     {
-        throw GaudiException("Tool [MciBuildInfoTool] not found", name(), sc);
+        throw GaudiException("Tool [McBuildRelTablesTool] not found", name(), sc);
     }
 
   return sc;

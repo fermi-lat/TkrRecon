@@ -1,5 +1,4 @@
 #include "TkrPatCandRep.h"
-#include "TkrRecon/MonteCarlo/TkrEventModel.h"
 #include "Event/TopLevel/EventModel.h"
 
 //------------------------------------------------------------------------------
