@@ -10,7 +10,7 @@
 
 // primary DLLs
 
-ApplicationMgr.DLLs+= {"RootIo", "TkrRecon", "Recon"};
+ApplicationMgr.DLLs+= {"RootIo", "TkrRecon", "Recon", "TkrUtil"};
 
 // ----------------------------
 // setup basic event loop stuff
