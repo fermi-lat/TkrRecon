@@ -3,6 +3,7 @@
  * Package TkrRecon
  * Manager: Leon Rochester
  *
+ * v4r4p6  26-Feb-2002  LSR   same as previous, but with more documentation
  * v4r4p5  22-Feb-2002  LSR   Works on unix after many little fixes from Alex and Toby
  * v4r4p4  13-Feb-2002  LSR   First version that works with tkrApp (but not yet on Linux)
  * v4r4p3  11-Feb-2002  TU    Remove TkrReconData; 
