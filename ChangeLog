@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Thu Jun 21 13:14:09 PDT 2001
+TkrRecon/src GFgamma.cpp
+
+Modified Files:
+	GFgamma.cpp 
+Log Message:
+removeWorstStep now relies on track chi-square (straightness) to arbitrate hits
+
+    *
+------------------------------------------------------------
 User: usher  Thu Jun 21 13:11:27 PDT 2001
 TkrRecon/src TkrClustersRep.cxx
 
