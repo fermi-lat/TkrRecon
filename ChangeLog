@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Oct 31 13:28:10 PST 2001
+TkrRecon/src RecNtupleAlg.cpp TkrNtupleAlg.cpp
+
+Modified Files:
+	RecNtupleAlg.cpp TkrNtupleAlg.cpp 
+Log Message:
+Add new tuple variables for Steve Ritz: TKR_Zbottom, REC_Tkr_SkirtX, REC_Tkr_SkirtY
+    *
+------------------------------------------------------------
 User: usher  Wed Oct 31 13:27:29 PST 2001
 TkrRecon/TkrRecon RecNtupleAlg.h TkrNtupleAlg.h
 
