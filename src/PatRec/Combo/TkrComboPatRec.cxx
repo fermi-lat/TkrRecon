@@ -163,11 +163,13 @@ void TkrComboPatRec::loadOutput()
             int   iniTower = (*hypo)->track()->getTower();
             Ray   testRay  = (*hypo)->track()->getRay();
             float energy   = (*hypo)->conEnergy(); // Which energy to use?  
-            float quality  = (*hypo)->track()->getQuality();
+ //         float quality  = (*hypo)->track()->getQuality();
+            float type     = (*hypo)->type();
             
             //Keep this track (but as a candidate)
-            TkrPatCand* newTrack = new TkrPatCand(iniLayer,iniTower,energy,quality,testRay);
-            
+//           TkrPatCand* newTrack = new TkrPatCand(iniLayer,iniTower,energy,quality,testRay);
+             TkrPatCand* newTrack = new TkrPatCand(iniLayer,iniTower,energy,type,testRay);
+          
             newTrack->setEnergy(energy);
             
             //Add the Hits
@@ -262,15 +264,22 @@ void TkrComboPatRec::setEnergies(double calEnergy)
     // Max of either the Pat. Rec. min. or the derived Kalman energy
     int num_cands = m_candidates.size();
     for(int i=0; i<num_cands; i++) {
-        KalFitTrack* track = m_candidates[1]->track();
+        KalFitTrack* track = m_candidates[i]->track();
         double kal_energy = track->getKalEnergy();
         if(kal_energy > 5000.) kal_energy = 5000.; // Limit this
         double energy = (m_energy > kal_energy) ? m_energy : kal_energy;
+        if(energy == m_energy) {
+            m_candidates[i]->adjustType(10);
+        }
+        else {
+            m_candidates[i]->adjustType(20);
+        }
         m_candidates[i]->setConEnergy(energy);
     }
 
     if(num_cands == 1) { // One track - it gets it all - not right but what else?
         m_candidates[0]->setConEnergy(ene_total);
+        m_candidates[0]->adjustType(30);
     }
     else {               // Divide up the energy between the first two tracks
         KalFitTrack*  secnd_track = m_candidates[1]->track();
@@ -310,7 +319,9 @@ void TkrComboPatRec::setEnergies(double calEnergy)
         }
         // Set the energies 
         m_candidates[0]->setConEnergy(e1_con);
+        m_candidates[0]->adjustType(30);
         m_candidates[1]->setConEnergy(e2_con);
+        m_candidates[1]->adjustType(30);
     }
 }
 
@@ -396,6 +407,7 @@ void TkrComboPatRec::findBlindCandidates()
                                 int num_trial_hits = trial->track()->getNumHits();
                                 if(num_trial_hits > localBestHitCount) localBestHitCount = num_trial_hits; 
                             }
+                            trial->adjustType(100);
                             if(!incorporate(trial)) break;
                             trials++; 
                             int new_top = trial->track()->getLayer();
@@ -498,7 +510,7 @@ void TkrComboPatRec::findCalCandidates()
                         int num_trial_hits = trial->track()->getNumHits();
                         if(num_trial_hits > localBestHitCount) localBestHitCount = num_trial_hits; 
                     }
-  
+                    trial->adjustType(200); 
                     if(!incorporate(trial)) break;
                     trials++; 
                     int new_top = trial->track()->getLayer();
@@ -605,6 +617,7 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
       m_deflection(d)
     , m_sigma(s)
     , m_gap(g)
+    , m_type(0)
 {
     // Set up controls
           TkrControl* control = TkrControl::getPtr();
@@ -617,6 +630,7 @@ TkrComboPatRec::Candidate::Candidate(TkrClusterCol* clusters,
     m_track->doFit(); 
     int more_hits = m_track->addLeadingHits(layer);
     if(more_hits > 0) m_track->doFit(); 
+    m_type = more_hits; 
 
     // Check X**2 for the Track
     if(m_track->getChiSquare() > control->getMaxChisqCut()) {
@@ -675,4 +689,18 @@ TkrComboPatRec::Candidate::~Candidate()
     if(m_track !=0) {
         delete m_track;
     }
+}
+
+int TkrComboPatRec::Candidate::adjustType(int incr) 
+{
+    int hits = m_type%10;
+    int ene  = (m_type/10)%10;
+    ene *= 10;
+    int prc  = m_type/100;
+    prc *= 100;
+    if(incr < 10)        hits = incr;
+    else if (incr < 100) ene  = incr;
+    else                 prc  = incr;
+    m_type = prc + ene + hits;
+    return m_type;
 }
