@@ -1,4 +1,24 @@
 ------------------------------------------------------------
+User: atwood  Fri Jan 11 15:39:34 PST 2002
+TkrRecon/TkrRecon/Track
+
+Modified Files:
+	GFtutor.h SiRecObjs.h 
+Added Files:
+	TkrBase.h TkrComboPR.h TkrFitTrack.h 
+Log Message:
+
+GfTutor changed to allow control over new Combo Pr & Fitting
+
+SiRecObjs changed to call new Tracking stuff
+
+TkrComboPR is the new 3d combinatoric PR
+
+TkrFitTrack is the new 3D track fit (replaces the old GFParticle stuff)
+
+
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 26 16:35:43 PST 2001
 TkrRecon/mgr
 
