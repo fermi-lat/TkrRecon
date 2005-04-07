@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.31 2005/02/21 01:19:18 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.32 2005/03/02 00:25:19 lsrea Exp $
 */
 
 
@@ -22,6 +22,7 @@
 
 #include "Event/TopLevel/Event.h"
 #include "Event/TopLevel/EventModel.h"
+#include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "LdfEvent/EventSummaryData.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
 
@@ -119,6 +120,9 @@ private:
     std::string m_stage;
     int m_lastStage;
 
+    // Simple event filter
+    int m_maxClusters;
+
     // this is because 2 copies of TkrReconAlg are instantiated: "FirstPass" and "Iteration"
     static bool s_failed;
     static bool s_saveBadEvents;
@@ -149,6 +153,8 @@ Algorithm(name, pSvcLocator)
     // control flag to suppress parts of the recon:
     // 0 = skip all, 1 = do cluster, 2 = and patrec, 3 = and fit, 4 = and vertex
     declareProperty("lastStage", m_lastStage=100);
+    // This will abort reconstruction if too many clusters found
+    declareProperty("maxAllowedClusters", m_maxClusters=500);
 }
 
 // Initialization method
@@ -293,6 +299,14 @@ StatusCode TkrReconAlg::execute()
             return handleError(stageFailed);
         }
 
+        // Check number of clusters returned
+        Event::TkrClusterCol* clusterCol = SmartDataPtr<Event::TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol);
+        int numClusters = clusterCol->size();
+
+        if (numClusters > m_maxClusters)
+        {
+            return handleError("Exceeded maximum allowed clusters");
+        }
         
         // throw some exceptions to test the logging, maybe make an option later
         m_stage = "TestExceptions";
