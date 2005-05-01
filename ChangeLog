@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Sat Apr 30 18:31:14 PDT 2005
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx 
+Log Message:
+Set maxGaps/maxConsecutiveGaps to 2/1, mainly for pipeline
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r5p7, operation: add
 Package: TkrRecon
