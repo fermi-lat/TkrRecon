@@ -6,7 +6,7 @@
 * @author Tracking Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.28 2005/03/02 00:25:21 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.29 2005/03/06 01:55:34 lsrea Exp $
 */
 
 // to turn one debug variables
@@ -139,8 +139,8 @@ AlgTool(type, name, parent)
     declareProperty("GapMaxRejectionSize",   m_max_gap_dist = 10.); 
     declareProperty("MaxAllowedSlope",       m_max_slope = 5.);
     declareProperty("MaxLeadingHits",        m_maxLeadingHits = 2);
-    declareProperty("MaxGaps",               m_maxGaps = 0);
-    declareProperty("MaxConsecutiveGaps",    m_maxConsecutiveGaps = 0);
+    declareProperty("MaxGaps",               m_maxGaps = 2);
+    declareProperty("MaxConsecutiveGaps",    m_maxConsecutiveGaps = 1);
     return;
 }
 
