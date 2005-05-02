@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon May  2 12:45:16 PDT 2005
+TkrRecon/src/Track
+
+Modified Files:
+	TkrTrackEnergyTool.cxx 
+Log Message:
+fix code to set first-hit energy correctly for single-track events
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon May  2 12:45:15 PDT 2005
 TkrRecon/doc
 
