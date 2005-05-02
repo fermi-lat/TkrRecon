@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.24 2005/03/30 01:56:05 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.25 2005/03/30 17:16:07 lsrea Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -210,7 +210,8 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
                 if(trackCol->size() == 1)  // One track - it gets it all - not right but what else?
                 {
                     firstCandTrk->setInitialEnergy(ene_total);
-                }
+                    (*firstCandTrk)[0]->setEnergy(ene_total);                
+                } 
                 else                // Divide up the energy between the first two tracks
                 {
         
