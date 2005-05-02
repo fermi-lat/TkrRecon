@@ -3,7 +3,9 @@
 @verbatim
   Managers: Tracy Usher, Leon Rochester 
 
-  v10r5p7   7-Apr-2005  TU   TkrReconAlg will abort processing if too many clusters
+  v10r5p8   02-May-2005 LSR  FindTrackHitsTool: set maxGap defaults to (2,1)
+                             TkrTrackEnergyTool: set first-hit energy for 1-track events.
+  v10r5p7   07-Apr-2005 TU   TkrReconAlg will abort processing if too many clusters
                              (this will appear in the error log at end of job)
   v10r5p6  30-Mar-2005  LSR  fix the fix...
   v10r5p5  29-Mar-2005  LSR  handle case of no CAL; requires mod to TkrTrackEnergyTool
