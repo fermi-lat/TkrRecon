@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Wed May  4 15:03:50 PDT 2005
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrReconAlg.cxx 
+Log Message:
+a bit more information when the event has too many clusters. We need to revisit this kludge.
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r5p8, operation: add
 Package: TkrRecon
