@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.32 2005/03/02 00:25:19 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.33 2005/04/07 20:19:48 usher Exp $
 */
 
 
@@ -305,7 +305,10 @@ StatusCode TkrReconAlg::execute()
 
         if (numClusters > m_maxClusters)
         {
-            return handleError("Exceeded maximum allowed clusters");
+            std::stringstream errorStream;
+            errorStream << numClusters << " clusters found, max allowed is " 
+                << m_maxClusters ;
+            return handleError(errorStream.str());
         }
         
         // throw some exceptions to test the logging, maybe make an option later
