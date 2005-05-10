@@ -6,7 +6,7 @@
 * @author Tracking Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.29 2005/03/06 01:55:34 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.30 2005/05/01 01:31:14 lsrea Exp $
 */
 
 // to turn one debug variables
@@ -684,7 +684,7 @@ TkrTrackHit* FindTrackHitsTool::setFirstHit(TkrTrack* track)
         0., 0., 0., 0.);
     int layer, view; 
     m_tkrGeom->planeToLayer (next_plane, layer, view);
-    double rad_len = m_tkrGeom->getReconRadLenConv(layer); 
+    double rad_len = m_tkrGeom->getRadLenConv(layer); 
     trackHit->setRadLen(rad_len);
     //trackHit->setActiveDist(const double d); How to set this?  
 
