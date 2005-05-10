@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Tue May 10 14:54:29 PDT 2005
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx 
+Log Message:
+reorder a few lines to make the logic a bit clearer. Introduced quitCount to terminate loops (max = 20*maxTrials - the 20 might be better as a JO parameter).  Introduced CalPointing to limit first loop TkrPoints.
+    *
+------------------------------------------------------------
 User: lsrea  Wed May  4 15:03:50 PDT 2005
 TkrRecon/src/GaudiAlg
 
