@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Tue May 10 15:31:58 PDT 2005
+TkrRecon/src/Utilities
+
+Modified Files:
+	TkrPoint.h TkrPoints.cxx TkrPoints.h 
+Log Message:
+add method to TkrPoints to order points by distance from a reference position, with a maximum distance to include in the list
+    *
+------------------------------------------------------------
 User: atwood  Tue May 10 14:54:29 PDT 2005
 TkrRecon/src/PatRec/Combo
 
