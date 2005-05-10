@@ -1,31 +1,50 @@
 /// @file TkrPoints.cxx
 /**
- * @brief Provides X-Y space points from the same tower from TkrClusterCol
- *
- * 1-Dec-2001
- *  This class provides an easy way to cycle over allowed XY pairs
- *  in a given GLAST paired layer.  The ordering can be either 
- *  combinatoric or based on nearest, next nearest, etc. to a given
- *  point in that plane
- 
- * 11/01/2004
- *  Rewritten for new scheme
- *  LSR
- *
- * @authors Bill Atwood, Brian Algood
- *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoints.cxx,v 1.11 2005/02/11 07:14:54 lsrea Exp $
- *
+* @brief Provides X-Y space points from the same tower from TkrClusterCol
+*
+* 1-Dec-2001
+*  This class provides an easy way to cycle over allowed XY pairs
+*  in a given GLAST paired layer.  The ordering can be either 
+*  combinatoric or based on nearest, next nearest, etc. to a given
+*  point in that plane
+
+* 11/01/2004
+*  Rewritten for new scheme
+*  LSR
+*
+* @authors Bill Atwood, Brian Algood
+*
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoints.cxx,v 1.12 2005/03/02 00:25:22 lsrea Exp $
+*
 */
 
 #include "src/Utilities/TkrPoints.h"
 #include <iostream>
 
+#include <algorithm>
+
 TkrPoints::TkrPoints(int layer, ITkrQueryClustersTool* clusTool)
 {
     m_layer    = layer;
     m_clusTool = clusTool;
+    m_refPoint = Point(0, 0, 0);
+    m_maxDist2 = _big*_big;
+    m_sorting  = false;
     ini();
+}
+
+
+TkrPoints::TkrPoints(int layer, ITkrQueryClustersTool* clusTool, 
+                     Point refPoint, double maxDistance)
+{
+    m_layer    = layer;
+    m_clusTool = clusTool;
+    m_refPoint = refPoint;
+    m_maxDist2 = maxDistance*maxDistance;
+    m_sorting  = true;
+    ini();
+    // sort by closest to refPoint (see header file for predicate)
+    std::sort(this->begin(), this->end(), sortByClosest(m_refPoint));    
 }
 
 void TkrPoints::ini()
@@ -45,39 +64,41 @@ void TkrPoints::ini()
         for (; itY!=yHitList.end(); ++itY) {
             const Event::TkrCluster* clY = *itY;
             if(clX->tower()!=clY->tower()) continue;
-            TkrPoint* point = new TkrPoint(m_layer, clX, clY);  
-                //const_cast<Event::TkrCluster*>(clX), 
-                //const_cast<Event::TkrCluster*>(clY));
-            this->push_back(point);
-            //TkrPointListConItr iPt1 = this->begin();
+            TkrPoint* pt = new TkrPoint(m_layer, clX, clY);
+            // in sorting mode, throw out far-away points (defaults to keep all)
+            if(m_sorting) {
+                if(pt->getDistanceSquaredTo(m_refPoint)>m_maxDist2) {
+                    delete pt;
+                    continue;
+                }
+            }
+            this->push_back(pt);
         }
     }
 }
-
+   
 TkrPoint* TkrPoints::getNearestPointOutside(Point x0, double & dist_min) const
 {
     // Searches out the nearest space point to x0 which lies
     // outside a distance d
     // returns distance to this point, negative if no point is found
 
-    //double x_min=0, y_min=0, z_min=0;
-    double dist_best = 1000000.;
+    double dist_best2 = _big*_big;
     double dist_min2 = dist_min*dist_min;
     bool found = false;
     TkrPoint* ret = 0;
 
     TkrPointListConItr iPt = this->begin();
     for (; iPt!=this->end(); ++iPt) {
-        if ((*iPt)->flagged()) continue;
-        Point test = (*iPt)->getPosition();
-        double dist = (test-x0).mag2();
-        if(dist < dist_min2 || dist > dist_best) continue; 
+        TkrPoint* pt = (*iPt);
+        if (pt->flagged()) continue;
+        double dist2 = pt->getDistanceSquaredTo(x0);
+        if(dist2 < dist_min2 || dist2 > dist_best2) continue; 
         found = true;
-        dist_best = dist;
-        ret = *iPt;
+        dist_best2 = dist2;
+        ret = pt;
     }
 
-    dist_min = sqrt(dist_best);
-    if (!found) dist_min = -1.0;
+    dist_min = (found ? sqrt(dist_best2) : -1.0 );
     return ret;
 }
