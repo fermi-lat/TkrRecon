@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: lsrea  Tue May 10 15:59:11 PDT 2005
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx 
+Log Message:
+change "getReconRadLen" to "getRadLen"... should change the results slightly
+    *
+------------------------------------------------------------
 User: lsrea  Tue May 10 15:31:58 PDT 2005
 TkrRecon/src/Utilities
 
