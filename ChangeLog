@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Tue May 10 21:14:31 PDT 2005
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx 
+Log Message:
+Remove tab characters
+
+    *
+------------------------------------------------------------
+User: lsrea  Tue May 10 21:14:31 PDT 2005
 TkrRecon/src/PatRec
 
 Modified Files:
