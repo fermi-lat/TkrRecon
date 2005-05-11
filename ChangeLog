@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue May 10 21:14:30 PDT 2005
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrTrackFitAlg.cxx TkrVertexAlg.cxx 
+Log Message:
+Remove tab characters
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue May 10 21:14:29 PDT 2005
 TkrRecon/src/Display
 
