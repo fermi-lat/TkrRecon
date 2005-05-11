@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: lsrea  Tue May 10 18:08:43 PDT 2005
+TkrRecon
+
+Modified Files:
+	ChangeLog 
+Log Message:
+Start using CAL-track road in patrec
+Add methods to Utilities to generate TkrPoints lists ordered by distance to ref. point
+Fix some minor bugs
+Clean up ChangeLog
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue May 10 15:59:11 PDT 2005
 TkrRecon/src/Track
 
