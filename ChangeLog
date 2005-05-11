@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: lsrea  Tue May 10 18:08:45 PDT 2005
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx 
+Log Message:
+Start using CAL-track road in patrec
+Add methods to Utilities to generate TkrPoints lists ordered by distance to ref. point
+Fix some minor bugs
+Clean up ChangeLog
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue May 10 18:08:44 PDT 2005
 TkrRecon/doc
 
