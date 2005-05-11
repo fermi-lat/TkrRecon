@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue May 10 21:14:34 PDT 2005
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx TkrTrackEnergyTool.cxx TrackFitUtils.h 
+Log Message:
+Remove tab characters
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue May 10 21:14:33 PDT 2005
 TkrRecon/src/PatRec/NeuralNet
 
