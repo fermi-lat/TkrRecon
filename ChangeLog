@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue May 10 21:14:35 PDT 2005
+TkrRecon/src/Utilities
+
+Modified Files:
+	TkrException.h TkrPoint.cxx 
+Log Message:
+Remove tab characters
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue May 10 21:14:34 PDT 2005
 TkrRecon/src/Track
 
