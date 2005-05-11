@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/PatRec/LinkAndTree/LinkAndTreeFindTrackTool.h,v 1.2 2004/09/08 15:32:44 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/LinkAndTree/LinkAndTreeFindTrackTool.h,v 1.6 2004/09/23 21:30:27 usher Exp $
  */
 
 #ifndef LINKANDTREEFINDTRACKTOOL_H
@@ -29,7 +29,7 @@ public:
     ///        the TDS, including calorimeter energy, and then use TkrLinkAndTree to find all
     ///        possible track candidates. The resulting track candidate collection is then 
     ///        stored in the TDS for the next stage.
-	StatusCode initialize();
+    StatusCode initialize();
     StatusCode findTracks();
 
 };

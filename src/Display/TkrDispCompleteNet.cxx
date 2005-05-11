@@ -38,10 +38,10 @@ void TkrDispCompleteNet::update()
       std::string s("/Event/NeuralNet");
       StatusCode sc = dps->retrieveObject(s,dataObj);
       if(sc.isFailure())
-	{
-	  std::cout<<"WARNING: NeuralNet could not be retrieved from TDS"<<std::endl;
-	  return;
-	}
+    {
+      std::cout<<"WARNING: NeuralNet could not be retrieved from TDS"<<std::endl;
+      return;
+    }
 
       TkrNeuralNet* pTkrNeuralNet = dynamic_cast<TkrNeuralNet*>(dataObj);
 
@@ -52,13 +52,13 @@ void TkrDispCompleteNet::update()
       TkrNeuronList::const_iterator hypo;
       
       for(hypo  = tmpList.begin(); hypo != tmpList.end();   hypo++){
-	
-	Point point0 = (*hypo).getPnt(top);
-	Point point1 = (*hypo).getPnt(bottom);
-	
-	moveTo(point0);
-	lineTo(point1);
-	
+    
+    Point point0 = (*hypo).getPnt(top);
+    Point point1 = (*hypo).getPnt(bottom);
+    
+    moveTo(point0);
+    lineTo(point1);
+    
       }
       
       setColor("blue");

@@ -83,15 +83,15 @@ unsigned int TkrNeuralNet::generateNeurons()
     {
       for(unsigned int iBottom = iTop+1; iBottom < numPoints; iBottom++)
         {
-	  TkrNeuron neuron(&m_pointList[iTop],&m_pointList[iBottom],
-			   (float) rand()/(RAND_MAX+1.0));
-	  
-	  if (neuron.getLayerDiff() == 0) continue;
-	  if (neuron.getLayerDiff() > maxLayerDiff) break;
-	  if((neuron.getDirection()).z() < maxPitch) continue;
-	  
-	  neuron.setBias((float) bias);
-	  m_neuronList.push_back(neuron);
+      TkrNeuron neuron(&m_pointList[iTop],&m_pointList[iBottom],
+               (float) rand()/(RAND_MAX+1.0));
+      
+      if (neuron.getLayerDiff() == 0) continue;
+      if (neuron.getLayerDiff() > maxLayerDiff) break;
+      if((neuron.getDirection()).z() < maxPitch) continue;
+      
+      neuron.setBias((float) bias);
+      m_neuronList.push_back(neuron);
         }
     }
   
@@ -113,24 +113,24 @@ void TkrNeuralNet::buildNet()
     {
       for(unsigned int j = i+1; j < m_numNeurons; j++)
         {
-	  // do they share the same top point?
-	  if(m_neuronList[i].getPnt(top) == m_neuronList[j].getPnt(top))
+      // do they share the same top point?
+      if(m_neuronList[i].getPnt(top) == m_neuronList[j].getPnt(top))
             {
-	      m_neuronList[i].addConnection(top, &m_neuronList[j], lambda, mu);
-	      m_neuronList[j].addConnection(top, &m_neuronList[i], lambda, mu);
+          m_neuronList[i].addConnection(top, &m_neuronList[j], lambda, mu);
+          m_neuronList[j].addConnection(top, &m_neuronList[i], lambda, mu);
             }
-	  // do they share the same bottom point? 
-	  else if(m_neuronList[i].getPnt(bottom) == m_neuronList[j].getPnt(bottom))
+      // do they share the same bottom point? 
+      else if(m_neuronList[i].getPnt(bottom) == m_neuronList[j].getPnt(bottom))
             {
-	      m_neuronList[i].addConnection(bottom, &m_neuronList[j], lambda, mu);
-	      m_neuronList[j].addConnection(bottom, &m_neuronList[i], lambda, mu);
+          m_neuronList[i].addConnection(bottom, &m_neuronList[j], lambda, mu);
+          m_neuronList[j].addConnection(bottom, &m_neuronList[i], lambda, mu);
             }
-	  // are they consecutive neurons?
-	  else if(m_neuronList[i].getPnt(bottom) == m_neuronList[j].getPnt(top))
-	    {
-	      m_neuronList[i].addConnection(bottom, &m_neuronList[j], lambda, mu);
-	      m_neuronList[j].addConnection(top, &m_neuronList[i],    lambda, mu);
-	    }
+      // are they consecutive neurons?
+      else if(m_neuronList[i].getPnt(bottom) == m_neuronList[j].getPnt(top))
+        {
+          m_neuronList[i].addConnection(bottom, &m_neuronList[j], lambda, mu);
+          m_neuronList[j].addConnection(top, &m_neuronList[i],    lambda, mu);
+        }
         }
     }
   return;
@@ -169,11 +169,11 @@ void TkrNeuralNet::relax()
     // update neurons from the shuffled list
     for(i=0; i < m_numNeurons; i++)
       {
-	prevActivity = tmpList[i]->getActivity();
-	
-	tmpList[i]->update((float) temp, gamma, alpha_up, alpha_down);
-	
-	cumActivityDiff += fabs(prevActivity - tmpList[i]->getActivity());
+    prevActivity = tmpList[i]->getActivity();
+    
+    tmpList[i]->update((float) temp, gamma, alpha_up, alpha_down);
+    
+    cumActivityDiff += fabs(prevActivity - tmpList[i]->getActivity());
       }
     
     float tmp = 0.0;
@@ -181,21 +181,21 @@ void TkrNeuralNet::relax()
     // readjust the biases in each neuron to help speed up convergence.
     for(i=0;i < m_numNeurons; i++)
       {
-	tmp = 0.0;
-	unsigned int j;
-	for(j = 0; j < tmpList[i]->numSynapse(top); j++) 
-	  tmp += (tmpList[i]->getNextNeuron(top,j))->getActivity();
-	
-	unsigned int k;
-	for(k = 0; k < tmpList[i]->numSynapse(bottom); k++) 
-	  tmp += (tmpList[i]->getNextNeuron(bottom,k))->getActivity();
-	
-	tmp *= 4/((float)(j+k));
-	
-	if(tmp <= 0.4) 
-	  tmpList[i]->setBias(tmp);
-	else 
-	  tmpList[i]->setBias((float) bias);
+    tmp = 0.0;
+    unsigned int j;
+    for(j = 0; j < tmpList[i]->numSynapse(top); j++) 
+      tmp += (tmpList[i]->getNextNeuron(top,j))->getActivity();
+    
+    unsigned int k;
+    for(k = 0; k < tmpList[i]->numSynapse(bottom); k++) 
+      tmp += (tmpList[i]->getNextNeuron(bottom,k))->getActivity();
+    
+    tmp *= 4/((float)(j+k));
+    
+    if(tmp <= 0.4) 
+      tmpList[i]->setBias(tmp);
+    else 
+      tmpList[i]->setBias((float) bias);
       }
     
   }while((cumActivityDiff/((double)m_numNeurons)) > converge);

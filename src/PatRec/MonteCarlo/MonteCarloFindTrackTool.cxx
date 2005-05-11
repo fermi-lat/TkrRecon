@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.25 2005/02/19 22:40:28 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.26 2005/03/02 00:25:20 lsrea Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -35,7 +35,7 @@ public:
     /// Standard Gaudi Tool interface constructor
     MonteCarloFindTrackTool(const std::string& type, const std::string& name, const IInterface* parent);
     virtual ~MonteCarloFindTrackTool() {}
-	
+    
     /// @brief Intialization of the tool
     StatusCode initialize();
     /// @brief Method to association the Monte Carlo hits into Pattern Candidate tracks
@@ -83,7 +83,7 @@ MonteCarloFindTrackTool::MonteCarloFindTrackTool(const std::string& type, const 
     declareProperty("MaxGapSize", m_maxGapSize = 4);
     declareProperty("MaxNumGaps", m_maxNumGaps = 3);
 
-	return;
+    return;
 }
 
 //
@@ -91,7 +91,7 @@ MonteCarloFindTrackTool::MonteCarloFindTrackTool(const std::string& type, const 
 //
 
 StatusCode MonteCarloFindTrackTool::initialize()
-{	
+{    
     PatRecBaseTool::initialize();
     StatusCode sc   = StatusCode::SUCCESS;
 
@@ -459,22 +459,22 @@ Event::TkrTrackHit* MonteCarloFindTrackTool::createNewTrackHit(const Event::Clus
 
     // Now make reasonable estimates for first hit filtered and predicted values
     double x_slope = mcHitVec.x()/mcHitVec.z();
-	double y_slope = mcHitVec.y()/mcHitVec.z();
+    double y_slope = mcHitVec.y()/mcHitVec.z();
     Event::TkrTrackParams first_params(position.x(), x_slope, position.y(), y_slope,
-	                                   5., 0., 0., 0., 0., 0., 0., 5., 0., 0.);
+                                       5., 0., 0., 0., 0., 0., 0., 5., 0., 0.);
 
-	// Fill the filtered params for first hit
+    // Fill the filtered params for first hit
     Event::TkrTrackParams& filtPar = hit->getTrackParams(Event::TkrTrackHit::FILTERED);
-	filtPar = first_params;
+    filtPar = first_params;
 
-	// Make the cov. matrix from the hit position & set the slope elements
-	// using the control parameters
-	filtPar(measIdx,measIdx) = sigma * sigma;
+    // Make the cov. matrix from the hit position & set the slope elements
+    // using the control parameters
+    filtPar(measIdx,measIdx) = sigma * sigma;
     filtPar(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
-	filtPar(2,2)             = m_control->getIniErrSlope() * m_control->getIniErrSlope();
+    filtPar(2,2)             = m_control->getIniErrSlope() * m_control->getIniErrSlope();
     filtPar(4,4)             = m_control->getIniErrSlope() * m_control->getIniErrSlope();
 
-	// And now do the same for the PREDICTED params
+    // And now do the same for the PREDICTED params
     Event::TkrTrackParams& predPar = hit->getTrackParams(Event::TkrTrackHit::PREDICTED);
     predPar = filtPar;
 
@@ -498,9 +498,9 @@ Event::TkrTrackHit* MonteCarloFindTrackTool::createNewTrackHit(const Event::Clus
 
     // Check to see if upward going track
     if (mcHitVec.z() < 0.) status_bits |= Event::TkrTrackHit::UPWARDS;
-	
-	// Update the TkrTrackHit status bits
-	hit->setStatusBit((Event::TkrTrackHit::StatusBits)status_bits);
+    
+    // Update the TkrTrackHit status bits
+    hit->setStatusBit((Event::TkrTrackHit::StatusBits)status_bits);
 
     return hit;
 }

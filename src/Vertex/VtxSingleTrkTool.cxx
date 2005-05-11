@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxSingleTrkTool.cxx,v 1.7 2004/12/13 23:50:42 atwood Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxSingleTrkTool.cxx,v 1.8 2005/02/11 07:14:55 lsrea Exp $
 // Description:
 //      Simple vertexing tool for single track event
 //
@@ -52,6 +52,6 @@ StatusCode VtxSingleTrkTool::doVtxFit(Event::TkrVertexCol& /*theVtxCol*/)
       
       theVtxCol.push_back(vertex); 
     }
-	*/
+    */
   return StatusCode::SUCCESS;
 }

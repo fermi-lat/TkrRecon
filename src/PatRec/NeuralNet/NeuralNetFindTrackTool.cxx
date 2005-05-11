@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.15 2005/01/25 20:04:48 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.16 2005/02/11 07:14:52 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the Neural Net approach
@@ -94,10 +94,10 @@ StatusCode NeuralNetFindTrackTool::findTracks()
       pTkrCands = new Event::TkrTrackCol();
       sc = m_dataSvc->registerObject(EventModel::TkrRecon::TkrTrackCol,pTkrCands);
       if(sc.isFailure())
-	{
-	  std::cout<<"failed to register PatCandCol"<<std::endl;
-	  return sc;
-	}
+    {
+      std::cout<<"failed to register PatCandCol"<<std::endl;
+      return sc;
+    }
     }
   else
     {
@@ -128,10 +128,10 @@ StatusCode NeuralNetFindTrackTool::findTracks()
     {
       sc = m_dataSvc->unregisterObject("/Event/NeuralNet");
       if(sc.isFailure())
-	{
-	    std::cout<<"failed to UNregister NeuralNet"<<std::endl;
-	    return sc;
-	}
+    {
+        std::cout<<"failed to UNregister NeuralNet"<<std::endl;
+        return sc;
+    }
     }
   sc = m_dataSvc->registerObject("/Event/NeuralNet", NN);
   if(sc.isFailure())
@@ -153,7 +153,7 @@ StatusCode NeuralNetFindTrackTool::findTracks()
 // them in candidates.  It then proceed to do some preliminary fitting
 // of the track.  This will be changed soon.
 void NeuralNetFindTrackTool::buildCand(Event::TkrTrackCol& /*TkrCands*/, 
-			     const TkrNeuronList& neuronList,Event::TkrClusterCol* /*pTkrClusters*/)
+                 const TkrNeuronList& neuronList,Event::TkrClusterCol* /*pTkrClusters*/)
 {
     std::vector<TkrBase> candList;
 
@@ -163,7 +163,7 @@ void NeuralNetFindTrackTool::buildCand(Event::TkrTrackCol& /*TkrCands*/,
         if(neuronList[i].getActivity() >= 0.9)
         {
             TkrBase trial = TkrBase(neuronList[i].getLayer(top), neuronList[i].getTower(top), .03, 
-			              neuronList[i].getPnt(top),neuronList[i].getDirection());
+                          neuronList[i].getPnt(top),neuronList[i].getDirection());
             candList.push_back(trial);
         }
     }
@@ -177,47 +177,47 @@ void NeuralNetFindTrackTool::buildCand(Event::TkrTrackCol& /*TkrCands*/,
         std::vector<TkrBase>::const_iterator hypo;
         for(hypo  = candList.begin(); hypo != candList.end();   hypo++)
         {
-	        //int   iniLayer = (*hypo).firstLayer();
-	        //int   iniTower = (*hypo).tower();
-	        Ray   testRay  = Ray((*hypo).ray().position(),-(*hypo).ray().direction());
-	        //float energy   = (*hypo).energy();
-	
-	        //Event::TkrTrack* _track = new Event::TkrTrack(); //pTkrClusters, m_tkrGeom, m_clusTool,
-							    //iniLayer, iniTower, 
-							    //control->getSigmaCut(), energy, testRay); 
-	
-///	        _track->findHits();
-///	        _track->doFit();
-/*	
-	        if (!_track->empty(control->getMinSegmentHits())) 
-	        {
-	            //Keep pointer to the track temporarily
-	            tracks.push_back(_track);
-	    
-	            //Keep this track (but as a candidate)
-	            Event::TkrPatCand* newTrack = new Event::TkrPatCand(iniLayer, iniTower, energy, 
-								1., 1, _track->getRay());
-	    
-	            newTrack->setEnergy(energy);
-	    
-	            //Add the Hits
-	            Event::TkrFitPlaneConPtr hitPtr = _track->getHitIterBegin();
-	            while(hitPtr != _track->getHitIterEnd())
-	            {
-		            Event::TkrFitPlane hitplane = *hitPtr++;
-		            unsigned hit_ID = hitplane.getIDHit();
-		            Event::TkrCluster * pClus = (*pTkrClusters)[hit_ID];
-		            newTrack->addCandHit(pClus);
-	            }
+            //int   iniLayer = (*hypo).firstLayer();
+            //int   iniTower = (*hypo).tower();
+            Ray   testRay  = Ray((*hypo).ray().position(),-(*hypo).ray().direction());
+            //float energy   = (*hypo).energy();
+    
+            //Event::TkrTrack* _track = new Event::TkrTrack(); //pTkrClusters, m_tkrGeom, m_clusTool,
+                                //iniLayer, iniTower, 
+                                //control->getSigmaCut(), energy, testRay); 
+    
+///            _track->findHits();
+///            _track->doFit();
+/*    
+            if (!_track->empty(control->getMinSegmentHits())) 
+            {
+                //Keep pointer to the track temporarily
+                tracks.push_back(_track);
+        
+                //Keep this track (but as a candidate)
+                Event::TkrPatCand* newTrack = new Event::TkrPatCand(iniLayer, iniTower, energy, 
+                                1., 1, _track->getRay());
+        
+                newTrack->setEnergy(energy);
+        
+                //Add the Hits
+                Event::TkrFitPlaneConPtr hitPtr = _track->getHitIterBegin();
+                while(hitPtr != _track->getHitIterEnd())
+                {
+                    Event::TkrFitPlane hitplane = *hitPtr++;
+                    unsigned hit_ID = hitplane.getIDHit();
+                    Event::TkrCluster * pClus = (*pTkrClusters)[hit_ID];
+                    newTrack->addCandHit(pClus);
+                }
 
                 newTrack->sortHits();
-	    
-	            TkrCands.push_back(newTrack);
-	    
-	            _track->flagAllHits();
-	    
-	        } 
-	        else delete _track;
+        
+                TkrCands.push_back(newTrack);
+        
+                _track->flagAllHits();
+        
+            } 
+            else delete _track;
 */
         }
     } 
@@ -230,7 +230,7 @@ void NeuralNetFindTrackTool::buildCand(Event::TkrTrackCol& /*TkrCands*/,
       
         while(iter != tracks.end())
         {
-//	        Event::TkrTrack* pTrack = *iter++;
+//            Event::TkrTrack* pTrack = *iter++;
 //          pTrack->unFlagAllHits();
         }
     }

@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.h,v 1.7 2004/09/23 21:30:28 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.h,v 1.8 2004/12/16 05:04:22 usher Exp $
  */
 
 #ifndef NEURALNETFINDTRACKTOOL_H
@@ -24,8 +24,8 @@ class NeuralNetFindTrackTool : public PatRecBaseTool
 
   /// Standard Gaudi Tool interface constructor
   NeuralNetFindTrackTool(const std::string& type, 
-			 const std::string& name, 
-			 const IInterface* parent);
+             const std::string& name, 
+             const IInterface* parent);
 
   virtual ~NeuralNetFindTrackTool() {}
   
@@ -41,8 +41,8 @@ class NeuralNetFindTrackTool : public PatRecBaseTool
 
   /// Instantiation and fake fit of the TkrPatCand candidate tracks.
   void buildCand( Event::TkrTrackCol&, 
-		          const TkrNeuronList&, 
-		          Event::TkrClusterCol* );
+                  const TkrNeuronList&, 
+                  Event::TkrClusterCol* );
   
 
  private:

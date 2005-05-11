@@ -13,7 +13,7 @@
   *
   * @author Tracy Usher (as editor instead of author)
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TrackFitUtils.h,v 1.10 2005/01/17 19:16:45 lsrea Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TrackFitUtils.h,v 1.11 2005/02/06 23:16:10 lsrea Exp $
 */
 
 #ifndef __TrackFitUtils_H
@@ -54,15 +54,15 @@ public:
                                int                           nhits, 
                                Event::TkrTrackHit::ParamType typ = Event::TkrTrackHit::SMOOTHED);
 
-	/// Finds the number of shared TkrClusters on the two given tracks
+    /// Finds the number of shared TkrClusters on the two given tracks
     //    if 3rd argument is present, bails after that number (saving some time!)
     int compareTracks(Event::TkrTrack& track1, Event::TkrTrack& track2, 
         int stopAfter = 1000000) const;
     int numUniqueHits(Event::TkrTrack& track1, Event::TkrTrack& track2,
         int minUnique = 1000000) const;
 
-	/// Conpute the first first normalize track kink angle
-	double firstKinkNorm(Event::TkrTrack& track);
+    /// Conpute the first first normalize track kink angle
+    double firstKinkNorm(Event::TkrTrack& track);
 
     /// Operations
     void   flagAllHits(Event::TkrTrack& track, int iflag=1);

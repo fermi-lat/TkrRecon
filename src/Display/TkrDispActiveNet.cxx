@@ -52,10 +52,10 @@ void TkrDispActiveNet::update()
       std::string s("/Event/NeuralNet");
       StatusCode sc = dps->retrieveObject(s,dataObj);
       if(sc.isFailure())
-	{
-	  std::cout<<"WARNING: NeuralNet could not be retrieved from TDS"<<std::endl;
-	  return;
-	}
+    {
+      std::cout<<"WARNING: NeuralNet could not be retrieved from TDS"<<std::endl;
+      return;
+    }
 
       TkrNeuralNet* pTkrNeuralNet = dynamic_cast<TkrNeuralNet*>(dataObj);
       //        TkrNeuralNet* pTkrNeuralNet = dynamic_cast<TkrNeuralNet*>(pTkrPatCandCol);

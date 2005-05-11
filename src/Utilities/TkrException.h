@@ -2,7 +2,7 @@
  * @file TkrException.h
  *
 
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoints.h,v 1.2 2002/08/30 15:44:14 atwood Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrException.h,v 1.1 2003/09/27 18:53:27 burnett Exp $
  *
 */
 
@@ -15,7 +15,7 @@
     class TkrException : public std::exception{
     public: 
         TkrException(std::string error):m_what(error){}
-	~TkrException() throw() {;}
+    ~TkrException() throw() {;}
         virtual const char *what( ) const  throw() { return m_what.c_str();} 
         std::string m_what;
     };

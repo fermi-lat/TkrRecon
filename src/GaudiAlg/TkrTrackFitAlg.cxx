@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.24 2005/01/29 00:59:36 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.25 2005/03/01 00:55:49 lsrea Exp $
  */
 
 #include <vector>
@@ -238,8 +238,8 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
     // Find the collection of candidate tracks
     Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
 
-	// Check that there are tracks to fit
-	if(trackCol->size() < 1) return sc;
+    // Check that there are tracks to fit
+    if(trackCol->size() < 1) return sc;
 
     // Set the energy of the tracks
     m_EnergyTool->SetTrackEnergies();

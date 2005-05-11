@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/LinkAndTree/LinkAndTreeFindTrackTool.cxx,v 1.12 2004/12/16 05:04:21 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/LinkAndTree/LinkAndTreeFindTrackTool.cxx,v 1.13 2004/12/16 16:12:05 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the Link and Tree approach
@@ -27,7 +27,7 @@ const IToolFactory& LinkAndTreeFindTrackToolFactory = s_factory;
 LinkAndTreeFindTrackTool::LinkAndTreeFindTrackTool(const std::string& type, const std::string& name, const IInterface* parent) :
                           PatRecBaseTool(type, name, parent)
 {
-	return;
+    return;
 }
 
 StatusCode LinkAndTreeFindTrackTool::initialize()
