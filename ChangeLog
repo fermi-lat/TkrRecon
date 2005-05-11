@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue May 10 21:14:28 PDT 2005
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Remove tab characters
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r6, operation: add
 Package: TkrRecon
