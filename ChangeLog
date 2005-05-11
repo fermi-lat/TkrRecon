@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: lsrea  Tue May 10 21:14:33 PDT 2005
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	NeuralNetFindTrackTool.cxx NeuralNetFindTrackTool.h 
+	TkrNeuralNet.cxx TkrNeuralNet.h TkrNeuron.cxx 
+Log Message:
+Remove tab characters
+
+    *
+------------------------------------------------------------
+User: lsrea  Tue May 10 21:14:33 PDT 2005
 TkrRecon/src/PatRec/MonteCarlo
 
 Modified Files:
