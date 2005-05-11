@@ -3,6 +3,12 @@
 @verbatim
   Managers: Tracy Usher, Leon Rochester 
 
+  v10r6     10-May-2005 LSR  FindTrackHitsTool: fix minor radlen bug
+                             Utilities: implement TkrPoints wrt a reference point
+                             ComboFindTrackTool: use new TkrPoints
+                                Limit CAL finding to cone around CAL-track
+                                Fix minor radlen and layer-numbering bug
+                             Clean up Tags in ChangeLog
   v10r5p8   02-May-2005 LSR  FindTrackHitsTool: set maxGap defaults to (2,1)
                              TkrTrackEnergyTool: correctly set first-hit energy for 1-track events.
   v10r5p7   07-Apr-2005 TU   TkrReconAlg will abort processing if too many clusters
