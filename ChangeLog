@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue May 10 21:14:33 PDT 2005
+TkrRecon/src/PatRec/MonteCarlo
+
+Modified Files:
+	MonteCarloFindTrackTool.cxx 
+Log Message:
+Remove tab characters
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue May 10 21:14:32 PDT 2005
 TkrRecon/src/PatRec/LinkAndTree
 
