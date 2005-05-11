@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Tue May 10 21:14:35 PDT 2005
+TkrRecon/src/Vertex
+
+Modified Files:
+	VtxBaseTool.cxx VtxSingleTrkTool.cxx 
+Log Message:
+Remove tab characters
+
+    *
+------------------------------------------------------------
+User: lsrea  Tue May 10 21:14:35 PDT 2005
 TkrRecon/src/Utilities
 
 Modified Files:
