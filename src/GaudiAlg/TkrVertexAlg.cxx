@@ -17,7 +17,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.28 2004/12/13 23:50:40 atwood Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.29 2004/12/16 05:04:21 usher Exp $
  */
 
 #include "GaudiKernel/IToolSvc.h"
@@ -168,9 +168,9 @@ StatusCode TkrVertexAlg::execute()
 
         // This tells the tool to perform the vertexing
         sc = m_VtxTool->findVtxs();
-		log << MSG::DEBUG;
-		if (log.isActive()) log << pVtxCol->size() << " vertices found ";
-	    log << endreq;
+        log << MSG::DEBUG;
+        if (log.isActive()) log << pVtxCol->size() << " vertices found ";
+        log << endreq;
     }
   
     return sc;

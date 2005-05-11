@@ -11,14 +11,14 @@
  * @class PatRecBaseTool
  * @brief Base class for the concrete pattern recognition tools.
  * @author GLAST Tracker Software group
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/PatRecBaseTool.h,v 1.4 2004/10/12 19:03:34 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/PatRecBaseTool.h,v 1.5 2004/12/16 05:04:22 usher Exp $
  */
 class PatRecBaseTool : public AlgTool, virtual public ITkrFindTrackTool 
 {
  public:
   // Constructor
   PatRecBaseTool( const std::string& type, const std::string& name, 
-		  const IInterface* parent);
+          const IInterface* parent);
   // Standard Destructor
   virtual ~PatRecBaseTool() {;}
   

@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxBaseTool.cxx,v 1.6 2004/12/13 23:50:42 atwood Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxBaseTool.cxx,v 1.7 2004/12/16 05:04:24 usher Exp $
 // Description:
 //      Implementation of the base class of concrete vertexing tools
 //
@@ -72,7 +72,7 @@ StatusCode VtxBaseTool::retrieveVtxCol(Event::TkrVertexCol& VtxCol)
 
 StatusCode VtxBaseTool::findVtxs()
 {
-	// Put in this placehold to make things compatable with the past
+    // Put in this placehold to make things compatable with the past
   MsgStream log(msgSvc(), name());
   StatusCode sc=StatusCode::SUCCESS;
   return sc;

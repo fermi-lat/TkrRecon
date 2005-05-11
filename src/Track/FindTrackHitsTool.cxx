@@ -6,7 +6,7 @@
 * @author Tracking Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.30 2005/05/01 01:31:14 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.31 2005/05/10 22:59:11 lsrea Exp $
 */
 
 // to turn one debug variables
@@ -156,7 +156,7 @@ FindTrackHitsTool::~FindTrackHitsTool()
 //
 
 StatusCode FindTrackHitsTool::initialize()
-{	
+{    
     StatusCode sc   = StatusCode::SUCCESS;
 
     //Set the properties

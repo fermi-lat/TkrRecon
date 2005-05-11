@@ -105,7 +105,7 @@ void TkrNeuron::addConnection(position pos, TkrNeuron* neuron,double lambda,doub
 inline bool TkrNeuron::operator==(const TkrNeuron& neuron) const
 {
     return (getPnt(top) == neuron.getPnt(top) && 
-	    getPnt(bottom) == neuron.getPnt(bottom));
+        getPnt(bottom) == neuron.getPnt(bottom));
 }
 
 
@@ -124,7 +124,7 @@ void TkrNeuron::update(float temp, double gamma, double alpha_up, double alpha_d
   for(i=0, j=0;i < numSynapse(bottom); i++){
     if(getNextNeuron(bottom, i)->getPnt(top) == getPnt(bottom)) 
       tmp1 +=(getWeight(bottom, i)) * 
-	(getNextNeuron(bottom, i)->getActivity());
+    (getNextNeuron(bottom, i)->getActivity());
     else{
       tmp2 += getNextNeuron(bottom, i)->getActivity();
       j++;
@@ -134,7 +134,7 @@ void TkrNeuron::update(float temp, double gamma, double alpha_up, double alpha_d
   for(i = 0;i < numSynapse(top); i++){
     if(getNextNeuron(top, i)->getPnt(bottom) == getPnt(top))
       tmp1 +=(getWeight(top, i)) * 
-	(getNextNeuron(top, i)->getActivity());
+    (getNextNeuron(top, i)->getActivity());
     else{
       tmp3 += getNextNeuron(top, i)->getActivity();
     }

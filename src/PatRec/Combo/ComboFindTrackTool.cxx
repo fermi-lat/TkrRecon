@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.38 2005/05/10 21:54:28 atwood Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.39 2005/05/11 01:08:45 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -162,13 +162,13 @@ private:
     int m_reverseLayerPenalty;  // don't search all the way to the top
     int m_maxDeltaFirstLayer;   // if one long track has been found, don't look
                                 //   more than delta layers away for any others
-	double m_calAngleRes; // Calorimeter angular resolution used to set the hit search regions size
+    double m_calAngleRes; // Calorimeter angular resolution used to set the hit search regions size
 
     /// Internal data members
     CandidateList m_candidates;  // Internal list of found hypothesises
 
     Point m_calPos;          // Calorimeter seed point
-	Vector m_calDir;          // Calorimeter seed direction
+    Vector m_calDir;          // Calorimeter seed direction
     Point m_nextPointPos;    // position of "next" tkrPoint (why is this a member?)
     double m_energy;         // Energy used to compute errors
     double m_arclen;         // arclength transfer space 
@@ -312,7 +312,7 @@ StatusCode ComboFindTrackTool::findTracks()
     {
         CalEnergy = pCalClusters->front()->getEnergySum(); 
         m_calPos  = pCalClusters->front()->getPosition();
-		m_calDir  = pCalClusters->front()->getDirection();
+        m_calDir  = pCalClusters->front()->getDirection();
     }
 
     switch (m_energyType) {
@@ -321,7 +321,7 @@ case DEFAULT:
         //! for the moment use:
         CalEnergy = m_minEnergy;
         m_calPos  = Point(0.,0.,0.);
-		m_calDir  = Vector(0., 0., 1.); 
+        m_calDir  = Vector(0., 0., 1.); 
     }
     //Take a fraction of the Cal Energy for the first track
     m_energy = std::max(m_1stTkrEFrac*CalEnergy, m_minEnergy);
@@ -331,7 +331,7 @@ case CALONLY:
         //! for the moment use:
         CalEnergy = m_minEnergy;
         m_calPos  = Point(0.,0.,0.);
-		m_calDir  = Vector(0., 0., 1.); 
+        m_calDir  = Vector(0., 0., 1.); 
     }
     break;
 case USER:
@@ -552,7 +552,7 @@ void ComboFindTrackTool::findBlindCandidates()
     int lastILayer        = 2;
     int lastJLayer        = std::max(1, lastILayer-1);
     int lastKLayer        = std::max(0, lastJLayer-1);
-	clearTrialCounters();
+    clearTrialCounters();
 
     for (; ilayer >= lastILayer; --ilayer) { 
         // Termination Criterion
@@ -567,11 +567,11 @@ void ComboFindTrackTool::findBlindCandidates()
 
         // Create space point loops and check for hits
 
-		double z_layer = m_tkrGeom->getLayerZ(ilayer); 
-		double arcLen  = (z_layer - m_calPos.z())/m_calDir.z();
+        double z_layer = m_tkrGeom->getLayerZ(ilayer); 
+        double arcLen  = (z_layer - m_calPos.z())/m_calDir.z();
 
-		Point calposPred = m_calPos + arcLen*m_calDir;
-		double hit_region_size = arcLen*sqrt(100000./m_energy) * m_calAngleRes/m_calDir.z(); 
+        Point calposPred = m_calPos + arcLen*m_calDir;
+        double hit_region_size = arcLen*sqrt(100000./m_energy) * m_calAngleRes/m_calDir.z(); 
 
         TkrPoints firstPoints(ilayer, m_clusTool, calposPred, hit_region_size);
         if(firstPoints.empty()) continue;
@@ -632,7 +632,7 @@ void ComboFindTrackTool::findBlindCandidates()
     } // end ilayer
     msgLog << MSG::DEBUG;
     if (msgLog.isActive()) msgLog << "Blind search: " <<  m_candidates.size() << ", " << m_trials << " trials" 
-		                          << m_quitCount << "quitCount";
+                                  << m_quitCount << "quitCount";
     msgLog << endreq;
     return;
 }
@@ -656,7 +656,7 @@ void ComboFindTrackTool::findCalCandidates()
     int localBestHitCount = 0; // maximum number of hits on any track so far
     int  ilayer     = m_topLayerWithPoints;
     int lastILayer = 2;
-	clearTrialCounters();
+    clearTrialCounters();
 
     for (; ilayer >= lastILayer; --ilayer) {  
         // Should we continue? 
@@ -665,11 +665,11 @@ void ComboFindTrackTool::findCalCandidates()
         if(localBestHitCount > m_termHitCnt && 
             abs(ilayer - m_topLayerFound) > m_maxDeltaFirstLayer) break;
 
-		// Get Cal Predicted location in this layer to order hits
-		double z_layer = m_tkrGeom->getLayerZ(ilayer); 
-		double arcLen  = (z_layer - m_calPos.z())/m_calDir.z();
-		Point calposPred = m_calPos + arcLen*m_calDir;
-		double hit_region_size = arcLen*sqrt(100000./m_energy) * m_calAngleRes/m_calDir.z(); 
+        // Get Cal Predicted location in this layer to order hits
+        double z_layer = m_tkrGeom->getLayerZ(ilayer); 
+        double arcLen  = (z_layer - m_calPos.z())/m_calDir.z();
+        Point calposPred = m_calPos + arcLen*m_calDir;
+        double hit_region_size = arcLen*sqrt(100000./m_energy) * m_calAngleRes/m_calDir.z(); 
 
         // Create space point loop and check for hits
         TkrPoints firstPoints(ilayer, m_clusTool, calposPred, hit_region_size);
@@ -679,7 +679,7 @@ void ComboFindTrackTool::findCalCandidates()
         for (; itFirst!=firstPoints.end(); ++itFirst) {
             if(quitOnTrials()) break; 
 
-			TkrPoint* p1 = *itFirst;
+            TkrPoint* p1 = *itFirst;
             Point x1(p1->getPosition());
             if(!m_validTopLayer) {
                 m_topLayerWithPoints = ilayer;
@@ -696,27 +696,27 @@ void ComboFindTrackTool::findCalCandidates()
             if(x_size > (3+3*fabs(t1.x()/t1.z()))) continue; 
             if(y_size > (3+3*fabs(t1.y()/t1.z()))) continue; 
 
-			// Loop over possible 2nd layers  - must allow at least 1 missing
+            // Loop over possible 2nd layers  - must allow at least 1 missing
             int lastLayer = ilayer-1-m_maxFirstGaps;
             if(lastLayer < 0) lastLayer = 0;
             for(int klayer=ilayer-1; klayer >= lastLayer; --klayer) {
                 if(quitOnTrials()) break; 
 
-				//Try the 3 closest hits to 1st-hit - cal-hit line
-				double pred_dist = 
-					fabs((m_tkrGeom->getLayerZ(klayer) - 
-					m_tkrGeom->getLayerZ(ilayer))/t1.z());
-				Point x_pred = x1 + pred_dist*t1;
-				double resid_max = m_maxTripRes/fabs(t1.z());
+                //Try the 3 closest hits to 1st-hit - cal-hit line
+                double pred_dist = 
+                    fabs((m_tkrGeom->getLayerZ(klayer) - 
+                    m_tkrGeom->getLayerZ(ilayer))/t1.z());
+                Point x_pred = x1 + pred_dist*t1;
+                double resid_max = m_maxTripRes/fabs(t1.z());
 
-				// get the list of points sorted around the predicted position
-				TkrPoints secondPoints(klayer, m_clusTool, x_pred, resid_max);
-				if(secondPoints.empty()) continue;
-				int npts = secondPoints.size();
-				npts = std::min(3, npts);
-				// short/empty list is handled automatically 
-				for(int k_try = 0; k_try < npts; ++k_try){
-					TkrPoint* p2 = secondPoints[k_try];
+                // get the list of points sorted around the predicted position
+                TkrPoints secondPoints(klayer, m_clusTool, x_pred, resid_max);
+                if(secondPoints.empty()) continue;
+                int npts = secondPoints.size();
+                npts = std::min(3, npts);
+                // short/empty list is handled automatically 
+                for(int k_try = 0; k_try < npts; ++k_try){
+                    TkrPoint* p2 = secondPoints[k_try];
                     Ray testRay = p1->getRayTo(p2);
                     //Do a trial track fit
                     // for now, need to test all the combos, sigh

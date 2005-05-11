@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/PatRecBaseTool.cxx,v 1.6 2004/12/13 23:50:40 atwood Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/PatRecBaseTool.cxx,v 1.7 2004/12/16 05:04:22 usher Exp $
 // Description:
 //      Implementation of the base class of concrete pattern recognition tools
 //
@@ -14,8 +14,8 @@
 #include "Event/TopLevel/EventModel.h"
 
 PatRecBaseTool::PatRecBaseTool( const std::string& type, 
-				const std::string& name, 
-				const IInterface* parent)
+                const std::string& name, 
+                const IInterface* parent)
   : AlgTool(type,name,parent)
 {
   // declare base interface for all consecutive concrete classes
