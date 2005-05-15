@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: lsrea  Sun May 15 12:13:34 PDT 2005
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+ComboFindTrackTool: implement MC energy and pointing option
+                    cancel hit-limiting for poorly measured Cal tracks
+                    new method to handle cal prediction
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r6p1, operation: add
 Package: TkrRecon
