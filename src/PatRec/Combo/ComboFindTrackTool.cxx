@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.39 2005/05/11 01:08:45 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.40 2005/05/11 04:14:31 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -13,11 +13,15 @@
 #include "GaudiKernel/AlgTool.h"
 #include "GaudiKernel/DataSvc.h"
 
+#include "GaudiKernel/IParticlePropertySvc.h"
+#include "GaudiKernel/ParticleProperty.h"
+
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "Event/Recon/TkrRecon/TkrTrackHit.h"
 #include "Event/Recon/TkrRecon/TkrTrack.h"
 #include "Event/Recon/CalRecon/CalCluster.h"
 #include "Event/TopLevel/EventModel.h"
+#include "Event/MonteCarlo/McParticle.h"
 
 #include "TkrRecon/PatRec/ITkrFindTrackTool.h"
 #include "TkrRecon/Track/IFindTrackHitsTool.h"
@@ -135,6 +139,9 @@ private:
         m_quitCount = 0;
     }
 
+    Point getCalPrediction(int layer, double& radius) const;
+
+
     /// Control Parameters set via JobOptions parameters
     double m_minEnergy;  // Min. energy to use for setting search regions 
     double m_sigmaCut;   // Sigma cut for picking up points
@@ -161,7 +168,7 @@ private:
     bool m_leadingHits;  // Flag to include leading hit (clusters) on the track
     int m_reverseLayerPenalty;  // don't search all the way to the top
     int m_maxDeltaFirstLayer;   // if one long track has been found, don't look
-                                //   more than delta layers away for any others
+    //   more than delta layers away for any others
     double m_calAngleRes; // Calorimeter angular resolution used to set the hit search regions size
 
     /// Internal data members
@@ -181,8 +188,13 @@ private:
     bool m_validBotLayer;       // same for bottom
     bool m_downwardTrackFound;  // a downward-going track has been found
     bool m_upwardTrackFound;    // same for upward-going
-    int m_quitCount;            // keeps track of the total trials
-    int m_trials;               // keeps track of successful trials
+    int m_quitCount;         // keeps track of the total trials
+    int m_trials;            // keeps track of successful trials
+    bool m_limitHits;        // internal flag
+
+    // to decode the particle charge
+    IParticlePropertySvc* m_ppsvc;    
+
 };
 
 static ToolFactory<ComboFindTrackTool> s_factory;
@@ -241,8 +253,8 @@ StatusCode ComboFindTrackTool::initialize()
     m_maxTotalTrials = m_quitCountFactor*m_maxTrials;
 
     m_fitUtils = new TrackFitUtils(m_tkrGeom, 0);
-    
-    if      (energyTypeStr=="Default") { m_energyType = DEFAULT; }
+
+     if      (energyTypeStr=="Default") { m_energyType = DEFAULT; }
     else if (energyTypeStr=="CALOnly") { m_energyType = CALONLY; }
     else if (energyTypeStr=="User")    { m_energyType = USER; }
     else if (energyTypeStr=="MC")      { m_energyType = MC; }
@@ -273,6 +285,18 @@ StatusCode ComboFindTrackTool::initialize()
     {
         throw GaudiException("ToolSvc could not find KalmanTrackFitTool", name(), sc);
     }
+    if(m_energyType==MC) {
+        if( serviceLocator() ) {
+            if( service("ParticlePropertySvc", m_ppsvc, true).isFailure() ) {
+                msgLog 
+                    << MSG::ERROR << "ParticlePropertySvc not found" 
+                    << endreq;
+            }
+        } else {
+            return StatusCode::FAILURE;
+        }
+    }
+
     return sc;
 }
 
@@ -302,44 +326,90 @@ StatusCode ComboFindTrackTool::findTracks()
     m_validBotLayer = false;
     m_downwardTrackFound = false;
     m_upwardTrackFound   = false;
+    m_limitHits = true;
 
     // Set up the energy variables
     double CalEnergy   = m_minEnergy;
-    m_calPos = Point(0.,0.,0.);
+    const Point  origin(0., 0., 0.);
+    const Vector unit(0., 0., 1.);
+    m_calPos = origin;
+    m_calDir = unit;
 
     //If clusters, then retrieve estimate for the energy & centroid
-    if (pCalClusters)
-    {
+    if (pCalClusters) {
         CalEnergy = pCalClusters->front()->getEnergySum(); 
         m_calPos  = pCalClusters->front()->getPosition();
         m_calDir  = pCalClusters->front()->getDirection();
-    }
+        if (m_calDir.mag()>10.0) {
+            m_calDir = unit;
+            m_limitHits = false;
+        } 
+    } 
 
-    switch (m_energyType) {
-case DEFAULT:
-    if (CalEnergy < m_minEnergy) {
-        //! for the moment use:
-        CalEnergy = m_minEnergy;
-        m_calPos  = Point(0.,0.,0.);
-        m_calDir  = Vector(0., 0., 1.); 
-    }
-    //Take a fraction of the Cal Energy for the first track
-    m_energy = std::max(m_1stTkrEFrac*CalEnergy, m_minEnergy);
-    break;
-case CALONLY:
-    if (CalEnergy < m_minEnergy) {
-        //! for the moment use:
-        CalEnergy = m_minEnergy;
-        m_calPos  = Point(0.,0.,0.);
-        m_calDir  = Vector(0., 0., 1.); 
-    }
-    break;
-case USER:
-    m_energy = m_minEnergy;
-    break;
-case MC:
-    m_energy = m_minEnergy;  //PLACE HOLDER 
-    //   - Tracy - need help here to dig out energy
+    switch (m_energyType) 
+    {
+    case DEFAULT:
+        if (CalEnergy < m_minEnergy) {
+            //! for the moment use:
+            CalEnergy = m_minEnergy;
+            m_calPos  = origin;
+            m_calDir  = unit;
+            m_limitHits = false;
+        }
+        //Take a fraction of the Cal Energy for the first track
+        m_energy = std::max(m_1stTkrEFrac*CalEnergy, m_minEnergy);
+        break;
+    case CALONLY:
+        if (CalEnergy < m_minEnergy) {
+            //! for the moment use:
+            m_calPos  = origin;
+            m_calDir  = unit;
+            m_limitHits = false;
+            break;
+        }
+    case USER:
+        m_energy = m_minEnergy;
+        break;
+    case MC:
+        //find the primary
+        Event::McParticleCol* pMcParticle =
+            SmartDataPtr<Event::McParticleCol>(m_dataSvc,EventModel::MC::McParticleCol);
+        if (pMcParticle==0) {
+            throw GaudiException("PatRec wants MC energy, but there is no MCParticleCol", 
+                name(), StatusCode::FAILURE);
+        }
+        Event::McParticleCol::const_iterator pMCPrimary = pMcParticle->begin();
+        // Skip the first particle... it's for bookkeeping.
+        // The second particle is the first real propagating particle.
+        pMCPrimary++;
+
+        // find the charge
+        Event::McParticle::StdHepId hepid= (*pMCPrimary)->particleProperty();
+        double MC_Id = (double)hepid;
+        ParticleProperty* ppty = m_ppsvc->findByStdHepID( hepid );
+        double MC_Charge = 0;
+        if (ppty) {
+            std::string name = ppty->particle(); 
+            MC_Charge = ppty->charge();          
+        }
+        HepPoint3D Mc_x0;
+        // launch point for charged particle; conversion point for neutral
+        Mc_x0= (MC_Charge==0 ? (*pMCPrimary)->finalPosition() : (*pMCPrimary)->initialPosition());
+        m_calPos = Point(Mc_x0.x(), Mc_x0.y(), Mc_x0.z());
+        
+        // move the calorimeter position to the middle of the calorimeter
+        // just to avoid later snafus
+
+        double calZ = 0.5*(m_tkrGeom->calZBot() + m_tkrGeom->calZTop());
+        double arclen = (m_calPos.z() - calZ)/m_calDir.z();
+        m_calPos -= arclen*m_calDir;
+
+        HepLorentzVector Mc_p0 = (*pMCPrimary)->initialFourMomentum();
+        m_calDir = Vector(Mc_p0.x(),Mc_p0.y(), Mc_p0.z()).unit();
+
+        // there's a method v.m(), but it does something tricky if m2<0
+        double mass = sqrt(std::max(Mc_p0.m2(),0.0));
+        m_energy = std::max(Mc_p0.t() - mass, 0.0);
     }
 
     // Search for candidate tracks
@@ -567,13 +637,10 @@ void ComboFindTrackTool::findBlindCandidates()
 
         // Create space point loops and check for hits
 
-        double z_layer = m_tkrGeom->getLayerZ(ilayer); 
-        double arcLen  = (z_layer - m_calPos.z())/m_calDir.z();
+        double hit_region_size;
+        Point calPosPred = getCalPrediction(ilayer, hit_region_size);
 
-        Point calposPred = m_calPos + arcLen*m_calDir;
-        double hit_region_size = arcLen*sqrt(100000./m_energy) * m_calAngleRes/m_calDir.z(); 
-
-        TkrPoints firstPoints(ilayer, m_clusTool, calposPred, hit_region_size);
+        TkrPoints firstPoints(ilayer, m_clusTool, calPosPred, hit_region_size);
         if(firstPoints.empty()) continue;
 
         TkrPointListConItr itFirst = firstPoints.begin();
@@ -632,7 +699,7 @@ void ComboFindTrackTool::findBlindCandidates()
     } // end ilayer
     msgLog << MSG::DEBUG;
     if (msgLog.isActive()) msgLog << "Blind search: " <<  m_candidates.size() << ", " << m_trials << " trials" 
-                                  << m_quitCount << "quitCount";
+        << m_quitCount << "quitCount";
     msgLog << endreq;
     return;
 }
@@ -666,13 +733,11 @@ void ComboFindTrackTool::findCalCandidates()
             abs(ilayer - m_topLayerFound) > m_maxDeltaFirstLayer) break;
 
         // Get Cal Predicted location in this layer to order hits
-        double z_layer = m_tkrGeom->getLayerZ(ilayer); 
-        double arcLen  = (z_layer - m_calPos.z())/m_calDir.z();
-        Point calposPred = m_calPos + arcLen*m_calDir;
-        double hit_region_size = arcLen*sqrt(100000./m_energy) * m_calAngleRes/m_calDir.z(); 
+        double hit_region_size;
+        Point calPosPred = getCalPrediction(ilayer, hit_region_size);
 
         // Create space point loop and check for hits
-        TkrPoints firstPoints(ilayer, m_clusTool, calposPred, hit_region_size);
+        TkrPoints firstPoints(ilayer, m_clusTool, calPosPred, hit_region_size);
         if(firstPoints.empty()) continue;
 
         TkrPointListConItr itFirst = firstPoints.begin();
@@ -688,13 +753,16 @@ void ComboFindTrackTool::findCalCandidates()
 
             Vector t1 = m_calPos - x1;
             t1 = t1.unit();
-            if(fabs(t1.z()) < m_PatRecFoV) continue; 
+            double costh1 = fabs(t1.z());
+            if(costh1 < m_PatRecFoV) continue; 
 
             // Don't allow Oversized SSD clusters to start track
+            // This looks like an opportunity for a study!
+
             double x_size = p1->getXCluster()->size();
+            if(x_size > (3+3*fabs(t1.x())/costh1)) continue; 
             double y_size = p1->getYCluster()->size(); 
-            if(x_size > (3+3*fabs(t1.x()/t1.z()))) continue; 
-            if(y_size > (3+3*fabs(t1.y()/t1.z()))) continue; 
+            if(y_size > (3+3*fabs(t1.y())/costh1)) continue; 
 
             // Loop over possible 2nd layers  - must allow at least 1 missing
             int lastLayer = ilayer-1-m_maxFirstGaps;
@@ -705,9 +773,9 @@ void ComboFindTrackTool::findCalCandidates()
                 //Try the 3 closest hits to 1st-hit - cal-hit line
                 double pred_dist = 
                     fabs((m_tkrGeom->getLayerZ(klayer) - 
-                    m_tkrGeom->getLayerZ(ilayer))/t1.z());
+                    m_tkrGeom->getLayerZ(ilayer)))/costh1;
                 Point x_pred = x1 + pred_dist*t1;
-                double resid_max = m_maxTripRes/fabs(t1.z());
+                double resid_max = m_maxTripRes/costh1;
 
                 // get the list of points sorted around the predicted position
                 TkrPoints secondPoints(klayer, m_clusTool, x_pred, resid_max);
@@ -744,7 +812,7 @@ float ComboFindTrackTool::findNextPoint(int layer, const Ray& traj, float &cosKi
     // Restrictions and Caveats:  None.
 
     // Note: this method no longer increments the layer... the caller now does this!
-    
+
     cosKink = 0.;
 
     double costh  = fabs(traj.direction().z()); 
@@ -821,7 +889,7 @@ void ComboFindTrackTool::findReverseCandidates()
             int jlayer = ilayer+1;
             // Allows at most m_maxFirstGaps between first 2 hits
             for(int igap=0; igap<=m_maxFirstGaps && jlayer<=lastJLayer; ++igap, ++jlayer) {
-                 // Tests for terminating gap loop
+                // Tests for terminating gap loop
                 if(quitOnTrials()) break; 
                 // This says: 
                 //   we already have one track at this level or above;
@@ -920,10 +988,10 @@ bool ComboFindTrackTool::incorporate(Candidate* trial)
         }
     }
 
-   // candidates are correctly inserted into the multiset
-   //   according to the value of -m_quality
+    // candidates are correctly inserted into the multiset
+    //   according to the value of -m_quality
 
-   m_candidates.insert(trial);
+    m_candidates.insert(trial);
     if(m_bestHitCount < numTrialHits) m_bestHitCount = numTrialHits;
     added = true;
 
@@ -1044,7 +1112,7 @@ ComboFindTrackTool::Candidate::~Candidate()
 }
 
 ComboFindTrackTool::trialReturn ComboFindTrackTool::tryCandidate(int firstLayer, 
-                                         int& localBestHitCount, const Ray& testRay)
+                                                                 int& localBestHitCount, const Ray& testRay)
 {
     // Purpose and Method: generates a trial candidate, tests for acceptance
     //    and passes back info so that caller can decide whether to terminate
@@ -1100,4 +1168,19 @@ ComboFindTrackTool::trialReturn ComboFindTrackTool::tryCandidate(int firstLayer,
         m_upwardTrackFound = true;
     }
     return FITSUCCEEDED;
+}
+
+Point ComboFindTrackTool::getCalPrediction(int layer, double& radius) const
+{
+        double z_layer = m_tkrGeom->getLayerZ(layer); 
+        double arcLen  = (z_layer - m_calPos.z())/m_calDir.z();
+
+        Point predPoint = m_calPos + arcLen*m_calDir;
+        if (m_limitHits) {
+            radius = 
+                fabs(arcLen*sqrt(100000./m_energy) * m_calAngleRes/m_calDir.z()); 
+        } else {
+            radius = 100000.;
+        }
+    return predPoint;
 }
