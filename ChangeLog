@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: lsrea  Sun May 15 12:13:35 PDT 2005
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx 
+Log Message:
+ComboFindTrackTool: implement MC energy and pointing option
+                    cancel hit-limiting for poorly measured Cal tracks
+                    new method to handle cal prediction
+
+    *
+------------------------------------------------------------
 User: lsrea  Sun May 15 12:13:34 PDT 2005
 TkrRecon/doc
 
