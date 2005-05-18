@@ -6,7 +6,7 @@
 * @author Tracking Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.31 2005/05/10 22:59:11 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.32 2005/05/11 04:14:34 lsrea Exp $
 */
 
 // to turn one debug variables
@@ -813,7 +813,14 @@ TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, TkrTrackParams* par
         int    pred_cluster_size = (int) std::max(num_strips_hit - 1., 1.);
 
         // Only care if meas. cluster size is too small
-        if (meas_cluster_size < pred_cluster_size) continue; // look for another one
+
+        if (meas_cluster_size < pred_cluster_size) {
+            int stripsPerLadder = m_tkrGeom->ladderNStrips();
+            //could be okay if we're at the edge of a ladder
+            bool isAtEdge = ((cluster->firstStrip()%stripsPerLadder==0) 
+                || ((cluster->lastStrip()+1)%stripsPerLadder==0));
+            if(!isAtEdge) continue; // look for another one
+        }
 
         // Check if predicted hit is inside this tower: non measured co-ordinate
         double outsideTower = (view == idents::TkrId::eMeasureY) ? 
