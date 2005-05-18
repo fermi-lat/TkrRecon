@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue May 17 21:37:21 PDT 2005
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx 
+Log Message:
+Check to see if a narrow cluster is at the edge of a ladder
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r6p2, operation: add
 Package: TkrRecon
