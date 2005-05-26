@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu May 26 13:33:01 PDT 2005
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Two sets of updates: 1) Update for new CalRecon TDS output, 2) Include code for current state of the new "VectorLinks" pattern recognition
+    *
+------------------------------------------------------------
 User: usher  Thu May 26 13:31:11 PDT 2005
 TkrRecon/src/PatRec/VectorLinks/StdRelTable
 
