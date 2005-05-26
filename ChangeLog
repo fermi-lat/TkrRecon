@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Thu May 26 13:33:07 PDT 2005
+TkrRecon/src/PatRec/VectorLinks
+
+Added Files:
+	TrackElements.h VecPoint.cxx VecPoint.h VecPoints.cxx 
+	VecPoints.h VecPointsLink.h VectorLinkMaps.h 
+	VectorLinksTool.cxx 
+Log Message:
+Two sets of updates: 1) Update for new CalRecon TDS output, 2) Include code for current state of the new "VectorLinks" pattern recognition
+    *
+------------------------------------------------------------
 User: usher  Thu May 26 13:33:06 PDT 2005
 TkrRecon/src/PatRec/VectorLinks/StdRelTable
 
