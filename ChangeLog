@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu May 26 13:33:02 PDT 2005
+TkrRecon/src/Dll
+
+Modified Files:
+	tkrRecon_load.cxx 
+Log Message:
+Two sets of updates: 1) Update for new CalRecon TDS output, 2) Include code for current state of the new "VectorLinks" pattern recognition
+    *
+------------------------------------------------------------
 User: usher  Thu May 26 13:33:01 PDT 2005
 TkrRecon/cmt
 
