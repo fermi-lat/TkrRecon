@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu May 26 13:33:05 PDT 2005
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	NeuralNetFindTrackTool.cxx 
+Log Message:
+Two sets of updates: 1) Update for new CalRecon TDS output, 2) Include code for current state of the new "VectorLinks" pattern recognition
+    *
+------------------------------------------------------------
 User: usher  Thu May 26 13:33:04 PDT 2005
 TkrRecon/src/PatRec/MonteCarlo
 
