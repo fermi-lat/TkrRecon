@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.40 2005/05/11 04:14:31 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.41 2005/05/15 19:13:35 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -336,8 +336,9 @@ StatusCode ComboFindTrackTool::findTracks()
     m_calDir = unit;
 
     //If clusters, then retrieve estimate for the energy & centroid
-    if (pCalClusters) {
-        CalEnergy = pCalClusters->front()->getEnergySum(); 
+    if (pCalClusters) 
+    {
+        CalEnergy = pCalClusters->front()->getCalParams().getEnergy(); 
         m_calPos  = pCalClusters->front()->getPosition();
         m_calDir  = pCalClusters->front()->getDirection();
         if (m_calDir.mag()>10.0) {

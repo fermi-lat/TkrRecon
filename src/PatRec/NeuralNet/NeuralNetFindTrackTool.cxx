@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.16 2005/02/11 07:14:52 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.17 2005/05/11 04:14:33 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the Neural Net approach
@@ -74,7 +74,7 @@ StatusCode NeuralNetFindTrackTool::findTracks()
   //If clusters, then retrieve estimate for the energy
   if (pCalClusters)
     {
-      CalEnergy   = pCalClusters->front()->getEnergySum(); 
+      CalEnergy   = pCalClusters->front()->getCalParams().getEnergy(); 
       CalPosition = pCalClusters->front()->getPosition();
     }
   

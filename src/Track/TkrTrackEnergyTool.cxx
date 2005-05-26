@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.26 2005/05/02 19:45:15 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.27 2005/05/11 04:14:34 lsrea Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -18,6 +18,7 @@
 #include "Event/TopLevel/EventModel.h"
 #include "Event/Recon/TkrRecon/TkrTrack.h"
 #include "Event/Recon/CalRecon/CalCluster.h"
+#include "Event/Recon/CalRecon/CalEventEnergy.h"
 
 #include "src/Track/TkrTrackEnergyTool.h"
 #include "src/Track/TkrControl.h"
@@ -145,13 +146,12 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
     StatusCode sc = StatusCode::SUCCESS;
 
     // Find the collection of candidate tracks
-    Event::TkrTrackCol* trackCol = 
-        SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol);
-    Event::CalClusterCol* pCalClusters = 
-        SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
+    Event::TkrTrackCol*    trackCol     = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol);
+    Event::CalClusterCol*  pCalClusters = SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
+    Event::CalEventEnergy* pCalEnergy   = SmartDataPtr<Event::CalEventEnergy>(m_dataSvc,EventModel::CalRecon::CalEventEnergy);
 
     //If candidates, then proceed
-    if (trackCol->size() > 0)
+    if (pCalClusters && trackCol->size() > 0 && pCalClusters->size() > 0)
     {
         // Get the first track to find out the energy option used 
         // execute default (LATENERGY) if appropriate
@@ -167,7 +167,8 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
         
         if(firstCandTrk->getStatusBits() & Event::TkrTrack::LATENERGY) 
         {
-            if (!pCalClusters) {
+            if (!pCalClusters) 
+            {
                 // no cal info... set track energies to MS energies if possible.
                 double minEnergy = m_control->getMinEnergy();
                 if (trackCol->size()>1) minEnergy *= 0.5;
@@ -190,8 +191,8 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
             }
             // Cal info exists, proceed as usual
 
-            double CalEnergy   = pCalClusters->front()->getEnergyCorrected(); 
-            double CalSumEne   = pCalClusters->front()->getEnergySum();
+            double CalEnergy   = pCalEnergy->getEnergy(); 
+            double CalSumEne   = pCalClusters->front()->getCalParams().getEnergy();
             double totalEnergy = std::max(CalEnergy, CalSumEne);  
 
             if (totalEnergy > 0.)

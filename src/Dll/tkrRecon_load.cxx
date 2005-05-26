@@ -32,6 +32,7 @@ DECLARE_FACTORY_ENTRIES(TkrRecon)
     DECLARE_TOOL(      LinkAndTreeFindTrackTool);
     DECLARE_TOOL(      NeuralNetFindTrackTool  );
     DECLARE_TOOL(      MonteCarloFindTrackTool );
+    DECLARE_TOOL(      VectorLinksTool         );
     DECLARE_TOOL(      TkrTrackEnergyTool      );
     DECLARE_TOOL(      TkrAlignHitsTool        );
     DECLARE_TOOL(      FindTrackHitsTool       );
