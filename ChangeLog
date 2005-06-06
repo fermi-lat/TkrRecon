@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Mon Jun  6 13:42:14 PDT 2005
+TkrRecon/src/Track
+
+Modified Files:
+	TrackFitUtils.cxx 
+Log Message:
+1) do "computeMSEnergy" only once per track fit... 2) keep track of the "raw" track scattering angle (free from the minimum angle requirement)
+    *
+------------------------------------------------------------
 User: usher  Thu May 26 13:33:07 PDT 2005
 TkrRecon/src/PatRec/VectorLinks
 
