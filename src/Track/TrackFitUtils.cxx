@@ -214,7 +214,7 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
         track.setNumYGaps(Ygaps);
 
         // Energy calculations
-        computeMSEnergy(track);
+        //computeMSEnergy(track);
 
         // Segment Calculation
         if (track.getChiSquareFilter() >= 0) {
@@ -333,10 +333,11 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
     layerIter = ++layerVec.begin();
 
     double radLen;
-    double eneSum    = 0.;
-    double thetaSum  = 0.;
-    double eSumCount = 0.;
-    double tSumCount = 0.;
+    double eneSum      = 0.;
+    double thetaSum    = 0.;
+    double rawThetaSum = 0.;
+    double eSumCount   = 0.;
+    double tSumCount   = 0.;
 
     double measError = m_tkrGeom->siStripPitch()/sqrt(12.);
     for (;layerIter!=endIter; ++layerIter) {
@@ -360,15 +361,14 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
 
         Vector t0 = prevLayer.getDir();
         Vector t1 = thisLayer.getDir();
-        double theta = acos(t0*t1);
-        double d1Inv = 1./fabs(thisLayer.m_z - prevLayer.m_z);
-        double d2Inv = 1./fabs(nextLayer.m_z - thisLayer.m_z);
-        double dInv  = d1Inv + d2Inv;
+        double rawTheta = acos(t0*t1);
+        double d1Inv    = 1./fabs(thisLayer.m_z - prevLayer.m_z);
+        double d2Inv    = 1./fabs(nextLayer.m_z - thisLayer.m_z);
+        double dInv     = d1Inv + d2Inv;
         double minTheta = 0.5*measError*sqrt(d1Inv*d1Inv + d2Inv*d2Inv + dInv*dInv);
 
-
         // we can't measure any kink less than minTheta
-        theta = std::max(minTheta, theta);
+        double theta = std::max(minTheta, rawTheta);
         
         radLen = thisLayer.m_radLen;
         totalRadLen += radLen;
@@ -380,10 +380,11 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
         double e_factor = thisLayer.m_pBeta/initialPBeta;   
         double rl_factor = radLen;  //*(1 + 0.038*log(radLen));
         if(weight>0.) {
-            eSumCount += weight; 
-            tSumCount += weight/rl_factor; 
-            eneSum += weight*(theta * e_factor)*(theta * e_factor)/rl_factor; 
-            thetaSum += weight * theta * theta /rl_factor; 
+            eSumCount   += weight; 
+            tSumCount   += weight/rl_factor; 
+            eneSum      += weight*(theta * e_factor)*(theta * e_factor)/rl_factor; 
+            thetaSum    += weight * theta * theta /rl_factor; 
+            rawThetaSum += weight * rawTheta * rawTheta / rl_factor;
         }
     }
 
@@ -400,9 +401,10 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
         range_limit = totalRadLen * 50.; // 10 MeV = 15% rad. len 
     }
 
-    double kalEnergy = track.getInitialEnergy();
-    double kalEneErr = 10000.;
-    double thetaMS   = 0.;
+    double kalEnergy  = track.getInitialEnergy();
+    double kalEneErr  = 10000.;
+    double thetaMS    = 0.;
+    double rawThetaMS = 0.;
 
     if (eSumCount > 0)
     {
@@ -410,19 +412,15 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
 
         // convert back to kinetic energy
         // do something about log(radLen) later?
-        kalEnergy = m_hitEnergy->pBetaToKinE(13.6 / e_inv);
-        kalEnergy = std::max(kalEnergy, m_control->getMinEnergy()/3.); 
-        kalEnergy = std::min(kalEnergy, range_limit);
-        kalEneErr = kalEnergy/sqrt(eSumCount);
-        thetaMS   = sqrt(thetaSum/tSumCount);
-    }
-    else
-    {
-        // just a place to set a breakpoint
-        thetaMS = 0.0;
+        kalEnergy  = m_hitEnergy->pBetaToKinE(13.6 / e_inv);
+        kalEnergy  = std::max(kalEnergy, m_control->getMinEnergy()/3.); 
+        kalEnergy  = std::min(kalEnergy, range_limit);
+        kalEneErr  = kalEnergy/sqrt(eSumCount);
+        thetaMS    = sqrt(thetaSum/tSumCount);
+        rawThetaMS = sqrt(rawThetaSum/tSumCount);
     }
 
-    track.setKalThetaMS(thetaMS);
+    track.setKalThetaMS(rawThetaMS);
     track.setKalEnergy(kalEnergy); //Units MeV
     track.setKalEnergyError(kalEneErr);
 }
