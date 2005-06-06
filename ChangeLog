@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Jun  6 14:59:04 PDT 2005
+TkrRecon/src/Track
+
+Modified Files:
+      Tag: EngineeringModel-v4r060302p25
+	TrackFitUtils.cxx 
+Log Message:
+1) Don't call "computeMSEnergy" more than once per track fit pass, 2) store the "raw" ms theta angle for the tracks in TkrTrack instead of that with a minimum value.
+    *
+------------------------------------------------------------
 TAG
 Tag name: EngineeringModel-v4r060302p25, operation: add
 Package: TkrRecon
