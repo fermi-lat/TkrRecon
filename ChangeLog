@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Jun  9 21:25:47 PDT 2005
+TkrRecon/src/Track
+
+Modified Files:
+	TkrTrackEnergyTool.cxx 
+Log Message:
+Add a pre-pattern recognition "filter" stage. Current version primary responsibility is to extract Cal energy, cluster centroid, axis, etc. and make available to downstream tracker classes (pat rec , fit, etc.). So, currently providing a "hook" for a "real" filter
+    *
+------------------------------------------------------------
 User: usher  Thu Jun  9 21:25:46 PDT 2005
 TkrRecon/src/PatRec/VectorLinks
 
