@@ -55,6 +55,7 @@ library TkrRecon  $(TkrRecon_headers)  \
   -s=Display $(source)\
   -s=Services $(source)\
   -s=Cluster $(source)\
+  -s=Filter $(source)\
   -s=PatRec $(source)\
   -s=PatRec/LinkAndTree $(source)\
   -s=PatRec/Combo $(source)\

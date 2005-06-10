@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.41 2005/05/15 19:13:35 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.42 2005/05/26 20:33:03 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -19,7 +19,7 @@
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "Event/Recon/TkrRecon/TkrTrackHit.h"
 #include "Event/Recon/TkrRecon/TkrTrack.h"
-#include "Event/Recon/CalRecon/CalCluster.h"
+#include "Event/Recon/TkrRecon/TkrEventParams.h"
 #include "Event/TopLevel/EventModel.h"
 #include "Event/MonteCarlo/McParticle.h"
 
@@ -306,9 +306,9 @@ StatusCode ComboFindTrackTool::findTracks()
     StatusCode sc = StatusCode::SUCCESS;
 
     // Recover pointer to Cal Cluster info  
-    Event::CalClusterCol* pCalClusters = 
-        SmartDataPtr<Event::CalClusterCol>(
-        m_dataSvc,EventModel::CalRecon::CalClusterCol);
+    Event::TkrEventParams* tkrEventParams = 
+        SmartDataPtr<Event::TkrEventParams>(
+        m_dataSvc,EventModel::TkrRecon::TkrEventParams);
 
     // Retrieve the pointer to the reconstructed clusters
     m_tkrClus = SmartDataPtr<Event::TkrClusterCol>(
@@ -336,11 +336,11 @@ StatusCode ComboFindTrackTool::findTracks()
     m_calDir = unit;
 
     //If clusters, then retrieve estimate for the energy & centroid
-    if (pCalClusters) 
+    if (tkrEventParams) 
     {
-        CalEnergy = pCalClusters->front()->getCalParams().getEnergy(); 
-        m_calPos  = pCalClusters->front()->getPosition();
-        m_calDir  = pCalClusters->front()->getDirection();
+        CalEnergy = tkrEventParams->getEventEnergy(); 
+        m_calPos  = tkrEventParams->getEventPosition();
+        m_calDir  = tkrEventParams->getEventAxis();
         if (m_calDir.mag()>10.0) {
             m_calDir = unit;
             m_limitHits = false;

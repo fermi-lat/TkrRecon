@@ -17,6 +17,7 @@ DECLARE_FACTORY_ENTRIES(TkrRecon)
 {
     DECLARE_ALGORITHM( TkrReconAlg             );
     DECLARE_ALGORITHM( TkrClusterAlg           );
+    DECLARE_ALGORITHM( TkrFilterAlg            );
     DECLARE_ALGORITHM( TkrFindAlg              );
     DECLARE_ALGORITHM( TkrTrackFitAlg          );
     DECLARE_ALGORITHM( TkrVertexAlg            );
@@ -36,6 +37,8 @@ DECLARE_FACTORY_ENTRIES(TkrRecon)
     DECLARE_TOOL(      TkrTrackEnergyTool      );
     DECLARE_TOOL(      TkrAlignHitsTool        );
     DECLARE_TOOL(      FindTrackHitsTool       );
+    DECLARE_TOOL(      TkrCalFilterTool        );
+    DECLARE_TOOL(      TkrFilterTool           );
 
 //    DECLARE_TOOL(      TkrComboFitTool         );
 //    DECLARE_TOOL(      TkrLinkAndTreeFitTool   );

@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.27 2005/05/11 04:14:34 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.28 2005/05/26 20:33:05 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -17,8 +17,7 @@
 
 #include "Event/TopLevel/EventModel.h"
 #include "Event/Recon/TkrRecon/TkrTrack.h"
-#include "Event/Recon/CalRecon/CalCluster.h"
-#include "Event/Recon/CalRecon/CalEventEnergy.h"
+#include "Event/Recon/TkrRecon/TkrEventParams.h"
 
 #include "src/Track/TkrTrackEnergyTool.h"
 #include "src/Track/TkrControl.h"
@@ -147,11 +146,20 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
 
     // Find the collection of candidate tracks
     Event::TkrTrackCol*    trackCol     = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol);
-    Event::CalClusterCol*  pCalClusters = SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
-    Event::CalEventEnergy* pCalEnergy   = SmartDataPtr<Event::CalEventEnergy>(m_dataSvc,EventModel::CalRecon::CalEventEnergy);
+    // Recover TkrEventParams from which we get the event energy  
+    Event::TkrEventParams* tkrEventParams = 
+                       SmartDataPtr<Event::TkrEventParams>(m_dataSvc,EventModel::TkrRecon::TkrEventParams);
+
+    //If clusters, then retrieve estimate for the energy & centroid
+    //if (tkrEventParams) 
+    //{
+    //    energy = std::max(tkrEventParams->getEventEnergy(), m_minEnergy); 
+    //}
+    //Event::CalClusterCol*  pCalClusters = SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
+    //Event::CalEventEnergy* pCalEnergy   = SmartDataPtr<Event::CalEventEnergy>(m_dataSvc,EventModel::CalRecon::CalEventEnergy);
 
     //If candidates, then proceed
-    if (pCalClusters && trackCol->size() > 0 && pCalClusters->size() > 0)
+    if (tkrEventParams && trackCol->size() > 0)
     {
         // Get the first track to find out the energy option used 
         // execute default (LATENERGY) if appropriate
@@ -167,7 +175,7 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
         
         if(firstCandTrk->getStatusBits() & Event::TkrTrack::LATENERGY) 
         {
-            if (!pCalClusters) 
+            if (!tkrEventParams) 
             {
                 // no cal info... set track energies to MS energies if possible.
                 double minEnergy = m_control->getMinEnergy();
@@ -191,9 +199,7 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
             }
             // Cal info exists, proceed as usual
 
-            double CalEnergy   = pCalEnergy->getEnergy(); 
-            double CalSumEne   = pCalClusters->front()->getCalParams().getEnergy();
-            double totalEnergy = std::max(CalEnergy, CalSumEne);  
+            double totalEnergy = tkrEventParams->getEventEnergy(); 
 
             if (totalEnergy > 0.)
             {
