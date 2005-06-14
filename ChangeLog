@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Jun 14 13:10:58 PDT 2005
+TkrRecon/src/GaudiAlg
+
+Added Files:
+	TkrFilterAlg.cxx 
+Log Message:
+Algorithm for running the post-clustering, pre-recon filter
+    *
+------------------------------------------------------------
 User: usher  Thu Jun  9 21:25:47 PDT 2005
 TkrRecon/src/Filter
 
