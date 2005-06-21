@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Jun 21 16:29:34 PDT 2005
+TkrRecon/src/Track
+
+Modified Files:
+	TkrTrackEnergyTool.cxx 
+Log Message:
+Fix bug with setting the energy of the first hit of the second track. oops...
+    *
+------------------------------------------------------------
 User: usher  Tue Jun 14 13:10:58 PDT 2005
 TkrRecon/src/GaudiAlg
 
