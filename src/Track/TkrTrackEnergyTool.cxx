@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.28 2005/05/26 20:33:05 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.29 2005/06/10 04:25:47 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -264,7 +264,7 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
                     firstCandTrk->setInitialEnergy(e1_con); 
                     (*firstCandTrk)[0]->setEnergy(e1_con);       // change the hit energy on first track
                     secndCandTrk->setInitialEnergy(e2_con);
-                    (*secndCandTrk)[0]->setEnergy(e1_con);       // change the hit energy on second track
+                    (*secndCandTrk)[0]->setEnergy(e2_con);       // change the hit energy on second track
                 }
             }
         }
