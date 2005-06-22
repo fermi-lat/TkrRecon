@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrCalFilterTool.cxx,v 1.36 2005/03/02 04:37:18 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrCalFilterTool.cxx,v 1.1 2005/06/10 04:25:47 usher Exp $
  */
 
 // to turn one debug variables
@@ -140,6 +140,12 @@ StatusCode TkrCalFilterTool::doFilterStep()
             tkrEventParams->setEventPosition(calParams.getCentroid());
             tkrEventParams->setEventAxis(calParams.getAxis());
             tkrEventParams->setStatusBit(Event::TkrEventParams::CALPARAMS);
+
+            if (calEventEnergy->getStatusBits() & Event::CalEventEnergy::PASS_ONE) 
+                tkrEventParams->setStatusBit(Event::TkrEventParams::FIRSTPASS);
+
+            if (calEventEnergy->getStatusBits() & Event::CalEventEnergy::PASS_TWO) 
+                tkrEventParams->setStatusBit(Event::TkrEventParams::SECONDPASS);
         }
     }
 
