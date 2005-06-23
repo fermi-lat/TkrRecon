@@ -1,20 +1,4 @@
 ------------------------------------------------------------
-User: usher  Wed Jun 22 14:39:36 PDT 2005
-TkrRecon/src/Track
-
-Modified Files:
-	TkrTrackEnergyTool.cxx 
-Log Message:
-    *
-------------------------------------------------------------
-User: usher  Wed Jun 22 14:39:36 PDT 2005
-TkrRecon/src/Filter
-
-Modified Files:
-	TkrCalFilterTool.cxx TkrFilterTool.cxx 
-Log Message:
-    *
-------------------------------------------------------------
 User: usher  Tue Jun 21 16:29:34 PDT 2005
 TkrRecon/src/Track
 
