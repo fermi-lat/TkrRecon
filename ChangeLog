@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Tue Jul  5 11:56:03 PDT 2005
+TkrRecon/cmt
+
+Modified Files:
+      Tag: EngineeringModel-v4r060302p25
+	requirements 
+Log Message:
+Add Alignment to Recon; add test for narrow clusters at the edge of wafers
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r7p1, operation: add
 Package: TkrRecon
