@@ -2,6 +2,14 @@
 TAG
 Tag name: v10r5p8em1, operation: add
 Package: TkrRecon
+User: lsrea  Tue Jul  5 12:02:40 2005
+Files:
+
+    *
+------------------------------------------------------------
+TAG
+Tag name: v10r5p8em1, operation: add
+Package: TkrRecon
 User: lsrea  Tue Jul  5 11:57:54 2005
 Files:
   TkrRecon/.cvsignore  1.4
