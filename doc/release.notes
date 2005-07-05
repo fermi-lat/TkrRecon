@@ -3,6 +3,9 @@
 @verbatim
   Managers: Tracy Usher, Leon Rochester 
 
+  v10r5p8em1  05-Jul-05 LSR  Alignment in Recon, more tests on narrow clusters
+  v10r5p8em0  02-May-05 LSR  Copy of v10r5p8, before CalRecon stuff 
+                                (but the date is funny)
   v10r5p8   02-May-2005 LSR  FindTrackHitsTool: set maxGap defaults to (2,1)
                              TkrTrackEnergyTool: correctly set first-hit energy for 1-track events.
   v10r5p7   07-Apr-2005 TU   TkrReconAlg will abort processing if too many clusters
