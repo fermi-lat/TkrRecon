@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Jul  5 09:29:06 PDT 2005
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrTrackFitAlg.cxx 
+Log Message:
+Add alignment correction to TkrRecon
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Jul  5 09:29:05 PDT 2005
 TkrRecon/doc
 
