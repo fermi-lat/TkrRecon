@@ -12,7 +12,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.h,v 1.2 2004/10/12 19:03:37 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.h,v 1.3 2004/12/16 05:04:23 usher Exp $
 */
 
 
@@ -22,16 +22,17 @@
 #include "GaudiKernel/ToolFactory.h"
 #include "GaudiKernel/SmartDataPtr.h"
 #include "GaudiKernel/AlgTool.h"
-#include "GaudiKernel/IDataProviderSvc.h"
+//#include "GaudiKernel/IDataProviderSvc.h"
 
 #include "../src/Track/ITkrAlignHitsTool.h"
 #include "Event/TopLevel/EventModel.h"
 
 #include "TkrUtil/ITkrGeometrySvc.h"
-#include "TkrUtil/ITkrFailureModeSvc.h"
+//#include "TkrUtil/ITkrFailureModeSvc.h"
 #include "TkrUtil/ITkrAlignmentSvc.h"
 
 namespace {
+    /* we don't need this if we do alignment at pass 2
     // a little class to handle the local stuff
     class HitStuff
     { 
@@ -47,6 +48,7 @@ namespace {
     };
     typedef std::vector<HitStuff*>  hitVec;
     typedef hitVec::iterator itVec;
+*/
 }
 
 class TkrAlignHitsTool : public AlgTool, virtual public ITkrAlignHitsTool
@@ -57,11 +59,13 @@ public:
         const IInterface* parent);
     ~TkrAlignHitsTool() 
     {
+        /*
         itVec it = m_hitVec.begin();
         for (; it!=m_hitVec.end(); ++it) {
             delete *it;
         }
         m_hitVec.clear();
+        */
     }
 
     /// @brief Method to fit a single candidate track. Will retrieve any extra info 
@@ -70,17 +74,18 @@ public:
     ///        added to the collection in the TDS.
 
     StatusCode initialize();
-    StatusCode alignHits(const Event::TkrTrack* track,
-        alignVector& aVec);
+    StatusCode alignHits(const Event::TkrTrack* track
+        /*, alignVector& aVec */);
 
 private:
     /// Pointer to the local Tracker geometry service
     ITkrGeometrySvc*    m_tkrGeom;
-    /// Pointer to the failure service
-    ITkrFailureModeSvc* m_failSvc;
+    // Pointer to the failure service
+    //ITkrFailureModeSvc* m_failSvc;
     /// alignmentsvc
     ITkrAlignmentSvc*   m_alignSvc;
 
+    /*
     /// Pointer to the Gaudi data provider service
     IDataProviderSvc*   m_dataSvc;
     /// Stores the info for each hit
@@ -91,7 +96,7 @@ private:
 
     void findNearestLayers(HitStuff* hit0, HitStuff*& hit1, HitStuff*& hit2, bool same = true);
     void clearHits();
-
+    */
 };
 
 static ToolFactory<TkrAlignHitsTool> s_factory;

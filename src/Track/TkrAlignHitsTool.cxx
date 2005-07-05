@@ -10,7 +10,7 @@
 * @author Leon Rochester
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.cxx,v 1.6 2005/01/02 23:53:47 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.cxx,v 1.7 2005/01/25 20:04:49 lsrea Exp $
 */
 
 #include "src/Track/TkrAlignHitsTool.h"
@@ -37,21 +37,64 @@ StatusCode TkrAlignHitsTool::initialize() {
     StatusCode sc = StatusCode::SUCCESS;
 
     // get the EventDataSvc
-    sc = service("EventDataSvc", m_dataSvc, true);
+    //sc = service("EventDataSvc", m_dataSvc, true);
 
     //Locate and store a pointer to the geometry service
     sc = service("TkrGeometrySvc", m_tkrGeom, true);
-    m_failSvc  = m_tkrGeom->getTkrFailureModeSvc();
     m_alignSvc = m_tkrGeom->getTkrAlignmentSvc();
 
     return sc;
 }
 
-StatusCode TkrAlignHitsTool::alignHits(const Event::TkrTrack* track,
-                                       std::vector<double>& alignVec)
+StatusCode TkrAlignHitsTool::alignHits(const Event::TkrTrack* track
+                                       /*, std::vector<double>& alignVec */)
 {
     StatusCode sc = StatusCode::SUCCESS;
+    if(!m_alignSvc || !m_alignSvc->alignRec()) return sc;
 
+    bool first = true;
+
+    Event::TkrTrackHitVecConItr pPlane = track->begin();
+    int planeNumber = 0;
+    for (; pPlane<track->end(); ++pPlane) {
+        SmartRef<Event::TkrTrackHit> plane = *pPlane;
+//        const Event::TkrCluster* pClus = plane->getClusterPtr();
+
+        // get the layer info
+        idents::TkrId tkrId = plane->getTkrId();
+        //int view = (tkrId.getView() == idents::TkrId::eMeasureX ? 0 : 1);
+        int tray = tkrId.getTray();
+        int face = tkrId.getBotTop();
+        int layer, view;
+        m_tkrGeom->trayToLayer(tray, face, layer, view);
+        int tower = idents::TowerId(tkrId.getTowerX(), tkrId.getTowerY()).id();
+
+        HepPoint3D  pos = plane->getPoint(Event::TkrTrackHit::SMOOTHED);
+        HepVector3D dir = plane->getDirection(Event::TkrTrackHit::SMOOTHED);
+
+        HepVector3D delta = m_alignSvc->deltaReconPoint(pos, dir, layer, view, APPLYCONSTS);
+
+        Event::TkrTrackParams& params = plane->getTrackParams(Event::TkrTrackHit::MEASURED);
+        
+        if (first) {
+            // fitter starts with the FILTERED coordinates of the first hit... so we need to fix these
+            Event::TkrTrackParams& firstParams = plane->getTrackParams(Event::TkrTrackHit::FILTERED);
+            firstParams.setxPosition(firstParams.getxPosition() + delta.x());
+            firstParams.setyPosition(firstParams.getyPosition() + delta.y());
+            first = false;
+        }
+        
+        double coord;
+        if(view==idents::TkrId::eMeasureX) {
+            coord = params.getxPosition() + delta.x();
+            params.setxPosition(coord);
+        } else {
+            coord = params.getyPosition() + delta.y();
+            params.setyPosition(coord);
+        }        
+    }
+
+    /*
    m_hitVec.clear();
 
    if(!m_alignSvc || !m_alignSvc->alignRec()) {return sc;}
@@ -182,10 +225,12 @@ StatusCode TkrAlignHitsTool::alignHits(const Event::TkrTrack* track,
         alignVec.push_back(deltaPos[view]);
     }
     clearHits();
+    */
 
     return sc;
 }
     
+/*
 void TkrAlignHitsTool::clearHits()
 {
     itVec it = m_hitVec.begin();
@@ -194,7 +239,9 @@ void TkrAlignHitsTool::clearHits()
     }
     m_hitVec.clear();
 }
+*/
   
+/*
 void TkrAlignHitsTool::findNearestLayers(HitStuff* hit0, 
                                          HitStuff*& hit1, HitStuff*& hit2, bool same)
 {
@@ -240,3 +287,4 @@ void TkrAlignHitsTool::findNearestLayers(HitStuff* hit0,
         hit2 = hit;
     }
 }
+*/
