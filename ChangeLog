@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: lsrea  Tue Jul  5 11:56:04 PDT 2005
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+      Tag: EngineeringModel-v4r060302p25
+	TkrTrackFitAlg.cxx 
+Log Message:
+Add Alignment to Recon; add test for narrow clusters at the edge of wafers
+
+    *
+------------------------------------------------------------
+User: lsrea  Tue Jul  5 11:56:04 PDT 2005
 TkrRecon/doc
 
 Modified Files:
