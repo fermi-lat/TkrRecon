@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Aug 16 14:21:16 PDT 2005
+TkrRecon/src/PatRec
+
+Modified Files:
+	PatRecBaseTool.cxx 
+Log Message:
+Modify ComboFindTrackTool to not use Cal Axis or ordering of TkrPoints if CalAxis cos(theta) less than a tool parameter.
+    *
+------------------------------------------------------------
 User: usher  Tue Aug 16 14:21:15 PDT 2005
 TkrRecon/src/PatRec/Combo
 
