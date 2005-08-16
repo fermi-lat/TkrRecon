@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.42 2005/05/26 20:33:03 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.43 2005/06/10 04:25:46 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -143,54 +143,55 @@ private:
 
 
     /// Control Parameters set via JobOptions parameters
-    double m_minEnergy;  // Min. energy to use for setting search regions 
-    double m_sigmaCut;   // Sigma cut for picking up points
-    double m_1stTkrEFrac;// First track energy fraction
-    int m_termHitCnt;    // Min. no. of hits on best track to terminate search
-    int m_maxCandidates; // Max. allowed number of candidate tracks
-    double m_maxChiSqCut;// Max allow Combo Pat. Rec. Chisq. (1st fit)
-    int m_hitShares;     // Number of first clusters which can be shared
-    int m_maxTrials;     // Max. number of trial candidates to test
-    int m_quitCountFactor; // quitCountFactor*maxTrials = max total trials
-    int m_maxTotalTrials; // see above
-    double m_PatRecFoV;  // Minimum cos(theta) for track trials
-    double m_minCosKink; // Minimum cos(theta) for a track kink
-    double m_maxTripRes; // Max. un-normalized residual for first 3 TkrPoints
-    int m_minUniHits;    // Min. number of unique hits required on a track
-    int m_minQuality;    // Min. Track PR quality to accept
-    int m_maxFirstGaps;  // Max. number of allowed gaps in the first 3 XY points
-    int m_maxTotalGaps;  // Max. total number of XY gaps in the track
-    energyType m_energyType; //Energy types: DEFAULT, CALONLY, USER, MC
+    double          m_minEnergy;           // Min. energy to use for setting search regions 
+    double          m_sigmaCut;            // Sigma cut for picking up points
+    double          m_1stTkrEFrac;         // First track energy fraction
+    int             m_termHitCnt;          // Min. no. of hits on best track to terminate search
+    int             m_maxCandidates;       // Max. allowed number of candidate tracks
+    double          m_maxChiSqCut;         // Max allow Combo Pat. Rec. Chisq. (1st fit)
+    int             m_hitShares;           // Number of first clusters which can be shared
+    int             m_maxTrials;           // Max. number of trial candidates to test
+    int             m_quitCountFactor;     // quitCountFactor*maxTrials = max total trials
+    int             m_maxTotalTrials;      // see above
+    double          m_PatRecFoV;           // Minimum cos(theta) for track trials
+    double          m_minCosKink;          // Minimum cos(theta) for a track kink
+    double          m_maxTripRes;          // Max. un-normalized residual for first 3 TkrPoints
+    int             m_minUniHits;          // Min. number of unique hits required on a track
+    int             m_minQuality;          // Min. Track PR quality to accept
+    int             m_maxFirstGaps;        // Max. number of allowed gaps in the first 3 XY points
+    int             m_maxTotalGaps;        // Max. total number of XY gaps in the track
+    energyType      m_energyType;          //Energy types: DEFAULT, CALONLY, USER, MC
     //  default = Tkr+Cal with constraint, others self explanatory
     //            and over ride resetting energy at later stages
-    searchDirection m_searchDirection; //Direction in which to search for tracks: 
+    searchDirection m_searchDirection;     //Direction in which to search for tracks: 
     // TopDown or BottomUp
-    bool m_leadingHits;  // Flag to include leading hit (clusters) on the track
-    int m_reverseLayerPenalty;  // don't search all the way to the top
-    int m_maxDeltaFirstLayer;   // if one long track has been found, don't look
+    bool            m_leadingHits;         // Flag to include leading hit (clusters) on the track
+    int             m_reverseLayerPenalty; // don't search all the way to the top
+    int             m_maxDeltaFirstLayer;  // if one long track has been found, don't look
     //   more than delta layers away for any others
-    double m_calAngleRes; // Calorimeter angular resolution used to set the hit search regions size
+    double          m_calAngleRes;         // Calorimeter angular resolution used to set the hit search regions size
+    double          m_minCalCosTheta;      // Minimum cos(theta) from Cal axis to allow hit ordering
 
     /// Internal data members
-    CandidateList m_candidates;  // Internal list of found hypothesises
+    CandidateList   m_candidates;          // Internal list of found hypothesises
 
-    Point m_calPos;          // Calorimeter seed point
-    Vector m_calDir;          // Calorimeter seed direction
-    Point m_nextPointPos;    // position of "next" tkrPoint (why is this a member?)
-    double m_energy;         // Energy used to compute errors
-    double m_arclen;         // arclength transfer space 
-    int m_bestHitCount;      // highest hit count on a track this event
-    int m_topLayerFound;     // Upper most layer in which a track was found
-    int m_botLayerFound;     // same for reverse tracks
-    int m_topLayerWithPoints;   // top layer with XY points, found once per event
-    int m_botLayerWithPoints;   // same for reverse tracks
-    bool m_validTopLayer;       // the top layer of XY points has been found
-    bool m_validBotLayer;       // same for bottom
-    bool m_downwardTrackFound;  // a downward-going track has been found
-    bool m_upwardTrackFound;    // same for upward-going
-    int m_quitCount;         // keeps track of the total trials
-    int m_trials;            // keeps track of successful trials
-    bool m_limitHits;        // internal flag
+    Point           m_calPos;              // Calorimeter seed point
+    Vector          m_calDir;              // Calorimeter seed direction
+    Point           m_nextPointPos;        // position of "next" tkrPoint (why is this a member?)
+    double          m_energy;              // Energy used to compute errors
+    double          m_arclen;              // arclength transfer space 
+    int             m_bestHitCount;        // highest hit count on a track this event
+    int             m_topLayerFound;       // Upper most layer in which a track was found
+    int             m_botLayerFound;       // same for reverse tracks
+    int             m_topLayerWithPoints;  // top layer with XY points, found once per event
+    int             m_botLayerWithPoints;  // same for reverse tracks
+    bool            m_validTopLayer;       // the top layer of XY points has been found
+    bool            m_validBotLayer;       // same for bottom
+    bool            m_downwardTrackFound;  // a downward-going track has been found
+    bool            m_upwardTrackFound;    // same for upward-going
+    int             m_quitCount;           // keeps track of the total trials
+    int             m_trials;              // keeps track of successful trials
+    bool            m_limitHits;           // internal flag
 
     // to decode the particle charge
     IParticlePropertySvc* m_ppsvc;    
@@ -209,28 +210,29 @@ ComboFindTrackTool::ComboFindTrackTool(const std::string& type,
 PatRecBaseTool(type, name, parent)
 {
     //Declare the control parameters for Combo Pat Rec. Defaults appear here
-    declareProperty("MinEnergy",       m_minEnergy = 30.);
-    declareProperty("SigmaCut",        m_sigmaCut  = 9.);
-    declareProperty("FirstTrkEnergyFrac",  m_1stTkrEFrac = 0.80);
-    declareProperty("MinTermHitCount", m_termHitCnt = 16);
-    declareProperty("MaxNoCandidates", m_maxCandidates = 10);
-    declareProperty("MaxChisq",        m_maxChiSqCut = 40.); 
+    declareProperty("MinEnergy",              m_minEnergy = 30.);
+    declareProperty("SigmaCut",               m_sigmaCut  = 9.);
+    declareProperty("FirstTrkEnergyFrac",     m_1stTkrEFrac = 0.80);
+    declareProperty("MinTermHitCount",        m_termHitCnt = 16);
+    declareProperty("MaxNoCandidates",        m_maxCandidates = 10);
+    declareProperty("MaxChisq",               m_maxChiSqCut = 40.); 
     declareProperty("NumSharedFirstClusters", m_hitShares = 6);
-    declareProperty("MaxNumberTrials", m_maxTrials = 30);
-    declareProperty("QuitCountFactor", m_quitCountFactor = 20);
-    declareProperty("FoVLimit",        m_PatRecFoV = .19);
-    declareProperty("MinCosKink",      m_minCosKink = .7);
-    declareProperty("MaxTripletRes",   m_maxTripRes = 30.);
-    declareProperty("UniqueHits",      m_minUniHits = 4); 
-    declareProperty("MinPatRecQual",   m_minQuality = 10);
-    declareProperty("MaxFirstGaps",    m_maxFirstGaps = 1);
-    declareProperty("MaxTotalGaps",    m_maxTotalGaps = 2);
-    declareProperty("EnergyType",      energyTypeStr="Default");
-    declareProperty("Direction",       searchDirectionStr="Downwards");
-    declareProperty("AddLeadingHits",  m_leadingHits=true);
-    declareProperty("ReverseLayerPenalty", m_reverseLayerPenalty=1);
-    declareProperty("MaxDeltaFirstLayer",  m_maxDeltaFirstLayer=1);
-    declareProperty("CalPointingRes",  m_calAngleRes=.1);
+    declareProperty("MaxNumberTrials",        m_maxTrials = 30);
+    declareProperty("QuitCountFactor",        m_quitCountFactor = 20);
+    declareProperty("FoVLimit",               m_PatRecFoV = .19);
+    declareProperty("MinCosKink",             m_minCosKink = .7);
+    declareProperty("MaxTripletRes",          m_maxTripRes = 30.);
+    declareProperty("UniqueHits",             m_minUniHits = 4); 
+    declareProperty("MinPatRecQual",          m_minQuality = 10);
+    declareProperty("MaxFirstGaps",           m_maxFirstGaps = 1);
+    declareProperty("MaxTotalGaps",           m_maxTotalGaps = 2);
+    declareProperty("EnergyType",             energyTypeStr="Default");
+    declareProperty("Direction",              searchDirectionStr="Downwards");
+    declareProperty("AddLeadingHits",         m_leadingHits=true);
+    declareProperty("ReverseLayerPenalty",    m_reverseLayerPenalty=1);
+    declareProperty("MaxDeltaFirstLayer",     m_maxDeltaFirstLayer=1);
+    declareProperty("CalPointingRes",         m_calAngleRes=.1);
+    declareProperty("MinCalCosTheta",         m_minCalCosTheta=0.2);
 
     m_fitUtils = 0;
     return;
@@ -337,11 +339,16 @@ StatusCode ComboFindTrackTool::findTracks()
 
     //If clusters, then retrieve estimate for the energy & centroid
     if (tkrEventParams) 
+    //If Cal information available, then retrieve estimate for the energy & centroid
+    if (tkrEventParams != 0 && tkrEventParams->getStatusBits() & Event::TkrEventParams::CALPARAMS) 
     {
         CalEnergy = tkrEventParams->getEventEnergy(); 
         m_calPos  = tkrEventParams->getEventPosition();
         m_calDir  = tkrEventParams->getEventAxis();
-        if (m_calDir.mag()>10.0) {
+
+        // Cut on Cal axis pointing (note Cal axis points "up")
+        if (m_calDir.z() < m_minCalCosTheta) 
+        {
             m_calDir = unit;
             m_limitHits = false;
         } 
