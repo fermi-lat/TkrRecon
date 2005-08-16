@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/PatRecBaseTool.cxx,v 1.7 2004/12/16 05:04:22 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/PatRecBaseTool.cxx,v 1.8 2005/05/11 04:14:31 lsrea Exp $
 // Description:
 //      Implementation of the base class of concrete pattern recognition tools
 //
@@ -35,6 +35,8 @@ StatusCode PatRecBaseTool::initialize()
   MsgStream log(msgSvc(), name());
   StatusCode sc   = StatusCode::SUCCESS;
   StatusCode fail = StatusCode::FAILURE;
+
+  sc = AlgTool::initialize();
 
   if( serviceLocator() ) 
   {   
