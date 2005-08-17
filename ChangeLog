@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Wed Aug 17 07:57:11 PDT 2005
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+Tagging to pick up fix for "bad" Cal axes in Combo Pat Rec
+    *
+------------------------------------------------------------
+User: usher  Wed Aug 17 07:57:11 PDT 2005
 TkrRecon/cmt
 
 Modified Files:
