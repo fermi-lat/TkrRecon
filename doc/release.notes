@@ -3,6 +3,7 @@
 @verbatim
   Managers: Tracy Usher, Leon Rochester 
 
+  v10r7p3   19-Aug-2005 jrb  Changes for compatibility with modified IGeometry interface
   v10r7p2   17-Aug-2005  TU  Add protection in Combo Pat Rec against "bad" cal axes
   v10r7p1   05-Jul-2005 LSR  Add alignment correction to recon
   v10r7p0   23-Jun-2005  TU  Tag to go with new CalRecon output
