@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: jrb  Fri Aug 19 12:20:08 PDT 2005
+TkrRecon/src/Services
+
+Modified Files:
+	TkrGeometryVisitor.cxx 
+Log Message:
+Changes for modified IGeometry interface
+
+    *
+------------------------------------------------------------
 User: jrb  Fri Aug 19 12:20:07 PDT 2005
 TkrRecon/TkrRecon/Services
 
