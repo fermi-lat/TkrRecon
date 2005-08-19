@@ -11,7 +11,7 @@
 *
 * @author Leon Rochester 
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometryVisitor.h,v 1.6 2002/09/02 23:29:53 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrGeometryVisitor.h,v 1.7 2004/02/24 17:39:14 cohen Exp $
 */
 
 #include "GlastSvc/GlastDetSvc/IGeometry.h"
@@ -29,7 +29,7 @@ public:
     /// Standard interface to the detModel
     virtual IGeometry::VisitorRet pushShape(ShapeType s, const UintVector& id, 
         std::string name, std::string material, const DoubleVector& params, 
-        VolumeType type);
+        VolumeType type, SenseType sense);
   
     /// called to signal end of nesting 
     virtual void popShape();
