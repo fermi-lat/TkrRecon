@@ -12,7 +12,8 @@ TkrGeometryVisitor::pushShape(ShapeType /*s*/,
                               string name, 
                               string /*material*/, 
                               const DoubleVector& params, 
-                              VolumeType /*type*/)
+                              VolumeType /*type*/,
+                              SenseType /*sense*/)
 {
     // Purpose:  returns at each node of the geometry
     // Parameters:  s -- type of shape
