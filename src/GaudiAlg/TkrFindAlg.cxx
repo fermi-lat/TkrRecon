@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.18 2005/03/01 00:55:49 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.19 2005/05/26 20:33:02 usher Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -24,6 +24,7 @@
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "src/Track/TkrControl.h"
 #include "TkrRecon/PatRec/ITkrFindTrackTool.h"
+#include "TkrRecon/Track/ITkrHitTruncationTool.h"
 
 //#include "Event/Recon/TkrRecon/TkrTrack.h"
 
@@ -39,7 +40,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.18 2005/03/01 00:55:49 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.19 2005/05/26 20:33:02 usher Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -58,9 +59,10 @@ private:
 
     /// Type of fit to perform
     std::string        m_TrackFindType;
-
     /// Always use the right tool for the job
     ITkrFindTrackTool* m_findTool;
+    /// truncation tool
+    ITkrHitTruncationTool* m_truncTool;
 };
 
 static const AlgFactory<TkrFindAlg>  Factory;
@@ -84,7 +86,7 @@ StatusCode TkrFindAlg::initialize()
     MsgStream log(msgSvc(), name());
 
     setProperties();
-    
+
     //Look for the geometry service
     TkrInitSvc* pTkrInitSvc = 0;
 
@@ -93,7 +95,6 @@ StatusCode TkrFindAlg::initialize()
         log << MSG::ERROR << "TkrInitSvc is required for this algorithm." << endreq;
         return sc;
     }
-
 
     // Depending upon the value of m_TrackerFindType, set type of pattern 
     // recognition to run. This is done by looking up a particular pattern 
@@ -125,11 +126,22 @@ StatusCode TkrFindAlg::initialize()
     }
     else
     {
-        log << MSG::FATAL << "TkrTrackFindAlg cannot initialize track fit algorithm" << endreq;
+        log << MSG::FATAL << "Track finding tool " << m_TrackFindType << " doesn't exist" << endreq;
         sc = StatusCode::FAILURE;
     }
-    
-    return StatusCode::SUCCESS;
+
+    if (sc.isFailure()) {
+        log << MSG::ERROR << "Cannot initialize track-finding tool" << endreq;
+        return sc;
+    }
+
+    sc = toolSvc()->retrieveTool("TkrHitTruncationTool", m_truncTool);
+    if (sc.isFailure()) {
+        log << MSG::ERROR << "Cannot initialize hit-truncation tool" << endreq;
+        return sc;
+    }
+
+    return sc;
 }
 
 
@@ -144,6 +156,8 @@ StatusCode TkrFindAlg::execute()
     StatusCode sc = StatusCode::SUCCESS;
     
     MsgStream log(msgSvc(), name());
+
+    sc = m_truncTool->analyzeDigis();
 
     // Call the tool defined in the intialization
     sc = m_findTool->findTracks();
