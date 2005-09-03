@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Fri Sep  2 19:06:59 PDT 2005
+TkrRecon/src/Dll
+
+Modified Files:
+	tkrRecon_load.cxx 
+Log Message:
+New code for truncated hits
+
+    *
+------------------------------------------------------------
 User: lsrea  Fri Sep  2 19:06:58 PDT 2005
 TkrRecon/doc
 
