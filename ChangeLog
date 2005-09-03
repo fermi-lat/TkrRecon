@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Fri Sep  2 19:06:57 PDT 2005
+TkrRecon/TkrRecon/Track
+
+Added Files:
+	ITkrHitTruncationTool.h 
+Log Message:
+New code for truncated hits
+
+    *
+------------------------------------------------------------
 User: jrb  Fri Aug 19 12:31:10 PDT 2005
 TkrRecon/doc
 
