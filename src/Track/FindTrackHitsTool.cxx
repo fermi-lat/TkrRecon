@@ -6,7 +6,7 @@
 * @author Tracking Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.32 2005/05/11 04:14:34 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.33 2005/05/18 04:37:21 lsrea Exp $
 */
 
 // to turn one debug variables
@@ -20,6 +20,7 @@
 #include "GaudiKernel/IParticlePropertySvc.h"
 #include "TkrRecon/Track/IFindTrackHitsTool.h"
 #include "TkrRecon/Track/ITkrFitTool.h"
+#include "TkrUtil/ITkrSplitsSvc.h"
 //#include "src/TrackFit/KalmanFilterFit/TrackEnergy/RadLossHitEnergy.h"
 
 // TDS related stuff
@@ -37,6 +38,9 @@
 #include "TkrUtil/ITkrFailureModeSvc.h"
 #include "TkrUtil/TkrTrkParams.h"
 #include "TkrUtil/TkrCovMatrix.h"
+#include "Event/Recon/TkrRecon/TkrTruncationInfo.h"
+#include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
+
 #include "geometry/Ray.h"
 
 using namespace Event;
@@ -83,7 +87,13 @@ private:
     ITkrGeometrySvc*     m_tkrGeom;
 
     /// Pointer to the failure service
-    ITkrFailureModeSvc*  m_tkrFailSvc;
+    ITkrFailureModeSvc*  m_failSvc;
+
+    /// Pointer to SplitsSvc
+    ITkrSplitsSvc*       m_splitsSvc;
+
+    /// pointer to GlastSvc
+    IGlastDetSvc*        m_detSvc;
 
     /// Pointer to the G4 propagator
     IPropagator*         m_propagatorTool;
@@ -164,20 +174,27 @@ StatusCode FindTrackHitsTool::initialize()
 
     //Locate and store a pointer to the geometry service
     IService*   iService = 0;
+    if ((sc = serviceLocator()->getService("GlastDetSvc", iService, true)).isFailure())
+    {
+        throw GaudiException("Service [GlastDetSvc] not found", name(), sc);
+    }
+    m_detSvc = dynamic_cast<IGlastDetSvc*>(iService);
+
+    //Locate and store a pointer to the geometry service
+    iService = 0;
     if ((sc = serviceLocator()->getService("TkrGeometrySvc", iService, true)).isFailure())
     {
         throw GaudiException("Service [TkrGeometrySvc] not found", name(), sc);
     }
     m_tkrGeom = dynamic_cast<ITkrGeometrySvc*>(iService);
-
-    //Locate and store a pointer to the geometry service
-    iService = 0;
-    if ((sc = serviceLocator()->getService("TkrFailureModeSvc", iService, true)).isFailure())
-    {
+    m_splitsSvc = m_tkrGeom->getTkrSplitsSvc();
+    m_failSvc = m_tkrGeom->getTkrFailureModeSvc();
+    if(!m_splitsSvc) {
+        throw GaudiException("Service [TkrSplitsSvc] not found", name(), sc);
+    }
+    if(!m_failSvc) {
         throw GaudiException("Service [TkrFailureModeSvc] not found", name(), sc);
     }
-
-    m_tkrFailSvc = dynamic_cast<ITkrFailureModeSvc*>(iService);
 
     //Locate and store a pointer to the data service
     if( (sc = service("EventDataSvc", m_dataSvc)).isFailure() ) 
@@ -316,6 +333,16 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
     // Dependencies: Depends on external services and tools looked up at initialization 
     // Restrictions and Caveats:  None
 
+    // this method contains all the smarts for figuring out if hits are missing for 
+    // a good reason. There are currently 5 separate tests:
+    //   failed plane, outside active area, gap, truncated hits, and bad strips
+    // We probably want each of these to be a tool, and possibly accessible from 
+    //   outside TkrRecon 
+    //  (so that TkrValsTools can use them? or maybe add SSDVeto to the track?)
+    // Should probably do all the tests, instead of just stopping when we hit the first one,
+    //   so that we can understand how they interact.
+    //  --> Big refactoring coming up!
+
     TkrTrackHit* trackHit = 0;
 
     // Get starting position and direction
@@ -428,7 +455,7 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
     }
 
     // No cluster found  - so this a gap of some sort
-    // Order of tests: failed plane, outside plane, gap, dead strip
+    // Order of tests: failed plane, outside plane, gap, truncated hits, dead strip
 
     // Make up a TkrId for this hit... 
     // For now, use the nominal tower, tray, face and view
@@ -452,8 +479,8 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
     trackHit = new TkrTrackHit(0, tkrId, planeZ, 0., 0., 0., 0., 0.); 
 
     // first check for failed plane
-    if(m_tkrFailSvc && !m_tkrFailSvc->empty() 
-        && m_tkrFailSvc->isFailed(tower, layer, view) ) 
+    if(m_failSvc && !m_failSvc->empty() 
+        && m_failSvc->isFailed(tower, layer, view) ) 
     {
         // nothing measured, just flag the hit
         status_bits |= TkrTrackHit::HITISDEADPLN;
@@ -576,6 +603,75 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
 
         trackHit->setStatusBit((TkrTrackHit::StatusBits)status_bits);
         return trackHit;
+    }
+    // start of attempt to analyze truncated hits... don't bother if not truncated
+    // Get the truncation info data object
+    SmartDataPtr<TkrTruncationInfo> truncInfo( m_dataSvc, EventModel::TkrRecon::TkrTruncationInfo );
+    if (truncInfo->isTruncated()) {
+        TkrTruncationInfo::TkrTruncationMap*  truncMap = truncInfo->getTruncationMap();
+        SortId id(tower, tray, face, view);
+        TkrTruncationInfo::TkrTruncationMap::iterator iter = truncMap->find(id);
+        if (iter!=truncMap->end() ) {
+            TkrTruncatedPlane item = iter->second;
+            SortId sortId = iter->first;
+            //std::cout << " FTT: T/T/F "<< sortId.getTower() << " " << sortId.getTray() << " " << sortId.getFace() << std::endl;
+            if (item.isTruncated()) {
+                // here's where the work begins!!
+                // first try: compare extrapolated position to missing strip locations
+                // check for RC truncation
+                int status = item.getStatus();
+                const intVector&  stripNum = item.getStripNumber();
+                int splitPoint  = m_splitsSvc->getSplitPoint(tower, layer, view);
+                double stripPitch = m_tkrGeom->siStripPitch();
+                int nStrips = m_tkrGeom->ladderNStrips()*m_tkrGeom->nWaferAcross();
+                double splitPos = m_detSvc->stripLocalX(splitPoint);
+                //double splitPos = (splitPoint - (nStrips-1)*0.5)/stripPitch;             
+                bool lowSet  = ((status & TkrTruncatedPlane::END0SET)!=0);
+                bool RCHighSet = ((status & TkrTruncatedPlane::RC1SET)!=0);
+                bool CCHighSet = ((status & TkrTruncatedPlane::CC1SET)!=0);
+                double lowPos = splitPos, highPos = splitPos;
+
+                // need a sigma as well as a position
+                double pos_cov, slope; 
+                if(view == idents::TkrId::eMeasureX) {
+                    pos_cov = next_params.getxPosxPos();
+                    slope   = next_params.getxSlope();
+                }
+                else {
+                    pos_cov = next_params.getyPosyPos();
+                    slope   = next_params.getySlope();
+                }
+                // Error due to finite SSD thickness -matters at large angles
+                double zError=m_tkrGeom->siThickness()*slope;
+                // Add them in quadrature
+                double rError=sqrt(pos_cov+zError*zError);
+                double xError = rError*m_rej_sigma;
+
+                double localX = (view == idents::TkrId::eMeasureX ? xTower : yTower);
+                const floatVector stripLocalX = item.getLocalX();
+                if(lowSet)    { lowPos  = stripLocalX[0];}
+                if(RCHighSet) { highPos = stripLocalX[1];}
+                bool truncBit = false;
+                if(highPos>lowPos) {
+                    if ((localX-lowPos)>-xError && (localX-highPos)<xError) {
+                        truncBit = true;
+                    }
+                }
+                // now do the same for the high end (CC1)
+                if ((status | TkrTruncatedPlane::CC1SET)!=0) {
+                    lowPos  = stripLocalX[2];
+                    highPos = 0.5*nStrips*stripPitch;
+                    if ((localX-lowPos)>-xError && (localX-highPos)<xError) {
+                        truncBit = true;
+                    }
+                }
+                if (truncBit) {
+                    status_bits |= TkrTrackHit::HITISTRUNCATED;
+                    trackHit->setStatusBit(status_bits);
+                    return trackHit;
+                }
+            }
+        }
     }
 
     // BadCluster next:
@@ -864,10 +960,14 @@ int FindTrackHitsTool::addLeadingHits(TkrTrack* track)
     int nConsecutiveGaps = 0; // by definition!
     int nGaps = 0;
     int nHits = (*track).size();
+    // tally the existing track
     while (--nHits) {
         TkrTrackHit* trackHit = (*track)[nHits];
         if(((trackHit->getStatusBits())&TkrTrackHit::HITISUNKNOWN)!=0) {
             nGaps++;
+            nConsecutiveGaps++;
+        } else {
+            nConsecutiveGaps = 0;
         }
     }
 
@@ -895,7 +995,6 @@ int FindTrackHitsTool::addLeadingHits(TkrTrack* track)
         } else {
             nConsecutiveGaps = 0;
         }
-  
         if(nGaps>m_maxGaps || nConsecutiveGaps>m_maxConsecutiveGaps) {
             //we're done here
             delete trackHit;

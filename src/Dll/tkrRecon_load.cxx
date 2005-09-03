@@ -37,6 +37,7 @@ DECLARE_FACTORY_ENTRIES(TkrRecon)
     DECLARE_TOOL(      TkrTrackEnergyTool      );
     DECLARE_TOOL(      TkrAlignHitsTool        );
     DECLARE_TOOL(      FindTrackHitsTool       );
+    DECLARE_TOOL(      TkrHitTruncationTool    );
     DECLARE_TOOL(      TkrCalFilterTool        );
     DECLARE_TOOL(      TkrFilterTool           );
 
