@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.34 2005/05/04 22:03:50 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.35 2005/06/10 04:25:45 usher Exp $
 */
 
 
@@ -155,7 +155,7 @@ Algorithm(name, pSvcLocator)
     // 0 = skip all, 1 = do cluster, 2 = and patrec, 3 = and fit, 4 = and vertex
     declareProperty("lastStage", m_lastStage=100);
     // This will abort reconstruction if too many clusters found
-    declareProperty("maxAllowedClusters", m_maxClusters=500);
+    declareProperty("maxAllowedClusters", m_maxClusters=2000);
 }
 
 // Initialization method
