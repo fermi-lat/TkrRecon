@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrFilterTool.cxx,v 1.1 2005/06/10 04:25:47 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrFilterTool.cxx,v 1.2 2005/06/22 21:39:36 usher Exp $
  */
 
 // to turn one debug variables
@@ -180,8 +180,11 @@ StatusCode TkrFilterTool::doFilterStep()
     }
 
     // Recover pointer to Cal Cluster info  
-    Event::CalEventEnergy* calEventEnergy = 
-                 SmartDataPtr<Event::CalEventEnergy>(m_dataSvc, EventModel::CalRecon::CalEventEnergy);
+    Event::CalEventEnergyCol * calEventEnergyCol = 
+        SmartDataPtr<Event::CalEventEnergyCol>(m_dataSvc,EventModel::CalRecon::CalEventEnergyCol) ;
+    Event::CalEventEnergy * calEventEnergy = 0 ;
+    if ((calEventEnergyCol!=0)&&(!calEventEnergyCol->empty()))
+        calEventEnergy = calEventEnergyCol->front() ;
 
     // If calEventEnergy then fill TkrEventParams
     // Note: TkrEventParams initializes to zero in the event of no CalEventEnergy
@@ -195,11 +198,13 @@ StatusCode TkrFilterTool::doFilterStep()
         tkrEventParams->setEventAxis(calParams.getAxis());
         tkrEventParams->setStatusBit(Event::TkrEventParams::CALPARAMS);
 
-        if (calEventEnergy->getStatusBits() & Event::CalEventEnergy::PASS_ONE) 
-            tkrEventParams->setStatusBit(Event::TkrEventParams::FIRSTPASS);
-
-        if (calEventEnergy->getStatusBits() & Event::CalEventEnergy::PASS_TWO) 
-            tkrEventParams->setStatusBit(Event::TkrEventParams::SECONDPASS);
+// DC: there is no more PASS_ONE or PASS_TWO in CalEventEnergy, but
+// a VALIDPARAMS instead.
+//        if (calEventEnergy->getStatusBits() & Event::CalEventEnergy::PASS_ONE) 
+//            tkrEventParams->setStatusBit(Event::TkrEventParams::FIRSTPASS);
+//
+//        if (calEventEnergy->getStatusBits() & Event::CalEventEnergy::PASS_TWO) 
+//            tkrEventParams->setStatusBit(Event::TkrEventParams::SECONDPASS);
 
         m_dirCos = calParams.getAxis();
     }
