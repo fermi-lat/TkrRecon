@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.35 2005/06/10 04:25:45 usher Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.36 2005/09/19 17:30:13 usher Exp $
 */
 
 
@@ -341,6 +341,7 @@ StatusCode TkrReconAlg::execute()
             } else if(m_eventCount%exceptionTestTypes==5) {
                 int* pInt = 0;
                 int x = *pInt;
+                log << MSG::INFO << "Test x = " << x << endreq;
             }
         }
 
