@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: lsrea  Mon Dec 19 21:35:18 PST 2005
+TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors
+
+Modified Files:
+	ClusWidMeasErrs.cxx SlopeCorrectedMeasErrs.cxx 
+	StandardMeasErrs.cxx 
+Log Message:
+remove explicit 1/sqrt(12); use new geom->numTrays()
+
+    *
+------------------------------------------------------------
+User: lsrea  Mon Dec 19 21:35:18 PST 2005
 TkrRecon/src/Track
 
 Modified Files:
