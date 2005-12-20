@@ -3,7 +3,9 @@
 @verbatim
   Managers: Tracy Usher, Leon Rochester 
 
-  v10r8p1   25-Nov-2005  DC  Update for Event v11r9 (changes in CalRecon)
+  v10r9     19-Dec-2005 LSR  Convert from 1/sqrt(12) to geom->siResolution()
+                                 for strip measurement errors (not trays or gaps)
+  v10r8p2   25-Nov-2005  DC  Update for Event v11r9 (changes in CalRecon)
   v10r8p1   19-Sep-2005  TU  Update default cluster cut from 500 to 2000
   v10r8     02-Sep-2005 LSR  new code for truncated hits
   v10r7p3   19-Aug-2005 jrb  Changes for compatibility with modified IGeometry interface

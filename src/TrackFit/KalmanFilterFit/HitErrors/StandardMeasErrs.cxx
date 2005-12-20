@@ -7,7 +7,7 @@
  *
  * @author Tracy Usher (editor) taken from code authored by Bill Atwood
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/StandardMeasErrs.cxx,v 1.2 2004/10/01 21:02:05 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/StandardMeasErrs.cxx,v 1.3 2004/10/12 19:03:39 lsrea Exp $
  */
 
 #include "StandardMeasErrs.h"
@@ -18,8 +18,6 @@ StandardMeasErrs::StandardMeasErrs(ITkrGeometrySvc* tkrGeom) :
     return;
 }
 
-const double oneOverSqrt12 = 1. / sqrt(12.);
-
 TkrCovMatrix StandardMeasErrs::computeMeasErrs(const Event::TkrTrackParams& newPars, 
                                                const TkrCovMatrix&          oldCovMat, 
                                                const Event::TkrCluster&     cluster)
@@ -28,10 +26,6 @@ TkrCovMatrix StandardMeasErrs::computeMeasErrs(const Event::TkrTrackParams& newP
 
     // Compute the Measurement covariance taking into account the 
     // Local track slope
-
-    // The following sets the error to the slope between the track 
-    // and the cluster over sqrt(12). It protects against getting
-    // too small.
 
     // This version due to Bill Atwood
 
@@ -56,10 +50,11 @@ TkrCovMatrix StandardMeasErrs::computeMeasErrs(const Event::TkrTrackParams& newP
         other    = XPOS;
     }
 
-    double wid_proj = fabs(slope * m_tkrGeom->siThickness());
-    double wid_cls  = clusWid * m_tkrGeom->siStripPitch();
-    double error    = (wid_cls - wid_proj) * oneOverSqrt12;
-
+    // excess number of strips
+    double stripPitch = m_tkrGeom->siStripPitch();
+    double wid_proj = fabs(slope * m_tkrGeom->siThickness())/stripPitch;
+    double error    = (clusWid - wid_proj)*min_err;
+    // but no less than one strip
     error = (error > min_err) ? error : min_err; 
     
     newCov(measured, measured) = error*error;
