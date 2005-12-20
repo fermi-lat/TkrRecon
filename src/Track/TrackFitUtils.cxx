@@ -339,7 +339,7 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
     double eSumCount   = 0.;
     double tSumCount   = 0.;
 
-    double measError = m_tkrGeom->siStripPitch()/sqrt(12.);
+    double measError = m_tkrGeom->siResolution();
     for (;layerIter!=endIter; ++layerIter) {
         HitStuff thisLayer = *layerIter;
         HitStuff prevLayer = *(layerIter-1);

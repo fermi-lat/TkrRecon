@@ -7,7 +7,7 @@
  *
  * @author Tracy Usher (editor) 
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/ClusWidMeasErrs.cxx,v 1.5 2005/02/11 07:14:53 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/ClusWidMeasErrs.cxx,v 1.6 2005/02/15 20:34:25 usher Exp $
  */
 
 #include "ClusWidMeasErrs.h"
@@ -17,8 +17,6 @@ ClusWidMeasErrs::ClusWidMeasErrs(ITkrGeometrySvc* tkrGeom) :
 {
     return;
 }
-
-const double oneOverSqrt12 = 1. / sqrt(12.);
 
 TkrCovMatrix ClusWidMeasErrs::computeMeasErrs(const Event::TkrTrackParams& /*newPars*/, 
                                               const TkrCovMatrix&          oldCovMat, 
