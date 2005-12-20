@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Tue Dec 20 09:23:16 PST 2005
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx TkrAlignHitsTool.cxx 
+	TkrHitTruncationTool.cxx 
+Log Message:
+fix warnings
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Dec 20 09:23:15 PST 2005
 TkrRecon/src/PatRec/VectorLinks/StdRelTable
 
