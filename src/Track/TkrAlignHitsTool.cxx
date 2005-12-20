@@ -10,7 +10,7 @@
 * @author Leon Rochester
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.cxx,v 1.7 2005/01/25 20:04:49 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.cxx,v 1.8 2005/07/05 16:29:06 lsrea Exp $
 */
 
 #include "src/Track/TkrAlignHitsTool.h"
@@ -55,7 +55,7 @@ StatusCode TkrAlignHitsTool::alignHits(const Event::TkrTrack* track
     bool first = true;
 
     Event::TkrTrackHitVecConItr pPlane = track->begin();
-    int planeNumber = 0;
+    //int planeNumber = 0;
     for (; pPlane<track->end(); ++pPlane) {
         SmartRef<Event::TkrTrackHit> plane = *pPlane;
 //        const Event::TkrCluster* pClus = plane->getClusterPtr();
@@ -67,7 +67,7 @@ StatusCode TkrAlignHitsTool::alignHits(const Event::TkrTrack* track
         int face = tkrId.getBotTop();
         int layer, view;
         m_tkrGeom->trayToLayer(tray, face, layer, view);
-        int tower = idents::TowerId(tkrId.getTowerX(), tkrId.getTowerY()).id();
+        //int tower = idents::TowerId(tkrId.getTowerX(), tkrId.getTowerY()).id();
 
         HepPoint3D  pos = plane->getPoint(Event::TkrTrackHit::SMOOTHED);
         HepVector3D dir = plane->getDirection(Event::TkrTrackHit::SMOOTHED);

@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/VectorLinksTool.cxx,v 1.1 2005/05/26 20:33:07 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/VectorLinksTool.cxx,v 1.2 2005/06/10 04:25:46 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -304,10 +304,10 @@ StatusCode VectorLinksTool::findTracks()
             setTrackElementBuilder();
 
             // STEP THREE: build the track elements 
-            int numTrackElements = buildTrackElements();
+            /* int numTrackElements = */ buildTrackElements();
 
             // STEP FOUR: Build TkrTracks from the results
-            int numTkrTracks = buildTkrTracks();
+            /* int numTkrTracks = */ buildTkrTracks();
         }
     }
 
@@ -583,7 +583,7 @@ int VectorLinksTool::buildTrackElements()
 
                 // Build all possible TrackElements beginning with this link
                 //buildTrackElements(linksPtrVec, curLink, linksVecItr);
-                int numTracks = (this->*m_TrackElemBuilder)(linksPtrVec, curLink, linksVecItr, linkSkipItr);
+                /* int numTracks = */ (this->*m_TrackElemBuilder)(linksPtrVec, curLink, linksVecItr, linkSkipItr);
             }
         }       
     }
@@ -926,9 +926,9 @@ int VectorLinksTool::makeNewTrackElement(VecPointsLinkPtrVec& linkVec)
         }
 
         // Check memory usage and take action if going out of control
-        int    numTrackElements = m_TrackElements.size();
+        //int    numTrackElements = m_TrackElements.size();
         int    numRelations     = m_trackElemsToPointsTab.size();
-        double sizeOfTrackElem  = m_TrackElements.size() * sizeof(TrackElements);
+        //double sizeOfTrackElem  = m_TrackElements.size() * sizeof(TrackElements);
 
         //if (sizeOfTrackElem > m_trackElemSize)
         if (numRelations > m_relTableSize)
@@ -950,7 +950,7 @@ int VectorLinksTool::makeNewTrackElement(VecPointsLinkPtrVec& linkVec)
 //
 // Method to determine whether a VecPointsLink should be added to a candidate VecPointsLinkPtrVec
 //
-bool VectorLinksTool::acceptLink(VecPointsLink& curLink, VecPointsLink& nextLink, VecPointsLinkPtrVec& linkVec)
+bool VectorLinksTool::acceptLink(VecPointsLink& curLink, VecPointsLink& nextLink, VecPointsLinkPtrVec& /*linkVec*/)
 {
     // Presume it will not match
     bool acceptIt = false;
@@ -1158,7 +1158,7 @@ void VectorLinksTool::removeVecPointRelations(const TrackElements* goodElem, con
             // Start by retrieving said relations
             std::vector<TrackElemToPointsRel*> elemToPointsVec = m_trackElemsToPointsTab.getRelBySecond(&matchHit);
 
-            int elemToPointsVecSize = elemToPointsVec.size();
+            //int elemToPointsVecSize = elemToPointsVec.size();
 
             // Loop through and remove from the table one by one
             std::vector<TrackElemToPointsRel*>::iterator elemToPointsVecItr = elemToPointsVec.begin();

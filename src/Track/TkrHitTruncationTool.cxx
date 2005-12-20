@@ -1,13 +1,12 @@
-/* @file TkrHitTruncationTool.cxx
+/** @file TkrHitTruncationTool.cxx
 
-/**
 * @class TkrHitTruncationTool
 *
 * @brief Generates hit truncation information for an event
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrHitTruncationTool.cxx,v 1.31 2005/06/22 21:39:36 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrHitTruncationTool.cxx,v 1.1 2005/09/03 02:07:00 lsrea Exp $
 */
 
 #include "GaudiKernel/AlgTool.h"
@@ -110,8 +109,8 @@ StatusCode TkrHitTruncationTool::analyzeDigis()
         Event::TkrDigi* pDigi = *pTkrDigi;
 
         TowerId towerId = pDigi->getTower();
-        int towerX = towerId.ix();
-        int towerY = towerId.iy();
+        //int towerX = towerId.ix();
+        //int towerY = towerId.iy();
         int tower  = towerId.id();
 
         int layer = pDigi->getBilayer();
@@ -224,7 +223,7 @@ StatusCode TkrHitTruncationTool::analyzeDigis()
     }
     // finish up:
     // set the truncation counts and deal with planes with no truncations
-    int sizeBefore = truncMap->size();
+    //int sizeBefore = truncMap->size();
     int nRCTrunc = 0;
     int nCCTrunc = 0;
     

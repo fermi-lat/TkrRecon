@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrFilterTool.cxx,v 1.2 2005/06/22 21:39:36 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrFilterTool.cxx,v 1.3 2005/11/25 16:48:37 chamont Exp $
  */
 
 // to turn one debug variables
@@ -228,8 +228,7 @@ StatusCode TkrFilterTool::doFilterStep()
 
             if (chiSq == 0.) break;
 
-            double cosTheta = curAxis.dot(m_dirCos);
-
+            //double cosTheta = curAxis.dot(m_dirCos);
             //if ((1. - cosTheta) < 0.001) break;
             
             deltaChi = (chiOld - chiSq) / chiOld;

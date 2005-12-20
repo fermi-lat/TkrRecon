@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.27 2005/05/11 04:14:33 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.28 2005/05/26 20:33:04 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -361,7 +361,7 @@ Event::TkrTrack* MonteCarloFindTrackTool::buildTrackFromMcPart(const Event::McPa
         // Set up variables needed during the loop over hits
         int    numGaps      =  0;
         int    maxGapSize   =  0;
-        int    lastHitPlane =  0;
+        //int    lastHitPlane =  0;
         double trackDir     = -1.;
         bool   firstTrack   = true;
 

@@ -20,7 +20,7 @@
 * @author Marco Frailis
 * @author Riccardo Giannitrapani
 *   
-* $Header: /nfs/slac/g/glast/ground/cvs/Event/Event/RelTable/RelTable.h,v 1.8 2003/07/18 23:09:49 frailis Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/StdRelTable/RelTable.h,v 1.1 2005/05/26 20:33:06 usher Exp $
 */
 namespace TkrRecon 
 {
@@ -78,6 +78,8 @@ public:
     RelationList<T1,T2>* getAllRelations() const;
   
 private:
+
+    typedef typename RelationList<T1,T2>::iterator RelationListIter;
 
     typedef typename RelKeyMultiMap<T1,T1,T2>::iterator    mapT1RelIter;
     typedef typename std::pair<mapT1RelIter, mapT1RelIter> mapT1RelIterPair;
