@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon Dec 19 21:35:16 PST 2005
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+remove explicit 1/sqrt(12); use new geom->numTrays()
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r8p2, operation: add
 Package: TkrRecon
