@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Sat Jan 21 11:09:01 PST 2006
+TkrRecon/cmt
+
+Modified Files:
+      Tag: GRv7r3p5
+	requirements 
+Log Message:
+Fix for TkrPoints crash... prepare for tag v10r8p1gr0
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r9p2, operation: add
 Package: TkrRecon
