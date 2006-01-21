@@ -14,7 +14,7 @@
 *
 * @authors Bill Atwood, Brian Algood
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoints.cxx,v 1.12 2005/03/02 00:25:22 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoints.cxx,v 1.13 2005/05/10 22:31:57 lsrea Exp $
 *
 */
 
@@ -22,14 +22,15 @@
 #include <iostream>
 
 #include <algorithm>
+#include <map>
 
 TkrPoints::TkrPoints(int layer, ITkrQueryClustersTool* clusTool)
 {
     m_layer    = layer;
     m_clusTool = clusTool;
-    m_refPoint = Point(0, 0, 0);
+    m_refPoint = Point(0., 0., 0.);
     m_maxDist2 = _big*_big;
-    m_sorting  = false;
+    m_sorting  = true;
     ini();
 }
 
@@ -43,8 +44,6 @@ TkrPoints::TkrPoints(int layer, ITkrQueryClustersTool* clusTool,
     m_maxDist2 = maxDistance*maxDistance;
     m_sorting  = true;
     ini();
-    // sort by closest to refPoint (see header file for predicate)
-    std::sort(this->begin(), this->end(), sortByClosest(m_refPoint));    
 }
 
 void TkrPoints::ini()
@@ -55,7 +54,14 @@ void TkrPoints::ini()
         = m_clusTool->getClusters(idents::TkrId::eMeasureX,m_layer);
 
     Event::TkrClusterVec yHitList 
-        = m_clusTool->getClusters(idents::TkrId::eMeasureY,m_layer);
+        = m_clusTool->getClusters(idents::TkrId::eMeasureY,m_layer); 
+
+    // if sorting, put the points in a map
+    // for unknown reasons, the straight-forward sort very occasionally crashes
+    typedef std::multimap<double, TkrPoint*> tempMap;
+    tempMap::const_iterator mapIter;
+
+    tempMap myMap;
 
     Event::TkrClusterVecConItr itX = xHitList.begin();
     for (; itX!=xHitList.end(); ++itX) {
@@ -67,16 +73,26 @@ void TkrPoints::ini()
             TkrPoint* pt = new TkrPoint(m_layer, clX, clY);
             // in sorting mode, throw out far-away points (defaults to keep all)
             if(m_sorting) {
-                if(pt->getDistanceSquaredTo(m_refPoint)>m_maxDist2) {
+                double dist = pt->getDistanceSquaredTo(m_refPoint);
+                if(dist>m_maxDist2) {
                     delete pt;
                     continue;
                 }
+                std::pair<double, TkrPoint*> myPair(dist,pt);
+                myMap.insert(myPair);
+            } else {
+                this->push_back(pt);
             }
-            this->push_back(pt);
+        }
+    }
+    if(m_sorting) {
+        mapIter = myMap.begin();
+        for(;mapIter!=myMap.end();++mapIter) {
+            this->push_back((*mapIter).second);
         }
     }
 }
-   
+
 TkrPoint* TkrPoints::getNearestPointOutside(Point x0, double & dist_min) const
 {
     // Searches out the nearest space point to x0 which lies
