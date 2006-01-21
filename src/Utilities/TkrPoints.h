@@ -11,7 +11,7 @@
 *
 * @authors Bill Atwood
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoints.h,v 1.5 2004/11/02 22:55:44 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoints.h,v 1.6 2005/05/10 22:31:57 lsrea Exp $
 *
 */
 
@@ -49,6 +49,7 @@ public:
         for (; ip!=this->end(); ++ip) {
             delete *ip;
         }
+        this->clear();
     }
 
     /// Sequential access by closest to x0 outside dist
@@ -65,18 +66,18 @@ public:
 
 private:
     
-    
-    //! 
+    // Not used for the moment, this is done by the map now
     class sortByClosest : public std::binary_function <TkrPoint*, TkrPoint*, bool> {
         Point myRef;
     public:
         sortByClosest(const Point& theRef) : myRef(theRef) {}
         bool operator() (const TkrPoint* left, const TkrPoint* right) const {
+	  std::cout << "dists: " << left->getDistanceSquaredTo(myRef) << " " <<
+	    right->getDistanceSquaredTo(myRef) << std::endl;
             return left->getDistanceSquaredTo(myRef)<right->getDistanceSquaredTo(myRef);
         } 
     };        
     
-
     /// sets up TkrPointList
     void ini();   
     /// layer number for convenience 
@@ -89,7 +90,6 @@ private:
     Point m_refPoint;
     /// exclude beyond this (squared) distance if ordering by refPoint (default = big!)
     double m_maxDist2;
-
 
 };
 
