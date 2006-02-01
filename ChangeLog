@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue Jan 31 18:09:20 PST 2006
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+      Tag: GR-v7r3p20-newext
+	TkrFindAlg.cxx 
+Log Message:
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r8cl0, operation: add
 Package: TkrRecon
