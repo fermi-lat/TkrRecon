@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.19 2005/05/26 20:33:02 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.20 2005/09/03 02:06:59 lsrea Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -40,7 +40,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.19 2005/05/26 20:33:02 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.20 2005/09/03 02:06:59 lsrea Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -157,6 +157,9 @@ StatusCode TkrFindAlg::execute()
     
     MsgStream log(msgSvc(), name());
 
+    // Message to acknowledge at this stage
+    log << MSG::DEBUG << "------- TkrFindAlg - looking for tracks -------" << endreq;
+
     sc = m_truncTool->analyzeDigis();
 
     // Call the tool defined in the intialization
@@ -195,6 +198,8 @@ StatusCode TkrFindAlg::execute()
     }
     log << endreq;
     */
+
+    log << MSG::DEBUG << "------- TkrFindAlg - done looking for tracks -------" << endreq;
 
     return sc;
 }
