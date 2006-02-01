@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.43 2005/06/10 04:25:46 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.44 2005/08/16 21:21:15 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -412,7 +412,7 @@ StatusCode ComboFindTrackTool::findTracks()
         double arclen = (m_calPos.z() - calZ)/m_calDir.z();
         m_calPos -= arclen*m_calDir;
 
-        HepLorentzVector Mc_p0 = (*pMCPrimary)->initialFourMomentum();
+        CLHEP::HepLorentzVector Mc_p0 = (*pMCPrimary)->initialFourMomentum();
         m_calDir = Vector(Mc_p0.x(),Mc_p0.y(), Mc_p0.z()).unit();
 
         // there's a method v.m(), but it does something tricky if m2<0
