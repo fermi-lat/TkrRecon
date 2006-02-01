@@ -11,7 +11,7 @@
  *
  * @authors Bill Atwood
   *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/VecPoints.h,v 1.5 2004/11/02 22:55:44 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/VecPoints.h,v 1.1 2005/05/26 20:33:07 usher Exp $
  *
 */
 
@@ -25,6 +25,9 @@
 
 class VecPoint;
 
+namespace {
+    double _big = 100000.0;
+}
 
 class VecPoints : public VecPointList
 {
@@ -32,6 +35,7 @@ class VecPoints : public VecPointList
 public:
     
     VecPoints(int layer, ITkrQueryClustersTool* clusTool);
+
     ~VecPoints() {
         // remove VecPoints on heap
         VecPointListConItr ip = this->begin();

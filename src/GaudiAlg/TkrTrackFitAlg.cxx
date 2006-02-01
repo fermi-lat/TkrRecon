@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.26 2005/05/11 04:14:30 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.27 2005/07/05 16:29:05 lsrea Exp $
  */
 
 #include <vector>
@@ -219,8 +219,33 @@ StatusCode TkrTrackFitAlg::doTrackFit()
     log << endreq;
     */
 
+    log << MSG::DEBUG; 
+    if (log.isActive()) {
+        log << "------- Finished TkrRecon First Track Fit --------";
+    }
+    log << endreq;
+
     return sc;
 }
+
+namespace 
+{
+    #ifdef WIN32
+    #include <float.h> // used to check for NaN
+    #else
+    #include <cmath>
+    #endif
+     
+    bool isFinite(double val) 
+    {
+        using namespace std; // should allow either std::isfinite or ::isfinite
+        #ifdef WIN32
+            return (_finite(val)!=0);  // Win32 call available in float.h
+        #else
+            return (isfinite(val)!=0); // gcc call available in math.h
+        #endif
+    }
+} // anom namespace
 
 StatusCode TkrTrackFitAlg::doTrackReFit()
 {
@@ -245,6 +270,13 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
     // Check that there are tracks to fit
     if(trackCol->size() < 1) return sc;
 
+    // Trap nans here?
+    double testEnergy = trackCol->front()->front()->getEnergy();
+    if (!isFinite(testEnergy))
+    {
+        int j = 0;
+    }
+
     // Set the energy of the tracks
     m_EnergyTool->SetTrackEnergies();
 
@@ -253,6 +285,14 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
     {
          Event::TkrTrack* track = *trackIter;
          m_AlignTool->alignHits(track);
+
+         // Check for nans here
+         double trackEnergy = track->front()->getEnergy();
+         if (!isFinite(trackEnergy))
+         {
+             int j = 0;
+         }
+
          m_FitTool->doTrackReFit(track);
     }
 
@@ -290,6 +330,12 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
     }
     log << endreq;
     */
+
+    log << MSG::DEBUG; 
+    if (log.isActive()) {
+        log << "------- Finished TkrRecon Track Fit Iteration --------";
+    }
+    log << endreq;
 
     return sc;
 }
