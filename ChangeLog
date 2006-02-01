@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Jan 31 18:00:55 PST 2006
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+      Tag: GR-v7r3p20-newext
+	TkrReconAlg.cxx TkrTrackFitAlg.cxx 
+Log Message:
+    *
+------------------------------------------------------------
 User: usher  Tue Jan 31 18:00:52 PST 2006
 TkrRecon/src/Filter
 
