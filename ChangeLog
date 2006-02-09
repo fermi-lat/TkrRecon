@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Thu Feb  9 15:56:26 PST 2006
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	ComboVtxTool.cxx 
+Log Message:
+Fix the setting of the status bits for certain 2-track vertices
+
+    *
+------------------------------------------------------------
 User: lsrea  Thu Feb  9 15:56:23 PST 2006
 TkrRecon/doc
 
