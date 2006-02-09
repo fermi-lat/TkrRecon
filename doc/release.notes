@@ -3,6 +3,7 @@
 @verbatim
   Managers: Tracy Usher, Leon Rochester 
 
+  v10r9p3   09-Feb-2006 LSR  ComboVtxTool: fix the status bits for certain 2-track vertices
   v10r9p2   20-Jan-2006 LSR  Stab at fixing the sort problem in TkrPoints (let the map do the sorting)
   v10r9p1   20-Dec-2005 LSR  Clean up warnings
   v10r9     19-Dec-2005 LSR  Convert from 1/sqrt(12) to geom->siResolution()
