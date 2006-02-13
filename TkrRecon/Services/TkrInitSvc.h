@@ -17,7 +17,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.13 2004/09/09 20:39:54 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.14 2004/10/12 19:03:32 lsrea Exp $
  */
 
 
@@ -37,12 +37,12 @@ public:
     ITkrGeometrySvc* getGeometrySvc() {return m_tkrGeom;}
         
     /// queryInterface - for implementing a Service this is necessary
-    StatusCode       queryInterface(const IID& riid, void** ppvUnknown);
+    StatusCode       queryInterface(const InterfaceID& riid, void** ppvUnknown);
 
     static const InterfaceID& interfaceID() { return IID_ITkrInitSvc; }
 
     /// return the service type
-    const IID& type() const;
+    const InterfaceID& type() const;
  
 private:
 
