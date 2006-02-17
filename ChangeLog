@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Fri Feb 17 07:56:41 PST 2006
+TkrRecon/src/Filter
+
+Added Files:
+      Tag: GR-v7r3p20-newext
+	TkrMomentsAnalysis.cxx TkrMomentsAnalysis.h 
+Log Message:
+First import of code to perform calorimeter style "moments analysis" on TkrClusters in Tracker
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r8cl1, operation: add
 Package: TkrRecon
