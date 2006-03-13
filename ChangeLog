@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon Mar 13 08:17:22 PST 2006
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Add a stage to TkrReconAlg for Filtering
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r8cl2, operation: add
 Package: TkrRecon
