@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.36 2005/09/19 17:30:13 usher Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.37 2005/12/20 17:23:12 lsrea Exp $
 */
 
 
@@ -95,7 +95,7 @@ public:
 
 private:
 
-    enum {SKIPALL=0, CLUSTERING, PATREC, FITTING, VERTEXING };
+    enum {SKIPALL=0, CLUSTERING, FILTERING, PATREC, FITTING, VERTEXING };
     StatusCode handleError(std::string errorString);
     int         m_errorCount;
     bool        m_saveBadEvents;
@@ -152,7 +152,7 @@ Algorithm(name, pSvcLocator)
     // force exceptions to be printed
     declareProperty("printExceptions", m_printExceptions= false);
     // control flag to suppress parts of the recon:
-    // 0 = skip all, 1 = do cluster, 2 = and patrec, 3 = and fit, 4 = and vertex
+    // 0 = skip all, 1 = do cluster, 2= and filtering, 3 = and patrec, 4 = and fit, 5 = and vertex
     declareProperty("lastStage", m_lastStage=100);
     // This will abort reconstruction if too many clusters found
     declareProperty("maxAllowedClusters", m_maxClusters=2000);
@@ -347,7 +347,7 @@ StatusCode TkrReconAlg::execute()
 
         // Call track filter stage
         m_stage = "TkrFilterAlg";
-        if(m_lastStage>=CLUSTERING) sc = m_TkrFilterAlg->execute();
+        if(m_TkrFilterAlg && m_lastStage>=FILTERING) sc = m_TkrFilterAlg->execute();
         if (m_testExceptions && m_eventCount%exceptionTestTypes==3) sc = StatusCode::FAILURE;
 
         if (sc.isFailure())
