@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.19 2004/12/16 05:04:21 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.20 2005/02/07 20:38:27 lsrea Exp $
 //
 // Description:
 //      Contains the implementation of the methods for setting up the TkrRecon display
@@ -58,7 +58,8 @@ StatusCode TkrDisplayAlg::initialize()
     if( sc.isFailure() )  
     {
         MsgStream   log( msgSvc(), name() );
-        log << MSG::WARNING << "No GuiSvc: so, no event display " << endreq;
+        log << MSG::WARNING << "GuiSvc not found; " 
+            << "the \"old\" single event display will not be activated." << endreq;
         return StatusCode::SUCCESS;
     }
     
