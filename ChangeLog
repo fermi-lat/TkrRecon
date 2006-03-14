@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Mar 14 08:08:43 PST 2006
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrDisplayAlg.cxx 
+Log Message:
+Spruce up a warning message in TkrDisplayAlg
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r9p4, operation: add
 Package: TkrRecon
