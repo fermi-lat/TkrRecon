@@ -11,7 +11,7 @@
 *
 * @authors Bill Atwood
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoints.h,v 1.6 2005/05/10 22:31:57 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoints.h,v 1.7 2006/01/21 00:10:34 lsrea Exp $
 *
 */
 
@@ -66,8 +66,7 @@ public:
 
 private:
     
-    
-    //! 
+    // Not used for the moment, this is done by the map now
     class sortByClosest : public std::binary_function <TkrPoint*, TkrPoint*, bool> {
         Point myRef;
     public:
@@ -79,7 +78,6 @@ private:
         } 
     };        
     
-
     /// sets up TkrPointList
     void ini();   
     /// layer number for convenience 
@@ -92,7 +90,6 @@ private:
     Point m_refPoint;
     /// exclude beyond this (squared) distance if ordering by refPoint (default = big!)
     double m_maxDist2;
-
 
 };
 

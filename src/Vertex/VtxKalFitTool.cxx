@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.25 2005/01/25 20:04:49 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.26 2005/02/11 07:14:55 lsrea Exp $
 // Description:                                                  
 //      Implementation of the Kalman vertexer
 //
@@ -46,11 +46,11 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& /*VtxCol*/)
   m_VtxEstimates.erase(m_VtxEstimates.begin(),m_VtxEstimates.end());
 
   std::vector<HepSymMatrix>  CovQQ;
-  std::vector<HepMatrix>     CovXQ;
-  std::vector<HepVector>     fQ_list;
-  std::vector<HepVector>     m_list;
-  std::vector<HepVector>     sQ_list;
-  std::vector<HepMatrix>     Tmp_list;
+  std::vector<CLHEP::HepMatrix>     CovXQ;
+  std::vector<CLHEP::HepVector>     fQ_list;
+  std::vector<CLHEP::HepVector>     m_list;
+  std::vector<CLHEP::HepVector>     sQ_list;
+  std::vector<CLHEP::HepMatrix>     Tmp_list;
 
   int    ifail      = 0; //flag for matrix inversion check
   double totalChi2  = 0; 
@@ -98,7 +98,7 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& /*VtxCol*/)
       //-------------------------------------------
 
       //current estimations of vertex and its Cov. Matrix:
-      HepVector    Vtx = m_VtxEstimates.back();
+      CLHEP::HepVector    Vtx = m_VtxEstimates.back();
       HepSymMatrix invC = m_VtxCovEstimates.back();
       invC.invert(ifail);
       if(ifail) 
@@ -108,16 +108,16 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& /*VtxCol*/)
         }
 
       // Track parameters (X,Sx,Y,Sy,E) as Measurement Vector m
-      HepVector m = getTkrParVec(*theTrack);
+      CLHEP::HepVector m = getTkrParVec(*theTrack);
 
       // get "momentum" vector (Sx,Sy,E) of track at
       // POCA to vertex (conventional)
-      HepVector    q = computeQatVtx(*theTrack,Vtx); 
+      CLHEP::HepVector    q = computeQatVtx(*theTrack,Vtx); 
 
-      HepMatrix A  = computeMatrixA(Vtx,q);
-      HepMatrix B  = computeMatrixB(Vtx,q);
-      HepVector h0 = computeVectorH(Vtx,q);
-      HepVector c0 = h0 - A*Vtx - B*q;
+      CLHEP::HepMatrix A  = computeMatrixA(Vtx,q);
+      CLHEP::HepMatrix B  = computeMatrixB(Vtx,q);
+      CLHEP::HepVector h0 = computeVectorH(Vtx,q);
+      CLHEP::HepVector c0 = h0 - A*Vtx - B*q;
 
      //Step 2: Compute Covariance matrices
       //-----------------------------------
@@ -144,18 +144,18 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& /*VtxCol*/)
       
       // D = Cov(Q,Q)     E = cov(x,Q)
       HepSymMatrix D = W + newC.similarity(W*B.T()*G*A);      
-      HepMatrix    E = -newC*A.T()*G*B*W;
+      CLHEP::HepMatrix    E = -newC*A.T()*G*B*W;
 
       
       //Step 3: Update vertex estimation and check chi2
       //-----------------------------------------------
       //new vertex and momentum at vertex for current track:
-      HepVector newVtx = newC*(invC*Vtx + A.T()*Gb*(m-c0));
-      HepVector newQ   = W*B.T()*G*(m-c0-A*newVtx);      
+      CLHEP::HepVector newVtx = newC*(invC*Vtx + A.T()*Gb*(m-c0));
+      CLHEP::HepVector newQ   = W*B.T()*G*(m-c0-A*newVtx);      
 
 
-      HepVector r = m - c0 - A*newVtx - B*newQ;
-      HepVector dx = newVtx - Vtx;
+      CLHEP::HepVector r = m - c0 - A*newVtx - B*newQ;
+      CLHEP::HepVector dx = newVtx - Vtx;
       // chi2f = r.T()*G*r + dx.T()*C*dx SCALAR
       double chi2f = G.similarity(r) + invC.similarity(dx);
       
@@ -195,7 +195,7 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& /*VtxCol*/)
 
 
   //Final estimates:
-  HepVector Vtx      = m_VtxEstimates.back();
+  CLHEP::HepVector Vtx      = m_VtxEstimates.back();
   HepSymMatrix CovXX = m_VtxCovEstimates.back();
 
   std::vector<Event::TkrFitTrack*>::iterator usedIter = usedTracks.begin();
@@ -204,10 +204,10 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& /*VtxCol*/)
     { 
       Event::TkrFitTrack* theUsedTrack = *usedIter++;
 
-      HepMatrix A  = computeMatrixA(Vtx, fQ_list[i]);
-      HepMatrix B  = computeMatrixB(Vtx, fQ_list[i]);
-      HepVector h0 = computeVectorH(Vtx, fQ_list[i]);
-      HepVector c0 = h0 - A*Vtx - B*fQ_list[i];
+      CLHEP::HepMatrix A  = computeMatrixA(Vtx, fQ_list[i]);
+      CLHEP::HepMatrix B  = computeMatrixB(Vtx, fQ_list[i]);
+      CLHEP::HepVector h0 = computeVectorH(Vtx, fQ_list[i]);
+      CLHEP::HepVector c0 = h0 - A*Vtx - B*fQ_list[i];
       
       Event::TkrFitMatrix measCov = 
         propagCovToVtx(theUsedTrack->getTrackCov(), Vtx);
@@ -217,13 +217,13 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& /*VtxCol*/)
       W.invert(ifail);
 
       //Final Q=(Sx,Sy,E)
-      HepVector    Q = W*B.T()*G*(m_list[i] - c0 - A*Vtx);
+      CLHEP::HepVector    Q = W*B.T()*G*(m_list[i] - c0 - A*Vtx);
       //Final Cov(Q)
       HepSymMatrix D = W + CovXX.similarity(W*B.T()*G*A);
       //Final Cov(Vtx,Q) 
-      HepMatrix    E = -CovXX*A.T()*G*B*W;
+      CLHEP::HepMatrix    E = -CovXX*A.T()*G*B*W;
       //help for cov(Q_i,Q_j) = Tmp*CovXX*Tmp.T()
-      HepMatrix Tmp = W*B.T()*G*A;
+      CLHEP::HepMatrix Tmp = W*B.T()*G*A;
 
       sQ_list.push_back(Q);
       CovQQ.push_back(D);
@@ -238,7 +238,7 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& /*VtxCol*/)
 
   Vector totP;
   HepSymMatrix totCovP(3,0);
-  HepMatrix totCovXP(3,3,0);
+  CLHEP::HepMatrix totCovXP(3,3,0);
 
   usedIter = usedTracks.begin();
   i=0;
@@ -248,7 +248,7 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& /*VtxCol*/)
       double uz = theUsedTrack->getDirection().z();
       int sgn = uz>0?+1:-1;
 
-      HepVector Qi = sQ_list[i]; 
+      CLHEP::HepVector Qi = sQ_list[i]; 
 
       //Physical Momentum:
       //-----------------
@@ -258,7 +258,7 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& /*VtxCol*/)
 
       //Cov Matrix of Physical Momentum:
       //-------------------------------
-      HepMatrix Ti = SlopeToDir(Qi,sgn);
+      CLHEP::HepMatrix Ti = SlopeToDir(Qi,sgn);
       totCovP += CovQQ[i].similarity(Ti);
 
             std::cout<<CovQQ[i]<<Ti<<totCovP<<std::endl;
@@ -269,10 +269,10 @@ StatusCode VtxKalFitTool::doVtxFit(Event::TkrVertexCol& /*VtxCol*/)
       for(j=i+1;j<numTracks;j++)
         {
           int sgn2 = theUsedTrack->getDirection().z()>0?+1:-1;
-          HepVector Qj = sQ_list[j];
-          HepMatrix Tj = SlopeToDir(Qj,sgn2);
+          CLHEP::HepVector Qj = sQ_list[j];
+          CLHEP::HepMatrix Tj = SlopeToDir(Qj,sgn2);
           
-          HepMatrix Qij = Ti*Tmp_list[i]*CovXX*Tmp_list[j].T()*Tj.T();
+          CLHEP::HepMatrix Qij = Ti*Tmp_list[i]*CovXX*Tmp_list[j].T()*Tj.T();
           HepSymMatrix tmp;
           tmp.assign(Qij + Qij.T()); 
           Cov_ij += tmp;
@@ -340,7 +340,7 @@ StatusCode  VtxKalFitTool::initVertex(Event::TkrTrackCol& /*theTracks*/)
   //                           should come from TkrGeoSvc.
 /*
   Point p0 = theTracks.front()->getPosition();
-  HepVector vtx0(3);
+  CLHEP::HepVector vtx0(3);
   vtx0[0] = p0.x();
   vtx0[1] = p0.y();
   vtx0[2] = p0.z();
@@ -363,7 +363,7 @@ StatusCode  VtxKalFitTool::initVertex(Event::TkrTrackCol& /*theTracks*/)
   return StatusCode::SUCCESS;
 }
 
-HepVector VtxKalFitTool::computeVectorH(const HepVector x, const HepVector q)
+CLHEP::HepVector VtxKalFitTool::computeVectorH(const CLHEP::HepVector x, const CLHEP::HepVector q)
 {
   // Purpose and Method: 
   //Compute measurement vector H(x,q)
@@ -395,7 +395,7 @@ HepVector VtxKalFitTool::computeVectorH(const HepVector x, const HepVector q)
   // Restrictions and Caveats: We might need to generalize 
   //                           w.r.t sign(uz), and if E can be correlated...
   
-  HepVector H(5,0);
+  CLHEP::HepVector H(5,0);
   H[0] = x[0] + q[0]*(m_Zref-x[2]);        // X
   H[1] = q[0];                             // SX
   H[2] = x[1] + q[1]*(m_Zref-x[2]);        // Y
@@ -405,7 +405,7 @@ HepVector VtxKalFitTool::computeVectorH(const HepVector x, const HepVector q)
 }
 
 
-HepMatrix VtxKalFitTool::computeMatrixA(const HepVector /*x*/, const HepVector q)
+CLHEP::HepMatrix VtxKalFitTool::computeMatrixA(const CLHEP::HepVector /*x*/, const CLHEP::HepVector q)
 {
   // Purpose and Method:  matrix A is simply {partial H}/{partial x}
   // Inputs: position and momentum at linearization point
@@ -414,7 +414,7 @@ HepMatrix VtxKalFitTool::computeMatrixA(const HepVector /*x*/, const HepVector q
   //
   // Restrictions and Caveats: None
   
-  HepMatrix A(5,3,0);
+  CLHEP::HepMatrix A(5,3,0);
   A(1,1) = 1;
   A(1,3) = -q[0];
   A(3,2) = 1;
@@ -422,7 +422,7 @@ HepMatrix VtxKalFitTool::computeMatrixA(const HepVector /*x*/, const HepVector q
   return A;
 }
 
-HepMatrix VtxKalFitTool::computeMatrixB(const HepVector x, const HepVector /*q*/)
+CLHEP::HepMatrix VtxKalFitTool::computeMatrixB(const CLHEP::HepVector x, const CLHEP::HepVector /*q*/)
 {
   // Purpose and Method:  matrix B is simply {partial H}/{partial q}
   // Inputs: position x and momentum q at linearization point
@@ -431,7 +431,7 @@ HepMatrix VtxKalFitTool::computeMatrixB(const HepVector x, const HepVector /*q*/
   //
   // Restrictions and Caveats: None
 
-  HepMatrix B(5,3,0);
+  CLHEP::HepMatrix B(5,3,0);
   B(1,1) = m_Zref - x[2];
   B(2,1) = 1;
   B(3,2) = m_Zref - x[2];
@@ -441,18 +441,18 @@ HepMatrix VtxKalFitTool::computeMatrixB(const HepVector x, const HepVector /*q*/
 }
 
 
-HepVector VtxKalFitTool::getTkrParVec(const Event::TkrTrack& /*theTrack*/)
+CLHEP::HepVector VtxKalFitTool::getTkrParVec(const Event::TkrTrack& /*theTrack*/)
 {
   // Purpose and Method: Simple translation of TkrFitPar (+ energy) 
-  //                     into an HepVector
+  //                     into an CLHEP::HepVector
   // Inputs: fitted Track
-  // Output: HepVector (X,Sy,Y,Sy,E)
+  // Output: CLHEP::HepVector (X,Sy,Y,Sy,E)
   // Dependencies: None
   //
   // Restrictions and Caveats: None
 
 ///  Event::TkrFitPar par0 = theTrack.getTrackPar();
-  HepVector m(5,0);
+  CLHEP::HepVector m(5,0);
 ///  m(1) = par0.getXPosition();
 ///  m(2) = par0.getXSlope();
 ///  m(3) = par0.getYPosition();
@@ -462,8 +462,8 @@ HepVector VtxKalFitTool::getTkrParVec(const Event::TkrTrack& /*theTrack*/)
 }
 
 
-HepVector VtxKalFitTool::computeQatVtx(const Event::TkrTrack& /*theTrack*/,
-                                       const HepVector /*theVertex*/)
+CLHEP::HepVector VtxKalFitTool::computeQatVtx(const Event::TkrTrack& /*theTrack*/,
+                                       const CLHEP::HepVector /*theVertex*/)
 {
   // Purpose and Method: Simple building of the geometrical momentum (Sx,Sy,E).
   //                     In general it should be computed at the POCA to the 
@@ -476,7 +476,7 @@ HepVector VtxKalFitTool::computeQatVtx(const Event::TkrTrack& /*theTrack*/,
   //
   // Restrictions and Caveats: No attempt to play with energy, maybe not even 
   // necessary
-  HepVector q(3);
+  CLHEP::HepVector q(3);
 ///  q[0] = theTrack.getTrackPar().getXSlope();
 ///  q[1] = theTrack.getTrackPar().getYSlope();
 ///  q[2] = theTrack.getEnergy();
@@ -485,9 +485,9 @@ HepVector VtxKalFitTool::computeQatVtx(const Event::TkrTrack& /*theTrack*/,
 
 
 //This is just a reformatting of TkrFitMatrix into HepSymMatrix
-HepSymMatrix VtxKalFitTool::getHepSymCov(const Event::TkrTrackParams& measCov)
+CLHEP::HepSymMatrix VtxKalFitTool::getHepSymCov(const Event::TkrTrackParams& measCov)
 {
-  HepSymMatrix G(4,0);
+  CLHEP::HepSymMatrix G(4,0);
   G(1,1) = measCov(1,1);
   G(2,2) = measCov(2,2);
   G(1,2) = measCov(1,2);
@@ -512,7 +512,7 @@ HepSymMatrix VtxKalFitTool::getHepSymCov(const Event::TkrTrackParams& measCov)
 }
 
 
-HepMatrix VtxKalFitTool::SlopeToDir(HepVector Q, int sign_uz)
+CLHEP::HepMatrix VtxKalFitTool::SlopeToDir(CLHEP::HepVector Q, int sign_uz)
 {
   // Purpose and Method: Transformation Matrix T (Sx,Sy,E)->(Eux,Euy,Euz)
   //                     newCov = T*oldCov*T.T() and T_{ij} = dy_i/dx_j   
@@ -530,7 +530,7 @@ HepMatrix VtxKalFitTool::SlopeToDir(HepVector Q, int sign_uz)
       double sy = Q[1];
       double  E = Q[2];
 
-      HepMatrix T(3,3,0);
+      CLHEP::HepMatrix T(3,3,0);
       // partial{Euz} / partial{Sy} up to norm. factor:
       T(1,1) = E * (1 + sy*sy);
       T(1,2) = - E * sx*sy;
@@ -551,7 +551,7 @@ HepMatrix VtxKalFitTool::SlopeToDir(HepVector Q, int sign_uz)
 
 Event::TkrTrackParams 
 VtxKalFitTool::propagCovToVtx(const Event::TkrTrackParams Cov, 
-                              const HepVector /*Vtx*/)
+                              const CLHEP::HepVector /*Vtx*/)
 {
   // Purpose and Method: Propagate Cov matrix to vicinity of current 
   //                     vertex estimate
@@ -565,9 +565,9 @@ VtxKalFitTool::propagCovToVtx(const Event::TkrTrackParams Cov,
 }
 
 
-HepSymMatrix 
+CLHEP::HepSymMatrix 
 VtxKalFitTool::computeWeightMatrix(const Event::TkrTrack& theTrack,
-                                   const HepVector /*Vtx*/)
+                                   const CLHEP::HepVector /*Vtx*/)
 {
   // Purpose and Method: Computation of the weight matrix in 3 steps:
   //                     1) Propagate Cov. matrix to the Poca w.r.t Vtx;
@@ -589,7 +589,7 @@ VtxKalFitTool::computeWeightMatrix(const Event::TkrTrack& theTrack,
 ///    log << MSG::ERROR <<"ERROR INVERTING measCov!"<<endreq;
  
   //We clearly assumes here that Energy is independant:
-  HepSymMatrix G(5,0);
+  CLHEP::HepSymMatrix G(5,0);
 ///  G.sub(1,getHepSymCov(measCov));
    
   //Now add the energy error:

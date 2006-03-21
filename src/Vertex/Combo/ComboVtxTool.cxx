@@ -273,7 +273,7 @@ Event::TkrTrackParams ComboVtxTool::getParamAve(Event::TkrTrackParams& params1,
     KFmatrix cov2_res = cov2-cov_ave;
     cov2_res.invert(matInvErr);
 
-    HepVector chisq = (vec1-vec_ave).T()*(cov1_res*(vec1-vec_ave)) + 
+    CLHEP::HepVector chisq = (vec1-vec_ave).T()*(cov1_res*(vec1-vec_ave)) + 
                       (vec2-vec_ave).T()*(cov2_res*(vec2-vec_ave));
     m_chisq = chisq(1);
 

@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrFilterTool.cxx,v 1.3 2005/11/25 16:48:37 chamont Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrFilterTool.cxx,v 1.4 2005/12/20 17:23:11 lsrea Exp $
  */
 
 // to turn one debug variables
@@ -27,6 +27,7 @@
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "Event/Recon/TkrRecon/TkrEventParams.h"
 #include "Event/Recon/CalRecon/CalEventEnergy.h"
+#include "Event/Recon/CalRecon/CalCluster.h"
 #include "Event/TopLevel/EventModel.h"
 
 // Utilities, geometry, etc.
@@ -34,10 +35,70 @@
 #include "src/Utilities/TkrException.h"
 #include "TkrUtil/ITkrQueryClustersTool.h"
 
+// Moments Analysis Code
+#include "src/Filter/TkrMomentsAnalysis.h"
+
+// 2D line fits
+#include "src/TrackFit/LineFit2D/LineFit2D.h"
+
 // Points
 #include "src/PatRec/VectorLinks/VecPoint.h"
 
-typedef std::vector<VecPoint>  VecPointVec;
+//typedef std::vector<VecPoint>  VecPointVec;
+
+class VecPointVec : public std::vector<VecPoint>
+{
+public:
+    VecPointVec(): m_averagePos(0.,0.,0.), m_averagePos2(0.,0.,0.) {clear();}
+    ~VecPointVec() {}
+
+    void push_back(const VecPoint& vecPoint);
+
+    Point getAvePosition() const;
+    Point getAvePosErr()   const;
+
+private:
+    Point m_averagePos;
+    Point m_averagePos2;
+};
+
+void VecPointVec::push_back(const VecPoint& vecPoint)
+{
+    Point vecPos  = vecPoint.getPosition();
+    Point vecPos2 = Point(vecPos.x()*vecPos.x(),vecPos.y()*vecPos.y(),vecPos.z()*vecPos.z());
+    m_averagePos  += vecPos;
+    m_averagePos2 += vecPos2;
+    std::vector<VecPoint>::push_back(vecPoint);
+}
+
+Point VecPointVec::getAvePosition() const
+{
+    Point avePos = m_averagePos;
+
+    if (size() > 1) avePos /= size();
+
+    return avePos;
+}
+
+Point VecPointVec::getAvePosErr() const
+{
+    double minVal  = 0.240;
+    Point  avePos  = getAvePosition();
+    Point  avePos2(avePos.x()*avePos.x(),avePos.y()*avePos.y(),avePos.z()*avePos.z());
+    Point  sumPos2 = m_averagePos2;
+
+    if (size() > 1) sumPos2 /= size();
+
+    Vector posErr2 = sumPos2 - avePos2;
+
+    if (size() > 1) posErr2 /= (size() - 1);
+
+    if (posErr2.x() < minVal) posErr2.setX(minVal);
+    if (posErr2.y() < minVal) posErr2.setY(minVal);
+    if (posErr2.z() < minVal) posErr2.setZ(minVal);
+
+    return Point(sqrt(posErr2.x()),sqrt(posErr2.y()),sqrt(posErr2.z()));
+}
 
 
 class TkrFilterTool : public AlgTool, virtual public ITkrFilterTool
@@ -58,22 +119,22 @@ private:
     /// Build the list of points
     int    buildVecPoints();
 
-    /// Moments Calculation
-    double fillMomentsData();
-
     /// Pointer to the local Tracker geometry service and IPropagator
-    ITkrGeometrySvc*     m_tkrGeom;
+    ITkrGeometrySvc*         m_tkrGeom;
 
     /// Pointer to the Gaudi data provider service
-    IDataProviderSvc*    m_dataSvc;
+    IDataProviderSvc*        m_dataSvc;
 
     /// Query Clusters tool
-    ITkrQueryClustersTool* m_clusTool;
+    ITkrQueryClustersTool*   m_clusTool;
 
     /// This will keep track of all the VecPoints we will be using
     /// This is a vector of vectors, so the VecPoints are arranged 
     /// from the beginning of the possible track to the end
-    std::vector<VecPointVec>      m_VecPoints;
+    std::vector<VecPointVec> m_VecPoints;
+
+    /// Average position from building VecPoints
+    Point  m_vecPointAve;
 
     /// Moments results
     Vector m_moment;
@@ -102,7 +163,7 @@ AlgTool(type, name, parent)
     declareInterface<ITkrFilterTool>(this);
 
     // Define cut on rmsTrans
-    declareProperty("rmsTransCut", m_rmsTransCut=2.);
+    declareProperty("rmsTransCut", m_rmsTransCut=1.);
 
     return;
 }
@@ -166,6 +227,9 @@ StatusCode TkrFilterTool::doFilterStep()
     m_rmsLong     = 10000000000.;
     m_rmsTrans    = 10000000000.;
 
+    // Max distance from axis to accept
+    double maxDistToAccept = 1000.;
+
     // Recover pointer to TkrEventParams
     Event::TkrEventParams* tkrEventParams = 
                  SmartDataPtr<Event::TkrEventParams>(m_dataSvc, EventModel::TkrRecon::TkrEventParams);
@@ -185,6 +249,8 @@ StatusCode TkrFilterTool::doFilterStep()
     Event::CalEventEnergy * calEventEnergy = 0 ;
     if ((calEventEnergyCol!=0)&&(!calEventEnergyCol->empty()))
         calEventEnergy = calEventEnergyCol->front() ;
+    Event::CalClusterCol* calClusterCol = 
+                 SmartDataPtr<Event::CalClusterCol>(m_dataSvc, EventModel::CalRecon::CalClusterCol);
 
     // If calEventEnergy then fill TkrEventParams
     // Note: TkrEventParams initializes to zero in the event of no CalEventEnergy
@@ -206,39 +272,156 @@ StatusCode TkrFilterTool::doFilterStep()
 //        if (calEventEnergy->getStatusBits() & Event::CalEventEnergy::PASS_TWO) 
 //            tkrEventParams->setStatusBit(Event::TkrEventParams::SECONDPASS);
 
-        m_dirCos = calParams.getAxis();
+        m_avePosition = calParams.getCentroid();
+        m_dirCos      = calParams.getAxis();
     }
 
     // Build up the set of VecPoints for the next step
+    // If we have enough hits proceed with moments analysis
     int numBiLayerHits = buildVecPoints();
-
     if (numBiLayerHits > 2)
     {
-        double deltaChi  = 1.;
-        double chiOld    = 10000000000.;
-        int    triesLeft = 5;
-
-        Vector curAxis   = m_dirCos;
+        // Modify position to reflect average from vec points
+        // Remember that m_avePosition currently is in the calorimeter...
+        m_avePosition += (m_vecPointAve.z() - m_avePosition.z()) * m_dirCos;
 
         m_rmsTrans = 100000000.;
 
-        while(deltaChi > 0.01 && triesLeft--)
+        // Try new utility class
+        // Begin by building a Moments Data vector
+        TkrMomentsDataVec dataVec;
+        dataVec.clear();
+
+        // Now go through and build the data list for the moments analysis
+        // First loop over "bilayers"
+        for(std::vector<VecPointVec>::iterator vecVecIter  = m_VecPoints.begin(); 
+                                               vecVecIter != m_VecPoints.end();
+                                               vecVecIter++)
         {
-            double chiSq = fillMomentsData();
+            // then by the stored hits in the bilayer
+            for(VecPointVec::iterator vecIter = vecVecIter->begin(); vecIter != vecVecIter->end(); vecIter++)
+            {
+		        const VecPoint& vecPoint = *vecIter;
 
-            if (chiSq == 0.) break;
+                TkrMomentsData momentsData(vecPoint.getPosition(), 1., 0.);
 
-            //double cosTheta = curAxis.dot(m_dirCos);
-            //if ((1. - cosTheta) < 0.001) break;
-            
-            deltaChi = (chiOld - chiSq) / chiOld;
+                double weight = momentsData.calcDistToAxis(m_vecPointAve, m_dirCos);
 
-            chiOld  = chiSq;
+                if (weight > 0.) weight = 1. / weight;
+                else             weight = 1. / (.001);
+
+                momentsData.setWeight(weight);
+
+                dataVec.push_back(momentsData);
+            }
         }
+
+        TkrMomentsAnalysis momentsAnalysis;
+
+        bool   iterate       = true;
+        double scaleFactor   = m_rmsTransCut;
+        double chiSq         = 0.;
+        int    numIterations = 0;
+        int    numDropped    = 0;
+        int    numTotal      = dataVec.size();
+
+        while(iterate)
+        {
+            numIterations++;
+
+            // Do the moments analysis
+            double chiSqIter = momentsAnalysis.doMomentsAnalysis(dataVec, m_avePosition);
+
+            // If unable to calculate moments will signal with a negative chi-square
+            if (chiSqIter < 0.) break;
+
+            chiSq = chiSqIter;
+
+            // Set new position and direction
+            m_avePosition = momentsAnalysis.getMomentsCentroid();
+            m_dirCos      = momentsAnalysis.getMomentsAxis();
+
+            // Get back transverse moment and total weight for scaling
+            double rmsTrans  = momentsAnalysis.getTransverseRms();
+            double weightSum = momentsAnalysis.getWeightSum();
+
+            rmsTrans = sqrt(rmsTrans / weightSum);
+
+            // Handle here the special case of a bad axis
+            // If cos(theta) < 0.5 then probably have an outlier flipping the 
+            // moments axis. Try to fix that here
+            if (fabs(m_dirCos.z()) < 0.25 && scaleFactor == m_rmsTransCut)
+            {
+                m_dirCos = Vector(0.,0.,1.);
+                //rmsTrans = m_tkrGeom->towerPitch();
+                rmsTrans = 0.;
         
+                for(TkrMomentsDataVec::iterator dataIter = dataVec.begin(); dataIter != dataVec.end(); dataIter++)
+                {
+                    TkrMomentsData& dataPoint = *dataIter;
+
+                    double distToAxis = dataPoint.calcDistToAxis(m_avePosition,m_dirCos);
+
+                    if (distToAxis > rmsTrans) rmsTrans = (distToAxis - 1.) / scaleFactor;
+                }
+            }
+
+            std::sort(dataVec.begin(),dataVec.end());
+
+            iterate = false;
+
+            // Go through data and throw out any outliers
+            while(!dataVec.empty())
+            {
+                TkrMomentsData& momentsData = dataVec.back();
+
+                if (momentsData.getDistToAxis() > scaleFactor * rmsTrans)
+                {
+                    dataVec.pop_back();
+                    iterate = true;
+                    numDropped++;
+                }
+                else break;
+            }
+
+            if (iterate)
+            {
+                // Set the weights for this iteration
+                for(TkrMomentsDataVec::iterator dataIter = dataVec.begin(); dataIter != dataVec.end(); dataIter++)
+                {
+                    TkrMomentsData& momentsData = *dataIter;
+                    double weight = momentsData.getDistToAxis();
+
+                    if (weight > 0.) weight = 1. / weight;
+                    else             weight = 1. / (.001);
+
+                    momentsData.setWeight(weight);
+                }
+
+                // Up the scale factor for subsequent passes
+                scaleFactor *= 2.;
+            }
+        }
+
+        // Set the position and direction 
         tkrEventParams->setEventPosition(m_avePosition);
         tkrEventParams->setEventAxis(m_dirCos);
         tkrEventParams->setStatusBit(Event::TkrEventParams::TKRPARAMS);
+        tkrEventParams->setNumBiLayers(numBiLayerHits);
+        tkrEventParams->setNumIterations(numIterations);
+        tkrEventParams->setNumHitsTotal(numTotal);
+        tkrEventParams->setNumDropped(numDropped);
+
+        double rmsTrans  = momentsAnalysis.getTransverseRms();
+        double rmsLong   = momentsAnalysis.getLongAsymmetry();
+        double weightSum = momentsAnalysis.getWeightSum();
+
+        // Scale the transverse moment
+        rmsTrans = sqrt(rmsTrans / weightSum);
+
+        tkrEventParams->setChiSquare(chiSq);
+        tkrEventParams->setTransRms(rmsTrans);
+        tkrEventParams->setLongRmsAve(rmsLong);
     }
 
     // Done
@@ -254,11 +437,25 @@ int TkrFilterTool::buildVecPoints()
     // Keep track of stuff
     int   numVecPoints   = 0;
     int   numBiLayerHits = 0;
-    Point avePosition(0.,0.,0.);
+    
+    m_vecPointAve = Point(0.,0.,0.);
 
     // Make sure we clear the previous VecPoints vector
     m_VecPoints.clear();
+/*
+    // Testing for 2D fits to averages...
+    std::vector<double> xCoords;
+    std::vector<double> xErrors;
+    std::vector<double> yCoords;
+    std::vector<double> yErrors;
+    std::vector<double> zCoords;
 
+    xCoords.clear();
+    xErrors.clear();
+    yCoords.clear();
+    yErrors.clear();
+    zCoords.clear();
+*/
     // We will loop over bilayers
     int biLayer = m_tkrGeom->numLayers();
     while(biLayer--)
@@ -291,7 +488,7 @@ int TkrFilterTool::buildVecPoints()
 
                 m_VecPoints.back().push_back(VecPoint(biLayer, clX, clY));  
 
-                avePosition += m_VecPoints.back().back().getPosition();
+                m_vecPointAve += m_VecPoints.back().back().getPosition();
             }
         }
 
@@ -304,179 +501,43 @@ int TkrFilterTool::buildVecPoints()
     }
 
     // Average position
-    if (numVecPoints > 0) avePosition /= numVecPoints;
-
-    m_avePosition = avePosition;
-
-    return numBiLayerHits;
-}
-
-
-double TkrFilterTool::fillMomentsData()
-{
-    // Moments Analysis Here
-    // This version lifted directly from code supplied to Bill Atwood by Toby Burnett
-    // TU 5/24/2005
-    double chisq = 0.;
-	
-    Point  newAvePosition(0., 0., 0.);
-    Vector moment(0., 0., 0.); 
-
-    double dircos[3][3];
-	dircos[0][1] = 0.; 
-    dircos[1][1] = 0.; 
-    dircos[2][1] = 0.; 
-        
-    int    numPoints  = 0;
-    double Ixx        = 0.,  Iyy  = 0.,  Izz  = 0.,
-           Ixy        = 0.,  Ixz  = 0.,  Iyz  = 0.;
-
-    double Rsq_mean   = 0.;
-
-    Vector axis       = m_dirCos;
-    double cosTheta   = axis.z();
-
-    // Loop through the points, first by "bilayer"
-    for(std::vector<VecPointVec>::iterator vecVecIter = m_VecPoints.begin(); 
-                                           vecVecIter != m_VecPoints.end();
-                                           vecVecIter++)
+    if (numVecPoints > 0) m_vecPointAve /= numVecPoints;
+    else                  m_vecPointAve  = Point(0.,0.,m_tkrGeom->getReconLayerZ(8,0));
+/*
+    if (numVecPoints > 2)
     {
-        // then by the stored hits in the bilayer
-        for(VecPointVec::iterator vecIter = vecVecIter->begin(); vecIter != vecVecIter->end(); vecIter++)
-        {
-            // Construct elements of (symmetric) "Inertia" Tensor:
-            // See Goldstein, 1965, Chapter 5 (especially, eqs. 5-6,7,22,26).
-            // Analysis easy when translated to energy centroid.
-            // get pointer to the reconstructed data for given crystal
-		    const VecPoint& vecPoint = *vecIter;
-            double          weight   = 1.;
-            Vector          hit      = vecPoint.getPosition() - m_avePosition;
-            //double          arcLen   = (hit.z()) / cosTheta;
-            //Vector          hitResid = vecPoint.getPosition() - (m_avePosition + arcLen * axis);
-            //double          Rtran    = hitResid.perp();
-            //bool            useit    = Rtran < m_rmsTransCut * m_rmsTrans;
-                
-            Vector          diffVec  = m_avePosition - vecPoint.getPosition();
-            Vector          crossPrd = axis.cross(diffVec);
-            double          dist     = crossPrd.mag();
-            bool            useit    = dist < m_rmsTransCut * m_rmsTrans;
-
-            // get reconstructed values
-            if(useit) 
-            {
-                double Rsq  = hit.mag2();
-                double xprm = hit.x();
-                double yprm = hit.y();
-                double zprm = hit.z();
-
-                weight = 1. / (dist * dist);
-
-                numPoints++;
-
-                Rsq_mean += Rsq;
-
-                Ixx += (Rsq - xprm*xprm) * weight;
-                Iyy += (Rsq - yprm*yprm) * weight;
-                Izz += (Rsq - zprm*zprm) * weight;
-                Ixy -= xprm*yprm * weight;
-                Ixz -= xprm*zprm * weight;
-                Iyz -= yprm*zprm * weight;
-
-                newAvePosition += vecPoint.getPosition();
-            }
-        }
-    }
-
-    // Check that enough points were accepted
-    if (numPoints > 2) 
-    {
-        Rsq_mean       /= numPoints;
-        newAvePosition /= numPoints;
-
-        // Render determinant of Inertia Tensor into cubic form.
-        double p = - (Ixx + Iyy + Izz);
-        double q =   Iyy*Izz + Iyy*Ixx + Izz*Ixx - (Ixy*Ixy + Iyz*Iyz + Ixz*Ixz);
-        double r = - Ixx*Iyy*Izz + Ixx*Iyz*Iyz + Iyy*Ixz*Ixz +
-                     Izz*Ixy*Ixy - 2.*Ixy*Iyz*Ixz;
-
-        // See CRC's Standard Mathematical Tables (19th edition), pp 103-105.
-        // The substitution, y = x - p/3 converts  y^3 + p*y^2 + q*y + r = 0
-        // to the form  x^3 + a*x + b = 0 .  Then, if b^2/4 + a^3/27 < 0 ,
-        // there will be three real roots -- guaranteed since the Inertia Tensor
-        // is symmetric.  A second substitution, x = m*cos(psi) , yields the roots.
-        double a = (3.*q - p*p)/3.;
-        double b = (2.*p*p*p - 9.*p*q + 27.*r)/27.;
-
-        double rad_test = b*b/4. + a*a*a/27.;
-
-        if ((rad_test < 0.) && (Ixy != 0.) && (Ixz != 0.) && (Iyz != 0.))
-        {
-            // Construct the roots, which are the principal moments.
-            double m   = 2. * sqrt(-a/3.);
-            double psi = acos( 3.*b/(a*m) ) / 3.;
-
-            moment[0] = m * cos(psi) - p/3.;
-            moment[1] = m * cos(psi + 2.*M_PI/3.) - p/3.;
-            moment[2] = m * cos(psi + 4.*M_PI/3.) - p/3.;
-        }
-
-        // Construct direction cosines; dircos for middle root is parallel to
-        // longest principal axis.
-        for(int iroot=0; iroot < 3; iroot++) 
-        {
-            double A = Iyz * (Ixx - moment[iroot]) - Ixy*Ixz;
-            double B = Ixz * (Iyy - moment[iroot]) - Ixy*Iyz;
-            double C = Ixy * (Izz - moment[iroot]) - Ixz*Iyz;
-
-            double D = sqrt( 1. / ( 1./(A*A) + 1./(B*B) + 1./(C*C) ) ) / C;
-
-            dircos[0][iroot] = D * C / A;
-            dircos[1][iroot] = D * C / B;
-            dircos[2][iroot] = D;
-        }
-
-        // Chisquared = sum of residuals about principal axis, through centroid
-        int nHits = 0;
-
-        axis = Vector(dircos[0][1], dircos[1][1], dircos[2][1]);
-        if(axis.z() < 0.) axis = -axis;
-
-        cosTheta = axis.z();
-
-        for(std::vector<VecPointVec>::iterator vecVecIter = m_VecPoints.begin(); 
+        // Test Test Test Test
+        for(std::vector<VecPointVec>::iterator vecVecIter  = m_VecPoints.begin(); 
                                                vecVecIter != m_VecPoints.end();
                                                vecVecIter++)
         {
-            for(VecPointVec::iterator vecIter = vecVecIter->begin(); vecIter != vecVecIter->end(); vecIter++)
-            {
-		        const VecPoint& vecPoint = *vecIter;
-                //Point           xPos     = vecPoint.getPosition();
-                //double          arcLen   = (xPos.z() - newAvePosition.z()) / cosTheta;
-                //Vector          hitResid = xPos - (newAvePosition + arcLen * axis);
-                //double          Rtran    = hitResid.perp();
+            VecPointVec& vecPoints = *vecVecIter;
 
-                Vector          diffVec  = newAvePosition - vecPoint.getPosition();
-                Vector          crossPrd = axis.cross(diffVec);
-                double          dist     = crossPrd.mag();
-                bool            useit    = dist < m_rmsTransCut * m_rmsTrans;
+            if (vecPoints.empty()) continue;
 
-                if (useit)
-                {
-                    chisq += dist * dist;
-                    nHits++;
-                }
-            }
+            Point avePos = vecPoints.getAvePosition();
+            Point aveErr = vecPoints.getAvePosErr();
+
+            xCoords.push_back(avePos.x());
+            xErrors.push_back(aveErr.x());
+            yCoords.push_back(avePos.y());
+            yErrors.push_back(aveErr.y());
+            zCoords.push_back(avePos.z());
         }
-			
-        chisq /= nHits - 2;
 
-        m_rmsLong     = (moment[0] + moment[2]) / 2.;
-        m_rmsTrans    = sqrt(chisq);
-        m_dirCos      = axis;
-        m_moment      = moment;
-        m_avePosition = newAvePosition;
+        LineFit2D xFit(xCoords, xErrors, zCoords);
+        LineFit2D yFit(yCoords, yErrors, zCoords);
+
+        double slopeX = xFit.getFitSlope();
+        double slopeY = yFit.getFitSlope();
+
+        Vector hitDir(slopeX, slopeY, 1.);
+
+        hitDir.setMag(1.);
+
+        double cosX = hitDir.x();
     }
-
-    return chisq;
+*/
+    return numBiLayerHits;
 }
 

@@ -8,7 +8,7 @@
 *
 * @authors b. allgood, w. atwood and l. rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/VecPoint.h,v 1.6 2004/11/02 22:55:44 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/VecPoint.h,v 1.1 2005/05/26 20:33:07 usher Exp $
 */
 
 #ifndef __VecPoint_H
@@ -51,6 +51,12 @@ public:
             0.5*(m_pXCluster->position().z() + m_pYCluster->position().z())); }
     /// Tower of this point... (x and y clusters are guaranteed to be in the same tower)
     int getTower() const { return m_pXCluster->tower(); }
+    /// x/y distance to a reference point
+    double getDistanceSquaredTo(Point refPoint) const {
+        Vector diff = refPoint - getPosition();
+        return diff.x()*diff.x() + diff.y()*diff.y();    
+    }
+
     //@}
 
     /// @name other methods
