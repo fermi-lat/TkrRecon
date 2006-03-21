@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Mar 20 17:12:35 PST 2006
+TkrRecon/src/Filter
+
+Modified Files:
+	TkrCalFilterTool.cxx TkrFilterTool.cxx 
+Added Files:
+	TkrMomentsAnalysis.cxx TkrMomentsAnalysis.h 
+Log Message:
+    *
+------------------------------------------------------------
 User: usher  Mon Mar 20 17:12:34 PST 2006
 TkrRecon/TkrRecon/Services
 
