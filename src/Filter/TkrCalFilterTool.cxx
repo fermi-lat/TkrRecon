@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrCalFilterTool.cxx,v 1.2 2005/06/22 21:39:36 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrCalFilterTool.cxx,v 1.3 2005/11/25 16:48:37 chamont Exp $
  */
 
 // to turn one debug variables

@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.37 2005/12/20 17:23:12 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.38 2006/03/13 16:17:24 lsrea Exp $
 */
 
 
@@ -393,6 +393,12 @@ StatusCode TkrReconAlg::execute()
     }
 
     m_lastTime = m_header->time();
+
+    log << MSG::DEBUG;
+    if (name() != "Iteration") log << "------- Finish of Tkr Recon of new Event --------";
+    else                       log << "-------   Finish of Tkr Recon iteration  --------";
+    log << endreq;
+
     return sc;
 }
 

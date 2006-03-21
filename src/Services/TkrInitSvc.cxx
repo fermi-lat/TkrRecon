@@ -72,7 +72,7 @@ StatusCode TkrInitSvc::finalize()
 
 // queryInterface
 
-StatusCode  TkrInitSvc::queryInterface (const IID& riid, void **ppvIF)
+StatusCode  TkrInitSvc::queryInterface (const InterfaceID& riid, void **ppvIF)
 {
     if (IID_ITkrInitSvc == riid) {
         *ppvIF = dynamic_cast<TkrInitSvc*> (this);
@@ -85,6 +85,6 @@ StatusCode  TkrInitSvc::queryInterface (const IID& riid, void **ppvIF)
 
 // access the type of this service
 
-const IID&  TkrInitSvc::type () const {
+const InterfaceID&  TkrInitSvc::type () const {
     return IID_ITkrInitSvc;
 }

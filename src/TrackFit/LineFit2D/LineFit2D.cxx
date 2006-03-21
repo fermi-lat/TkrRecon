@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/LineFit2D/LineFit2D.cxx,v 1.1 2004/04/19 23:05:22 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/LineFit2D/LineFit2D.cxx,v 1.2 2004/06/17 18:27:37 lsrea Exp $
  */
 
 #include "LineFit2D.h"
@@ -22,11 +22,11 @@ LineFit2D::LineFit2D(std::vector<double> measCoords, std::vector<double> measErr
 
     for (int idx = 0; idx < numPoints; idx++)
     {
-#ifdef DEBUG
+//#ifdef DEBUG
         double z = zCoords[idx];
         double e = measErrs[idx];
         double m = measCoords[idx];
-#endif
+//#endif
 
         A(idx+1,1)        = zCoords[idx];
         A(idx+1,2)        = 1.;

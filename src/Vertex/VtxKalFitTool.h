@@ -19,7 +19,7 @@
  * 
  *
  * @author Johann Cohen-Tanugi
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.h,v 1.11 2004/09/23 21:30:32 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.h,v 1.12 2004/12/16 05:04:24 usher Exp $
  */
 class VtxKalFitTool : public VtxBaseTool
 {
@@ -46,8 +46,8 @@ class VtxKalFitTool : public VtxBaseTool
   ///current vertex estimate
   ///(arbitrary yet reasonnable choice, advocated by Luchsinger et al.). 
   ///In our case only the energy might be changed by this.
-  HepVector computeQatVtx(const Event::TkrTrack& /*theTrack*/,
-                          const HepVector /*theVertex*/);
+  CLHEP::HepVector computeQatVtx(const Event::TkrTrack& /*theTrack*/,
+                                 const CLHEP::HepVector /*theVertex*/);
 
   ///@brief Get the weight matrix G = Cov(m)^-1 with m the track parameters 
   ///Cov(m) is first propagated back to the vertex estimate, before being 
@@ -55,20 +55,20 @@ class VtxKalFitTool : public VtxBaseTool
   ///@param theTrack: current fitted track;
   ///@param Vtx:      current vertex estimates;
   ///@return The weight matrix is returned as an HepSymMatrix object.
-  HepSymMatrix computeWeightMatrix(const Event::TkrTrack& theTrack,
-                                   const HepVector Vtx);
+  CLHEP::HepSymMatrix computeWeightMatrix(const Event::TkrTrack& theTrack,
+                                          const CLHEP::HepVector Vtx);
 
   ///@brief propagate Cov from first hit location to current Vtx estimate.
   ///@param CovMatrix TkrFitMatrix object to be propagated;
   ///@param Vtx Current estimate of the vertex; 
   Event::TkrTrackParams propagCovToVtx(const Event::TkrTrackParams, 
-                                       const HepVector);
+                                       const CLHEP::HepVector);
 
   ///@brief returns (X,Sx,Y,Sy,E) as an HepVector.
   ///(X,Sx,Y,Sy) are the track fitted parameters, E is its estimated energy. 
   ///These play for the Kalman vertexer the role of measurement vector, 
   ///the measurement error being their Cov. matrix.
-  HepVector getTkrParVec(const Event::TkrTrack& /*theTrack*/);
+  CLHEP::HepVector getTkrParVec(const Event::TkrTrack& /*theTrack*/);
 
  private:
 
@@ -79,25 +79,25 @@ class VtxKalFitTool : public VtxBaseTool
   double m_Zref;
 
   ///compute measurement matrix
-  HepVector computeVectorH(const HepVector, const HepVector);
+  CLHEP::HepVector computeVectorH(const CLHEP::HepVector, const CLHEP::HepVector);
 
   ///compute derivative of measurement matrix wrt vertex
-  HepMatrix computeMatrixA(const HepVector, const HepVector);
+  CLHEP::HepMatrix computeMatrixA(const CLHEP::HepVector, const CLHEP::HepVector);
 
   ///compute derivative of measurement matrix wrt momentum
-  HepMatrix computeMatrixB(const HepVector, const HepVector);
+  CLHEP::HepMatrix computeMatrixB(const CLHEP::HepVector, const CLHEP::HepVector);
 
   ///translate a  TkrFitMatrix object into an HepSymMatrix object
-  HepSymMatrix getHepSymCov(const Event::TkrTrackParams& );
+  CLHEP::HepSymMatrix getHepSymCov(const Event::TkrTrackParams& );
 
   ///Compute derivative matrix of (Sx,Sy,E)->(Eux,Euy,Euz) transformation
   ///@param Q HepVector (Sx,Sy,E)
   ///@param sign_uz Sign(uz) needed to remove Sx and Sy sign ambiguity
-  HepMatrix SlopeToDir(HepVector /*Q*/, int /*sign_uz*/);
+  CLHEP::HepMatrix SlopeToDir(CLHEP::HepVector /*Q*/, int /*sign_uz*/);
 
   ///Vector of successive estimates.
-  std::vector<HepVector>    m_VtxEstimates;
-  std::vector<HepSymMatrix> m_VtxCovEstimates;
+  std::vector<CLHEP::HepVector>    m_VtxEstimates;
+  std::vector<CLHEP::HepSymMatrix> m_VtxCovEstimates;
 
 };
 #endif
