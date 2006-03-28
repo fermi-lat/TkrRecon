@@ -16,7 +16,7 @@ ApplicationMgr.DLLs+= {"RootIo", "TkrRecon", "TkrUtil"};
 // setup basic event loop stuff
 //
 ApplicationMgr.ExtSvc = { 
-    "GlastEventSelector/EventSelector" , 
+//    "GlastEventSelector/EventSelector" , 
     "EventCnvSvc"
     };
 EventPersistencySvc.CnvServices = {"EventCnvSvc"};
