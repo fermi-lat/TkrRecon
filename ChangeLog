@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Mon Apr  3 10:12:16 PDT 2006
+TkrRecon/src/test
+
+Added Files:
+	ParticleTable.txt 
+Log Message:
+New format for Particle table for test program
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r10p1, operation: add
 Package: TkrRecon
