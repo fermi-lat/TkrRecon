@@ -22,7 +22,7 @@ ApplicationMgr.ExtSvc = {
 EventPersistencySvc.CnvServices = {"EventCnvSvc"};
 EventSelector.Input = "NONE";
 
-ParticlePropertySvc.ParticlePropertiesFile="../src/test/particle.cdf";
+ParticlePropertySvc.ParticlePropertiesFile="../src/test/ParticleTable.txt";
 
 // ----------------------------
 //  Geometry definition
