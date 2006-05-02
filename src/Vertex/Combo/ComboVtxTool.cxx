@@ -137,10 +137,11 @@ StatusCode ComboVtxTool::findVtxs()
             double s1   = doca.arcLenRay1();
             double s2   = doca.arcLenRay2(); 
             double docaZPos = .5*(tkr1Pos.z() + s1*tkr1Dir.z() + tkr2Pos.z() + s2*tkr2Dir.z());
+            // 2-track vertices from here out
+            unsigned int status = Event::TkrVertex::TWOTKRVTX;
 
             // Determine where to locate the vertex in Z
             //  Initialize by putting vertex at z location of head of first track
-            unsigned int status = 0; 
             if(s1 > 0 && s2 > 0) status |= Event::TkrVertex::CROSSTKR;
             if(fabs(tkr1Pos.z() - tkr2Pos.z()) > .5*m_tkrGeom->trayHeight())
                                  status |= Event::TkrVertex::STAGVTX;
@@ -152,7 +153,7 @@ StatusCode ComboVtxTool::findVtxs()
                 int layer = m_tkrGeom->getLayer(plane);
                 bool isTopPlane = m_tkrGeom->isTopPlaneInLayer(plane);
                 if (!isTopPlane) {zVtx = m_tkrGeom->getConvZ(layer);}
-                status |= Event::TkrVertex::TWOTKRVTX | Event::TkrVertex::FIRSTHIT;
+                status |= Event::TkrVertex::FIRSTHIT;
             }
             else if((docaZPos-tkr1Pos.z()) > 0. && 
                     (docaZPos-tkr1Pos.z()) < m_tkrGeom->trayHeight())
