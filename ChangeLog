@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: lsrea  Tue May  2 13:01:13 PDT 2006
+TkrRecon/cmt
+
+Modified Files:
+      Tag: GRv7r3p5
+	requirements 
+Log Message:
+Prepare for tag v10r8p1em0 on branch GRv7r3p5
+   Fix the vtx status bits in the pre-cal_mod code
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r10p2, operation: add
 Package: TkrRecon
