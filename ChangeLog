@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Tue Jun 13 22:25:44 PDT 2006
+TkrRecon/src/Services
+
+Modified Files:
+	TkrInitSvc.cxx 
+Log Message:
+Remove obsolete properties from TkrInitSvc/TkrControl
+Add property firstStage to TkrReconAlg to go with lastStage
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Jun 13 22:25:43 PDT 2006
 TkrRecon/src/GaudiAlg
 
