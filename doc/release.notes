@@ -3,6 +3,9 @@
 @verbatim
   Managers: Tracy Usher, Leon Rochester 
 
+  v10r10p3  13-Jun-2006 LSR  Remove obsolete Properties from TkrControl/TkrInitSvc (only 3 left!)
+                             Add firstStage Property to TkrReconAlg, to go with the lastStage
+                                Seems to work, but the jOptions need a bit of tuning
   v10r10p2   3-Apr-2006  TU  Import new ParticleTable.txt file so test program will run
   v10r10p1  28-Mar-2006 JTC  Johann needs to put a comment here
   v10r10    23-Mar-2006  TU  Tagging for new externals (CLHEP, Gaudi, etc.)

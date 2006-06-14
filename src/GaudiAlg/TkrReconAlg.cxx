@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.38 2006/03/13 16:17:24 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.39 2006/03/21 01:12:35 usher Exp $
 */
 
 
@@ -120,6 +120,7 @@ private:
     bool m_printExceptions;
     std::string m_stage;
     int m_lastStage;
+    int m_firstStage;
 
     // Simple event filter
     int m_maxClusters;
@@ -152,8 +153,10 @@ Algorithm(name, pSvcLocator)
     // force exceptions to be printed
     declareProperty("printExceptions", m_printExceptions= false);
     // control flag to suppress parts of the recon:
-    // 0 = skip all, 1 = do cluster, 2= and filtering, 3 = and patrec, 4 = and fit, 5 = and vertex
+    // 0 = skip all, 1 = do clustering, 2 = and filtering, 3 = and patrec, 4 = and fit, >=5 = and vertex
     declareProperty("lastStage", m_lastStage=100);
+    // <=1 = start with clustering, 2 = filtering, 3 = patrec, 4 = fit, 5 = vertex, >5 skip everything
+    declareProperty("firstStage", m_firstStage=0);
     // This will abort reconstruction if too many clusters found
     declareProperty("maxAllowedClusters", m_maxClusters=2000);
 }
@@ -308,7 +311,9 @@ StatusCode TkrReconAlg::execute()
     try {
         // Call clustering if in first pass mode
         m_stage = "TkrClusterAlg";
-        if (m_TkrClusterAlg && m_lastStage>=CLUSTERING) sc = m_TkrClusterAlg->execute();
+        if (m_TkrClusterAlg && m_lastStage>=CLUSTERING && m_firstStage<=CLUSTERING) {
+            sc = m_TkrClusterAlg->execute();
+        }
         if (sc.isFailure())
         {
             return handleError(stageFailed);
@@ -347,7 +352,9 @@ StatusCode TkrReconAlg::execute()
 
         // Call track filter stage
         m_stage = "TkrFilterAlg";
-        if(m_TkrFilterAlg && m_lastStage>=FILTERING) sc = m_TkrFilterAlg->execute();
+        if(m_TkrFilterAlg && m_lastStage>=FILTERING && m_firstStage<=FILTERING) {
+            sc = m_TkrFilterAlg->execute();
+        }
         if (m_testExceptions && m_eventCount%exceptionTestTypes==3) sc = StatusCode::FAILURE;
 
         if (sc.isFailure())
@@ -357,7 +364,7 @@ StatusCode TkrReconAlg::execute()
 
         // Call track finding if in first pass mode
         m_stage = "TkrFindAlg";
-        if (m_TkrFindAlg && m_lastStage>=PATREC) sc = m_TkrFindAlg->execute();
+        if (m_TkrFindAlg && m_lastStage>=PATREC && m_firstStage<=PATREC) sc = m_TkrFindAlg->execute();
         if (sc.isFailure())
         {
             return handleError(stageFailed);
@@ -365,7 +372,7 @@ StatusCode TkrReconAlg::execute()
 
         // Call track fit
         m_stage = "TkrTrackFitAlg";
-        if(m_lastStage>=FITTING) sc = m_TkrTrackFitAlg->execute();
+        if(m_lastStage>=FITTING && m_firstStage<=FITTING) sc = m_TkrTrackFitAlg->execute();
         if (m_testExceptions && m_eventCount%exceptionTestTypes==3) sc = StatusCode::FAILURE;
 
         if (sc.isFailure())
@@ -375,7 +382,7 @@ StatusCode TkrReconAlg::execute()
 
         // Call vertexing
         m_stage = "TkrVertexAlg";
-        if(m_lastStage>=VERTEXING) sc = m_TkrVertexAlg->execute();
+        if(m_lastStage>=VERTEXING && m_firstStage<=VERTEXING) sc = m_TkrVertexAlg->execute();
         if (name()=="Iteration" && m_testExceptions && m_eventCount%exceptionTestTypes==4) sc = StatusCode::FAILURE;
         if (sc.isFailure())
         {
