@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Tue Jun 13 22:25:43 PDT 2006
+TkrRecon/src
+
+Modified Files:
+	mainpage.h 
+Log Message:
+Remove obsolete properties from TkrInitSvc/TkrControl
+Add property firstStage to TkrReconAlg to go with lastStage
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Jun 13 22:25:42 PDT 2006
 TkrRecon/doc
 
