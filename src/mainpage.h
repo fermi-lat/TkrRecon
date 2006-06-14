@@ -144,19 +144,9 @@ The following are technical and should not ordinarily be set by the casual user:
 
   The defaults for the TkrInitSvc parameters are set in TkrControl.cxx.
 
-  @param TkrInitSvc.TkrMaxCandidates
-  @param TkrInitSvc.TkrMinTermHitCount
-  @param TkrInitSvc.TkrFEneParticle
-  @param TkrInitSvc.TkrSigmaCut
   @param TkrInitSvc.TkrMinEnergy
-  @param TkrInitSvc.TkrHitEnergyType
-  @param TkrInitSvc.TkrMaxConsecutiveGaps
-  @param TkrInitSvc.TkrMinSegmentHits
-  @param TkrInitSvc.TkrMaxChiSqCut
   @param TkrInitSvc.TkrIniErrorSlope
-  @param TkrInitSvc.TkrIniErrorPosition
   @param TkrInitSvc.TkrPlaneEnergies
-  @param TkrInitSvc.TkrTrackAcrossTowers
 
   @param VtxKalFitTool.maxChi2Contrib Default: 10.0
 
