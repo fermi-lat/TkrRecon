@@ -61,6 +61,7 @@ library TkrRecon  $(TkrRecon_headers)  \
   -s=PatRec/Combo $(source)\
   -s=PatRec/NeuralNet $(source)\
   -s=PatRec/VectorLinks $(source)\
+  -s=PatRec/VectorLinks/StdRelTable $(source)\
   -s=PatRec/MonteCarlo $(source)\
   -s=PatRec/KalFitTrack $(source)\	 
   -s=PatRec/Utilities $(source)\

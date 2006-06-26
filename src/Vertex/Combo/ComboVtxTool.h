@@ -31,6 +31,9 @@ class ComboVtxTool : public AlgTool, virtual public IVtxBaseTool
 
   StatusCode retrieveVtxCol(Event::TkrVertexCol& VtxList);
 
+  ///Provide a finalize routine to keep from geting errors at end of job
+  virtual StatusCode finalize();
+
  protected:
 
     /// @brief Keep pointers to the geometry service and the data 
