@@ -3,6 +3,7 @@
 @verbatim
   Managers: Tracy Usher, Leon Rochester 
 
+  v10r10p4  26-Jun-2006  TU  Fix "Finalize" problem in ComboVtxTool
   v10r10p3  13-Jun-2006 LSR  Remove obsolete Properties from TkrControl/TkrInitSvc (only 3 left!)
                              Add firstStage Property to TkrReconAlg, to go with the lastStage
                                 Seems to work, but the jOptions need a bit of tuning
