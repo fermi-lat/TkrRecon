@@ -1,22 +1,4 @@
 ------------------------------------------------------------
-User: usher  Mon Jun 26 10:59:33 PDT 2006
-TkrRecon/src/Vertex/Combo
-
-Modified Files:
-	ComboVtxTool.cxx ComboVtxTool.h 
-Log Message:
-Upate requirments file to include "StdRelTables", fix "finalize" problem in ComboVtxTool
-    *
-------------------------------------------------------------
-User: usher  Mon Jun 26 10:59:33 PDT 2006
-TkrRecon/cmt
-
-Modified Files:
-	requirements 
-Log Message:
-Upate requirments file to include "StdRelTables", fix "finalize" problem in ComboVtxTool
-    *
-------------------------------------------------------------
 TAG
 Tag name: v10r10p3, operation: add
 Package: TkrRecon
