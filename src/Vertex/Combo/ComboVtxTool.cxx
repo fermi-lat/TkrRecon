@@ -63,6 +63,11 @@ StatusCode ComboVtxTool::initialize()
     return sc;
 }
 
+StatusCode ComboVtxTool::finalize()
+{
+    return StatusCode::SUCCESS;
+}
+
 StatusCode ComboVtxTool::findVtxs()
 {
     //Always believe in success
