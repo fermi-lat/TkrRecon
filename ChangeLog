@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: lsrea  Sat Nov  4 08:31:49 PST 2006
+TkrRecon/doc/KalVtx
+
+Modified Files:
+	img1.png img10.png img11.png img12.png img13.png img14.png 
+Log Message:
+Add jO param to TkrInitSvc: TkrTestWideClusters: default is true, set false for heavy ions.
+Currently only needed for real data, will soon introduce wide clusters into simulation.
+
+    *
+------------------------------------------------------------
+User: lsrea  Sat Nov  4 08:31:49 PST 2006
 TkrRecon/doc
 
 Modified Files:
