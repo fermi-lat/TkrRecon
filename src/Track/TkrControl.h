@@ -10,7 +10,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrControl.h,v 1.11 2004/09/09 20:39:55 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrControl.h,v 1.12 2006/06/14 05:25:44 lsrea Exp $
  */
 
 
@@ -29,66 +29,31 @@ public:
     static TkrControl* getPtr();
 
     /// Retrieve values
-    //const int    getMaxCandidates()      {return m_maxCandidates;     }
-    //const int    getMinTermHitCount()    {return m_minTermHitCount;   }
-    //const double getFEneParticle()       {return m_fEneParticle;      }
-    //const double getSigmaCut()           {return m_sigmaCut;          }
     const double getMinEnergy()          {return m_minEnergy;         }
-    //const std::string getHitEnergyType() { return m_hitEnergyType;  }
-    //const int    getMaxConsecutiveGaps() {return m_maxConsecutiveGaps;}
-    //const int    getMinSegmentHits()     {return m_minSegmentHits;    }
-    //const double getMaxChisqCut()        {return m_maxChiSqCut;       }
     const double getIniErrSlope()        {return m_iniErrorSlope;     }
-    //const double getIniErrPosition()     {return m_iniErrorPosition;  }
     const bool   getPlaneEnergies()      {return m_planeEnergies;     }
-    //const int    getErrorType()          {return m_errorType;         }
-    //const bool   trackAcrossTowers()     {return m_trackAcrossTowers; }
+    const bool   getTestWideClusters()   {return m_testWideClusters;  }
 
 
     /// Allow for control variables to be set at initialization
-    //void setMaxCandidates(  int    maxCand)   {m_maxCandidates     = maxCand; }
-    //void setMinTermHitCount(int    minCount)  {m_minTermHitCount   = minCount;}
-    //void setFEneParticle(   double enePart)   {m_fEneParticle      = enePart; }
-    //void setSigmaCut(       double sigmaCut)  {m_sigmaCut          = sigmaCut;}
     void setMinEnergy(     double minEnergy) {m_minEnergy         = minEnergy;}
-    //void setHitEnergyType( std::string hitEnergyType) 
-    //                                          {m_hitEnergyType = hitEnergyType; }
-    //void setMaxConsGaps(    int    maxGaps)   {m_maxConsecutiveGaps = maxGaps;}
-    //void setMinSegmentHits( int    minHits)   {m_minSegmentHits    = minHits; }
-    //void setMaxChisqCut(    double maxChi)    {m_maxChiSqCut       = maxChi;  }
-    void setIniErrSlope(    double errSlp)    {m_iniErrorSlope     = errSlp;  }
-    //void setIniErrPos(      double errPos)    {m_iniErrorPosition  = errPos;  }
-    void setPlaneEnergies(  bool   enePlane)  {m_planeEnergies     = enePlane;}
-    //void setErrorType    (  int    eType)     {m_errorType         = eType;   }
-    //void setTrackAcrossTowers ( bool type)    {m_trackAcrossTowers = type;    }
+    void setIniErrSlope(    double errSlp)   {m_iniErrorSlope     = errSlp;  }
+    void setPlaneEnergies(  bool   enePlane) {m_planeEnergies     = enePlane;}
+    void setTestWideClusters( bool test)     {m_testWideClusters = test;}
 
 private:
     /// private Constructor
     TkrControl();
  
-
     /// Pointer to the singleton object
     static TkrControl* m_this;
 
     /// Data members
-    //int    m_maxCandidates;      // Max number of Candidates 
-    //int    m_minTermHitCount;    // Number of hits to terminate Combo PR
 
-    //double m_fEneParticle;       // Fraction of Cal energy to use in PR.
-
-    //double m_sigmaCut;           // PR search window (in  sigmas)
-    double m_minEnergy;              // Min tracking energy (MeV)
-    //std::string m_hitEnergyType;    // so far: electron, muon
-
-    //int    m_maxConsecutiveGaps; // Max consecutive Gaps - Stop
-    //int    m_minSegmentHits;     // Min number of hits for segment
-    //double m_maxChiSqCut;        // Max allow PR Chisq. 
+    double m_minEnergy;          // Min tracking energy (MeV)
     double m_iniErrorSlope;      // First Hit error in Kalman: 10 deg 
-    //double m_iniErrorPosition;   // First Hit error in Kalman: .1 mm
-
     bool   m_planeEnergies;      // Decrease particle energies by exp(-rad_len)
-    //int    m_errorType;          // determines type of error calculation
-    //bool   m_trackAcrossTowers;  // false means break track at tower boundaries
-};
+    bool   m_testWideClusters;   // no checks on wide clusters, for heavy ions
+}; 
 
 #endif

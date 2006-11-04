@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.45 2005/12/20 17:23:12 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.46 2006/03/21 01:12:36 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -31,6 +31,7 @@
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrFailureModeSvc.h"
 #include "src/Track/TrackFitUtils.h"
+#include "src/Track/TkrControl.h"
 
 #include "src/Utilities/TkrPoints.h"
 #include "Utilities/TkrException.h"
@@ -73,10 +74,9 @@ protected:
     Event::TkrClusterCol* m_tkrClus;
 
     IFindTrackHitsTool *m_findHitTool;
-
     ITkrFitTool *m_trackFitTool;
-
     TrackFitUtils* m_fitUtils;
+    TkrControl*    m_control;
 
     class Candidate {
     public:
@@ -298,6 +298,10 @@ StatusCode ComboFindTrackTool::initialize()
             return StatusCode::FAILURE;
         }
     }
+
+    // Set up control
+    m_control = TkrControl::getPtr();
+
 
     return sc;
 }
@@ -767,10 +771,12 @@ void ComboFindTrackTool::findCalCandidates()
             // Don't allow Oversized SSD clusters to start track
             // This looks like an opportunity for a study!
 
-            double x_size = p1->getXCluster()->size();
-            if(x_size > (3+3*fabs(t1.x())/costh1)) continue; 
-            double y_size = p1->getYCluster()->size(); 
-            if(y_size > (3+3*fabs(t1.y())/costh1)) continue; 
+            if(m_control->getTestWideClusters()) {
+                double x_size = p1->getXCluster()->size();
+                if(x_size > (3+3*fabs(t1.x())/costh1)) continue; 
+                double y_size = p1->getYCluster()->size(); 
+                if(y_size > (3+3*fabs(t1.y())/costh1)) continue; 
+            }
 
             // Loop over possible 2nd layers  - must allow at least 1 missing
             int lastLayer = ilayer-1-m_maxFirstGaps;
@@ -1059,31 +1065,35 @@ void ComboFindTrackTool::setTrackQuality(ComboFindTrackTool::Candidate *can_trac
 
     //Set Cluster size penalty
     double size_penalty = 0.; 
+    //std::cout << "wcflag " << m_control->getTestWideClusters() << std::endl; 
+    if(m_control->getTestWideClusters()) {
+        Event::TkrTrackHitVecItr pln_pointer = tkr_track->begin();   
+        int i_Hit = 0; 
+        while(pln_pointer != tkr_track->end()) 
+        {
+            Event::TkrTrackHit* plane = *pln_pointer++;
+            if (!(plane->getStatusBits() & Event::TkrTrackHit::HITONFIT)) continue;
+
+            Event::TkrClusterPtr cluster = plane->getClusterPtr();
+
+            double slope = plane->getMeasuredSlope(Event::TkrTrackHit::FILTERED);
+
+            double cls_size  = cluster->size();        
+            double prj_size  = m_tkrGeom->siThickness()*fabs(slope)/
+                m_tkrGeom->siStripPitch() + 2.;
+            double over_size = cls_size - prj_size;
+            if(over_size > 5.) over_size = 5.;// Limit effect of rogue large clusters
+            if(over_size > 0) {
+                if(i_Hit < 6)       size_penalty +=    over_size;
+                else if(i_Hit < 12) size_penalty += .5*over_size;
+                else break;
+            }
+            i_Hit++;
+        }
+    }
+
     Point x = tkr_track->getInitialPosition();
     Vector t = tkr_track->getInitialDirection();
-    Event::TkrTrackHitVecItr pln_pointer = tkr_track->begin();   
-    int i_Hit = 0; 
-    while(pln_pointer != tkr_track->end()) 
-    {
-        Event::TkrTrackHit* plane = *pln_pointer++;
-        if (!(plane->getStatusBits() & Event::TkrTrackHit::HITONFIT)) continue;
-
-        Event::TkrClusterPtr cluster = plane->getClusterPtr();
-
-        double slope = plane->getMeasuredSlope(Event::TkrTrackHit::FILTERED);
-
-        double cls_size  = cluster->size();        
-        double prj_size  = m_tkrGeom->siThickness()*fabs(slope)/
-            m_tkrGeom->siStripPitch() + 2.;
-        double over_size = cls_size - prj_size;
-        if(over_size > 5.) over_size = 5.;// Limit effect of rogue large clusters
-        if(over_size > 0) {
-            if(i_Hit < 6)       size_penalty +=    over_size;
-            else if(i_Hit < 12) size_penalty += .5*over_size;
-            else break;
-        }
-        i_Hit++;
-    }
 
     bool isTrack = 
         (m_searchDirection==DOWN ? m_downwardTrackFound : m_upwardTrackFound);
