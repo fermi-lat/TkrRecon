@@ -14,7 +14,6 @@
 #include "src/Track/TkrControl.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrFailureModeSvc.h"
-#include "src/Track/TkrControl.h"
 #include "idents/TowerId.h"
 
 #include <cmath>
@@ -165,7 +164,7 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
 
             // Get the active distance here
             partProp->setStepStart(hit->getPoint(Event::TkrTrackHit::SMOOTHED), 
-                                   hit->getDirection(Event::TkrTrackHit::SMOOTHED));
+                hit->getDirection(Event::TkrTrackHit::SMOOTHED));
             double actDist = partProp->isInsideActArea();
             hit->setActiveDist(actDist);
 
@@ -369,7 +368,7 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
 
         // we can't measure any kink less than minTheta
         double theta = std::max(minTheta, rawTheta);
-        
+
         radLen = thisLayer.m_radLen;
         totalRadLen += radLen;
 
@@ -392,13 +391,16 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
     //        - use last cluster size as indicator of range-out
     // If it's too wide, the particle has straggled
 
-    double aspectRatio = m_tkrGeom->siStripPitch()/m_tkrGeom->siThickness();
-    double prj_size_x = (fabs(sX)/aspectRatio) + 1.;
-    double prj_size_y = (fabs(sY)/aspectRatio) + 1.;
     double range_limit = 100000.;  // 100 GeV max...
-    if((xClustSize>0 && (xClustSize - prj_size_x) > 2) || 
-        (yClustSize>0 && (yClustSize - prj_size_y) > 2)) {
-        range_limit = totalRadLen * 50.; // 10 MeV = 15% rad. len 
+    if(m_control->getTestWideClusters()) {
+        double aspectRatio = m_tkrGeom->siStripPitch()/m_tkrGeom->siThickness();
+        double prj_size_x = (fabs(sX)/aspectRatio) + 1.;
+        double prj_size_y = (fabs(sY)/aspectRatio) + 1.;
+        bool wideCluster = (xClustSize>0 && (xClustSize - prj_size_x) > 2) || 
+            (yClustSize>0 && (yClustSize - prj_size_y) > 2);
+        if(wideCluster) {
+            range_limit = totalRadLen * 50.; // 10 MeV = 15% rad. len 
+        }
     }
 
     double kalEnergy  = track.getInitialEnergy();
@@ -483,17 +485,19 @@ void TrackFitUtils::setSharedHitsStatus(Event::TkrTrack& track, int maxShare)
         }
 
         // For the rest - unflag according to Cluster size and Trajectory
-        Event::TkrClusterPtr cluster = (*plane)->getClusterPtr();
+        if(m_control->getTestWideClusters()) {
+            Event::TkrClusterPtr cluster = (*plane)->getClusterPtr();
 
-        double slope = (*plane)->getMeasuredSlope(Event::TkrTrackHit::FILTERED);
+            double slope = (*plane)->getMeasuredSlope(Event::TkrTrackHit::FILTERED);
 
-        double cls_size = cluster->size();        
-        double prj_size = m_tkrGeom->siThickness()*fabs(slope)
-            /m_tkrGeom->siStripPitch() + 1.;
-        if(cls_size> prj_size) 
-        {
-            unFlagHit(track, i_Hit);
-            i_share++;
+            double cls_size = cluster->size();        
+            double prj_size = m_tkrGeom->siThickness()*fabs(slope)
+                /m_tkrGeom->siStripPitch() + 1.;
+            if(cls_size> prj_size) 
+            {
+                unFlagHit(track, i_Hit);
+                i_share++;
+            }
         }
         if(i_share >= maxShare) break; 
         i_Hit++;

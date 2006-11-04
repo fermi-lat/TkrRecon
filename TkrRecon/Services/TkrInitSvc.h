@@ -17,7 +17,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.15 2006/03/21 01:12:34 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/TkrRecon/Services/TkrInitSvc.h,v 1.16 2006/06/14 05:25:41 lsrea Exp $
  */
 
 
@@ -50,24 +50,10 @@ private:
     ITkrGeometrySvc* m_tkrGeom;
 
     /// Variables which can be changed in TkrControl
-    //int              m_maxCandidates;
-    //int              m_minTermHitCount;
-
-    //double           m_fEneParticle;
-
-    //double           m_sigmaCut;
-    double           m_minEnergy;
-    //std::string      m_hitEnergyType;
-
-    //int              m_maxConsecutiveGaps;
-    //int              m_minSegmentHits;
-    //double           m_maxChiSqCut;
-    double           m_iniErrorSlope;
-    //double           m_iniErrorPosition;
-
-    bool             m_planeEnergies;
-    //int              m_errorType;
-    //bool             m_trackAcrossTowers;
+    double  m_minEnergy;
+    double  m_iniErrorSlope;
+    bool    m_planeEnergies;
+    bool    m_testWideClusters;
 };
 
 #endif // __TKRINITSVC_H

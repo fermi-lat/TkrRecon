@@ -147,6 +147,9 @@ The following are technical and should not ordinarily be set by the casual user:
   @param TkrInitSvc.TkrMinEnergy
   @param TkrInitSvc.TkrIniErrorSlope
   @param TkrInitSvc.TkrPlaneEnergies
+  @param TkrInitSvc.TkrTestWideClusters
+  removes all tests on for too-wide clusters. This facilitates reconstruction of heavy-ion tracks,
+  which are expected to generate wide clusters due to charge-sharing.
 
   @param VtxKalFitTool.maxChi2Contrib Default: 10.0
 
