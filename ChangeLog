@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Sat Nov  4 08:31:48 PST 2006
+TkrRecon/TkrRecon/Services
+
+Modified Files:
+	TkrInitSvc.h 
+Log Message:
+Add jO param to TkrInitSvc: TkrTestWideClusters: default is true, set false for heavy ions.
+Currently only needed for real data, will soon introduce wide clusters into simulation.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r10p4, operation: add
 Package: TkrRecon
