@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.46 2006/03/21 01:12:36 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.47 2006/11/04 16:31:49 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -52,6 +52,7 @@ public:
     enum searchDirection {DOWN, UP};
     enum energyType {DEFAULT, CALONLY, USER, MC};
     enum trialReturn {FITSUCCEEDED, FITFAILED, DUPLICATE };
+    enum searchType {CALSEARCH, BLINDSEARCH};
 
     /// Standard Gaudi Tool interface constructor
     ComboFindTrackTool(const std::string& type, const std::string& name, 
@@ -161,6 +162,7 @@ private:
     int             m_maxFirstGaps;        // Max. number of allowed gaps in the first 3 XY points
     int             m_maxTotalGaps;        // Max. total number of XY gaps in the track
     energyType      m_energyType;          //Energy types: DEFAULT, CALONLY, USER, MC
+ 
     //  default = Tkr+Cal with constraint, others self explanatory
     //            and over ride resetting energy at later stages
     searchDirection m_searchDirection;     //Direction in which to search for tracks: 
@@ -192,6 +194,7 @@ private:
     int             m_quitCount;           // keeps track of the total trials
     int             m_trials;              // keeps track of successful trials
     bool            m_limitHits;           // internal flag
+    searchType      m_searchType;          // Cal or blind
 
     // to decode the particle charge
     IParticlePropertySvc* m_ppsvc;    
@@ -627,6 +630,8 @@ void ComboFindTrackTool::findBlindCandidates()
 
     MsgStream msgLog(msgSvc(), name());
 
+    m_searchType = BLINDSEARCH;
+
     //int maxLayers = m_tkrGeom->numLayers();
     // maximum number of hits on any downward track so far
     int localBestHitCount = 0; 
@@ -730,6 +735,8 @@ void ComboFindTrackTool::findCalCandidates()
     // Restrictions and Caveats:  None
 
     MsgStream msgLog(msgSvc(), name());
+
+    m_searchType = CALSEARCH;
 
     //int maxLayers = m_tkrGeom->numLayers();
     int localBestHitCount = 0; // maximum number of hits on any track so far
@@ -1174,7 +1181,8 @@ ComboFindTrackTool::trialReturn ComboFindTrackTool::tryCandidate(int firstLayer,
     if(!incorporate(trial)) return DUPLICATE;
     m_trials++;
 
-    trial->track()->setStatusBit(Event::TkrTrack::PRCALSRCH);
+    trial->track()->setStatusBit(m_searchType==CALSEARCH ? 
+        Event::TkrTrack::PRCALSRCH : Event::TkrTrack::PRBLNSRCH );
     Point x_start   = trial->track()->getInitialPosition();
     int start_plane = m_tkrGeom->getPlane(x_start.z());
     int new_start   = m_tkrGeom->getLayer(start_plane); 
