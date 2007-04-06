@@ -22,7 +22,7 @@
  * @author Marco Frailis 
  * @author Riccardo Giannitrapani
  *    
- * $Header: /nfs/slac/g/glast/ground/cvs/Event/Event/RelTable/RelKey.h,v 1.2 2002/09/13 04:51:23 frailis Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/StdRelTable/RelKey.h,v 1.1 2005/05/26 20:33:06 usher Exp $
  */
 namespace TkrRecon
 {
@@ -67,8 +67,8 @@ private:
     typedef typename RelKeyMultiMap<T1,T2,T3>::iterator RelKeyMultiMapIter;
 
     // Allow class Relation to "set" and "get" the iterator into the RelKey multimap
-    void setMapIter(RelKeyMultiMapIter &relIter) {m_iter = relIter;}
-    RelKeyMultiMapIter getMapIter() const        {return m_iter;}
+    void setMapIter(RelKeyMultiMapIter &relIter) {m_iterator = relIter;}
+    RelKeyMultiMapIter getMapIter() const        {return m_iterator;}
 
     // Allow class Relation to insert and remove this RelKey from the RelKey multimap
     void insertInMap(RelKeyMultiMap<T1,T2,T3>* map, RelationListIter listIter);
@@ -99,7 +99,7 @@ inline void RelKey<T1,T2,T3>::toStream(std::ostream& s) const
 {
   /// Fill the ASCII output stream
   s  << "\n        Data                    = " << m_data
-     << "\n        Iterator                = " << m_iter;
+     << "\n        Iterator                = " << m_iterator;
 }
 
 }

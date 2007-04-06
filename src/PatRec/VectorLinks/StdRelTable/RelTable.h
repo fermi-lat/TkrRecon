@@ -20,7 +20,7 @@
 * @author Marco Frailis
 * @author Riccardo Giannitrapani
 *   
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/StdRelTable/RelTable.h,v 1.1 2005/05/26 20:33:06 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/StdRelTable/RelTable.h,v 1.2 2005/12/20 17:23:15 lsrea Exp $
 */
 namespace TkrRecon 
 {
@@ -142,7 +142,7 @@ template <class T1,class T2>
 
     for(mapT1RelIter mapIter = iterPair.first; mapIter != iterPair.second; mapIter++)
     {
-        RelationList<T1,T2>::RelationListIter relIter = (*mapIter).second;
+        typename RelationList<T1,T2>::RelationListIter relIter = (*mapIter).second;
         Relation<T1,T2>* relation = *relIter;
         rels.push_back(relation);
     }
@@ -166,7 +166,7 @@ template <class T1,class T2>
 
     for(mapT2RelIter mapIter = iterPair.first; mapIter != iterPair.second; mapIter++)
     {
-        RelationList<T1,T2>::RelationListIter relIter = (*mapIter).second;
+        typename RelationList<T1,T2>::RelationListIter relIter = (*mapIter).second;
         Relation<T1,T2>* relation = *relIter;
         rels.push_back(relation);
     }
@@ -192,7 +192,7 @@ template <class T1,class T2> void RelTable<T1,T2>::clear()
     m_firstMMap->clear();
     m_secondMMap->clear();
 
-    for(RelationList<T1,T2>::RelationListIter relIter = m_relations->begin(); relIter != m_relations->end(); relIter++)
+    for(typename RelationList<T1,T2>::RelationListIter relIter = m_relations->begin(); relIter != m_relations->end(); relIter++)
     {
         delete *relIter;
     }
