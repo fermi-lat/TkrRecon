@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: jrb  Thu Apr  5 17:18:09 PDT 2007
+TkrRecon/src/PatRec/VectorLinks/StdRelTable
+
+Modified Files:
+	RelKey.h RelTable.h 
+Log Message:
+RelTable.h:  add 'typename' before various ugly declarations for gcc 3.4
+RelKey.h:    use m_iterator everywhere, not m_iter, since the latter isn't
+             declared (only shows up in inline functions that, it seems,
+             no one ever calls)
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r10p6, operation: add
 Package: TkrRecon
