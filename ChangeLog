@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: lsrea  Thu Apr 12 11:09:24 PDT 2007
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+about to tag v10r10p7
+Tracy's minor mods to make gcc34 happy
+
+    *
+------------------------------------------------------------
+User: lsrea  Thu Apr 12 11:09:24 PDT 2007
 TkrRecon/cmt
 
 Modified Files:
