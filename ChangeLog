@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Thu Apr 12 11:09:24 PDT 2007
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+about to tag v10r10p7
+Tracy's minor mods to make gcc34 happy
+
+    *
+------------------------------------------------------------
 User: jrb  Thu Apr  5 17:18:09 PDT 2007
 TkrRecon/src/PatRec/VectorLinks/StdRelTable
 
