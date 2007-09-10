@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Sun Sep  9 21:09:21 PDT 2007
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx 
+Log Message:
+Calculate neutral vertex in ComboVtxTool; about to tag
+
+    *
+------------------------------------------------------------
 User: lsrea  Sun Sep  9 21:09:20 PDT 2007
 TkrRecon/doc
 
