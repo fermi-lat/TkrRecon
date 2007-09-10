@@ -3,6 +3,7 @@
 @verbatim
   Managers: Tracy Usher, Leon Rochester 
 
+  v10r10p8  09-Sep-2007 LSR  Calculate neutral vector in ComboVtxTool
   v10r10p7  12-Apr-2007 LSR  Tag Tracy's changes for the gcc34 compiler
   v10r10p6  01-Dec-2006 LSR  Fix the bug that tagged all tracks as found with CalSearch
   v10r10p5  04-Nov-2006 LSR  Add a jO parameter to control whether tests for wide clusters are done
