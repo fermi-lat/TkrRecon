@@ -29,6 +29,9 @@ class ComboVtxTool : public AlgTool, virtual public IVtxBaseTool
   ///@brief Implement the pure virtual method of IVtxBaseTool
   StatusCode findVtxs();
 
+  ///@brief Method to compute the vtx solution including tne neutral energy direction
+  StatusCode neutralEnergyVtx();
+
   StatusCode retrieveVtxCol(Event::TkrVertexCol& VtxList);
 
   ///Provide a finalize routine to keep from geting errors at end of job
