@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Sun Sep  9 21:09:21 PDT 2007
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	ComboVtxTool.cxx ComboVtxTool.h 
+Log Message:
+Calculate neutral vertex in ComboVtxTool; about to tag
+
+    *
+------------------------------------------------------------
+User: lsrea  Sun Sep  9 21:09:21 PDT 2007
 TkrRecon/src/PatRec/Combo
 
 Modified Files:
