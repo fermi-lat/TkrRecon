@@ -6,7 +6,7 @@
 * @author Tracking Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.34 2005/09/03 02:07:00 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.35 2005/12/20 17:23:16 lsrea Exp $
 */
 
 // to turn one debug variables
@@ -648,7 +648,7 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
                 double xError = rError*m_rej_sigma;
 
                 double localX = (view == idents::TkrId::eMeasureX ? xTower : yTower);
-                const floatVector stripLocalX = item.getLocalX();
+                const Event::floatVector stripLocalX = item.getLocalX();
                 if(lowSet)    { lowPos  = stripLocalX[0];}
                 if(RCHighSet) { highPos = stripLocalX[1];}
                 bool truncBit = false;
