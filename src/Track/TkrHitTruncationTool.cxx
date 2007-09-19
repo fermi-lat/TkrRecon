@@ -6,7 +6,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrHitTruncationTool.cxx,v 1.1 2005/09/03 02:07:00 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrHitTruncationTool.cxx,v 1.2 2005/12/20 17:23:16 lsrea Exp $
 */
 
 #include "GaudiKernel/AlgTool.h"
@@ -119,7 +119,7 @@ StatusCode TkrHitTruncationTool::analyzeDigis()
         m_tkrGeom->layerToTray(layer, view, tray, face);
         int plane = m_tkrGeom->trayToPlane(tray, face);
 
-        intVector stripCount(2,0);
+        Event::intVector stripCount(2,0);
 
         int maxStrips[2];
         maxStrips[0] = m_splitsSvc->getMaxStrips(tower, layer, view, 0);
@@ -129,7 +129,7 @@ StatusCode TkrHitTruncationTool::analyzeDigis()
         int lastC0Strip  = pDigi->getLastController0Strip();
 
         int nStrips = m_tkrGeom->ladderNStrips()*m_tkrGeom->nWaferAcross();
-        intVector stripNumber(4,0);
+        Event::intVector stripNumber(4,0);
         stripNumber[0] = -1;      // highest low-side strip  (for RC0 and CC0)
         stripNumber[1] = nStrips; // lowest high-side strip  (for RC1)
         stripNumber[2] = nStrips; // highest high-side strip (for CC1)
@@ -166,7 +166,7 @@ StatusCode TkrHitTruncationTool::analyzeDigis()
         }
    
         double stripPitch = m_tkrGeom->siStripPitch();
-        floatVector localX(4,0);
+        Event::floatVector localX(4,0);
 
         // get the limits for the dead regions
         // tricky for -1 and nStrips (no limits) because neither is a legal strip number
@@ -207,7 +207,7 @@ StatusCode TkrHitTruncationTool::analyzeDigis()
         m_tkrGeom->trayToLayer(tray, face, layer, view);
         TkrTruncatedPlane& trunc = iter->second;
         int end;
-        const intVector& numStrips = trunc.getStripCount();
+        const Event::intVector& numStrips = trunc.getStripCount();
         for (end=0; end<2; ++end) {
             int index = m_splitsSvc->getCableIndex(layer, view, end);
             cableHits[index] += numStrips[end];
