@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrCalFilterTool.cxx,v 1.3 2005/11/25 16:48:37 chamont Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrCalFilterTool.cxx,v 1.4 2006/03/21 01:12:34 usher Exp $
  */
 
 // to turn one debug variables
@@ -27,6 +27,7 @@
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "Event/Recon/TkrRecon/TkrEventParams.h"
 #include "Event/Recon/CalRecon/CalEventEnergy.h"
+#include "Event/Recon/CalRecon/CalCluster.h"
 #include "Event/TopLevel/EventModel.h"
 
 // Utilities, geometry, etc.
@@ -143,6 +144,18 @@ StatusCode TkrCalFilterTool::doFilterStep()
             tkrEventParams->setEventPosition(calParams.getCentroid());
             tkrEventParams->setEventAxis(calParams.getAxis());
             tkrEventParams->setStatusBit(Event::TkrEventParams::CALPARAMS);
+
+            // We need a bit of extra information from the Cal Cluster so look that up too
+            // Note that this assumes a one-to-one correspondence between the CalEventEnergy and 
+            // CalCluster objects which is not, in general, correct. It is CURRENTLY correct for 
+            // the CalValsCorrTool... (10/15/07)
+            Event::CalClusterCol* calClusters = 
+                SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
+            if (!calClusters->empty())
+            {
+                tkrEventParams->setTransRms(calClusters->front()->getRmsTrans());
+                tkrEventParams->setLongRmsAve(calClusters->front()->getRmsLong());
+            }
 
 // DC: there is no more PASS_ONE or PASS_TWO in CalEventEnergy, but
 // a VALIDPARAMS instead.
