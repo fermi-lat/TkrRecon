@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Mon Oct 15 16:13:30 PDT 2007
+TkrRecon/src/Filter
+
+Modified Files:
+	TkrCalFilterTool.cxx 
+Log Message:
+Add long and trans rms from Cal Cluster to TkrEventParams for Bill to use in the Combo Pat Rec stage
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r10p9, operation: add
 Package: TkrRecon
