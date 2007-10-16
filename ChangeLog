@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Mon Oct 15 17:42:17 PDT 2007
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+Prepare for tag v10r10p10
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r10p10, operation: add
 Package: TkrRecon
