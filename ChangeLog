@@ -1,4 +1,103 @@
 ------------------------------------------------------------
+TAG
+Tag name: v10r10p10, operation: add
+Package: TkrRecon
+User: lsrea  Mon Oct 15 17:39:33 2007
+Files:
+  TkrRecon/.cvsignore  1.4
+  TkrRecon/ChangeLog  1.2005
+  TkrRecon/TkrRecon/GaudiAlg/TkrFindAlg.h  1.8
+  TkrRecon/TkrRecon/GaudiAlg/TkrReconAlg.h  1.17
+  TkrRecon/TkrRecon/GaudiAlg/TkrDisplayAlg.h  1.10
+  TkrRecon/TkrRecon/GaudiAlg/TkrVertexAlg.h  1.9
+  TkrRecon/TkrRecon/GaudiAlg/TkrClusterAlg.h  1.13
+  TkrRecon/TkrRecon/GaudiAlg/TkrTrackFitAlg.h  1.7
+  TkrRecon/TkrRecon/PatRec/TkrPatRecon.h  1.5
+  TkrRecon/TkrRecon/PatRec/ITkrFindTrackTool.h  1.1
+  TkrRecon/TkrRecon/Services/TkrGeometryVisitor.h  1.8
+  TkrRecon/TkrRecon/Services/TkrInitSvc.h  1.17
+  TkrRecon/TkrRecon/Track/ITkrHitTruncationTool.h  1.1
+  TkrRecon/TkrRecon/Track/IFindTrackHitsTool.h  1.3
+  TkrRecon/TkrRecon/Track/ITkrFitTool.h  1.7
+  TkrRecon/cmt/.cvsignore  1.3
+  TkrRecon/cmt/requirements  1.140
+  TkrRecon/cmt/fragments/library_no_share  1.1
+  TkrRecon/doc/.cvsignore  1.1.1.1
+  TkrRecon/doc/release.notes  1.153
+  TkrRecon/doc/KalVtx.tex  1.1
+  TkrRecon/doc/KalVtx/img8.png  1.3
+  TkrRecon/doc/KalVtx/img15.png  1.3
+  TkrRecon/doc/KalVtx/img24.png  1.3
+  TkrRecon/doc/KalVtx/img2.png  1.3
+  TkrRecon/doc/KalVtx/images.aux  1.1
+  TkrRecon/doc/KalVtx/images.pl  1.1
+  TkrRecon/doc/KalVtx/img7.png  1.3
+  TkrRecon/doc/KalVtx/img10.png  1.3
+  TkrRecon/doc/KalVtx/KalVtx.html  1.1
+  TkrRecon/doc/KalVtx/img4.png  1.3
+  TkrRecon/doc/KalVtx/labels.pl  1.1
+  TkrRecon/doc/KalVtx/index.html  1.1
+  TkrRecon/doc/KalVtx/img21.png  1.3
+  TkrRecon/doc/KalVtx/img8.old  1.3
+  TkrRecon/doc/KalVtx/images.tex  1.1
+  TkrRecon/doc/KalVtx/img23.png  1.3
+  TkrRecon/doc/KalVtx/KalVtx.css  1.1
+  TkrRecon/doc/KalVtx/img20.png  1.3
+  TkrRecon/doc/KalVtx/img13.png  1.3
+  TkrRecon/doc/KalVtx/img5.png  1.3
+  TkrRecon/doc/KalVtx/img25.png  1.3
+  TkrRecon/doc/KalVtx/img11.png  1.3
+  TkrRecon/doc/KalVtx/img1.png  1.3
+  TkrRecon/doc/KalVtx/img18.png  1.3
+  TkrRecon/doc/KalVtx/images.log  1.1
+  TkrRecon/doc/KalVtx/img14.png  1.3
+  TkrRecon/doc/KalVtx/img12.png  1.3
+  TkrRecon/doc/KalVtx/img16.png  1.3
+  TkrRecon/doc/KalVtx/img6.png  1.3
+  TkrRecon/doc/KalVtx/img17.png  1.3
+  TkrRecon/doc/KalVtx/img3.png  1.3
+  TkrRecon/doc/KalVtx/img22.png  1.3
+  TkrRecon/doc/KalVtx/img19.png  1.3
+  TkrRecon/doc/KalVtx/img9.png  1.3
+  TkrRecon/doc/KalVtx/img26.png  1.3
+  TkrRecon/doc/images/Tkr_diagram.gif  1.3
+  TkrRecon/doc/images/event1.gif  1.1
+  TkrRecon/src/mainpage.h  1.21
+  TkrRecon/src/Cluster/TkrMakeClusterTable.cxx  1.12
+  TkrRecon/src/Cluster/TkrMakeClusterTable.h  1.4
+  TkrRecon/src/Display/TkrDispCompleteNet.cxx  1.10
+  TkrRecon/src/Display/TkrBestCandRep.cxx  1.13
+  TkrRecon/src/Display/TkrDispActiveNet.cxx  1.10
+  TkrRecon/src/Display/TkrCandidate3DRep.h  1.3
+  TkrRecon/src/Display/TkrDispActiveNet.h  1.3
+  TkrRecon/src/Display/TkrClustersRep.h  1.2
+  TkrRecon/src/Display/TkrTracksRep.h  1.3
+  TkrRecon/src/Display/TkrClustersRep.cxx  1.13
+  TkrRecon/src/Display/TkrRecObjsRep.cxx  1.5
+  TkrRecon/src/Display/TkrCandidatesRep.h  1.3
+  TkrRecon/src/Display/TkrDispCompleteNet.h  1.3
+  TkrRecon/src/Display/TkrRecObjsRep.h  1.1
+  TkrRecon/src/Display/TkrBestCandRep.h  1.3
+  TkrRecon/src/Display/TkrCandidate3DRep.cxx  1.16
+  TkrRecon/src/Display/TkrTracksRep.cxx  1.19
+  TkrRecon/src/Display/TkrCandidatesRep.cxx  1.12
+  TkrRecon/src/Dll/tkrRecon_load.cxx  1.30
+  TkrRecon/src/Dll/TkrRecon_dll.cxx  1.2
+  TkrRecon/src/Filter/TkrMomentsAnalysis.h  1.2
+  TkrRecon/src/Filter/TkrCalFilterTool.cxx  1.5
+  TkrRecon/src/Filter/ITkrFilterTool.h  1.1
+  TkrRecon/src/Filter/TkrMomentsAnalysis.cxx  1.2
+  TkrRecon/src/Filter/TkrFilterTool.cxx  1.5
+  TkrRecon/src/GaudiAlg/TkrReconAlg.cxx  1.40
+  TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx  1.30
+  TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx  1.23
+  TkrRecon/src/GaudiAlg/TkrFindAlg.cxx  1.21
+  TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx  1.21
+  TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx  1.27
+  TkrRecon/src/GaudiAlg/TkrFilterAlg.cxx  1.1
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon Oct 15 17:37:58 PDT 2007
 TkrRecon/cmt
 
