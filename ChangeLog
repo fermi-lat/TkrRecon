@@ -1,22 +1,4 @@
 ------------------------------------------------------------
-User: burnett  Wed Oct 31 13:17:02 PDT 2007
-TkrRecon/doc
-
-Modified Files:
-	release.notes 
-Log Message:
-tagging after updating code from Atwood
-    *
-------------------------------------------------------------
-User: burnett  Wed Oct 31 13:17:02 PDT 2007
-TkrRecon/cmt
-
-Modified Files:
-	requirements 
-Log Message:
-tagging after updating code from Atwood
-    *
-------------------------------------------------------------
 TAG
 Tag name: v10r11, operation: add
 Package: TkrRecon
