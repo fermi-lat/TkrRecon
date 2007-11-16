@@ -269,7 +269,7 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
     double x_slope = neutral_dir.x()/neutral_dir.z();
     double y_slope = neutral_dir.y()/neutral_dir.z();
 
-    // Compute major & minor axises for Cal Error elipse
+    // Compute major & minor axes for Cal Error ellipse
     double shower_radial_error = (.632 + 113./sqrt(CalEnergy) + 3230./CalEnergy)/1.4142;
     double LogCalRaw = log(std::max(1., CalEnergy))/2.306; 
     double CalTransModel   = std::min(50., std::max(25., 65.5-11.6*LogCalRaw)); 
@@ -278,7 +278,7 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
     double path_length = (m_calPos - vtx_pos).mag();
     double path_length_corr    = 1.; //(1. + (path_length-100.)/700./sqrt(CalEnergy/100.));
 
-    double major_axis = shower_radial_error*path_length_corr / abs(neutral_dir.z())/path_length;  
+    double major_axis = shower_radial_error*path_length_corr / fabs(neutral_dir.z())/path_length;  
     double minor_axis = shower_radial_error*path_length_corr / path_length; 
 
 
@@ -384,7 +384,7 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
         y_slope = neutral1_dir.y()/neutral1_dir.z();
 
         double path_length1 = (m_calPos - tkr1_pos).mag();
-        major_axis = shower_radial_error*path_length_corr / abs(neutral_dir.z())/path_length1;  
+        major_axis = shower_radial_error*path_length_corr / fabs(neutral_dir.z())/path_length1;  
         minor_axis = shower_radial_error*path_length_corr / path_length1; 
 
         // X, Y projection and Crossterm
