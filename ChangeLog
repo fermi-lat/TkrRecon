@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Fri Nov 30 14:45:20 PST 2007
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Better de-weighting scheme
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r13, operation: add
 Package: TkrRecon
