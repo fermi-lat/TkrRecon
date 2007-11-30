@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Fri Nov 30 14:45:20 PST 2007
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	ComboVtxTool.cxx 
+Log Message:
+Better de-weighting scheme
+
+    *
+------------------------------------------------------------
+User: lsrea  Fri Nov 30 14:45:20 PST 2007
 TkrRecon/doc
 
 Modified Files:
