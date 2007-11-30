@@ -88,15 +88,15 @@ StatusCode ComboVtxTool::findVtxs()
 
     std::vector<bool> unused(numTracks);
     while(numTracks--) unused[numTracks] = true;
-
+    
     //Track counter
     int   tkr1Idx = 0;
-
+    
     //double gamEne = 0.;
-
-
+    
+    
     Event::TkrTrackColPtr pTrack1 = pTracks->begin();
-
+   
     // Loop over all tracks and try to find a mate within declared properties tolerances
     for(; pTrack1 != pTracks->end(); pTrack1++, tkr1Idx++)
     {
@@ -113,13 +113,14 @@ StatusCode ComboVtxTool::findVtxs()
         // Set up a new vertex - it may only contain this track
         double best_quality = -100.;
         Event::TkrVertex *newVertex = new Event::TkrVertex(tkr1ID, e1, best_quality, 0.,
-            0., 0., 0., 0., tkr1Pos.z(), tkr1Params); 
+                                                    0., 0., 0., 0., tkr1Pos.z(), tkr1Params); 
         newVertex->setStatusBit(Event::TkrVertex::ONETKRVTX);
         newVertex->addTrack(track1);
+		double Tkr1CovDet = tkr1Params.getxSlpxSlp()*tkr1Params.getySlpySlp() - tkr1Params.getxSlpySlp()*tkr1Params.getxSlpySlp();
 
 
 
-        //Loop over possible 2nd tracks to pair with #1
+    //Loop over possible 2nd tracks to pair with #1
         Event::TkrTrack *best_track2;
         Event::TkrTrackColPtr pTrack2 = pTrack1;
         pTrack2++; 
@@ -152,7 +153,7 @@ StatusCode ComboVtxTool::findVtxs()
             //  Initialize by putting vertex at z location of head of first track
             if(s1 > 0 && s2 > 0) status |= Event::TkrVertex::CROSSTKR;
             if(fabs(tkr1Pos.z() - tkr2Pos.z()) > .5*m_tkrGeom->trayHeight())
-                status |= Event::TkrVertex::STAGVTX;
+                                 status |= Event::TkrVertex::STAGVTX;
             double zVtx = tkr1Pos.z(); 
 
             if(tkr1Cls == tkr2Cls && tkr2Cls->size() < 3) 
@@ -164,14 +165,16 @@ StatusCode ComboVtxTool::findVtxs()
                 status |= Event::TkrVertex::FIRSTHIT;
             }
             else if((docaZPos-tkr1Pos.z()) > 0. && 
-                (docaZPos-tkr1Pos.z()) < m_tkrGeom->trayHeight())
+                    (docaZPos-tkr1Pos.z()) < m_tkrGeom->trayHeight())
             {// Put vertex at DOCA location   
                 zVtx = docaZPos;
                 status |= Event::TkrVertex::DOCAVTX; 
             }
+			// Limit vertexing to at most propagating tracks by one layer
+			if(fabs(zVtx - tkr1Pos.z()) > 37. || fabs(zVtx - tkr2Pos.z()) > 37.) continue;
             double sv1 = (zVtx - tkr1Pos.z())/tkr1Dir.z();
             double sv2 = (zVtx - tkr2Pos.z())/tkr2Dir.z();
-
+            
             // Propagate the TkrParams to the vertex location
             m_propagatorTool->setStepStart(tkr1Params, tkr1Pos.z(), (sv1 < 0));
             m_propagatorTool->step(fabs(sv1));
@@ -188,10 +191,13 @@ StatusCode ComboVtxTool::findVtxs()
             Event::TkrTrackParams vtxParams = getParamAve(vtx1Params, vtx2Params); 
 
             // Calculate quality for this vertex
+			if(m_chisq < 0) continue;
             double trial_quality = -fabs(s1 - s2) - m_chisq/3.; 
+			double VtxCovDet = vtxParams.getxSlpxSlp()*vtxParams.getySlpySlp()- vtxParams.getxSlpySlp()*vtxParams.getxSlpySlp();
 
             // Deside if to update vertex using this track
-            if(trial_quality > best_quality && trial_quality > m_minQuality) 
+            if(trial_quality > best_quality && trial_quality > m_minQuality && 
+				VtxCovDet > 0. && VtxCovDet < Tkr1CovDet) 
             {
                 if(newVertex->getNumTracks() > 1) newVertex->deleteTrack();
                 newVertex->addTrack(track2);
@@ -213,7 +219,7 @@ StatusCode ComboVtxTool::findVtxs()
                 best_tkr2Idx = tkr2Idx;
             }
         }  // Close loop over 2nd track
-
+        
         // Add track to TkrVertexCol
         pVerts->push_back(newVertex);
 
@@ -221,241 +227,253 @@ StatusCode ComboVtxTool::findVtxs()
         if(best_tkr2Idx > -1) unused[best_tkr2Idx] = false;
     }      // Close loop over 1st track
 
-    sc = neutralEnergyVtx();
-
+	sc = neutralEnergyVtx();
+    
     return sc;
 }
 
 StatusCode ComboVtxTool::neutralEnergyVtx()
 {
-    // Computes a new vertex solution incorporating the neutral energy vector.  The 
-    // neutral energy vector is the direction from the head of Vtx1 to the Cal centroid.
+	// Computes a new vertex solution incorporating the neutral energy vector.  The 
+	// neutral energy vector is the direction from the head of Vtx1 to the Cal centroid.
 
     //Always believe in success
     StatusCode sc = StatusCode::SUCCESS;
-    Event::TkrVertexCol*  pVerts = SmartDataPtr<Event::TkrVertexCol>(m_dataSvc,EventModel::TkrRecon::TkrVertexCol);
+	Event::TkrVertexCol*  pVerts = SmartDataPtr<Event::TkrVertexCol>(m_dataSvc,EventModel::TkrRecon::TkrVertexCol);
     if(!pVerts) return sc;
 
-    // Recover pointer to Cal Cluster info  
+	// Recover pointer to Cal Cluster info  
     Event::TkrEventParams* tkrEventParams = 
         SmartDataPtr<Event::TkrEventParams>(
         m_dataSvc,EventModel::TkrRecon::TkrEventParams);
 
     //If Cal information available, then retrieve estimate for the energy & centroid
     if (tkrEventParams == 0 || !(tkrEventParams->getStatusBits() & Event::TkrEventParams::CALPARAMS))
-        return sc;
+		return sc;
 
-    // Setup the Neutral Vertex
+	// Setup the Neutral Vertex
     Event::TkrVertex *vtx1 = *pVerts->begin();    
-    Point vtx_pos = vtx1->getPosition();
+	Point vtx_pos = vtx1->getPosition();
     Event::TkrVertex *neutralVertex = new Event::TkrVertex(
-        vtx1->getTkrId(), vtx1->getEnergy(), 0, 0.,
-        0., 0., 0., 0., vtx_pos.z(), vtx1->getVertexParams()); 
-    neutralVertex->setStatusBit(Event::TkrVertex::NEUTRALVTX);
-    SmartRefVector<Event::TkrTrack>::const_iterator pTrack1 = vtx1->getTrackIterBegin(); 
-    const Event::TkrTrack* tkr1 = *pTrack1;
+			      vtx1->getTkrId(), vtx1->getEnergy(), 0, 0.,
+                  0., 0., 0., 0., vtx_pos.z(), vtx1->getVertexParams()); 
+	neutralVertex->setStatusBit(Event::TkrVertex::NEUTRALVTX);
+	SmartRefVector<Event::TkrTrack>::const_iterator pTrack1 = vtx1->getTrackIterBegin(); 
+	const Event::TkrTrack* tkr1 = *pTrack1;
     neutralVertex->addTrack(tkr1);
 
     double CalEnergy = tkrEventParams->getEventEnergy(); 
-    double CalTransRms = tkrEventParams->getTransRms();
-    if(CalEnergy < 10) return sc;
+	double CalTransRms = tkrEventParams->getTransRms();
+	if(CalEnergy < 10) return sc;
 
     Point m_calPos  = tkrEventParams->getEventPosition();
     Vector m_calDir  = tkrEventParams->getEventAxis();
 
 
-    // Compute neutral energy direction
-    Vector neutral_dir = (m_calPos - vtx_pos).unit();
-    double x_slope = neutral_dir.x()/neutral_dir.z();
-    double y_slope = neutral_dir.y()/neutral_dir.z();
+	// Compute neutral energy direction
+	Vector neutral_dir = (m_calPos - vtx_pos).unit();
+	double x_slope = neutral_dir.x()/neutral_dir.z();
+	double y_slope = neutral_dir.y()/neutral_dir.z();
 
-    // Compute major & minor axes for Cal Error ellipse
-    double shower_radial_error = (.632 + 113./sqrt(CalEnergy) + 3230./CalEnergy)/1.4142;
-    double LogCalRaw = log(std::max(1., CalEnergy))/2.306; 
-    double CalTransModel   = std::min(50., std::max(25., 65.5-11.6*LogCalRaw)); 
+	// Compute major & minor axes for Cal Error ellipse
+	double shower_radial_error = (.632 + 113./sqrt(CalEnergy) + 3230./CalEnergy)/1.4142;
+	double LogCalRaw = log(std::max(1., CalEnergy))/2.306; 
+	double CalTransModel   = std::min(50., std::max(25., 65.5-11.6*LogCalRaw)); 
     //shower_radial_error *=   CalTransModel/35.3;  //Normalize to 400 MeV
 
-    double path_length = (m_calPos - vtx_pos).mag();
-    double path_length_corr    = 1.; //(1. + (path_length-100.)/700./sqrt(CalEnergy/100.));
+	double path_length = (m_calPos - vtx_pos).mag();
+	double path_length_corr    = 1.; //(1. + (path_length-100.)/700./sqrt(CalEnergy/100.));
 
-    double major_axis = shower_radial_error*path_length_corr / fabs(neutral_dir.z())/path_length;  
-    double minor_axis = shower_radial_error*path_length_corr / path_length; 
+	double minor_axis = shower_radial_error*path_length_corr / path_length; 
+    double major_axis = minor_axis / fabs(neutral_dir.z());  
 
 
-    // X, Y projection and Crossterm
-    Vector PhiTrig = Vector(-neutral_dir.x(), -neutral_dir.y(), 0.).unit();
-    double cos  = PhiTrig.x();
+	// X, Y projection and Crossterm
+	Vector PhiTrig = Vector(-neutral_dir.x(), -neutral_dir.y(), 0.).unit();
+	double cos  = PhiTrig.x();
     double sin  = PhiTrig.y();
-    double cos2 = cos*cos;
-    double sin2 = sin*sin;
-    double major_axis2 = major_axis*major_axis;
+	double cos2 = cos*cos;
+	double sin2 = sin*sin;
+	double major_axis2 = major_axis*major_axis;
     double minor_axis2 = minor_axis*minor_axis;
 
-    double cxx_inv = (cos2/major_axis2 + sin2/minor_axis2); 
+	double cxx_inv = (cos2/major_axis2 + sin2/minor_axis2); 
     double cyy_inv = (sin2/major_axis2 + cos2/minor_axis2); 
     double cxy_inv = (sin*cos)*(1./major_axis2 - 1./minor_axis2);
 
-    //Now invert 2x2 slope matrix by hand
-    double detC = cxx_inv*cyy_inv - cxy_inv*cxy_inv;
-    double cSxSx = cyy_inv/detC;
-    double cSySy = cxx_inv/detC;
-    double cSxSy = -cxy_inv/detC; 
+	//Now invert 2x2 slope matrix by hand
+	double detC = cxx_inv*cyy_inv - cxy_inv*cxy_inv;
+	double cSxSx = cyy_inv/detC;
+	double cSySy = cxx_inv/detC;
+	double cSxSy = -cxy_inv/detC; 
 
-    // Make a neutral energy param object
-    Event::TkrTrackParams vtx1_params = vtx1->getVertexParams();
-    double cxx = vtx1_params.getxPosxPos();
-    double cxSx = 0.; //vtx1_params.getxPosxSlp()/x_slope*vtx1_params.getxSlope();
-    double cxy  = vtx1_params.getxPosyPos(); 
-    double cxSy = 0.; //vtx1_params.getxPosySlp()/y_slope*vtx1_params.getySlope();
+	// Setup the weights for the neutral solution - charge to follow
+	Vector charged_dir = vtx1->getDirection();
+	double open_angle = acos(neutral_dir * charged_dir);
+	double rad_lens = tkr1->getTkrCalRadlen();
+	double theta_0  = 13.8*sqrt(rad_lens)*(1.+.038*log(rad_lens))/(.7*CalEnergy);
+    double theta_Ratio = sqrt(3./2.)*open_angle/theta_0;
+	double neutral_wgt =1./std::min(1., theta_Ratio*theta_Ratio); 
 
-    double cSxy = 0.; //vtx1_params.getxSlpyPos()/x_slope*vtx1_params.getxSlope();
+	cSxSx *= neutral_wgt;
+	cSySy *= neutral_wgt;
+	cSxSy *= neutral_wgt;
 
-    double cyy  = vtx1_params.getyPosyPos();
-    double cySy = 0.; //vtx1_params.getyPosySlp()/y_slope*vtx1_params.getySlope();
+
+	// Make a neutral energy param object
+	Event::TkrTrackParams vtx1_params = vtx1->getVertexParams();
+	double cxx = vtx1_params.getxPosxPos();
+	double cxSx = 0.; //vtx1_params.getxPosxSlp()/x_slope*vtx1_params.getxSlope();
+	double cxy  = vtx1_params.getxPosyPos(); 
+	double cxSy = 0.; //vtx1_params.getxPosySlp()/y_slope*vtx1_params.getySlope();
+
+	double cSxy = 0.; //vtx1_params.getxSlpyPos()/x_slope*vtx1_params.getxSlope();
+
+	double cyy  = vtx1_params.getyPosyPos();
+	double cySy = 0.; //vtx1_params.getyPosySlp()/y_slope*vtx1_params.getySlope();
 
 
-    Event::TkrTrackParams neutral_params(vtx_pos.x(), x_slope, vtx_pos.y(), y_slope,
-        cxx,  cxSx,  cxy,  cxSy,
-        cSxSx, cSxy, cSxSy,
-        cyy,  cySy,
-        cSySy);
+	Event::TkrTrackParams neutral_params(vtx_pos.x(), x_slope, vtx_pos.y(), y_slope,
+                   cxx,  cxSx,  cxy,  cxSy,
+				         cSxSx, cSxy, cSxSy,
+						        cyy,  cySy,
+								      cSySy);
 
-    // De-weight the charged tracking solution according Chisq for the best track and 
-    // the opening angle between the neutral direction and the charged direction
-    Vector charged_dir = vtx1->getDirection();
-    double open_angle = acos(neutral_dir * charged_dir);
+	// De-weight the charged tracking solution according Chisq for the best track and 
+	// the opening angle between the neutral direction and the charged direction
 
-    double tkr1_chisq = tkr1->chiSquareSegment(); // Should be of use to set charged de-weighting? 
-
-    //double charged_wgt = std::max(tkr1_chisq/5., 1.) * std::max(open_angle*(CalEnergy)*.05, 1.); //22
-    //double charged_wgt = std::max(tkr1_chisq/1.5, 1.) * std::max(open_angle*(CalEnergy)*.1, 1.); //23
-    //charged_wgt = 10.; //24
-    //double charged_wgt = std::max(tkr1_chisq/10., 1.) * std::max(open_angle*(CalEnergy)*.025, 1.); //25
-    //charged_wgt = 1.; //26
-    double indep_var = open_angle* CalEnergy/20.; // equals 1 for OA = .05 & CalE = 400
-    //double charged_wgt = std::min(50., std::max(1., 15.*indep_var - 5)); //27
-    //double charged_wgt = std::min(50., std::max(1., (15.*indep_var - 5)/2.)); //28
-    //double charged_wgt = std::min(50., std::max(1., (15.*indep_var - 5)/5.)); //29+30
-    // double charged_wgt = std::min(50., std::max(1., (15.*indep_var - 5)/10.)); //31
-    //double charged_wgt = std::min(50., std::max(1., (15.*indep_var - 5)/20.)); //32
+	double indep_var = open_angle* CalEnergy/20.; // equals 1 for OA = .05 & CalE = 400
     double charged_wgt = std::min(50., std::max(1., (15.*indep_var - 5)/2.)); //33 + 34
-    //charged_wgt = charged_wgt*charged_wgt; 33
-    // 34 use CalTransRms
+	//double z_break = 235.; 
+	//if(vtx_pos.z() > z_break) charged_wgt = (charged_wgt+1.)/2.;
+
     cSxSx = vtx1_params.getxSlpxSlp()*charged_wgt;
-    cSySy = vtx1_params.getySlpySlp()*charged_wgt;
+	cSySy = vtx1_params.getySlpySlp()*charged_wgt;
     cSxSy = vtx1_params.getxSlpySlp()*charged_wgt;
 
-    x_slope = vtx1_params.getxSlope();
-    y_slope = vtx1_params.getySlope();
+	x_slope = vtx1_params.getxSlope();
+	y_slope = vtx1_params.getySlope();
 
-    Event::TkrTrackParams charged_params(vtx_pos.x(), x_slope, vtx_pos.y(), y_slope,
-        cxx,  cxSx,  cxy,  cxSy,
-        cSxSx, cSxy, cSxSy,
-        cyy,  cySy,
-        cSySy);
+	Event::TkrTrackParams charged_params(vtx_pos.x(), x_slope, vtx_pos.y(), y_slope,
+                   cxx,  cxSx,  cxy,  cxSy,
+				         cSxSx, cSxy, cSxSy,
+						        cyy,  cySy,
+								      cSySy);
 
-    // Covariantly add the neutral energy "track" and the de-weighted charged track
-    Event::TkrTrackParams vtxNParams = getParamAve(charged_params, neutral_params); 
+	// Covariantly add the neutral energy "track" and the de-weighted charged track
+     Event::TkrTrackParams vtxNParams = getParamAve(charged_params, neutral_params); 
 
     // Load up neutral vertex solution
-    neutralVertex->setParams(vtxNParams);
-    neutralVertex->setDirection(Vector(-vtxNParams(2), -vtxNParams(4), -1.).unit());
-    neutralVertex->setChiSquare(m_chisq);
-    neutralVertex->addTrack(tkr1);
+     neutralVertex->setParams(vtxNParams);
+     neutralVertex->setDirection(Vector(-vtxNParams(2), -vtxNParams(4), -1.).unit());
+     neutralVertex->setChiSquare(m_chisq);
+    // Comandeer the Arclen variables to store the weights
+     neutralVertex->setTkr1ArcLen(charged_wgt);
+     neutralVertex->setTkr2ArcLen(neutral_wgt);
+
+	 neutralVertex->addTrack(tkr1);
 
     // Add track to TkrVertexCol
-    pVerts->push_back(neutralVertex);
+     pVerts->push_back(neutralVertex);
 
     // Add a  2nd neutral vertex in the case that the first had more then one track
     if(!(vtx1->getStatusBits() & Event::TkrVertex::ONETKRVTX)) {
-        // Make a second Neutral vertex and finish the first one
-        Event::TkrVertex *neutralVertex1 = new Event::TkrVertex(
-            vtx1->getTkrId(), vtx1->getEnergy(), 0, 0.,
-            0., 0., 0., 0., vtx_pos.z(), vtx1->getVertexParams()); 
-        neutralVertex1->setStatusBit(Event::TkrVertex::NEUTRALVTX);
-        neutralVertex1->setStatusBit(Event::TkrVertex::ONETKRVTX);
-        neutralVertex1->addTrack(tkr1);
-        const Event::TkrTrack* tkr2 = *(++pTrack1);
-        neutralVertex->addTrack(tkr2);
+		// Make a second Neutral vertex and finish the first one
+		Event::TkrVertex *neutralVertex1 = new Event::TkrVertex(
+			      vtx1->getTkrId(), vtx1->getEnergy(), 0, 0.,
+                  0., 0., 0., 0., vtx_pos.z(), vtx1->getVertexParams()); 
+		neutralVertex1->setStatusBit(Event::TkrVertex::NEUTRALVTX);
+		neutralVertex1->setStatusBit(Event::TkrVertex::ONETKRVTX);
+	    neutralVertex1->addTrack(tkr1);
+		const Event::TkrTrack* tkr2 = *(++pTrack1);
+		neutralVertex->addTrack(tkr2);
 
-        Point tkr1_pos = tkr1->getInitialPosition();
-        Vector neutral1_dir = (m_calPos - tkr1_pos).unit();
-        x_slope = neutral1_dir.x()/neutral1_dir.z();
-        y_slope = neutral1_dir.y()/neutral1_dir.z();
+		Point tkr1_pos = tkr1->getInitialPosition();
+	    Vector neutral1_dir = (m_calPos - tkr1_pos).unit();
+	    x_slope = neutral1_dir.x()/neutral1_dir.z();
+	    y_slope = neutral1_dir.y()/neutral1_dir.z();
 
-        double path_length1 = (m_calPos - tkr1_pos).mag();
-        major_axis = shower_radial_error*path_length_corr / fabs(neutral_dir.z())/path_length1;  
-        minor_axis = shower_radial_error*path_length_corr / path_length1; 
+		double path_length1 = (m_calPos - tkr1_pos).mag();
+	    minor_axis = shower_radial_error*path_length_corr / path_length1; 
+		major_axis = minor_axis / fabs(neutral_dir.z());  
 
-        // X, Y projection and Crossterm
-        Vector PhiTrig1 = Vector(-neutral1_dir.x(), -neutral1_dir.y(), 0.).unit();
-        cos  = PhiTrig1.x();
-        sin  = PhiTrig1.y();
-        cos2 = cos*cos;
-        sin2 = sin*sin;
-        major_axis2 = major_axis*major_axis;
-        minor_axis2 = minor_axis*minor_axis;
+		// X, Y projection and Crossterm
+		Vector PhiTrig1 = Vector(-neutral1_dir.x(), -neutral1_dir.y(), 0.).unit();
+		cos  = PhiTrig1.x();
+		sin  = PhiTrig1.y();
+		cos2 = cos*cos;
+		sin2 = sin*sin;
+		major_axis2 = major_axis*major_axis;
+		minor_axis2 = minor_axis*minor_axis;
 
-        cxx_inv = (cos2/major_axis2 + sin2/minor_axis2); 
-        cyy_inv = (sin2/major_axis2 + cos2/minor_axis2); 
-        cxy_inv = (sin*cos)*(1./major_axis2 - 1./minor_axis2);
+		cxx_inv = (cos2/major_axis2 + sin2/minor_axis2); 
+		cyy_inv = (sin2/major_axis2 + cos2/minor_axis2); 
+		cxy_inv = (sin*cos)*(1./major_axis2 - 1./minor_axis2);
 
-        //Now invert 2x2 slope matrix by hand
-        detC = cxx_inv*cyy_inv - cxy_inv*cxy_inv;
-        cSxSx = cyy_inv/detC;
-        cSySy = cxx_inv/detC;
-        cSxSy = -cxy_inv/detC; 
+			// Setup the weights for the neutral solution - charge to follow
+		Vector charged1_dir = tkr1->getInitialDirection();
+		open_angle = acos(neutral_dir * charged1_dir);
+        theta_Ratio = sqrt(3./2.)*open_angle/theta_0;
+	    neutral_wgt = 1./std::min(1., theta_Ratio*theta_Ratio); 
 
-        // Make a neutral energy param object
-        const Event::TkrTrackParams& tkr1_params = tkr1->front()->getTrackParams(Event::TkrTrackHit::SMOOTHED);
-        cxx = tkr1_params.getxPosxPos();
-        cxSx = 0.; //vtx1_params.getxPosxSlp()/x_slope*vtx1_params.getxSlope();
-        cxy  = tkr1_params.getxPosyPos(); 
-        cxSy = 0.; //vtx1_params.getxPosySlp()/y_slope*vtx1_params.getySlope();
+		//Now invert 2x2 slope matrix by hand and apply weights
+		detC = cxx_inv*cyy_inv - cxy_inv*cxy_inv;
+		cSxSx = cyy_inv/detC * neutral_wgt;
+		cSySy = cxx_inv/detC * neutral_wgt;
+		cSxSy = -cxy_inv/detC* neutral_wgt; 
 
-        cSxy = 0.; //vtx1_params.getxSlpyPos()/x_slope*vtx1_params.getxSlope();
+		// Make a neutral energy param object
+		const Event::TkrTrackParams& tkr1_params = tkr1->front()->getTrackParams(Event::TkrTrackHit::SMOOTHED);
+	    cxx = tkr1_params.getxPosxPos();
+	    cxSx = 0.; //vtx1_params.getxPosxSlp()/x_slope*vtx1_params.getxSlope();
+	    cxy  = tkr1_params.getxPosyPos(); 
+	    cxSy = 0.; //vtx1_params.getxPosySlp()/y_slope*vtx1_params.getySlope();
 
-        cyy  = tkr1_params.getyPosyPos();
-        cySy = 0.; //vtx1_params.getyPosySlp()/y_slope*vtx1_params.getySlope();
-        Event::TkrTrackParams neutral1_params(tkr1_pos.x(), x_slope, tkr1_pos.y(), y_slope,
-            cxx,  cxSx,  cxy,  cxSy,
-            cSxSx, cSxy, cSxSy,
-            cyy,  cySy,
-            cSySy);
+	    cSxy = 0.; //vtx1_params.getxSlpyPos()/x_slope*vtx1_params.getxSlope();
 
-        // Build the weighted cov. matrix for the first track
-        Vector charged1_dir = tkr1->getInitialDirection();
-        open_angle = acos(neutral_dir * charged1_dir);
-        indep_var = open_angle* CalEnergy/20.; // equals 1 for OA = .05 & CalE = 400
+	    cyy  = tkr1_params.getyPosyPos();
+	    cySy = 0.; //vtx1_params.getyPosySlp()/y_slope*vtx1_params.getySlope();
+	    Event::TkrTrackParams neutral1_params(tkr1_pos.x(), x_slope, tkr1_pos.y(), y_slope,
+                   cxx,  cxSx,  cxy,  cxSy,
+				         cSxSx, cSxy, cSxSy,
+						        cyy,  cySy,
+								      cSySy);
+
+		// Build the weighted cov. matrix for the first track
+		indep_var = open_angle* CalEnergy/20.; // equals 1 for OA = .05 & CalE = 400
         charged_wgt = std::min(50., std::max(1., (15.*indep_var - 5)/2.)); //33 + 34
+	    //if(tkr1_pos.z() > z_break) charged_wgt = (charged_wgt+1.)/2.;
 
-        cSxSx = tkr1_params.getxSlpxSlp()*charged_wgt;
-        cSySy = tkr1_params.getySlpySlp()*charged_wgt;
-        cSxSy = tkr1_params.getxSlpySlp()*charged_wgt;
+		cSxSx = tkr1_params.getxSlpxSlp()*charged_wgt;
+		cSySy = tkr1_params.getySlpySlp()*charged_wgt;
+		cSxSy = tkr1_params.getxSlpySlp()*charged_wgt;
 
-        x_slope = tkr1_params.getxSlope();
-        y_slope = tkr1_params.getySlope();
+		x_slope = tkr1_params.getxSlope();
+		y_slope = tkr1_params.getySlope();
 
-        Event::TkrTrackParams charged1_params(tkr1_pos.x(), x_slope, tkr1_pos.y(), y_slope,
-            cxx,  cxSx,  cxy,  cxSy,
-            cSxSx, cSxy, cSxSy,
-            cyy,  cySy,
-            cSySy);
+		Event::TkrTrackParams charged1_params(tkr1_pos.x(), x_slope, tkr1_pos.y(), y_slope,
+                   cxx,  cxSx,  cxy,  cxSy,
+				         cSxSx, cSxy, cSxSy,
+						        cyy,  cySy,
+								      cSySy);
 
-        // Covariantly add the neutral energy "track" and the de-weighted charged track
-        vtxNParams = getParamAve(charged1_params, neutral1_params); 
+		// Covariantly add the neutral energy "track" and the de-weighted charged track
+		vtxNParams = getParamAve(charged1_params, neutral1_params); 
 
-        // Load up neutral vertex solution
-        neutralVertex1->setParams(vtxNParams);
-        neutralVertex1->setDirection(Vector(-vtxNParams(2), -vtxNParams(4), -1.).unit());
-        neutralVertex1->setChiSquare(m_chisq);
-        neutralVertex1->addTrack(tkr1);
+		// Load up neutral vertex solution
+		neutralVertex1->setParams(vtxNParams);
+		neutralVertex1->setDirection(Vector(-vtxNParams(2), -vtxNParams(4), -1.).unit());
+		neutralVertex1->setChiSquare(m_chisq);
+		// Comandeer the Arclen variables to store the weights
+        neutralVertex->setTkr1ArcLen(charged_wgt);
+        neutralVertex->setTkr2ArcLen(neutral_wgt);
+		neutralVertex1->addTrack(tkr1);
 
-        // Add track to TkrVertexCol
-        pVerts->push_back(neutralVertex1);
-    }
+		// Add track to TkrVertexCol
+		pVerts->push_back(neutralVertex1);
+	}
 
-    return sc;
+	 return sc;
 }
 
 
@@ -466,9 +484,9 @@ Event::TkrTrackParams ComboVtxTool::getParamAve(Event::TkrTrackParams& params1,
     // Chisquare for the association
 
     //bool debug = true;
-
+    
     //MsgStream log(msgSvc(), name());
-
+    
     KFvector vec1(params1);
     KFvector vec2(params2);
     KFmatrix cov1(params1);
@@ -477,37 +495,37 @@ Event::TkrTrackParams ComboVtxTool::getParamAve(Event::TkrTrackParams& params1,
     KFmatrix cov2Inv(params2);
 
     int      matInvErr = 0;
-
+    
     cov1Inv.invert(matInvErr);
-    //  if (matInvErr) throw(TkrException("Failed to invert  covariance matrix 1 in ComboVtxTool::getParamAve"));
+//  if (matInvErr) throw(TkrException("Failed to invert  covariance matrix 1 in ComboVtxTool::getParamAve"));
     cov2Inv.invert(matInvErr);
-    //  if (matInvErr) throw(TkrException("Failed to invert  covariance matrix 2 in ComboVtxTool::getParamAve"));
+//  if (matInvErr) throw(TkrException("Failed to invert  covariance matrix 2 in ComboVtxTool::getParamAve"));
 
     KFmatrix cov_ave = (cov1Inv + cov2Inv);
     cov_ave.invert(matInvErr);
-    //  if (matInvErr) throw(TkrException("Failed to invert ave covariance matrix in ComboVtxTool::getParamAve"));
-
+//  if (matInvErr) throw(TkrException("Failed to invert ave covariance matrix in ComboVtxTool::getParamAve"));
+    
     KFvector vec_ave = cov_ave*(cov1Inv*vec1 + cov2Inv*vec2);
 
     Event::TkrTrackParams aveParam;
-
+ 
     vec_ave.setParams(&aveParam);
     cov_ave.setParams(&aveParam);
     double caveSxSx = aveParam.getxSlpxSlp();
-    double c1SxSx   = params1.getxSlpxSlp();
+	double c1SxSx   = params1.getxSlpxSlp();
     // leave this around for a while, still tracking down hysteresis
     /*
     if (debug) {
 
-    log << MSG::INFO << "  params of first track " << endreq;
-    log.stream() << params1;
-    log << endreq;
-    log << "  params of 2nd track " << endreq;
-    log.stream() << params2;
-    log << endreq;
-    log << "  params of average " << endreq;
-    log.stream() << aveParam << endreq ;
-    log << endreq << endreq;
+        log << MSG::INFO << "  params of first track " << endreq;
+        log.stream() << params1;
+        log << endreq;
+        log << "  params of 2nd track " << endreq;
+        log.stream() << params2;
+        log << endreq;
+        log << "  params of average " << endreq;
+        log.stream() << aveParam << endreq ;
+        log << endreq << endreq;
     }
     */
 
@@ -517,7 +535,7 @@ Event::TkrTrackParams ComboVtxTool::getParamAve(Event::TkrTrackParams& params1,
     cov2_res.invert(matInvErr);
 
     CLHEP::HepVector chisq = (vec1-vec_ave).T()*(cov1_res*(vec1-vec_ave)) + 
-        (vec2-vec_ave).T()*(cov2_res*(vec2-vec_ave));
+                      (vec2-vec_ave).T()*(cov2_res*(vec2-vec_ave));
     m_chisq = chisq(1);
 
     return aveParam;
