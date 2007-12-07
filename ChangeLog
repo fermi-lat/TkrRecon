@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: lsrea  Fri Dec  7 13:39:08 PST 2007
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+ComboFindTrackTool: improve response to gaps; re-filter after adding leading hits
+FindTrackHitsTool:  increment x/y counters when adding leading hits
+KalmanTrackFitTool: replace .size() with .getNumFitHits() as appropriate
+Prepare for tag v10r13p2
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r13p1, operation: add
 Package: TkrRecon
