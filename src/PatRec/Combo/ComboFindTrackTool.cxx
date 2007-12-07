@@ -700,7 +700,12 @@ void ComboFindTrackTool::findBlindCandidates()
                     // See if there is a third hit - 
                     // Allow up to a total of m_maxTotalGaps for first 3 found XY hits
                     int klayer = jlayer-1;
-                    for(; igap <= m_maxTotalGaps && klayer>=lastKLayer; ++igap, --klayer) {
+					// WBA: the following is flawed - it will max. out igap on the first Second hit
+					//      and subsequent 2nd hits are then not considered
+                    //for(; igap <= m_maxTotalGaps && klayer>=lastKLayer; ++igap, --klayer) {
+					//      I *think* the following fixes the problem
+                    int igap2;
+					for(igap2 = 0; igap2 <= m_maxTotalGaps-igap && klayer>=lastKLayer; ++igap2, --klayer) {
                         float cosKink; 
                         float sigma = findNextPoint(klayer, testRay, cosKink);
 
@@ -708,7 +713,11 @@ void ComboFindTrackTool::findBlindCandidates()
                         if(sigma < m_sigmaCut && cosKink > m_minCosKink) {
                             tryCandidate(ilayer, localBestHitCount, testRay);
                             // whatever happens, bail, no other track will be found with this ray
-                            break;
+							// WBA:  I don't think this is true.  Example is a track which in the 3rd layer
+							//       goes between SSDs - missing one co-ordinate.   If there are other
+							//       hits in that layer due to delta rays - we're screwed. 
+							//      Try commenting out the break.
+                            //break;
                         }
                     }  // end klayer
                 } // end 2nd points
@@ -1054,7 +1063,11 @@ ComboFindTrackTool::Candidate::Candidate(ComboFindTrackTool* pCFTT, Point x, Vec
     fitter->doSmootherFit(*m_track); 
     m_addedHits = 0;
     if(leadingHits) m_addedHits = hit_finder->addLeadingHits(m_track);
-    if(m_addedHits > 0) fitter->doSmootherFit(*m_track);
+	if(m_addedHits > 0) {
+		//Don't we have to re-filter the track since its starting from a new hit??
+        fitter->doFilterFit(*m_track);
+		fitter->doSmootherFit(*m_track);
+	}
 
     // Check X**2 for the Track
     if(m_track->getChiSquareSmooth() > chi_cut) {
