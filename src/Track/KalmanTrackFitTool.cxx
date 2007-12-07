@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.35 2005/03/01 00:55:50 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.36 2005/03/02 04:37:18 usher Exp $
  */
 
 // to turn one debug variables
@@ -641,7 +641,7 @@ void KalmanTrackFitTool::doFullKalmanFit(Event::TkrTrack& track)
     // Dependencies: None
     // Restrictions and Caveats:  None
 
-    int nHits = track.getNumHits();
+    int nHits = track.getNumFitHits();
     
     // Run the filter and follow with the smoother
     double chiSqFit    = doFilter(track);
@@ -674,7 +674,7 @@ void KalmanTrackFitTool::doFilterFit(Event::TkrTrack& track)
     // Dependencies: None
     // Restrictions and Caveats:  None
 
-    int nHits = track.getNumHits();
+    int nHits = track.getNumFitHits();
     
     // Run the filter and follow with the smoother
     double chiSqFit = doFilter(track);
@@ -703,7 +703,7 @@ void KalmanTrackFitTool::doSmootherFit(Event::TkrTrack& track)
     // Dependencies: None
     // Restrictions and Caveats:  None
 
-    int nHits = track.getNumHits();
+    int nHits = track.getNumFitHits();
     
     // Run the filter and follow with the smoother
     double chiSqSmooth = doSmoother(track);
@@ -907,7 +907,7 @@ double KalmanTrackFitTool::doSmoother(Event::TkrTrack& track)
         Event::TkrTrackHit& prevPlane    = **prevIter;
         Event::TkrTrackHit& currentPlane = **smoothIter;
 
-        double chiSqKF = doSmoothStep(prevPlane, currentPlane);
+		double chiSqKF = doSmoothStep(prevPlane, currentPlane);
 
         chiSqSmooth += chiSqKF;
     }

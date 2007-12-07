@@ -315,7 +315,7 @@ StatusCode FindTrackHitsTool::findTrackHits(TkrTrack* track)
     // Remove trailing gap hits
     while(!track->back()->validCluster()) 
     {
-        Event::TkrTrackHit* lastHit = track->back();
+        TkrTrackHit* lastHit = track->back();
         delete lastHit;
         track->pop_back();
     }
@@ -648,7 +648,7 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
                 double xError = rError*m_rej_sigma;
 
                 double localX = (view == idents::TkrId::eMeasureX ? xTower : yTower);
-                const Event::floatVector stripLocalX = item.getLocalX();
+                const floatVector stripLocalX = item.getLocalX();
                 if(lowSet)    { lowPos  = stripLocalX[0];}
                 if(RCHighSet) { highPos = stripLocalX[1];}
                 bool truncBit = false;
@@ -1033,6 +1033,17 @@ int FindTrackHitsTool::addLeadingHits(TkrTrack* track)
         // Add this to the head of the track
         added_hits++;
         track->insert(track->begin(), trackHit);
+		// WBA: Increment the X or Y hit counters for this track
+		if(trackHit->hitUsedOnFit()) {
+            if(trackHit->getStatusBits() & TkrTrackHit::MEASURESX) {
+                int numX = track->getNumXHits() + 1;
+                track->setNumXHits(numX);
+            }
+            else {
+                int numY = track->getNumYHits() + 1;
+                track->setNumYHits(numY);
+            }
+        }
 
         // and update the track initial position
         //Point start_pos = m_propagatorTool->getPosition(arc_len);
