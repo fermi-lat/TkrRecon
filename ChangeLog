@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Thu Jan 31 18:41:07 PST 2008
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Only set cluster HITUSED flag for hits actually on tracks.
+We meant to do this all along, but it never happened.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r13p2, operation: add
 Package: TkrRecon
