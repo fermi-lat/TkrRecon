@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.48 2006/12/01 21:30:19 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.50 2007/12/07 21:39:09 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -552,8 +552,15 @@ void ComboFindTrackTool::loadOutput()
             throw TkrException("Failed to create Fit Track Collection!");
     }
 
-    if (!m_candidates.empty()) 
+    if (!m_candidates.empty())
     {
+        // Time to zero all the hit flags in the clusters
+        // We will reflag the hits on tracks, so that hitFlagged() makes sense
+        int num_hits = m_tkrClus->size();
+        for(int i=0; i<num_hits; i++) {
+            (*m_tkrClus)[i]->unflag();
+        }
+
         // We will also need the collection of track hits
         Event::TkrTrackHitCol* trackHitCol = 
             SmartDataPtr<Event::TkrTrackHitCol>(
@@ -602,12 +609,17 @@ void ComboFindTrackTool::loadOutput()
             int  numHits  = newTrack->getNumHits();
             for(int i = 0; i<numHits; i++){
                 Event::TkrTrackHit* hit = (*newTrack)[i];
+                // flag the hit
+                Event::TkrClusterPtr clus = hit->getClusterPtr();
+                if(clus!=NULL) {
+                    clus->flag();
+                }
                 trackHitCol->push_back(hit);
             }
         }     
     } 
 
-    // Finally - unflag all hits and clean up! 
+    // Finally - clean up! 
     if (!m_candidates.empty()) {
         iterator hypo = begin();    
         for(; hypo != end(); hypo++){
