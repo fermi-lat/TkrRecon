@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: lsrea  Thu Jan 31 18:41:07 PST 2008
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx 
+Log Message:
+Only set cluster HITUSED flag for hits actually on tracks.
+We meant to do this all along, but it never happened.
+
+    *
+------------------------------------------------------------
+User: lsrea  Thu Jan 31 18:41:07 PST 2008
 TkrRecon/doc
 
 Modified Files:
