@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Mon Feb 18 14:39:33 PST 2008
+TkrRecon/cmt
+
+Modified Files:
+      Tag: GlastReleasev13r9
+	requirements 
+Log Message:
+Bill's changes to neutral vertex code
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-13-03, operation: add
 Package: TkrRecon
