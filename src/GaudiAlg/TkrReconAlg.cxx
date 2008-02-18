@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.39 2006/03/21 01:12:35 usher Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.40 2006/06/14 05:25:43 lsrea Exp $
 */
 
 
@@ -180,6 +180,7 @@ StatusCode TkrReconAlg::initialize()
     m_errorCount = 0;
     m_lastTime   = 0.0;
     m_eventCount = -1;
+
 
     if(name()!="Iteration") {
         s_saveBadEvents = m_saveBadEvents;
