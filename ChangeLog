@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Mon Feb 18 14:39:34 PST 2008
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+      Tag: GlastReleasev13r9
+	ComboVtxTool.cxx 
+Log Message:
+Bill's changes to neutral vertex code
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon Feb 18 14:39:33 PST 2008
 TkrRecon/src/GaudiAlg
 
