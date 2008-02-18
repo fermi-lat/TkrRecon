@@ -276,10 +276,10 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
 	double y_slope = neutral_dir.y()/neutral_dir.z();
 
 	// Compute major & minor axes for Cal Error ellipse
-	double shower_radial_error = (.632 + 113./sqrt(CalEnergy) + 3230./CalEnergy)/1.4142;
-	double LogCalRaw = log(std::max(1., CalEnergy))/2.306; 
-	double CalTransModel   = std::min(50., std::max(25., 65.5-11.6*LogCalRaw)); 
-    //shower_radial_error *=   CalTransModel/35.3;  //Normalize to 400 MeV
+	// WBA,12-Feb-2008: Trying to fix erroneous behavior of Neutral solutions at high energies
+	// Note: as CalEnergy get large - this can get very small.  Test indicated smallest was ~ 2.5mm around 10 GeV
+	double shower_radial_error = std::max(2.5, (.632 + 113./sqrt(CalEnergy) + 3230./CalEnergy)/1.4142);
+	double LogCalRaw = log(std::max(1., CalEnergy))/2.306; //Log-Base 10 of the raw energy
 
 	double path_length = (m_calPos - vtx_pos).mag();
 	double path_length_corr    = 1.; //(1. + (path_length-100.)/700./sqrt(CalEnergy/100.));
@@ -313,12 +313,15 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
 	double rad_lens = tkr1->getTkrCalRadlen();
 	double theta_0  = 13.8*sqrt(rad_lens)*(1.+.038*log(rad_lens))/(.7*CalEnergy);
     double theta_Ratio = sqrt(3./2.)*open_angle/theta_0;
-	double neutral_wgt =1./std::min(1., theta_Ratio*theta_Ratio); 
 
+    // WBA: where should the transition point be?   
+	//      Right now its set at theta_0.... probably should be a 1.5 - 2x theta_0
+    // Calcuate an energy dependent cross-over point
+	double cross_over  = LogCalRaw;  
+	double neutral_wgt = cross_over/std::min(cross_over, theta_Ratio*theta_Ratio); 
 	cSxSx *= neutral_wgt;
 	cSySy *= neutral_wgt;
 	cSxSy *= neutral_wgt;
-
 
 	// Make a neutral energy param object
 	Event::TkrTrackParams vtx1_params = vtx1->getVertexParams();
@@ -342,10 +345,8 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
 	// De-weight the charged tracking solution according Chisq for the best track and 
 	// the opening angle between the neutral direction and the charged direction
 
-	double indep_var = open_angle* CalEnergy/20.; // equals 1 for OA = .05 & CalE = 400
-    double charged_wgt = std::min(50., std::max(1., (15.*indep_var - 5)/2.)); //33 + 34
-	//double z_break = 235.; 
-	//if(vtx_pos.z() > z_break) charged_wgt = (charged_wgt+1.)/2.;
+	double indep_var = open_angle* std::min(10000., CalEnergy)/20.; // equals 1 for OA = .05 & CalE = 400
+    double charged_wgt = std::max(1., (15.*indep_var - 5)/2.); //33 + 34
 
     cSxSx = vtx1_params.getxSlpxSlp()*charged_wgt;
 	cSySy = vtx1_params.getySlpySlp()*charged_wgt;
@@ -410,11 +411,11 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
 		cyy_inv = (sin2/major_axis2 + cos2/minor_axis2); 
 		cxy_inv = (sin*cos)*(1./major_axis2 - 1./minor_axis2);
 
-			// Setup the weights for the neutral solution - charge to follow
+	    // Setup the weights for the neutral solution - charge to follow
 		Vector charged1_dir = tkr1->getInitialDirection();
 		open_angle = acos(neutral_dir * charged1_dir);
         theta_Ratio = sqrt(3./2.)*open_angle/theta_0;
-	    neutral_wgt = 1./std::min(1., theta_Ratio*theta_Ratio); 
+	    neutral_wgt =cross_over/std::min(cross_over, theta_Ratio*theta_Ratio); 
 
 		//Now invert 2x2 slope matrix by hand and apply weights
 		detC = cxx_inv*cyy_inv - cxy_inv*cxy_inv;
@@ -424,7 +425,7 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
 
 		// Make a neutral energy param object
 		const Event::TkrTrackParams& tkr1_params = tkr1->front()->getTrackParams(Event::TkrTrackHit::SMOOTHED);
-	    cxx = tkr1_params.getxPosxPos();
+	    cxx  = tkr1_params.getxPosxPos();
 	    cxSx = 0.; //vtx1_params.getxPosxSlp()/x_slope*vtx1_params.getxSlope();
 	    cxy  = tkr1_params.getxPosyPos(); 
 	    cxSy = 0.; //vtx1_params.getxPosySlp()/y_slope*vtx1_params.getySlope();
@@ -440,9 +441,8 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
 								      cSySy);
 
 		// Build the weighted cov. matrix for the first track
-		indep_var = open_angle* CalEnergy/20.; // equals 1 for OA = .05 & CalE = 400
-        charged_wgt = std::min(50., std::max(1., (15.*indep_var - 5)/2.)); //33 + 34
-	    //if(tkr1_pos.z() > z_break) charged_wgt = (charged_wgt+1.)/2.;
+	    indep_var = open_angle* std::min(10000., CalEnergy)/20.; // equals 1 for OA = .05 & CalE = 400
+        charged_wgt = std::max(1., (15.*indep_var - 5)/2.); //33 + 34
 
 		cSxSx = tkr1_params.getxSlpxSlp()*charged_wgt;
 		cSySy = tkr1_params.getySlpySlp()*charged_wgt;
@@ -465,8 +465,8 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
 		neutralVertex1->setDirection(Vector(-vtxNParams(2), -vtxNParams(4), -1.).unit());
 		neutralVertex1->setChiSquare(m_chisq);
 		// Comandeer the Arclen variables to store the weights
-        neutralVertex->setTkr1ArcLen(charged_wgt);
-        neutralVertex->setTkr2ArcLen(neutral_wgt);
+        neutralVertex1->setTkr1ArcLen(charged_wgt);
+        neutralVertex1->setTkr2ArcLen(neutral_wgt);
 		neutralVertex1->addTrack(tkr1);
 
 		// Add track to TkrVertexCol
