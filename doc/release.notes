@@ -3,6 +3,7 @@
 @verbatim
   Managers: Tracy Usher, Leon Rochester 
 
+  v10r13p4  19-Feb-2008 LSR  Further refinement of neutral vertex weighting; from v13r9 branch
   v10r13p3  31-Jan-2008 LSR  Leave cluster USED flag set only for hits actually on tracks
   v10r13p2  07-Dec-2007 LSR  KalmanTrackFitTool: replace size() with numFitHits()
                              FindTrackHitsTool: increment counters when adding leading hits
