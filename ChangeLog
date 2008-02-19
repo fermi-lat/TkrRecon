@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Feb 19 11:25:57 PST 2008
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Refined neutral vertex weighting... code from v10r13p2gr1 (GRv13r9 branch)
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r13p2gr1, operation: add
 Package: TkrRecon
