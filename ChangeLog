@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Thu Apr 17 10:29:19 PDT 2008
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Fix bug found by Robert; now we use projected distance
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-13-04, operation: add
 Package: TkrRecon
