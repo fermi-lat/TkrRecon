@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Thu Apr 17 10:29:20 PDT 2008
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	ComboVtxTool.cxx 
+Log Message:
+Fix bug found by Robert; now we use projected distance
+
+    *
+------------------------------------------------------------
+User: lsrea  Thu Apr 17 10:29:20 PDT 2008
 TkrRecon/doc
 
 Modified Files:
