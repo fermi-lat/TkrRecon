@@ -281,7 +281,9 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
 	double shower_radial_error = std::max(2.5, (.632 + 113./sqrt(CalEnergy) + 3230./CalEnergy)/1.4142);
 	double LogCalRaw = log(std::max(1., CalEnergy))/2.306; //Log-Base 10 of the raw energy
 
-	double path_length = (m_calPos - vtx_pos).mag();
+	// this introduces an additional 1/cos(theta) 
+    // into both axes, to account for the projection
+    double path_length = vtx_pos.z()-m_calPos.z();
 	double path_length_corr    = 1.; //(1. + (path_length-100.)/700./sqrt(CalEnergy/100.));
 
 	double minor_axis = shower_radial_error*path_length_corr / path_length; 
@@ -394,7 +396,8 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
 	    x_slope = neutral1_dir.x()/neutral1_dir.z();
 	    y_slope = neutral1_dir.y()/neutral1_dir.z();
 
-		double path_length1 = (m_calPos - tkr1_pos).mag();
+		// again, use the projected distance
+        double path_length1 = m_calPos.z() - tkr1_pos.z();
 	    minor_axis = shower_radial_error*path_length_corr / path_length1; 
 		major_axis = minor_axis / fabs(neutral_dir.z());  
 
