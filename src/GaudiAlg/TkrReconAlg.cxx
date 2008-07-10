@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.39 2006/03/21 01:12:35 usher Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.40 2006/06/14 05:25:43 lsrea Exp $
 */
 
 
@@ -23,6 +23,8 @@
 #include "Event/TopLevel/Event.h"
 #include "Event/TopLevel/EventModel.h"
 #include "Event/Recon/TkrRecon/TkrCluster.h"
+#include "Event/Recon/TkrRecon/TkrTrack.h"
+#include "Event/Recon/TkrRecon/TkrVertex.h"
 #include "LdfEvent/EventSummaryData.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
 
@@ -446,6 +448,21 @@ StatusCode TkrReconAlg::handleError(std::string errorString)
     log << endreq;
 
     m_errorArray.push_back(errorRec);
+
+    // Clean out tracks and vertices in the TDS so we don't confuse downstream algorithms
+    // Start with the tracks
+    SmartDataPtr<Event::TkrTrackCol> trackCol(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
+    if (trackCol) 
+    {
+        while(trackCol->size()) trackCol->pop_back();
+    }
+
+    // Now get rid of the  vertices
+    SmartDataPtr<Event::TkrVertexCol> vertexCol(eventSvc(), EventModel::TkrRecon::TkrVertexCol);
+    if (vertexCol)
+    {
+        while(vertexCol->size()) vertexCol->pop_back();
+    }
 
     StatusCode sc = StatusCode::FAILURE;
     if(s_saveBadEvents) sc = StatusCode::SUCCESS;
