@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: lsrea  Fri Jul 11 14:59:38 PDT 2008
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+Remove tracks and vertices in case of exception (code from Tracy)
+
+    *
+------------------------------------------------------------
+User: lsrea  Fri Jul 11 14:59:38 PDT 2008
 TkrRecon/cmt
 
 Modified Files:
