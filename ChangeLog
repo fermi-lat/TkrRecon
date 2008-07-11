@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Fri Jul 11 14:59:38 PDT 2008
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Remove tracks and vertices in case of exception (code from Tracy)
+
+    *
+------------------------------------------------------------
 User: usher  Thu Jul 10 09:03:28 PDT 2008
 TkrRecon/src/GaudiAlg
 
