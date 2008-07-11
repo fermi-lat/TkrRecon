@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.40 2006/06/14 05:25:43 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.41 2008/07/10 16:03:28 usher Exp $
 */
 
 
@@ -321,6 +321,13 @@ StatusCode TkrReconAlg::execute()
             return handleError(stageFailed);
         }
 
+        if (m_testExceptions && m_eventCount%exceptionTestTypes==3) sc = StatusCode::FAILURE;
+
+        if (sc.isFailure())
+        {
+            return handleError(stageFailed);
+        }
+
         // Check number of clusters returned
         Event::TkrClusterCol* clusterCol = SmartDataPtr<Event::TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol);
         int numClusters = clusterCol->size();
@@ -333,35 +340,10 @@ StatusCode TkrReconAlg::execute()
             return handleError(errorStream.str());
         }
         
-        // throw some exceptions to test the logging, maybe make an option later
-        m_stage = "TestExceptions";
-        if (m_testExceptions) {
-            if(m_eventCount%exceptionTestTypes==1) {
-                throw TkrException("Testing TkrException ");
-            }
-
-            if(m_eventCount%exceptionTestTypes==2) {
-                int i = 0;
-                int j = 1;
-                int k = j/i;
-                k++;
-            } else if(m_eventCount%exceptionTestTypes==5) {
-                int* pInt = 0;
-                int x = *pInt;
-                log << MSG::INFO << "Test x = " << x << endreq;
-            }
-        }
-
         // Call track filter stage
         m_stage = "TkrFilterAlg";
         if(m_TkrFilterAlg && m_lastStage>=FILTERING && m_firstStage<=FILTERING) {
             sc = m_TkrFilterAlg->execute();
-        }
-        if (m_testExceptions && m_eventCount%exceptionTestTypes==3) sc = StatusCode::FAILURE;
-
-        if (sc.isFailure())
-        {
-            return handleError(stageFailed);
         }
 
         // Call track finding if in first pass mode
@@ -389,6 +371,25 @@ StatusCode TkrReconAlg::execute()
         if (sc.isFailure())
         {
             return handleError(stageFailed);
+        }
+
+        // throw some exceptions to test the logging
+        m_stage = "TestExceptions";
+        if (m_testExceptions) {
+            if(m_eventCount%exceptionTestTypes==1) {
+                throw TkrException("Testing TkrException ");
+            }
+
+            if(m_eventCount%exceptionTestTypes==2) {
+                int i = 0;
+                int j = 1;
+                int k = j/i;
+                k++;
+            } else if(m_eventCount%exceptionTestTypes==5) {
+                int* pInt = 0;
+                int x = *pInt;
+                log << MSG::INFO << "Test x = " << x << endreq;
+            }
         }
 
     }catch( TkrException& e ){
@@ -451,17 +452,34 @@ StatusCode TkrReconAlg::handleError(std::string errorString)
 
     // Clean out tracks and vertices in the TDS so we don't confuse downstream algorithms
     // Start with the tracks
-    SmartDataPtr<Event::TkrTrackCol> trackCol(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
+    SmartDataPtr<Event::TkrTrackCol> 
+        trackCol(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
     if (trackCol) 
     {
         while(trackCol->size()) trackCol->pop_back();
     }
 
     // Now get rid of the  vertices
-    SmartDataPtr<Event::TkrVertexCol> vertexCol(eventSvc(), EventModel::TkrRecon::TkrVertexCol);
+    SmartDataPtr<Event::TkrVertexCol> 
+        vertexCol(eventSvc(), EventModel::TkrRecon::TkrVertexCol);
     if (vertexCol)
     {
         while(vertexCol->size()) vertexCol->pop_back();
+    }
+    // and unflag the clusters
+        // Retrieve the pointer to the reconstructed clusters
+    SmartDataPtr<Event::TkrClusterCol> clusterCol(
+        eventSvc(),EventModel::TkrRecon::TkrClusterCol);
+    if(clusterCol) 
+    {
+        // maybe we'll try this at some point
+        // for now, it seems to cause problems downstream
+        //if(m_stage=="TkrClusterAlg") {
+        //    while(clusterCol->size()) clusterCol->pop_back();
+        //} else {
+        int num_hits = clusterCol->size();
+        for(int i=0; i<num_hits; i++) (*clusterCol)[i]->unflag();
+        //}
     }
 
     StatusCode sc = StatusCode::FAILURE;
