@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: glastrm  Mon Jul 21 08:17:34 PDT 2008
+GlastRelease-scons/TkrRecon/src/test
+
+Modified Files:
+	jobOptions.txt 
+Log Message:
+Removed dependency on CMT env variables
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-13-06, operation: add
 Package: TkrRecon
