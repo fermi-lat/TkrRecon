@@ -33,7 +33,7 @@ ApplicationMgr.ExtSvc += { "GlastDetSvc"};
 
 GlastDetSvc.topVolume="LAT"; 
 
-GlastDetSvc.xmlfile="$(XMLGEODBSROOT)/xml/flight/flightSegVols.xml";
+GlastDetSvc.xmlfile="$(XMLGEODBSXMLPATH)/flight/flightSegVols.xml";
 //GlastDetSvc.visitorMode="recon";
 
 ApplicationMgr.ExtSvc += { "TkrGeometrySvc", "TkrInitSvc" };
@@ -63,8 +63,8 @@ TkrBadStripsSvc.badStripsFile = "$(TKRUTILROOT)/src/test/badStrips.txt";
 // Set output level threshold (2=DEBUG, 3=INFO, 4=WARNING, 5=ERROR, 6=FATAL )
 MessageSvc.OutputLevel = 3;
 ApplicationMgr.EvtMax = 5;
-mcRootReaderAlg.mcRootFile="$(ROOTTESTDATAROOT)/data/default/mc.root";
-digiRootReaderAlg.digiRootFile="$(ROOTTESTDATAROOT)/data/default/digi.root";
+mcRootReaderAlg.mcRootFile="$(ROOTTESTDATADATAPATH)/default/mc.root";
+digiRootReaderAlg.digiRootFile="$(ROOTTESTDATADATAPATH)/default/digi.root";
 
 //==============================================================
 //
