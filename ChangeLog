@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: heather  Mon Aug  4 21:57:17 PDT 2008
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+set GleamEventFlag for error too
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-14-00, operation: add
 Package: TkrRecon
