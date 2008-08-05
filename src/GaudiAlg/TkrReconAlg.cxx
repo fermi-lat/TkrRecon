@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.41 2008/07/10 16:03:28 usher Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.42 2008/07/11 21:59:38 lsrea Exp $
 */
 
 
@@ -415,6 +415,8 @@ StatusCode TkrReconAlg::execute()
 StatusCode TkrReconAlg::handleError(std::string errorString) 
 {
     MsgStream log(msgSvc(), name());
+
+    m_header->setTkrReconError(); 
 
     SmartDataPtr<LdfEvent::EventSummaryData> summaryTds(eventSvc(), "/Event/EventSummary"); 
     if (!summaryTds) {
