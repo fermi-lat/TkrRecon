@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+User: ecephas  Tue Sep  2 13:02:26 PDT 2008
+GlastRelease-scons/TkrRecon
+
+Modified Files:
+	TkrReconLib.py 
+Log Message:
+Added the following libraries:
+
+        env.Tool('CalUtilLib')
+        env.Tool('CalibDataLib')
+        env.Tool('GlastSvcLib')
+
+    *
+------------------------------------------------------------
 User: ecephas  Fri Aug 15 14:42:37 PDT 2008
 GlastRelease-scons/TkrRecon
 
