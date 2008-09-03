@@ -6,7 +6,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/TrackElements.h,v 1.4 2004/09/23 21:30:29 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks/TrackElements.h,v 1.1 2005/05/26 20:33:07 usher Exp $
  */
 
 #ifndef TrackElements_h
@@ -99,7 +99,7 @@ const bool TrackElements::operator==(const TrackElements& right) const
 typedef std::vector<TrackElements>  TrackElementsVec;
 typedef std::vector<TrackElements*> TrackElementsPtrVec;
 
-#include "src/PatRec/VectorLinks/StdRelTable/RelTable.h"
+#include "StdRelTable/RelTable.h"
 #include "VecPoint.h"
 
 typedef TkrRecon::RelTable<TrackElements, VecPoint>               TrackElemToPointsTab;
