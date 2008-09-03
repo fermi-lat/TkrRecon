@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+User: ecephas  Wed Sep  3 08:23:18 PDT 2008
+GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TrackElements.h 
+Log Message:
+Changed 
+#include "src/PatRec/VectorLinks/StdRelTable/RelTable.h"
+TO
+#include "StdRelTable/RelTable.h"
+Reason:  For gcc, Search paths for headers are relative to the directory of the file that includes that header.
+
+    *
+------------------------------------------------------------
 User: ecephas  Wed Sep  3 08:17:37 PDT 2008
 GlastRelease-scons/TkrRecon
 
