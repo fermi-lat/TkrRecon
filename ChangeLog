@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: lsrea  Tue Sep  9 18:33:13 PDT 2008
+TkrRecon/src/Track
+
+Added Files:
+	TkrGhostTool.cxx TkrGhostTool.h 
+Log Message:
+Added TkrGhostTool: flags clusters as singleton, ToT255s, ghosts, and clusters on ghostTracks
+Tool is called whenever TkrReconAlg/FirstPass is called.
+To call only the tool set TkrReconAlg.firstStage/lastStage to 0/0
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Sep  9 18:33:12 PDT 2008
 TkrRecon/src/GaudiAlg
 
