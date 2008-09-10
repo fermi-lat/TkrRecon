@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.42 2008/07/11 21:59:38 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.43 2008/08/05 04:57:18 heather Exp $
 */
 
 
@@ -27,11 +27,13 @@
 #include "Event/Recon/TkrRecon/TkrVertex.h"
 #include "LdfEvent/EventSummaryData.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
+#include "Track/TkrGhostTool.h"
 
 #include "GaudiKernel/Algorithm.h"
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/AlgFactory.h"
 #include "GaudiKernel/SmartDataPtr.h"
+#include "GaudiKernel/IToolSvc.h"
 
 #include "Utilities/TkrException.h"
 #include <exception>
@@ -130,6 +132,7 @@ private:
     // this is because 2 copies of TkrReconAlg are instantiated: "FirstPass" and "Iteration"
     static bool s_failed;
     static bool s_saveBadEvents;
+    ITkrGhostTool* m_ghostTool;
 };
 
 bool TkrReconAlg::s_failed = false;
@@ -273,6 +276,13 @@ StatusCode TkrReconAlg::initialize()
     // Set the property controlling the type of track fitting to perform
     m_TkrVertexAlg->setProperty("VertexerType", "DEFAULT");
 
+    // Ghost Tool
+    sc = toolSvc()->retrieveTool("TkrGhostTool", m_ghostTool);
+    if(sc.isFailure()) {
+        log << MSG::ERROR << "TkrGhostTool not found!" << endreq;
+        return StatusCode::FAILURE;
+    }
+
     return StatusCode::SUCCESS;
 }
 
@@ -321,6 +331,17 @@ StatusCode TkrReconAlg::execute()
             return handleError(stageFailed);
         }
 
+        if(name()!="Iteration") {
+            m_stage = "GhostCheck";
+            if (m_ghostTool) {
+                if ((sc=m_ghostTool->flagSingles()).isFailure() ||
+                    (sc=m_ghostTool->flagEarlyHits()).isFailure())
+                {
+                    return handleError(stageFailed);
+                }
+            }
+        }
+
         if (m_testExceptions && m_eventCount%exceptionTestTypes==3) sc = StatusCode::FAILURE;
 
         if (sc.isFailure())
@@ -331,6 +352,9 @@ StatusCode TkrReconAlg::execute()
         // Check number of clusters returned
         Event::TkrClusterCol* clusterCol = SmartDataPtr<Event::TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol);
         int numClusters = clusterCol->size();
+        log << MSG::DEBUG;
+        if(log.isActive()) log << numClusters << " TkrClusters found" ;
+        log << endreq;
 
         if (numClusters > m_maxClusters)
         {
@@ -354,6 +378,27 @@ StatusCode TkrReconAlg::execute()
             return handleError(stageFailed);
         }
 
+
+        // Check number of tracks returned
+        Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
+        int numTracks = trackCol->size();
+        // Check number of clusters returned
+        log << MSG::DEBUG;
+        if(log.isActive()) log << numTracks << " TkrTracks found" ;
+        log << endreq;
+
+        // Check for ghosts
+        if(name()!="Iteration") {
+            m_stage = "GhostCheck";
+            if (m_ghostTool) {
+                sc = m_ghostTool->flagEarlyTracks();
+                if (sc.isFailure())
+                {
+                    return handleError(stageFailed);
+                }
+            }
+        }
+
         // Call track fit
         m_stage = "TkrTrackFitAlg";
         if(m_lastStage>=FITTING && m_firstStage<=FITTING) sc = m_TkrTrackFitAlg->execute();
@@ -364,6 +409,13 @@ StatusCode TkrReconAlg::execute()
             return handleError(stageFailed);
         }
 
+        // Check number of tracks again
+        trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
+        numTracks = trackCol->size();
+        log << MSG::DEBUG;
+        if(log.isActive()) log << numTracks << " TkrTracks remain after fitting" ;
+        log << endreq;
+
         // Call vertexing
         m_stage = "TkrVertexAlg";
         if(m_lastStage>=VERTEXING && m_firstStage<=VERTEXING) sc = m_TkrVertexAlg->execute();
@@ -372,6 +424,13 @@ StatusCode TkrReconAlg::execute()
         {
             return handleError(stageFailed);
         }
+
+        Event::TkrVertexCol* vtxCol = SmartDataPtr<Event::TkrVertexCol>(eventSvc(),EventModel::TkrRecon::TkrVertexCol);
+        int numVtxs = vtxCol->size();
+        // Check number of clusters returned
+        log << MSG::DEBUG;
+        if(log.isActive()) log << numVtxs << " TkrVertex's found" ;
+        log << endreq;
 
         // throw some exceptions to test the logging
         m_stage = "TestExceptions";
