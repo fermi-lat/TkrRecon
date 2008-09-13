@@ -6,7 +6,7 @@
 *
 * @author The Tracking Software Group
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrGhostTool.cxx,v 1.31 2005/06/22 21:39:36 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrGhostTool.cxx,v 1.1 2008/09/10 01:33:13 lsrea Exp $
 */
 
 #include "GaudiKernel/AlgTool.h"
@@ -235,8 +235,12 @@ StatusCode TkrGhostTool::flagEarlyHits()
     }
 
     if((tkrVector&trigBits)!=tkrVector) {
-        std::cout <<" disagrees!" << std::hex << tkrVector 
-            << " " << trigBits << std::dec << std::endl;
+        log << MSG::DEBUG;
+        if (log.isActive()) {
+            log <<"tkrVector and calculated tower trigger disagree:" << endreq 
+                << "tkrVector = " << std::hex << tkrVector 
+            << ", calculation = " << trigBits << std::dec << endreq;
+        }
     }
 
     // Flag the hits that would have made the trigger
