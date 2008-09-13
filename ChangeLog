@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Sat Sep 13 10:42:36 PDT 2008
+TkrRecon/src/Track
+
+Modified Files:
+	TkrGhostTool.cxx 
+Log Message:
+New TkrGhostTool
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v10r16p1, operation: add
 Package: TkrRecon
