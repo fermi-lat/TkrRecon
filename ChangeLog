@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: lsrea  Mon Oct  6 12:08:10 PDT 2008
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+Cleanup of TkrGhostTool... including setting GHOST bit it track
+
+
+    *
+------------------------------------------------------------
+User: lsrea  Mon Oct  6 12:08:10 PDT 2008
 TkrRecon/cmt
 
 Modified Files:
