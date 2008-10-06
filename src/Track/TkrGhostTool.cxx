@@ -6,7 +6,7 @@
 *
 * @author The Tracking Software Group
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrGhostTool.cxx,v 1.1 2008/09/10 01:33:13 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrGhostTool.cxx,v 1.2 2008/09/13 17:42:36 lsrea Exp $
 */
 
 #include "GaudiKernel/AlgTool.h"
@@ -177,12 +177,12 @@ StatusCode TkrGhostTool::flagSingles()
 
         if(end==2) { // this might never happen... 
             if(totCount==0) {
-                clus->setMask(Event::TkrCluster::maskALONE);
-                clus->setMask(Event::TkrCluster::maskALONEEND);
+                clus->setStatusBits(Event::TkrCluster::maskALONE);
+                clus->setStatusBits(Event::TkrCluster::maskALONEEND);
             }
         } else {
-            if(totCount==1) clus->setMask(Event::TkrCluster::maskALONE);
-            if(endCount[end]==1) clus->setMask(Event::TkrCluster::maskALONEEND);
+            if(totCount==1) clus->setStatusBits(Event::TkrCluster::maskALONE);
+            if(endCount[end]==1) clus->setStatusBits(Event::TkrCluster::maskALONEEND);
         }
     }
     return sc;
@@ -221,6 +221,7 @@ StatusCode TkrGhostTool::flagEarlyHits()
     int clusSize = clusterCol->size();
     for (i=0;i<clusSize;++i) {
         Event::TkrCluster* clus = (*clusterCol)[i];
+        clus->clearStatusBits(Event::TkrCluster::maskZAPPED);
         int tower = clus->tower();
         clusterTrigger[tower]->setBit(clus);
     }
@@ -258,9 +259,9 @@ StatusCode TkrGhostTool::flagEarlyHits()
         if((trigBits&(1<<tower))==0) continue;
 
         int layer = clus->getLayer();
-        if(clus->getRawToT()==255) clus->setMask(Event::TkrCluster::mask255);
+        if(clus->getRawToT()==255) clus->setStatusBits(Event::TkrCluster::mask255);
         if(towerBits[tower]&(1<<layer)) {
-            clus->setMask(Event::TkrCluster::maskGHOST);
+            clus->setStatusBits(Event::TkrCluster::maskGHOST);
 
             log << MSG::DEBUG << "Ghost bit set for cluster " 
                 << i << ", t/l "  << tower << ", " << layer  << ", isGhost "  
@@ -287,11 +288,11 @@ StatusCode TkrGhostTool::flagEarlyTracks()
     Event::TkrTrackColConPtr tcolIter = trackCol->begin();
     for(tcolIter; tcolIter!=trackCol->end();++tcolIter,++trackCount) {
         Event::TkrTrack* track = *tcolIter;
+        track->clearStatusBits(Event::TkrTrack::GHOST);
         Event::TkrTrackHitVecItr pHit = track->begin();
 
         int ghostCount = 0;
         int _255Count = 0;
-        int count = 0;
         while(pHit != track->end()) {
             const Event::TkrTrackHit* hit = *pHit++;
             Event::TkrClusterPtr pClus = hit->getClusterPtr();
@@ -302,12 +303,14 @@ StatusCode TkrGhostTool::flagEarlyTracks()
             bool isAloneEnd = pClus->isSet(Event::TkrCluster::maskALONEEND);
             if(is255&&isAloneEnd) _255Count++;
             if(isGhost)           ghostCount++;
-            count++;
         }
 
         if(_255Count==0&&ghostCount==0) continue;
 
-        count = 0;
+        // this is a ghost track!
+        track->setStatusBit(Event::TkrTrack::GHOST);
+
+        // flag the remaining clusters on this track
         pHit = track->begin();
         while(pHit!=track->end()) {
             const Event::TkrTrackHit* hit = *pHit++;
@@ -319,10 +322,9 @@ StatusCode TkrGhostTool::flagEarlyTracks()
                 bool isAlone = pClus->isSet(Event::TkrCluster::maskALONE);
                 bool isAloneEnd = pClus->isSet(Event::TkrCluster::maskALONEEND);
                 if(!is255&&!isGhost) {
-                    pClus->setMask(Event::TkrCluster::maskSAMETRACK);
+                    pClus->setStatusBits(Event::TkrCluster::maskSAMETRACK);
                 }
             } 
-            count++;
         }
     }
 
