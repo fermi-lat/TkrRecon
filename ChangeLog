@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Mon Oct  6 12:08:10 PDT 2008
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Cleanup of TkrGhostTool... including setting GHOST bit it track
+
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-16-01, operation: add
 Package: TkrRecon
