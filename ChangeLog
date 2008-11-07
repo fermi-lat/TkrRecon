@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: lsrea  Fri Nov  7 11:18:33 PST 2008
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+move "real" TkrGhostTool to TkrUtil (will remove this one soon)
+Modify TkrReconAlg to use the one in TkrUtil
+Remove entry from the dll load routine
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-16-02, operation: add
 Package: TkrRecon
