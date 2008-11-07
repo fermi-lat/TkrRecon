@@ -40,11 +40,13 @@ DECLARE_FACTORY_ENTRIES(TkrRecon)
     DECLARE_TOOL(      TkrHitTruncationTool    );
     DECLARE_TOOL(      TkrCalFilterTool        );
     DECLARE_TOOL(      TkrFilterTool           );
-    DECLARE_TOOL(      TkrGhostTool            );
 
 //    DECLARE_TOOL(      TkrComboFitTool         );
 //    DECLARE_TOOL(      TkrLinkAndTreeFitTool   );
 //    DECLARE_TOOL(      TkrNeuralNetFitTool     );
+
+//LSR moved to TkrUtil 07-Nov-08, the version in TkrRecon is obsolete!
+//    DECLARE_TOOL(      TkrGhostTool            ); 
 
 } 
 
