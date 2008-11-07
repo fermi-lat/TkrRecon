@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: lsrea  Fri Nov  7 11:18:33 PST 2008
+TkrRecon/src/Dll
+
+Modified Files:
+	tkrRecon_load.cxx 
+Log Message:
+move "real" TkrGhostTool to TkrUtil (will remove this one soon)
+Modify TkrReconAlg to use the one in TkrUtil
+Remove entry from the dll load routine
+
+    *
+------------------------------------------------------------
+User: lsrea  Fri Nov  7 11:18:33 PST 2008
 TkrRecon/doc
 
 Modified Files:
