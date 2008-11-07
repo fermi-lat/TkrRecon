@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.43 2008/08/05 04:57:18 heather Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.44 2008/09/10 01:33:12 lsrea Exp $
 */
 
 
@@ -27,9 +27,10 @@
 #include "Event/Recon/TkrRecon/TkrVertex.h"
 #include "LdfEvent/EventSummaryData.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
-#include "Track/TkrGhostTool.h"
 
-#include "GaudiKernel/Algorithm.h"
+#include "TkrUtil/ITkrGhostTool.h"
+
+#include "GaudiKernel/Algorithm.h" 
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/AlgFactory.h"
 #include "GaudiKernel/SmartDataPtr.h"
