@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Tue Nov 11 09:35:57 PST 2008
+TkrRecon/src/Track
+
+Removed Files:
+	TkrGhostTool.cxx TkrGhostTool.h 
+Log Message:
+Generates conflicts on linux... correct version is now in TkrUtil
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-16-03, operation: add
 Package: TkrRecon
