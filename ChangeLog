@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: ecephas  Mon Dec  8 13:40:11 PST 2008
+GlastRelease-scons/TkrRecon
+
+Modified Files:
+	SConscript 
+Log Message:
+Check in SConscript for TkrRecon v10r16p2 (for branch-tag, GlastReleasev15r49) 
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-16-04, operation: add
 Package: TkrRecon
