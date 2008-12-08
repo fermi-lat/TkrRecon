@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+TAG
+Tag name: TkrRecon-10-16-02, operation: mov
+Package: TkrRecon
+User: glast  Mon Dec  8 14:41:26 2008
+Files:
+  TkrRecon/SConscript  1.8
+  TkrRecon/SConscript  1.8
+
+    *
+------------------------------------------------------------
 User: ecephas  Mon Dec  8 13:40:11 PST 2008
 GlastRelease-scons/TkrRecon
 
