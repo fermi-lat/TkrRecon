@@ -1,7 +1,7 @@
 # -*- python -*-
-# $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/SConscript,v 1.6 2008/11/07 19:30:12 glastrm Exp $ 
+# $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/SConscript,v 1.7 2008/11/11 18:30:13 glastrm Exp $ 
 # Authors: Leon Rochester <lsrea@slac.stanford.edu>, Tracy Usher <usher@slac.stanford.edu>
-# Version: TkrRecon-10-16-04
+# Version: TkrRecon-10-16-02
 Import('baseEnv')
 Import('listFiles')
 Import('packages')
@@ -25,9 +25,11 @@ TkrRecon = libEnv.SharedLibrary('TkrRecon', listFiles(['src/Dll/*.cxx','src/Gaud
                                                        'src/Utilities/*.cxx','src/Vertex/*.cxx',
                                                        'src/Vertex/Combo/*.cxx',
                                                        'src/Vertex/DocaVtx/*.cxx']))
-
 progEnv.Tool('TkrReconLib')
 test_TkrRecon = progEnv.GaudiProgram('test_TkrRecon', listFiles(['src/test/*.cxx']), test = 1)
 
 progEnv.Tool('registerObjects', package = 'TkrRecon', libraries = [TkrRecon], testApps = [test_TkrRecon],
 	includes = listFiles(['TkrRecon/*'], recursive = 1))
+
+
+
