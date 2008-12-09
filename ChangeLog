@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: ecephas  Mon Dec  8 16:08:37 PST 2008
+GlastRelease-scons/TkrRecon
+
+Modified Files:
+	TkrReconLib.py 
+Log Message:
+Check in TkrReconLib.py for TkrRecon v10r16p2 (branch-tag, GlastReleasev15r49).
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-16-02, operation: mov
 Package: TkrRecon
