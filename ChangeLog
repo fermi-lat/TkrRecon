@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Wed Jan 21 17:42:10 PST 2009
+TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+Call TkrGhostTool::flagEarlyVertices() in TkrRecon sequence
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-15-50-10, operation: del
 Package: TkrRecon
