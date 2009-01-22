@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Wed Jan 21 17:42:11 PST 2009
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrReconAlg.cxx 
+Log Message:
+Call TkrGhostTool::flagEarlyVertices() in TkrRecon sequence
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Jan 21 17:42:10 PST 2009
 TkrRecon/doc
 
