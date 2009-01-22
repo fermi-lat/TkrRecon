@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.44 2008/09/10 01:33:12 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.45 2008/11/07 19:18:34 lsrea Exp $
 */
 
 
@@ -333,7 +333,7 @@ StatusCode TkrReconAlg::execute()
         }
 
         if(name()!="Iteration") {
-            m_stage = "GhostCheck";
+            m_stage = "GhostCheck - clusters";
             if (m_ghostTool) {
                 if ((sc=m_ghostTool->flagSingles()).isFailure() ||
                     (sc=m_ghostTool->flagEarlyHits()).isFailure())
@@ -390,7 +390,7 @@ StatusCode TkrReconAlg::execute()
 
         // Check for ghosts
         if(name()!="Iteration") {
-            m_stage = "GhostCheck";
+            m_stage = "GhostCheck - tracks";
             if (m_ghostTool) {
                 sc = m_ghostTool->flagEarlyTracks();
                 if (sc.isFailure())
@@ -428,6 +428,19 @@ StatusCode TkrReconAlg::execute()
 
         Event::TkrVertexCol* vtxCol = SmartDataPtr<Event::TkrVertexCol>(eventSvc(),EventModel::TkrRecon::TkrVertexCol);
         int numVtxs = vtxCol->size();
+
+        // Check for ghosts
+        if(name()!="Iteration") {
+            m_stage = "GhostCheck - vertices";
+            if (m_ghostTool) {
+                sc = m_ghostTool->flagEarlyVertices();
+                if (sc.isFailure())
+                {
+                    return handleError(stageFailed);
+                }
+            }
+        }
+
         // Check number of clusters returned
         log << MSG::DEBUG;
         if(log.isActive()) log << numVtxs << " TkrVertex's found" ;
