@@ -1,7 +1,7 @@
 # -*- python -*-
-# $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/SConscript,v 1.8 2008/12/08 21:40:11 ecephas Exp $ 
+# $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/SConscript,v 1.4 2008/09/13 18:30:08 glastrm Exp $ 
 # Authors: Leon Rochester <lsrea@slac.stanford.edu>, Tracy Usher <usher@slac.stanford.edu>
-# Version: TkrRecon-10-16-05
+# Version: TkrRecon-10-16-02
 Import('baseEnv')
 Import('listFiles')
 Import('packages')
@@ -30,6 +30,7 @@ test_TkrRecon = progEnv.GaudiProgram('test_TkrRecon', listFiles(['src/test/*.cxx
 
 progEnv.Tool('registerObjects', package = 'TkrRecon', libraries = [TkrRecon], testApps = [test_TkrRecon],
 	includes = listFiles(['TkrRecon/*'], recursive = 1))
+
 
 
 
