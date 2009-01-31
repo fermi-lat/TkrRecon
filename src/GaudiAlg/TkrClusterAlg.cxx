@@ -10,7 +10,7 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.22 2005/01/25 20:04:47 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.23 2005/03/01 00:55:49 lsrea Exp $
 */
 
 #include "GaudiKernel/Algorithm.h"
@@ -65,6 +65,8 @@ private:
     Event::TkrClusterCol*    m_TkrClusterCol;
     /// pointer to generated TkrIdClusterMMap
     Event::TkrIdClusterMap*  m_TkrIdClusterMap;
+
+    bool m_redoToTsOnly;
 };
 
 static const AlgFactory<TkrClusterAlg>  Factory;
@@ -72,7 +74,10 @@ const IAlgFactory& TkrClusterAlgFactory = Factory;
 
 TkrClusterAlg::TkrClusterAlg(const std::string& name, 
                              ISvcLocator* pSvcLocator) :
-Algorithm(name, pSvcLocator)  { }
+Algorithm(name, pSvcLocator)  
+{ 
+    declareProperty("redoToTsOnly" , m_redoToTsOnly=false);
+}
 
 using namespace Event;
 
@@ -86,9 +91,13 @@ StatusCode TkrClusterAlg::initialize()
     // Restrictions and Caveats:  None
     
     MsgStream log(msgSvc(), name());
+    StatusCode sc = StatusCode::SUCCESS;
+    log << MSG::INFO << "TkrClusterAlg Initialization";
+    if( (sc=setProperties()).isFailure()) log << " didn't work!";
+    log << endreq;
     
     //Look for the geometry service
-    StatusCode sc = service("TkrGeometrySvc", m_tkrGeom, true);
+    sc = service("TkrGeometrySvc", m_tkrGeom, true);
     if (sc.isFailure()) {
         log << MSG::ERROR << "TkrGeometrySvc is required for this algorithm." 
             << endreq;
@@ -122,6 +131,12 @@ StatusCode TkrClusterAlg::execute()
        
     StatusCode sc = StatusCode::SUCCESS;   
     MsgStream log(msgSvc(), name());
+    // special run to recaculate the ToTs
+    if(m_redoToTsOnly) {
+        sc = m_pMakeClusters->calculateToT();
+        return sc;
+    }
+    // okay, we're doing the standard clustering
     
     // Check to see if we can get the subdirectory. If not create it
     
