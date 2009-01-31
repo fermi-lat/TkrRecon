@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Sat Jan 31 09:10:00 PST 2009
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrClusterAlg.cxx 
+Log Message:
+Implement call to TkrMakeClustersTool::recalculateToTs() based on jO parameter redoToTsOnly
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-16-02, operation: mov
 Package: TkrRecon
