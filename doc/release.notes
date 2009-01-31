@@ -3,6 +3,7 @@
 @verbatim
   Managers: Tracy Usher, Leon Rochester 
 
+  v10r16p6  31-Jan-2009 LSR  Implement call to TkrMakeClustersTool::recalculateToTs()
   v10r16p5  21-Jan-2009 LSR  Set Vertex Ghost bit in TkrReconAlg
   v10r16p4  11-Nov-2008 LSR  remove TkrGhostTool from TkrRecon
   v10r16p3  07-Nov-2008 LSR  switch to TkrGhostTool in TkrUtil
