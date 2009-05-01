@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Fri May  1 15:49:27 PDT 2009
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrReconAlg.cxx 
+Log Message:
+Clean up error output for pipeline: suppress ClusterSize messages (jO param)
+   and catagorize errors by stage
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-16-06, operation: add
 Package: TkrRecon
