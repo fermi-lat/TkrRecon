@@ -2,6 +2,7 @@
 @brief Package TkrRecon
 @verbatim
   Managers: Tracy Usher, Leon Rochester 
+  * EOH *
 
   v10r16p7  01-May-2009 LSR  Improve error message handling
   v10r16p6  31-Jan-2009 LSR  Implement call to TkrMakeClustersTool::recalculateToTs()
