@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: lsrea  Tue Aug  4 07:09:49 PDT 2009
+TkrRecon/doc
+
+Modified Files:
+      Tag: GlastReleasev15r47p13
+	release.notes 
+Log Message:
+For tag on branch GRv15r47p13 for ToT reprocessing
+SConscript is missing for this package
+
+    *
+------------------------------------------------------------
+User: lsrea  Tue Aug  4 07:09:49 PDT 2009
 TkrRecon/cmt
 
 Modified Files:
