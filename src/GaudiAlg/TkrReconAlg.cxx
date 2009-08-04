@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.42 2008/07/11 21:59:38 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.47 2009/05/01 22:49:27 lsrea Exp $
 */
 
 
@@ -28,15 +28,19 @@
 #include "LdfEvent/EventSummaryData.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
 
-#include "GaudiKernel/Algorithm.h"
+#include "TkrUtil/ITkrGhostTool.h"
+
+#include "GaudiKernel/Algorithm.h" 
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/AlgFactory.h"
 #include "GaudiKernel/SmartDataPtr.h"
+#include "GaudiKernel/IToolSvc.h"
 
 #include "Utilities/TkrException.h"
 #include <exception>
 #include <sstream>
 #include <iomanip>
+#include <map>
 
 namespace {
     std::string doubleToString(double x) {
@@ -72,6 +76,8 @@ private:
 
 typedef std::vector<TkrErrorRecord*> errorVec;
 typedef errorVec::iterator errorIter;
+typedef std::map<std::string, int> errorMap;
+typedef errorMap::const_iterator errorMapIter;
 
 // Class defintion...
 class TkrReconAlg : public Algorithm
@@ -101,6 +107,8 @@ private:
     StatusCode handleError(std::string errorString);
     int         m_errorCount;
     bool        m_saveBadEvents;
+    errorMap    m_errCountMap;
+    bool        m_suppressClusterSizePrintout;
 
     // Input parameter which determines the type of reconstruction to run
     std::string m_TrackerReconType;
@@ -130,6 +138,7 @@ private:
     // this is because 2 copies of TkrReconAlg are instantiated: "FirstPass" and "Iteration"
     static bool s_failed;
     static bool s_saveBadEvents;
+    ITkrGhostTool* m_ghostTool;
 };
 
 bool TkrReconAlg::s_failed = false;
@@ -161,6 +170,8 @@ Algorithm(name, pSvcLocator)
     declareProperty("firstStage", m_firstStage=0);
     // This will abort reconstruction if too many clusters found
     declareProperty("maxAllowedClusters", m_maxClusters=2000);
+    // Suppress individual printout of cluster sizes
+    declareProperty("suppressClusterSizePrintout", m_suppressClusterSizePrintout = true);
 }
 
 // Initialization method
@@ -273,6 +284,13 @@ StatusCode TkrReconAlg::initialize()
     // Set the property controlling the type of track fitting to perform
     m_TkrVertexAlg->setProperty("VertexerType", "DEFAULT");
 
+    // Ghost Tool
+    sc = toolSvc()->retrieveTool("TkrGhostTool", m_ghostTool);
+    if(sc.isFailure()) {
+        log << MSG::ERROR << "TkrGhostTool not found!" << endreq;
+        return StatusCode::FAILURE;
+    }
+
     return StatusCode::SUCCESS;
 }
 
@@ -321,6 +339,18 @@ StatusCode TkrReconAlg::execute()
             return handleError(stageFailed);
         }
 
+        if(name()!="Iteration") {
+            m_stage = "GhostCheck - clusters";
+            if (m_ghostTool) {
+                if ((sc=m_ghostTool->flagSingles()).isFailure() ||
+                    (sc=m_ghostTool->flagEarlyHits()).isFailure())
+                {
+                    return handleError(stageFailed);
+                }
+            }
+        }
+
+        m_stage = "TestExceptions";
         if (m_testExceptions && m_eventCount%exceptionTestTypes==3) sc = StatusCode::FAILURE;
 
         if (sc.isFailure())
@@ -331,7 +361,11 @@ StatusCode TkrReconAlg::execute()
         // Check number of clusters returned
         Event::TkrClusterCol* clusterCol = SmartDataPtr<Event::TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol);
         int numClusters = clusterCol->size();
+        log << MSG::DEBUG;
+        if(log.isActive()) log << numClusters << " TkrClusters found" ;
+        log << endreq;
 
+         m_stage = "ClusterSize";
         if (numClusters > m_maxClusters)
         {
             std::stringstream errorStream;
@@ -354,15 +388,42 @@ StatusCode TkrReconAlg::execute()
             return handleError(stageFailed);
         }
 
+
+        // Check number of tracks returned
+        Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
+        int numTracks = trackCol->size();
+        // Check number of clusters returned
+        log << MSG::DEBUG;
+        if(log.isActive()) log << numTracks << " TkrTracks found" ;
+        log << endreq;
+
+        // Check for ghosts
+        if(name()!="Iteration") {
+            m_stage = "GhostCheck - tracks";
+            if (m_ghostTool) {
+                sc = m_ghostTool->flagEarlyTracks();
+                if (sc.isFailure())
+                {
+                    return handleError(stageFailed);
+                }
+            }
+        }
+
         // Call track fit
         m_stage = "TkrTrackFitAlg";
         if(m_lastStage>=FITTING && m_firstStage<=FITTING) sc = m_TkrTrackFitAlg->execute();
-        if (m_testExceptions && m_eventCount%exceptionTestTypes==3) sc = StatusCode::FAILURE;
 
         if (sc.isFailure())
         {
             return handleError(stageFailed);
         }
+
+        // Check number of tracks again
+        trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
+        numTracks = trackCol->size();
+        log << MSG::DEBUG;
+        if(log.isActive()) log << numTracks << " TkrTracks remain after fitting" ;
+        log << endreq;
 
         // Call vertexing
         m_stage = "TkrVertexAlg";
@@ -372,6 +433,26 @@ StatusCode TkrReconAlg::execute()
         {
             return handleError(stageFailed);
         }
+
+        Event::TkrVertexCol* vtxCol = SmartDataPtr<Event::TkrVertexCol>(eventSvc(),EventModel::TkrRecon::TkrVertexCol);
+        int numVtxs = vtxCol->size();
+
+        // Check for ghosts
+        if(name()!="Iteration") {
+            m_stage = "GhostCheck - vertices";
+            if (m_ghostTool) {
+                sc = m_ghostTool->flagEarlyVertices();
+                if (sc.isFailure())
+                {
+                    return handleError(stageFailed);
+                }
+            }
+        }
+
+        // Check number of clusters returned
+        log << MSG::DEBUG;
+        if(log.isActive()) log << numVtxs << " TkrVertex's found" ;
+        log << endreq;
 
         // throw some exceptions to test the logging
         m_stage = "TestExceptions";
@@ -437,7 +518,9 @@ StatusCode TkrReconAlg::handleError(std::string errorString)
     int event   = m_header->event();
 
     errorString = m_stage+": "+errorString;
- 
+
+    m_errCountMap[m_stage]++;
+  
     TkrErrorRecord* errorRec = new TkrErrorRecord(run, event, m_lastTime, errorString);
     if (!m_printExceptions) { log << MSG::DEBUG;}
     else                    { log << MSG::WARNING;}
@@ -450,7 +533,7 @@ StatusCode TkrReconAlg::handleError(std::string errorString)
     }
     log << endreq;
 
-    m_errorArray.push_back(errorRec);
+    if(m_stage!="ClusterSize"||!m_suppressClusterSizePrintout ) m_errorArray.push_back(errorRec);
 
     // Clean out tracks and vertices in the TDS so we don't confuse downstream algorithms
     // Start with the tracks
@@ -499,8 +582,21 @@ StatusCode TkrReconAlg::finalize()
     if (s_saveBadEvents) {
         log << MSG::INFO << endreq;
         log << MSG::INFO << "====>> " << m_errorCount 
-            << (m_errorCount==1 ? " event" : " events") << " failed in this run" << endreq;
+            << (m_errorCount==1 ? " event" : " events") 
+            << " rejected from further TkrRecon analysis " << endreq;
         log << MSG::INFO << endreq;
+        if(m_errCountMap.size()>0){
+            log << MSG::INFO << "Errors by stage: " << endreq;
+            errorMapIter mapIter;
+            for(mapIter=m_errCountMap.begin(); mapIter!=m_errCountMap.end();++mapIter) {
+                log << MSG::INFO << mapIter->first << ": " << mapIter->second << endreq;
+            }
+            log << MSG::INFO << endreq;
+            log << MSG::INFO << "Individual error records follow" << endreq;
+            if(m_suppressClusterSizePrintout) log << MSG::INFO << 
+                "    (ClusterSize errors are suppressed)"  << endreq;
+            log << MSG::INFO << endreq;
+        }
     }
     errorIter iter;
     for (iter=m_errorArray.begin(); iter!=m_errorArray.end();++iter) {
