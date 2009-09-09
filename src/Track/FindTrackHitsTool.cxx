@@ -6,7 +6,7 @@
 * @author Tracking Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.35 2005/12/20 17:23:16 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.37 2007/12/07 21:39:09 lsrea Exp $
 */
 
 // to turn one debug variables
@@ -81,7 +81,7 @@ private:
     TkrCluster* findNearestCluster(int plane, TkrTrackParams* param);
 
     /// Method to filter the ith step
-    void filterStep(int i) {return;} 
+    void filterStep(int /* i */) {return;} 
 
     /// Pointer to the local Tracker geometry service
     ITkrGeometrySvc*     m_tkrGeom;
