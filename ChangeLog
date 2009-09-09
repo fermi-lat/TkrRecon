@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Wed Sep  9 12:37:19 PDT 2009
+TkrRecon/src/TrackFit/LineFit2D
+
+Modified Files:
+	LineFit2D.cxx 
+Log Message:
+fix unix warnings
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Sep  9 12:36:45 PDT 2009
 TkrRecon/src/Track
 
