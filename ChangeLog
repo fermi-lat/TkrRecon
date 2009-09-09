@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Wed Sep  9 12:36:45 PDT 2009
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx 
+Log Message:
+fix unix warnings
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Sep  9 12:36:04 PDT 2009
 TkrRecon/src/PatRec/Combo
 
