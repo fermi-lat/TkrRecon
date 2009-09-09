@@ -263,7 +263,7 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
     neutralVertex->addTrack(tkr1);
 
     double CalEnergy = tkrEventParams->getEventEnergy(); 
-	double CalTransRms = tkrEventParams->getTransRms();
+	//double CalTransRms = tkrEventParams->getTransRms();
 	if(CalEnergy < 10) return sc;
 
     Point m_calPos  = tkrEventParams->getEventPosition();
@@ -514,8 +514,8 @@ Event::TkrTrackParams ComboVtxTool::getParamAve(Event::TkrTrackParams& params1,
  
     vec_ave.setParams(&aveParam);
     cov_ave.setParams(&aveParam);
-    double caveSxSx = aveParam.getxSlpxSlp();
-	double c1SxSx   = params1.getxSlpxSlp();
+    //double caveSxSx = aveParam.getxSlpxSlp();
+    //double c1SxSx   = params1.getxSlpxSlp();
     // leave this around for a while, still tracking down hysteresis
     /*
     if (debug) {

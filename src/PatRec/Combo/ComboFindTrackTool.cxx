@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.50 2007/12/07 21:39:09 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.51 2008/02/01 02:41:07 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -611,7 +611,7 @@ void ComboFindTrackTool::loadOutput()
                 Event::TkrTrackHit* hit = (*newTrack)[i];
                 // flag the hit
                 Event::TkrClusterPtr clus = hit->getClusterPtr();
-                if(clus!=NULL) {
+                if(clus!=0) {
                     clus->flag();
                 }
                 trackHitCol->push_back(hit);
