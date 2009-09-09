@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrFilterTool.cxx,v 1.4 2005/12/20 17:23:11 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrFilterTool.cxx,v 1.5 2006/03/21 01:12:34 usher Exp $
  */
 
 // to turn one debug variables
@@ -228,7 +228,7 @@ StatusCode TkrFilterTool::doFilterStep()
     m_rmsTrans    = 10000000000.;
 
     // Max distance from axis to accept
-    double maxDistToAccept = 1000.;
+    //double maxDistToAccept = 1000.;
 
     // Recover pointer to TkrEventParams
     Event::TkrEventParams* tkrEventParams = 
@@ -249,8 +249,8 @@ StatusCode TkrFilterTool::doFilterStep()
     Event::CalEventEnergy * calEventEnergy = 0 ;
     if ((calEventEnergyCol!=0)&&(!calEventEnergyCol->empty()))
         calEventEnergy = calEventEnergyCol->front() ;
-    Event::CalClusterCol* calClusterCol = 
-                 SmartDataPtr<Event::CalClusterCol>(m_dataSvc, EventModel::CalRecon::CalClusterCol);
+    //Event::CalClusterCol* calClusterCol = 
+    //             SmartDataPtr<Event::CalClusterCol>(m_dataSvc, EventModel::CalRecon::CalClusterCol);
 
     // If calEventEnergy then fill TkrEventParams
     // Note: TkrEventParams initializes to zero in the event of no CalEventEnergy

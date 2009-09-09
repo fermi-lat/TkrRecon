@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/Attic/TkrMomentsAnalysis.h,v 1.1.2.1 2006/02/17 15:56:41 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrMomentsAnalysis.h,v 1.2 2006/03/21 01:12:35 usher Exp $
  */
 
 #include "geometry/Ray.h"
@@ -87,10 +87,10 @@ public:
 
 private:
 
-    // Centroid of the moments
-    Point  m_centroid;
     // Vector of Tkrculated moments
     Vector m_moment;
+    // Centroid of the moments
+    Point  m_centroid;
     // Axis corresponding to the longest principal moment
     Vector m_axis[3];
 
