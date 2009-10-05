@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Oct  5 15:56:34 PDT 2009
+TkrRecon/src/PatRec/VectorLinks
+
+Removed Files:
+	TrackElements.h VecPoint.cxx VecPoint.h VecPoints.cxx 
+	VecPoints.h VecPointsLink.h 
+Log Message:
+These are no longer used by the Vector Links pat rec
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-16-08, operation: add
 Package: TkrRecon
