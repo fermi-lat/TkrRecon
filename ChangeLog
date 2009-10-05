@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+User: usher  Mon Oct  5 15:58:34 PDT 2009
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	VectorLinkMaps.h VectorLinksTool.cxx 
+Added Files:
+	TkrTrackElementsBuilder.cxx TkrTrackElementsBuilder.h 
+	TkrTracksBuilder.cxx TkrTracksBuilder.h 
+	TkrVecPointLinksBuilder.cxx TkrVecPointLinksBuilder.h 
+	TkrVecPointsBuilder.cxx TkrVecPointsBuilder.h 
+Log Message:
+Complete overhaul of the Vector Links pat rec, initial import
+    *
+------------------------------------------------------------
 User: usher  Mon Oct  5 15:56:34 PDT 2009
 TkrRecon/src/PatRec/VectorLinks
 
