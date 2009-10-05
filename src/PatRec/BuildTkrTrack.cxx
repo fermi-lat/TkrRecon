@@ -14,7 +14,7 @@ BuildTkrTrack::BuildTkrTrack(const ITkrGeometrySvc* tkrGeo) : m_tkrGeom(tkrGeo)
 Event::TkrTrack* BuildTkrTrack::makeNewTkrTrack(Point startPos, 
                                                 Vector startDir, 
                                                 double energy, 
-                                                std::vector<const Event::TkrCluster*>& clusterVec)
+                                                CandTrackHitVec& candTrackHitVec)
 {
     Event::TkrTrack* track = new Event::TkrTrack();
             
@@ -23,55 +23,108 @@ Event::TkrTrack* BuildTkrTrack::makeNewTkrTrack(Point startPos,
     track->setInitialEnergy(energy);
     track->setStatusBit(Event::TkrTrack::LATENERGY);
 
-    for(std::vector<const Event::TkrCluster*>::iterator clusIter = clusterVec.begin(); 
-        clusIter != clusterVec.end(); 
-        clusIter++)
+    if (!candTrackHitVec.empty())
     {
-        const Event::TkrCluster* cluster = *clusIter;
+        int numXHits = 0;
+        int numYHits = 0;
 
-        Event::TkrTrackHit* trackHit = makeTkrTrackHit(cluster);
+        CandTrackHitVec::iterator trackHitIter = candTrackHitVec.begin();
+        Event::TkrTrackHit*       lastTrackHit = makeTkrTrackHit(*trackHitIter++);
 
-        track->push_back(trackHit);
+        track->push_back(lastTrackHit);
+
+        if      (lastTrackHit->getStatusBits() & Event::TkrTrackHit::MEASURESX) numXHits++;
+        else if (lastTrackHit->getStatusBits() & Event::TkrTrackHit::MEASURESY) numYHits++;
+
+        setFirstHitParams(track);
+
+        while(trackHitIter != candTrackHitVec.end())
+        {
+            Event::TkrTrackHit* trackHit = makeTkrTrackHit(*trackHitIter);
+
+            if (trackHit) 
+            {
+                track->push_back(trackHit);
+
+                if      (trackHit->getStatusBits() & Event::TkrTrackHit::MEASURESX) numXHits++;
+                else if (trackHit->getStatusBits() & Event::TkrTrackHit::MEASURESY) numYHits++;
+
+                lastTrackHit = trackHit;
+            }
+            else
+            {
+                int j = 0;
+            }
+
+            trackHitIter++;
+        }
+
+        track->setNumXHits(numXHits);
+        track->setNumYHits(numYHits);
     }
-
-    setFirstHitParams(track);
 
     return track;
 }
 
-Event::TkrTrackHit* BuildTkrTrack::makeTkrTrackHit(const Event::TkrCluster* cluster)
+Event::TkrTrackHit* BuildTkrTrack::makeTkrTrackHit(CandTrackHitPair& candTrackHit)
 {
-    Event::TkrTrackHit* trackHit = new Event::TkrTrackHit(const_cast<Event::TkrCluster*>(cluster), 
-                                                          cluster->getTkrId(),
-                                                          cluster->position().z(),   
-                                                          0., 0., 0., 0., 0.);
+    Event::TkrTrackHit* trackHit = 0;
 
-    // Retrieve a reference to the measured parameters (for setting)
-    Event::TkrTrackParams& params = trackHit->getTrackParams(Event::TkrTrackHit::MEASURED);
+    if (candTrackHit.second)
+    {
+        const Event::TkrCluster* cluster = candTrackHit.second;
 
-    // Set measured track parameters
-    params(Event::TkrTrackParams::xPosIdx) = cluster->position().x();
-    params(Event::TkrTrackParams::xSlpIdx) = 0.;
-    params(Event::TkrTrackParams::yPosIdx) = cluster->position().y();
-    params(Event::TkrTrackParams::ySlpIdx) = 0.;
+        trackHit = new Event::TkrTrackHit(const_cast<Event::TkrCluster*>(cluster), 
+                                          cluster->getTkrId(),
+                                          cluster->position().z(),   
+                                          0., 0., 0., 0., 0.);
 
-    int measIdx = trackHit->getParamIndex(Event::TkrTrackHit::SSDMEASURED,    Event::TkrTrackParams::Position);
-    int nonmIdx = trackHit->getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Position);
+        // Retrieve a reference to the measured parameters (for setting)
+        Event::TkrTrackParams& params = trackHit->getTrackParams(Event::TkrTrackHit::MEASURED);
 
-    double sigma     = m_tkrGeom->siResolution();
-    double sigma_alt = m_tkrGeom->trayWidth()/sqrt(12.);
+        // Set measured track parameters
+        params(Event::TkrTrackParams::xPosIdx) = cluster->position().x();
+        params(Event::TkrTrackParams::xSlpIdx) = 0.;
+        params(Event::TkrTrackParams::yPosIdx) = cluster->position().y();
+        params(Event::TkrTrackParams::ySlpIdx) = 0.;
 
-    params(measIdx,measIdx) = sigma * sigma;
-    params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
+        int measIdx = trackHit->getParamIndex(Event::TkrTrackHit::SSDMEASURED,    Event::TkrTrackParams::Position);
+        int nonmIdx = trackHit->getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Position);
 
-    // Last: set the hit status bits
-    unsigned int status_bits = Event::TkrTrackHit::HITONFIT | Event::TkrTrackHit::HASMEASURED |
-                               Event::TkrTrackHit::HITISSSD | Event::TkrTrackHit::HASVALIDTKR;
+        double sigma     = m_tkrGeom->siResolution();
+        double sigma_alt = m_tkrGeom->trayWidth()/sqrt(12.);
 
-    if (cluster->getTkrId().getView() == idents::TkrId::eMeasureX) status_bits |= Event::TkrTrackHit::MEASURESX;
-    else                                                           status_bits |= Event::TkrTrackHit::MEASURESY;
+        params(measIdx,measIdx) = sigma * sigma;
+        params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
 
-    trackHit->setStatusBit((Event::TkrTrackHit::StatusBits)status_bits);
+        // Last: set the hit status bits
+        unsigned int status_bits = Event::TkrTrackHit::HITONFIT | Event::TkrTrackHit::HASMEASURED |
+                                   Event::TkrTrackHit::HITISSSD | Event::TkrTrackHit::HASVALIDTKR;
+
+        if (cluster->getTkrId().getView() == idents::TkrId::eMeasureX) status_bits |= Event::TkrTrackHit::MEASURESX;
+        else                                                           status_bits |= Event::TkrTrackHit::MEASURESY;
+
+        trackHit->setStatusBit((Event::TkrTrackHit::StatusBits)status_bits);
+    }
+    // Case for no cluster
+    else
+    {
+        double planeZ = m_tkrGeom->getPlaneZ(candTrackHit.first);
+
+        trackHit = new Event::TkrTrackHit(0, candTrackHit.first, planeZ, 0., 0., 0., 0., 0.);
+    }
+
+
+    return trackHit;
+}
+
+Event::TkrTrackHit* BuildTkrTrack::makeTkrTrackHit(CandTrackHitPair& candTrackHit,
+                                                   Event::TkrTrackHit* lastTrackHit)
+{
+    // Get projection from last hit to this new plane
+
+
+    Event::TkrTrackHit* trackHit = 0;
 
     return trackHit;
 }

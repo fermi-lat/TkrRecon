@@ -42,17 +42,17 @@
 #include "src/TrackFit/LineFit2D/LineFit2D.h"
 
 // Points
-#include "src/PatRec/VectorLinks/VecPoint.h"
+#include "Event/Recon/TkrRecon/TkrVecPoint.h"
 
 //typedef std::vector<VecPoint>  VecPointVec;
 
-class VecPointVec : public std::vector<VecPoint>
+class VecPointVec : public std::vector<Event::TkrVecPoint>
 {
 public:
     VecPointVec(): m_averagePos(0.,0.,0.), m_averagePos2(0.,0.,0.) {clear();}
     ~VecPointVec() {}
 
-    void push_back(const VecPoint& vecPoint);
+    void push_back(const Event::TkrVecPoint& vecPoint);
 
     Point getAvePosition() const;
     Point getAvePosErr()   const;
@@ -62,13 +62,13 @@ private:
     Point m_averagePos2;
 };
 
-void VecPointVec::push_back(const VecPoint& vecPoint)
+void VecPointVec::push_back(const Event::TkrVecPoint& vecPoint)
 {
     Point vecPos  = vecPoint.getPosition();
     Point vecPos2 = Point(vecPos.x()*vecPos.x(),vecPos.y()*vecPos.y(),vecPos.z()*vecPos.z());
     m_averagePos  += vecPos;
     m_averagePos2 += vecPos2;
-    std::vector<VecPoint>::push_back(vecPoint);
+    std::vector<Event::TkrVecPoint>::push_back(vecPoint);
 }
 
 Point VecPointVec::getAvePosition() const
@@ -228,7 +228,7 @@ StatusCode TkrFilterTool::doFilterStep()
     m_rmsTrans    = 10000000000.;
 
     // Max distance from axis to accept
-    //double maxDistToAccept = 1000.;
+    double maxDistToAccept = 1000.;
 
     // Recover pointer to TkrEventParams
     Event::TkrEventParams* tkrEventParams = 
@@ -249,8 +249,8 @@ StatusCode TkrFilterTool::doFilterStep()
     Event::CalEventEnergy * calEventEnergy = 0 ;
     if ((calEventEnergyCol!=0)&&(!calEventEnergyCol->empty()))
         calEventEnergy = calEventEnergyCol->front() ;
-    //Event::CalClusterCol* calClusterCol = 
-    //             SmartDataPtr<Event::CalClusterCol>(m_dataSvc, EventModel::CalRecon::CalClusterCol);
+    Event::CalClusterCol* calClusterCol = 
+                 SmartDataPtr<Event::CalClusterCol>(m_dataSvc, EventModel::CalRecon::CalClusterCol);
 
     // If calEventEnergy then fill TkrEventParams
     // Note: TkrEventParams initializes to zero in the event of no CalEventEnergy
@@ -301,7 +301,7 @@ StatusCode TkrFilterTool::doFilterStep()
             // then by the stored hits in the bilayer
             for(VecPointVec::iterator vecIter = vecVecIter->begin(); vecIter != vecVecIter->end(); vecIter++)
             {
-		        const VecPoint& vecPoint = *vecIter;
+		        const Event::TkrVecPoint& vecPoint = *vecIter;
 
                 TkrMomentsData momentsData(vecPoint.getPosition(), 1., 0.);
 
@@ -486,7 +486,7 @@ int TkrFilterTool::buildVecPoints()
                 // Can't pair hits that are not in the same tower
                 if(clX->tower() != clY->tower()) continue;
 
-                m_VecPoints.back().push_back(VecPoint(biLayer, clX, clY));  
+                m_VecPoints.back().push_back(Event::TkrVecPoint(biLayer, clX, clY));  
 
                 m_vecPointAve += m_VecPoints.back().back().getPosition();
             }
