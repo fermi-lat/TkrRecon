@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.29 2005/12/20 17:23:14 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.30 2006/03/21 01:12:36 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -506,7 +506,7 @@ Event::TkrTrack* MonteCarloFindTrackTool::createNewTrack(ClusMcPosHitRelVec&    
     Point             trackPos(startX,startY,measHitPos.z());
     Vector            trackDir = mcHitVec.unit();
 
-    std::vector<const Event::TkrCluster*> clusVec;
+    BuildTkrTrack::CandTrackHitVec clusVec;
     clusVec.clear();
 
     // Create the candidate track
@@ -523,7 +523,9 @@ Event::TkrTrack* MonteCarloFindTrackTool::createNewTrack(ClusMcPosHitRelVec&    
         cluster =  (*hitIter)->getFirst();
         energy  =  posHit->particleEnergy() - partProp->mass();
 
-        Event::TkrTrackHit* hit = m_trackBuilder->makeTkrTrackHit(cluster);
+        BuildTkrTrack::CandTrackHitPair candTrackHit(cluster->getTkrId(), cluster);
+
+        Event::TkrTrackHit* hit = m_trackBuilder->makeTkrTrackHit(candTrackHit);
 
         hit->setEnergy(energy);
 

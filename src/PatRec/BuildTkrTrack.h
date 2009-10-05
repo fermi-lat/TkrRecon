@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/TkrPointLinks.h,v 1.4 2004/09/23 21:30:29 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/BuildTkrTrack.h,v 1.1 2005/05/26 20:33:06 usher Exp $
  */
 
 #ifndef BuildTkrTrack_h
@@ -18,6 +18,9 @@
 class BuildTkrTrack 
 {
 public:
+    // typedef for the vector containing the hits
+    typedef std::pair<idents::TkrId, const Event::TkrCluster*> CandTrackHitPair;
+    typedef std::vector<CandTrackHitPair >                     CandTrackHitVec;
     // Constructors
     BuildTkrTrack(const ITkrGeometrySvc* tkrGeo);
 
@@ -26,10 +29,13 @@ public:
     Event::TkrTrack* makeNewTkrTrack(Point  startPos, 
                                      Vector startDir, 
                                      double energy, 
-                                     std::vector<const Event::TkrCluster*>& clusterVec);
+                                     CandTrackHitVec& candTrackHitVec);
 
     /// This for adding a single TkrTrackHit given a cluster
-    Event::TkrTrackHit* makeTkrTrackHit(const Event::TkrCluster* cluster);
+    Event::TkrTrackHit* makeTkrTrackHit(CandTrackHitPair& candTrackHit);
+
+    Event::TkrTrackHit* makeTkrTrackHit(CandTrackHitPair& candTrackHit,
+                                        Event::TkrTrackHit* lastTrackHit);
 
     /// This sets the first hit parameters AFTER track has been constructed
     bool                setFirstHitParams(Event::TkrTrack* track);
