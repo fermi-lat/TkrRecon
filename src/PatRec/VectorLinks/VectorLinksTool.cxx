@@ -29,6 +29,7 @@
 #include "Event/Recon/TkrRecon/TkrEventParams.h"
 
 #include "TkrRecon/Track/ITkrFitTool.h"
+#include "TkrRecon/Track/IFindTrackHitsTool.h"
 #include "src/Track/TkrControl.h"
 #include "TkrVecPointsBuilder.h"
 #include "TkrVecPointLinksBuilder.h"
@@ -67,7 +68,10 @@ private:
 
     ///*** PRIVATE DATA MEMBERS ***
     /// The track fit code
-    ITkrFitTool* m_trackFitTool;
+    ITkrFitTool*        m_trackFitTool;
+
+    /// Hit Finding, we'll use to look for leading hits
+    IFindTrackHitsTool* m_findHitsTool;
 
     /// Maximum gap size for a track (values can be set from job options file)
     int          m_numSharedFirstHits;
@@ -109,7 +113,7 @@ VectorLinksTool::VectorLinksTool(const std::string& type, const std::string& nam
     declareProperty("MinEnergy",         m_minEnergy           = 30.);
     declareProperty("FracEneFirstTrack", m_fracEneFirstTrack   = 0.80);
     declareProperty("MaxKinkAngle",      m_maxKinkAngle        = 0.8 * M_PI_2);
-    declareProperty("AngScaleFctr",      m_angleScaleFactor    = 6.);
+    declareProperty("AngScaleFctr",      m_angleScaleFactor    = 12.);
 
     declareProperty("numBestToKeep",     m_maxBestLinksToKeep  = 4);
     declareProperty("maxCombThrottle",   m_maxLinksForThrottle = 100);
@@ -129,6 +133,11 @@ StatusCode VectorLinksTool::initialize()
     if( (sc = toolSvc()->retrieveTool("KalmanTrackFitTool", m_trackFitTool)).isFailure() )
     {
         throw GaudiException("ToolSvc could not find KalmanTrackFitTool", name(), sc);
+    }
+
+    if( (sc = toolSvc()->retrieveTool("FindTrackHitsTool", m_findHitsTool)).isFailure() )
+    {
+        throw GaudiException("ToolSvc could not find FindTrackHitsTool", name(), sc);
     }
 
     return sc;
@@ -247,6 +256,24 @@ double VectorLinksTool::getEventEnergy()
     return energy;
 }
 
+//
+// Define a class for the best link sorting algorithm
+// This will be used to sort a vector of pointers to VecPointsLink objects
+//
+class CompareTkrTracks
+{
+public:
+    const bool operator()(const Event::TkrTrack* left, const Event::TkrTrack* right) const
+    {
+//        return left->getQuality() > right->getQuality();
+//        return left->getScatter() < right->getScatter();
+        if (left->getKalThetaMS() > 0. && right->getKalThetaMS() > 0.)
+            return left->getKalThetaMS() < right->getKalThetaMS();
+        else if (left->getKalThetaMS() > 0.) return true;
+        return false;
+    }
+};
+
 /// Assigns energy to tracks
 void   VectorLinksTool::setTrackEnergy(double eventEnergy, Event::TkrTrackCol* tdsTracks)
 {
@@ -270,6 +297,17 @@ void   VectorLinksTool::setTrackEnergy(double eventEnergy, Event::TkrTrackCol* t
         {
         }
 
+        // See if we can add leading hits
+        int numAdded = m_findHitsTool->addLeadingHits(track);
+
+        // If added, then we need to refit?
+        if (numAdded > 0)
+        {
+            if (StatusCode sc = m_trackFitTool->doTrackFit(track) != StatusCode::SUCCESS)
+            {
+            }
+        }
+
         // Reset the energy stuff for subsequent tracks
         if (trackItr == tdsTracks->begin() && numTracks > 1)
         {
@@ -277,6 +315,9 @@ void   VectorLinksTool::setTrackEnergy(double eventEnergy, Event::TkrTrackCol* t
             fracEnergy   = 1. / (numTracks - 1);
         }
     }
+
+    // Ok, now that we are fit, re-sort one more time...
+    std::sort(tdsTracks->begin(), tdsTracks->end(), CompareTkrTracks());
 
     return;
 }

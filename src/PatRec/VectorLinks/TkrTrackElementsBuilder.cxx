@@ -36,11 +36,11 @@ TkrTrackElementsBuilder::TkrTrackElementsBuilder(TkrVecPointLinksBuilder& vecPoi
     // Default number of link combinations to use in TrackElement builder
     m_numBestLinksToKeep = m_maxBestLinksToKeep;
 
+    // Set local angle scale factor (is this needed?)
+    m_angScaleFctr = m_angleScaleFactor;
+
     // By default we assume that we will use buildTrackElements (no restrictions on link combinations)
     m_TrackElemBuilder = &TkrTrackElementsBuilder::buildTrackElements;
-
-    // Pre-set angle scale factor
-    m_angScaleFctr = 2. * m_angleScaleFactor;
 
     // Set up and loop through available VecPointsLinks
     // Try to estimate the total number of combinations possible and 
@@ -130,7 +130,8 @@ int TkrTrackElementsBuilder::buildTrackElements()
     //endIter--; // Maybe this stops too soon?
 
     // Set up and loop through available VecPoints
-    TkrVecPointsLinkVecVec::iterator linksVecItr  = m_vecPointLinksBldr.getVecPointsLinkVecVec().begin();
+    TkrVecPointsLinkVecVec::iterator linksVecItr = m_vecPointLinksBldr.getVecPointsLinkVecVec().begin();
+    TkrVecPointsLinkVecVec::iterator skipsVecItr = m_vecPointLinksBldr.getVecPointsLinkSkip1VecVec().begin();
 
     // Keep track of candidates found so far
     int numTrackElements = 0;
@@ -143,38 +144,17 @@ int TkrTrackElementsBuilder::buildTrackElements()
         // This will be the "first" X-Y bilayer combination with valid VecPoints
         TkrVecPointsLinkVec& linksVec = *linksVecItr++;
 
-        // Loop over all VecPointsLinks in this X-Y bilayer and try building TrackElements
-        for(TkrVecPointsLinkVec::iterator linkItr = linksVec.begin(); linkItr != linksVec.end(); linkItr++)
+        // Use this vector to search for track elements
+        numTrackElements += buildTrackElements(linksVec);
+
+        // In the event that we have yet to find any tracks then try using a link that skips a layer
+        if (numTrackElements == 0 && skipsVecItr != m_vecPointLinksBldr.getVecPointsLinkSkip1VecVec().end())
         {
-            Event::TkrVecPointsLink* curLink = *linkItr;
+            // Once we have found a track we are not going to be going through here so ok to increment here
+            TkrVecPointsLinkVec& skipsVec = *skipsVecItr++;
 
-            // Require the first link on a track to have both ends in the same tower
-            if (!curLink->sameTower()) continue;
-
-            // As we go deeper down the VecPointsLink vector we may find links that have been
-            // previously associated to TrackElements... skip those when we find them
-//            if (!curLink->associated() || curLink->firstLink())
-            if ((numTrackElements  > 4 && !curLink->getFirstVecPoint()->isLinkBotHit()) ||
-                (numTrackElements <= 4 && !curLink->associated() || curLink->firstLink()) )
-            {
-                // Make a clean VecPointsLinkPtrVec which might get turned into a candidate track
-                Event::TkrVecPointsLinkPtrVec linksPtrVec;
-
-                // Safety... make sure it is clear
-                linksPtrVec.clear();
-
-                // At the top so only one branch
-                int numBranches = 1;
-
-                // Zero out the volatile elements of the current (starting) link
-                curLink->setRmsAngleSum(0.);
-                curLink->setNumAnglesInSum(0);
-
-                // Build all possible TrackElements beginning with this link
-                //buildTrackElements(linksPtrVec, curLink, linksVecItr);
-                numTrackElements += (this->*m_TrackElemBuilder)(linksPtrVec, curLink, numBranches);
-            }
-        }       
+            numTrackElements += buildTrackElements(skipsVec);
+        }
     }
 
     // Sort the vector containing the pointers to the track elements
@@ -185,6 +165,52 @@ int TkrTrackElementsBuilder::buildTrackElements()
     m_numTrackElements = m_TrackElements->size();
 
     return m_numTrackElements;
+}
+
+// 
+// Given a vector of links, use them to search for TrackElements
+//
+int TkrTrackElementsBuilder::buildTrackElements(Event::TkrVecPointsLinkPtrVec& linksVec)
+{
+    int numTrackElements = 0;
+
+    // Loop over all VecPointsLinks in this X-Y bilayer and try building TrackElements
+    for(TkrVecPointsLinkVec::iterator linkItr = linksVec.begin(); linkItr != linksVec.end(); linkItr++)
+    {
+        Event::TkrVecPointsLink* curLink = *linkItr;
+
+        // Require the first link on a track to have both ends in the same tower
+        if (!curLink->sameTower()) continue;
+
+        // How many track elements so far? 
+        int curNumElems = m_TrackElements->size();
+
+        // As we go deeper down the VecPointsLink vector we may find links that have been
+        // previously associated to TrackElements... skip those when we find them
+        //  if (!curLink->associated() || curLink->firstLink())
+        if ((curNumElems  > 4 && !curLink->getFirstVecPoint()->isLinkBotHit()) ||
+            (curNumElems <= 4 && !curLink->associated() || curLink->firstLink()) )
+        {
+            // Make a clean VecPointsLinkPtrVec which might get turned into a candidate track
+            Event::TkrVecPointsLinkPtrVec linksPtrVec;
+
+            // Safety... make sure it is clear
+            linksPtrVec.clear();
+
+            // At the top so only one branch
+            int numBranches = 1;
+
+            // Zero out the volatile elements of the current (starting) link
+            curLink->setRmsAngleSum(0.);
+            curLink->setNumAnglesInSum(0);
+
+            // Build all possible TrackElements beginning with this link
+            //buildTrackElements(linksPtrVec, curLink, linksVecItr);
+            numTrackElements += (this->*m_TrackElemBuilder)(linksPtrVec, curLink, numBranches);
+        }
+    } 
+
+    return numTrackElements;
 }
 
 //
@@ -213,6 +239,9 @@ int TkrTrackElementsBuilder::buildTrackElements(Event::TkrVecPointsLinkPtrVec& l
     // Update the branch count
     numBranches += pointToLinkVec.size();
 
+    // Should we contrain by rms?
+    bool constrainByRms = pointToLinkVec.size() > 1 ? true : false;
+
     // Loop through the "next" set of links
     for(std::vector<Event::TkrVecPointToLinksRel*>::iterator ptToLinkItr = pointToLinkVec.begin(); 
         ptToLinkItr != pointToLinkVec.end(); ptToLinkItr++)
@@ -220,9 +249,9 @@ int TkrTrackElementsBuilder::buildTrackElements(Event::TkrVecPointsLinkPtrVec& l
         Event::TkrVecPointsLink* nextLink = (*ptToLinkItr)->getSecond();
 
         // Skip links which skip layers when we have found a match at a lower level
-        if (foundMatch && (nextLink->getStatusBits() & statusBitMask)) break;
+//        if (foundMatch && (nextLink->getStatusBits() & statusBitMask)) break;
 
-        if (acceptLink(curLink, nextLink, linkVec))
+        if (acceptLink(curLink, nextLink, constrainByRms))
         {
             foundMatch = true;
 
@@ -300,7 +329,7 @@ int TkrTrackElementsBuilder::buildTrackElementsWithThrottle(Event::TkrVecPointsL
         // Skip links which skip layers when we have found a match at a lower level
  //       if (linkAccepted && (nextLink->getStatusBits() & statusBitMask)) break;
 
-        if (acceptLink(curLink, nextLink, linkVec))
+        if (acceptLink(curLink, nextLink))
         {
             nextLink->setAngleToNextLink(curLink->getAngleToNextLink());
             bestLinksPtrVec.push_back(nextLink);
@@ -335,7 +364,7 @@ int TkrTrackElementsBuilder::buildTrackElementsWithThrottle(Event::TkrVecPointsL
 
             numKeep -= factor;
 
-            if (numKeep < 1) numKeep = 1;
+            if (numKeep < 1) numKeep = 2;
         }
 
         // Update numBranches for the next level
@@ -483,7 +512,7 @@ int TkrTrackElementsBuilder::makeNewTrackElement(Event::TkrVecPointsLinkPtrVec& 
 //
 bool TkrTrackElementsBuilder::acceptLink(Event::TkrVecPointsLink* curLink, 
                                          Event::TkrVecPointsLink* nextLink, 
-                                         Event::TkrVecPointsLinkPtrVec& /*linkVec*/)
+                                         bool                     constrainByRms)
 {
     // Presume it will not match
     bool acceptIt = false;
@@ -494,20 +523,31 @@ bool TkrTrackElementsBuilder::acceptLink(Event::TkrVecPointsLink* curLink,
         // Use pre-calculated angles to determine the angle to test against
         double curMaxAng   = curLink->getMaxScatAngle();
         double nextMaxAng  = nextLink->getMaxScatAngle();
-        double angleToTest = m_angScaleFctr * sqrt(curMaxAng*curMaxAng + nextMaxAng*nextMaxAng);
+        double angleToTest = sqrt(0.5 * (curMaxAng*curMaxAng + nextMaxAng*nextMaxAng));
+        double scaleFctr   = m_angScaleFctr;
 
         // Ok, no matter what the angle cannot be more than pi/2
-        angleToTest = std::min(m_maxKinkAngle, angleToTest);
+        angleToTest = std::min(m_maxKinkAngle, scaleFctr * angleToTest);
 
         // Check rms angle if enough layers crossed
-        if (curLink->getNumAnglesInSum() > 3)
+        if (constrainByRms && curLink->getNumAnglesInSum() > 3)
         {
-            double rmsAngle  = sqrt(curLink->getRmsAngleSum()) / curLink->getNumAnglesInSum();
-            double scaleFctr = 10.; //6.;
+            double rmsAngle = sqrt(curLink->getRmsAngleSum()) / (curLink->getNumAnglesInSum() - 1.);
+
+            // Ok, the rms angle cannot be less than the geometric angle...
+            Vector startToEnd = nextLink->getFirstVecPoint()->getPosition() 
+                              - nextLink->getSecondVecPoint()->getPosition();
+            double geoAngle   = 3. * m_tkrGeom->siStripPitch() / startToEnd.magnitude();
+
+            // Try something that increases as we go deeper 
+            double scaleFctr = curLink->getNumAnglesInSum() + 6.;  // start at 8 
 
             // Allow a bit more flexibility if skipping layers...
-            if (nextLink->skip1Layer()) scaleFctr = 4.; 
-            if (nextLink->skip2Layer()) scaleFctr = 3.; 
+            if (nextLink->skip1Layer()) {scaleFctr *= 1.5; geoAngle *= 2.;} 
+            if (nextLink->skip2Layer()) {scaleFctr *= 2.;  geoAngle *= 3.;}
+
+            // Reset the rmsAngle to not be less than the geoAngle
+            rmsAngle = std::max(rmsAngle, geoAngle);
 
             angleToTest = std::min(scaleFctr * rmsAngle, angleToTest);
         }
@@ -542,7 +582,7 @@ double TkrTrackElementsBuilder::calcRmsAngle(Event::TkrVecPointsLinkPtrVec& link
         Event::TkrVecPointsLinkPtrVec::iterator linkItr = linkVec.begin();
         Event::TkrVecPointsLink*                curLink = *linkItr++;
 
-        int numLinks = 0;
+//        int numLinks = 0;
         rmsAngle = 0.;
 
         // Weight sum
@@ -564,22 +604,25 @@ double TkrTrackElementsBuilder::calcRmsAngle(Event::TkrVecPointsLinkPtrVec& link
             if (nextLink->skip1Layer() || nextLink->skip2Layer())
             {
                 double extraAng1 = nextLink->getMaxScatAngle();
-                double extraAng  = m_tkrGeom->siStripPitch() * nextLink->getVector().magnitude() 
+
+                // This is meant to be a sort of theta ~ tan(theta) ~ delta displacement over delta z
+                // where the displacement is at least 1 strip
+                double extraAng  = m_tkrGeom->siStripPitch()
                                  / (curLink->getPosition().z() - nextLink->getPosition().z());
 
-                rmsAngle  += weightFctr * extraAng * extraAng;
+//                rmsAngle  += weightFctr * extraAng * extraAng;
                 weightSum += weightFctr;
 
                 if (nextLink->skip2Layer())
                 {
-                    rmsAngle  += weightFctr * extraAng * extraAng;
+//                    rmsAngle  += weightFctr * extraAng * extraAng;
                     weightSum += weightFctr;
                 }
 
-                numLinks++;
+//                numLinks++;
             }
 
-            numLinks++;
+//            numLinks++;
             curLink = nextLink;
 
             // Start to deweight links on long tracks

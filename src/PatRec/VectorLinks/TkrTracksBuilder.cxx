@@ -68,7 +68,8 @@ int TkrTracksBuilder::buildTkrTracks(TkrTrackElementsBuilder& trkElemsBldr,
         BuildTkrTrack trackBuilder(m_tkrGeom);
 
         // Min links to make a track
-        int    minNumLinks4Track  = 2;
+        int    minNumLinks4Track  =  2;
+        int    firstBiLayer       =  trkElemsBldr.getTrackElements()->front()->getFirstLink()->getFirstVecPoint()->getLayer();
 
         // Set number of hits first track can share
         double trackEnergy        = std::max(m_fracEneFirstTrack * eventEnergy, m_minEnergy);
@@ -78,7 +79,7 @@ int TkrTracksBuilder::buildTkrTracks(TkrTrackElementsBuilder& trkElemsBldr,
             trkElemsBldr.getTrackElements()->begin(); trackElemIter != trkElemsBldr.getTrackElements()->end(); trackElemIter++)
         {
             // break out if too many tracks
-            if (tdsTrackCol->size() > 20)
+            if (tdsTrackCol->size() > 10)
             {
                 break;
             }
@@ -101,23 +102,47 @@ int TkrTracksBuilder::buildTkrTracks(TkrTrackElementsBuilder& trkElemsBldr,
             // Get a vector of all clusters associated to this track
             std::vector<Event::TkrTrackElemToLinksRel*> elemToLinksVec = trkElemsBldr.getTrackElemToLinksTab().getRelByFirst(trackElem);
 
+            // Look up the list of links for this TrackElements object
+            Event::TkrVecPointsLink* pointsLink = trackElem->getFirstLink();
+
+            // What is the start layer?
+            int startBiLayer = pointsLink->getFirstVecPoint()->getLayer();
+
+            // How many links?
+            int numLinks4Track = elemToLinksVec.size();
+
             // It may no longer be there, check this
             // Or, we need at least 5 clusters to make a track
-            if (elemToLinksVec.size() < minNumLinks4Track) 
+            if (numLinks4Track < minNumLinks4Track && startBiLayer < firstBiLayer - 2) 
             {
                 trackElem->setStatusBits(trackElem->getStatusBits() | Event::TkrTrackElements::NOTBEST);
                 continue;
             }
 
-            minNumLinks4Track = elemToLinksVec.size() - 4 > minNumLinks4Track ? elemToLinksVec.size() - 4 : minNumLinks4Track;
-
-            // Look up the list of links for this TrackElements object
-            Event::TkrVecPointsLink* pointsLink = trackElem->getFirstLink();
+            // If our track is long then reset the minimum length to try to cut down on excess tracks in a possible
+            // shower near the end. 
+            minNumLinks4Track = numLinks4Track - 4 > minNumLinks4Track ? numLinks4Track - 4 : minNumLinks4Track;
 
             // Get starting position and direction
             // The direction will be what we get from the link
-            Vector startDir  = pointsLink->getVector();
-            Point  startPos  = pointsLink->getPosition();
+            Vector startDir = pointsLink->getVector();
+            Point  startPos = pointsLink->getPosition();
+
+            // "Adjust" the start position and direction by using the second link in an attempt to give some "play"
+            // to the filter when tracks are fit. 
+            if (numLinks4Track > 5 && eventEnergy > 2000.)
+            {
+                const Event::TkrVecPointsLink* nextLink = elemToLinksVec[1]->getSecond();
+
+                Event::TkrVecPointsLink tempLink(pointsLink->getFirstVecPoint(),nextLink->getSecondVecPoint(), 0.1);
+
+                Vector nextDir = tempLink.getVector();
+                Point  nextPos = tempLink.getPosition();
+
+                startDir  = 0.5 * (startDir + nextDir);
+                startPos += nextPos;
+                startPos *= 0.5;
+            }
 
             // We want to adjust the start position to be in the plane of the first hit
             double deltaZ    = pointsLink->getFirstVecPoint()->getXCluster()->position().z() 
@@ -127,21 +152,22 @@ int TkrTracksBuilder::buildTkrTracks(TkrTrackElementsBuilder& trkElemsBldr,
 
             if (deltaZ < 0.) deltaZ = -deltaZ;
 
-            Point stepInZ(-deltaZ * tSlopeX, -deltaZ * tSlopeY, deltaZ);
+            Point stepInZ(deltaZ * tSlopeX, deltaZ * tSlopeY, deltaZ);
 
             // Ok, position is arclen (deltaZ / cosTheta) * startDir, subtracting because we are going "up"
-            //startPos += arcLen * startDir;
             startPos += stepInZ;
+
+//            Ray testRay(startPos,startDir);
+//            Point testPoint = testRay.position(deltaZ / startDir.z());
 
             BuildTkrTrack::CandTrackHitVec clusVec;
             clusVec.clear();
 
             // Add the clusters to the track
             std::vector<Event::TkrTrackElemToLinksRel*>::iterator elemToLinksVecItr = elemToLinksVec.begin();
-            const Event::TkrVecPointsLink* curLink      = (*elemToLinksVecItr)->getSecond();
-            const Event::TkrVecPoint*      hit          = curLink->getFirstVecPoint();
-            int                            startBiLayer = hit->getLayer();
-            int                            endBiLayer   = hit->getLayer();
+            const Event::TkrVecPointsLink* curLink    = (*elemToLinksVecItr)->getSecond();
+            const Event::TkrVecPoint*      hit        = curLink->getFirstVecPoint();
+            int                            endBiLayer = hit->getLayer();
 
             bool addMorePoints = true;
             while(addMorePoints)
@@ -161,6 +187,7 @@ int TkrTracksBuilder::buildTkrTracks(TkrTrackElementsBuilder& trkElemsBldr,
                                                     hit->getPosition().z() - topArcLen * curLink->getVector().unit().z());
 
                     const Event::TkrCluster* topClus = findNearestCluster(tkrIdTop, topPoint);
+                    if (topClus) const_cast<Event::TkrCluster*>(topClus)->flag();
 
                     clusVec.push_back(BuildTkrTrack::CandTrackHitPair(tkrIdTop, topClus));
 
@@ -173,6 +200,7 @@ int TkrTracksBuilder::buildTkrTracks(TkrTrackElementsBuilder& trkElemsBldr,
 
                     const Event::TkrCluster* botClus = findNearestCluster(tkrIdBot, botPoint);
                     clusVec.push_back(BuildTkrTrack::CandTrackHitPair(tkrIdBot, botClus));
+                    if (botClus) const_cast<Event::TkrCluster*>(botClus)->flag();
                 }
 
                 // Now deal with the hit containing real clusters
@@ -214,17 +242,15 @@ int TkrTracksBuilder::buildTkrTracks(TkrTrackElementsBuilder& trkElemsBldr,
             tdsTrackCol->push_back(track);
 
             // Now go through and remove TrackElements which use the "wrong" hits 
-            int  vecLinkOffset      = m_numSharedFirstHits;   // The offset to use to start looping
-            int  numVecLinks        = m_numSharedFirstHits;   // Skip over the first links that we allow to be shared
+            int  numSharedVecLinks  = m_numSharedFirstHits;   // Skip over the first links that we allow to be shared
             int  numSharedClusWidth = m_numSharedClusWidth;   // Number of links whose bottom hit can share a "wide" cluster
             int  sharedClusterWidth = 2;
 
             // In the case of short tracks, don't let the last hit be shared ever (?)
-            if (elemToLinksVec.size() < 4)
+            if (numLinks4Track < 4)
             {
-                numVecLinks        = 1;
-                vecLinkOffset      = 1;
-                numSharedClusWidth = elemToLinksVec.size() - 2;
+                numSharedVecLinks  = tdsTrackCol->empty() ? 1 : 0;
+                numSharedClusWidth = 1;
             }
 
             elemToLinksVecItr = elemToLinksVec.begin();
@@ -236,7 +262,8 @@ int TkrTracksBuilder::buildTkrTracks(TkrTrackElementsBuilder& trkElemsBldr,
             {
                 bool markTracks = true;
 
-                if (vecPointNum > m_numSharedFirstHits && vecPointNum < numSharedClusWidth)
+                // Note this will allow first hit to be shared
+                if (vecPointNum > numSharedVecLinks && vecPointNum < numSharedClusWidth)
                 {
                     if ((hit->getXCluster()->size() >= sharedClusterWidth || hit->getXCluster()->getMips() > 1.2) &&
                         (hit->getYCluster()->size() >= sharedClusterWidth || hit->getYCluster()->getMips() > 1.2) ) markTracks = false;
@@ -260,11 +287,8 @@ int TkrTracksBuilder::buildTkrTracks(TkrTrackElementsBuilder& trkElemsBldr,
                         if (unworthy == trackElem) continue;
 
                         // Can we mark the track?
-                        if (vecPointNum < m_numSharedFirstHits + 1)
+                        if (vecPointNum < numSharedVecLinks + 1)
                         {
-                            unsigned bits = 1 << (vecPointNum + 4);
-
-                            bits |= unworthy->getStatusBits();
                             unworthy->setStatusBits(unworthy->getStatusBits() | 1 << (vecPointNum + 4));
                         }
                         else
@@ -288,7 +312,7 @@ int TkrTracksBuilder::buildTkrTracks(TkrTrackElementsBuilder& trkElemsBldr,
                         if (unworthy == trackElem) continue;
 
                         // Can we mark the track?
-                        if (vecPointNum < m_numSharedFirstHits + 1)
+                        if (vecPointNum < numSharedVecLinks + 1)
                         {
                             unworthy->setStatusBits(unworthy->getStatusBits() | 1 << (vecPointNum + 4));
                         }
@@ -427,7 +451,7 @@ const Event::TkrCluster* TkrTracksBuilder::findNearestCluster(idents::TkrId& tkr
             if (tkrId.getView() == 0x00) distToClus = fabs(hitPoint.x() - nearestCluster->position().x());
             else                         distToClus = fabs(hitPoint.y() - nearestCluster->position().y());
 
-            if (distToClus < 2.) cluster = nearestCluster;
+            if (distToClus < 3.) cluster = nearestCluster;
         }
     }
 

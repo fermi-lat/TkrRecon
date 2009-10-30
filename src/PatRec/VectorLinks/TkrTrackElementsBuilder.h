@@ -51,6 +51,9 @@ public:
 
 private:
 
+    /// Function to drive finding Track Elements
+    int buildTrackElements(Event::TkrVecPointsLinkPtrVec& linkVec);
+
     /// Function pointer to one of the Track Element builders defined below
     int  (TkrTrackElementsBuilder::*m_TrackElemBuilder)(Event::TkrVecPointsLinkPtrVec& linkVec, 
                                                         Event::TkrVecPointsLink*       curLink,
@@ -72,7 +75,7 @@ private:
     /// Method to decide whether or not to accept a link into a TrackElement
     bool  acceptLink(Event::TkrVecPointsLink* curLink, 
                      Event::TkrVecPointsLink* nextLink, 
-                     Event::TkrVecPointsLinkPtrVec& linkVec);
+                     bool                     constrainByRms = true);
 
     /// Will calculate the rms deflection angle for a set of links
     double calcRmsAngle(Event::TkrVecPointsLinkPtrVec& linkVec);
