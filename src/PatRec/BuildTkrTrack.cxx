@@ -179,6 +179,11 @@ bool BuildTkrTrack::setFirstHitParams(Event::TkrTrack* track)
         // Update the TkrTrackHit status bits
         trackHit->setStatusBit((Event::TkrTrackHit::StatusBits)status_bits);
 
+        // Finally, set the radiation lengths (defined to be that of the converter at this layer)
+        int    layer  = trackHit->getClusterPtr()->getLayer();
+        double radLen = m_tkrGeom->getRadLenConv(layer); 
+        trackHit->setRadLen(radLen);
+
         successful = true;
     }
 

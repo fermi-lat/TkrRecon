@@ -63,8 +63,12 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(const TkrVecPointsBuilder& vecP
 
         if (vecPointBuilder.getMaxNumLinkCombinations() > 20000.) 
         {
-            if (m_eventAxis.cosTheta() > 0.5) m_toleranceAngle = std::min(m_toleranceAngle, M_PI / 6.);
-            else                              m_toleranceAngle = std::min(m_toleranceAngle, M_PI / 2.);
+//            if (m_eventAxis.cosTheta() > 0.5) m_toleranceAngle = std::min(m_toleranceAngle, M_PI / 6.);
+//            else                              m_toleranceAngle = std::min(m_toleranceAngle, M_PI / 2.);
+            if (m_eventAxis.cosTheta() > 0.5) m_toleranceAngle = std::min(m_toleranceAngle, M_PI / 3.);    // 45 degrees
+            else                              m_toleranceAngle = std::min(m_toleranceAngle, M_PI / 2.);    // 60 degrees
+
+            m_toleranceAngle = std::max(m_toleranceAngle, M_PI / 8.);  // 22.5 degrees absolute minimum
         }
     }
 
