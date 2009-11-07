@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: heather  Fri Nov  6 18:38:04 PST 2009
+TkrRecon
+
+Modified Files:
+      Tag: GlastReleasev17r36p0
+	SConscript 
+Log Message:
+add use of RootConvert to branch, to avoid recent changes on HEAD
+    *
+------------------------------------------------------------
 User: glastrm  Fri Nov  6 12:30:28 PST 2009
 TkrRecon
 
