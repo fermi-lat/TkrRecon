@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: heather  Sun Nov  8 18:57:20 PST 2009
+TkrRecon/doc
+
+Modified Files:
+      Tag: GlastReleasev17r36p0
+	release.notes 
+Log Message:
+add use of RootConvert to branch
+    *
+------------------------------------------------------------
+User: heather  Sun Nov  8 18:57:20 PST 2009
 TkrRecon/cmt
 
 Modified Files:
