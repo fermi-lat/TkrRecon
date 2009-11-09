@@ -1,5 +1,5 @@
 package TkrRecon
-version v10r16p8gr01
+version v10r16p8gr02
 
 author Tracy Usher    <usher@slac.stanford.edu>
 author Leon Rochester <lsrea@slac.stanford.edu>
@@ -27,6 +27,7 @@ private
 #-----------------------
 # everything below here is private
 
+use RootConvert v* -no_auto_imports
 use RootIo v* -no_auto_imports
 #use RootPolicy v2r* -no_auto_imports
 use gr_app v*
