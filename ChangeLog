@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: jrb  Thu Nov 12 16:47:52 PST 2009
+GlastRelease-scons/TkrRecon
+
+Modified Files:
+	.cvsignore SConscript TkrReconLib.py 
+Log Message:
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-16-08-gr02, operation: add
 Package: TkrRecon
