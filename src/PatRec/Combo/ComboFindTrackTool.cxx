@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.51 2008/02/01 02:41:07 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.52 2009/09/09 19:36:04 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -408,20 +408,24 @@ StatusCode ComboFindTrackTool::findTracks()
             std::string name = ppty->particle(); 
             MC_Charge = ppty->charge();          
         }
+
+        // the commented code did more than we want. 
+        // Just use the MC energy in the patrec for this option
+
         HepPoint3D Mc_x0;
         // launch point for charged particle; conversion point for neutral
-        Mc_x0= (MC_Charge==0 ? (*pMCPrimary)->finalPosition() : (*pMCPrimary)->initialPosition());
-        m_calPos = Point(Mc_x0.x(), Mc_x0.y(), Mc_x0.z());
+        //Mc_x0= (MC_Charge==0 ? (*pMCPrimary)->finalPosition() : (*pMCPrimary)->initialPosition());
+        //m_calPos = Point(Mc_x0.x(), Mc_x0.y(), Mc_x0.z());
         
         // move the calorimeter position to the middle of the calorimeter
         // just to avoid later snafus
 
-        double calZ = 0.5*(m_tkrGeom->calZBot() + m_tkrGeom->calZTop());
-        double arclen = (m_calPos.z() - calZ)/m_calDir.z();
-        m_calPos -= arclen*m_calDir;
+        //double calZ = 0.5*(m_tkrGeom->calZBot() + m_tkrGeom->calZTop());
+        //double arclen = (m_calPos.z() - calZ)/m_calDir.z();
+        //m_calPos -= arclen*m_calDir;
 
         CLHEP::HepLorentzVector Mc_p0 = (*pMCPrimary)->initialFourMomentum();
-        m_calDir = Vector(Mc_p0.x(),Mc_p0.y(), Mc_p0.z()).unit();
+        //m_calDir = Vector(Mc_p0.x(),Mc_p0.y(), Mc_p0.z()).unit();
 
         // there's a method v.m(), but it does something tricky if m2<0
         double mass = sqrt(std::max(Mc_p0.m2(),0.0));
