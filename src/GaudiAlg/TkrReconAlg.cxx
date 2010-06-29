@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.46 2009/01/22 01:42:11 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.47 2009/05/01 22:49:27 lsrea Exp $
 */
 
 
@@ -119,7 +119,7 @@ private:
     Algorithm*  m_TkrFindAlg;
     Algorithm*  m_TkrTrackFitAlg;
     Algorithm*  m_TkrVertexAlg;
-    Algorithm*  m_TkrDisplayAlg;
+    //Algorithm*  m_TkrDisplayAlg;
 
     Event::EventHeader* m_header;
     errorVec m_errorArray;
@@ -200,7 +200,52 @@ StatusCode TkrReconAlg::initialize()
 
     // Initialization will depend on whether this is initial or iteration pass version
     // If first pass then we do full reconstruction
-    if (name() != "Iteration")
+    // Start with all pointers null
+
+    m_TkrClusterAlg  = 0;
+    m_TkrFilterAlg   = 0;
+    m_TkrFindAlg     = 0;
+    m_TkrTrackFitAlg = 0;
+    m_TkrVertexAlg   = 0;
+
+    if (name() == "Iteration")
+    {
+        // No Clustering algorithm on iteration
+
+        // Filtering algorithm
+        if( createSubAlgorithm("TkrFilterAlg", "TkrFilterIter", m_TkrFilterAlg).isFailure() ) 
+        {
+            log << MSG::ERROR << " could not open TkrFilterAlg " << endreq;
+            return StatusCode::FAILURE;
+        }
+
+        // No Track finding algorithm on iteration
+
+        // Track Fitting algorithm
+        if( createSubAlgorithm("TkrTrackFitAlg", "TkrFitIter", m_TkrTrackFitAlg).isFailure() ) 
+        {
+            log << MSG::ERROR << " could not open TkrTrackFitAlg " << endreq;
+            return StatusCode::FAILURE;
+        }
+
+        // Vertex finding and fitting algorithm
+        if( createSubAlgorithm("TkrVertexAlg", "TkrVertexIter", m_TkrVertexAlg).isFailure() ) 
+        {
+            log << MSG::ERROR << " could not open TkrVertexAlg " << endreq;
+            return StatusCode::FAILURE;
+        }
+    }
+    else if (name() == "TkrCluster")
+    {
+        // Clustering algorithm
+        if( createSubAlgorithm("TkrClusterAlg", "TkrPreCluster", m_TkrClusterAlg).isFailure() ) 
+        {
+            log << MSG::ERROR << " could not open TkrClusterAlg " << endreq;
+            return StatusCode::FAILURE;
+        }
+    }
+
+    else
     {
         // Clustering algorithm
         if( createSubAlgorithm("TkrClusterAlg", "TkrClusFirst", m_TkrClusterAlg).isFailure() ) 
@@ -240,6 +285,7 @@ StatusCode TkrReconAlg::initialize()
             return StatusCode::FAILURE;
         }
 
+        /*
         // Display algorithm (if GuiSvc is present)
         if( createSubAlgorithm("TkrDisplayAlg", "TkrDisplayAlg", m_TkrDisplayAlg).isFailure() ) 
         {
@@ -247,42 +293,14 @@ StatusCode TkrReconAlg::initialize()
             return StatusCode::FAILURE;
         }
         m_TkrDisplayAlg->setProperty("TrackerReconType", m_TrackerReconType);
+        */
     }
-    else
-    {
-        // No Clustering algorithm on iteration
-        m_TkrClusterAlg = 0;
-
-        // Filtering algorithm
-        if( createSubAlgorithm("TkrFilterAlg", "TkrFilterIter", m_TkrFilterAlg).isFailure() ) 
-        {
-            log << MSG::ERROR << " could not open TkrFilterAlg " << endreq;
-            return StatusCode::FAILURE;
-        }
-
-        // No Track finding algorithm on iteration
-        m_TkrFindAlg = 0;
-
-        // Track Fitting algorithm
-        if( createSubAlgorithm("TkrTrackFitAlg", "TkrFitIter", m_TkrTrackFitAlg).isFailure() ) 
-        {
-            log << MSG::ERROR << " could not open TkrTrackFitAlg " << endreq;
-            return StatusCode::FAILURE;
-        }
-
-        // Vertex finding and fitting algorithm
-        if( createSubAlgorithm("TkrVertexAlg", "TkrVertexIter", m_TkrVertexAlg).isFailure() ) 
-        {
-            log << MSG::ERROR << " could not open TkrVertexAlg " << endreq;
-            return StatusCode::FAILURE;
-        }
-    }
-
+ 
     // Set the property controlling the type of track fitting to perform
-    m_TkrTrackFitAlg->setProperty("TrackFitType", m_TrackerReconType);
+    if(m_TkrTrackFitAlg) m_TkrTrackFitAlg->setProperty("TrackFitType", m_TrackerReconType);
 
-    // Set the property controlling the type of track fitting to perform
-    m_TkrVertexAlg->setProperty("VertexerType", "DEFAULT");
+    // Set the property controlling the type of vertex fitting to perform
+    if(m_TkrVertexAlg) m_TkrVertexAlg->setProperty("VertexerType", "DEFAULT");
 
     // Ghost Tool
     sc = toolSvc()->retrieveTool("TkrGhostTool", m_ghostTool);
