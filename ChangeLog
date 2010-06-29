@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Tue Jun 29 11:57:13 PDT 2010
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrReconAlg.cxx 
+Log Message:
+Refactor TkrReconAlg to make it possible to split off tracker clustering
+Should be transparent, unless you want to use that feature
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-16-11, operation: add
 Package: TkrRecon
