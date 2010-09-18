@@ -1,5 +1,18 @@
 ------------------------------------------------------------
 User: heather  Fri Sep 17 20:55:10 PDT 2010
+TkrRecon/src/test
+
+Modified Files:
+      Tag: GlastReleasev18r6p1
+	jobOptions.txt test_TkrRecon.cxx 
+Removed Files:
+      Tag: GlastReleasev18r6p1
+	test_TkrRecon_load.cxx 
+Log Message:
+Gaudi v21r7 updates
+    *
+------------------------------------------------------------
+User: heather  Fri Sep 17 20:55:10 PDT 2010
 TkrRecon/src/Vertex/Combo
 
 Modified Files:
