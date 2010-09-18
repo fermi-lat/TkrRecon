@@ -30,6 +30,7 @@ private
 use RootConvert v* -no_auto_imports
 use RootIo v* -no_auto_imports
 #use RootPolicy v2r* -no_auto_imports
+use RootmapPolicy * GlastPolicy
 use gr_app v*
 
 
@@ -52,7 +53,6 @@ macro TkrRecon_headers   "" WIN32 "\
 macro source "*.cxx" WIN32 "*.h *.cxx"
 
 library TkrRecon  $(TkrRecon_headers)  \
-  -s=Dll *.cxx\
   -s=GaudiAlg $(source)\
   -s=Display $(source)\
   -s=Services $(source)\
@@ -84,7 +84,7 @@ library TkrRecon  $(TkrRecon_headers)  \
   -s=Vertex/DocaVtx $(source)
 
   
-
+apply_pattern generate_rootmap library=TkrRecon
 
 
 # build this for testing

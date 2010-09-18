@@ -6,7 +6,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrHitTruncationTool.cxx,v 1.2 2005/12/20 17:23:16 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrHitTruncationTool.cxx,v 1.3 2007/09/19 03:38:25 heather Exp $
 */
 
 #include "GaudiKernel/AlgTool.h"
@@ -27,6 +27,7 @@
 //
 // Feeds Combo pattern recognition tracks to Kalman Filter
 //
+DECLARE_TOOL_FACTORY(TkrHitTruncationTool);
 
 TkrHitTruncationTool::TkrHitTruncationTool(const std::string& type, 
                                            const std::string& name, 
