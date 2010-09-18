@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: heather  Fri Sep 17 20:55:09 PDT 2010
+TkrRecon/src/Vertex
+
+Modified Files:
+      Tag: GlastReleasev18r6p1
+	VtxKalFitTool.cxx VtxSingleTrkTool.cxx 
+Log Message:
+Gaudi v21r7 updates
+    *
+------------------------------------------------------------
+User: heather  Fri Sep 17 20:55:09 PDT 2010
 TkrRecon/src/Track
 
 Modified Files:
