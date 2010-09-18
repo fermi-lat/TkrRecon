@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: heather  Fri Sep 17 20:55:07 PDT 2010
+TkrRecon/src/PatRec/MonteCarlo
+
+Modified Files:
+      Tag: GlastReleasev18r6p1
+	MonteCarloFindTrackTool.cxx 
+Log Message:
+Gaudi v21r7 updates
+    *
+------------------------------------------------------------
 User: heather  Fri Sep 17 20:55:06 PDT 2010
 TkrRecon/src/PatRec/LinkAndTree
 
