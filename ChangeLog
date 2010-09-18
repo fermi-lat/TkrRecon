@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: heather  Fri Sep 17 20:55:05 PDT 2010
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+      Tag: GlastReleasev18r6p1
+	TkrClusterAlg.cxx TkrDisplayAlg.cxx TkrFilterAlg.cxx 
+	TkrFindAlg.cxx TkrReconAlg.cxx TkrTrackFitAlg.cxx 
+	TkrVertexAlg.cxx 
+Log Message:
+Gaudi v21r7 updates
+    *
+------------------------------------------------------------
+User: heather  Fri Sep 17 20:55:05 PDT 2010
 TkrRecon/src/Filter
 
 Modified Files:
