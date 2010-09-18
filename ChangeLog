@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: heather  Fri Sep 17 20:55:09 PDT 2010
+TkrRecon/src/Track
+
+Modified Files:
+      Tag: GlastReleasev18r6p1
+	FindTrackHitsTool.cxx KalmanTrackFitTool.cxx 
+	TkrAlignHitsTool.cxx TkrAlignHitsTool.h 
+	TkrHitTruncationTool.cxx TkrHitTruncationTool.h 
+	TkrTrackEnergyTool.cxx 
+Log Message:
+Gaudi v21r7 updates
+    *
+------------------------------------------------------------
 User: heather  Fri Sep 17 20:55:08 PDT 2010
 TkrRecon/src/Services
 
