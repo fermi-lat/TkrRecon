@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.6 2004/10/04 16:18:51 usher Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.7 2004/12/17 23:24:05 usher Exp $
 // Include files
 // Gaudi system includes
 #include "GaudiKernel/MsgStream.h"
@@ -29,7 +29,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.6 2004/10/04 16:18:51 usher Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.7 2004/12/17 23:24:05 usher Exp $
 */
 
 class test_TkrRecon : public Algorithm {
@@ -50,8 +50,9 @@ private:
 // expect that the xxx_load.cxx file contains a call     
 //     DLL_DECL_ALGORITHM( test_TkrRecon );
 
-static const AlgFactory<test_TkrRecon>  Factory;
-const IAlgFactory& test_TkrReconFactory = Factory;
+//static const AlgFactory<test_TkrRecon>  Factory;
+//const IAlgFactory& test_TkrReconFactory = Factory;
+DECLARE_ALGORITHM_FACTORY(test_TkrRecon);
 
 //------------------------------------------------------------------------
 //! ctor

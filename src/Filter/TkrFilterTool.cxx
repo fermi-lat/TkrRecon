@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrFilterTool.cxx,v 1.5 2006/03/21 01:12:34 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrFilterTool.cxx,v 1.7 2009/10/05 22:59:58 usher Exp $
  */
 
 // to turn one debug variables
@@ -147,8 +147,9 @@ private:
     double m_rmsTransCut;
 };
 
-static ToolFactory<TkrFilterTool> s_factory;
-const IToolFactory& TkrFilterToolFactory = s_factory;
+//static ToolFactory<TkrFilterTool> s_factory;
+//const IToolFactory& TkrFilterToolFactory = s_factory;
+DECLARE_TOOL_FACTORY(TkrFilterTool);
 
 //
 // Feeds Combo pattern recognition tracks to Kalman Filter

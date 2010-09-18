@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxSingleTrkTool.cxx,v 1.8 2005/02/11 07:14:55 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxSingleTrkTool.cxx,v 1.9 2005/05/11 04:14:35 lsrea Exp $
 // Description:
 //      Simple vertexing tool for single track event
 //
@@ -14,8 +14,9 @@
 #include "GaudiKernel/SmartDataPtr.h"
 #include "Event/TopLevel/EventModel.h"
 
-static ToolFactory<VtxSingleTrkTool> s_factory;
-const IToolFactory& VtxSingleTrkToolFactory = s_factory;
+//static ToolFactory<VtxSingleTrkTool> s_factory;
+//const IToolFactory& VtxSingleTrkToolFactory = s_factory;
+DECLARE_TOOL_FACTORY(VtxSingleTrkTool);
 
 
 StatusCode VtxSingleTrkTool::doVtxFit(Event::TkrVertexCol& /*theVtxCol*/)
