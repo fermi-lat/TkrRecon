@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.h,v 1. 2006/03/21 01:12:37 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.h,v 1.2 2009/10/30 15:56:47 usher Exp $
  *
 */
 
@@ -43,7 +43,7 @@ public:
     TkrVecPointsLinkVecVec& getVecPointsLinkSkip2VecVec() {return m_tkrVecPointsLinkSkip2VecVec;}
 
     // Access to the track elements to points relation table 
-    Event::TkrVecPointToLinksTab& getPointToLinksTab()    {return m_pointToLinksTab;}
+    Event::TkrVecPointToLinksTab* getPointToLinksTab()    {return m_pointToLinksTab;}
 
 private:
 
@@ -86,7 +86,7 @@ private:
 
     /// Define a local relational table which will relate TkrVecPoints
     /// to TkrVecPointLinks
-    Event::TkrVecPointToLinksTab m_pointToLinksTab;
+    Event::TkrVecPointToLinksTab* m_pointToLinksTab;
 };
 
 #endif

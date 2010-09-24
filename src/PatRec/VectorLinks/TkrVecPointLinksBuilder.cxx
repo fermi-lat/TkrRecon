@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.cxx,v 1.1 2005/05/26 20:33:07 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.cxx,v 1.2 2009/10/30 15:56:47 usher Exp $
  *
 */
 
@@ -37,8 +37,15 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(const TkrVecPointsBuilder& vecP
 
     if (sc.isFailure()) return;
 
+    // Create the list of points to links relations and store in the TDS
+    Event::TkrVecPointToLinksTabList* pointToLinksRelList = new Event::TkrVecPointToLinksTabList();
+
+    sc = dataSvc->registerObject("/Event/TkrRecon/TkrVecPointToLinksTabList", pointToLinksRelList);
+
+    if (sc.isFailure()) return;
+
     // Initialize the relational table
-    m_pointToLinksTab.init();
+    m_pointToLinksTab = new Event::TkrVecPointToLinksTab(pointToLinksRelList);
 
     // Look up the Cal event information
     Event::TkrEventParams* tkrEventParams = 
@@ -167,6 +174,10 @@ TkrVecPointLinksBuilder::~TkrVecPointLinksBuilder()
     }
     m_tkrVecPointsLinkSkip2VecVec.clear();
 
+    // Finally, zap the relational table (though remember that the actual list is in the TDS)
+    delete m_pointToLinksTab;
+
+    return;
 }
 
 
@@ -203,12 +214,16 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
             Vector startToEnd = firstPoint->getPosition() - secondPoint->getPosition();
 
             // Try to limit distance apart to no more than a tower width
-            double vecDist    = startToEnd.magnitude() * sin(startToEnd.theta());
-            double towerPitch = 0.5 * m_tkrGeom->towerPitch();
+            double startToEndMag  = startToEnd.magnitude();
+            double startToEndDist = startToEndMag * sin(startToEnd.theta());
+            double towerPitch     = m_tkrGeom->towerPitch();
+
+            // Make startToEnd a unit vector
+            startToEnd = startToEnd.unit();
 
             if (firstPoint->getTower() != secondPoint->getTower()) towerPitch *= 0.5;
 
-            if (vecDist > towerPitch) continue;
+            if (startToEndDist > towerPitch) continue;
 
             // Loop through intervening layers to check if we should expect intermediate hits for 
             // a "layer skipping" link
@@ -217,7 +232,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
 
             // Check angle link makes with event axis
             double toleranceAngle = m_toleranceAngle;
-            double cosTestAngle   = m_eventAxis.dot(startToEnd.unit());
+            double cosTestAngle   = m_eventAxis.dot(startToEnd);
             double testAngle      = acos(std::max(0.,std::min(1.,cosTestAngle)));
 
             // Be stingy with angles on links that skip layers
@@ -229,147 +244,99 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
             TkrVecPointVecVec::const_iterator intPointsItr = firstPointsItr + 1;
             int                               intMissLyr   = startLayer; 
 
-            // If an intervening missing layer then check for nearest hits
-            while(intPointsItr != nextPointsItr)
+            // If we have intermediate layers then do some checking
+            if (intPointsItr != nextPointsItr)
             {
-                // Retrieve the vector of TkrVecPoints for this bilayer
-                const TkrVecPointVec& intPoints = *intPointsItr++;
+                // Improve accuracy by adjusting starting vec point position for slope of the proposed link
+                double linkZ  = firstPoint->getPosition().z();
+                double aLen2X = (firstPoint->getXCluster()->position().z() - linkZ) / cos(startToEnd.theta());
+                double linkX  = firstPoint->getXCluster()->position().x() - aLen2X * startToEnd.x();
+                double aLen2Y = (firstPoint->getYCluster()->position().z() - linkZ) / cos(startToEnd.theta());
+                double linkY  = firstPoint->getYCluster()->position().y() - aLen2Y * startToEnd.y();
 
-                // What we do:
-                // First check to see if we are in (or close to) an active area in the x view
-                // Then check the same for the y view
-                // If in active area (or close enough) then we look for the nearest hit
-                // And, finally, if the hit is "nearby" then we don't create a vector link here
-                // 
-                // So, start by setting up to see where the potential link will put us in x
-                double zLayer      = m_tkrGeom->getLayerZ(--intMissLyr, 0);
-                double arcLen      = (firstPoint->getPosition().z() - zLayer) / cos(startToEnd.theta());
-                Point  layerPt     = Point(firstPoint->getPosition().x() - arcLen * startToEnd.unit().x(),
-                                           firstPoint->getPosition().y() - arcLen * startToEnd.unit().y(),
-                                           firstPoint->getPosition().z() - arcLen * startToEnd.unit().z());
-
-                // Local variables for checking distance to active areas
-                int    iXTower     = 0;
-                int    iYTower     = 0;
-                double xActiveDist = 0.;
-                double yActiveDist = 0.;
-                double xGap        = 0.;
-                double yGap        = 0.;
-
-                // Check to see if our point is within the active area of silicon so that we can reasonably 
-                // expect that a hit is nearby. This first checks the x plane in the bilayer we're in
-                bool   hitNearby   = m_tkrGeom->inTower(0, layerPt, iXTower, iYTower, xActiveDist, yActiveDist, xGap, yGap);
-
-                // If near the edge of the active area then give benefit of the doubt 
-                if (xActiveDist < 0.) continue;
-
-                // Now look where we might be in Y
-                zLayer    = m_tkrGeom->getLayerZ(intMissLyr, 1);
-                arcLen    = (firstPoint->getPosition().z() - zLayer) / cos(startToEnd.theta());
-                layerPt   = Point(firstPoint->getPosition().x() - arcLen * startToEnd.unit().x(),
-                                  firstPoint->getPosition().y() - arcLen * startToEnd.unit().y(),
-                                  firstPoint->getPosition().z() - arcLen * startToEnd.unit().z());
-
-                // Check for hit near our point in the Y view
-                hitNearby = m_tkrGeom->inTower(0, layerPt, iXTower, iYTower, xActiveDist, yActiveDist, xGap, yGap);
-
-                // Again, give benefit of doubt if near the edge of the active area
-                if (yActiveDist < 0.) continue;
-
-                // Find the nearest TkrVecPoint to this point
-                double                    dist2VecPoint;
-                const Event::TkrVecPoint* nearestHit    = findNearestTkrVecPoint(intPoints, layerPt, dist2VecPoint);
-
-                // If a "nearby" hit then don't make a link here
-                if (dist2VecPoint > 0.1 * towerPitch) continue;
-
-                // Otherwise, we're outa here
-                inActiveArea = true;
-                break;
-            }
-/*
-            for (int intLayer = startLayer - 1; intLayer > endLayer; intLayer--)
-            {
-                // Increment counter for skipped layers
-                //skippedLayers++;
-
-                // Set up to see where the potential link will put us in x
-                double zLayer      = m_tkrGeom->getLayerZ(intLayer, 0);
-                double arcLen      = (firstPoint->getPosition().z() - zLayer) / cos(startToEnd.theta());
-                Point  layerPt     = Point(firstPoint->getPosition().x() - arcLen * startToEnd.unit().x(),
-                                           firstPoint->getPosition().y() - arcLen * startToEnd.unit().y(),
-                                           firstPoint->getPosition().z() - arcLen * startToEnd.unit().z());
-
-                int    iXTower     = 0;
-                int    iYTower     = 0;
-                double xActiveDist = 0.;
-                double yActiveDist = 0.;
-                double xGap        = 0.;
-                double yGap        = 0.;
-                double dummy       = 0.;
-
-                // Check for cluster near our point in the X view
-                bool   hitNearby   = m_tkrGeom->inTower(0, layerPt, iXTower, iYTower, xActiveDist, dummy, xGap, yGap);
-
-                // If we are near the edge of an active area then we should check to see if nearby cluster
-//                if (!hitNearby && xActiveDist > -2.) hitNearby = true;
-                if (xActiveDist < 2.) continue;
-
-                // Ok, we are near an edge, or in an active area so check to see if the intermediate layer
-                // has a cluster that would make a link (so we don't make layer skipping links needlessly)
-                double xDist2Clus = 2. * towerPitch;
-
-                if (hitNearby)
+                // If an intervening missing layer then check for nearest hits
+                while(intPointsItr != nextPointsItr)
                 {
-                    double inDist = 0.;
-                    Event::TkrCluster* clusNearX = m_clusTool->nearestClusterOutside(0, intLayer, inDist, layerPt);
+                    // Retrieve the vector of TkrVecPoints for this bilayer
+                    const TkrVecPointVec& intPoints = *intPointsItr++;
 
-                    if (clusNearX) xDist2Clus = abs(layerPt.x() - clusNearX->position().x());
-                }
-                // If not hit nearby then we want to make this link
-                else continue;  // Loop back in the event skipping multiple layers
+                    // What we do:
+                    // First check to see if we are in (or close to) an active area in the x view
+                    // Then check the same for the y view
+                    // If in active area (or close enough) then we look for the nearest hit
+                    // And, finally, if the hit is "nearby" then we don't create a vector link here
+                    // 
+                    // So, start by setting up to see where the potential link will put us in x
+                    double zLayerX     = m_tkrGeom->getLayerZ(--intMissLyr, 0);
+//                    double arcLen      = (firstPoint->getPosition().z() - zLayer) / cos(startToEnd.theta());
+//                    Point  layerPt     = Point(firstPoint->getPosition().x() - arcLen * startToEnd.unit().x(),
+//                                           firstPoint->getPosition().y() - arcLen * startToEnd.unit().y(),
+//                                           firstPoint->getPosition().z() - arcLen * startToEnd.unit().z());
+                    double arcLen      = (linkZ - zLayerX) / cos(startToEnd.theta());
+                    Point  layerPtX    = Point(linkX - arcLen * startToEnd.x(),
+                                               linkY - arcLen * startToEnd.y(),
+                                               linkZ - arcLen * startToEnd.z());
 
-                // Now look where we might be in Y
-                zLayer     = m_tkrGeom->getLayerZ(intLayer, 1);
-                arcLen     = (firstPoint->getPosition().z() - zLayer) / cos(startToEnd.theta());
-                layerPt    = Point(firstPoint->getPosition().x() - arcLen * startToEnd.unit().x(),
-                                   firstPoint->getPosition().y() - arcLen * startToEnd.unit().y(),
-                                   firstPoint->getPosition().z() - arcLen * startToEnd.unit().z());
+                    // Local variables for checking distance to active areas
+                    int    iXTower     = 0;
+                    int    iYTower     = 0;
+                    double xActiveDist = 0.;
+                    double yActiveDist = 0.;
+                    double xGap        = 0.;
+                    double yGap        = 0.;
 
-                // Check for hit near our point in the Y view
-                hitNearby  = m_tkrGeom->inTower(0, layerPt, iXTower, iYTower, dummy, yActiveDist, xGap, yGap);
+                    // Check to see if our point is within the active area of silicon so that we can reasonably 
+                    // expect that a hit is nearby. This first checks the x plane in the bilayer we're in
+                    bool   hitNearby   = m_tkrGeom->inTower(0, layerPtX, iXTower, iYTower, xActiveDist, yActiveDist, xGap, yGap);
 
-//                if (!hitNearby && yActiveDist > -2.) hitNearby = true;
-                if (yActiveDist < 2.) continue;
+                    // If near the edge of the active area then give benefit of the doubt 
+                    if (xActiveDist < 0.) continue;
 
-                double yDist2Clus = 2. * towerPitch;
+                    // Now look where we might be in Y
+                    double zLayerY = m_tkrGeom->getLayerZ(intMissLyr, 1);
 
-                // Are we "in" but maybe there is a cluster missing here?
-                if (hitNearby)
-                {
-                    double inDist = 0.;
-                    Event::TkrCluster* clusNearY = m_clusTool->nearestClusterOutside(1, intLayer, inDist, layerPt);
+                    arcLen = (linkZ - zLayerY) / cos(startToEnd.theta());
 
-                    if (clusNearY) yDist2Clus = abs(layerPt.y() - clusNearY->position().y());
-                }
-                else continue;
+                    Point layerPtY = Point(linkX - arcLen * startToEnd.x(),
+                                           linkY - arcLen * startToEnd.y(),
+                                           linkZ - arcLen * startToEnd.z());
 
-                // Check that at least one of the distances in the x or y direction is "large" 
-                // We let one be "close" to account for the case where a cluster is missing in one plane
-                if (xDist2Clus > 0.2 * towerPitch || yDist2Clus > 0.2 * towerPitch) 
-                {
-                    hitNearby = false;
-                }
+                    // Check for hit near our point in the Y view
+                    hitNearby = m_tkrGeom->inTower(0, layerPtY, iXTower, iYTower, xActiveDist, yActiveDist, xGap, yGap);
 
-                // If hitNearby is true here then we have nearby clusters in both views
-                // This means we DO NOT want to make a link
-                if (hitNearby)
-                {
+                    // Again, give benefit of doubt if near the edge of the active area
+                    if (yActiveDist < 0.) continue;
+
+                    // Reset the "layerPt" to the position at the equivalent of the vec point for this bilayer
+                    arcLen    = (linkZ - 0.5 * (zLayerX + zLayerY)) / cos(startToEnd.theta());
+
+                    Point layerPt = Point(linkX - arcLen * startToEnd.x(),
+                                          linkY - arcLen * startToEnd.y(),
+                                          linkZ - arcLen * startToEnd.z());
+
+                    // Find the nearest TkrVecPoint to this point
+                    double                    dist2VecPoint = 1000.;
+                    const Event::TkrVecPoint* nearestHit    = findNearestTkrVecPoint(intPoints, layerPt, dist2VecPoint);
+
+                    // If a "nearby" hit then don't make a link here
+//                  if (dist2VecPoint > 0.1 * towerPitch) continue;
+                    if (!nearestHit)
+                    {
+                        continue;
+                    }
+
+                    double nearestHitX = nearestHit->getXCluster()->position().x();
+                    double nearestHitY = nearestHit->getYCluster()->position().y();
+
+                    if (fabs(nearestHitX - layerPtX.x()) > 5. * m_tkrGeom->siStripPitch() * nearestHit->getXCluster()->size() ||
+                        fabs(nearestHitY - layerPtY.y()) > 5. * m_tkrGeom->siStripPitch() * nearestHit->getYCluster()->size()) continue;
+
+                    // Otherwise, we're outa here
                     inActiveArea = true;
                     break;
                 }
             }
-*/
+
             // If result of above check is that there are nearby points then we don't proceed to make a link
             if (inActiveArea) continue;
 
@@ -386,7 +353,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
 
             // Close enough for Governement work...
             double msScatAng = 13.6*sqrt(radLenTot)*(1+0.038*log(radLenTot))/m_evtEnergy;
-            double geoAngle  = 3. * m_tkrGeom->siStripPitch() / startToEnd.magnitude();
+            double geoAngle  = 3. * m_tkrGeom->siStripPitch() / startToEndMag;
 
             // Set the maximum angle we expect to be the larger of the MS or geometric angles
             // Factor of two is fudge for 3-D
@@ -421,7 +388,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
             //{
                 Event::TkrVecPointToLinksRel* pointToLink = 
                     new Event::TkrVecPointToLinksRel(const_cast<Event::TkrVecPoint*>(firstPoint), tkrVecPointsLink);
-                if (!m_pointToLinksTab.addRelation(pointToLink)) delete pointToLink;
+                if (!m_pointToLinksTab->addRelation(pointToLink)) delete pointToLink;
             //}
         }
     }
