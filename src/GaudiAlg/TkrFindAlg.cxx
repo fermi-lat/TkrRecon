@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.20 2005/09/03 02:06:59 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.21 2006/03/21 01:12:35 usher Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -40,7 +40,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.20 2005/09/03 02:06:59 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.21 2006/03/21 01:12:35 usher Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -123,6 +123,11 @@ StatusCode TkrFindAlg::initialize()
     {
         // Neural Net Pat Rec
         sc = toolSvc()->retrieveTool("VectorLinksTool", m_findTool);
+    }
+    else if (m_TrackFindType == "TreeBased")
+    {
+        // Neural Net Pat Rec
+        sc = toolSvc()->retrieveTool("TreeBasedTool", m_findTool);
     }
     else
     {
