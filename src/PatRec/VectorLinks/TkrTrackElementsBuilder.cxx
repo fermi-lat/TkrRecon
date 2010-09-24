@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrTrackElementsBuilder.cxx,v 1.1 2005/05/26 20:33:07 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrTrackElementsBuilder.cxx,v 1.2 2009/10/30 15:56:47 usher Exp $
  *
 */
 
@@ -231,7 +231,7 @@ int TkrTrackElementsBuilder::buildTrackElements(Event::TkrVecPointsLinkPtrVec& l
 
     // get the list of links associated with the bottom point of the current link
     std::vector<Event::TkrVecPointToLinksRel*> pointToLinkVec = 
-        m_vecPointLinksBldr.getPointToLinksTab().getRelByFirst(curLink->getSecondVecPoint());
+        m_vecPointLinksBldr.getPointToLinksTab()->getRelByFirst(curLink->getSecondVecPoint());
 
     // Define a status bit mask which will prevent using skipping layer links when we don't want to
     unsigned int statusBitMask = 0x0030; // set to stop at links skipping 1 or 2 layers
@@ -314,7 +314,7 @@ int TkrTrackElementsBuilder::buildTrackElementsWithThrottle(Event::TkrVecPointsL
 
     // get the list of links associated with the bottom point of the current link
     std::vector<Event::TkrVecPointToLinksRel*> pointToLinkVec = 
-        m_vecPointLinksBldr.getPointToLinksTab().getRelByFirst(curLink->getSecondVecPoint());
+        m_vecPointLinksBldr.getPointToLinksTab()->getRelByFirst(curLink->getSecondVecPoint());
 
     // Define a status bit mask which will prevent using skipping layer links when we don't want to
     unsigned int statusBitMask = 0x0030; // set to stop at links skipping 1 or 2 layers
