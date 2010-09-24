@@ -201,7 +201,7 @@ void TkrTreeBuilder::makeSiblingMap(Event::TkrNodeSiblingMap* siblingMap,
 class TkrTreePosition
 {
 public:
-    TkrTreePosition(idents::TkrId& tkrId, const Event::TkrCluster* cluster, Point& position, int clusWid, double weight) :
+    TkrTreePosition(idents::TkrId tkrId, const Event::TkrCluster* cluster, Point position, int clusWid, double weight) :
                     m_tkrId(tkrId), m_cluster(cluster), m_position(position), m_clusWid(clusWid), m_weight(weight)
                     {};
 
