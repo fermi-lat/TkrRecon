@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Sep 24 10:39:46 PDT 2010
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Must also build the version 0 tree based track finding code!
+    *
+------------------------------------------------------------
 User: usher  Fri Sep 24 09:15:12 PDT 2010
 TkrRecon/src/Track
 
