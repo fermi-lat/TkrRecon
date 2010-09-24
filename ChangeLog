@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Fri Sep 24 09:14:44 PDT 2010
+TkrRecon/src/PatRec/TreeBased
+
+Added Files:
+	TkrTreeBuilder.cxx TkrTreeBuilder.h TkrVecNodesBuilder.cxx 
+	TkrVecNodesBuilder.h TreeBasedTool.cxx 
+Log Message:
+Version 0 of tree based track finding code - for initial testing on linux
+    *
+------------------------------------------------------------
 User: usher  Fri Sep 24 09:14:00 PDT 2010
 TkrRecon/src/PatRec/TreeBased
 
