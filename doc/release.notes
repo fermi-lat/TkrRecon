@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-18-00 27-Sep-2010  lsrea Redo logic to make more robust
  TkrRecon-10-17-00 23-Sep-2010  lsrea Tag TkrRecon to synchronize with latest Gleam
  TkrRecon-10-16-11 12-Jun-2010    jrb upgrades for SCons builds
  TkrRecon-10-16-10 25-Feb-2010  lsrea modify 'MC' energy option to just use MC-energy in patrec
