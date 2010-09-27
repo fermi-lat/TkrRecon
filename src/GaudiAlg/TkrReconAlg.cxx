@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.47 2009/05/01 22:49:27 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.48 2010/06/29 18:57:12 lsrea Exp $
 */
 
 
@@ -68,10 +68,10 @@ public:
       double      getLastTime()    {return m_time;}
       std::string getErrorString() {return m_errorString;}
 private:
-      int    m_run;
-      int    m_event;
-      double m_time;
-      std::string m_errorString;
+    int    m_run;
+    int    m_event;
+    double m_time;
+    std::string m_errorString;
 };
 
 typedef std::vector<TkrErrorRecord*> errorVec;
@@ -119,7 +119,7 @@ private:
     Algorithm*  m_TkrFindAlg;
     Algorithm*  m_TkrTrackFitAlg;
     Algorithm*  m_TkrVertexAlg;
-    //Algorithm*  m_TkrDisplayAlg;
+    Algorithm*  m_TkrDisplayAlg; // LSR
 
     Event::EventHeader* m_header;
     errorVec m_errorArray;
@@ -138,11 +138,22 @@ private:
     // this is because 2 copies of TkrReconAlg are instantiated: "FirstPass" and "Iteration"
     static bool s_failed;
     static bool s_saveBadEvents;
+    static int  s_run;
+    static int  s_event;
+    static bool s_ghostClusterDone;
+    static bool s_ghostTrackDone;
+    static bool s_ghostVertexDone;
+
     ITkrGhostTool* m_ghostTool;
 };
 
 bool TkrReconAlg::s_failed = false;
 bool TkrReconAlg::s_saveBadEvents = true;
+int  TkrReconAlg::s_run = -1;
+int  TkrReconAlg::s_event = -1;
+bool TkrReconAlg::s_ghostClusterDone = false;
+bool TkrReconAlg::s_ghostTrackDone   = false;
+bool TkrReconAlg::s_ghostVertexDone  = false;
 
 // Definitions for use within Gaudi
 static const AlgFactory<TkrReconAlg>  Factory;
@@ -215,7 +226,7 @@ StatusCode TkrReconAlg::initialize()
         // Filtering algorithm
         if( createSubAlgorithm("TkrFilterAlg", "TkrFilterIter", m_TkrFilterAlg).isFailure() ) 
         {
-            log << MSG::ERROR << " could not open TkrFilterAlg " << endreq;
+            log << MSG::ERROR << " could not open TkrFilterAlg/TkrFilterIter " << endreq;
             return StatusCode::FAILURE;
         }
 
@@ -224,14 +235,14 @@ StatusCode TkrReconAlg::initialize()
         // Track Fitting algorithm
         if( createSubAlgorithm("TkrTrackFitAlg", "TkrFitIter", m_TkrTrackFitAlg).isFailure() ) 
         {
-            log << MSG::ERROR << " could not open TkrTrackFitAlg " << endreq;
+            log << MSG::ERROR << " could not open TkrTrackFitAlg/TkrFitIter " << endreq;
             return StatusCode::FAILURE;
         }
 
         // Vertex finding and fitting algorithm
         if( createSubAlgorithm("TkrVertexAlg", "TkrVertexIter", m_TkrVertexAlg).isFailure() ) 
         {
-            log << MSG::ERROR << " could not open TkrVertexAlg " << endreq;
+            log << MSG::ERROR << " could not open TkrVertexAlg/TkrVertexIter " << endreq;
             return StatusCode::FAILURE;
         }
     }
@@ -240,7 +251,7 @@ StatusCode TkrReconAlg::initialize()
         // Clustering algorithm
         if( createSubAlgorithm("TkrClusterAlg", "TkrPreCluster", m_TkrClusterAlg).isFailure() ) 
         {
-            log << MSG::ERROR << " could not open TkrClusterAlg " << endreq;
+            log << MSG::ERROR << " could not open TkrClusterAlg/TkrPreCluster " << endreq;
             return StatusCode::FAILURE;
         }
     }
@@ -250,21 +261,21 @@ StatusCode TkrReconAlg::initialize()
         // Clustering algorithm
         if( createSubAlgorithm("TkrClusterAlg", "TkrClusFirst", m_TkrClusterAlg).isFailure() ) 
         {
-            log << MSG::ERROR << " could not open TkrClusterAlg " << endreq;
+            log << MSG::ERROR << " could not open TkrClusterAlg/TkrClusFirst " << endreq;
             return StatusCode::FAILURE;
         }
 
         // Filtering algorithm
         if( createSubAlgorithm("TkrFilterAlg", "TkrFilterFirst", m_TkrFilterAlg).isFailure() ) 
         {
-            log << MSG::ERROR << " could not open TkrFilterAlg " << endreq;
+            log << MSG::ERROR << " could not open TkrFilterAlg/TkrFilterFirst " << endreq;
             return StatusCode::FAILURE;
         }
 
         // Track finding algorithm
         if( createSubAlgorithm("TkrFindAlg", "TkrFindFirst", m_TkrFindAlg).isFailure() ) 
         {
-            log << MSG::ERROR << " could not open TkrFindAlg " << endreq;
+            log << MSG::ERROR << " could not open TkrFindAlg/TkrFindFirst " << endreq;
             return StatusCode::FAILURE;
         }
 
@@ -274,28 +285,28 @@ StatusCode TkrReconAlg::initialize()
         // Track Fitting algorithm
         if( createSubAlgorithm("TkrTrackFitAlg", "TkrFitFirst", m_TkrTrackFitAlg).isFailure() ) 
         {
-            log << MSG::ERROR << " could not open TkrTrackFitAlg " << endreq;
+            log << MSG::ERROR << " could not open TkrTrackFitAlg/TkrFitFirst " << endreq;
             return StatusCode::FAILURE;
         }
 
         // Vertex finding and fitting algorithm
         if( createSubAlgorithm("TkrVertexAlg", "TkrVertexFirst", m_TkrVertexAlg).isFailure() ) 
         {
-            log << MSG::ERROR << " could not open TkrVertexAlg " << endreq;
+            log << MSG::ERROR << " could not open TkrVertexAlg/TkrVertexFirst " << endreq;
             return StatusCode::FAILURE;
         }
 
-        /*
-        // Display algorithm (if GuiSvc is present)
+        
+        // Display algorithm (if GuiSvc is present) // LSR
         if( createSubAlgorithm("TkrDisplayAlg", "TkrDisplayAlg", m_TkrDisplayAlg).isFailure() ) 
         {
-            log << MSG::ERROR << " could not open TkrDisplayAlg " << endreq;
-            return StatusCode::FAILURE;
+        log << MSG::ERROR << " could not open TkrDisplayAlg " << endreq;
+        return StatusCode::FAILURE;
         }
         m_TkrDisplayAlg->setProperty("TrackerReconType", m_TrackerReconType);
-        */
+        
     }
- 
+
     // Set the property controlling the type of track fitting to perform
     if(m_TkrTrackFitAlg) m_TkrTrackFitAlg->setProperty("TrackFitType", m_TrackerReconType);
 
@@ -320,29 +331,47 @@ StatusCode TkrReconAlg::execute()
     // Dependencies: None
     // Restrictions and Caveats:  None
     MsgStream log(msgSvc(), name());
+    log << MSG::DEBUG;
+    bool doDebug = log.isActive();
+    log << endreq;
 
     StatusCode sc = StatusCode::SUCCESS;
 
-    m_eventCount++;
-
-    log << MSG::DEBUG;
-    if (name() != "Iteration") log << "------- Tkr Recon of new Event --------";
-    else                       log << "-------   Tkr Recon iteration  --------";
-    log << endreq;
-
     m_header = SmartDataPtr<Event::EventHeader>(eventSvc(), EventModel::EventHeader);
+    bool newEvent;
     if(!m_header) {
         log << MSG::ERROR << "Event header not found!" << endreq;
-    }
-
-    if (name() != "Iteration") {
-        s_failed = false;
-
+        return StatusCode::FAILURE;
     } else {
-        if(s_failed) {
-            return StatusCode::SUCCESS;
+        // check if new event, if so, reset s_failed flag
+        int run   = m_header->run();
+        int event = m_header->event();
+       
+        newEvent = (run!=s_run||event!=s_event);
+        if(newEvent) {
+            m_eventCount++;
+            s_failed = false;
+            s_run   = run;
+            s_event = event;
+            s_ghostClusterDone = false;
+            s_ghostTrackDone   = false;
+            s_ghostVertexDone  = false;
         }
     }
+
+    if(doDebug) {
+        if(newEvent) log << MSG::DEBUG << endreq;
+        log << MSG::DEBUG << "------- ";
+        if (name() == "TkrCluster")     log << "TkrCluster "; 
+        else if (name() == "FirstPass") log << "Tkr Recon First Pass ";
+        else                            log << "Tkr Recon iteration ";
+    }
+    if(newEvent) log << "(New Event) " ;
+    if(doDebug) log << "-------" << endreq;
+    newEvent = false;
+
+    // recon has failed at a previous stage... just return;
+    if(s_failed) return StatusCode::SUCCESS;
 
     std::string stageFailed = "Stage failed";
 
@@ -351,20 +380,36 @@ StatusCode TkrReconAlg::execute()
         m_stage = "TkrClusterAlg";
         if (m_TkrClusterAlg && m_lastStage>=CLUSTERING && m_firstStage<=CLUSTERING) {
             sc = m_TkrClusterAlg->execute();
-        }
-        if (sc.isFailure())
-        {
-            return handleError(stageFailed);
+            if (sc.isFailure())
+            {
+                return handleError(stageFailed);
+            }
+            // Check number of clusters returned
+            int numClusters = 0;
+            Event::TkrClusterCol* clusterCol = SmartDataPtr<Event::TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol);
+            if(clusterCol) {
+                numClusters = clusterCol->size();
+            }
+            if(doDebug) 
+                log << MSG::DEBUG << numClusters << " TkrClusters found" << endreq;
+
+            m_stage = "ClusterSize";
+            if (numClusters > m_maxClusters)
+            {
+                std::stringstream errorStream;
+                errorStream << numClusters << " clusters found, max allowed is " 
+                    << m_maxClusters ;
+                return handleError(errorStream.str());
+            }
         }
 
-        if(name()!="Iteration") {
+        if(!s_ghostClusterDone&&m_ghostTool) {
             m_stage = "GhostCheck - clusters";
-            if (m_ghostTool) {
-                if ((sc=m_ghostTool->flagSingles()).isFailure() ||
-                    (sc=m_ghostTool->flagEarlyHits()).isFailure())
-                {
-                    return handleError(stageFailed);
-                }
+            s_ghostClusterDone = true;
+            if ((sc=m_ghostTool->flagSingles()).isFailure() ||
+                (sc=m_ghostTool->flagEarlyHits()).isFailure())
+            {
+                return handleError(stageFailed);
             }
         }
 
@@ -376,101 +421,94 @@ StatusCode TkrReconAlg::execute()
             return handleError(stageFailed);
         }
 
-        // Check number of clusters returned
-        Event::TkrClusterCol* clusterCol = SmartDataPtr<Event::TkrClusterCol>(eventSvc(),EventModel::TkrRecon::TkrClusterCol);
-        int numClusters = clusterCol->size();
-        log << MSG::DEBUG;
-        if(log.isActive()) log << numClusters << " TkrClusters found" ;
-        log << endreq;
-
-         m_stage = "ClusterSize";
-        if (numClusters > m_maxClusters)
-        {
-            std::stringstream errorStream;
-            errorStream << numClusters << " clusters found, max allowed is " 
-                << m_maxClusters ;
-            return handleError(errorStream.str());
-        }
-        
         // Call track filter stage
         m_stage = "TkrFilterAlg";
         if(m_TkrFilterAlg && m_lastStage>=FILTERING && m_firstStage<=FILTERING) {
             sc = m_TkrFilterAlg->execute();
+            if (sc.isFailure())
+            {
+                return handleError(stageFailed);
+            }
         }
 
         // Call track finding if in first pass mode
         m_stage = "TkrFindAlg";
-        if (m_TkrFindAlg && m_lastStage>=PATREC && m_firstStage<=PATREC) sc = m_TkrFindAlg->execute();
-        if (sc.isFailure())
-        {
-            return handleError(stageFailed);
+        if (m_TkrFindAlg && m_lastStage>=PATREC && m_firstStage<=PATREC) {
+            sc = m_TkrFindAlg->execute();
+            if (sc.isFailure())
+            {
+                return handleError(stageFailed);
+            }
+
+            // Check number of tracks returned
+            if(doDebug) {
+                Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
+                int numTracks = 0;
+                if(trackCol) numTracks = trackCol->size();
+                // Check number of clusters returned
+                log << MSG::DEBUG << numTracks << " TkrTracks found" << endreq ;
+            }
         }
 
-
-        // Check number of tracks returned
-        Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
-        int numTracks = trackCol->size();
-        // Check number of clusters returned
-        log << MSG::DEBUG;
-        if(log.isActive()) log << numTracks << " TkrTracks found" ;
-        log << endreq;
-
         // Check for ghosts
-        if(name()!="Iteration") {
+        if(m_TkrFindAlg&&!s_ghostTrackDone&&m_ghostTool) {
             m_stage = "GhostCheck - tracks";
-            if (m_ghostTool) {
-                sc = m_ghostTool->flagEarlyTracks();
-                if (sc.isFailure())
-                {
-                    return handleError(stageFailed);
-                }
+            s_ghostTrackDone = true;
+            sc = m_ghostTool->flagEarlyTracks(); 
+            if (sc.isFailure())
+            {
+                return handleError(stageFailed);
             }
         }
 
         // Call track fit
         m_stage = "TkrTrackFitAlg";
-        if(m_lastStage>=FITTING && m_firstStage<=FITTING) sc = m_TkrTrackFitAlg->execute();
+        if(m_TkrTrackFitAlg && m_lastStage>=FITTING && m_firstStage<=FITTING) {
+            sc = m_TkrTrackFitAlg->execute();
+            if (sc.isFailure())
+            {
+                return handleError(stageFailed);
+            }
 
-        if (sc.isFailure())
-        {
-            return handleError(stageFailed);
-        }
-
-        // Check number of tracks again
-        trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
-        numTracks = trackCol->size();
-        log << MSG::DEBUG;
-        if(log.isActive()) log << numTracks << " TkrTracks remain after fitting" ;
-        log << endreq;
-
-        // Call vertexing
-        m_stage = "TkrVertexAlg";
-        if(m_lastStage>=VERTEXING && m_firstStage<=VERTEXING) sc = m_TkrVertexAlg->execute();
-        if (name()=="Iteration" && m_testExceptions && m_eventCount%exceptionTestTypes==4) sc = StatusCode::FAILURE;
-        if (sc.isFailure())
-        {
-            return handleError(stageFailed);
-        }
-
-        Event::TkrVertexCol* vtxCol = SmartDataPtr<Event::TkrVertexCol>(eventSvc(),EventModel::TkrRecon::TkrVertexCol);
-        int numVtxs = vtxCol->size();
-
-        // Check for ghosts
-        if(name()!="Iteration") {
-            m_stage = "GhostCheck - vertices";
-            if (m_ghostTool) {
-                sc = m_ghostTool->flagEarlyVertices();
-                if (sc.isFailure())
-                {
-                    return handleError(stageFailed);
-                }
+            // Check number of tracks again
+            if(doDebug) {
+                Event::TkrTrackCol* trackCol = 
+                    SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
+                int numTracks = 0;
+                if(trackCol) numTracks = trackCol->size();
+                log << MSG::DEBUG << numTracks << " TkrTracks remain after fitting" ;
+                log << endreq;
             }
         }
 
-        // Check number of clusters returned
-        log << MSG::DEBUG;
-        if(log.isActive()) log << numVtxs << " TkrVertex's found" ;
-        log << endreq;
+        // Call vertexing
+        m_stage = "TkrVertexAlg";
+        if(m_TkrVertexAlg && m_lastStage>=VERTEXING && m_firstStage<=VERTEXING) {
+            sc = m_TkrVertexAlg->execute();
+            if (name()=="Iteration" && m_testExceptions && m_eventCount%exceptionTestTypes==4) sc = StatusCode::FAILURE;
+            if (sc.isFailure())
+            {
+                return handleError(stageFailed);
+            }
+            if (doDebug) {
+                Event::TkrVertexCol* vtxCol = SmartDataPtr<Event::TkrVertexCol>(eventSvc(),EventModel::TkrRecon::TkrVertexCol);
+                int numVtxs = 0;
+                if(vtxCol) numVtxs = vtxCol->size();
+                // Check number of vertices returned
+                log << numVtxs << " TkrVertex's found" << endreq;
+            }
+        }
+
+        // Check for ghosts
+        if(m_TkrVertexAlg&&m_ghostTool&&!s_ghostVertexDone) {
+            m_stage = "GhostCheck - vertices";
+            s_ghostVertexDone = true;
+            sc = m_ghostTool->flagEarlyVertices();
+            if (sc.isFailure())
+            {
+                return handleError(stageFailed);
+            }
+        }
 
         // throw some exceptions to test the logging
         m_stage = "TestExceptions";
@@ -498,15 +536,10 @@ StatusCode TkrReconAlg::execute()
         return handleError(e.what());
 
     }catch(...){
-         return handleError("Unknown Exception");
+        return handleError("Unknown Exception");
     }
 
     m_lastTime = m_header->time();
-
-    log << MSG::DEBUG;
-    if (name() != "Iteration") log << "------- Finish of Tkr Recon of new Event --------";
-    else                       log << "-------   Finish of Tkr Recon iteration  --------";
-    log << endreq;
 
     return sc;
 }
@@ -538,7 +571,7 @@ StatusCode TkrReconAlg::handleError(std::string errorString)
     errorString = m_stage+": "+errorString;
 
     m_errCountMap[m_stage]++;
-  
+
     TkrErrorRecord* errorRec = new TkrErrorRecord(run, event, m_lastTime, errorString);
     if (!m_printExceptions) { log << MSG::DEBUG;}
     else                    { log << MSG::WARNING;}
@@ -570,7 +603,7 @@ StatusCode TkrReconAlg::handleError(std::string errorString)
         while(vertexCol->size()) vertexCol->pop_back();
     }
     // and unflag the clusters
-        // Retrieve the pointer to the reconstructed clusters
+    // Retrieve the pointer to the reconstructed clusters
     SmartDataPtr<Event::TkrClusterCol> clusterCol(
         eventSvc(),EventModel::TkrRecon::TkrClusterCol);
     if(clusterCol) 
