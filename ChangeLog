@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Oct 22 09:39:47 PDT 2010
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointsBuilder.cxx TkrVecPointsBuilder.h 
+Log Message:
+Modifications for merging clusters as a way to speed things up on linux
+    *
+------------------------------------------------------------
 User: usher  Fri Oct 22 09:39:46 PDT 2010
 TkrRecon/src/PatRec/TreeBased
 
