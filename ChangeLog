@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Oct 22 09:39:46 PDT 2010
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeBasedTool.cxx 
+Log Message:
+Modifications for merging clusters as a way to speed things up on linux
+    *
+------------------------------------------------------------
 User: jrb  Wed Oct 20 11:26:50 PDT 2010
 GlastRelease-scons/TkrRecon
 
