@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointsBuilder.cxx,v 1.1 2005/05/26 20:33:07 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointsBuilder.cxx,v 1.2 2009/10/30 15:56:47 usher Exp $
  *
 */
 
@@ -15,7 +15,7 @@
 TkrVecPointsBuilder::TkrVecPointsBuilder(IDataProviderSvc*      dataSvc, 
                                          ITkrGeometrySvc*       geoSvc,
                                          ITkrQueryClustersTool* clusTool)
-                    : m_numClusters(0), m_numVecPoints(0), m_numBiLayersWVecPoints(0), m_maxNumLinkCombinations(0.)
+                    : m_numClusters(0), m_numVecPoints(0), m_numBiLayersWVecPoints(0), m_maxNumLinkCombinations(0.), m_geoSvc(geoSvc)
 {
     // Make sure we clear the previous VecPoints vector
     m_tkrVecPointVecVec.clear();
@@ -25,6 +25,13 @@ TkrVecPointsBuilder::TkrVecPointsBuilder(IDataProviderSvc*      dataSvc,
 
     // And register it in the TDS
     StatusCode sc = dataSvc->registerObject(EventModel::TkrRecon::TkrVecPointCol, tkrVecPointCol);
+
+    if (sc.isFailure()) return;
+
+    // Create a collection in the TDS for merged clusters
+    m_mergedClusters = new Event::TkrClusterCol();
+
+    sc = dataSvc->registerObject("/Event/TkrRecon/MergedClusterCol", m_mergedClusters);
 
     if (sc.isFailure()) return;
 
@@ -40,6 +47,10 @@ TkrVecPointsBuilder::TkrVecPointsBuilder(IDataProviderSvc*      dataSvc,
         // Get the hit list in x and in y
         Event::TkrClusterVec xHitList = clusTool->getClusters(idents::TkrId::eMeasureX, biLayer);
         Event::TkrClusterVec yHitList = clusTool->getClusters(idents::TkrId::eMeasureY, biLayer);
+
+        // Merge clusters
+        xHitList = mergeClusters(xHitList);
+        yHitList = mergeClusters(yHitList);
 
         m_numClusters += xHitList.size() + yHitList.size();
 
@@ -98,4 +109,116 @@ TkrVecPointsBuilder::~TkrVecPointsBuilder()
         i->clear();
     }
     m_tkrVecPointVecVec.clear();
+}
+
+Event::TkrClusterVec TkrVecPointsBuilder::mergeClusters(Event::TkrClusterVec& clusVec)
+{
+    Event::TkrClusterVec newClusVec;
+
+    if (clusVec.size() > 1)
+    {
+        // Break out clusters by tower
+        std::map<int, Event::TkrClusterVec> towerToClusMap;
+
+        // This loop over all input clusters will result in a map of clusters by tower (still in order)
+        for(Event::TkrClusterVec::iterator clusVecItr = clusVec.begin(); clusVecItr != clusVec.end(); clusVecItr++)
+        {
+            Event::TkrCluster* cluster = *clusVecItr;
+            int                tower   = 4 * cluster->getTkrId().getTowerY() + cluster->getTkrId().getTowerX();
+
+            towerToClusMap[tower].push_back(cluster);
+        }
+
+        // Use this map to loop over towers and look at merging clusters within a tower
+        for(std::map<int, Event::TkrClusterVec>::iterator towerIter  = towerToClusMap.begin();
+                                                          towerIter != towerToClusMap.end();
+                                                          towerIter++)
+        {
+            Event::TkrClusterVec&          twrClusVec = towerIter->second;
+            Event::TkrClusterVec::iterator clusVecItr = twrClusVec.begin();
+            Event::TkrCluster*             mergeClus  = *clusVecItr++;
+
+            // How many clusters?
+            int numClusters = twrClusVec.size();
+
+            int deltaStripsCut = numClusters < 3 ? 0 : 5;
+
+            // Loop through the rest of the clusters in this tower looking at the gap between clusters
+            // to see if we need to merge them together
+            while(clusVecItr != twrClusVec.end())
+            {
+                Event::TkrCluster* nextClus    = *clusVecItr++;
+                bool               updateClus  = true;
+                int                deltaStrips = nextClus->firstStrip() - mergeClus->lastStrip();
+
+                // This just a sanity check, falling into the category of it can't happen.
+                if (deltaStrips < 1)
+                {
+                    continue;
+                }
+
+                // Do we merge the clusters?
+                if (deltaStrips < deltaStripsCut)
+                {
+                    // Tower,layer and view
+                    int twr   = towerIter->first;
+                    int tower = 4*mergeClus->getTkrId().getTowerY() + mergeClus->getTkrId().getTowerX();
+                    int layer = mergeClus->getLayer();
+                    int view  = mergeClus->getTkrId().getView();
+
+                    // Use the geometry servicde to get the strip positions for first and last strips
+                    HepPoint3D clusterPos = m_geoSvc->getStripPosition(tower,layer,view,mergeClus->firstStrip());
+                
+                    clusterPos += m_geoSvc->getStripPosition(tower,layer,view,nextClus->lastStrip());
+                    clusterPos *= 0.5;
+
+                    // Convert the HepPoint3D into a Point (argh!)
+                    Point clusPos(clusterPos.x(),clusterPos.y(),clusterPos.z());
+
+                    // Temporary cluster
+                    Event::TkrCluster temp(mergeClus->getTkrId(), 
+                                           mergeClus->firstStrip(), 
+                                           nextClus->lastStrip(),
+                                           clusPos, 
+                                           mergeClus->ToT(),
+                                           mergeClus->getMips(), 
+                                           mergeClus->getStatusWord(),
+                                           mergeClus->getNBad());
+
+                    // Mark this as a merged cluster
+                    temp.setStatusBits(0x00f00000);
+
+                    // Ok, now check to see if our current "mergeClus" is already a merged cluster
+                    // If not, then we need to create a new cluster
+                    if (!(mergeClus->getStatusWord() & 0x00f00000))
+                    {
+                        // Get a new cluster
+                        mergeClus = new Event::TkrCluster();
+
+                        // Store it in our stand aside TkrClusterCol so the TDS can manage them
+                        m_mergedClusters->push_back(mergeClus);
+                    }
+
+                    *mergeClus = temp;
+                    updateClus = false;
+                }
+
+                // need to store the initial cluster and get a new instance
+                if (updateClus)
+                {
+                    // Store the current cluster we are working on
+                    newClusVec.push_back(mergeClus);
+
+                    // Now update to the next cluster
+                    mergeClus = nextClus;
+                }
+            }
+
+            // Store last cluster and done
+            newClusVec.push_back(mergeClus);
+        }
+    }
+    else newClusVec = clusVec;
+
+    return newClusVec;
 }

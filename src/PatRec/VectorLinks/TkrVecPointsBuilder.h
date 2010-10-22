@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointsBuilder.h,v 1. 2006/03/21 01:12:37 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointsBuilder.h,v 1.2 2009/10/30 15:56:47 usher Exp $
  *
 */
 
@@ -46,6 +46,12 @@ public:
     const double             getMaxNumLinkCombinations() const {return m_maxNumLinkCombinations;}
 private:
 
+    /// Merge clusters
+    Event::TkrClusterVec mergeClusters(Event::TkrClusterVec& clusVec);
+
+    /// Pointer to the merged collection of TkrClusters
+    Event::TkrClusterCol* m_mergedClusters;
+
     /// This will keep track of all the VecPoints we will be using
     /// This is a vector of vectors, so the VecPoints are arranged 
     /// from the beginning of the possible track to the end
@@ -62,6 +68,9 @@ private:
 
     /// Finally, keep track of max possible link combinations
     double            m_maxNumLinkCombinations;
+
+    /// Pointer to geometry service
+    ITkrGeometrySvc*  m_geoSvc;
 };
 
 #endif

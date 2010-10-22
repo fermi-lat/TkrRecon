@@ -37,7 +37,6 @@
 #include "TkrTreeBuilder.h"
 #include "src/PatRec/BuildTkrTrack.h"
 
-#include <crtdbg.h>
 #include <errno.h>
 
 //typedef std::vector<Event::TkrVecPoint*> VecPointVec;
