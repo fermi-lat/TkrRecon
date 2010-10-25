@@ -24,7 +24,10 @@ typedef std::vector<TkrVecPointVec>      TkrVecPointVecVec;
 class TkrVecPointsBuilder 
 {
 public:
-    TkrVecPointsBuilder(IDataProviderSvc*      dataSvc, 
+    TkrVecPointsBuilder(bool                   mergeClusters,
+                        int                    nClusToMerge,
+                        int                    stripGap,
+                        IDataProviderSvc*      dataSvc, 
                         ITkrGeometrySvc*       geoSvc,
                         ITkrQueryClustersTool* clusTool);
 
@@ -55,7 +58,12 @@ private:
     /// This will keep track of all the VecPoints we will be using
     /// This is a vector of vectors, so the VecPoints are arranged 
     /// from the beginning of the possible track to the end
-    TkrVecPointVecVec m_tkrVecPointVecVec;
+    TkrVecPointVecVec     m_tkrVecPointVecVec;
+
+    /// Control parameters for merging clusters
+    bool                  m_mergeClusters;
+    int                   m_nClusToMerge;
+    int                   m_stripGap;
 
     /// Keep track of the number of clusters encountered
     int               m_numClusters;

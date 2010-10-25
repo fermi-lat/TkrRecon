@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/VectorLinksTool.cxx,v 1.3 2005/12/20 17:23:14 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/VectorLinksTool.cxx,v 1.5 2009/10/30 15:56:47 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -167,7 +167,7 @@ StatusCode VectorLinksTool::findTracks()
     double eventEnergy = getEventEnergy();
 
     // STEP ONE: build the list of all VecPoints
-    TkrVecPointsBuilder vecPointsBuilder(m_dataSvc, m_tkrGeom, m_clusTool);
+    TkrVecPointsBuilder vecPointsBuilder(false, 0, 0, m_dataSvc, m_tkrGeom, m_clusTool);
 
     // No point in continuing if too few VecPoints
     if (vecPointsBuilder.getNumBiLayers() > 2)
