@@ -78,6 +78,11 @@ private:
     double                m_minEnergy;
     double                m_fracEneFirstTrack;
 
+    /// Control for merging clusters
+    bool                  m_mergeClusters;
+    int                   m_nClusToMerge;
+    int                   m_stripGap;
+
     /// In the event we create fake TkrClusters, keep track of them here
     Event::TkrClusterCol* m_clusterCol;
 };
@@ -92,8 +97,11 @@ const IToolFactory& TreeBasedToolFactory = s_factory;
 TreeBasedTool::TreeBasedTool(const std::string& type, const std::string& name, const IInterface* parent) :
                     PatRecBaseTool(type, name, parent)
 {
-    declareProperty("MinEnergy",         m_minEnergy           = 30.);
-    declareProperty("FracEneFirstTrack", m_fracEneFirstTrack   = 0.80);
+    declareProperty("MinEnergy",          m_minEnergy           = 30.);
+    declareProperty("FracEneFirstTrack",  m_fracEneFirstTrack   = 0.80);
+    declareProperty("MergeClusters",      m_mergeClusters       = false);
+    declareProperty("NumClustersToMerge", m_nClusToMerge        = 3);
+    declareProperty("MergeStripGap",      m_stripGap            = 8);
 
     m_clusterCol = 0;
 
@@ -155,7 +163,7 @@ StatusCode TreeBasedTool::findTracks()
     double eventEnergy = getEventEnergy();
 
     // STEP ONE: build the list of all VecPoints
-    TkrVecPointsBuilder vecPointsBuilder(m_dataSvc, m_tkrGeom, m_clusTool);
+    TkrVecPointsBuilder vecPointsBuilder(m_mergeClusters, m_nClusToMerge, m_stripGap, m_dataSvc, m_tkrGeom, m_clusTool);
 
     // No point in continuing if too few VecPoints
     if (vecPointsBuilder.getNumBiLayers() > 2)

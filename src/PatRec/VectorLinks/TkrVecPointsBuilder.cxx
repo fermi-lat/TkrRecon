@@ -12,10 +12,20 @@
 #include "TkrVecPointsBuilder.h"
 #include "Event/TopLevel/EventModel.h"
 
-TkrVecPointsBuilder::TkrVecPointsBuilder(IDataProviderSvc*      dataSvc, 
+TkrVecPointsBuilder::TkrVecPointsBuilder(bool                   doMergeClusters,
+                                         int                    nClusToMerge,
+                                         int                    stripGap,
+                                         IDataProviderSvc*      dataSvc, 
                                          ITkrGeometrySvc*       geoSvc,
                                          ITkrQueryClustersTool* clusTool)
-                    : m_numClusters(0), m_numVecPoints(0), m_numBiLayersWVecPoints(0), m_maxNumLinkCombinations(0.), m_geoSvc(geoSvc)
+                    : m_mergeClusters(doMergeClusters),
+                      m_nClusToMerge(nClusToMerge),
+                      m_stripGap(stripGap),
+                      m_numClusters(0), 
+                      m_numVecPoints(0), 
+                      m_numBiLayersWVecPoints(0), 
+                      m_maxNumLinkCombinations(0.), 
+                      m_geoSvc(geoSvc)
 {
     // Make sure we clear the previous VecPoints vector
     m_tkrVecPointVecVec.clear();
@@ -48,9 +58,12 @@ TkrVecPointsBuilder::TkrVecPointsBuilder(IDataProviderSvc*      dataSvc,
         Event::TkrClusterVec xHitList = clusTool->getClusters(idents::TkrId::eMeasureX, biLayer);
         Event::TkrClusterVec yHitList = clusTool->getClusters(idents::TkrId::eMeasureY, biLayer);
 
-        // Merge clusters
-        xHitList = mergeClusters(xHitList);
-        yHitList = mergeClusters(yHitList);
+        // Merge clusters?
+        if (m_mergeClusters)
+        {
+            xHitList = mergeClusters(xHitList);
+            yHitList = mergeClusters(yHitList);
+        }
 
         m_numClusters += xHitList.size() + yHitList.size();
 
@@ -141,7 +154,7 @@ Event::TkrClusterVec TkrVecPointsBuilder::mergeClusters(Event::TkrClusterVec& cl
             // How many clusters?
             int numClusters = twrClusVec.size();
 
-            int deltaStripsCut = numClusters < 3 ? 0 : 5;
+            int deltaStripsCut = numClusters < m_nClusToMerge ? 0 : m_stripGap;
 
             // Loop through the rest of the clusters in this tower looking at the gap between clusters
             // to see if we need to merge them together
