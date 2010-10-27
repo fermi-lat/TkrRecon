@@ -17,7 +17,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.29 2004/12/16 05:04:21 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.30 2005/05/11 04:14:30 lsrea Exp $
  */
 
 #include "GaudiKernel/IToolSvc.h"
@@ -111,6 +111,7 @@ StatusCode TkrVertexAlg::execute()
     Event::TkrTrackCol* pTkrTracks = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
     //std::cout << "TkrVertexAlg::execute: " << pTkrTracks->size() << " tracks to vertex" << std::endl;
     
+    if(pTkrTracks==0 || pTkrTracks->size()==0) return sc;
     // Retrieve the information on vertices
     SmartDataPtr<Event::TkrVertexCol> pVtxCol(eventSvc(), EventModel::TkrRecon::TkrVertexCol);
 

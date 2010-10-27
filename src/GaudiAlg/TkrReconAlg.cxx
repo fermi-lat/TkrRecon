@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.48 2010/06/29 18:57:12 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.49 2010/09/27 23:24:59 lsrea Exp $
 */
 
 
@@ -451,7 +451,8 @@ StatusCode TkrReconAlg::execute()
         }
 
         // Check for ghosts
-        if(m_TkrFindAlg&&!s_ghostTrackDone&&m_ghostTool) {
+        Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
+        if(m_TkrFindAlg&&!s_ghostTrackDone&&m_ghostTool&&trackCol) {
             m_stage = "GhostCheck - tracks";
             s_ghostTrackDone = true;
             sc = m_ghostTool->flagEarlyTracks(); 
@@ -481,6 +482,8 @@ StatusCode TkrReconAlg::execute()
             }
         }
 
+        int numVtxs = 0;
+
         // Call vertexing
         m_stage = "TkrVertexAlg";
         if(m_TkrVertexAlg && m_lastStage>=VERTEXING && m_firstStage<=VERTEXING) {
@@ -492,7 +495,6 @@ StatusCode TkrReconAlg::execute()
             }
             if (doDebug) {
                 Event::TkrVertexCol* vtxCol = SmartDataPtr<Event::TkrVertexCol>(eventSvc(),EventModel::TkrRecon::TkrVertexCol);
-                int numVtxs = 0;
                 if(vtxCol) numVtxs = vtxCol->size();
                 // Check number of vertices returned
                 log << numVtxs << " TkrVertex's found" << endreq;
@@ -500,7 +502,8 @@ StatusCode TkrReconAlg::execute()
         }
 
         // Check for ghosts
-        if(m_TkrVertexAlg&&m_ghostTool&&!s_ghostVertexDone) {
+        Event::TkrVertexCol* vtxCol = SmartDataPtr<Event::TkrVertexCol>(eventSvc(),EventModel::TkrRecon::TkrVertexCol);
+        if(m_TkrVertexAlg&&m_ghostTool&&!s_ghostVertexDone&&numVtxs>0&&vtxCol) {
             m_stage = "GhostCheck - vertices";
             s_ghostVertexDone = true;
             sc = m_ghostTool->flagEarlyVertices();

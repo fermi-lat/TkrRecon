@@ -39,8 +39,12 @@
 #include <string>
 #include <algorithm>
 
+#include "src/Track/KalmanTrackFitTool.h"
+
+
 namespace {
     std::string searchDirectionStr;
+    std::string patrecModeStr;
     std::string energyTypeStr;
 }
 
@@ -52,7 +56,8 @@ public:
     enum searchDirection {DOWN, UP};
     enum energyType {DEFAULT, CALONLY, USER, MC};
     enum trialReturn {FITSUCCEEDED, FITFAILED, DUPLICATE };
-    enum searchType {CALSEARCH, BLINDSEARCH};
+    enum searchType {CALSEARCH, BLINDSEARCH, CRAYSEARCH};
+    enum patrecMode {NORMAL, COSMICRAY};
 
     /// Standard Gaudi Tool interface constructor
     ComboFindTrackTool(const std::string& type, const std::string& name, 
@@ -124,6 +129,7 @@ private:
     /// Internal drivers
     void findBlindCandidates();
     void findCalCandidates();
+    void findCRCandidates();
     void findReverseCandidates();
 
     /// Internal utilities
@@ -139,9 +145,13 @@ private:
         m_trials = 0;
         m_quitCount = 0;
     }
+    void dumpCandidates();
 
     Point getCalPrediction(int layer, double& radius) const;
 
+    virtual void setPatrecMode(patrecMode mode) {
+        m_patrecMode = mode;
+    }
 
     /// Control Parameters set via JobOptions parameters
     double          m_minEnergy;           // Min. energy to use for setting search regions 
@@ -162,7 +172,7 @@ private:
     int             m_maxFirstGaps;        // Max. number of allowed gaps in the first 3 XY points
     int             m_maxTotalGaps;        // Max. total number of XY gaps in the track
     energyType      m_energyType;          //Energy types: DEFAULT, CALONLY, USER, MC
- 
+
     //  default = Tkr+Cal with constraint, others self explanatory
     //            and over ride resetting energy at later stages
     searchDirection m_searchDirection;     //Direction in which to search for tracks: 
@@ -195,6 +205,11 @@ private:
     int             m_trials;              // keeps track of successful trials
     bool            m_limitHits;           // internal flag
     searchType      m_searchType;          // Cal or blind
+
+    patrecMode      m_patrecMode;          // normal or cosmic-ray mode
+    double          m_CREdgeCut;           // maximum transverse LAT coordinate for CR
+    //int m_count;
+    
 
     // to decode the particle charge
     IParticlePropertySvc* m_ppsvc;    
@@ -236,6 +251,8 @@ PatRecBaseTool(type, name, parent)
     declareProperty("MaxDeltaFirstLayer",     m_maxDeltaFirstLayer=1);
     declareProperty("CalPointingRes",         m_calAngleRes=.1);
     declareProperty("MinCalCosTheta",         m_minCalCosTheta=0.2);
+    declareProperty("PatrecMode",             patrecModeStr="Normal");
+    declareProperty("CREdgeCut",              m_CREdgeCut=560.);
 
     m_fitUtils = 0;
     return;
@@ -259,7 +276,7 @@ StatusCode ComboFindTrackTool::initialize()
 
     m_fitUtils = new TrackFitUtils(m_tkrGeom, 0);
 
-     if      (energyTypeStr=="Default") { m_energyType = DEFAULT; }
+    if      (energyTypeStr=="Default") { m_energyType = DEFAULT; }
     else if (energyTypeStr=="CALOnly") { m_energyType = CALONLY; }
     else if (energyTypeStr=="User")    { m_energyType = USER; }
     else if (energyTypeStr=="MC")      { m_energyType = MC; }
@@ -273,6 +290,14 @@ StatusCode ComboFindTrackTool::initialize()
     else {
         msgLog << MSG::ERROR << "Illegal searchDirection: " 
             << searchDirectionStr << ", please fix." << endreq;
+        return StatusCode::FAILURE;
+    }
+
+    if      (patrecModeStr=="Normal")    {m_patrecMode = NORMAL; }
+    else if (patrecModeStr=="CosmicRay") {m_patrecMode = COSMICRAY; }
+    else {
+        msgLog << MSG::ERROR << "Illegal patrec mode: " 
+            << patrecModeStr << ", please fix." << endreq;
         return StatusCode::FAILURE;
     }
     if(m_maxTotalGaps<m_maxFirstGaps) {
@@ -304,13 +329,27 @@ StatusCode ComboFindTrackTool::initialize()
 
     // Set up control
     m_control = TkrControl::getPtr();
-
+    //m_count =0;
 
     return sc;
 }
 
 StatusCode ComboFindTrackTool::findTracks()
 {
+
+    MsgStream msgLog(msgSvc(), name());
+
+    //m_count++;
+    //setProperties();
+    // need to check the mode again
+    if      (patrecModeStr=="Normal")    {m_patrecMode = NORMAL; }
+    else if (patrecModeStr=="CosmicRay") {m_patrecMode = COSMICRAY; }
+    else {
+        msgLog << MSG::ERROR << "Illegal patrec mode: " 
+            << patrecModeStr << ", please fix." << endreq;
+        return StatusCode::FAILURE;
+    }
+
     //Always believe in success
     StatusCode sc = StatusCode::SUCCESS;
 
@@ -408,24 +447,20 @@ StatusCode ComboFindTrackTool::findTracks()
             std::string name = ppty->particle(); 
             MC_Charge = ppty->charge();          
         }
-
-        // the commented code did more than we want. 
-        // Just use the MC energy in the patrec for this option
-
         HepPoint3D Mc_x0;
         // launch point for charged particle; conversion point for neutral
-        //Mc_x0= (MC_Charge==0 ? (*pMCPrimary)->finalPosition() : (*pMCPrimary)->initialPosition());
-        //m_calPos = Point(Mc_x0.x(), Mc_x0.y(), Mc_x0.z());
-        
+        Mc_x0= (MC_Charge==0 ? (*pMCPrimary)->finalPosition() : (*pMCPrimary)->initialPosition());
+        m_calPos = Point(Mc_x0.x(), Mc_x0.y(), Mc_x0.z());
+
         // move the calorimeter position to the middle of the calorimeter
         // just to avoid later snafus
 
-        //double calZ = 0.5*(m_tkrGeom->calZBot() + m_tkrGeom->calZTop());
-        //double arclen = (m_calPos.z() - calZ)/m_calDir.z();
-        //m_calPos -= arclen*m_calDir;
+        double calZ = 0.5*(m_tkrGeom->calZBot() + m_tkrGeom->calZTop());
+        double arclen = (m_calPos.z() - calZ)/m_calDir.z();
+        m_calPos -= arclen*m_calDir;
 
         CLHEP::HepLorentzVector Mc_p0 = (*pMCPrimary)->initialFourMomentum();
-        //m_calDir = Vector(Mc_p0.x(),Mc_p0.y(), Mc_p0.z()).unit();
+        m_calDir = Vector(Mc_p0.x(),Mc_p0.y(), Mc_p0.z()).unit();
 
         // there's a method v.m(), but it does something tricky if m2<0
         double mass = sqrt(std::max(Mc_p0.m2(),0.0));
@@ -473,60 +508,69 @@ void ComboFindTrackTool::searchCandidates()
 
     msgLog << MSG::DEBUG ;
     if (msgLog.isActive()) msgLog << "Begin patrec" ;
+    if(m_patrecMode==COSMICRAY) msgLog << ", Cosmic Ray search only !" ;
     msgLog << endreq;
 
-    //Determine what to do based on status of Cal energy and position
-    if( m_calPos.mag() == 0.) 
-    {   // This path use no calorimeter energy -
-        msgLog << MSG::DEBUG;
-        if (msgLog.isActive()) msgLog << "First blind search" ;
-        msgLog << endreq;
-        findBlindCandidates();
-    }
-    else 
-    {   // This path first finds the "best" candidate that points to the 
-        // Calorimeter cluster - 
-        msgLog << MSG::DEBUG;
-        if (msgLog.isActive()) msgLog << "Cal search" ;
-        msgLog << endreq;
-        findCalCandidates();
-        if(m_candidates.empty()) {
-            findBlindCandidates();//Is this a good idea?
+    if(m_patrecMode==NORMAL) {
+        //Determine what to do based on status of Cal energy and position
+        if( m_calPos.mag() == 0.) 
+        {   // This path use no calorimeter energy -
+            msgLog << MSG::DEBUG;
+            if (msgLog.isActive()) msgLog << "First blind search" ;
+            msgLog << endreq;
+            findBlindCandidates();
         }
-    }
+        else 
+        {   // This path first finds the "best" candidate that points to the 
+            // Calorimeter cluster - 
+            msgLog << MSG::DEBUG;
+            if (msgLog.isActive()) msgLog << "Cal search" ;
+            msgLog << endreq;
+            findCalCandidates();  
+            if(m_candidates.empty()) {
+                findBlindCandidates();//Is this a good idea?
+            }
+        }
 
-    // Remove "Best Track" clusters, kill all the remaining candidates,
-    // and then find the rest...  
-    if (!m_candidates.empty()) { 
+        // Remove "Best Track" clusters, kill all the remaining candidates,
+        // and then find the rest...  
 
-        iterator hypo = begin();
+        if (!m_candidates.empty()) { 
 
-        // Flag all hits as used
-        Event::TkrTrack *best_tkr = (*hypo)->track();
-        m_fitUtils->flagAllHits(*best_tkr);
+            iterator hypo = begin();
 
-        // Hits are shared depending on cluster size 
-        // and track direction
-        m_fitUtils->setSharedHitsStatus(*best_tkr, m_hitShares);
+            // Flag all hits as used
+            Event::TkrTrack *best_tkr = (*hypo)->track();
+            m_fitUtils->flagAllHits(*best_tkr);
 
-        // Delete the rest of the candidates
-        hypo++;
-        while(hypo != candidates().end()) {
-            delete *hypo;
+            // Hits are shared depending on cluster size 
+            // and track direction
+            m_fitUtils->setSharedHitsStatus(*best_tkr, m_hitShares);
+
+            // Delete the rest of the candidates
             hypo++;
+            while(hypo != candidates().end()) {
+                delete *hypo;
+                hypo++;
+            }
+            hypo  = candidates().begin();
+            hypo++;
+            if(hypo != m_candidates.end()) m_candidates.erase(hypo, m_candidates.end()); 
+
+            // Now with these hits "off the table" lower the energy & find other tracks
+            if(m_energyType == DEFAULT) m_energy = .5*m_energy;
+
+            msgLog << MSG::DEBUG;
+            if (msgLog.isActive()) msgLog << "Second pass" ;
+            msgLog << endreq;
+            // should we reset m_topLayerFound or not?
+            findBlindCandidates();
         }
-        hypo  = candidates().begin();
-        hypo++;
-        if(hypo != m_candidates.end()) m_candidates.erase(hypo, m_candidates.end()); 
+    } else if (m_patrecMode==COSMICRAY) {
 
-        // Now with these hits "off the table" lower the energy & find other tracks
-        if(m_energyType == DEFAULT) m_energy = .5*m_energy;
-
-        msgLog << MSG::DEBUG;
-        if (msgLog.isActive()) msgLog << "Second pass" ;
-        msgLog << endreq;
-        // should we reset m_topLayerFound or not?
-        findBlindCandidates();
+        //  Remove all the hit flags and then look specifically for straight cosmic-ray tracks
+        for(int i=0; i<num_hits; i++) (*m_tkrClus)[i]->unflag();
+        findCRCandidates();
     }
 }
 
@@ -555,10 +599,17 @@ void ComboFindTrackTool::loadOutput()
             EventModel::TkrRecon::TkrTrackCol, trackCol)).isFailure())
             throw TkrException("Failed to create Fit Track Collection!");
     }
+    unsigned currentSize = trackCol->size();
+
+    // this is intermediate storage for tracks
+
+    unsigned mySize = m_candidates.size();
 
     if (!m_candidates.empty())
     {
-        // Time to zero all the hit flags in the clusters
+      trackCol->reserve(currentSize+mySize);
+
+       // Time to zero all the hit flags in the clusters
         // We will reflag the hits on tracks, so that hitFlagged() makes sense
         int num_hits = m_tkrClus->size();
         for(int i=0; i<num_hits; i++) {
@@ -581,6 +632,10 @@ void ComboFindTrackTool::loadOutput()
         }
 
         iterator hypo = begin();
+        
+        Event::TkrTrackCol::iterator it;
+        if(trackCol->size()==0) { it = trackCol->end(); }
+        else {it = trackCol->begin(); }
         for(; hypo != end();   hypo++)
         {
             //Keep this track (but as a candidate)
@@ -589,11 +644,29 @@ void ComboFindTrackTool::loadOutput()
             (*hypo)->nullTrackPntr();  
 
             // Add to the TDS collection
-            trackCol->push_back(newTrack);
+            // is this a Cosmicray event? if so it goes at the back
+            //  else, it goes in order at the front
+            //  (may have to rethink this eventually)
+            if(newTrack->getStatusBits() & Event::TkrTrack::COSMICRAY) {
+
+                trackCol->push_back(newTrack);
+            } else {
+                trackCol->insert(it, newTrack);
+                it++;
+            }
+        
 
             // Set the track energy status
             newTrack->setStatusBit(Event::TkrTrack::FOUND);
+
+            // Kludge to fix clearEnergyStatusBits in TkrTrack.h, which doesn't have enough f's in the mask
+            // TkrTrack.h problem fixed!  LSR
             newTrack->clearEnergyStatusBits();
+            //unsigned int TrackStatus= newTrack->getStatusBits();
+            //TrackStatus &= 0xfff0f;
+            //newTrack->clearStatusBits();
+            //newTrack->setStatusBit(TrackStatus);
+
             switch (m_energyType) 
             {
             case CALONLY:
@@ -619,8 +692,10 @@ void ComboFindTrackTool::loadOutput()
                     clus->flag();
                 }
                 trackHitCol->push_back(hit);
-            }
+            }    
         }     
+     // transfer the tracks to trackCol
+        //trackCol->insert(currentSize, myCol->begin(), myCol->end());
     } 
 
     // Finally - clean up! 
@@ -716,12 +791,12 @@ void ComboFindTrackTool::findBlindCandidates()
                     // See if there is a third hit - 
                     // Allow up to a total of m_maxTotalGaps for first 3 found XY hits
                     int klayer = jlayer-1;
-					// WBA: the following is flawed - it will max. out igap on the first Second hit
-					//      and subsequent 2nd hits are then not considered
+                    // WBA: the following is flawed - it will max. out igap on the first Second hit
+                    //      and subsequent 2nd hits are then not considered
                     //for(; igap <= m_maxTotalGaps && klayer>=lastKLayer; ++igap, --klayer) {
-					//      I *think* the following fixes the problem
+                    //      I *think* the following fixes the problem
                     int igap2;
-					for(igap2 = 0; igap2 <= m_maxTotalGaps-igap && klayer>=lastKLayer; ++igap2, --klayer) {
+                    for(igap2 = 0; igap2 <= m_maxTotalGaps-igap && klayer>=lastKLayer; ++igap2, --klayer) {
                         float cosKink; 
                         float sigma = findNextPoint(klayer, testRay, cosKink);
 
@@ -729,10 +804,10 @@ void ComboFindTrackTool::findBlindCandidates()
                         if(sigma < m_sigmaCut && cosKink > m_minCosKink) {
                             tryCandidate(ilayer, localBestHitCount, testRay);
                             // whatever happens, bail, no other track will be found with this ray
-							// WBA:  I don't think this is true.  Example is a track which in the 3rd layer
-							//       goes between SSDs - missing one co-ordinate.   If there are other
-							//       hits in that layer due to delta rays - we're screwed. 
-							//      Try commenting out the break.
+                            // WBA:  I don't think this is true.  Example is a track which in the 3rd layer
+                            //       goes between SSDs - missing one co-ordinate.   If there are other
+                            //       hits in that layer due to delta rays - we're screwed. 
+                            //      Try commenting out the break.
                             //break;
                         }
                     }  // end klayer
@@ -742,6 +817,178 @@ void ComboFindTrackTool::findBlindCandidates()
     } // end ilayer
     msgLog << MSG::DEBUG;
     if (msgLog.isActive()) msgLog << "Blind search: " <<  m_candidates.size() << ", " << m_trials << " trials" 
+        << m_quitCount << "quitCount";
+    msgLog << endreq;
+    return;
+}
+
+
+void ComboFindTrackTool::findCRCandidates()
+{   
+    // Purpose and Method: Does a combinatoric search for cosmic ray tracks. Assumes
+    //                     tracks start in layers nearest the ACD.
+    //                     First finds 3 (x,y) pairs which line up and then does
+    //                     first TkrTrack fit using the FindTrackHitsTool to
+    //                     fill in the rest of the hits.
+    // Inputs:  None
+    // Outputs: The TkrPatCands Bank from which the final tracks fits are done
+    // Dependencies: None
+    // Restrictions and Caveats:  None.
+
+    MsgStream msgLog(msgSvc(), name());
+
+    //	dumpCandidates();
+
+    m_searchType = CRAYSEARCH;
+
+    //int maxLayers = m_tkrGeom->numLayers();
+    // maximum number of hits on any downward track so far
+    int localBestHitCount = 0; 
+    m_topLayerWithPoints = m_tkrGeom->numLayers()-1; 
+    int ilayer            = m_topLayerWithPoints;
+    int lastILayer        = 2;
+    int lastJLayer        = std::max(1, lastILayer-1);
+    int lastKLayer        = std::max(0, lastJLayer-1);
+    clearTrialCounters();
+
+    // Set all of the patrec parameters to values appropriate to finding high-momentum cosmic rays.
+    // Save the original values so that these changes can be undone before exiting.
+    double t_energy=m_energy;
+    energyType t_energyType = m_energyType;
+    m_energyType = USER;
+    m_energy= 800.;           // Look only for high-momentum, straight tracks
+
+
+    double          t_minCosKink=m_minCosKink;          // Minimum cos(theta) for a track kink
+    m_minCosKink=0.95;
+    double          t_maxTripRes=m_maxTripRes;          // Max. un-normalized residual for first 3 TkrPoints
+    m_maxTripRes=10.;
+    int             t_maxFirstGaps=m_maxFirstGaps;        // Max. number of allowed gaps in the first 3 XY points
+    m_maxFirstGaps=2;
+    int             t_maxTotalGaps=m_maxTotalGaps;        // Max. total number of XY gaps in the track
+    m_maxTotalGaps=4;
+    int				t_maxCandidates=m_maxCandidates;		// Maximum number of candidates to store
+    m_maxCandidates= t_maxCandidates;					// Make sure that space for cosmic-ray tracks always exists
+    int m_CRLowestLayer=3;								// Lowest layer in which to start looking for CR tracks
+
+    // Change the particle hypothesis for the Kalman filter.  Save the existing hypothesis, to set it back before exiting.
+    //	std::string PartTypeSave= m_trackFitTool->getParticleType();   // This method needs to be added to KalmanTrackFitTool
+    std::string PartTypeSave="e-";  // Temporary fix
+    m_trackFitTool->setParticleType("p+");  
+    //	std::string HitEnergyLossSave= m_trackFitTool->getHitEnergyLoss();   // This method needs to be added to KalmanTrackFitTool
+    std::string HitEnergyLossSave= "eRadLoss";   // Temporary fix
+    m_trackFitTool->setHitEnergyLoss("BetheBloch");
+
+    int NCRay=0;
+    for (; ilayer >= lastILayer; --ilayer) {    //RJ: search only top few layers for track start, but how to handle sides?
+        // Termination Criterion				//RJ: loop on all layers, but consider hits only near edge on all but top 2
+
+        if(quitOnTrials()) break;
+
+        // if we have a nice long 1st track, 
+        //     and this track starts more than one layer down,
+        //     stop looking.
+        //       if(localBestHitCount > m_termHitCnt && 
+        //           abs(ilayer - m_topLayerFound) > m_maxDeltaFirstLayer) break; 
+
+        // Create space point loops and check for hits
+
+        //        double hit_region_size;
+        //        Point calPosPred = getCalPrediction(ilayer, hit_region_size);   RJ: CAL should not be in the equation
+
+        //        TkrPoints firstPoints(ilayer, m_clusTool, calPosPred, hit_region_size);
+        TkrPoints firstPoints(ilayer, m_clusTool);
+        if(firstPoints.empty()) continue;
+
+        TkrPointListConItr itFirst = firstPoints.begin();
+        for(; itFirst!=firstPoints.end(); ++itFirst) {
+            TkrPoint* p1 = *itFirst;
+            if(!m_validTopLayer) {
+                m_topLayerWithPoints = ilayer;
+                m_validTopLayer = true;
+            }
+
+            // Skip 1st points that are not near the ACD
+            if (ilayer<m_CRLowestLayer) {
+                Point pFirst= p1->getPosition();
+                if (fabs(pFirst.x())<m_CREdgeCut && fabs(pFirst.y())<m_CREdgeCut) continue;
+            }
+
+            int jlayer = ilayer-1;
+            // Allows at most m_maxFirstGaps between first 2 hits
+            for(int igap=0; igap<=m_maxFirstGaps && jlayer >= lastJLayer; ++igap, --jlayer) {
+                // Tests for terminating gap loop
+                if(quitOnTrials()) break; 
+                //   If we already have one track at this level or above,
+                //   and there's at least one gap on this track,
+                //   and the most hits there can be are less than on the 
+                //       track we already have,
+                //   stop looking.
+                //
+                // Does this miss the 2nd track of a pair if there's a gap in it?
+                // or if the 1st track has an added hit?
+
+                //                if( igap > 0 &&
+                //                    (localBestHitCount > (jlayer+2)*2)) break;    //RJ: eliminate this.  We need to find all cosmics, not just best track
+
+                TkrPoints secondPoints(jlayer, m_clusTool);
+                if (secondPoints.empty()) continue;
+
+                TkrPointListConItr itSecond = secondPoints.begin();
+                for (; itSecond!=secondPoints.end(); ++itSecond) {
+                    if(quitOnTrials()) break; 
+                    TkrPoint* p2 = *itSecond;
+                    Ray testRay = p1->getRayTo(p2);
+
+                    if(fabs(testRay.direction().z()) < m_PatRecFoV) continue; 
+
+                    // See if there is a third hit - 
+                    // Allow up to a total of m_maxTotalGaps for first 3 found XY hits
+                    int klayer = jlayer-1;
+                    // WBA: the following is flawed - it will max. out igap on the first Second hit
+                    //      and subsequent 2nd hits are then not considered
+                    //for(; igap <= m_maxTotalGaps && klayer>=lastKLayer; ++igap, --klayer) {
+                    //      I *think* the following fixes the problem
+                    int igap2;
+                    for(igap2 = 0; igap2 <= m_maxTotalGaps-igap && klayer>=lastKLayer; ++igap2, --klayer) {
+                        float cosKink; 
+                        float sigma = findNextPoint(klayer, testRay, cosKink);
+
+                        // If good hit found: make a trial fit & store it away
+                        if(sigma < m_sigmaCut && cosKink > m_minCosKink) {
+                            if (tryCandidate(ilayer, localBestHitCount, testRay) == FITSUCCEEDED)
+                            {
+                                NCRay++;
+                            }
+                        }
+                    }  // end klayer
+                } // end 2nd points
+            }  // end jlayer
+        }  // end 1st points
+    } // end ilayer
+
+    // Return all of the patrec and fit parameters to their original values, so that the photon patrec isn't screwed up.
+
+    m_trackFitTool->setParticleType(PartTypeSave);
+    m_trackFitTool->setHitEnergyLoss(HitEnergyLossSave);
+    m_energy=t_energy;
+    m_minCosKink=t_minCosKink;
+    m_maxTripRes=t_maxTripRes;
+    m_maxFirstGaps=t_maxFirstGaps;
+    m_maxTotalGaps=t_maxTotalGaps;
+    m_maxCandidates=t_maxCandidates;
+    m_energyType = t_energyType;
+
+    // Remove all of the hit flags so as not to affect any other pattern recognition routines
+    int num_hits = m_tkrClus->size();
+    for(int i=0; i<num_hits; i++) {
+        (*m_tkrClus)[i]->unflag();
+    }
+
+    //	std::cout << NCRay << " cosmic ray candidates found" << std::endl;
+    //	dumpCandidates();
+    msgLog << MSG::DEBUG;
+    if (msgLog.isActive()) msgLog << "CR search: " <<  m_candidates.size() << ", " << m_trials << " trials" 
         << m_quitCount << "quitCount";
     msgLog << endreq;
     return;
@@ -862,19 +1109,19 @@ float ComboFindTrackTool::findNextPoint(int layer, const Ray& traj, float &cosKi
 
     cosKink = 0.;
 
-    double costh  = fabs(traj.direction().z()); 
+    double costh  = fabs(traj.direction().z());               //Direction of the input ray named traj
     double layerZ = m_tkrGeom->getLayerZ(layer); 
-    m_arclen      = (traj.position().z() - layerZ)/costh; 
+    m_arclen      = (traj.position().z() - layerZ)/costh;     //Distance along ray to get to the desired layer
 
-    Point x_pred(traj.position(m_arclen));
+    Point x_pred(traj.position(m_arclen));                    //Predicted point by going in straight line m_arclen along the ray named traj
     double resid_max = m_maxTripRes/costh;
 
-    TkrPoints points(layer, m_clusTool, x_pred, resid_max);
-    if(points.allFlagged() ) return m_sigmaCut+1;
+    TkrPoints points(layer, m_clusTool, x_pred, resid_max);   //Get sorted set of TKR points within resid_max of x_pred
+    if(points.allFlagged() ) return m_sigmaCut+1;             //No unattached points left
 
-    TkrPoint* pPoint = points[0];
+    TkrPoint* pPoint = points[0];   //The closest point to x_pred
 
-    m_nextPointPos = pPoint->getPosition();
+    m_nextPointPos = pPoint->getPosition();                                     //Why is this not simply a local variable??
     cosKink = traj.direction() * ((m_nextPointPos-traj.position()).unit());
 
     double rad_len = (m_tkrGeom->getRadLenConv(layer) 
@@ -1000,10 +1247,14 @@ bool ComboFindTrackTool::incorporate(Candidate* trial)
         //int numHits = thisCand->track()->getNumHits();
         //int minLen = std::min(numHits, numTrialHits);
         //int numTest = minLen - min_unique_hits;
-
-        int numUniqueFound = m_fitUtils->numUniqueHits(
-            *(thisCand->track()), *(trial->track()), min_unique_hits);
-        bool unique = (numUniqueFound>=min_unique_hits);
+        bool unique;
+        if ((thisCand->track()->getStatusBits() & Event::TkrTrack::COSMICRAY) != (trial->track()->getStatusBits() & Event::TkrTrack::COSMICRAY)) {
+            unique = true;   // cosmic-ray candidates are never duplicates of non-cosmic-ray candidates.
+        } else {
+            int numUniqueFound = m_fitUtils->numUniqueHits(
+                *(thisCand->track()), *(trial->track()), min_unique_hits);
+            unique = (numUniqueFound>=min_unique_hits);
+        }
         //std::cout << minLen << " hits " << numUniqueFound << "unique; ";
         //if (unique) std::cout << "track is unique " << std::endl;
         if (!unique) {
@@ -1036,7 +1287,7 @@ bool ComboFindTrackTool::incorporate(Candidate* trial)
     }
 
     // candidates are correctly inserted into the multiset
-    //   according to the value of -m_quality
+    //   according to the value of -m_qual
 
     m_candidates.insert(trial);
     if(m_bestHitCount < numTrialHits) m_bestHitCount = numTrialHits;
@@ -1079,11 +1330,11 @@ ComboFindTrackTool::Candidate::Candidate(ComboFindTrackTool* pCFTT, Point x, Vec
     fitter->doSmootherFit(*m_track); 
     m_addedHits = 0;
     if(leadingHits) m_addedHits = hit_finder->addLeadingHits(m_track);
-	if(m_addedHits > 0) {
-		//Don't we have to re-filter the track since its starting from a new hit??
+    if(m_addedHits > 0) {
+        //Don't we have to re-filter the track since its starting from a new hit??
         fitter->doFilterFit(*m_track);
-		fitter->doSmootherFit(*m_track);
-	}
+        fitter->doSmootherFit(*m_track);
+    }
 
     // Check X**2 for the Track
     if(m_track->getChiSquareSmooth() > chi_cut) {
@@ -1152,6 +1403,7 @@ void ComboFindTrackTool::setTrackQuality(ComboFindTrackTool::Candidate *can_trac
     //**    7.* delta_firstLayer - size_penalty - 4.*more_hits;
     double pr_quality = trkQuality - 1.5*sigmas_def - 
         7.* delta_firstLayer - size_penalty - 4.*more_hits;   
+    if (tkr_track->getStatusBits() & Event::TkrTrack::COSMICRAY) pr_quality= -99999.;  // Put all cosmic-ray tracks at the bottom of the list
     can_track->setQuality(pr_quality);
 }
 
@@ -1192,13 +1444,16 @@ ComboFindTrackTool::trialReturn ComboFindTrackTool::tryCandidate(int firstLayer,
     bool qualifies = 
         (trackFound ? firstLayer==layerFound : true );
     bool leadingHits = m_leadingHits && qualifies;
-    Candidate *trial = new Candidate(this, testRay.position(),
+    Candidate *trial = new Candidate(this, testRay.position(),   //Construct the candidate and find and fit all of its points
         testRay.direction(), leadingHits); 
     if(trial->track()->getStatusBits() == 0) {
         delete trial;
         // if trial doesn't work, return to continue searching
         return FITFAILED;
     }
+    // Set Cosmic-Ray status bit
+    if (m_searchType==CRAYSEARCH) trial->track()->setStatusBit(Event::TkrTrack::COSMICRAY);
+
     setTrackQuality(trial);
     if(trial->track()->getQuality() > m_minQuality) {
         int num_trial_hits = trial->track()->getNumFitHits();
@@ -1223,20 +1478,50 @@ ComboFindTrackTool::trialReturn ComboFindTrackTool::tryCandidate(int firstLayer,
         m_botLayerFound = std::min(layerFound,new_start);
         m_upwardTrackFound = true;
     }
+
+    // To save time in the CR search, flag used hits, except on tracks with very few added hits
+    // This avoids finding the same long track over and over
+    if (m_searchType==CRAYSEARCH) {
+        Event::TkrTrack *thisTrack = trial->track();
+        int  numHits  = thisTrack->getNumHits();
+        if (numHits>8) {
+            for(int i = 0; i<numHits; i++){
+                Event::TkrTrackHit* hit = (*thisTrack)[i];
+                Event::TkrClusterPtr clus = hit->getClusterPtr();
+                if(clus!=0) {
+                    clus->flag();
+                }
+            }
+        }
+    }
+    //	std::cout << "tryCandidate " << m_searchType << ": " << trial->track()->getQuality() << std::endl;
     return FITSUCCEEDED;
+}
+
+void ComboFindTrackTool::dumpCandidates()
+{
+    iterator hypo = begin();
+    for(; hypo != end();   hypo++) {
+        Event::TkrTrack *thisTrack = (*hypo)->track();
+        float qual1= (*hypo)->quality();
+        double qual2= thisTrack->getQuality();
+        int  numHits  = thisTrack->getNumHits();
+        unsigned int status= thisTrack->getStatusBits();
+        std::cout << "Dump candidate status=" << status << " #hits=" << numHits << " Q=" << qual1 << " " << qual2 << std::endl;
+    }
 }
 
 Point ComboFindTrackTool::getCalPrediction(int layer, double& radius) const
 {
-        double z_layer = m_tkrGeom->getLayerZ(layer); 
-        double arcLen  = (z_layer - m_calPos.z())/m_calDir.z();
+    double z_layer = m_tkrGeom->getLayerZ(layer); 
+    double arcLen  = (z_layer - m_calPos.z())/m_calDir.z();
 
-        Point predPoint = m_calPos + arcLen*m_calDir;
-        if (m_limitHits) {
-            radius = 
-                fabs(arcLen*sqrt(100000./m_energy) * m_calAngleRes/m_calDir.z()); 
-        } else {
-            radius = 100000.;
-        }
+    Point predPoint = m_calPos + arcLen*m_calDir;
+    if (m_limitHits) {
+        radius = 
+            fabs(arcLen*sqrt(100000./m_energy) * m_calAngleRes/m_calDir.z()); 
+    } else {
+        radius = 100000.;
+    }
     return predPoint;
 }
