@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Wed Oct 27 12:11:11 PDT 2010
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrFindAlg.cxx TkrReconAlg.cxx TkrTrackFitAlg.cxx 
+	TkrVertexAlg.cxx 
+Log Message:
+Lots of changes to incorporate Cosmic-ray track finding
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Oct 27 12:11:10 PDT 2010
 TkrRecon/src/Dll
 
