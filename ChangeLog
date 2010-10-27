@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Wed Oct 27 12:11:09 PDT 2010
+TkrRecon/TkrRecon/Track
+
+Modified Files:
+	ITkrFitTool.h 
+Log Message:
+Lots of changes to incorporate Cosmic-ray track finding
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Oct 27 12:11:08 PDT 2010
 TkrRecon/TkrRecon/PatRec
 
