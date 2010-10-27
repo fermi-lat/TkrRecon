@@ -103,6 +103,9 @@ StatusCode ComboVtxTool::findVtxs()
         if(!unused[tkr1Idx]) continue; 
 
         Event::TkrTrack* track1 = *pTrack1;
+		Event::TkrVertex *newVertex = 0;
+        if (track1->getStatusBits() & Event::TkrTrack::COSMICRAY) continue;  //RJ: don't use CR tracks for vertexing
+
         Point   tkr1Pos = track1->front()->getPoint(Event::TkrTrackHit::SMOOTHED);
         Vector  tkr1Dir = track1->front()->getDirection(Event::TkrTrackHit::SMOOTHED);
         Event::TkrTrackParams tkr1Params = track1->front()->getTrackParams(Event::TkrTrackHit::SMOOTHED);
@@ -112,7 +115,7 @@ StatusCode ComboVtxTool::findVtxs()
 
         // Set up a new vertex - it may only contain this track
         double best_quality = -100.;
-        Event::TkrVertex *newVertex = new Event::TkrVertex(tkr1ID, e1, best_quality, 0.,
+        newVertex = new Event::TkrVertex(tkr1ID, e1, best_quality, 0.,
                                                     0., 0., 0., 0., tkr1Pos.z(), tkr1Params); 
         newVertex->setStatusBit(Event::TkrVertex::ONETKRVTX);
         newVertex->addTrack(track1);
@@ -131,6 +134,8 @@ StatusCode ComboVtxTool::findVtxs()
             if(!unused[tkr2Idx]) continue;
 
             Event::TkrTrack* track2 = *pTrack2;
+			if (track2->getStatusBits() & Event::TkrTrack::COSMICRAY) continue;  //RJ: don't use CR tracks for vertexing
+
             Point   tkr2Pos = track2->front()->getPoint(Event::TkrTrackHit::SMOOTHED);
             Vector  tkr2Dir = track2->front()->getDirection(Event::TkrTrackHit::SMOOTHED);
             Event::TkrTrackParams tkr2Params = track2->front()->getTrackParams(Event::TkrTrackHit::SMOOTHED);
@@ -221,13 +226,13 @@ StatusCode ComboVtxTool::findVtxs()
         }  // Close loop over 2nd track
         
         // Add track to TkrVertexCol
-        pVerts->push_back(newVertex);
+        if(newVertex) pVerts->push_back(newVertex); // RJ LSR
 
         unused[tkr1Idx] = false;
         if(best_tkr2Idx > -1) unused[best_tkr2Idx] = false;
     }      // Close loop over 1st track
 
-	sc = neutralEnergyVtx();
+	if(pVerts->size()>0) sc = neutralEnergyVtx(); // RJ LSR
     
     return sc;
 }

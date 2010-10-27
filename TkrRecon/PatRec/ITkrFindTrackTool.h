@@ -13,10 +13,11 @@
 #define ITKRFINDTRACKTOOL_H
 
 #include "GaudiKernel/IAlgTool.h"
+#include "GaudiKernel/IProperty.h"
 
 static const InterfaceID IID_ITkrFindTrackTool("ITkrFindTrackTool", 7111 , 0);
 
-class ITkrFindTrackTool : virtual public IAlgTool 
+class ITkrFindTrackTool : virtual public IAlgTool
 {
  public:
   /// Retrieve interface ID
@@ -24,6 +25,5 @@ class ITkrFindTrackTool : virtual public IAlgTool
 
   /// @brief Given a pattern track, perform the track fit
   virtual StatusCode findTracks()=0;
-
 };
 #endif

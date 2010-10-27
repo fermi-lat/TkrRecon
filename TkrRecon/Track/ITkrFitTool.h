@@ -37,6 +37,9 @@ class ITkrFitTool : virtual public IAlgTool
     /// @brief Method to set type of hit energy loss for a track
     virtual void       setHitEnergyLoss(const std::string& energyLossType) = 0; 
 
+	/// @brief Method to set the particle type assumed for a track
+	virtual void	   setParticleType(const std::string ParticleName) = 0;
+
     /// @brief Method to set method for determing cluster errors in fit
     virtual void       setClusErrCompType(const std::string& clusErrorType) = 0; 
 

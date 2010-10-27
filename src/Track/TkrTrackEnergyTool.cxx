@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.30 2005/06/21 23:29:34 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.31 2005/06/22 21:39:36 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -132,6 +132,7 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
     // Dependencies: None
     // Restrictions and Caveats:  None.
 
+
     //Always believe in success
     StatusCode sc = StatusCode::SUCCESS;
 
@@ -145,12 +146,16 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
         // execute default (LATENERGY) if appropriate
         Event::TkrTrack* firstCandTrk = trackCol->front();
 
-        if(firstCandTrk->getStatusBits() & Event::TkrTrack::LATENERGY) 
+        if((firstCandTrk->getStatusBits() & Event::TkrTrack::LATENERGY)>=0 
+            && !(firstCandTrk->getStatusBits() & Event::TkrTrack::COSMICRAY)) 
         {
             Event::TkrTrack* secndCandTrk = 0;
-
-            if (trackCol->size() > 1) secndCandTrk = (*trackCol)[1];
-        
+            
+            if (trackCol->size() > 1) {
+                secndCandTrk = (*trackCol)[1];
+			    if (secndCandTrk->getStatusBits() & Event::TkrTrack::COSMICRAY) 
+                    secndCandTrk = 0;  //RJ: Avoid cosmic-ray tracks
+            }
             // Recover TkrEventParams from which we get the event energy  
             Event::TkrEventParams* tkrEventParams = 
                        SmartDataPtr<Event::TkrEventParams>(m_dataSvc,EventModel::TkrRecon::TkrEventParams);
@@ -164,7 +169,8 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
             {
                 // no cal info... set track energies to MS energies if possible.
                 double minEnergy = m_control->getMinEnergy();
-                if (trackCol->size() > 1) minEnergy *= 0.5;
+ //               if (trackCol->size() > 1) minEnergy *= 0.5;
+				if (secndCandTrk) minEnergy *=0.5;    // RJ
 
                 if (firstCandTrk->getNumFitHits() > 7) 
                 {
@@ -185,14 +191,15 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
                 double cal_Energy = std::max(tkrEventParams->getEventEnergy(), 0.5*m_control->getMinEnergy());
 
                 // Get best track ray
-                Event::TkrTrack* firstCandTrk = trackCol->front();
+                Event::TkrTrack* firstCandTrk = trackCol->front();   // RJ: why is this repeated??
 
                 // Augment Cal energy with tracker energy loss
                 double ene_total = m_tkrEnergyTool->getTotalEnergy(firstCandTrk, cal_Energy);
 
                 // Now constrain the energies of the first 2 tracks. 
                 //    This isn't valid for non-gamma conversions
-                if(trackCol->size() == 1)  // One track - it gets it all - not right but what else?
+ //               if(trackCol->size() == 1)  // One track - it gets it all - not right but what else?
+				if (!secndCandTrk)  // RJ
                 {
                     setTrackEnergy(firstCandTrk, ene_total);
                 } 

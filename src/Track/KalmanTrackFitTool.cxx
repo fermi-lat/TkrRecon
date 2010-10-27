@@ -1,3 +1,4 @@
+
 /**
  * @class KalmanTrackFitTool
  *
@@ -9,12 +10,15 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.37 2007/12/07 21:39:09 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.38 2010/09/24 16:15:12 usher Exp $
  */
 
 // to turn one debug variables
 // #define DEBUG
 
+#include "Track/KalmanTrackFitTool.h"
+
+/*
 // Tool and Gaudi related stuff
 #include "GaudiKernel/ToolFactory.h"
 #include "GaudiKernel/SmartDataPtr.h"
@@ -157,7 +161,7 @@ private:
 
     /// Errors?
     IComputeMeasErrors* m_fitErrs;
-};
+};*/
 
 static ToolFactory<KalmanTrackFitTool> s_factory;
 const IToolFactory& KalmanTrackFitToolFactory = s_factory;
