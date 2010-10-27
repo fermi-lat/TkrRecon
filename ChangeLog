@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Wed Oct 27 12:11:12 PDT 2010
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx 
+Log Message:
+Lots of changes to incorporate Cosmic-ray track finding
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Oct 27 12:11:11 PDT 2010
 TkrRecon/src/GaudiAlg
 
