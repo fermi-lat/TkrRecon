@@ -52,14 +52,16 @@ private:
                                TkrVecPointVecVec::const_iterator& firstPointsItr, 
                                TkrVecPointVecVec::const_iterator& secondPointsItr,
                                Event::TkrVecPointsLinkCol*        tkrVecPointsLinkCol);
-//                               const TkrVecPointVec&       firstPoints, 
-//                               const TkrVecPointVec&       secondPoints,
-//                               Event::TkrVecPointsLinkCol* tkrVecPointsLinkCol);
 
     /// This finds the TkrVecPoint nearest to the given Point
     const Event::TkrVecPoint* findNearestTkrVecPoint(const TkrVecPointVec& intPoints, 
                                                      Point                 layerPt,
                                                      double&               dist2VecPoint);
+
+    void markLinkVerified(std::vector<Event::TkrVecPointToLinksRel*>& pointToLinkVec, const Event::TkrVecPoint* point);
+
+    /// This will prune the links which are not "verified"
+    int pruneNonVerifiedLinks(TkrVecPointsLinkVec& linkVec, Event::TkrVecPointsLinkCol* tkrVecPointsLinkCol);
 
     /// Energy of the event
     double                  m_evtEnergy;

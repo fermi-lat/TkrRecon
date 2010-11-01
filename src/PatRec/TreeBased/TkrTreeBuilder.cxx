@@ -68,6 +68,8 @@ int TkrTreeBuilder::buildTrees(double eventEnergy)
     {
         for(Event::TkrVecNodeColConPtr nodeItr = tkrVecNodeCol->begin(); nodeItr != tkrVecNodeCol->end(); nodeItr++)
         {
+            try
+            {
             // Recover pointer to the head node
             Event::TkrVecNode* headNode = *nodeItr;
 
@@ -144,8 +146,11 @@ int TkrTreeBuilder::buildTrees(double eventEnergy)
             m_treeCol->push_back(tree);
 
             int j = 0;
+            } catch(...)
+            {
+                int catchme = 0;
+            }
         }
- //       }
     }
 
     return 1;

@@ -89,14 +89,8 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(const TkrVecPointsBuilder& vecP
 
     while(firstPointVecItr != stopIter)
     {
-        // Add a new link vector to our collection
-        m_tkrVecPointsLinkVecVec.push_back(TkrVecPointsLinkVec());
-        m_tkrVecPointsLinkVecVec.back().clear();
-        m_tkrVecPointsLinkSkip1VecVec.push_back(TkrVecPointsLinkVec());
-        m_tkrVecPointsLinkSkip1VecVec.back().clear();
-        m_tkrVecPointsLinkSkip2VecVec.push_back(TkrVecPointsLinkVec());
-        m_tkrVecPointsLinkSkip2VecVec.back().clear();
-
+        int startPoint = 0;
+        try {
         // Make sure we have something in this layer to search with
         if (!(*firstPointVecItr).empty())
         {
@@ -119,10 +113,15 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(const TkrVecPointsBuilder& vecP
 
                 // Attempt to skip one layer
                 if (!(*skip1PointVecItr).empty()) 
+                {
                     n3rdLinks = buildLinksGivenVecs(m_tkrVecPointsLinkSkip1VecVec, 
                                                     firstPointVecItr, 
                                                     skip1PointVecItr, 
                                                     tkrVecPointsLinkCol);
+
+                    // Try pruning links which aren't "verified"
+//                    if (numLinks) numLinks = pruneNonVerifiedLinks(m_tkrVecPointsLinkVecVec.back(), tkrVecPointsLinkCol);
+                }
     
                 // Set up iterator to skip over 2 layers, if necessary...
                 TkrVecPointVecVec::const_iterator skip2PointVecItr  = nextPointVecItr + 2;
@@ -137,14 +136,22 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(const TkrVecPointsBuilder& vecP
                                                         firstPointVecItr, 
                                                         skip2PointVecItr, 
                                                         tkrVecPointsLinkCol);
+
+                    m_numVecLinks += n4thLinks;
                 }    
+
+                m_numVecLinks += n3rdLinks;
             }
+            
+            m_numVecLinks += numLinks;
+
         }
 
-        // Update link count
-        m_numVecLinks += m_tkrVecPointsLinkVecVec.back().size() 
-                       + m_tkrVecPointsLinkSkip1VecVec.back().size()
-                       + m_tkrVecPointsLinkSkip2VecVec.back().size();
+        }
+        catch(...)
+        {
+            int stopMeHere = 0;
+        }
 
         // Increment iterators before looping back
         firstPointVecItr++;
@@ -186,7 +193,9 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                                                  TkrVecPointVecVec::const_iterator& nextPointsItr,
                                                  Event::TkrVecPointsLinkCol*        tkrVecPointsLinkCol)
 {
-    int numLinks = 0;
+    // Add vector to hold results
+    linkStoreVec.push_back(TkrVecPointsLinkVec());
+    linkStoreVec.back().clear();
 
     // Get first VecPointsVec 
     const TkrVecPointVec& firstPoints  = *firstPointsItr;
@@ -194,10 +203,20 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
     // Get the second VecPointsVec
     const TkrVecPointVec& secondPoints = *nextPointsItr;
 
+    // Are we skipping layers?
+    bool skipsLayers = false;
+
+    if (nextPointsItr != firstPointsItr + 1) skipsLayers = true;
+
     // Loop through the first and then second hits and build the pairs
     for (TkrVecPointVec::const_iterator frstItr = firstPoints.begin(); frstItr != firstPoints.end(); frstItr++)
     {
         const Event::TkrVecPoint* firstPoint = *frstItr;
+
+        // Use the existing point to link relations if skipping layers
+        std::vector<Event::TkrVecPointToLinksRel*> firstPointToLinkVec;
+        
+        if (skipsLayers) firstPointToLinkVec = m_pointToLinksTab->getRelByFirst(firstPoint);
 
         for (TkrVecPointVec::const_iterator scndItr = secondPoints.begin(); scndItr != secondPoints.end(); scndItr++)
         {
@@ -254,6 +273,16 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                 double aLen2Y = (firstPoint->getYCluster()->position().z() - linkZ) / cos(startToEnd.theta());
                 double linkY  = firstPoint->getYCluster()->position().y() - aLen2Y * startToEnd.y();
 
+                // Use this to define search areas 
+                double topPointDist = firstPoint->getXCluster()->size()*firstPoint->getXCluster()->size()
+                                    + firstPoint->getYCluster()->size()*firstPoint->getYCluster()->size();
+                double botPointDist = secondPoint->getXCluster()->size()*secondPoint->getXCluster()->size()
+                                    + secondPoint->getYCluster()->size()*secondPoint->getYCluster()->size();
+                double searchDist   = 0.5 * m_tkrGeom->siStripPitch() * (sqrt(topPointDist) + sqrt(botPointDist));
+
+                // Keep track of the "top" points to links 
+                std::vector<Event::TkrVecPointToLinksRel*> intPointToLinkVec = firstPointToLinkVec;
+
                 // If an intervening missing layer then check for nearest hits
                 while(intPointsItr != nextPointsItr)
                 {
@@ -261,76 +290,141 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     const TkrVecPointVec& intPoints = *intPointsItr++;
 
                     // What we do:
-                    // First check to see if we are in (or close to) an active area in the x view
+                    // First we look for a TkrVecPoint "nearby". If this is true then we know we
+                    // aren't going to make a layer skipping link, but we can also then mark the 
+                    // intervening links as 'good'. 
+                    // After this step then we check to see if we are in (or close to) an active 
+                    // area in the x view
                     // Then check the same for the y view
                     // If in active area (or close enough) then we look for the nearest hit
                     // And, finally, if the hit is "nearby" then we don't create a vector link here
                     // 
                     // So, start by setting up to see where the potential link will put us in x
-                    double zLayerX     = m_tkrGeom->getLayerZ(--intMissLyr, 0);
-//                    double arcLen      = (firstPoint->getPosition().z() - zLayer) / cos(startToEnd.theta());
-//                    Point  layerPt     = Point(firstPoint->getPosition().x() - arcLen * startToEnd.unit().x(),
-//                                           firstPoint->getPosition().y() - arcLen * startToEnd.unit().y(),
-//                                           firstPoint->getPosition().z() - arcLen * startToEnd.unit().z());
-                    double arcLen      = (linkZ - zLayerX) / cos(startToEnd.theta());
-                    Point  layerPtX    = Point(linkX - arcLen * startToEnd.x(),
-                                               linkY - arcLen * startToEnd.y(),
-                                               linkZ - arcLen * startToEnd.z());
+                    double zLayerX  = m_tkrGeom->getLayerZ(--intMissLyr, 0);
+                    double zLayerY  = m_tkrGeom->getLayerZ(intMissLyr, 1);
+                    double arcLen   = (linkZ - 0.5 * (zLayerX + zLayerY)) / cos(startToEnd.theta());
+                    Point  layerPt  = Point(linkX - arcLen * startToEnd.x(),
+                                            linkY - arcLen * startToEnd.y(),
+                                            linkZ - arcLen * startToEnd.z());
+
+                    double                    dist2VecPoint = 10. * searchDist; //1000.;
+                    const Event::TkrVecPoint* nearestHit    = findNearestTkrVecPoint(intPoints, layerPt, dist2VecPoint);
+
+                    if (dist2VecPoint < 5.* searchDist)
+                    {
+                        // Mark the link associated with the top point and "nearestHit"
+                        markLinkVerified(intPointToLinkVec, nearestHit);
+
+                        // Now must retrieve point to link relations for "nearestHit" 
+//                        intPointToLinkVec = m_pointToLinksTab->getRelByFirst(nearestHit);
+
+//                        markLinkVerified(intPointToLinkVec, secondPoint);
+
+//                        inActiveArea = true;
+//                        break;
+                    }
+
+                    // Transport ourselves to the x plane and create the point
+                    double arcLenX  = (linkZ - zLayerX) / cos(startToEnd.theta());
+                    Point  layerPtX = Point(linkX - arcLenX * startToEnd.x(),
+                                            linkY - arcLenX * startToEnd.y(),
+                                            linkZ - arcLenX * startToEnd.z());
 
                     // Local variables for checking distance to active areas
-                    int    iXTower     = 0;
-                    int    iYTower     = 0;
-                    double xActiveDist = 0.;
-                    double yActiveDist = 0.;
-                    double xGap        = 0.;
-                    double yGap        = 0.;
+                    int    iXTower      = 0;
+                    int    iYTower      = 0;
+                    double xActiveDistX = 0.;
+                    double yActiveDistX = 0.;
+                    double xGap         = 0.;
+                    double yGap         = 0.;
 
                     // Check to see if our point is within the active area of silicon so that we can reasonably 
                     // expect that a hit is nearby. This first checks the x plane in the bilayer we're in
-                    bool   hitNearby   = m_tkrGeom->inTower(0, layerPtX, iXTower, iYTower, xActiveDist, yActiveDist, xGap, yGap);
+                    bool   isInTower   = m_tkrGeom->inTower(0, layerPtX, iXTower, iYTower, xActiveDistX, yActiveDistX, xGap, yGap);
 
                     // If near the edge of the active area then give benefit of the doubt 
-                    if (xActiveDist < 0.) continue;
-
-                    // Now look where we might be in Y
-                    double zLayerY = m_tkrGeom->getLayerZ(intMissLyr, 1);
-
-                    arcLen = (linkZ - zLayerY) / cos(startToEnd.theta());
-
-                    Point layerPtY = Point(linkX - arcLen * startToEnd.x(),
-                                           linkY - arcLen * startToEnd.y(),
-                                           linkZ - arcLen * startToEnd.z());
-
-                    // Check for hit near our point in the Y view
-                    hitNearby = m_tkrGeom->inTower(0, layerPtY, iXTower, iYTower, xActiveDist, yActiveDist, xGap, yGap);
-
-                    // Again, give benefit of doubt if near the edge of the active area
-                    if (yActiveDist < 0.) continue;
-
-                    // Reset the "layerPt" to the position at the equivalent of the vec point for this bilayer
-                    arcLen    = (linkZ - 0.5 * (zLayerX + zLayerY)) / cos(startToEnd.theta());
-
-                    Point layerPt = Point(linkX - arcLen * startToEnd.x(),
-                                          linkY - arcLen * startToEnd.y(),
-                                          linkZ - arcLen * startToEnd.z());
-
-                    // Find the nearest TkrVecPoint to this point
-                    double                    dist2VecPoint = 1000.;
-                    const Event::TkrVecPoint* nearestHit    = findNearestTkrVecPoint(intPoints, layerPt, dist2VecPoint);
-
-                    // If a "nearby" hit then don't make a link here
-//                  if (dist2VecPoint > 0.1 * towerPitch) continue;
-                    if (!nearestHit)
+                    if (!isInTower) 
                     {
                         continue;
                     }
 
-                    double nearestHitX = nearestHit->getXCluster()->position().x();
-                    double nearestHitY = nearestHit->getYCluster()->position().y();
+                    // Now look where we might be in Y
+                    double xActiveDistY = 0.;
+                    double yActiveDistY = 0.;
+                    double arcLenY      = (linkZ - zLayerY) / cos(startToEnd.theta());
+                    Point  layerPtY     = Point(linkX - arcLenY * startToEnd.x(),
+                                                linkY - arcLenY * startToEnd.y(),
+                                                linkZ - arcLenY * startToEnd.z());
 
-                    if (fabs(nearestHitX - layerPtX.x()) > 5. * m_tkrGeom->siStripPitch() * nearestHit->getXCluster()->size() ||
-                        fabs(nearestHitY - layerPtY.y()) > 5. * m_tkrGeom->siStripPitch() * nearestHit->getYCluster()->size()) continue;
+                    // Check for hit near our point in the Y view
+                    isInTower  = m_tkrGeom->inTower(0, layerPtY, iXTower, iYTower, xActiveDistY, yActiveDistY, xGap, yGap);
 
+                    // Again, give benefit of doubt if near the edge of the active area
+                    if (!isInTower) 
+                    {
+                        continue;
+                    }
+
+                    // If we are here then we are theoretically in the silicon sense layers and should expect to see a hit 
+                    // nearby. So, natural division is between no valid TkrVecPoint nearby...
+                    if (!nearestHit)
+                    {
+                        // No nearby hit, in this case if we are close to the edge of the silicon then make the link
+                        // Otherwise, we assume we are in "good" silicon and since its so efficienct we should see a hit
+                        double edgeCut = 5. * m_tkrGeom->siStripPitch();
+
+                        // But if "near" the edge then ok to hedge a bit
+                        if (xActiveDistX < edgeCut || yActiveDistX < edgeCut ||
+                            xActiveDistY < edgeCut || yActiveDistY < edgeCut)    continue;
+                    }
+                    // ... and valid TkrVecPoint "nearby". 
+                    else
+                    {
+                        // Two things:
+                        // a) a hit is nearby
+                        // b) hit is nearby but also near edge of silicon
+                        // Since the link can have an angle through the silicon, but the point doesn't, we have to 
+                        // look at the projections in the x and y planes respectively
+                        double nearestHitX = nearestHit->getXCluster()->position().x();
+                        double nearestHitY = nearestHit->getYCluster()->position().y();
+                        double deltaProjX  = fabs(nearestHitX - layerPtX.x());
+                        double deltaProjY  = fabs(nearestHitY - layerPtY.y());
+
+                        // If at least one of the clusters is "far away" then 
+                        if (deltaProjX > 5. * m_tkrGeom->siStripPitch() * nearestHit->getXCluster()->size() ||
+                            deltaProjY > 5. * m_tkrGeom->siStripPitch() * nearestHit->getYCluster()->size()) 
+                        {
+                            double edgeCut = 5. * m_tkrGeom->siStripPitch();
+
+                            if (xActiveDistX < edgeCut || yActiveDistX < edgeCut ||
+                                xActiveDistY < edgeCut || yActiveDistY < edgeCut)    continue;
+                        }
+                        // Otherwise, a nearby cluster but again check that edge condition...
+                        else
+                        {
+                            // Last chance to save this proposed layer skipping link: its "close" to the edge...
+                            if (xActiveDistX < deltaProjX || yActiveDistX < deltaProjY ||
+                                xActiveDistX < deltaProjX || yActiveDistX < deltaProjY)
+                            {
+                                continue;
+                            }
+                        }
+
+                        // If we are here then we think we should 
+                    }
+/*
+|                    // If a "nearby" hit then don't make a link here
+|                    if (!nearestHit)
+|                    {
+|                        continue;
+|                    }
+|
+|                    double nearestHitX = nearestHit->getXCluster()->position().x();
+|                    double nearestHitY = nearestHit->getYCluster()->position().y();
+|
+|                    if (fabs(nearestHitX - layerPtX.x()) > 5. * m_tkrGeom->siStripPitch() * nearestHit->getXCluster()->size() ||
+|                        fabs(nearestHitY - layerPtY.y()) > 5. * m_tkrGeom->siStripPitch() * nearestHit->getYCluster()->size()) continue;
+*/
                     // Otherwise, we're outa here
                     inActiveArea = true;
                     break;
@@ -393,7 +487,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
         }
     }
 
-    return numLinks;
+    return linkStoreVec.back().size();
 }
 
 const Event::TkrVecPoint* TkrVecPointLinksBuilder::findNearestTkrVecPoint(const TkrVecPointVec& intPoints, 
@@ -420,4 +514,67 @@ const Event::TkrVecPoint* TkrVecPointLinksBuilder::findNearestTkrVecPoint(const 
     dist2VecPoint = sqrt(dist2VecPoint);
 
     return foundVecPoint;
+}
+    
+void TkrVecPointLinksBuilder::markLinkVerified(std::vector<Event::TkrVecPointToLinksRel*>& pointToLinkVec, const Event::TkrVecPoint* point)
+{
+    // No choice but to loop through and look for match to second point
+    for(std::vector<Event::TkrVecPointToLinksRel*>::iterator ptItr = pointToLinkVec.begin(); ptItr != pointToLinkVec.end(); ptItr++)
+    {
+        Event::TkrVecPointsLink* link = (*ptItr)->getSecond();
+
+        if (link->getSecondVecPoint() == point) 
+        {
+            link->setVerified();
+            break;
+        }
+    }
+
+    return;
+}    
+
+int TkrVecPointLinksBuilder::pruneNonVerifiedLinks(TkrVecPointsLinkVec& linkVec, Event::TkrVecPointsLinkCol* tkrVecPointsLinkCol)
+{
+    TkrVecPointsLinkVec::iterator linkVecEndItr = linkVec.end();
+    TkrVecPointsLinkVec::iterator linkVecItr    = linkVec.begin();
+
+    try{
+    while(linkVecItr != linkVecEndItr)
+    {
+        if (!(*linkVecItr)->verified())
+        {
+            std::vector<Event::TkrVecPointToLinksRel*> relVec = m_pointToLinksTab->getRelBySecond(*linkVecItr);
+        
+            // Just a check to be sure only one relation here
+            if (relVec.size() > 1)
+            {
+                int stopmehere = 1;
+            }
+
+            // "Erase" the relation
+            m_pointToLinksTab->erase((*relVec.begin()));
+
+            // Dereference pointer to the link
+            Event::TkrVecPointsLink* link = *linkVecItr;
+
+            // now erase the vector element
+            linkVecItr = linkVec.erase(linkVecItr);
+
+            // Find this link in the object vector
+            Event::TkrVecPointsLinkCol::iterator linkColItr = std::find(tkrVecPointsLinkCol->begin(), tkrVecPointsLinkCol->end(), link);
+
+            // And erase it from the collection (which will delete the object too)
+            tkrVecPointsLinkCol->erase(linkColItr);
+        }
+        else linkVecItr++;
+
+        linkVecEndItr = linkVec.end();
+    }
+    }
+    catch(...)
+    {
+        int stophere = 0;
+    }
+
+    return linkVec.size();
 }
