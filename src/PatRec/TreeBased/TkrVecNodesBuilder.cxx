@@ -198,17 +198,20 @@ void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, 
         // Next is to retrieve all nodes which land on this point (which we'll need no matter what)
         std::vector<Event::TkrVecPointToNodesRel*> pointToNodesVec = m_pointsToNodesTab->getRelByFirst(point);
 
-        // Pointer to point/node relation we'll use below
+        // This will compare all nodes (links ending at this point) to all links emanating from this point
+        // and find the "best" combination that is within tolerances. 
         Event::TkrVecPointToNodesRel* bestNodeRel = findBestNodeLinkMatch(pointToLinkVec, pointToNodesVec);
 
-        // If emtpy then make a head node
+        // If no relation is returned then we assume that this is a potential starting point for a new tree
+        // Use the "goodStartPoint" method to verify that it is a potential starting point, if so then 
+        // make a new node
         if (bestNodeRel == 0 && goodStartPoint(point))
         {
             bestNodeRel = makeNewHeadNodeRel(headNodes, point);
             pointToNodesVec.push_back(bestNodeRel);
         }
 
-        // Did we find a "best" node?
+        // Did we find a "best" node or have a good starting point?
         if (bestNodeRel)
         {
             // If a best node/link match found then the first thing is to check the special case of a potential 
@@ -243,13 +246,7 @@ void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, 
                 }
             }
 
-            // Temporary sanity check to be removed
-            if (!bestNodeRel)
-            {
-                int thisabsolutelycannothappen = 0;
-            }
-
-            // Finally! If here with a node then charge ahead with adding links to our node
+            // Ok! Start charging ahead with building out a new node
             Event::TkrVecNode* bestNode = bestNodeRel->getSecond();
 
             // Get the average rms angle which we can use to help guide the attachment of links
@@ -289,6 +286,8 @@ void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, 
                 // Also use this as an opportunity to make one last rejection cut (on distance between links)
                 double angleToNode = 0.;
 
+                // In the case of a starting node there is no associated link... but if we have associated link
+                // then check the distance of closest approach between the point and the link
                 if (bestNode->getAssociatedLink())
                 {
                     angleToNode = nextLink->angleToNextLink(*bestNode->getAssociatedLink());
@@ -311,6 +310,8 @@ void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, 
                 // Keeper?
                 if (rmsAngle < rmsAngleCut) 
                 {
+                    // Last thing - consider that one of the clusters associated with this point is a better 
+                    // match to another (existing) combination. Check that here. 
                     if (!betterClusterMatch(bestNode, nextLink))
                     {
                         // Ok, if here then we want to attach this link to our node 
@@ -427,8 +428,9 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
     if (pointToNodesVec.empty()) return bestNodeRel;
 
     // Set the bar as low as possible
-    double bestRmsAngle = 0.5*M_PI;
-    double stripPitch   = m_tkrGeom->siStripPitch();
+    double bestRmsAngle  = 0.5*M_PI;
+    int    bestNumRmsSum = 0;
+    double stripPitch    = m_tkrGeom->siStripPitch();
 
     // The outer loop is over the set of links which start at this point. These are links
     // to be attached to any nodes ending at this point -or- will start a new tree
@@ -497,16 +499,11 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
             double rmsAngle    = curNode->getRmsAngleSum() + angleToNode * angleToNode;
 
             // Is this a good match in terms of angle?
-            if (rmsAngle / double(numInAngSum) < bestRmsAngle) 
+            if ((bestNumRmsSum <= 2 && numInAngSum > 3) || rmsAngle / double(numInAngSum) < bestRmsAngle) 
             {
-                // One last check - look to see if either cluster is attached to a "better" 
-                // node already. 
-                //if (   !betterClusterMatch(curNode, curLink, curLink->getSecondVecPoint()->getXCluster()) 
-                //    && !betterClusterMatch(curNode, curLink, curLink->getSecondVecPoint()->getYCluster()))
-                //{
-                    bestRmsAngle = rmsAngle / double(numInAngSum);
-                    bestNodeRel  = *ptToNodesItr;
-                //}
+                bestRmsAngle  = rmsAngle / double(numInAngSum);
+                bestNumRmsSum = numInAngSum;
+                bestNodeRel   = *ptToNodesItr;
             }
         }
     }

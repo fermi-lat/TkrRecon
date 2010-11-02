@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TreeBasedTool.cxx,v 1.3 2005/12/20 17:23:14 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.4 2010/11/01 16:44:59 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -48,7 +48,7 @@ public:
     /// Standard Gaudi Tool interface constructor
     TreeBasedTool(const std::string& type, const std::string& name, const IInterface* parent);
     virtual ~TreeBasedTool();
-	
+
     /// @brief Intialization of the tool
     StatusCode initialize();
 
@@ -105,7 +105,7 @@ TreeBasedTool::TreeBasedTool(const std::string& type, const std::string& name, c
 
     m_clusterCol = 0;
 
-	return;
+    return;
 }
 
 TreeBasedTool::~TreeBasedTool()
@@ -118,7 +118,7 @@ TreeBasedTool::~TreeBasedTool()
 // Initialization of the tool here
 //
 StatusCode TreeBasedTool::initialize()
-{	
+{
     PatRecBaseTool::initialize();
     StatusCode sc   = StatusCode::SUCCESS;
 
@@ -154,11 +154,13 @@ StatusCode TreeBasedTool::findTracks()
     // Register a new TkrTrack collection and a new TkrTrackHit collection in the TDS
     // This is necessary to do at this stage to keep downstream code operating correctly 
     // (and that code should recognize when there are no tracks present!)
-    Event::TkrTrackCol* tdsTracks = new Event::TkrTrackCol();
+    //Event::TkrTrackCol* tdsTracks = new Event::TkrTrackCol();
 
     //Register these objects in the TDS
-    sc = m_dataSvc->registerObject(EventModel::TkrRecon::TkrTrackCol,    tdsTracks);
+    //sc = m_dataSvc->registerObject(EventModel::TkrRecon::TkrTrackCol,    tdsTracks);
 
+    SmartDataPtr<Event::TkrTrackCol> tdsTracks(m_dataSvc, EventModel::TkrRecon::TkrTrackCol);
+    
     // Set the event energy
     double eventEnergy = getEventEnergy();
 
