@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.52 2009/09/09 19:36:04 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.54 2010/10/27 19:11:12 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -38,8 +38,6 @@
 
 #include <string>
 #include <algorithm>
-
-#include "src/Track/KalmanTrackFitTool.h"
 
 
 namespace {
@@ -837,7 +835,7 @@ void ComboFindTrackTool::findCRCandidates()
 
     MsgStream msgLog(msgSvc(), name());
 
-    //	dumpCandidates();
+    //  dumpCandidates();
 
     m_searchType = CRAYSEARCH;
 
@@ -867,21 +865,21 @@ void ComboFindTrackTool::findCRCandidates()
     m_maxFirstGaps=2;
     int             t_maxTotalGaps=m_maxTotalGaps;        // Max. total number of XY gaps in the track
     m_maxTotalGaps=4;
-    int				t_maxCandidates=m_maxCandidates;		// Maximum number of candidates to store
-    m_maxCandidates= t_maxCandidates;					// Make sure that space for cosmic-ray tracks always exists
-    int m_CRLowestLayer=3;								// Lowest layer in which to start looking for CR tracks
+    int             t_maxCandidates=m_maxCandidates;        // Maximum number of candidates to store
+    m_maxCandidates= t_maxCandidates;                   // Make sure that space for cosmic-ray tracks always exists
+    int m_CRLowestLayer=3;                              // Lowest layer in which to start looking for CR tracks
 
     // Change the particle hypothesis for the Kalman filter.  Save the existing hypothesis, to set it back before exiting.
-    //	std::string PartTypeSave= m_trackFitTool->getParticleType();   // This method needs to be added to KalmanTrackFitTool
+    //  std::string PartTypeSave= m_trackFitTool->getParticleType();   // This method needs to be added to KalmanTrackFitTool
     std::string PartTypeSave="e-";  // Temporary fix
     m_trackFitTool->setParticleType("p+");  
-    //	std::string HitEnergyLossSave= m_trackFitTool->getHitEnergyLoss();   // This method needs to be added to KalmanTrackFitTool
+    //  std::string HitEnergyLossSave= m_trackFitTool->getHitEnergyLoss();   // This method needs to be added to KalmanTrackFitTool
     std::string HitEnergyLossSave= "eRadLoss";   // Temporary fix
     m_trackFitTool->setHitEnergyLoss("BetheBloch");
 
     int NCRay=0;
     for (; ilayer >= lastILayer; --ilayer) {    //RJ: search only top few layers for track start, but how to handle sides?
-        // Termination Criterion				//RJ: loop on all layers, but consider hits only near edge on all but top 2
+        // Termination Criterion                //RJ: loop on all layers, but consider hits only near edge on all but top 2
 
         if(quitOnTrials()) break;
 
@@ -985,8 +983,8 @@ void ComboFindTrackTool::findCRCandidates()
         (*m_tkrClus)[i]->unflag();
     }
 
-    //	std::cout << NCRay << " cosmic ray candidates found" << std::endl;
-    //	dumpCandidates();
+    //  std::cout << NCRay << " cosmic ray candidates found" << std::endl;
+    //  dumpCandidates();
     msgLog << MSG::DEBUG;
     if (msgLog.isActive()) msgLog << "CR search: " <<  m_candidates.size() << ", " << m_trials << " trials" 
         << m_quitCount << "quitCount";
@@ -1494,7 +1492,7 @@ ComboFindTrackTool::trialReturn ComboFindTrackTool::tryCandidate(int firstLayer,
             }
         }
     }
-    //	std::cout << "tryCandidate " << m_searchType << ": " << trial->track()->getQuality() << std::endl;
+    //  std::cout << "tryCandidate " << m_searchType << ": " << trial->track()->getQuality() << std::endl;
     return FITSUCCEEDED;
 }
 

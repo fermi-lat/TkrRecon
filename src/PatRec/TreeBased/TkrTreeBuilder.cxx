@@ -107,41 +107,40 @@ int TkrTreeBuilder::buildTrees(double eventEnergy)
             // Use this to create a new TkrTrack
             Event::TkrTrack* trackAll = makeTkrTrack(siblingMap2, fracEnergy * eventEnergy, 2);
 
-            // Do a test fit of this track
-            trackAll->setInitialEnergy(fracEnergy * eventEnergy);
-            trackAll->setStatusBit(Event::TkrTrack::COMPOSITE);
-
-
-            if (StatusCode sc = m_trackFitTool->doTrackFit(trackAll) != StatusCode::SUCCESS)
+            // Make sure the hit finding didn't screw up...
+            if (trackAll->getNumFitHits() > 4)
             {
-                int oops = 0;
+                // Do a test fit of this track
+                trackAll->setInitialEnergy(fracEnergy * eventEnergy);
+                trackAll->setStatusBit(Event::TkrTrack::COMPOSITE);
+
+                if (StatusCode sc = m_trackFitTool->doTrackFit(trackAll) != StatusCode::SUCCESS)
+                {
+                    int oops = 0;
+                }
+
+                // Pick the best track... (always dangerous!)
+                // I'm thinking this will pick the "straightest" track...
+                if (trackBest->getChiSquareSmooth() > 5. * trackAll->getChiSquareSmooth())
+                {
+                    Event::TkrTrack* temp = trackAll;
+                
+                    trackAll  = trackBest;
+                    trackBest = temp;
+                }
             }
 
-            // Pick the best track... (always dangerous!)
-            Event::TkrTrack* track  = trackBest;
-            Event::TkrTrack* track2 = trackAll;
+            tkrTrackCol->push_back(trackBest);
+//            tkrTrackCol->push_back(trackAll);
 
-            // I'm thinking this will pick the "straightest" track...
-            if (trackBest->getChiSquareSmooth() > 5. * trackAll->getChiSquareSmooth())
-//            static double aveLeavesCut = 3.;
-//            double aveLeavesPerBiLayer = double(headNode->getNumLeaves()) / double(headNode->getDepth());
-//            if (trackAll->getChiSquareSmooth() < 20. && aveLeavesPerBiLayer > aveLeavesCut)
-            {
-                track  = trackAll;
-                track2 = trackBest;
-            }
-
-            tkrTrackCol->push_back(track);
-//            tkrTrackCol->push_back(track2);
-
-            delete track2;
+            delete trackAll;
             delete siblingMap;
 
             // Given the track we like, attempt to add leading hits
-            m_findHitsTool->addLeadingHits(track);
+            m_findHitsTool->addLeadingHits(trackBest);
 
             // Finally, make the new TkrTree
-            Event::TkrTree* tree = new Event::TkrTree(headNode, siblingMap2, track);
+            Event::TkrTree* tree = new Event::TkrTree(headNode, siblingMap2, trackBest);
 
             m_treeCol->push_back(tree);
 
