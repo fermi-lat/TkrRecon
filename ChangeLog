@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Nov  2 13:42:08 PDT 2010
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx 
+Log Message:
+Resolves conflicts between cr and tree tracking, remove tabs
+    *
+------------------------------------------------------------
 User: usher  Tue Nov  2 13:42:07 PDT 2010
 TkrRecon/TkrRecon/Track
 
