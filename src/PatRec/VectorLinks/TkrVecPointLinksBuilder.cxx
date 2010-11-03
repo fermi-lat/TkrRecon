@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.cxx,v 1.2 2009/10/30 15:56:47 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.cxx,v 1.4 2010/11/01 16:45:00 usher Exp $
  *
 */
 
@@ -267,11 +267,12 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
             if (intPointsItr != nextPointsItr)
             {
                 // Improve accuracy by adjusting starting vec point position for slope of the proposed link
-                double linkZ  = firstPoint->getPosition().z();
-                double aLen2X = (firstPoint->getXCluster()->position().z() - linkZ) / cos(startToEnd.theta());
-                double linkX  = firstPoint->getXCluster()->position().x() - aLen2X * startToEnd.x();
-                double aLen2Y = (firstPoint->getYCluster()->position().z() - linkZ) / cos(startToEnd.theta());
-                double linkY  = firstPoint->getYCluster()->position().y() - aLen2Y * startToEnd.y();
+                double cosToEnd = cos(startToEnd.theta());
+                double linkZ    = firstPoint->getPosition().z();
+                double aLen2X   = (firstPoint->getXCluster()->position().z() - linkZ) / cosToEnd;
+                double linkX    = firstPoint->getXCluster()->position().x() - aLen2X * startToEnd.x();
+                double aLen2Y   = (firstPoint->getYCluster()->position().z() - linkZ) / cosToEnd;
+                double linkY    = firstPoint->getYCluster()->position().y() - aLen2Y * startToEnd.y();
 
                 // Use this to define search areas 
                 double topPointDist = firstPoint->getXCluster()->size()*firstPoint->getXCluster()->size()
@@ -279,6 +280,9 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                 double botPointDist = secondPoint->getXCluster()->size()*secondPoint->getXCluster()->size()
                                     + secondPoint->getYCluster()->size()*secondPoint->getYCluster()->size();
                 double searchDist   = 0.5 * m_tkrGeom->siStripPitch() * (sqrt(topPointDist) + sqrt(botPointDist));
+
+                // Useful
+                double stripAspect = m_tkrGeom->siThickness() / m_tkrGeom->siStripPitch();
 
                 // Keep track of the "top" points to links 
                 std::vector<Event::TkrVecPointToLinksRel*> intPointToLinkVec = firstPointToLinkVec;
@@ -302,7 +306,11 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     // So, start by setting up to see where the potential link will put us in x
                     double zLayerX  = m_tkrGeom->getLayerZ(--intMissLyr, 0);
                     double zLayerY  = m_tkrGeom->getLayerZ(intMissLyr, 1);
-                    double arcLen   = (linkZ - 0.5 * (zLayerX + zLayerY)) / cos(startToEnd.theta());
+                    double arcLen   = (linkZ - 0.5 * (zLayerX + zLayerY)) / cosToEnd;
+                    double arcLenX  = (linkZ - zLayerX) / cosToEnd;
+                    double arcLenY  = (linkZ - zLayerY) / cosToEnd;
+
+                    // Get point at midplane
                     Point  layerPt  = Point(linkX - arcLen * startToEnd.x(),
                                             linkY - arcLen * startToEnd.y(),
                                             linkZ - arcLen * startToEnd.z());
@@ -324,8 +332,29 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
 //                        break;
                     }
 
-                    // Transport ourselves to the x plane and create the point
-                    double arcLenX  = (linkZ - zLayerX) / cos(startToEnd.theta());
+                    // If we found a hit nearby then the first thing to do is to check and see if 
+                    // that hit lies on this link. If so then we are going to reject the link
+                    if (nearestHit)
+                    {
+                        // Get the position of the cluster in each plane
+                        double nearestHitX = nearestHit->getXCluster()->position().x();
+                        double nearestHitY = nearestHit->getYCluster()->position().y();
+
+                        // Get difference between cluster positions and link projected positions
+                        double deltaProjX  = fabs(nearestHitX - (linkX - arcLenX * startToEnd.x()));
+                        double deltaProjY  = fabs(nearestHitY - (linkY - arcLenY * startToEnd.y()));
+
+                        // Should this cluster be on the link we are trying to make?
+                        if (deltaProjX < 3. * m_tkrGeom->siStripPitch() * nearestHit->getXCluster()->size() &&
+                            deltaProjY < 3. * m_tkrGeom->siStripPitch() * nearestHit->getYCluster()->size()) 
+                        {
+                            inActiveArea = true;
+                            break;
+                        }
+                    }
+
+                    // If here then we have no nearby hit. The next is to check to see if we are in active silicon
+                    // So, start by getting the point at the X plane
                     Point  layerPtX = Point(linkX - arcLenX * startToEnd.x(),
                                             linkY - arcLenX * startToEnd.y(),
                                             linkZ - arcLenX * startToEnd.z());
@@ -342,7 +371,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     // expect that a hit is nearby. This first checks the x plane in the bilayer we're in
                     bool   isInTower   = m_tkrGeom->inTower(0, layerPtX, iXTower, iYTower, xActiveDistX, yActiveDistX, xGap, yGap);
 
-                    // If near the edge of the active area then give benefit of the doubt 
+                    // If we are not in the active silicon then we may want to keep this link
                     if (!isInTower) 
                     {
                         continue;
@@ -351,7 +380,6 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     // Now look where we might be in Y
                     double xActiveDistY = 0.;
                     double yActiveDistY = 0.;
-                    double arcLenY      = (linkZ - zLayerY) / cos(startToEnd.theta());
                     Point  layerPtY     = Point(linkX - arcLenY * startToEnd.x(),
                                                 linkY - arcLenY * startToEnd.y(),
                                                 linkZ - arcLenY * startToEnd.z());
@@ -365,66 +393,28 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                         continue;
                     }
 
-                    // If we are here then we are theoretically in the silicon sense layers and should expect to see a hit 
-                    // nearby. So, natural division is between no valid TkrVecPoint nearby...
-                    if (!nearestHit)
+                    // If here we have no nearby hit and we believe we are in the confines of the active silicon. 
+                    // At this point we might be very near the edge, or in a gap in the middle of a tower. So, now 
+                    // test for that special case! 
+                    // First get the projected width of the link through the silicon
+                    double projectedX = fabs(stripAspect * startToEnd.x() / startToEnd.z());
+                    double projectedY = fabs(stripAspect * startToEnd.y() / startToEnd.z());
+
+                    // Add this to the "active distance" to get a number that should give us an idea of how much 
+                    // active silicon an edge hit would be seeing. Remember, "active distance" is negative if outside
+                    // the active area, positive if inside. If we add this to our projected distance, then we would get
+                    // zero if the link just clips the active silicon, it will be positive as we hit more silicon, negative
+                    // if we miss completely
+                    double siHitDistX = 0.5 * projectedX + xActiveDistX;
+                    double siHitDistY = 0.5 * projectedY + yActiveDistY;
+
+                    // So... our condition for keeping the link is that this distance is less than 2 strips worth of
+                    // silicion
+                    if (siHitDistX < 2. * m_tkrGeom->siStripPitch() || siHitDistY < 2. * m_tkrGeom->siStripPitch())
                     {
-                        // No nearby hit, in this case if we are close to the edge of the silicon then make the link
-                        // Otherwise, we assume we are in "good" silicon and since its so efficienct we should see a hit
-                        double edgeCut = 5. * m_tkrGeom->siStripPitch();
-
-                        // But if "near" the edge then ok to hedge a bit
-                        if (xActiveDistX < edgeCut || yActiveDistX < edgeCut ||
-                            xActiveDistY < edgeCut || yActiveDistY < edgeCut)    continue;
+                        continue;
                     }
-                    // ... and valid TkrVecPoint "nearby". 
-                    else
-                    {
-                        // Two things:
-                        // a) a hit is nearby
-                        // b) hit is nearby but also near edge of silicon
-                        // Since the link can have an angle through the silicon, but the point doesn't, we have to 
-                        // look at the projections in the x and y planes respectively
-                        double nearestHitX = nearestHit->getXCluster()->position().x();
-                        double nearestHitY = nearestHit->getYCluster()->position().y();
-                        double deltaProjX  = fabs(nearestHitX - layerPtX.x());
-                        double deltaProjY  = fabs(nearestHitY - layerPtY.y());
 
-                        // If at least one of the clusters is "far away" then 
-                        if (deltaProjX > 5. * m_tkrGeom->siStripPitch() * nearestHit->getXCluster()->size() ||
-                            deltaProjY > 5. * m_tkrGeom->siStripPitch() * nearestHit->getYCluster()->size()) 
-                        {
-                            double edgeCut = 5. * m_tkrGeom->siStripPitch();
-
-                            if (xActiveDistX < edgeCut || yActiveDistX < edgeCut ||
-                                xActiveDistY < edgeCut || yActiveDistY < edgeCut)    continue;
-                        }
-                        // Otherwise, a nearby cluster but again check that edge condition...
-                        else
-                        {
-                            // Last chance to save this proposed layer skipping link: its "close" to the edge...
-                            if (xActiveDistX < deltaProjX || yActiveDistX < deltaProjY ||
-                                xActiveDistX < deltaProjX || yActiveDistX < deltaProjY)
-                            {
-                                continue;
-                            }
-                        }
-
-                        // If we are here then we think we should 
-                    }
-/*
-|                    // If a "nearby" hit then don't make a link here
-|                    if (!nearestHit)
-|                    {
-|                        continue;
-|                    }
-|
-|                    double nearestHitX = nearestHit->getXCluster()->position().x();
-|                    double nearestHitY = nearestHit->getYCluster()->position().y();
-|
-|                    if (fabs(nearestHitX - layerPtX.x()) > 5. * m_tkrGeom->siStripPitch() * nearestHit->getXCluster()->size() ||
-|                        fabs(nearestHitY - layerPtY.y()) > 5. * m_tkrGeom->siStripPitch() * nearestHit->getYCluster()->size()) continue;
-*/
                     // Otherwise, we're outa here
                     inActiveArea = true;
                     break;
