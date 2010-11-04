@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Thu Nov  4 11:25:24 PDT 2010
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrFindAlg.cxx 
+Log Message:
+Turn on cosmic-ray finding by default!
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-19-00, operation: add
 Package: TkrRecon
