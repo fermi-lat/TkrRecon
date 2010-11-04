@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.22 2010/09/24 16:15:11 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.23 2010/10/27 19:11:10 lsrea Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -47,7 +47,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.22 2010/09/24 16:15:11 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.23 2010/10/27 19:11:10 lsrea Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -89,7 +89,7 @@ TkrFindAlg::TkrFindAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator)  
 { 
     declareProperty("TrackFindType",   m_TrackFindType="Combo");
-    declareProperty("DoCRFinding",     m_doCRFinding=false);
+    declareProperty("DoCRFinding",     m_doCRFinding=true);
     declareProperty("CRGhosts",        m_CRGhosts=true);
 
     declareProperty("DoStandardFinding", m_doStandardFinding=true);
