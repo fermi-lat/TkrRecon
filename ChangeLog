@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Fri Nov  5 08:32:59 PDT 2010
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrFindAlg.cxx 
+Log Message:
+Preparing to tag TkrRecon-10-20-01
+    *
+------------------------------------------------------------
+User: usher  Fri Nov  5 08:32:59 PDT 2010
 TkrRecon/doc
 
 Modified Files:
