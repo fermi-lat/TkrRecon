@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrTreeBuilder.h,v 1. 2006/03/21 01:12:37 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.h,v 1.1 2010/09/24 16:14:44 usher Exp $
  *
 */
 
@@ -43,6 +43,12 @@ public:
     int    buildTrees(double eventEnergy);
 
 private:
+
+    /// Make the TkrTree given a head node
+    Event::TkrTree* makeTkrTree(Event::TkrVecNode* headNode, double trackEnergy);
+
+    /// This tries to find and create the "second" track in a given tree
+    Event::TkrTrack* makeSecondTrack(Event::TkrVecNode* headNode, Event::TkrTree* tree, double trackEnergy);
 
     /// Recursive routine for building a node sibling map
     void makeSiblingMap(Event::TkrNodeSiblingMap* siblingMap, 

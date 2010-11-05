@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrTreeBuilder.cxx,v 1.1 2005/05/26 20:33:07 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.4 2010/11/02 20:42:09 usher Exp $
  *
 */
 
@@ -70,81 +70,30 @@ int TkrTreeBuilder::buildTrees(double eventEnergy)
         {
             try
             {
-            // Recover pointer to the head node
-            Event::TkrVecNode* headNode = *nodeItr;
+                // Recover pointer to the head node
+                Event::TkrVecNode* headNode = *nodeItr;
 
-            // try something cwazy
-//            for(Event::TkrVecNodeSet::iterator headNodeItr = headNodeTop->begin(); headNodeItr != headNodeTop->end(); headNodeItr++)
-//        {
-//            Event::TkrVecNode* headNode = *headNodeItr;
+                // No proceeding if not enough hits to make a real track
+                if (headNode->getDepth() < 2) continue;
 
-            if (headNode->getDepth() < 2) continue;
+                // Make the TkrTree with the best track
+                Event::TkrTree* tree = makeTkrTree(headNode, fracEnergy * eventEnergy);
 
-
-            // Create a new sibling map to be used by the recursive routine
-            Event::TkrNodeSiblingMap* siblingMap = new Event::TkrNodeSiblingMap();
-            siblingMap->clear();
-
-            // Construct a sibling map which consists of hits along the best branch only
-            makeSiblingMap(siblingMap, headNode, 0, true);
-
-            // Use this to create a new TkrTrack
-            Event::TkrTrack* trackBest = makeTkrTrack(siblingMap, fracEnergy * eventEnergy);
-
-            // Do a test fit of this track
-            trackBest->setInitialEnergy(fracEnergy * eventEnergy);
-
-            if (StatusCode sc = m_trackFitTool->doTrackFit(trackBest) != StatusCode::SUCCESS)
-            {
-                int oops = 0;
-            }
-
-            // Now construct the sibling map using all the hits
-            Event::TkrNodeSiblingMap* siblingMap2 = new Event::TkrNodeSiblingMap();
-            siblingMap2->clear();
-            makeSiblingMap(siblingMap2, headNode, 0, false, false);
-
-            // Use this to create a new TkrTrack
-            Event::TkrTrack* trackAll = makeTkrTrack(siblingMap2, fracEnergy * eventEnergy, 2);
-
-            // Make sure the hit finding didn't screw up...
-            if (trackAll->getNumFitHits() > 4)
-            {
-                // Do a test fit of this track
-                trackAll->setInitialEnergy(fracEnergy * eventEnergy);
-                trackAll->setStatusBit(Event::TkrTrack::COMPOSITE);
-
-                if (StatusCode sc = m_trackFitTool->doTrackFit(trackAll) != StatusCode::SUCCESS)
+                if (tree)
                 {
-                    int oops = 0;
+                    // Store tree in TDS
+                    m_treeCol->push_back(tree);
+
+                    // And turn ownership of the best track over to the TDS
+                    tkrTrackCol->push_back(const_cast<Event::TkrTrack*>(tree->getBestTrack()));
+
+                    // Now look to see if we have another branch to fit/add to this tree
+// Not ready for release yet
+//                    if (Event::TkrTrack* secondTrack = makeSecondTrack(headNode, tree, 0.5 * fracEnergy * eventEnergy))
+//                    {
+//                        tkrTrackCol->push_back(secondTrack);
+//                    }
                 }
-
-                // Pick the best track... (always dangerous!)
-                // I'm thinking this will pick the "straightest" track...
-                if (trackBest->getChiSquareSmooth() > 5. * trackAll->getChiSquareSmooth())
-                {
-                    Event::TkrTrack* temp = trackAll;
-                
-                    trackAll  = trackBest;
-                    trackBest = temp;
-                }
-            }
-
-            tkrTrackCol->push_back(trackBest);
-//            tkrTrackCol->push_back(trackAll);
-
-            delete trackAll;
-            delete siblingMap;
-
-            // Given the track we like, attempt to add leading hits
-            m_findHitsTool->addLeadingHits(trackBest);
-
-            // Finally, make the new TkrTree
-            Event::TkrTree* tree = new Event::TkrTree(headNode, siblingMap2, trackBest);
-
-            m_treeCol->push_back(tree);
-
-            int j = 0;
             } catch(...)
             {
                 int catchme = 0;
@@ -153,6 +102,177 @@ int TkrTreeBuilder::buildTrees(double eventEnergy)
     }
 
     return 1;
+}
+
+Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double trackEnergy)
+{
+    // Create a new sibling map to be used by the recursive routine
+    Event::TkrNodeSiblingMap* siblingMap = new Event::TkrNodeSiblingMap();
+    siblingMap->clear();
+
+    // Construct a sibling map which consists of hits along the best branch only
+    makeSiblingMap(siblingMap, headNode, 0, true);
+
+    // Use this to create a new TkrTrack
+    Event::TkrTrack* trackBest = makeTkrTrack(siblingMap, trackEnergy);
+
+    // Do a test fit of this track
+    trackBest->setInitialEnergy(trackEnergy);
+
+    if (StatusCode sc = m_trackFitTool->doTrackFit(trackBest) != StatusCode::SUCCESS)
+    {
+        int oops = 0;
+    }
+
+    // Now construct the sibling map using all the hits
+    Event::TkrNodeSiblingMap* siblingMap2 = new Event::TkrNodeSiblingMap();
+    siblingMap2->clear();
+    makeSiblingMap(siblingMap2, headNode, 0, false, false);
+
+    // Use this to create a new TkrTrack
+    Event::TkrTrack* trackAll = makeTkrTrack(siblingMap2, trackEnergy, 2);
+
+    // Make sure the hit finding didn't screw up...
+    if (trackAll->getNumFitHits() > 4)
+    {
+        // Do a test fit of this track
+        trackAll->setInitialEnergy(trackEnergy);
+        trackAll->setStatusBit(Event::TkrTrack::COMPOSITE);
+
+        if (StatusCode sc = m_trackFitTool->doTrackFit(trackAll) != StatusCode::SUCCESS)
+        {
+            int oops = 0;
+        }
+
+        // Pick the best track... (always dangerous!)
+        // I'm thinking this will pick the "straightest" track...
+        if (trackBest->getChiSquareSmooth() > 5. * trackAll->getChiSquareSmooth())
+        {
+            Event::TkrTrack* temp = trackAll;
+        
+            trackAll  = trackBest;
+            trackBest = temp;
+        }
+    }
+
+    delete trackAll;
+    delete siblingMap;
+
+    // Given the track we like, attempt to add leading hits
+    m_findHitsTool->addLeadingHits(trackBest);
+
+    // Finally, make the new TkrTree
+    Event::TkrTree* tree = new Event::TkrTree(headNode, siblingMap2, trackBest);
+
+    return tree;
+}
+
+Event::TkrTrack* TkrTreeBuilder::makeSecondTrack(Event::TkrVecNode* headNode, Event::TkrTree* tree, double trackEnergy)
+{
+    Event::TkrTrack*   nextTrack   = 0;
+    Event::TkrVecNode* nextNode    = 0;
+    Event::TkrVecNode  headCopy    = *headNode;
+    Event::TkrVecNode* locHeadNode = &headCopy;
+
+    // Two cases to consider:
+    // 1) There is more than one branch off the head node and one of them might be our second track
+    // 2) The daughter of the primary branch has more than one branch and one of them might be our second track
+    while(!nextNode)
+    {
+        if (locHeadNode->size() > 1)
+        {
+            // Loop through branches at this level to look for the best that has enough hits and doesn't share clusters
+            Event::TkrVecNodeSet::iterator daughtIter = locHeadNode->begin();
+
+            for(daughtIter++; daughtIter != locHeadNode->end(); daughtIter++)
+            {
+                Event::TkrVecNode* testNode = *daughtIter;
+
+                if (testNode->getDepth() > 1) 
+                {
+                    nextNode = testNode;
+                    break;
+                }
+            }
+        }
+
+        // This is meant to handle looking at the primary daughter in the event nothing found off head node
+        if (!nextNode && locHeadNode == headNode) locHeadNode = locHeadNode->front();
+        else break;
+    }
+
+    // Do we have a candidate second track?
+    if (nextNode)
+    {
+        // First check if we are pointing to a daughter node
+        if (nextNode != &headCopy)
+        {
+            headCopy.clear();
+            headCopy.push_back(nextNode);
+            nextNode = &headCopy;
+        }
+
+        // Create a new sibling map to be used by the recursive routine
+        Event::TkrNodeSiblingMap* siblingMap = new Event::TkrNodeSiblingMap();
+        siblingMap->clear();
+
+        // Construct a sibling map which consists of hits along the best branch only
+        makeSiblingMap(siblingMap, nextNode, 0, true);
+
+        // Use this to create a new TkrTrack
+        nextTrack = makeTkrTrack(siblingMap, trackEnergy);
+
+        // Do a test fit of this track
+        nextTrack->setInitialEnergy(trackEnergy);
+
+        if (StatusCode sc = m_trackFitTool->doTrackFit(nextTrack) != StatusCode::SUCCESS)
+        {
+            int oops = 0;
+        }
+
+        // Now construct the sibling map using all the hits
+        Event::TkrNodeSiblingMap* siblingMap2 = new Event::TkrNodeSiblingMap();
+        siblingMap2->clear();
+        makeSiblingMap(siblingMap2, nextNode, 0, false, false);
+
+        // Use this to create a new TkrTrack
+        Event::TkrTrack* trackAll = makeTkrTrack(siblingMap2, trackEnergy, 2);
+
+        // Make sure the hit finding didn't screw up...
+        if (trackAll->getNumFitHits() > 4)
+        {
+            // Do a test fit of this track
+            trackAll->setInitialEnergy(trackEnergy);
+            trackAll->setStatusBit(Event::TkrTrack::COMPOSITE);
+
+            if (StatusCode sc = m_trackFitTool->doTrackFit(trackAll) != StatusCode::SUCCESS)
+            {
+                int oops = 0;
+            }
+
+            // Pick the best track... (always dangerous!)
+            // I'm thinking this will pick the "straightest" track...
+            if (nextTrack->getChiSquareSmooth() > 5. * trackAll->getChiSquareSmooth())
+            {
+                Event::TkrTrack* temp = trackAll;
+            
+                trackAll  = nextTrack;
+                nextTrack = temp;
+            }
+        }
+
+        delete trackAll;
+        delete siblingMap;
+        delete siblingMap2;
+
+        // Given the track we like, attempt to add leading hits
+        m_findHitsTool->addLeadingHits(nextTrack);
+
+        // Add to tree
+        tree->push_back(nextTrack);
+    }
+
+    return nextTrack;
 }
 
 void TkrTreeBuilder::makeSiblingMap(Event::TkrNodeSiblingMap* siblingMap, 
