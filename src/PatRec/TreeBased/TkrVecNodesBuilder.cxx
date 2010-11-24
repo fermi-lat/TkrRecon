@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecNodesBuilder.cxx,v 1.1 2005/05/26 20:33:07 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.2 2010/11/02 20:42:09 usher Exp $
  *
 */
 
@@ -41,13 +41,13 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(TkrVecPointsBuilder&     vecPointsBuilder
 
     // Initialize control varialbes (done here to make easier to read)
     m_cosKinkCut         = 0.94;    // cos(theta) to determine a kink for first link attachments
-    m_qSumDispAttachCut  = 5.;      // quad displacement sum cut for attaching a link
+//    m_qSumDispAttachCut  = 1.5;      // quad displacement sum cut for attaching a link
+    m_qSumDispAttachCut  = 1.1;      // quad displacement sum cut for attaching a link
     m_rmsAngleAttachCut  = 0.1;     // rms angle cut for attaching a link
     m_rmsAngleMinValue   = 0.05;    //005;   // minimum allowed value for rms angle cut
     m_bestRmsAngleValue  = M_PI/2.; // Initial value for rms angle cut when finding "best" link
-//    m_bestqSumDispCut    = 2.;      // quad displacement sum cut for finding "best" link
-//    m_bestAngleToNodeCut = 0.05;    // best angle to node cut for finding "best" link
-    m_bestqSumDispCut    = 5.;     // quad displacement sum cut for finding "best" link
+//    m_bestqSumDispCut    = 1.5;     // quad displacement sum cut for finding "best" link
+    m_bestqSumDispCut    = 1.1;     // quad displacement sum cut for finding "best" link
     m_bestAngleToNodeCut = 0.5;    // best angle to node cut for finding "best" link
 
     // liberalize cuts for events with few links (as the are probably low energy)
@@ -164,8 +164,8 @@ public:
         // Idea is to sort by link which is closest in direction to the reference link. 
         // This translates to taking the link whose dot product is largest (closest to 1)
         // But we want links that skip layers at the end
-        if (( left->getSecond()->getStatusBits() & (Event::TkrVecPointsLink::SKIP1LAYER | Event::TkrVecPointsLink::SKIP2LAYER)) ==
-            (right->getSecond()->getStatusBits() & (Event::TkrVecPointsLink::SKIP1LAYER | Event::TkrVecPointsLink::SKIP2LAYER)) )
+        if (( left->getSecond()->getStatusBits() & Event::TkrVecPointsLink::SKIPSLAYERS) ==
+            (right->getSecond()->getStatusBits() & Event::TkrVecPointsLink::SKIPSLAYERS) )
         {
             return m_baseVec.dot(left->getSecond()->getVector()) > m_baseVec.dot(right->getSecond()->getVector());
         }
@@ -175,6 +175,10 @@ public:
             else if ( left->getSecond()->skipsLayers() && !right->getSecond()->skipsLayers()) return false;
             else if ( left->getSecond()->skip1Layer()  &&  right->getSecond()->skip2Layer() ) return true;
             else if ( left->getSecond()->skip2Layer()  &&  right->getSecond()->skip1Layer() ) return false;
+            else if ( left->getSecond()->skip1Layer()  &&  right->getSecond()->skip3Layer() ) return true;
+            else if ( left->getSecond()->skip3Layer()  &&  right->getSecond()->skip1Layer() ) return false;
+            else if ( left->getSecond()->skip2Layer()  &&  right->getSecond()->skip3Layer() ) return true;
+            else if ( left->getSecond()->skip3Layer()  &&  right->getSecond()->skip2Layer() ) return false;
             else
             {
                 int cantbehere = 0;
@@ -265,13 +269,14 @@ void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, 
                 Event::TkrVecPointsLink* nextLink = (*ptToLinkItr)->getSecond();
 
                 // If this is a head node then we are not allowed to start with a link skipping 2 bilayers
-                if (!bestNode->getParentNode() && nextLink->skip2Layer()) continue;
+                if (!bestNode->getParentNode() && (nextLink->skip2Layer() || nextLink->skip3Layer())) continue;
 
                 // More complicated version of the above but allowing skipping if no links already
                 if (   !bestNode->empty() 
                     && !bestNode->front()->getAssociatedLink()->skipsLayers()
                     &&  bestNode->getTreeStartLayer() == bestNode->getCurrentBiLayer() 
-                    &&  nextLink->skipsLayers()) 
+                    &&  (nextLink->skip2Layer() || nextLink->skip3Layer())) 
+//                    &&  nextLink->skipsLayers()) 
                     continue;
 
                 // Can't attach links that skip layers to a node/link that already skips layers
@@ -294,13 +299,11 @@ void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, 
                 
                     Vector pointDiff = nextLink->getPosition() - bestNode->getAssociatedLink()->getBotPosition();
 
-                    double xDiffNorm = fabs(pointDiff.x()) / (0.14434 * stripPitch * nextLink->getFirstVecPoint()->getXCluster()->size());
-                    double yDiffNorm = fabs(pointDiff.y()) / (0.14434 * stripPitch * nextLink->getFirstVecPoint()->getYCluster()->size());
-                
-                    double quadSum = sqrt(xDiffNorm*xDiffNorm + yDiffNorm*yDiffNorm);
+                    double xDiffNorm = fabs(pointDiff.x()) / (stripPitch * nextLink->getFirstVecPoint()->getXCluster()->size());
+                    double yDiffNorm = fabs(pointDiff.y()) / (stripPitch * nextLink->getFirstVecPoint()->getYCluster()->size());
 
                     // Reject outright bad combinations
-                    if (quadSum > m_qSumDispAttachCut) continue;
+                    if (xDiffNorm > m_qSumDispAttachCut || yDiffNorm > m_qSumDispAttachCut) continue;
                 }
 
                 // Update angle information at this point
@@ -454,13 +457,14 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
             Event::TkrVecNode* curNode = (*ptToNodesItr)->getSecond();
 
             // If this is a head node then we are not allowed to start with a link skipping 2 bilayers
-            if (!curNode->getParentNode() && curLink->skip2Layer()) continue;
+            if (!curNode->getParentNode() && (curLink->skip2Layer() || curLink->skip3Layer())) continue;
 
             // More complicated version of the above but allowing skipping if no links already
             if (   !curNode->empty() 
                 && !curNode->front()->getAssociatedLink()->skipsLayers()
                 &&  curNode->getTreeStartLayer() == curNode->getCurrentBiLayer() 
-                &&  curLink->skipsLayers()) 
+                &&  (curLink->skip2Layer() || curLink->skip3Layer())) 
+//                &&  curLink->skipsLayers()) 
                  continue;
 
             // Can't attach links that skip layers to a node/link that already skips layers
@@ -481,14 +485,12 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
                 Vector pointDiff = curLinkPos - curNode->getAssociatedLink()->getBotPosition();
                 dBtwnPoints = pointDiff.mag();
 
-                double xDiffNorm = fabs(pointDiff.x()) / (0.14434 * stripPitch * xCluster->size());
-                double yDiffNorm = fabs(pointDiff.y()) / (0.14434 * stripPitch * yCluster->size());
-                
-                quadSum = sqrt(xDiffNorm*xDiffNorm + yDiffNorm*yDiffNorm);
+                double xDiffNorm = fabs(pointDiff.x()) / (stripPitch * xCluster->size());
+                double yDiffNorm = fabs(pointDiff.y()) / (stripPitch * yCluster->size());
 
                 // This attempts to weed out "ghost" points/links since they most likely will 
                 // result in very poor tail to head matches
-                if (quadSum > m_bestqSumDispCut && angleToNode > m_bestAngleToNodeCut)
+                if ((xDiffNorm > m_bestqSumDispCut || yDiffNorm > m_bestqSumDispCut) && angleToNode > m_bestAngleToNodeCut)
                 {
                     continue;
                 }

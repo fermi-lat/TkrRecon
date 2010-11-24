@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.h,v 1.2 2009/10/30 15:56:47 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.h,v 1.4 2010/11/01 16:45:00 usher Exp $
  *
 */
 
@@ -13,7 +13,10 @@
 #define __TkrVecPointLinksBuilder_H 1
 
 #include "Event/Recon/TkrRecon/TkrVecPointsLink.h"
+#include "Event/Recon/TkrRecon/TkrTruncationInfo.h"
+#include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrSplitsSvc.h"
 #include "GaudiKernel/IDataProviderSvc.h"
 #include "TkrVecPointsBuilder.h"
 
@@ -28,19 +31,25 @@ public:
                             double                     evtEnergy,
                             IDataProviderSvc*          dataSvc, 
                             ITkrGeometrySvc*           tkrGeom,
-                            ITkrQueryClustersTool*     clusTool);
+                            IGlastDetSvc*              detSvc,
+                            ITkrQueryClustersTool*     clusTool,
+                            bool                       fillInternalMap = false);
 
     ~TkrVecPointLinksBuilder();
 
     // How many links do we have? 
     int                     getNumTkrVecPointsLinks()     {return m_numVecLinks;}
 
-    // provide access to the vector of vectors of TkrPointsLinks
-    TkrVecPointsLinkVecVec& getVecPointsLinkVecVec()      {return m_tkrVecPointsLinkVecVec;}
+    // To accommodate links that skip bilayers, everything stored in a map by number of
+    // bilayers that get skipped
+    typedef std::map<int, TkrVecPointsLinkVecVec> TkrVecPointsLinksByLayerMap;
 
     // provide access to the vector of vectors of TkrPointsLinks
-    TkrVecPointsLinkVecVec& getVecPointsLinkSkip1VecVec() {return m_tkrVecPointsLinkSkip1VecVec;}
-    TkrVecPointsLinkVecVec& getVecPointsLinkSkip2VecVec() {return m_tkrVecPointsLinkSkip2VecVec;}
+    TkrVecPointsLinkVecVec& getVecPointsLinkVecVec()      {return m_tkrVecPointsLinksByLayerMap[0];}
+
+    // provide access to the vector of vectors of TkrPointsLinks
+    TkrVecPointsLinkVecVec& getVecPointsLinkSkip1VecVec() {return m_tkrVecPointsLinksByLayerMap[1];}
+    TkrVecPointsLinkVecVec& getVecPointsLinkSkip2VecVec() {return m_tkrVecPointsLinksByLayerMap[2];}
 
     // Access to the track elements to points relation table 
     Event::TkrVecPointToLinksTab* getPointToLinksTab()    {return m_pointToLinksTab;}
@@ -50,8 +59,7 @@ private:
     /// This will build all links between vectors of points passed in
     int    buildLinksGivenVecs(TkrVecPointsLinkVecVec&            linkStoreVec, 
                                TkrVecPointVecVec::const_iterator& firstPointsItr, 
-                               TkrVecPointVecVec::const_iterator& secondPointsItr,
-                               Event::TkrVecPointsLinkCol*        tkrVecPointsLinkCol);
+                               TkrVecPointVecVec::const_iterator& secondPointsItr);
 
     /// This finds the TkrVecPoint nearest to the given Point
     const Event::TkrVecPoint* findNearestTkrVecPoint(const TkrVecPointVec& intPoints, 
@@ -63,28 +71,40 @@ private:
     /// This will prune the links which are not "verified"
     int pruneNonVerifiedLinks(TkrVecPointsLinkVec& linkVec, Event::TkrVecPointsLinkCol* tkrVecPointsLinkCol);
 
+    /// This checks to see if we are in a truncated region
+    bool inTruncatedRegion(const Point& planeHit, double halfWidth);
+
+    /// Make a TkrId given position
+    idents::TkrId makeTkrId(const Point& planeHit);
+
     /// Energy of the event
-    double                  m_evtEnergy;
+    double                        m_evtEnergy;
 
-    /// This will keep track of the links between VecPoints
-    /// This is also a vector of vectors, same order as above
-    /// There are two versions, those which have links to nearest layers
-    TkrVecPointsLinkVecVec  m_tkrVecPointsLinkVecVec;
+    /// Internally, we keep the links created in this class separated by the
+    /// number of bilayers they skip. This map contains those objects
+    TkrVecPointsLinksByLayerMap   m_tkrVecPointsLinksByLayerMap;
 
-    /// Second version is skipping over layers
-    TkrVecPointsLinkVecVec  m_tkrVecPointsLinkSkip1VecVec;
-    TkrVecPointsLinkVecVec  m_tkrVecPointsLinkSkip2VecVec;
+    // Flag to determine whether we actually fill the internal map
+    bool                          m_fillInternalTables;
 
     // Local pointers to services
-    ITkrGeometrySvc*        m_tkrGeom;
-    ITkrQueryClustersTool*  m_clusTool;
+    ITkrGeometrySvc*              m_tkrGeom;
+    IGlastDetSvc*                 m_detSvc;
+    ITkrQueryClustersTool*        m_clusTool;
 
     // Event axis vector from TkrEventParams
-    Vector                  m_eventAxis;
-    double                  m_toleranceAngle;
+    Vector                        m_eventAxis;
+    double                        m_toleranceAngle;
 
     // Keep track of the total number of links
-    int                     m_numVecLinks;
+    int                           m_numVecLinks;
+
+    /// We seem to use this a lot, keep track of it
+    double                        m_siStripPitch;
+
+    /// We will use these objects but they are owned by TDS so we don't manage them
+    Event::TkrVecPointsLinkCol*   m_tkrVecPointsLinkCol;
+    Event::TkrTruncationInfo*     m_truncationInfo;
 
     /// Define a local relational table which will relate TkrVecPoints
     /// to TkrVecPointLinks
