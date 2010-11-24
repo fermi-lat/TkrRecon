@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-20-02 24-Nov-2010 TU  Version 0.5 of Tree Based tracking, introduce kink angle into filter fit
  TkrRecon-10-20-01 05-Nov-2010 TU  Version 0 of Tree Based tracking ready for use (now default)
  TkrRecon-10-20-00 04-Nov-2010  lsrea Turn on cosmic-ray finding by default
  TkrRecon-10-18-00 27-Sep-2010  lsrea Redo logic to make more robust
