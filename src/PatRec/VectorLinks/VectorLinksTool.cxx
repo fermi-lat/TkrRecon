@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/VectorLinksTool.cxx,v 1.5 2009/10/30 15:56:47 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/VectorLinksTool.cxx,v 1.7 2010/11/01 16:45:00 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -28,6 +28,7 @@
 #include "Event/Recon/TkrRecon/TkrDiagnostics.h"
 #include "Event/Recon/TkrRecon/TkrEventParams.h"
 
+#include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 #include "TkrRecon/Track/ITkrFitTool.h"
 #include "TkrRecon/Track/IFindTrackHitsTool.h"
 #include "src/Track/TkrControl.h"
@@ -72,6 +73,9 @@ private:
 
     /// Hit Finding, we'll use to look for leading hits
     IFindTrackHitsTool* m_findHitsTool;
+
+    /// Services for hit arbitration
+    IGlastDetSvc*         m_glastDetSvc;
 
     /// Maximum gap size for a track (values can be set from job options file)
     int          m_numSharedFirstHits;
@@ -139,6 +143,17 @@ StatusCode VectorLinksTool::initialize()
     {
         throw GaudiException("ToolSvc could not find FindTrackHitsTool", name(), sc);
     }
+  
+    // Get the Glast Det Service
+    if( serviceLocator() ) 
+    {   
+        IService*   iService = 0;
+        if ((sc = serviceLocator()->getService("GlastDetSvc", iService, true)).isFailure())
+        {
+            throw GaudiException("Service [GlastDetSvc] not found", name(), sc);
+        }
+        m_glastDetSvc = dynamic_cast<IGlastDetSvc*>(iService);
+    }
 
     return sc;
 }
@@ -177,7 +192,9 @@ StatusCode VectorLinksTool::findTracks()
                                                      eventEnergy,
                                                      m_dataSvc,
                                                      m_tkrGeom,
-                                                     m_clusTool);
+                                                     m_glastDetSvc,
+                                                     m_clusTool,
+                                                     true);
 
         if (vecPointLinksBuilder.getNumTkrVecPointsLinks() > 1) 
         {

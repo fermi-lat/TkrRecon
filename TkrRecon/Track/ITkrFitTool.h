@@ -52,6 +52,9 @@ class ITkrFitTool : virtual public IAlgTool
     /// @brief This method does a "Filter" fit only - sets Filtered Chi-Square in track
     virtual void       doFilterFit(Event::TkrTrack& track) = 0;
 
+    /// @brief Same as above but allows for "kinks" in the track
+    virtual void       doFilterFitWithKinks(Event::TkrTrack& track) = 0;
+
     /// @brief This method does a "Smoother" fit only - sets Smoothed Chi-Square in track
     virtual void       doSmootherFit(Event::TkrTrack& track) = 0;
 

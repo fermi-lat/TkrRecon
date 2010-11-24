@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.4 2010/11/02 20:42:09 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.5 2010/11/05 15:32:59 usher Exp $
  *
 */
 
@@ -14,15 +14,20 @@
 #include "GaudiKernel/SmartDataPtr.h"
 //#include "src/PatRec/BuildTkrTrack.h"
 
+//Exception handler
+#include "Utilities/TkrException.h"
+
 #include <iterator>
 
-TkrTreeBuilder::TkrTreeBuilder(IDataProviderSvc*      dataSvc, 
+TkrTreeBuilder::TkrTreeBuilder(TkrVecNodesBuilder&    vecNodesBldr,
+                               IDataProviderSvc*      dataSvc, 
                                ITkrGeometrySvc*       geoSvc,
                                ITkrQueryClustersTool* clusTool,
                                ITkrFitTool*           trackFitTool,
                                IFindTrackHitsTool*    findHitsTool, 
                                Event::TkrClusterCol*  clusterCol)
-                              : m_dataSvc(dataSvc), 
+                              : m_vecNodesBldr(vecNodesBldr),
+                                m_dataSvc(dataSvc), 
                                 m_tkrGeom(geoSvc),
                                 m_clusTool(clusTool),
                                 m_trackFitTool(trackFitTool),
@@ -57,7 +62,7 @@ int TkrTreeBuilder::buildTrees(double eventEnergy)
     if (!tkrTrackCol) return 0;
 
     // Recover a pointer to the "head node" collection in the TDS
-    const Event::TkrVecNodeCol* tkrVecNodeCol = SmartDataPtr<Event::TkrVecNodeCol>(m_dataSvc,"/Event/TkrRecon/TkrVecNodeCol");
+    const Event::TkrVecNodeCol* tkrVecNodeCol = m_vecNodesBldr.getVecNodeCol(); 
 
     if (!tkrVecNodeCol) return 0;
 
@@ -87,17 +92,20 @@ int TkrTreeBuilder::buildTrees(double eventEnergy)
                     // And turn ownership of the best track over to the TDS
                     tkrTrackCol->push_back(const_cast<Event::TkrTrack*>(tree->getBestTrack()));
 
-                    // Now look to see if we have another branch to fit/add to this tree
-// Not ready for release yet
-//                    if (Event::TkrTrack* secondTrack = makeSecondTrack(headNode, tree, 0.5 * fracEnergy * eventEnergy))
-//                    {
-//                        tkrTrackCol->push_back(secondTrack);
-//                    }
+                    if (tree->size() > 1) tkrTrackCol->push_back(tree->back());
                 }
-            } catch(...)
+            } 
+            catch( TkrException& e )
             {
-                int catchme = 0;
+                throw e;
+            } 
+            catch(...)
+            {
+                throw(TkrException("Exception encountered in TkrTreeBuilder "));  
             }
+
+            // Arbitrary limit on the number of trees = 10
+            if (m_treeCol->size() >= 10) break;
         }
     }
 
@@ -106,216 +114,270 @@ int TkrTreeBuilder::buildTrees(double eventEnergy)
 
 Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double trackEnergy)
 {
-    // Create a new sibling map to be used by the recursive routine
-    Event::TkrNodeSiblingMap* siblingMap = new Event::TkrNodeSiblingMap();
-    siblingMap->clear();
+    // Our precious tree
+    Event::TkrTree* tree = 0;
 
-    // Construct a sibling map which consists of hits along the best branch only
-    makeSiblingMap(siblingMap, headNode, 0, true);
+    // Energy scale factors if more than one track
+    const double frstTrackEnergyScaleFctr = 0.75;
+    const double scndTrackEnergyScaleFctr = 0.25;
 
-    // Use this to create a new TkrTrack
-    Event::TkrTrack* trackBest = makeTkrTrack(siblingMap, trackEnergy);
+    // The first task is to build the set of all leaves. Doing this will also 
+    // set the "distance to the main branch" for each leaf which will be used
+    // to extract tracks
+    Event::TkrVecNodeSet      leafSet;
+    Event::TkrNodeSiblingMap* siblingMap   = new Event::TkrNodeSiblingMap();
+    int                       toMainBranch = 0;
+    int                       numLeaves    = makeLeafSet(headNode, toMainBranch, leafSet, *siblingMap);
 
-    // Do a test fit of this track
-    trackBest->setInitialEnergy(trackEnergy);
-
-    if (StatusCode sc = m_trackFitTool->doTrackFit(trackBest) != StatusCode::SUCCESS)
+    // If no leaves then no point in doing anything
+    if (numLeaves > 0)
     {
-        int oops = 0;
-    }
+        // Find and fit the "best" track 
+        // Now we proceed to extract the "best" track from the tree and fit it
+        // Keep track of used clusters
+        UsedClusterList usedClusters;
 
-    // Now construct the sibling map using all the hits
-    Event::TkrNodeSiblingMap* siblingMap2 = new Event::TkrNodeSiblingMap();
-    siblingMap2->clear();
-    makeSiblingMap(siblingMap2, headNode, 0, false, false);
+        // The "best" track ends at the first leaf in our leaf set
+        Event::TkrVecNode* firstLeafNode = leafSet.front();
 
-    // Use this to create a new TkrTrack
-    Event::TkrTrack* trackAll = makeTkrTrack(siblingMap2, trackEnergy, 2);
+        // Testing testing testing 1, 2, 3 ...
+        Event::TkrTrack* trackBest = getTkrTrackFromLeaf(firstLeafNode, frstTrackEnergyScaleFctr * trackEnergy, usedClusters);
 
-    // Make sure the hit finding didn't screw up...
-    if (trackAll->getNumFitHits() > 4)
-    {
-        // Do a test fit of this track
-        trackAll->setInitialEnergy(trackEnergy);
-        trackAll->setStatusBit(Event::TkrTrack::COMPOSITE);
-
-        if (StatusCode sc = m_trackFitTool->doTrackFit(trackAll) != StatusCode::SUCCESS)
+        //*************************************************
+        // If we have enough hits then fit the track
+//        if (siblingMapComp->size() > 1 && usedCompositeClusters.size() > usedClusters.size())
+        if ((!trackBest || trackBest->getChiSquareSmooth() > 10.) && siblingMap->size() > 1)
         {
-            int oops = 0;
-        }
+            // Keep track of used clusters here
+            UsedClusterList usedCompositeClusters;
 
-        // Pick the best track... (always dangerous!)
-        // I'm thinking this will pick the "straightest" track...
-        if (trackBest->getChiSquareSmooth() > 5. * trackAll->getChiSquareSmooth())
-        {
-            Event::TkrTrack* temp = trackAll;
+            // Use this to create a new TkrTrack
+            Event::TkrTrack* trackAll = makeTkrTrack(siblingMap, usedCompositeClusters, trackEnergy, 4);
+
+            // Make sure the hit finding didn't screw up...
+            if (trackAll && trackAll->getNumFitHits() > 4)
+            {
+                // Pick the best track... (always dangerous!)
+                // I'm thinking this will pick the "straightest" track...
+//                if (!trackBest || trackBest->getChiSquareSmooth() > 5. * trackAll->getChiSquareSmooth())
+                if ( !trackBest || 
+                    (trackBest->getChiSquareSmooth() > 2. * trackAll->getChiSquareSmooth() && 
+                     trackBest->getNumFitHits() - trackAll->getNumFitHits() < 3)
+                   )
+                {
+                    Event::TkrTrack* temp = trackAll;
         
-            trackAll  = trackBest;
-            trackBest = temp;
+                    // Swap tracks
+                    trackAll  = trackBest;
+                    trackBest = temp;
+                
+                    // Identify this track as a composite track
+                    trackBest->setStatusBit(Event::TkrTrack::COMPOSITE);
+
+                    // Copy the used cluster list
+                    usedClusters.clear();
+                    usedClusters = usedCompositeClusters;
+                }
+            }
+
+            // Clean up the loser
+            if (trackAll) delete trackAll;
+        }
+
+        // At this point we need to see if we have a track, if not no sense in proceeding
+        if (trackBest)
+        {
+            // Flag the used clusters
+            flagUsedClusters(usedClusters);
+    
+            // If the "best" track is the better track then we need to look for a 
+            // second track. This will be signalled by our track not having the
+            // composite bit set
+            Event::TkrTrack* trackNextBest = 0;
+    
+            if (!(trackBest->getStatusBits() & Event::TkrTrack::COMPOSITE))
+            {
+                // Composite track was not better, now look for the possibility 
+                // of a second track in the tree
+                // **********************************************
+                //  Put this here to see what will happen
+                Event::TkrVecNode* nextLeafNode   = 0;
+                int                mostUniqueHits = 0;
+                int                mostDist2Main  = 0;
+    
+                Event::TkrVecNodeSet::iterator leafItr = leafSet.begin();
+    
+                while(++leafItr != leafSet.end())
+                {
+                    Event::TkrVecNode* leaf           = *leafItr;
+                    int                numUniqueHits  = 0;
+                    int                numUniquePairs = 0;
+                    int                numSharedPairs = 0;
+                    int                dist2MainBrnch = leaf->getBiLyrs2MainBrch();
+    
+                    while(leaf->getParentNode())
+                    {
+                        bool xClusUsed = leaf->getAssociatedLink()->getSecondVecPoint()->getXCluster()->hitFlagged() ? true : false;
+                        bool yClusUsed = leaf->getAssociatedLink()->getSecondVecPoint()->getYCluster()->hitFlagged() ? true : false;
+    
+                        if (!xClusUsed) numUniqueHits++;
+                        if (!yClusUsed) numUniqueHits++;
+                        if ( xClusUsed &&  yClusUsed) numSharedPairs++;
+                        if (!xClusUsed && !yClusUsed) numUniquePairs++;
+    
+                        leaf = const_cast<Event::TkrVecNode*>(leaf->getParentNode());
+                    }
+    
+                    if (   numSharedPairs < 4                  // Really meant to be how many leading hits
+                        && dist2MainBrnch >= mostDist2Main     // Favor the branch that is furthest from main
+                        && numUniquePairs > 1                  // Don't want stubbs off a short main track
+                        && numUniqueHits > 3                   // So, four or more "unique" hits
+                        && numUniqueHits > mostUniqueHits      // And look for the one with the most
+                        )
+                    {
+                        mostUniqueHits = numUniqueHits;
+                        nextLeafNode   = *leafItr;
+                    }
+                }
+                //*************************************************
+    
+                // List of clusters we used
+                UsedClusterList nextUsedClusters;
+    
+                // Use this to create a new TkrTrack
+                if (nextLeafNode)
+                {
+                    trackNextBest = getTkrTrackFromLeaf(nextLeafNode, scndTrackEnergyScaleFctr * trackEnergy, nextUsedClusters);
+                }
+    
+                // no joy on second track
+                if (trackNextBest && trackNextBest->getNumFitHits() < 5)
+                {
+                    // clean up
+                    delete trackNextBest;
+                    trackNextBest = 0;
+                }
+                else flagUsedClusters(nextUsedClusters);
+            }
+    
+            // Given the track we like, attempt to add leading hits
+            m_findHitsTool->addLeadingHits(trackBest);
+    
+            // Finally, make the new TkrTree
+            tree = new Event::TkrTree(headNode, siblingMap, trackBest);
+    
+            if (trackNextBest) tree->push_back(trackNextBest);
         }
     }
 
-    delete trackAll;
-    delete siblingMap;
-
-    // Given the track we like, attempt to add leading hits
-    m_findHitsTool->addLeadingHits(trackBest);
-
-    // Finally, make the new TkrTree
-    Event::TkrTree* tree = new Event::TkrTree(headNode, siblingMap2, trackBest);
+    // If we did not make a tree then we need to delete the sibling map
+    if (!tree) delete siblingMap;
 
     return tree;
 }
 
-Event::TkrTrack* TkrTreeBuilder::makeSecondTrack(Event::TkrVecNode* headNode, Event::TkrTree* tree, double trackEnergy)
+class LeafSetComparator
 {
-    Event::TkrTrack*   nextTrack   = 0;
-    Event::TkrVecNode* nextNode    = 0;
-    Event::TkrVecNode  headCopy    = *headNode;
-    Event::TkrVecNode* locHeadNode = &headCopy;
-
-    // Two cases to consider:
-    // 1) There is more than one branch off the head node and one of them might be our second track
-    // 2) The daughter of the primary branch has more than one branch and one of them might be our second track
-    while(!nextNode)
+public:
+    // Define operator to facilitate sorting
+    const bool operator()(const Event::TkrVecNode* left, const Event::TkrVecNode* right) const
     {
-        if (locHeadNode->size() > 1)
-        {
-            // Loop through branches at this level to look for the best that has enough hits and doesn't share clusters
-            Event::TkrVecNodeSet::iterator daughtIter = locHeadNode->begin();
+        // Most number of bilayers wins (longest)
+        if      (left->getBiLyrs2MainBrch() > right->getBiLyrs2MainBrch()) return true;
+        else if (left->getBiLyrs2MainBrch() < right->getBiLyrs2MainBrch()) return false;
 
-            for(daughtIter++; daughtIter != locHeadNode->end(); daughtIter++)
-            {
-                Event::TkrVecNode* testNode = *daughtIter;
+        // Nothing else left but straightest
+        // Use the scaled rms angle to determine straightest...
+        double leftRmsAngle  = left->getBestRmsAngle() * double(left->getNumBiLayers()) / double(left->getDepth());
+        double rightRmsAngle = right->getBestRmsAngle() * double(right->getNumBiLayers()) / double(right->getDepth());
+        
+        //if (left->getBestRmsAngle() < right->getBestRmsAngle()) return true;
+        if (leftRmsAngle < rightRmsAngle) return true;
 
-                if (testNode->getDepth() > 1) 
-                {
-                    nextNode = testNode;
-                    break;
-                }
-            }
-        }
-
-        // This is meant to handle looking at the primary daughter in the event nothing found off head node
-        if (!nextNode && locHeadNode == headNode) locHeadNode = locHeadNode->front();
-        else break;
+        return false;
     }
+};
 
-    // Do we have a candidate second track?
-    if (nextNode)
+int TkrTreeBuilder::makeLeafSet(Event::TkrVecNode*        curNode, 
+                                int                       toMainBranch, 
+                                Event::TkrVecNodeSet&     leafSet,
+                                Event::TkrNodeSiblingMap& siblingMap)
+{
+    // This method aims to set the "distance to the main branch" for each node in the tree
+    // while it also finds all the leaves of the tree and adds them to our leafSet. 
+    // The "distance to the main branch" is the number of nodes from the nearest main branch.
+    // A main branch is defined as the "first" branch, meaning that if you start with the head
+    // node, then a "main" branch will be the first daughter in the list of nodes below the
+    // current node. 
+
+    // Set the current distance to the main branch for this node
+    curNode->setBiLyrs2MainBrch(toMainBranch);
+
+    // While we are here, set the link to "associated" 
+    if (curNode->getAssociatedLink()) const_cast<Event::TkrVecPointsLink*>(curNode->getAssociatedLink())->setAssociated();
+
+    // Increment the branch counter
+    toMainBranch++;
+
+    // If we have daughters then our work is not finished
+    if (!curNode->empty())
     {
-        // First check if we are pointing to a daughter node
-        if (nextNode != &headCopy)
+        // We loop through daughters but remember that first node is "special"
+        for(Event::TkrVecNodeSet::iterator nodeItr = curNode->begin(); nodeItr != curNode->end(); nodeItr++)
         {
-            headCopy.clear();
-            headCopy.push_back(nextNode);
-            nextNode = &headCopy;
-        }
-
-        // Create a new sibling map to be used by the recursive routine
-        Event::TkrNodeSiblingMap* siblingMap = new Event::TkrNodeSiblingMap();
-        siblingMap->clear();
-
-        // Construct a sibling map which consists of hits along the best branch only
-        makeSiblingMap(siblingMap, nextNode, 0, true);
-
-        // Use this to create a new TkrTrack
-        nextTrack = makeTkrTrack(siblingMap, trackEnergy);
-
-        // Do a test fit of this track
-        nextTrack->setInitialEnergy(trackEnergy);
-
-        if (StatusCode sc = m_trackFitTool->doTrackFit(nextTrack) != StatusCode::SUCCESS)
-        {
-            int oops = 0;
-        }
-
-        // Now construct the sibling map using all the hits
-        Event::TkrNodeSiblingMap* siblingMap2 = new Event::TkrNodeSiblingMap();
-        siblingMap2->clear();
-        makeSiblingMap(siblingMap2, nextNode, 0, false, false);
-
-        // Use this to create a new TkrTrack
-        Event::TkrTrack* trackAll = makeTkrTrack(siblingMap2, trackEnergy, 2);
-
-        // Make sure the hit finding didn't screw up...
-        if (trackAll->getNumFitHits() > 4)
-        {
-            // Do a test fit of this track
-            trackAll->setInitialEnergy(trackEnergy);
-            trackAll->setStatusBit(Event::TkrTrack::COMPOSITE);
-
-            if (StatusCode sc = m_trackFitTool->doTrackFit(trackAll) != StatusCode::SUCCESS)
-            {
-                int oops = 0;
-            }
-
-            // Pick the best track... (always dangerous!)
-            // I'm thinking this will pick the "straightest" track...
-            if (nextTrack->getChiSquareSmooth() > 5. * trackAll->getChiSquareSmooth())
-            {
-                Event::TkrTrack* temp = trackAll;
+            Event::TkrVecNode* nextNode = *nodeItr;
             
-                trackAll  = nextTrack;
-                nextTrack = temp;
-            }
-        }
+            const Event::TkrVecPoint* bottomPoint = nextNode->getAssociatedLink()->getSecondVecPoint();
 
-        delete trackAll;
-        delete siblingMap;
-        delete siblingMap2;
+            if (bottomPoint->getXCluster()->hitFlagged() || bottomPoint->getYCluster()->hitFlagged()) continue;
 
-        // Given the track we like, attempt to add leading hits
-        m_findHitsTool->addLeadingHits(nextTrack);
+            makeLeafSet(nextNode, toMainBranch, leafSet, siblingMap);
 
-        // Add to tree
-        tree->push_back(nextTrack);
+            toMainBranch = 0;
+        }  
+    }
+    // Otherwise, we have found a leaf and need to add to our leaf set
+    else
+    {
+        // But don't add single link leafs to this list so we don't get confused in sorting
+        if (curNode->getNumBiLayers() > 1) leafSet.push_back(curNode);
     }
 
-    return nextTrack;
+    // If we are the first node (hence returning to main calling sequence)
+    // then sort the nodes
+    if (!curNode->getParentNode())
+    {
+        // Sort the list by main branches
+        leafSet.sort(LeafSetComparator());
+    }
+    // Otherwise our last act is to enter this node into the sibling map 
+    else
+    {
+        int topBiLayer = curNode->getCurrentBiLayer();
+
+        siblingMap[topBiLayer].push_back(curNode);
+    }
+
+    return leafSet.size();
 }
 
-void TkrTreeBuilder::makeSiblingMap(Event::TkrNodeSiblingMap* siblingMap, 
-                                    Event::TkrVecNode*        headNode, 
-                                    int                       depth,
-                                    bool                      firstNodesOnly,
-                                    bool                      nextNodesOnly)
+void TkrTreeBuilder::leafToSiblingMap(Event::TkrNodeSiblingMap* siblingMap, 
+                                      const Event::TkrVecNode*  headNode,
+                                      UsedClusterList&          usedClusters)
 {
-    // if this is not the "real" head node (the placeholder), then update sibling map
+    // Since we are starting at a leaf and tracing up to the final parent, do nothing
+    // if we have hit the end
     if (headNode->getParentNode())
     {
-        // Retrieve the bilayer at the start of this node(link)
         int topBiLayer = headNode->getCurrentBiLayer();
 
-        // Add this to the sibling map
         (*siblingMap)[topBiLayer].push_back(headNode);
-    }
 
-    // Loop through daughters to fill out the map
-    for(Event::TkrVecNodeSet::iterator nodeItr = headNode->begin(); nodeItr != headNode->end(); nodeItr++)
-    {
-        // Check if this considering only "next" nodes
-        if (nextNodesOnly)
-        {
-            // Look to see if more than one node at this level
-            if (headNode->size() > 1)
-            {
-                nextNodesOnly = false;
-                continue;
-            }
+        // Keep track of the clusters used on this track
+        usedClusters.insert(headNode->getAssociatedLink()->getSecondVecPoint()->getXCluster());
+        usedClusters.insert(headNode->getAssociatedLink()->getSecondVecPoint()->getYCluster());
 
-            // What's our depth? If too far on the "first" nodes then stop
-            if (depth > 2) break;
-        }
-
-        // Recover pointer to the head node
-        Event::TkrVecNode* node = *nodeItr;
-
-        // Recursive call to continue filling the map.
-        makeSiblingMap(siblingMap, node, depth+1, firstNodesOnly, nextNodesOnly);
-
-        // Test following the best branch
-        if (firstNodesOnly) break;
+        leafToSiblingMap(siblingMap, headNode->getParentNode(), usedClusters);
     }
 
     return;
@@ -344,7 +406,60 @@ private:
     double                   m_weight;
 };
 
-Event::TkrTrack* TkrTreeBuilder::makeTkrTrack(Event::TkrNodeSiblingMap* siblingMap, double energy, int nRequiredHits)
+Event::TkrTrack* TkrTreeBuilder::getTkrTrackFromLeaf(Event::TkrVecNode* leaf, double energy, UsedClusterList& usedClusters)
+{
+    // You never know if you might not be able to make a track...
+    Event::TkrTrack* track = 0;
+
+    // Handy tool for building TkrTracks
+    BuildTkrTrack trackBuilder(m_tkrGeom);
+    
+    // The next step is to use the above map to return the candidate track hit vector
+    BuildTkrTrack::CandTrackHitVec clusVec = getCandTrackHitVecFromLeaf(leaf, usedClusters);
+
+    // Need minimum hits to proceed
+    if (clusVec.size() > 4)
+    {
+        // Get the initial parameters of the candidate track
+        TkrInitParams initParams = getInitialParams(clusVec);
+
+        // Set up our track hit counting variables
+        int nHits            = 0;
+        int nGaps            = 0;
+        int nConsecutiveGaps = 0;
+
+        // Now build the candidate track
+        track = trackBuilder.makeNewTkrTrack(initParams.first, initParams.second, energy, clusVec);
+
+        // Run the filter on this 
+        m_trackFitTool->doFilterFitWithKinks(*track);
+
+        // Remove trailing gap hits - this never happens here?
+        while(!track->back()->validCluster()) 
+        {
+            Event::TkrTrackHit* lastHit = track->back();
+            delete lastHit;
+            track->pop_back();
+        }
+
+        // By definition, we always "find" a track here
+        track->setStatusBit(Event::TkrTrack::FOUND);
+
+        // Do the full fit
+        if (StatusCode sc = m_trackFitTool->doTrackFit(track) != StatusCode::SUCCESS)
+        {
+            throw(TkrException("Exception encountered when fitting track in tree builder "));  
+        }
+    }
+
+    // Finally, we're done!
+    return track;
+}
+
+Event::TkrTrack* TkrTreeBuilder::makeTkrTrack(Event::TkrNodeSiblingMap* siblingMap, 
+                                              UsedClusterList&          usedClusters,
+                                              double                    energy, 
+                                              int                       nRequiredHits)
 {
     // Handy tool for building TkrTracks
     BuildTkrTrack trackBuilder(m_tkrGeom);
@@ -386,7 +501,7 @@ Event::TkrTrack* TkrTreeBuilder::makeTkrTrack(Event::TkrNodeSiblingMap* siblingM
     }
 
     // Bump to start at next candidate hit
-    clusVecIdx += 2;
+    if (clusVecIdx < (int)clusVec.size()) clusVecIdx += 2;
 
     // Now build the candidate track
     Event::TkrTrack* track = trackBuilder.makeNewTkrTrack(initParams.first, initParams.second, energy, trackHitVec);
@@ -416,28 +531,6 @@ Event::TkrTrack* TkrTreeBuilder::makeTkrTrack(Event::TkrNodeSiblingMap* siblingM
 
         // Run the filter
         m_trackFitTool->doFilterStep(*lastHit, *trackHit);
-
-        if (trackHit->getChiSquareFilter() > 100.)
-        {
-            int j = 0;
-        }
-
-        // Are we where we think we are supposed to be?
-        if (!clusVec[clusVecIdx].first.isEqual(trackHit->getTkrId()))
-        {
-            idents::TkrId idWant  = clusVec[clusVecIdx].first;
-            idents::TkrId idFound = trackHit->getTkrId();
-
-            int wTowerX = idWant.getTowerX();
-            int wTowerY = idWant.getTowerY();
-            int fTowerX = idFound.getTowerX();
-            int fTowerY = idFound.getTowerY();
-            int wLayer  = idWant.getTray();
-            int fLayser = idFound.getTray();
-            int wView   = idWant.hasView() ? idWant.getView() : -2;
-            int fView   = idFound.hasView() ? idFound.getView() : -2;
-            int j = 0;
-        }
 
         // Did we find the "right" cluster?
         const Event::TkrCluster* newCluster = trackHit->getClusterPtr();
@@ -507,6 +600,23 @@ Event::TkrTrack* TkrTreeBuilder::makeTkrTrack(Event::TkrNodeSiblingMap* siblingM
         track->pop_back();
     }
 
+    // Finally... blast through to check off the clusters we are using
+    for(Event::TkrTrackHitVec::iterator hitItr = track->begin(); hitItr != track->end(); hitItr++)
+    {
+        if (const Event::TkrCluster* cluster = (*hitItr)->getClusterPtr()) usedClusters.insert(cluster);
+    }
+
+    // Set the energy for the track and do the final fit
+    // ****** IS THIS NECESSARY?
+    track->setInitialEnergy(energy);
+
+    // Do the full fit
+    if (StatusCode sc = m_trackFitTool->doTrackFit(track) != StatusCode::SUCCESS)
+    {
+        throw(TkrException("Exception encountered when fitting track in tree builder "));  
+    }
+
+    // Finally, we're done!
     return track;
 }
 
@@ -522,7 +632,7 @@ TkrTreeBuilder::TkrTreePositionMap TkrTreeBuilder::getTreePositions(Event::TkrNo
 
     // This will give us the first set of links on our track which we will first use
     // to get the track's initial position and direction
-    std::vector<Event::TkrVecNode*>& firstNodesVec = sibItr->second;
+    std::vector<const Event::TkrVecNode*>& firstNodesVec = sibItr->second;
 
     const Event::TkrVecNode*       firstNode  = firstNodesVec[0];
     const Event::TkrVecPointsLink* pointsLink = firstNode->getAssociatedLink();
@@ -556,13 +666,13 @@ TkrTreeBuilder::TkrTreePositionMap TkrTreeBuilder::getTreePositions(Event::TkrNo
     // use a reverse iterator to recover the information at each bilayer
     for(; sibItr != siblingMap->rend(); sibItr++)
     {
-        std::vector<Event::TkrVecNode*>& nodeVec = sibItr->second;
+        std::vector<const Event::TkrVecNode*>& nodeVec = sibItr->second;
 
         int firstBiLayer = sibItr->first;
         int nodeVecSize  = nodeVec.size();
 
         // Loop through the nodes at this bilayer 
-        for(std::vector<Event::TkrVecNode*>::const_iterator nodeItr = nodeVec.begin(); 
+        for(std::vector<const Event::TkrVecNode*>::const_iterator nodeItr = nodeVec.begin(); 
                 nodeItr != nodeVec.end(); nodeItr++)
         {
             const Event::TkrVecNode*       node = *nodeItr;
@@ -793,6 +903,99 @@ BuildTkrTrack::CandTrackHitVec TkrTreeBuilder::getCandTrackHitVec(TkrTreePositio
     return clusVec;
 }
 
+BuildTkrTrack::CandTrackHitVec TkrTreeBuilder::getCandTrackHitVecFromLeaf(Event::TkrVecNode* leaf, UsedClusterList& usedClusters)
+{
+    // Given the map of cluster/positions by plane id, go through and create the "CandTrackHitVec" vector
+    // which can be used to create TkrTrackHits at each plane
+    // The candidate track hit vector to return
+    BuildTkrTrack::CandTrackHitVec clusVec;
+    clusVec.clear();
+
+    // Handle the special case of the bottom hits first
+    const Event::TkrVecPointsLink* pointsLink = leaf->getAssociatedLink();
+
+    insertVecPointIntoClusterVec(leaf->getAssociatedLink()->getSecondVecPoint(), clusVec, usedClusters);
+
+    // Traverse up the branch starting at the leaf
+    while(leaf->getParentNode())
+    {
+        // If this node is skipping layers then we have some special handling
+        if (leaf->getAssociatedLink()->skipsLayers())
+        {
+            const Event::TkrVecPointsLink* vecLink = leaf->getAssociatedLink();
+
+            // Loop through missing bilayers adding hit info
+            int nextPlane = 2 * (vecLink->getSecondVecPoint()->getLayer() + 1);
+
+            while(nextPlane < 2 * vecLink->getFirstVecPoint()->getLayer())
+            {
+                // Start with the projected position for the top plane
+                double nextPlaneZ = m_tkrGeom->getPlaneZ(nextPlane);
+                Point  nextPoint  = vecLink->getPosition(nextPlaneZ);
+
+                idents::TkrId nextTkrId = makeTkrId(nextPoint, nextPlane);
+
+                // Search for a nearby cluster (assumption is that one plane is missing so no TkrVecPoint)
+                int view  = nextTkrId.getView();
+                int layer = nextPlane/2;
+
+                Event::TkrCluster* cluster = m_clusTool->nearestClusterOutside(view, layer, 0., nextPoint);
+
+                if (cluster)
+                {
+                    double deltaPos = view == idents::TkrId::eMeasureX
+                                    ? nextPoint.x() - cluster->position().x()
+                                    : nextPoint.y() - cluster->position().y();
+
+                    // For now take anything "close"
+                    if (fabs(deltaPos) > 2.5 * m_tkrGeom->siStripPitch()) cluster = 0;
+                }
+
+                clusVec.insert(clusVec.begin(), BuildTkrTrack::CandTrackHitPair(nextTkrId, cluster));
+
+                if (cluster) usedClusters.insert(cluster);
+
+                nextPlane++;
+            }
+        }
+
+        // Add the first clusters to the vector
+        insertVecPointIntoClusterVec(leaf->getAssociatedLink()->getFirstVecPoint(), clusVec, usedClusters);
+
+        // Move to next node
+        leaf = const_cast<Event::TkrVecNode*>(leaf->getParentNode());
+    }
+
+    return clusVec;
+}
+    
+void TkrTreeBuilder::insertVecPointIntoClusterVec(const Event::TkrVecPoint*       vecPoint, 
+                                                  BuildTkrTrack::CandTrackHitVec& clusVec,
+                                                  UsedClusterList&                usedClusters)
+{
+    // Set up the first hit
+    const Event::TkrCluster* clusterX  = vecPoint->getXCluster();
+    const Event::TkrCluster* clusterY  = vecPoint->getYCluster();
+
+    // Check to see which plane is on top
+    if (clusterX->position().z() < clusterY->position().z())
+    {
+        clusVec.insert(clusVec.begin(),BuildTkrTrack::CandTrackHitPair(clusterX->getTkrId(), clusterX));
+        clusVec.insert(clusVec.begin(),BuildTkrTrack::CandTrackHitPair(clusterY->getTkrId(), clusterY));
+    }
+    else
+    {
+        clusVec.insert(clusVec.begin(),BuildTkrTrack::CandTrackHitPair(clusterY->getTkrId(), clusterY));
+        clusVec.insert(clusVec.begin(),BuildTkrTrack::CandTrackHitPair(clusterX->getTkrId(), clusterX));
+    }
+
+    // Keep track of clusters in our cluster list
+    usedClusters.insert(clusterX);
+    usedClusters.insert(clusterY);
+
+    return;
+}
+
 TkrTreeBuilder::TkrInitParams TkrTreeBuilder::getInitialParams(BuildTkrTrack::CandTrackHitVec& clusVec)
 {
     // Given a "CandTrackHitVec", derive the initial parameters from it which will be used as
@@ -897,4 +1100,15 @@ idents::TkrId TkrTreeBuilder::makeTkrId(Point& planeHit, int planeId)
     idents::TkrId tkrId = idents::TkrId(towerX, towerY, tray, (face == idents::TkrId::eTKRSiTop), planeView);
 
     return tkrId;
+}
+
+void TkrTreeBuilder::flagUsedClusters(UsedClusterList& usedClusters)
+{
+    for(UsedClusterList::iterator clusItr = usedClusters.begin(); clusItr != usedClusters.end(); clusItr++)
+    {
+        const Event::TkrCluster* cluster = *clusItr;
+    
+        const_cast<Event::TkrCluster*>(cluster)->flag();
+    }
+    return;
 }
