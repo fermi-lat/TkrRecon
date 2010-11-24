@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Nov 24 08:39:06 PST 2010
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeBuilder.cxx TkrTreeBuilder.h TkrVecNodesBuilder.cxx 
+	TkrVecNodesBuilder.h TreeBasedTool.cxx 
+Log Message:
+    *
+------------------------------------------------------------
 User: usher  Wed Nov 24 08:39:05 PST 2010
 TkrRecon/TkrRecon/Track
 
