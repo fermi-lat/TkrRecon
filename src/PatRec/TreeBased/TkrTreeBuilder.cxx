@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.6 2010/11/24 16:39:06 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.7 2010/12/02 01:41:32 usher Exp $
  *
 */
 
@@ -446,6 +446,7 @@ Event::TkrTrack* TkrTreeBuilder::getTkrTrackFromLeaf(Event::TkrVecNode* leaf, do
 
         // By definition, we always "find" a track here
         track->setStatusBit(Event::TkrTrack::FOUND);
+        track->setStatusBit(Event::TkrTrack::TREEBASED);
 
         // Do the full fit
         if (StatusCode sc = m_trackFitTool->doTrackFit(track) != StatusCode::SUCCESS)
@@ -593,6 +594,7 @@ Event::TkrTrack* TkrTreeBuilder::makeTkrTrack(Event::TkrNodeSiblingMap* siblingM
 
     // By definition, we always "find" a track here
     track->setStatusBit(Event::TkrTrack::FOUND);
+    track->setStatusBit(Event::TkrTrack::TREEBASED);
 
     // Remove trailing gap hits - this never happens here?
     while(!track->back()->validCluster()) 
