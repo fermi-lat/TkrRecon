@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.40 2010/11/02 20:42:09 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.41 2010/11/24 16:39:07 usher Exp $
  */
 
 // to turn one debug variables
@@ -892,13 +892,14 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
             double measPos = measPar(measIdx);
             double measErr = sqrt(measPar(measIdx, measIdx));
             double predPos = predPar(measIdx);
+            double predSlp = predPar(measIdx+1);
             double dltaPos = measPos - predPos;
             double dltaNrm = dltaPos / measErr;
 
             if (fabs(dltaNrm) > m_minNrmResForKink) 
             {
                 // Don't be greedy... find new position one sigma from cluster on correct side
-                double offset     = dltaPos > 0 ? -0.5*measErr : 0.5*measErr;
+                double offset     = dltaPos > 0 ? -0.75*measErr : 0.75*measErr; //-0.5*measErr : 0.5*measErr;
                 double predPosNew = measPos + offset;
 
                 // Get the previous hit in this measuring plane (which is most likely not the reference hit)
@@ -923,6 +924,24 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
 
                 prevFilterHit.setKinkAngle(kinkAngle);
                 prevFilterHit.setStatusBit(Event::TkrTrackHit::HITHASKINKANG);
+
+                // Will need the q material matrix as well
+                Event::TkrTrackParams& scatPar = filterHit.getTrackParams(Event::TkrTrackHit::QMATERIAL);
+
+                // Slope parameters
+                int    nonMeasIdx = filterHit.getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Position);
+                double othrSlp    = predPar(nonMeasIdx+1, nonMeasIdx+1);
+                double norm_term  = 1. + predSlp*predSlp + othrSlp* othrSlp;
+                double p33        = (1. + predSlp*predSlp) * norm_term;
+                double p34        = predSlp * othrSlp * norm_term;
+
+                // Extract maxtrix params we need to alter here
+                double scat_dist = scatPar(measIdx, measIdx) / (1. + predSlp*predSlp);
+                double scat_covr = sqrt(scat_dist) * fabs(kinkAngle) / sqrt(norm_term);
+
+                // update scattering matrix
+                scatPar(measIdx+1, measIdx+1) = fabs(kinkAngle) * p33;
+                scatPar(measIdx,   measIdx+1) = scatPar(measIdx+1, measIdx) = -scat_covr * p34;
 
                 numKinks++;
 
@@ -976,6 +995,8 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
     KFvector curStateVec(refHitFilteredParams);
     KFmatrix curCovMat(refHitFilteredParams);
 
+    KFmatrix& Q = (*m_Qmat)(curStateVec, referenceZ, m_HitEnergy->kinETopBeta(referenceHit.getEnergy()), filterZ);
+
     // Does this hit have a kink?
     if (referenceHit.getStatusBits() & Event::TkrTrackHit::HITHASKINKANG)
     {
@@ -987,9 +1008,23 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
         measSlope  = tan(measAngle);
 
         curStateVec(measSlpIdx) = measSlope;
-    }
 
-    KFmatrix& Q = (*m_Qmat)(curStateVec, referenceZ, m_HitEnergy->kinETopBeta(referenceHit.getEnergy()), filterZ);
+        // Slope parameters
+        int    nonMeasIdx = referenceHit.getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Slope);
+        double nonMeasSlp = refHitFilteredParams(nonMeasIdx);
+        double norm_term  = 1. + measSlope*measSlope + nonMeasSlp* nonMeasSlp;
+        double p33        = (1. + measSlope*measSlope) * norm_term;
+        double p34        = measSlope * nonMeasSlp * norm_term;
+
+        // Extract maxtrix params we need to alter here
+        double scat_angle = fabs(measAngle); 
+        double scat_dist  = Q(measSlpIdx-1, measSlpIdx-1) / (1. + measSlope*measSlope);
+        double scat_covr  = sqrt(scat_dist) * scat_angle / sqrt(norm_term);
+
+        // update scattering matrix
+        Q(measSlpIdx, measSlpIdx)   = scat_angle * p33;
+        Q(measSlpIdx, measSlpIdx-1) = Q(measSlpIdx-1, measSlpIdx) = -scat_covr * p34;
+    }
 
     // Do we have a measurement at this hit?
     if (filterHit.getStatusBits() & Event::TkrTrackHit::HITONFIT)
