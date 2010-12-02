@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.5 2010/11/05 15:32:59 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.6 2010/11/24 16:39:06 usher Exp $
  *
 */
 
@@ -145,8 +145,8 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
 
         //*************************************************
         // If we have enough hits then fit the track
-//        if (siblingMapComp->size() > 1 && usedCompositeClusters.size() > usedClusters.size())
-        if ((!trackBest || trackBest->getChiSquareSmooth() > 10.) && siblingMap->size() > 1)
+//        if ((!trackBest || trackBest->getChiSquareSmooth() > 10.) && siblingMap->size() > 1)
+        if ((!trackBest || trackBest->chiSquareSegment() > 4.) && siblingMap->size() > 1)
         {
             // Keep track of used clusters here
             UsedClusterList usedCompositeClusters;
@@ -161,8 +161,10 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
                 // I'm thinking this will pick the "straightest" track...
 //                if (!trackBest || trackBest->getChiSquareSmooth() > 5. * trackAll->getChiSquareSmooth())
                 if ( !trackBest || 
-                    (trackBest->getChiSquareSmooth() > 2. * trackAll->getChiSquareSmooth() && 
-                     trackBest->getNumFitHits() - trackAll->getNumFitHits() < 3)
+                    (trackBest->chiSquareSegment() > 1. * trackAll->chiSquareSegment() && 
+                     trackBest->getNumFitHits() - trackAll->getNumFitHits() < 10)
+//                    (trackBest->getChiSquareSmooth() > 2. * trackAll->getChiSquareSmooth() && 
+//                     trackBest->getNumFitHits() - trackAll->getNumFitHits() < 3)
                    )
                 {
                     Event::TkrTrack* temp = trackAll;
@@ -1023,31 +1025,60 @@ TkrTreeBuilder::TkrInitParams TkrTreeBuilder::getInitialParams(BuildTkrTrack::Ca
         pointIdx += 2;
     }
 
-    // Get the bottom point
-    Point botXPoint(0.,0.,0.);
-    Point botYPoint(0.,0.,0.);
+    // default values for slope
+    double tSlopeX = 0.;
+    double tSlopeY = 0.;
 
-    if (clusVec[pointIdx].first.getView() == idents::TkrId::eMeasureX)
+    // Average over next two pairs of points
+    int stopIdx = pointIdx + 3;
+    int nPoints = 0;
+
+    if (stopIdx > int(clusVec.size())) stopIdx = clusVec.size();
+
+    while(pointIdx < stopIdx)
     {
-        botXPoint = clusVec[pointIdx].second->position();
-        botYPoint = clusVec[pointIdx+1].second->position();
+        // Make sure we have two valid points
+        if (clusVec[pointIdx].second && clusVec[pointIdx+1].second)
+        {
+            // Get the bottom point
+            Point botXPoint(0.,0.,0.);
+            Point botYPoint(0.,0.,0.);
+    
+            if (clusVec[pointIdx].first.getView() == idents::TkrId::eMeasureX)
+            {
+                botXPoint = clusVec[pointIdx].second->position();
+                botYPoint = clusVec[pointIdx+1].second->position();
+            }
+            else
+            {
+                botXPoint = clusVec[pointIdx+1].second->position();
+                botYPoint = clusVec[pointIdx].second->position();
+            }
+    
+            // Pattern is either x-y-y-x or y-x-x-y
+            // Get the variables we'll use to determine the slopes
+            double deltaX  = topXPoint.x() - botXPoint.x();
+            double deltaZX = topXPoint.z() - botXPoint.z();
+            double deltaY  = topYPoint.y() - botYPoint.y();
+            double deltaZY = topYPoint.z() - botYPoint.z();
+    
+            // Ok, now can get slopes
+            tSlopeX += deltaX / deltaZX;
+            tSlopeY += deltaY / deltaZY;
+
+            // Keep track
+            nPoints++;
+        }
+
+        pointIdx += 2;
     }
-    else
+
+    // Check to see if we need to average
+    if (nPoints > 1)
     {
-        botXPoint = clusVec[pointIdx+1].second->position();
-        botYPoint = clusVec[pointIdx].second->position();
+        tSlopeX *= 0.5;
+        tSlopeY *= 0.5;
     }
-
-    // Pattern is either x-y-y-x or y-x-x-y
-    // Get the variables we'll use to determine the slopes
-    double deltaX  = topXPoint.x() - botXPoint.x();
-    double deltaZX = topXPoint.z() - botXPoint.z();
-    double deltaY  = topYPoint.y() - botYPoint.y();
-    double deltaZY = topYPoint.z() - botYPoint.z();
-
-    // Ok, now can get slopes
-    double tSlopeX = deltaX / deltaZX;
-    double tSlopeY = deltaY / deltaZY;
 
     // From which we get the start direction
     Vector startDir(-tSlopeX, -tSlopeY, -1.);
@@ -1059,20 +1090,14 @@ TkrTreeBuilder::TkrInitParams TkrTreeBuilder::getInitialParams(BuildTkrTrack::Ca
     if (clusVec[0].first.getView() == idents::TkrId::eMeasureX)
     {
         double deltaZ      = topYPoint.z() - startPos.z();
-        double yPosFrstHt1 = topYPoint.y() + tSlopeY * deltaZ;
-
-        double arcLen      = (startPos.z() - topYPoint.z()) / startDir.z();
-        double yPosFrstHit = topYPoint.y() + arcLen * startDir.y();
+        double yPosFrstHit = topYPoint.y() + tSlopeY * deltaZ;
 
         startPos.setY(yPosFrstHit);
     }
     else
     {
         double deltaZ      = topXPoint.z() - startPos.z();
-        double xPosFrstHt1 = topXPoint.x() + tSlopeX * deltaZ;
-
-        double arcLen      = (startPos.z() - topXPoint.z()) / startDir.z();
-        double xPosFrstHit = topXPoint.x() + arcLen * startDir.x();
+        double xPosFrstHit = topXPoint.x() + tSlopeX * deltaZ;
 
         startPos.setX(xPosFrstHit);
     }
