@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Wed Dec  1 17:41:32 PST 2010
+TkrRecon/src/Track
+
+Modified Files:
+	KalmanTrackFitTool.cxx 
+Log Message:
+for testing mods to kink fits on linux
+    *
+------------------------------------------------------------
+User: usher  Wed Dec  1 17:41:32 PST 2010
 TkrRecon/src/PatRec/TreeBased
 
 Modified Files:
