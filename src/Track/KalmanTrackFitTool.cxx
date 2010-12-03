@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.42 2010/12/02 01:41:32 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.43 2010/12/02 20:53:01 usher Exp $
  */
 
 // to turn one debug variables
@@ -899,7 +899,7 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
             if (fabs(dltaNrm) > m_minNrmResForKink) 
             {
                 // Don't be greedy... find new position one sigma from cluster on correct side
-                double offset     = 0.; //dltaPos > 0 ? -0.75*measErr : 0.75*measErr; //-0.5*measErr : 0.5*measErr;
+                double offset     = dltaPos > 0 ? -0.5*measErr : 0.5*measErr;
                 double predPosNew = measPos + offset;
 
                 // Get the previous hit in this measuring plane (which is most likely not the reference hit)
@@ -1020,7 +1020,7 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
         double p34        = measSlope * nonMeasSlp * norm_term;
 
         // Extract maxtrix params we need to alter here
-        double scat_angle = fabs(measAngle); 
+        double scat_angle = fabs(referenceHit.getKinkAngle()); 
         double scat_dist  = Q(measSlpIdx-1, measSlpIdx-1) / (1. + measSlope*measSlope);
         double scat_covr  = sqrt(scat_dist) * scat_angle / sqrt(norm_term);
 
