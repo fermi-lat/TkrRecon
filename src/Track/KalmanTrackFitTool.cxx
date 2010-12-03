@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.43 2010/12/02 20:53:01 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.44 2010/12/03 18:36:21 usher Exp $
  */
 
 // to turn one debug variables
@@ -1006,8 +1006,9 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
         int    measSlpIdx = referenceHit.getParamIndex(Event::TkrTrackHit::SSDMEASURED, Event::TkrTrackParams::Slope);
         double measSlope  = refHitFilteredParams(measSlpIdx);
         double measAngle  = atan(measSlope);
+        double kinkAngle  = referenceHit.getKinkAngle();
 
-        measAngle += referenceHit.getKinkAngle();
+        measAngle += kinkAngle;
         measSlope  = tan(measAngle);
 
         curStateVec(measSlpIdx) = measSlope;
@@ -1020,9 +1021,10 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
         double p34        = measSlope * nonMeasSlp * norm_term;
 
         // Extract maxtrix params we need to alter here
-        double scat_angle = fabs(referenceHit.getKinkAngle()); 
+        double qAngle     = Q(measSlpIdx, measSlpIdx) / p33;
+        double scat_angle = qAngle + kinkAngle * kinkAngle; 
         double scat_dist  = Q(measSlpIdx-1, measSlpIdx-1) / (1. + measSlope*measSlope);
-        double scat_covr  = sqrt(scat_dist) * scat_angle / sqrt(norm_term);
+        double scat_covr  = sqrt(scat_dist * scat_angle) / sqrt(norm_term);
 
         // update scattering matrix
         Q(measSlpIdx, measSlpIdx)   = scat_angle * p33;
