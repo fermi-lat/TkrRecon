@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sat Dec  4 07:59:31 PST 2010
+TkrRecon/src/Track
+
+Modified Files:
+	KalmanTrackFitTool.cxx 
+Log Message:
+better calculation of the kink angle
+    *
+------------------------------------------------------------
 User: usher  Fri Dec  3 19:08:28 PST 2010
 TkrRecon/src/Track
 
