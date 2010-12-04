@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.45 2010/12/03 21:04:45 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.46 2010/12/04 03:08:28 usher Exp $
  */
 
 // to turn one debug variables
@@ -909,39 +909,33 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
 
                 Event::TkrTrackHit& prevFilterHit = **prevFilterHitIter;
 
-                Event::TkrTrackParams& prevPredPar = prevFilterHit.getTrackParams(Event::TkrTrackHit::PREDICTED);
-
                 double deltaZ     = filterHit.getZPlane() - prevFilterHit.getZPlane();
-                double dltaPosNew = predPosNew - prevPredPar(measIdx);
-                double newSlp     = dltaPosNew / deltaZ;
-                double newPos     = prevPredPar(measIdx) + newSlp * deltaZ;
-                double newDif     = measPos - newPos;
-
-                double totalAngle = atan(newSlp);
-                double oldSlp     = prevPredPar(measIdx+1);
-                double oldAngle   = atan(oldSlp);
-                double kinkAngle  = totalAngle - oldAngle;
+                double cosTheta   = 1. / sqrt(1. + predSlp*predSlp);
+                double stepLen    = -deltaZ / cosTheta;
+                double dltaPosNew = predPosNew - predPos;
+                double dltaPosAng = dltaPosNew * cosTheta;
+                double kinkAngle  = -dltaPosAng / stepLen;
 
                 prevFilterHit.setKinkAngle(kinkAngle);
                 prevFilterHit.setStatusBit(Event::TkrTrackHit::HITHASKINKANG);
 
-                // Will need the q material matrix as well
-                Event::TkrTrackParams& scatPar = filterHit.getTrackParams(Event::TkrTrackHit::QMATERIAL);
-
-                // Slope parameters
-                int    nonMeasIdx = filterHit.getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Position);
-                double othrSlp    = predPar(nonMeasIdx+1, nonMeasIdx+1);
-                double norm_term  = 1. + predSlp*predSlp + othrSlp* othrSlp;
-                double p33        = (1. + predSlp*predSlp) * norm_term;
-                double p34        = predSlp * othrSlp * norm_term;
-
-                // Extract maxtrix params we need to alter here
-                double scat_dist = scatPar(measIdx, measIdx) / (1. + predSlp*predSlp);
-                double scat_covr = sqrt(scat_dist) * fabs(kinkAngle) / sqrt(norm_term);
-
-                // update scattering matrix
-                scatPar(measIdx+1, measIdx+1) = fabs(kinkAngle) * p33;
-                scatPar(measIdx,   measIdx+1) = scatPar(measIdx+1, measIdx) = -scat_covr * p34;
+//                // Will need the q material matrix as well
+//                Event::TkrTrackParams& scatPar = filterHit.getTrackParams(Event::TkrTrackHit::QMATERIAL);
+//
+//                // Slope parameters
+//                int    nonMeasIdx = filterHit.getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Position);
+//                double othrSlp    = predPar(nonMeasIdx+1, nonMeasIdx+1);
+//                double norm_term  = 1. + predSlp*predSlp + othrSlp* othrSlp;
+//                double p33        = (1. + predSlp*predSlp) * norm_term;
+//                double p34        = predSlp * othrSlp * norm_term;
+//
+//                // Extract maxtrix params we need to alter here
+//                double scat_dist = scatPar(measIdx, measIdx) / (1. + predSlp*predSlp);
+//                double scat_covr = sqrt(scat_dist) * fabs(kinkAngle) / sqrt(norm_term);
+//
+//                // update scattering matrix
+//                scatPar(measIdx+1, measIdx+1) = fabs(kinkAngle) * p33;
+//                scatPar(measIdx,   measIdx+1) = scatPar(measIdx+1, measIdx) = -scat_covr * p34;
 
                 numKinks++;
 
