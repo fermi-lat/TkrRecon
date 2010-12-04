@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.44 2010/12/03 18:36:21 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.45 2010/12/03 21:04:45 usher Exp $
  */
 
 // to turn one debug variables
@@ -899,7 +899,7 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
             if (fabs(dltaNrm) > m_minNrmResForKink) 
             {
                 // Don't be greedy... find new position one sigma from cluster on correct side
-                double offset     = dltaPos > 0 ? -0.5*measErr : 0.5*measErr;
+                double offset     = 0.; //dltaPos > 0 ? -0.5*measErr : 0.5*measErr;
                 double predPosNew = measPos + offset;
 
                 // Get the previous hit in this measuring plane (which is most likely not the reference hit)
@@ -1021,14 +1021,17 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
         double p34        = measSlope * nonMeasSlp * norm_term;
 
         // Extract maxtrix params we need to alter here
+        double arcLen2    = deltaZ * deltaZ * (1. + measSlope*measSlope);
+        double scat_disp2 = arcLen2 * sin(kinkAngle) * sin(kinkAngle);
         double qAngle     = Q(measSlpIdx, measSlpIdx) / p33;
         double scat_angle = qAngle + kinkAngle * kinkAngle; 
-        double scat_dist  = Q(measSlpIdx-1, measSlpIdx-1) / (1. + measSlope*measSlope);
+        double scat_dist  = Q(measSlpIdx-1, measSlpIdx-1) / (1. + measSlope*measSlope) + scat_disp2;
         double scat_covr  = sqrt(scat_dist * scat_angle) / sqrt(norm_term);
 
         // update scattering matrix
-        Q(measSlpIdx, measSlpIdx)   = scat_angle * p33;
-        Q(measSlpIdx, measSlpIdx-1) = Q(measSlpIdx-1, measSlpIdx) = -scat_covr * p34;
+        Q(measSlpIdx,   measSlpIdx)   = scat_angle * p33;
+        Q(measSlpIdx,   measSlpIdx-1) = Q(measSlpIdx-1, measSlpIdx) = -scat_covr * p34;
+        Q(measSlpIdx-1, measSlpIdx-1) = scat_dist * (1. + measSlope*measSlope);
     }
 
     // Do we have a measurement at this hit?
