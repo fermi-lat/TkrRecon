@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Mon Dec  6 13:11:27 PST 2010
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx TkrHitTruncationTool.cxx 
+	TkrHitTruncationTool.h 
+Log Message:
+Some fixed to truncation code, and moving the calculation from TkrFindAlg to TkrClusterAlg
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon Dec  6 13:11:26 PST 2010
 TkrRecon/src/GaudiAlg
 
