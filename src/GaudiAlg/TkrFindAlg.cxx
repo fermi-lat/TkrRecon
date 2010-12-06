@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.24 2010/11/04 18:25:24 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.25 2010/11/05 15:32:59 usher Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -29,7 +29,6 @@
 
 #include "src/Track/TkrControl.h"
 #include "TkrRecon/PatRec/ITkrFindTrackTool.h"
-#include "TkrRecon/Track/ITkrHitTruncationTool.h"
 
 #include "TkrUtil/ITkrQueryClustersTool.h"
 
@@ -47,7 +46,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.24 2010/11/04 18:25:24 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.25 2010/11/05 15:32:59 usher Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -72,9 +71,9 @@ private:
    
     IDataProviderSvc*      m_dataSvc;
 
-    /// truncation tool
-    ITkrHitTruncationTool* m_truncTool;
     ITkrQueryClustersTool* m_queryClustersTool;
+
+
 
     bool               m_doCRFinding;
     bool               m_doStandardFinding;
@@ -181,11 +180,12 @@ StatusCode TkrFindAlg::initialize()
         return sc;
     }
 
-    sc = toolSvc()->retrieveTool("TkrHitTruncationTool", m_truncTool);
-    if (sc.isFailure()) {
-        log << MSG::ERROR << "Cannot initialize hit-truncation tool" << endreq;
-        return sc;
-    }
+    // Moved to TkrClusterAlg
+    //sc = toolSvc()->retrieveTool("TkrHitTruncationTool", m_truncTool);
+    //if (sc.isFailure()) {
+    //    log << MSG::ERROR << "Cannot initialize hit-truncation tool" << endreq;
+    //    return sc;
+    //}
 
     return sc;
 }
@@ -206,7 +206,8 @@ StatusCode TkrFindAlg::execute()
     // Message to acknowledge at this stage
     log << MSG::DEBUG << "------- TkrFindAlg - looking for tracks -------" << endreq;
 
-    sc = m_truncTool->analyzeDigis();
+    // move to TkrClusterAlg
+    //sc = m_truncTool->analyzeDigis();
 
     // Set up the track col here, in case nobody does it downstream
     // Retrieve a pointer (if it exists) to existing fit track collection

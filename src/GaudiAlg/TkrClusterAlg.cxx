@@ -10,7 +10,7 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.23 2005/03/01 00:55:49 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.24 2009/01/31 17:10:00 lsrea Exp $
 */
 
 #include "GaudiKernel/Algorithm.h"
@@ -29,9 +29,9 @@
 #include "Event/TopLevel/EventModel.h"
 
 #include "TkrRecon/GaudiAlg/TkrClusterAlg.h"
-//#include "src/Cluster/TkrMakeClusters.h"
 #include "src/Cluster/TkrMakeClusterTable.h"
 #include "TkrUtil/ITkrMakeClustersTool.h"
+#include "TkrRecon/Track/ITkrHitTruncationTool.h"
 
 #include "Event/Digi/TkrDigi.h"
 
@@ -65,6 +65,8 @@ private:
     Event::TkrClusterCol*    m_TkrClusterCol;
     /// pointer to generated TkrIdClusterMMap
     Event::TkrIdClusterMap*  m_TkrIdClusterMap;
+    /// truncation tool
+    ITkrHitTruncationTool*   m_truncTool;
 
     bool m_redoToTsOnly;
 };
@@ -116,6 +118,12 @@ StatusCode TkrClusterAlg::initialize()
     //Initialize the rest of the data members
     m_TkrClusterCol = 0;
     m_TkrDigiCol    = 0; 
+
+    sc = toolSvc()->retrieveTool("TkrHitTruncationTool", m_truncTool);
+    if (sc.isFailure()) {
+        log << MSG::ERROR << "Cannot initialize hit-truncation tool" << endreq;
+        return sc;
+    }
 
     return StatusCode::SUCCESS;
 }
@@ -201,6 +209,9 @@ StatusCode TkrClusterAlg::execute()
         if(sc.isFailure()) return sc;
 
     }   
+
+    sc = m_truncTool->analyzeDigis();
+
     return sc;
 }
 
