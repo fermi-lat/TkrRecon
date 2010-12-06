@@ -7,7 +7,7 @@
 * @brief This tool analyzes the digis to infer truncation
 *        
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrHitTruncationTool.h,v 1.4 2005/07/05 16:29:06 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrHitTruncationTool.h,v 1.1 2005/09/03 02:07:00 lsrea Exp $
 */
 
 
@@ -38,6 +38,7 @@ public:
 
     StatusCode initialize();
     StatusCode analyzeDigis();
+    StatusCode finalize();
 
 private:
     /// Pointer to the local Tracker geometry service

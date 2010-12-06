@@ -6,7 +6,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrHitTruncationTool.cxx,v 1.2 2005/12/20 17:23:16 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrHitTruncationTool.cxx,v 1.3 2007/09/19 03:38:25 heather Exp $
 */
 
 #include "GaudiKernel/AlgTool.h"
@@ -22,7 +22,17 @@
 #include "Event/Recon/TkrRecon/TkrTruncationInfo.h"
 
 // constants defined at file scope
+namespace {
+    int _nStrips;
+    int _nLadderStrips;
+    double _activeGap;
 
+    bool debug;
+
+    int numRCTrunc;
+    int numCCTrunc;
+    int count;
+}
 
 //
 // Feeds Combo pattern recognition tracks to Kalman Filter
@@ -73,6 +83,16 @@ StatusCode TkrHitTruncationTool::initialize()
         return sc;
     }
 
+    _nLadderStrips = m_tkrGeom->ladderNStrips();
+    _nStrips       = _nLadderStrips*m_tkrGeom->nWaferAcross();
+    _activeGap     = 0.5*m_tkrGeom->ladderGap() + m_tkrGeom->siDeadDistance();
+
+    log << MSG::DEBUG;
+    debug = log.isActive();
+    log << endreq;
+
+    numRCTrunc = numCCTrunc = count = 0;
+
     return sc;
 }
 
@@ -87,8 +107,12 @@ StatusCode TkrHitTruncationTool::analyzeDigis()
     using namespace idents;
     using namespace Event;
 
+    MsgStream log(msgSvc(), name());
+
     //Always believe in success
     StatusCode sc = StatusCode::SUCCESS;
+
+    count++;
 
     // First, the collection of TkrDigis is retrieved from the TDS
     SmartDataPtr<Event::TkrDigiCol> digiCol( m_dataSvc, EventModel::Digi::TkrDigiCol );
@@ -122,18 +146,17 @@ StatusCode TkrHitTruncationTool::analyzeDigis()
         Event::intVector stripCount(2,0);
 
         int maxStrips[2];
-        maxStrips[0] = m_splitsSvc->getMaxStrips(tower, layer, view, 0);
-        maxStrips[1] = m_splitsSvc->getMaxStrips(tower, layer, view, 1);
+        maxStrips[0]   = m_splitsSvc->getMaxStrips(tower, layer, view, 0);
+        maxStrips[1]   = m_splitsSvc->getMaxStrips(tower, layer, view, 1);
         int splitStrip = m_splitsSvc->getSplitPoint(tower, layer, view);
 
         int lastC0Strip  = pDigi->getLastController0Strip();
 
-        int nStrips = m_tkrGeom->ladderNStrips()*m_tkrGeom->nWaferAcross();
         Event::intVector stripNumber(4,0);
-        stripNumber[0] = -1;      // highest low-side strip  (for RC0 and CC0)
-        stripNumber[1] = nStrips; // lowest high-side strip  (for RC1)
-        stripNumber[2] = nStrips; // highest high-side strip (for CC1)
-        stripNumber[3] = nStrips; // split-point strip
+        stripNumber[0] = -1;          // highest low-side strip  (for RC0 and CC0)
+        stripNumber[1] = _nStrips;     // lowest high-side strip  (for RC1)
+        stripNumber[2] = _nStrips;     // highest high-side strip (for CC1)
+        stripNumber[3] = splitStrip;  // split-point strip
 
         //check for read controller truncation
         int nHits = pDigi->getNumHits();
@@ -173,14 +196,20 @@ StatusCode TkrHitTruncationTool::analyzeDigis()
         int strip = std::max(stripNumber[0], 0);
         localX[0] = m_detSvc->stripLocalX(strip) + 0.5*stripPitch -
             (stripNumber[0]==-1 ? stripPitch : 0);
-        strip = std::min(stripNumber[1], nStrips-1);
-        localX[1] = m_detSvc->stripLocalX(strip) - 0.5*stripPitch +
-            (stripNumber[1]==nStrips ? stripPitch : 0);
-        strip = std::min(stripNumber[2], nStrips-1);
-        localX[2] = m_detSvc->stripLocalX(strip) + 0.5*stripPitch -
-            (stripNumber[2]==nStrips ? stripPitch : 0);
-        localX[3] = m_detSvc->stripLocalX(splitStrip) + 0.5*stripPitch;
 
+        strip = std::min(stripNumber[1], _nStrips-1);
+        localX[1] = m_detSvc->stripLocalX(strip) - 0.5*stripPitch +
+            (stripNumber[1]==_nStrips ? stripPitch : 0);
+
+        strip = std::min(stripNumber[2], _nStrips-1);
+        localX[2] = m_detSvc->stripLocalX(strip) + 0.5*stripPitch +
+            (stripNumber[2]==_nStrips ? stripPitch : 0);
+
+        strip = std::max(stripNumber[3], -1);
+        localX[3] = m_detSvc->stripLocalX(strip) + 0.5*stripPitch -
+            (stripNumber[3]==-1 ? stripPitch : 0);
+
+        //std::cout << localX[0] << " " << localX[1] << " "  << localX[2] << " "  << localX[3] << std::endl;
         float planeZ = m_tkrGeom->getPlaneZ(plane);
         // make and store the TkrTruncatedPlane
         TkrTruncatedPlane item(status, stripCount, stripNumber, localX, planeZ);
@@ -253,40 +282,51 @@ StatusCode TkrHitTruncationTool::analyzeDigis()
     // mark it done!
     truncationInfo->setDone();
     
-    /* ----> debug printout
-    std::cout << std::endl;
-    iter = truncMap->begin();
-    tower0 = -1;
-    for(; iter!=truncMap->end(); ++iter) {
-        SortId id = iter->first;
-        int tower = id.getTower();
-        //if (tower!=tower0) std::cout << "Tower " << tower << std::endl;
-        tower0 = tower;
-        int tray  = id.getTray();
-        int face  = id.getFace();
-        int layer, view;
-        m_tkrGeom->trayToLayer(tray, face, layer, view);
-        TkrTruncatedPlane trunc = iter->second;
-        const intVector& numStrips = trunc.getStripCount();
-        const intVector& stripNumber = trunc.getStripNumber();
-        const int status   = trunc.getStatus();
-        const floatVector& localX = trunc.getLocalX();
+    if (debug) {
+        log << MSG::DEBUG;
+        iter = truncMap->begin();
+        tower0 = -1;
+        for(; iter!=truncMap->end(); ++iter) {
+            SortId id = iter->first;
+            int tower = id.getTower();
+            //if (tower!=tower0) std::cout << "Tower " << tower << std::endl;
+            tower0 = tower;
+            int tray  = id.getTray();
+            int face  = id.getFace();
+            int layer, view;
+            m_tkrGeom->trayToLayer(tray, face, layer, view);
+            TkrTruncatedPlane trunc = iter->second;
+            const intVector& numStrips = trunc.getStripCount();
+            const intVector& stripNumber = trunc.getStripNumber();
+            const int status   = trunc.getStatus();
+            const floatVector& localX = trunc.getLocalX();
 
-        std::cout 
-            << "Twr/Tray/face/layer/view " <<tower << "/" << tray << "/" << face
-            << " " << layer << " " << view
-            << ", status " << status 
-            << ", #Strips " << numStrips[0] << "/" << numStrips[1]
-            << ", # " << stripNumber[0]  << "/" << stripNumber[1] 
-            << "/" << stripNumber[2]
-            << ", X " << localX[0]  << "/" << localX[1]
-            << "/" << localX[2]
-            << std::endl;
+            log << "Twr/Tray/face/layer/view " <<tower << "/" << tray << "/" << face
+                << " " << layer << " " << view
+                << ", status " << status 
+                << ", #Strips " << numStrips[0] << "/" << numStrips[1]
+                << ", # " << stripNumber[0]  << "/" << stripNumber[1] 
+                << "/" << stripNumber[2]
+                << ", X " << localX[0]  << "/" << localX[1]
+                << "/" << localX[2]
+                << endreq;
+        }
+
+        log << "Truncation count: " << truncationInfo->getNumRCTruncated() 
+            << " " << truncationInfo->getNumCCTruncated() << endreq;
     }
-  
-    std::cout << "Truncation count: " << truncationInfo->getNumRCTruncated() 
+
+    numRCTrunc += truncationInfo->getNumRCTruncated();
+    numCCTrunc += truncationInfo->getNumCCTruncated();
+    std::cout << "event " << count << " truncs " << truncationInfo->getNumRCTruncated() 
         << " " << truncationInfo->getNumCCTruncated() << std::endl;
-    */
 
     return sc;
 }  
+
+StatusCode TkrHitTruncationTool::finalize()
+{
+    std::cout << "number of truncation records " << numRCTrunc << " " <<numCCTrunc << std::endl;
+    std::cout << "number of calls " << count << std::endl;
+    return StatusCode::SUCCESS;
+}
