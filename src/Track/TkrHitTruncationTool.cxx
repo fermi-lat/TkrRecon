@@ -6,7 +6,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrHitTruncationTool.cxx,v 1.3 2007/09/19 03:38:25 heather Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrHitTruncationTool.cxx,v 1.4 2010/12/06 21:11:27 lsrea Exp $
 */
 
 #include "GaudiKernel/AlgTool.h"
@@ -318,8 +318,9 @@ StatusCode TkrHitTruncationTool::analyzeDigis()
 
     numRCTrunc += truncationInfo->getNumRCTruncated();
     numCCTrunc += truncationInfo->getNumCCTruncated();
-    std::cout << "event " << count << " truncs " << truncationInfo->getNumRCTruncated() 
-        << " " << truncationInfo->getNumCCTruncated() << std::endl;
+    
+    //std::cout << MSG::DEBUG << "event " << count << " truncs " << truncationInfo->getNumRCTruncated() 
+    //    << " " << truncationInfo->getNumCCTruncated() << std::endl;
 
     return sc;
 }  
