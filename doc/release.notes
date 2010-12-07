@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-21-01 07-Dec-2010  lsrea Remove debug printout
  TkrRecon-10-21-00 06-Dec-2010  lsrea Updates to kink calculation, truncation code
  TkrRecon-10-20-02 24-Nov-2010 TU  Version 0.5 of Tree Based tracking, introduce kink angle into filter fit
  TkrRecon-10-20-01 05-Nov-2010 TU  Version 0 of Tree Based tracking ready for use (now default)
