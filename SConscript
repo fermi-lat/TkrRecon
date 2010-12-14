@@ -1,5 +1,5 @@
 # -*- python -*-
-# $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/SConscript,v 1.28 2010/12/07 21:48:54 lsrea Exp $ 
+# $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/SConscript,v 1.29 2010/12/10 01:17:23 lsrea Exp $ 
 # Authors: Leon Rochester <lsrea@slac.stanford.edu>, Tracy Usher <usher@slac.stanford.edu>
 # Version: TkrRecon-10-21-02
 Import('baseEnv')
@@ -13,10 +13,13 @@ TkrRecon=libEnv.SharedLibrary('TkrRecon',
                               listFiles(['src/Dll/*.cxx','src/GaudiAlg/*.cxx',
                                          'src/Display/*.cxx','src/Services/*.cxx',
                                          'src/Cluster/*.cxx','src/Filter/*.cxx',
-                                         'src/PatRec/*.cxx','src/PatRec/LinkAndTree/*.cxx',
-                                         'src/PatRec/Combo/*.cxx','src/PatRec/NeuralNet/*.cxx',
+                                         'src/PatRec/*.cxx',
+                                         'src/PatRec/LinkAndTree/*.cxx',
+                                         'src/PatRec/Combo/*.cxx',
+                                         'src/PatRec/NeuralNet/*.cxx',
                                          'src/PatRec/VectorLinks/*.cxx',
                                          'src/PatRec/VectorLinks/StdRelTable/*.cxx',
+                                         'src/PatRec/TreeBased/*.cxx',
                                          'src/PatRec/MonteCarlo/*.cxx',
                                          'src/PatRec/KalFitTrack/*.cxx'
                                          'src/PatRec/Utilities/*.cxx',
@@ -25,7 +28,8 @@ TkrRecon=libEnv.SharedLibrary('TkrRecon',
                                          'src/TrackFit/KalmanFilterUtils/*.cxx',
                                          'src/TrackFit/KalmanFilterFit/*.cxx',
                                          'src/TrackFit/KalmanFilterFit/FitMatrices/*.cxx',
-                                         'src/TrackFit/KalmanFilterFit/HitErrors/*.cxx','src/TrackFit/KalmanFilterFit/TrackEnergy/*.cxx',
+                                         'src/TrackFit/KalmanFilterFit/HitErrors/*.cxx',
+                                         'src/TrackFit/KalmanFilterFit/TrackEnergy/*.cxx',
                                          'src/TrackFit/KalFitTrack/*.cxx',
                                          'src/TrackFit/LineFit2D/*.cxx',
                                          'src/TrackFit/LineFit3D/*.cxx',
