@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.5 2010/11/02 20:42:09 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.6 2010/11/24 16:39:06 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -182,62 +182,68 @@ StatusCode TreeBasedTool::findTracks()
     // Set the event energy
     double eventEnergy = getEventEnergy();
 
-    // STEP ONE: build the list of all VecPoints
-    TkrVecPointsBuilder vecPointsBuilder(m_mergeClusters, m_nClusToMerge, m_stripGap, m_dataSvc, m_tkrGeom, m_clusTool);
+    // STEP ONE: Check to be sure the TkrVecPoints exist
+    Event::TkrVecPointCol* tkrVecPointCol = 
+        SmartDataPtr<Event::TkrVecPointCol>(m_dataSvc, EventModel::TkrRecon::TkrVecPointCol);
 
-    // No point in continuing if too few VecPoints
-    if (vecPointsBuilder.getNumBiLayers() > 2)
+    // If they dont exist then we make them here
+    if (!tkrVecPointCol)
     {
-        try
-        {
-            // STEP TWO: Associate (link) adjacent pairs of VecPoints and store away
-            TkrVecPointLinksBuilder vecPointLinksBuilder(vecPointsBuilder,
-                                                         eventEnergy,
-                                                         m_dataSvc,
-                                                         m_tkrGeom,
-                                                         m_glastDetSvc,
-                                                         m_clusTool);
+        // Put this here for now
+        int numLyrsToSkip = 3;
 
-            if (vecPointLinksBuilder.getNumTkrVecPointsLinks() > 1) 
+        // Build the list of all VecPoints
+        TkrVecPointsBuilder vecPointsBuilder(numLyrsToSkip, m_dataSvc, m_tkrGeom, m_clusTool);
+    }
+        
+    try
+    {
+        // STEP TWO: Associate (link) adjacent pairs of VecPoints and store away
+        TkrVecPointLinksBuilder vecPointLinksBuilder(eventEnergy,
+                                                     m_dataSvc,
+                                                     m_tkrGeom,
+                                                     m_glastDetSvc,
+                                                     m_clusTool);
+
+        if (vecPointLinksBuilder.getNumTkrVecPointsLinks() > 1) 
+        {
+            // STEP THREE(A): build the node trees
+            try 
             {
-                // STEP THREE(A): build the node trees
-                try 
-                {
-                    TkrVecNodesBuilder tkrNodesBldr(vecPointsBuilder, vecPointLinksBuilder, m_dataSvc, m_tkrGeom);
+                TkrVecNodesBuilder tkrNodesBldr(vecPointLinksBuilder, m_dataSvc, m_tkrGeom);
 
-                    tkrNodesBldr.buildTrackElements();
+                tkrNodesBldr.buildTrackElements();
 
-                    TkrTreeBuilder tkrTreeBldr(tkrNodesBldr, 
-                                               m_dataSvc, 
-                                               m_tkrGeom, 
-                                               m_clusTool, 
-                                               m_trackFitTool, 
-                                               m_findHitsTool, 
-                                               m_clusterCol);
+                TkrTreeBuilder tkrTreeBldr(tkrNodesBldr, 
+                                           m_dataSvc, 
+                                           m_tkrGeom, 
+                                           m_clusTool, 
+                                           m_trackFitTool, 
+                                           m_findHitsTool, 
+                                           m_clusterCol);
 
-                    tkrTreeBldr.buildTrees(eventEnergy);
-                }
-                catch(TkrException& e)
-                {
-                    throw e;
-                }
-                catch(...)
-                {
-                    throw(TkrException("Unknown exception encountered in TkrVecNode and TkrTree building "));  
-                }
-
-                // Finally, set the track energies and do a first fit
-                setTrackEnergy(eventEnergy, tdsTracks);
+                tkrTreeBldr.buildTrees(eventEnergy);
             }
+            catch(TkrException& e)
+            {
+                throw e;
+            }
+            catch(...)
+            {
+                throw(TkrException("Unknown exception encountered in TkrVecNode and TkrTree building "));  
+            }
+
+            // Finally, set the track energies and do a first fit
+            setTrackEnergy(eventEnergy, tdsTracks);
         }
-        catch(TkrException& e)
-        {
-            throw e;
-        }
-        catch(...)
-        {
-            throw(TkrException("Unknown exception encountered in TkrVecLink building "));  
-        }
+    }
+    catch(TkrException& e)
+    {
+        throw e;
+    }
+    catch(...)
+    {
+        throw(TkrException("Unknown exception encountered in TkrVecLink building "));  
     }
 
     return sc;

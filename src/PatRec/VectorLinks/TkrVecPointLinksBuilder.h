@@ -5,20 +5,21 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.h,v 1.4 2010/11/01 16:45:00 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.h,v 1.5 2010/11/24 16:39:06 usher Exp $
  *
 */
 
 #ifndef __TkrVecPointLinksBuilder_H
 #define __TkrVecPointLinksBuilder_H 1
 
+#include "Event/Recon/TkrRecon/TkrVecPointInfo.h"
 #include "Event/Recon/TkrRecon/TkrVecPointsLink.h"
 #include "Event/Recon/TkrRecon/TkrTruncationInfo.h"
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrSplitsSvc.h"
 #include "GaudiKernel/IDataProviderSvc.h"
-#include "TkrVecPointsBuilder.h"
+#include "TkrUtil/ITkrQueryClustersTool.h"
 
 #include <vector>
 typedef Event::TkrVecPointsLinkPtrVec    TkrVecPointsLinkVec;
@@ -27,8 +28,7 @@ typedef std::vector<TkrVecPointsLinkVec> TkrVecPointsLinkVecVec;
 class TkrVecPointLinksBuilder 
 {
 public:
-    TkrVecPointLinksBuilder(const TkrVecPointsBuilder& vecPointBuilder,
-                            double                     evtEnergy,
+    TkrVecPointLinksBuilder(double                     evtEnergy,
                             IDataProviderSvc*          dataSvc, 
                             ITkrGeometrySvc*           tkrGeom,
                             IGlastDetSvc*              detSvc,
@@ -57,14 +57,14 @@ public:
 private:
 
     /// This will build all links between vectors of points passed in
-    int    buildLinksGivenVecs(TkrVecPointsLinkVecVec&            linkStoreVec, 
-                               TkrVecPointVecVec::const_iterator& firstPointsItr, 
-                               TkrVecPointVecVec::const_iterator& secondPointsItr);
+    int    buildLinksGivenVecs(TkrVecPointsLinkVecVec&                          linkStoreVec, 
+                               Event::TkrLyrToVecPointItrMap::reverse_iterator& firstPointsItr, 
+                               Event::TkrLyrToVecPointItrMap::reverse_iterator& secondPointsItr);
 
     /// This finds the TkrVecPoint nearest to the given Point
-    const Event::TkrVecPoint* findNearestTkrVecPoint(const TkrVecPointVec& intPoints, 
-                                                     Point                 layerPt,
-                                                     double&               dist2VecPoint);
+    const Event::TkrVecPoint* findNearestTkrVecPoint(const Event::TkrVecPointItrPair& intPoints, 
+                                                     Point                            layerPt,
+                                                     double&                          dist2VecPoint);
 
     void markLinkVerified(std::vector<Event::TkrVecPointToLinksRel*>& pointToLinkVec, const Event::TkrVecPoint* point);
 
@@ -88,6 +88,7 @@ private:
     bool                          m_fillInternalTables;
 
     // Local pointers to services
+    IDataProviderSvc*             m_dataSvc;
     ITkrGeometrySvc*              m_tkrGeom;
     IGlastDetSvc*                 m_detSvc;
     ITkrQueryClustersTool*        m_clusTool;
