@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Dec 16 12:44:45 PST 2010
+TkrRecon/src/Dll
+
+Modified Files:
+	tkrRecon_load.cxx 
+Log Message:
+Modifications aimed at introducing a new Tkr Filter algorithm based on a Minimum Spanning Tree algorithm.
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-21-03, operation: add
 Package: TkrRecon
