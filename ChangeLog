@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Thu Dec 16 12:44:46 PST 2010
+TkrRecon/src/Filter
+
+Added Files:
+	MinSpanTree.cxx MinSpanTree.h TkrVecPointsFilterTool.cxx 
+Log Message:
+Modifications aimed at introducing a new Tkr Filter algorithm based on a Minimum Spanning Tree algorithm.
+    *
+------------------------------------------------------------
+User: usher  Thu Dec 16 12:44:46 PST 2010
 TkrRecon/src/PatRec/VectorLinks
 
 Modified Files:
