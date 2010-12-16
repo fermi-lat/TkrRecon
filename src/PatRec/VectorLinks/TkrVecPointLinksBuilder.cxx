@@ -5,26 +5,27 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.cxx,v 1.5 2010/11/03 19:49:31 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.cxx,v 1.6 2010/11/24 16:39:06 usher Exp $
  *
 */
 
 #include "TkrVecPointLinksBuilder.h"
 #include "Event/TopLevel/EventModel.h"
 #include "Event/Recon/TkrRecon/TkrEventParams.h"
+#include "Event/Recon/TkrRecon/TkrFilterParams.h"
 #include "GaudiKernel/SmartDataPtr.h"
 
 //Exception handler
 #include "Utilities/TkrException.h"
 
-TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(const TkrVecPointsBuilder& vecPointBuilder,
-                                                 double                     evtEnergy,
+TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtEnergy,
                                                  IDataProviderSvc*          dataSvc, 
                                                  ITkrGeometrySvc*           tkrGeom,
                                                  IGlastDetSvc*              detSvc,
                                                  ITkrQueryClustersTool*     clusTool,
                                                  bool                       fillInternalTables)
-                                                 : m_tkrGeom(tkrGeom), 
+                                                 : m_dataSvc(dataSvc),
+                                                   m_tkrGeom(tkrGeom), 
                                                    m_detSvc(detSvc),
                                                    m_clusTool(clusTool), 
                                                    m_evtEnergy(evtEnergy), 
@@ -34,6 +35,8 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(const TkrVecPointsBuilder& vecP
     // Set the strip pitch
     m_siStripPitch = m_tkrGeom->siStripPitch();
 
+    // Start by creating and registering our output objects in the TDS
+    // These need to be there whether we do anything or not. 
     // Make sure the VecPointsLinks have been cleared
     m_tkrVecPointsLinksByLayerMap.clear();
 
@@ -41,37 +44,52 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(const TkrVecPointsBuilder& vecP
     m_tkrVecPointsLinkCol = new Event::TkrVecPointsLinkCol();
 
     // And register it in the TDS
-    StatusCode sc = dataSvc->registerObject(EventModel::TkrRecon::TkrVecPointsLinkCol, m_tkrVecPointsLinkCol);
+    StatusCode sc = m_dataSvc->registerObject(EventModel::TkrRecon::TkrVecPointsLinkCol, m_tkrVecPointsLinkCol);
 
     if (sc.isFailure()) return;
 
     // Create the list of points to links relations and store in the TDS
     Event::TkrVecPointToLinksTabList* pointToLinksRelList = new Event::TkrVecPointToLinksTabList();
 
-    sc = dataSvc->registerObject("/Event/TkrRecon/TkrVecPointToLinksTabList", pointToLinksRelList);
+    // And register in the TDS
+    sc = m_dataSvc->registerObject("/Event/TkrRecon/TkrVecPointToLinksTabList", pointToLinksRelList);
 
     if (sc.isFailure()) return;
 
-    // Initialize the relational table
-    m_pointToLinksTab = new Event::TkrVecPointToLinksTab(pointToLinksRelList);
+    // Retrieve the TkrVecPointInfo object from the TDS
+    Event::TkrVecPointInfo* vecPointInfo = 
+        SmartDataPtr<Event::TkrVecPointInfo>(m_dataSvc, EventModel::TkrRecon::TkrVecPointInfo);
 
-    SmartDataPtr<Event::TkrTruncationInfo> truncInfo( dataSvc, EventModel::TkrRecon::TkrTruncationInfo );
+    // No info, no processing
+    if (!vecPointInfo) return;
 
-    m_truncationInfo = truncInfo;
+    // From this object, get the mapping we need to build the links between points
+    Event::TkrLyrToVecPointItrMap* tkrLyrToVecPointItrMap = vecPointInfo->getLyrToVecPointItrMap();
 
     // Look up the Cal event information
     Event::TkrEventParams* tkrEventParams = 
-        SmartDataPtr<Event::TkrEventParams>(dataSvc,EventModel::TkrRecon::TkrEventParams);
+        SmartDataPtr<Event::TkrEventParams>(m_dataSvc,EventModel::TkrRecon::TkrEventParams);
 
     m_eventAxis      = tkrEventParams->getEventAxis();
     m_toleranceAngle = M_PI;
+
+    // Also look up the Tkr Filter information
+    Event::TkrFilterParamsCol* tkrFilterParamsCol = 
+        SmartDataPtr<Event::TkrFilterParamsCol>(m_dataSvc,EventModel::TkrRecon::TkrFilterParamsCol);
+
+    // If there is a collection and there is an entry at the head of the list, use this for the event axis
+    if (tkrFilterParamsCol && !tkrFilterParamsCol->empty())
+    {
+        m_eventAxis = tkrFilterParamsCol->front()->getEventAxis();
+    }
 
     // If the energy is zero then there is no axis so set to point "up"
     if (tkrEventParams->getEventEnergy() == 0.) m_eventAxis = Vector(0.,0.,1.);
 
     // Following is a completely ad hoc scheme to constrain links as energy increases
     // But only do this if the event axis points into tracker in some semi reasonable manner
-    if (vecPointBuilder.getMaxNumLinkCombinations() > 5000. || m_eventAxis.cosTheta() < 0.5)   // Just past 60 degrees
+//    if (vecPointInfo->getMaxNumLinkCombinations() > 5000. || m_eventAxis.cosTheta() < 0.5)   // Just past 60 degrees
+    if (vecPointInfo->getMaxNumLinkCombinations() > 30000. || m_eventAxis.cosTheta() < 0.1)   // Just past 60 degrees
     {
         // Enough energy to think axis is reasonable, constrain so links are within pi/2
         if (tkrEventParams->getEventEnergy() > 250.)   m_toleranceAngle /=2.;
@@ -80,10 +98,8 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(const TkrVecPointsBuilder& vecP
         // High energy events should agree well with the axis - pi/8
         if (tkrEventParams->getEventEnergy() > 25000.) m_toleranceAngle /=2.;
 
-        if (vecPointBuilder.getMaxNumLinkCombinations() > 20000.) 
+        if (vecPointInfo->getMaxNumLinkCombinations() > 20000.) 
         {
-//            if (m_eventAxis.cosTheta() > 0.5) m_toleranceAngle = std::min(m_toleranceAngle, M_PI / 6.);
-//            else                              m_toleranceAngle = std::min(m_toleranceAngle, M_PI / 2.);
             if (m_eventAxis.cosTheta() > 0.5) m_toleranceAngle = std::min(m_toleranceAngle, M_PI / 3.);    // 45 degrees
             else                              m_toleranceAngle = std::min(m_toleranceAngle, M_PI / 2.);    // 60 degrees
 
@@ -91,45 +107,55 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(const TkrVecPointsBuilder& vecP
         }
     }
 
+    // Final bits of preparation here...
+    // Initialize the relational table
+    m_pointToLinksTab = new Event::TkrVecPointToLinksTab(pointToLinksRelList);
+
+    SmartDataPtr<Event::TkrTruncationInfo> truncInfo( m_dataSvc, EventModel::TkrRecon::TkrTruncationInfo );
+
+    m_truncationInfo = truncInfo;
 
     // Set up to loop through the TkrVecPoints by bilayer. The strategy is to have the primary loop
     // variable be an iterator pointing to the vector of "bottom" hits. Internal to that we will then
     // loop over allowed combinations of skipped bilayers, starting with no skipping, to the maximum
     // number. This will mean that when constructing a link that skips a bilayer we will have access
     // to information on intermediate links that skip fewer, if any, bilayers. 
-    // Maximum number of skipped layers to make a link
-    int maxNumSkippedLayers = 3;
 
     // Iterator which points at the "top" vector of TkrVecPoints
-    TkrVecPointVecVec::const_iterator topBiLyrItr = vecPointBuilder.getVecPoints().begin();
+    // Note that the construction of the map has taken into account how many bilayers we
+    // are allowed to skip when constructing links
+    Event::TkrLyrToVecPointItrMap::reverse_iterator topBiLyrItr = tkrLyrToVecPointItrMap->rbegin();
+    Event::TkrLyrToVecPointItrMap::reverse_iterator botBiLyrItr = 
+        Event::TkrLyrToVecPointItrMap::reverse_iterator(tkrLyrToVecPointItrMap->find(m_tkrGeom->numLayers() - 1));
     
     // Trap any issues that might occur...
     try
     {
         // Start the outside loop over the "bottom" vectors of TkrVecPoints
-        for(TkrVecPointVecVec::const_iterator botBiLyrItr  = topBiLyrItr + 1;
-                                              botBiLyrItr != vecPointBuilder.getVecPoints().end();
-                                              botBiLyrItr++)
+        for( ; botBiLyrItr != tkrLyrToVecPointItrMap->rend(); botBiLyrItr++, topBiLyrItr++)
         {
-            TkrVecPointVecVec::const_iterator intBiLyrItr = botBiLyrItr - 1;
+            Event::TkrLyrToVecPointItrMap::reverse_iterator intBiLyrItr = botBiLyrItr;
+
+            // If no TkrVecPoints then nothing to do here
+            if (botBiLyrItr->second.first == botBiLyrItr->second.second) continue;
 
             // Now we do the "catch up" loop over the top TkrVecPoints, where we start with the 
             // minimum number of skipped layers and end at the maximum. 
             // This construction meant to insure we do the loop when the intermediate bilayer iterator 
             // is equal to the top bilayer iterator
-            do
+            while(--intBiLyrItr != topBiLyrItr)
             {
                 // Get the number of intervening bilayers
-                int nSkippedBiLayers = distance(intBiLyrItr, botBiLyrItr) - 1;
+                int nSkippedBiLayers = intBiLyrItr->first - botBiLyrItr->first - 1;
                     
-                if (!(*intBiLyrItr).empty() && !(*botBiLyrItr).empty()) 
+                if (intBiLyrItr->second.first != intBiLyrItr->second.second)
                         m_numVecLinks += buildLinksGivenVecs(m_tkrVecPointsLinksByLayerMap[nSkippedBiLayers], 
                                                              intBiLyrItr, 
                                                              botBiLyrItr);
-            } while(intBiLyrItr-- != topBiLyrItr);
+            }
 
             // Once the bottom iterator has moved sufficiently, we start updating the top
-            if (topBiLyrItr == botBiLyrItr - maxNumSkippedLayers - 1) topBiLyrItr++;
+//            if (topBiLyrItr->first - botBiLyrItr->first == maxNumSkippedLayers + 1) topBiLyrItr++;
         }
     }
     catch( TkrException& e )
@@ -171,10 +197,9 @@ TkrVecPointLinksBuilder::~TkrVecPointLinksBuilder()
     return;
 }
 
-
-int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&            linkStoreVec, 
-                                                 TkrVecPointVecVec::const_iterator& firstPointsItr, 
-                                                 TkrVecPointVecVec::const_iterator& nextPointsItr)
+int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&                          linkStoreVec, 
+                                                 Event::TkrLyrToVecPointItrMap::reverse_iterator& firstPointsItr, 
+                                                 Event::TkrLyrToVecPointItrMap::reverse_iterator& nextPointsItr)
 {
     // Keep count of how many links we create
     int nCurLinks = m_tkrVecPointsLinkCol->size();
@@ -184,29 +209,30 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
     linkStoreVec.back().clear();
 
     // Get first VecPointsVec 
-    const TkrVecPointVec& firstPoints  = *firstPointsItr;
+    const Event::TkrVecPointItrPair& firstPair = firstPointsItr->second;
 
     // Get the second VecPointsVec
-    const TkrVecPointVec& secondPoints = *nextPointsItr;
-
-    // Are we skipping layers?
-////    bool skipsLayers = false;
-
-////    if (nextPointsItr != firstPointsItr + 1) skipsLayers = true;
+    const Event::TkrVecPointItrPair& secondPair = nextPointsItr->second;
 
     // Loop through the first and then second hits and build the pairs
-    for (TkrVecPointVec::const_iterator frstItr = firstPoints.begin(); frstItr != firstPoints.end(); frstItr++)
+    for (Event::TkrVecPointColPtr frstItr = firstPair.first; frstItr != firstPair.second; frstItr++)
     {
         const Event::TkrVecPoint* firstPoint = *frstItr;
+
+        // Is this point usable?
+        if (!firstPoint->isUsablePoint()) continue;
 
         // Use the existing point to link relations if skipping layers
 ////        std::vector<Event::TkrVecPointToLinksRel*> firstPointToLinkVec;
         
 ////        if (skipsLayers) firstPointToLinkVec = m_pointToLinksTab->getRelByFirst(firstPoint);
 
-        for (TkrVecPointVec::const_iterator scndItr = secondPoints.begin(); scndItr != secondPoints.end(); scndItr++)
+        for (Event::TkrVecPointColPtr scndItr = secondPair.first; scndItr != secondPair.second; scndItr++)
         {
             const Event::TkrVecPoint* secondPoint = *scndItr;
+
+            // Is this point usable?
+            if (!secondPoint->isUsablePoint()) continue;
 
             // We are going to require that both points are in the same tower
             //if (firstPoint.getTower() != secondPoint.getTower()) continue;
@@ -246,11 +272,11 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
             if (testAngle > toleranceAngle) continue;
 
             // Set up to loop over "missing" layers with the iterators passed in
-            TkrVecPointVecVec::const_iterator intPointsItr = firstPointsItr + 1;
-            int                               intMissLyr   = startLayer; 
+            Event::TkrLyrToVecPointItrMap::reverse_iterator intPointsItr = firstPointsItr;
+            int                                             intMissLyr   = startLayer; 
 
             // If we have intermediate layers then do some checking
-            if (intPointsItr != nextPointsItr)
+            if (++intPointsItr != nextPointsItr)
             {
                 // Improve accuracy by adjusting starting vec point position for slope of the proposed link
                 double cosToEnd = cos(startToEnd.theta());
@@ -277,7 +303,8 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                 while(intPointsItr != nextPointsItr)
                 {
                     // Retrieve the vector of TkrVecPoints for this bilayer
-                    const TkrVecPointVec& intPoints = *intPointsItr++;
+                    const Event::TkrVecPointItrPair& intPointsPair = intPointsItr->second;
+                    intPointsItr++;
 
                     // What we do:
       //ingore all this for now              // First we look for a TkrVecPoint "nearby". If this is true then we know we
@@ -396,7 +423,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     if (!siHitGapX && !siHitGapY) // && numNearInX > 0 && numNearInY > 0)
                     {
                         double                    dist2VecPoint = nearDist; //10. * searchDist; //1000.;
-                        const Event::TkrVecPoint* nearestHit    = findNearestTkrVecPoint(intPoints, layerPt, dist2VecPoint);
+                        const Event::TkrVecPoint* nearestHit    = findNearestTkrVecPoint(intPointsPair, layerPt, dist2VecPoint);
                 
                         // If we found a hit nearby then the first thing to do is to check and see if 
                         // that hit lies on this link. If so then we are going to reject the link
@@ -641,15 +668,15 @@ idents::TkrId TkrVecPointLinksBuilder::makeTkrId(const Point& planeHit)
     return tkrId;
 }
 
-const Event::TkrVecPoint* TkrVecPointLinksBuilder::findNearestTkrVecPoint(const TkrVecPointVec& intPoints, 
-                                                                          Point                 layerPt,
-                                                                          double&               dist2VecPoint)
+const Event::TkrVecPoint* TkrVecPointLinksBuilder::findNearestTkrVecPoint(const Event::TkrVecPointItrPair& intPointsPair, 
+                                                                          Point                            layerPt,
+                                                                          double&                          dist2VecPoint)
 {
     const Event::TkrVecPoint* foundVecPoint = 0;
 
     dist2VecPoint = m_tkrGeom->towerPitch() * m_tkrGeom->towerPitch();
 
-    for(TkrVecPointVec::const_iterator intPointsItr = intPoints.begin(); intPointsItr != intPoints.end(); intPointsItr++)
+    for(Event::TkrVecPointColPtr intPointsItr = intPointsPair.first; intPointsItr != intPointsPair.second; intPointsItr++)
     {
         const Event::TkrVecPoint* vecPoint = *intPointsItr;
 

@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointsBuilder.h,v 1.2 2009/10/30 15:56:47 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointsBuilder.h,v 1.5 2010/11/01 16:45:00 usher Exp $
  *
 */
 
@@ -21,64 +21,57 @@
 typedef std::vector<Event::TkrVecPoint*> TkrVecPointVec;
 typedef std::vector<TkrVecPointVec>      TkrVecPointVecVec;
 
+typedef std::pair<Event::TkrVecPointColPtr, Event::TkrVecPointColPtr> TkrVecPointItrPair;
+typedef std::map<int, TkrVecPointItrPair >                            TkrLyrToVecPointItrMap;
+typedef TkrLyrToVecPointItrMap::iterator                              TkrLyrToVecPointItrMapItr;
+typedef TkrLyrToVecPointItrMap::const_iterator                        TkrLyrToVecPointItrMapConsItr;
+
 class TkrVecPointsBuilder 
 {
 public:
-    TkrVecPointsBuilder(bool                   mergeClusters,
-                        int                    nClusToMerge,
-                        int                    stripGap,
+    TkrVecPointsBuilder(int                    numSkippedLayers,
                         IDataProviderSvc*      dataSvc, 
                         ITkrGeometrySvc*       geoSvc,
                         ITkrQueryClustersTool* clusTool);
 
     ~TkrVecPointsBuilder();
 
-    // provide access to the TkrVecPoints.
-    const TkrVecPointVecVec& getVecPoints()              const {return m_tkrVecPointVecVec;}
+    // Provide access to the TkrVecPoints
+    const TkrLyrToVecPointItrMap* getLyrtoVecPointsMap()      const {return m_lyrToVecPointsMap;}
 
     // Return number of clusters encountered
-    const int                getNumClusters()            const {return m_numClusters;}
+    const int                     getNumClusters()            const {return m_numClusters;}
 
     // Return number of TkrVecPoints 
-    const int                getNumTkrVecPoints()        const {return m_numVecPoints;}
+    const int                     getNumTkrVecPoints()        const {return m_numVecPoints;}
 
     // Return number of TkrVecPoints 
-    const int                getNumBiLayers()            const {return m_numBiLayersWVecPoints;}
+    const int                     getNumBiLayers()            const {return m_numBiLayersWVecPoints;}
 
     // Return maximum number of link combinations
-    const double             getMaxNumLinkCombinations() const {return m_maxNumLinkCombinations;}
+    const double                  getMaxNumLinkCombinations() const {return m_maxNumLinkCombinations;}
 private:
 
-    /// Merge clusters
-    Event::TkrClusterVec mergeClusters(Event::TkrClusterVec& clusVec);
+    /// Create a mapping for the first and last TkrVecPoints in a bilayer
+    TkrLyrToVecPointItrMap* m_lyrToVecPointsMap;
 
-    /// Pointer to the merged collection of TkrClusters
-    Event::TkrClusterCol* m_mergedClusters;
-
-    /// This will keep track of all the VecPoints we will be using
-    /// This is a vector of vectors, so the VecPoints are arranged 
-    /// from the beginning of the possible track to the end
-    TkrVecPointVecVec     m_tkrVecPointVecVec;
-
-    /// Control parameters for merging clusters
-    bool                  m_mergeClusters;
-    int                   m_nClusToMerge;
-    int                   m_stripGap;
+    /// For trying out grouping of TkrVecPoints
+    void groupTkrVecPoints(TkrVecPointVec& tkrVecPointVec);
 
     /// Keep track of the number of clusters encountered
-    int               m_numClusters;
+    int                     m_numClusters;
 
     /// Also keep track of the total number of TkrVecPoints
-    int               m_numVecPoints;
+    int                     m_numVecPoints;
 
     /// Keep count of the number of bilayers with TkrVecPoints
-    int               m_numBiLayersWVecPoints;
+    int                     m_numBiLayersWVecPoints;
 
     /// Finally, keep track of max possible link combinations
-    double            m_maxNumLinkCombinations;
+    double                  m_maxNumLinkCombinations;
 
     /// Pointer to geometry service
-    ITkrGeometrySvc*  m_geoSvc;
+    ITkrGeometrySvc*        m_geoSvc;
 };
 
 #endif

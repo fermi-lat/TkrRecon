@@ -40,6 +40,7 @@ DECLARE_FACTORY_ENTRIES(TkrRecon)
     DECLARE_TOOL(      TkrHitTruncationTool    );
     DECLARE_TOOL(      TkrCalFilterTool        );
     DECLARE_TOOL(      TkrFilterTool           );
+    DECLARE_TOOL(      TkrVecPointsFilterTool  );
     DECLARE_TOOL(      TreeBasedTool           );   // added 27-Oct-2010 LSR
 
 //    DECLARE_TOOL(      TkrComboFitTool         );

@@ -5,23 +5,25 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.2 2010/11/02 20:42:09 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.3 2010/11/24 16:39:06 usher Exp $
  *
 */
 
 #include "TkrVecNodesBuilder.h"
 #include "Event/TopLevel/EventModel.h"
+#include "GaudiKernel/SmartDataPtr.h"
 
 #include <iterator>
 
-TkrVecNodesBuilder::TkrVecNodesBuilder(TkrVecPointsBuilder&     vecPointsBuilder,
-                                       TkrVecPointLinksBuilder& vecPointLinksBldr,
+TkrVecNodesBuilder::TkrVecNodesBuilder(TkrVecPointLinksBuilder& vecPointLinksBldr,
                                        IDataProviderSvc*        dataSvc, 
                                        ITkrGeometrySvc*         geoSvc)
-                        : m_vecPointsBldr(vecPointsBuilder),
-                          m_vecPointLinksBldr(vecPointLinksBldr),
+                        : m_vecPointLinksBldr(vecPointLinksBldr),
                           m_tkrGeom(geoSvc)
 {
+    // Retrieve the TkrVecPointInfo object from the TDS
+    m_tkrVecPointInfo = SmartDataPtr<Event::TkrVecPointInfo>(dataSvc, EventModel::TkrRecon::TkrVecPointInfo);
+
     // String for lookup in TDS
     static std::string tkrVecNodeCol = "/Event/TkrRecon/TkrVecNodeCol";
 
@@ -81,35 +83,24 @@ int TkrVecNodesBuilder::buildTrackElements()
 
     headNodes.clear();
 
-    // Set up to loop over the vector of TkrVecPointLinks vectors. 
-    TkrVecPointVecVec::const_iterator stopIter = m_vecPointsBldr.getVecPoints().end();
-//    stopIter--;
-
-    // Initialize the iterator over bilayers to the beginning of the collection
-    TkrVecPointVecVec::const_iterator firstPointVecItr = m_vecPointsBldr.getVecPoints().begin();
-
     // Start your engines! 
-    while(firstPointVecItr != stopIter)
+    for(Event::TkrLyrToVecPointItrMap::reverse_iterator vecPointLyrItr  = m_tkrVecPointInfo->getLyrToVecPointItrMap()->rbegin();
+                                                        vecPointLyrItr != m_tkrVecPointInfo->getLyrToVecPointItrMap()->rend();
+                                                        vecPointLyrItr++)
     {
-        // Make sure we have something in this layer to search with
-        if (!(*firstPointVecItr).empty())
+        Event::TkrVecPointItrPair& vecPointLyrPair = vecPointLyrItr->second;
+
+        // Loop over TkrVecPoints in this layer
+        for(Event::TkrVecPointColPtr tkrVecPointItr  = vecPointLyrPair.first; 
+                                     tkrVecPointItr != vecPointLyrPair.second; 
+                                     tkrVecPointItr++)
         {
-            // de-reference to get the vector of TkrVecPoints at this bilayer
-            const TkrVecPointVec& firstPoints  = *firstPointVecItr;
+            // Get the TkrVecPoint
+            const Event::TkrVecPoint* firstPoint = *tkrVecPointItr;
 
-            // Loop through this vector
-            for (TkrVecPointVec::const_iterator frstItr = firstPoints.begin(); frstItr != firstPoints.end(); frstItr++)
-            {
-                // Get the TkrVecPoint
-                const Event::TkrVecPoint* firstPoint = *frstItr;
-
-                // Associate links from this point to trees
-                associateLinksToTrees(headNodes, firstPoint);
-            }
+            // Associate links from this point to trees
+            associateLinksToTrees(headNodes, firstPoint);
         }
-
-        // bump the pointer
-        firstPointVecItr++;
     }
 
     // Make a pass through to transfer the "good" head nodes to the TDS
