@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrVecPointsFilterTool.cxx,v 1.0 2009/10/05 22:59:58 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrVecPointsFilterTool.cxx,v 1.1 2010/12/16 20:44:46 usher Exp $
  */
 
 // to turn one debug variables
@@ -402,7 +402,10 @@ void TkrVecPointsFilterTool::groupTkrVecPoints(Event::TkrVecPointCol* tkrVecPoin
     MinSpanTreeNodeLists mstNodeLists;
 
     // Group the hits in this bilayer
-    int numNodesInList = getTkrVecPointMST(tkrVecPointCol->begin(), tkrVecPointCol->end(), mstNodeLists);
+    Event::TkrVecPointColPtr vecPointBegin = tkrVecPointCol->begin();
+    Event::TkrVecPointColPtr vecPointEnd   = tkrVecPointCol->end();
+
+    int numNodesInList = getTkrVecPointMST(vecPointBegin, vecPointEnd , mstNodeLists);
 
     // If there are no nodes in the list then no hits in this bilayer 
     if (numNodesInList > 0)
