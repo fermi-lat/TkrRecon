@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Dec 17 13:23:58 PST 2010
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointsBuilder.cxx 
+Log Message:
+Fix conceptual detail in number of skipped layers to include
+    *
+------------------------------------------------------------
 User: usher  Fri Dec 17 08:41:04 PST 2010
 TkrRecon/src/Filter
 
