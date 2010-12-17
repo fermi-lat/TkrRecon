@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointsBuilder.cxx,v 1.5 2010/11/01 16:45:00 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointsBuilder.cxx,v 1.6 2010/12/16 20:44:46 usher Exp $
  *
 */
 
@@ -35,10 +35,10 @@ TkrVecPointsBuilder::TkrVecPointsBuilder(int                    numSkippedLayers
     m_lyrToVecPointsMap = new Event::TkrLyrToVecPointItrMap();
 
     // Keep track of some statistics while going through here
-    std::vector<int> biLayerVecCountVec(m_geoSvc->numLayers() + numSkippedLayers);
+    std::vector<int> biLayerVecCountVec(m_geoSvc->numLayers() + numSkippedLayers + 1);
 
     // First initialize it so we have all the layers
-    for(int biLayer = 0; biLayer < m_geoSvc->numLayers() + numSkippedLayers; biLayer++)
+    for(int biLayer = 0; biLayer < m_geoSvc->numLayers() + numSkippedLayers + 1; biLayer++)
     {
         (*m_lyrToVecPointsMap)[biLayer] = TkrVecPointItrPair(tkrVecPointCol->begin(), tkrVecPointCol->begin());
         biLayerVecCountVec[biLayer]     = 0;
@@ -110,7 +110,7 @@ TkrVecPointsBuilder::TkrVecPointsBuilder(int                    numSkippedLayers
         if (numVecPointsThisBiLayer > 0) m_numBiLayersWVecPoints++;
 
         // number nearest links depends on how many layers we can skip
-        for(int skipIdx = 1; skipIdx <= numSkippedLayers; skipIdx++)
+        for(int skipIdx = 1; skipIdx <= numSkippedLayers + 1; skipIdx++)
         {
             m_maxNumLinkCombinations += numVecPointsThisBiLayer * biLayerVecCountVec[biLayer+skipIdx];
         }
