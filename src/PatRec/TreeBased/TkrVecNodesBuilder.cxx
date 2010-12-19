@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.3 2010/11/24 16:39:06 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.4 2010/12/16 20:44:45 usher Exp $
  *
 */
 
@@ -57,7 +57,7 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(TkrVecPointLinksBuilder& vecPointLinksBld
     {
         m_qSumDispAttachCut  *= 10.;
         m_bestqSumDispCut    *= 10.;
-        m_bestAngleToNodeCut *= 10.;
+//        m_bestAngleToNodeCut *= 10.;
     }
 
     return;
