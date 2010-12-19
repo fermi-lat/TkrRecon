@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/LinkAndTree/LinkAndTreeFindTrackTool.cxx,v 1.14 2005/05/11 04:14:32 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/LinkAndTree/LinkAndTreeFindTrackTool.cxx,v 1.15 2005/05/26 20:33:03 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the Link and Tree approach
@@ -55,7 +55,7 @@ StatusCode LinkAndTreeFindTrackTool::findTracks()
     //If clusters, then retrieve estimate for the energy
     if (pCalClusters)
     {
-        CalEnergy   = pCalClusters->front()->getCalParams().getEnergy(); 
+        CalEnergy   = pCalClusters->front()->getMomParams().getEnergy(); 
         CalPosition = pCalClusters->front()->getPosition();
     }
 
