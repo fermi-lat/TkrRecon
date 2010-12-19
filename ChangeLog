@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sun Dec 19 10:37:00 PST 2010
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrVecNodesBuilder.cxx 
+Log Message:
+Be less aggressive in opening cuts when few links
+    *
+------------------------------------------------------------
 User: usher  Sun Dec 19 10:35:17 PST 2010
 TkrRecon/src/PatRec/VectorLinks
 
