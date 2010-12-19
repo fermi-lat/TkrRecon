@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sun Dec 19 10:35:17 PST 2010
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointsBuilder.cxx 
+Log Message:
+Probably inconsequential change but get "last" iterator when inserting into list.
+    *
+------------------------------------------------------------
 User: lbaldini  Sun Dec 19 09:30:34 PST 2010
 TkrRecon/src/PatRec/NeuralNet
 
