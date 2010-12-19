@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: lbaldini  Sun Dec 19 09:30:34 PST 2010
+TkrRecon/src/PatRec/NeuralNet
+
+Modified Files:
+	NeuralNetFindTrackTool.cxx 
+Log Message:
+Modifications for the new container CalMomParams.
+    *
+------------------------------------------------------------
+User: lbaldini  Sun Dec 19 09:30:34 PST 2010
 TkrRecon/src/PatRec/MonteCarlo
 
 Modified Files:
