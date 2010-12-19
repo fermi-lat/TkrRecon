@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.30 2006/03/21 01:12:36 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.31 2009/10/05 22:59:59 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -172,7 +172,7 @@ StatusCode MonteCarloFindTrackTool::findTracks()
     // If clusters, then retrieve estimate for the energy & centroid
     if (pCalClusters) 
     {
-        if (pCalClusters->size() > 0) CalEnergy = pCalClusters->front()->getCalParams().getEnergy(); 
+        if (pCalClusters->size() > 0) CalEnergy = pCalClusters->front()->getMomParams().getEnergy(); 
     }
 
     // Set the first track energy (same as done for "standard" pat rec)
