@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointsBuilder.cxx,v 1.6 2010/12/16 20:44:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointsBuilder.cxx,v 1.7 2010/12/17 21:23:57 usher Exp $
  *
 */
 
@@ -76,15 +76,15 @@ TkrVecPointsBuilder::TkrVecPointsBuilder(int                    numSkippedLayers
                 if(clX->tower() != clY->tower()) continue;
 
                 Event::TkrVecPoint* tkrVecPoint = new Event::TkrVecPoint(curBiLayer, clX, clY);
-                tkrVecPointCol->push_back(tkrVecPoint);
+                Event::TkrVecPointColPtr lastElemItr = tkrVecPointCol->insert(tkrVecPointCol->end(), tkrVecPoint);
 
                 // Increment counter
                 numVecPointsThisBiLayer++;
 
                 if (curBiLayer != lastBiLayer)
                 {
-                    Event::TkrVecPointColPtr lastElemItr = tkrVecPointCol->end();
-                    lastElemItr--;
+                    //Event::TkrVecPointColPtr lastElemItr = tkrVecPointCol->end();
+                    //lastElemItr--;
 
                     // update the end point of the previous bilayer
                     if (lastBiLayer > 0) (*m_lyrToVecPointsMap)[lastBiLayer].second = lastElemItr;
