@@ -3,8 +3,8 @@
 
 #include "MinSpanTree.h"
 
-MinSpanTree::MinSpanTree(MinSpanTreeObjectToObjectDistMap& objToObjDistMap, const ITkrGeometrySvc* tkrGeo) : 
-                         m_objToObjDistMap(objToObjDistMap), m_tkrGeom(tkrGeo)
+MinSpanTree::MinSpanTree(MSTObjectVec& mstObjectVec, const ITkrGeometrySvc* tkrGeo) : 
+                         m_tkrGeom(tkrGeo)
 {
     // Set up control
     m_control = TkrControl::getPtr();
@@ -13,7 +13,7 @@ MinSpanTree::MinSpanTree(MinSpanTreeObjectToObjectDistMap& objToObjDistMap, cons
     m_ownedNodeList.clear();
 
     // Set the input node list
-    setInputNodeList();
+    setInputNodeList(mstObjectVec);
 
     // Run the Minimum Spanning Tree algorithm
     runPrimsAlgorithm();
@@ -33,19 +33,56 @@ MinSpanTree::~MinSpanTree()
     return;
 }
 
-void MinSpanTree::setInputNodeList()
+void MinSpanTree::setInputNodeList(MSTObjectVec& mstObjectVec)
 {
     //Since we are making a new list, clear the existing one
     m_inputNodeList.clear();
     m_objectToNodeMap.clear();
 
+    // Build the adjacency list for all the TkrVecPoints in the list we are handed
+    for(MSTObjectVec::iterator firstPtItr = mstObjectVec.begin(); firstPtItr != mstObjectVec.end(); firstPtItr++)
+    {
+        // Pointer to the first MST Object
+        IMSTObject* firstPoint = *firstPtItr;
+
+        // Loop through all combinations, including self, to be sure to include isolated points
+        for(MSTObjectVec::iterator scndPtItr = firstPtItr; scndPtItr != mstObjectVec.end(); scndPtItr++)
+        {
+            // Pointer to the second MST Object
+            IMSTObject* scndPoint = *scndPtItr;
+
+            // For 3-D running, don't allow too many layers to be skipped
+            int deltaLayers = abs(firstPoint->getBiLayer() - scndPoint->getBiLayer());
+
+            if (deltaLayers > 3) continue;
+
+            // How far apart?
+            double dBtwnPoints = firstPoint->getDistanceTo(*scndPoint);
+
+            // Instead of Euclidean metric, try the Manhatten distance
+            double diffX = firstPoint->getPosition().x() - scndPoint->getPosition().x();
+            double diffY = firstPoint->getPosition().y() - scndPoint->getPosition().y();
+            double diffZ = firstPoint->getPosition().z() - scndPoint->getPosition().z();
+
+            if (diffZ == 0.) dBtwnPoints = fabs(diffX) + fabs(diffY) + fabs(diffZ);
+
+            // Silly to try to connect points if crossing an entire tower
+//            if (dBtwnPoints > m_tkrGeom->towerPitch()) continue;
+            if (dBtwnPoints > sqrt(2.) * m_tkrGeom->towerPitch()) continue;
+            
+            m_objToObjDistMap[firstPoint][scndPoint] = dBtwnPoints;
+            m_objToObjDistMap[scndPoint][firstPoint] = dBtwnPoints;
+        }
+    }
+
+
     // Go through input map and set up our input list of nodes
-    for(MinSpanTreeObjectToObjectDistMap::iterator mapItr  = m_objToObjDistMap.begin();
+    for(MSTObjectToObjectDistMap::iterator mapItr  = m_objToObjDistMap.begin();
                                                    mapItr != m_objToObjDistMap.end();
                                                    mapItr++)
     {
-        const IMinSpanTreeObject* inputObject = mapItr->first;
-        MinSpanTreeNode*          node        = new MinSpanTreeNode(inputObject);
+        const IMSTObject* inputObject = mapItr->first;
+        MinSpanTreeNode*  node        = new MinSpanTreeNode(inputObject);
 
         m_objectToNodeMap[inputObject] = node;
         m_inputNodeList.push_back(node);
@@ -81,13 +118,13 @@ int  MinSpanTree::runPrimsAlgorithm()
     while(m_outputNodeList.size() < m_inputNodeList.size())
     {
         // Add the nodes adjacent to the lastUsedNode and update their parent/distance info
-        MinSpanTreeObjectDistMap& lastUsedMap = m_objToObjDistMap[lastUsedNode->getPoint()];
+        MSTObjectDistMap& lastUsedMap = m_objToObjDistMap[lastUsedNode->getPoint()];
 
-        for(MinSpanTreeObjectDistMap::iterator lastUsedItr  = lastUsedMap.begin(); 
+        for(MSTObjectDistMap::iterator lastUsedItr  = lastUsedMap.begin(); 
                                                lastUsedItr != lastUsedMap.end(); 
                                                lastUsedItr++)
         {
-            const IMinSpanTreeObject* object = lastUsedItr->first;
+            const IMSTObject* object = lastUsedItr->first;
 
             // Skip the self-reference in the map
             if (object == lastUsedNode->getPoint()) continue;
