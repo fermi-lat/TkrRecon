@@ -5,60 +5,37 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/MinSpanTree.h,v 1.0 2009/10/05 22:59:59 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/MinSpanTree.h,v 1.1 2010/12/16 20:44:46 usher Exp $
  */
 
 #ifndef MinSpanTree_h
 #define MinSpanTree_h
 
+#include "IMSTObject.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "src/Track/TkrControl.h"
-
-// Define an interface class so we can operate on several different kinds of objects
-class IMinSpanTreeObject
-{
-public:
-    // Our object must be able to return the bilayer it is associated with
-    virtual const int    getBiLayer()  const = 0;
-    // And, of course, our object must be able to return its position
-    virtual const Point& getPosition() const = 0;
-};
-
-// Some typedefs which enable one to define the adjacency list for the above
-typedef std::pair<const IMinSpanTreeObject*, const IMinSpanTreeObject*>    MinSpanTreeObjectPair;
-typedef std::pair<MinSpanTreeObjectPair, double>                           MinSpanTreeObjectDistPair;
-typedef std::map<MinSpanTreeObjectPair, double>                            MinSpanTreeObjectToDistMap;
-typedef std::list<MinSpanTreeObjectDistPair >                              MinSpanTreeList;
-
-typedef std::pair<const IMinSpanTreeObject*, double>                       MinSpanTreeObjectToDistPair;
-typedef std::pair<const IMinSpanTreeObject*, MinSpanTreeObjectToDistPair > MinSpanTreeObjectToObjectToDistPair;
-typedef std::map<const IMinSpanTreeObject*, double>                        MinSpanTreeObjectDistMap;
-typedef std::map<const IMinSpanTreeObject*, MinSpanTreeObjectDistMap >     MinSpanTreeObjectToObjectDistMap;
-
-// More useful stuff
-typedef std::set<const IMinSpanTreeObject*>                                MinSpanTreeObjectSet;
 
 class MinSpanTreeNode
 {
 public:
-    MinSpanTreeNode(const IMinSpanTreeObject* point) : 
+    MinSpanTreeNode(const IMSTObject* point) : 
         m_point(point), m_parent(0), m_distToParent(100000.) {}
    ~MinSpanTreeNode() {}
 
-    void setParent(const IMinSpanTreeObject* parent) {m_parent       = parent;}
-    void setDistToParent(double distance)            {m_distToParent = distance;}
+    void setParent(const IMSTObject* parent)  {m_parent       = parent;}
+    void setDistToParent(double distance)     {m_distToParent = distance;}
 
-    const IMinSpanTreeObject* getPoint()        const {return m_point;}
-    const IMinSpanTreeObject* getParent()       const {return m_parent;}
-    const double              getDistToParent() const {return m_distToParent;}
+    const IMSTObject* getPoint()        const {return m_point;}
+    const IMSTObject* getParent()       const {return m_parent;}
+    const double      getDistToParent() const {return m_distToParent;}
 private:
-    const IMinSpanTreeObject* m_point;
-    const IMinSpanTreeObject* m_parent;
-    double                    m_distToParent;
+    const IMSTObject* m_point;
+    const IMSTObject* m_parent;
+    double            m_distToParent;
 };
 
-// We will need to this to go from IminSpanTreeObjects to nodes
-typedef std::map<const IMinSpanTreeObject*, MinSpanTreeNode*> MinSpanTreeObjectToNodeMap;
+// We will need to this to go from IMSTObjects to nodes
+typedef std::map<const IMSTObject*, MinSpanTreeNode*> MSTObjectToNodeMap;
 
 class MinSpanTreeNodeList : public std::list<MinSpanTreeNode*>
 {
@@ -94,13 +71,13 @@ class MinSpanTree
 {
 public:
     // Constructors
-    MinSpanTree(MinSpanTreeObjectToObjectDistMap& objToObjDistMap, const ITkrGeometrySvc* tkrGeo);
+    MinSpanTree(MSTObjectVec& mstObjectVec, const ITkrGeometrySvc* tkrGeo);
 
     ~MinSpanTree();
 
     // Initialization of inputNodeList can be accessed externally for case of 
     // re-setting in the event of "isolated" nodes
-    void setInputNodeList();
+    void setInputNodeList(MSTObjectVec& mstObjectVec);
 
     // Running of the Minimum Spanning Tree algorithm can also be externally accessed
     int  runPrimsAlgorithm();
@@ -110,22 +87,22 @@ public:
 
 private:
     /// Keep track of the input map
-    MinSpanTreeObjectToObjectDistMap& m_objToObjDistMap;
+    MSTObjectToObjectDistMap m_objToObjDistMap;
 
     /// The original list of nodes
-    MinSpanTreeNodeList               m_inputNodeList;
+    MinSpanTreeNodeList      m_inputNodeList;
 
-    /// A mapping between IMinSpanTreeObjects and MinSpanTreeNodes
-    MinSpanTreeObjectToNodeMap        m_objectToNodeMap;
+    /// A mapping between IMSTObjects and MinSpanTreeNodes
+    MSTObjectToNodeMap       m_objectToNodeMap;
 
     /// The output list of nodes related by the MST
-    MinSpanTreeNodeList               m_outputNodeList;
+    MinSpanTreeNodeList      m_outputNodeList;
 
     /// Keep track of all nodes owned by this object
-    MinSpanTreeNodeList               m_ownedNodeList;
+    MinSpanTreeNodeList      m_ownedNodeList;
 
-    const ITkrGeometrySvc*            m_tkrGeom;
-    TkrControl*                       m_control;
+    const ITkrGeometrySvc*   m_tkrGeom;
+    TkrControl*              m_control;
 };
 
 #endif
