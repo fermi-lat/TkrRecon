@@ -1,14 +1,4 @@
 ------------------------------------------------------------
-User: usher  Tue Jan  4 14:37:26 PST 2011
-TkrRecon/src/Filter
-
-Modified Files:
-	MinSpanTree.cxx MinSpanTree.h TkrVecPointsFilterTool.cxx 
-Added Files:
-	ClusterAnalysis.cxx ClusterAnalysis.h IMSTObject.h 
-Log Message:
-    *
-------------------------------------------------------------
 User: usher  Sun Dec 19 10:37:00 PST 2010
 TkrRecon/src/PatRec/TreeBased
 
