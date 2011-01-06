@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Thu Jan  6 12:12:37 PST 2011
+TkrRecon/src/test
+
+Modified Files:
+	jobOptions.txt 
+Log Message:
+Fix for SCons
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-22-00, operation: add
 Package: TkrRecon
