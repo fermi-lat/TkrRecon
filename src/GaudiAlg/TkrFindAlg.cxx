@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.25 2010/11/05 15:32:59 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.26 2010/12/06 21:11:26 lsrea Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -46,7 +46,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.25 2010/11/05 15:32:59 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.26 2010/12/06 21:11:26 lsrea Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -236,7 +236,7 @@ StatusCode TkrFindAlg::execute()
         AlgTool* findCRAlgTool = dynamic_cast<AlgTool*>(m_CRFindTool);    
 
         findCRAlgTool->setProperty("PatrecMode", "CosmicRay");
-        sc = m_findTool->findTracks();
+        sc = m_CRFindTool->findTracks();
     }
     
     // now set TkrQueryClustersTool to return only non-ghost tracks, and do normal patrec

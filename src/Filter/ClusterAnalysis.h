@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/ClusterAnalysis.h,v 1.0 2010/12/16 20:44:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/ClusterAnalysis.h,v 1.1 2011/01/04 22:37:26 usher Exp $
  */
 
 #ifndef ClusterAnalysis_h
@@ -25,6 +25,7 @@ public:
         Cluster() : m_biLayer(0),
                     m_numDaughters(0),
                     m_position(Point(0.,0.,0.)), 
+                    m_distBtwnDaughters(0.),
                     m_aveClusterSep(0.), 
                     m_parent(0), 
                     m_daughter1(0), 
@@ -36,11 +37,13 @@ public:
                 const Cluster* daughter1, 
                 const Cluster* daughter2, 
                 const Point&   position, 
+                double dist,
                 double sep,
                 double (*distTo)(const Cluster* cluster, const IMSTObject& nextObj)) 
                   : m_biLayer(biLayer),
                     m_numDaughters(nDaughters),
                     m_position(position), 
+                    m_distBtwnDaughters(dist),
                     m_aveClusterSep(sep), 
                     m_parent(parent), 
                     m_daughter1(daughter1), 
@@ -49,13 +52,14 @@ public:
         {}
        ~Cluster() {}
 
-        void setParent(const Cluster* parent)      {m_parent        = parent;}
-        void setDaughter1(const Cluster* daughter) {m_daughter1     = daughter;}
-        void setDaughter2(const Cluster* daughter) {m_daughter2     = daughter;}
-        void setBiLayer(const int biLayer)         {m_biLayer       = biLayer;}
-        void setNumDaughters(const int nDaughters) {m_numDaughters  = nDaughters;}
-        void setPosition(const Point& position)    {m_position      = position;}
-        void setAveClusterSep(double sep)          {m_aveClusterSep = sep;}
+        void setParent(const Cluster* parent)      {m_parent            = parent;}
+        void setDaughter1(const Cluster* daughter) {m_daughter1         = daughter;}
+        void setDaughter2(const Cluster* daughter) {m_daughter2         = daughter;}
+        void setBiLayer(const int biLayer)         {m_biLayer           = biLayer;}
+        void setNumDaughters(const int nDaughters) {m_numDaughters      = nDaughters;}
+        void setPosition(const Point& position)    {m_position          = position;}
+        void setDistBtwnDaughters(double dist)     {m_distBtwnDaughters = dist;}
+        void setAveClusterSep(double sep)          {m_aveClusterSep     = sep;}
 
         void setDistFunc(double (*distTo)(const Cluster* cluster, const IMSTObject& nextObj)) {m_distTo = distTo;}
 
@@ -66,6 +70,7 @@ public:
         const Cluster* getDaughter1()                   const {return m_daughter1;}
         const Cluster* getDaughter2()                   const {return m_daughter2;}
         const double   getDistanceTo(const IMSTObject&) const;
+        const double   getDistBtwnDaughters()           const {return m_distBtwnDaughters;}
         const double   getAveClusterSep()               const {return m_aveClusterSep;}
     private:
         // Function for determining the "distance" to another object
@@ -75,6 +80,7 @@ public:
         int            m_biLayer;
         int            m_numDaughters;
         Point          m_position;
+        double         m_distBtwnDaughters;
         double         m_aveClusterSep;
         const Cluster* m_parent;
         const Cluster* m_daughter1;
@@ -111,8 +117,11 @@ public:
     // Running of the Minimum Spanning Tree algorithm can also be externally accessed
     int  runSingleLinkage();
 
+    // Use this to split clusters, if necessary
+    int  splitClusters(double scaleFactor = 3., double minValue = 50.);
+
     // Give access to the results
-    const Cluster* getDendoGraph() const {return m_topCluster;}
+    const ClusterList& getClusterList() const {return m_topCluster;}
 
     // Give access to mapping from clusters to IMSTObjects
     const ClusterToMstObjectMap& getClusterToMstObjectMap() const {return m_clusToObjMap;}
@@ -138,7 +147,7 @@ private:
     ClusterVec               m_clusterVec;
 
     /// The top cluster in our resulting dendograph
-    Cluster*                  m_topCluster;
+    ClusterList              m_topCluster;
 
     const ITkrGeometrySvc*    m_tkrGeom;
     TkrControl*               m_control;

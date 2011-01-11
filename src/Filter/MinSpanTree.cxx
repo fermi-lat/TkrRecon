@@ -121,8 +121,8 @@ int  MinSpanTree::runPrimsAlgorithm()
         MSTObjectDistMap& lastUsedMap = m_objToObjDistMap[lastUsedNode->getPoint()];
 
         for(MSTObjectDistMap::iterator lastUsedItr  = lastUsedMap.begin(); 
-                                               lastUsedItr != lastUsedMap.end(); 
-                                               lastUsedItr++)
+                                       lastUsedItr != lastUsedMap.end(); 
+                                       lastUsedItr++)
         {
             const IMSTObject* object = lastUsedItr->first;
 
