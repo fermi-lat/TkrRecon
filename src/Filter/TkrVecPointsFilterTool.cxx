@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrVecPointsFilterTool.cxx,v 1.2 2010/12/17 16:41:04 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrVecPointsFilterTool.cxx,v 1.3 2011/01/04 22:37:26 usher Exp $
  */
 
 // to turn one debug variables
@@ -30,6 +30,7 @@
 #include "Event/Recon/TkrRecon/TkrVecPointInfo.h"
 #include "Event/Recon/TkrRecon/TkrBoundBox.h"
 #include "Event/Recon/TkrRecon/TkrBoundBoxPoints.h"
+#include "Event/Recon/TkrRecon/TkrBoundBoxLinks.h"
 #include "Event/Recon/CalRecon/CalEventEnergy.h"
 #include "Event/Recon/CalRecon/CalCluster.h"
 #include "Event/TopLevel/EventModel.h"
@@ -100,20 +101,20 @@ private:
     void groupTkrVecPoints(Event::TkrVecPointCol* tkrVecPointCol);
 
     /// Form the bounding boxes around our groups of hits
-    int makeBoundingBoxes(const ClusterAnalysis::Cluster* topCluster);
+    typedef std::list<Event::TkrBoundBoxLink*>  BBLinksList;
+    int makeBoundingBoxes(const MinSpanTreeNodeList& nodeList, BBLinksList& linksList);
 
     /// Clear the containers we use per event
     void clearContainers();
 
     /// Given a cluster, fill the layer to cluster map
     typedef std::list<Event::TkrBoundBoxPoint*> BBPointsList;
-    typedef std::map<int, BBPointsList >        LayerToBBPointsListMap;
-    Event::TkrBoundBoxPoint* fillLayerToClusterMap(const ClusterAnalysis::Cluster* topCluster, 
-                                                   Event::TkrBoundBoxPoint*        parent,
-                                                   LayerToBBPointsListMap&         layerToPointsListMap);
+    Event::TkrBoundBoxPoint* makeBoundBoxPoints(const ClusterAnalysis::Cluster* topCluster, 
+                                                Event::TkrBoundBoxPoint*        parent,
+                                                BBPointsList&                   pointsList);
 
     /// Take our boxes and run the moments analysis
-    int doMomentsAnalysis(Event::TkrEventParams* tkrEventParams);
+    int doMomentsAnalysis(BBLinksList& topLink);
 
     /// Pointer to the local Tracker geometry service and IPropagator
     ITkrGeometrySvc*                        m_tkrGeom;
@@ -137,16 +138,11 @@ private:
 
     /// Pointers to TDS output... these collections are meant to always
     /// be there, done in main calling loop
-    Event::TkrBoundBoxCol*                  m_tkrBoundBoxCol;
-    Event::TkrBoundBoxPointsCol*            m_tkrBoundBoxPointsCol;
-    Event::TkrFilterParamsCol*              m_tkrFilterParamsCol;
-    Event::TkrFilterParamsToBoxTabList*     m_tkrFilterParamsToBoxTabList;
-    Event::TkrFilterParamsToPointsTabList*  m_tkrFilterParamsToPointsTabList;
-
-    typedef std::list<Event::TkrBoundBox*>                BBoxList;
-    typedef std::map<Event::TkrBoundBoxPoint*, BBoxList > PointToBBoxListMap;
-
-    PointToBBoxListMap                      m_pointToBBoxListMap;
+    Event::TkrBoundBoxCol*                 m_tkrBoundBoxCol;
+    Event::TkrBoundBoxLinksCol*            m_tkrBoundBoxLinksCol;
+    Event::TkrBoundBoxPointsCol*           m_tkrBoundBoxPointsCol;
+    Event::TkrFilterParamsCol*             m_tkrFilterParamsCol;
+    Event::TkrFilterParamsToLinksTabList*  m_tkrFilterParamsToLinksTabList;
 
     /// This is useful when we try to build relations between our points and nodes
     typedef std::map<const Event::TkrVecPoint*, MinSpanTreeNode*> TkrVecPointToNodeMap;
@@ -167,9 +163,10 @@ TkrVecPointsFilterTool::TkrVecPointsFilterTool(const std::string& type,
                                        const IInterface* parent) :
                         AlgTool(type, name, parent),
                         m_tkrBoundBoxCol(0),
+                        m_tkrBoundBoxLinksCol(0),
                         m_tkrBoundBoxPointsCol(0),
                         m_tkrFilterParamsCol(0),
-                        m_tkrFilterParamsToBoxTabList(0)
+                        m_tkrFilterParamsToLinksTabList(0)
 {
     //Declare the additional interface
     declareInterface<ITkrFilterTool>(this);
@@ -218,7 +215,6 @@ void TkrVecPointsFilterTool::clearContainers()
     m_lyrToObjectVecMap.clear();
 
     m_mstNodeListsMap.clear();
-    m_pointToBBoxListMap.clear();
 
     return;
 }
@@ -298,6 +294,12 @@ StatusCode TkrVecPointsFilterTool::doFilterStep()
     if ((m_dataSvc->registerObject(EventModel::TkrRecon::TkrBoundBoxCol, m_tkrBoundBoxCol)).isFailure())
             throw TkrException("Failed to create TkrBoundBox Collection!");
 
+    // Create the bounding box links collection and store in the TDS
+    m_tkrBoundBoxLinksCol = new Event::TkrBoundBoxLinksCol();
+        
+    if ((m_dataSvc->registerObject(EventModel::TkrRecon::TkrBoundBoxLinksCol, m_tkrBoundBoxLinksCol)).isFailure())
+            throw TkrException("Failed to create TkrBoundLinksBox Collection!");
+
     // Create the bounding box points collection and store in the TDS
     m_tkrBoundBoxPointsCol = new Event::TkrBoundBoxPointsCol();
         
@@ -310,21 +312,13 @@ StatusCode TkrVecPointsFilterTool::doFilterStep()
     if ((m_dataSvc->registerObject(EventModel::TkrRecon::TkrFilterParamsCol, m_tkrFilterParamsCol)).isFailure())
             throw TkrException("Failed to create TkrFilterParams Collection!");
     
-    m_tkrFilterParamsToBoxTabList = new Event::TkrFilterParamsToBoxTabList();
+    m_tkrFilterParamsToLinksTabList = new Event::TkrFilterParamsToLinksTabList();
         
-    if ((m_dataSvc->registerObject(EventModel::TkrRecon::TkrFilterParamsToBoxTab, m_tkrFilterParamsToBoxTabList)).isFailure())
-            throw TkrException("Failed to create TkrFilterParamsToBoxTabList Collection!");
-    
-    m_tkrFilterParamsToPointsTabList = new Event::TkrFilterParamsToPointsTabList();
-        
-    if ((m_dataSvc->registerObject(EventModel::TkrRecon::TkrFilterParamsToPointsTab, m_tkrFilterParamsToPointsTabList)).isFailure())
-            throw TkrException("Failed to create TkrFilterParamsToPointsTabList Collection!");
+    if ((m_dataSvc->registerObject(EventModel::TkrRecon::TkrFilterParamsToLinksTab, m_tkrFilterParamsToLinksTabList)).isFailure())
+            throw TkrException("Failed to create TkrFilterParamsToLinksTabList Collection!");
 
     // Step #3 is to use our mst inspired algorithm to group the TkrVecPoints per bilayer
     groupTkrVecPoints(tkrVecPointCol);
-
-    // Ok, off we go to the races! 
-    doMomentsAnalysis(tkrEventParams);
 
     // Don't forget to cleanup before leaving!
     clearContainers();
@@ -387,6 +381,14 @@ Event::TkrEventParams* TkrVecPointsFilterTool::setDefaultValues()
     return tkrEventParams;
 }
 
+// Use this in sorting our vector of clusters to feed to the MST to put the highest first
+bool compareClusterPositions(const IMSTObject* left, const IMSTObject* right)
+{
+  if (left->getBiLayer() > right->getBiLayer()) return true;
+
+  return false;
+}
+
 // Use this in sorting our BBoxLists to insure the "longest" is first
 bool compareMinSpanTreeNodeLists(MinSpanTreeNodeList& first, MinSpanTreeNodeList& second)
 {
@@ -419,15 +421,24 @@ void TkrVecPointsFilterTool::groupTkrVecPoints(Event::TkrVecPointCol* tkrVecPoin
     MSTObjectVec topClusterVec;
 
     // Loop through the map building clusters for each bilayer
+    // Note that map ordering will mean we start at the lowest bilayer and work towards the highest
     for(LyrToObjectVecMap::iterator mapItr  = m_lyrToObjectVecMap.begin(); 
                                     mapItr != m_lyrToObjectVecMap.end();
                                     mapItr++)
     {
         // Feed the list of point objects for the given bilayer to the cluster analysis
-        m_lyrToClusterMap[mapItr->first] = new ClusterAnalysis(mapItr->second, pointToPointDistance, m_tkrGeom);
+        ClusterAnalysis* clusterAnalysis = new ClusterAnalysis(mapItr->second, pointToPointDistance, m_tkrGeom);
+
+        // Split the clusters if necessary
+        int numClusters = clusterAnalysis->splitClusters();
 
         // Did we get something?
-        const IMSTObject* topCluster = m_lyrToClusterMap[mapItr->first]->getDendoGraph();
+        const IMSTObject* topCluster = 0;
+        
+        if (!clusterAnalysis->getClusterList().empty()) topCluster = clusterAnalysis->getClusterList().front();
+
+        // Store the cluster making object
+        m_lyrToClusterMap[mapItr->first] = clusterAnalysis;
 
         // Use this to determine the bounding boxes for this bilayer
         if (topCluster) topClusterVec.push_back(const_cast<IMSTObject*>(topCluster));
@@ -437,24 +448,57 @@ void TkrVecPointsFilterTool::groupTkrVecPoints(Event::TkrVecPointCol* tkrVecPoin
     MinSpanTree minSpanTree(topClusterVec, m_tkrGeom);
 
     // Recover the MST
-    const MinSpanTreeNodeList& nodeList = minSpanTree.getOutputNodeList();
+    MinSpanTreeNodeLists mstNodeLists;
 
-    // Make another vector of IMSTObjects
-    MSTObjectVec nodeVec;
+    mstNodeLists.push_back(minSpanTree.getOutputNodeList());
 
-    for(std::list<MinSpanTreeNode*>::const_iterator nodeItr  = nodeList.begin();
-                                                    nodeItr != nodeList.end();
-                                                    nodeItr++)
+    // Set up to loop through any remaining, unused points
+    int numObjectsTotal = topClusterVec.size();
+    int numObjectsUsed  = mstNodeLists.back().size();
+
+    // Loop until all points are used. 
+    while(numObjectsUsed < numObjectsTotal)
     {
-        IMSTObject* mstObject = const_cast<IMSTObject*>((*nodeItr)->getPoint());
+        // First we have to prune the topClusterVec to get rid of used objects
+        for(MinSpanTreeNodeList::const_iterator nodeItr  = mstNodeLists.back().begin(); 
+                                                nodeItr != mstNodeLists.back().end();
+                                                nodeItr++)
+        {
+            const IMSTObject* obj = (*nodeItr)->getPoint();
 
-        nodeVec.push_back(mstObject);
+            int biLayer = obj->getBiLayer();
+
+            MSTObjectVec::iterator objItr = std::find(topClusterVec.begin(), topClusterVec.end(), obj);
+
+            if (objItr != topClusterVec.end()) topClusterVec.erase(objItr);
+            else
+            {
+                int ponderThisOne = 0;
+            }
+        }
+
+        // Reset the minimum spanning tree
+        minSpanTree.setInputNodeList(topClusterVec);
+
+        // Run the algorithm
+        minSpanTree.runPrimsAlgorithm();
+
+        // Store results
+        mstNodeLists.push_back(minSpanTree.getOutputNodeList());
+
+        // Update count
+        numObjectsUsed += mstNodeLists.back().size();
     }
 
-    // Cluster algorithm to just convert to a dendogram
-    ClusterAnalysis finalAnalysis(nodeVec, pointToPointDistance, m_tkrGeom);
+    // Sort if we must, put the "biggest" one at the front
+    if (mstNodeLists.size() > 1) mstNodeLists.sort(compareMinSpanTreeNodeLists);
 
-    makeBoundingBoxes(finalAnalysis.getDendoGraph());
+    BBLinksList linksList;
+
+    int numLinks = makeBoundingBoxes(mstNodeLists.front(), linksList);
+
+    // Now run the moments analysis to create a TkrFilterParams object
+    doMomentsAnalysis(linksList);
 
     return;
 }
@@ -467,99 +511,104 @@ bool compareBBoxLists(std::list<Event::TkrBoundBox*>& first, std::list<Event::Tk
   return false;
 }
 
-int TkrVecPointsFilterTool::makeBoundingBoxes(const ClusterAnalysis::Cluster* topCluster)
+int TkrVecPointsFilterTool::makeBoundingBoxes(const MinSpanTreeNodeList& nodeList, BBLinksList& linksList)
 {
     // Use this below
     static const double siStripPitch = m_tkrGeom->siStripPitch();
     static const double minBoxArea   = 16. * siStripPitch * siStripPitch;
 
-    // The incoming list of lists contains all the lists created above... but they group related
-    // hits regardless of layer. So, at the outside level we first loop over all the groups (probably one?)
-    // and take that list, break up by layer, then make the boxes for each layer.
-    // Start the outside loop
-    //for(MinSpanTreeNodeLists::iterator listsItr = mstNodeLists.begin(); listsItr != mstNodeLists.end(); listsItr++)
-    //{
-    //    MinSpanTreeNodeList& mstNodeList = *listsItr;
+    // We'll want a temporary map between nodes in our input list and the TkrBoundBoxLinks we create
+    typedef std::map<const IMSTObject*, Event::TkrBoundBoxLink*> NodeToLinkMap;
+    NodeToLinkMap nodeToLinkMap;
+
+    // The input MinSpanTreeNodeList contains the list of nodes which link together the clusters in each of
+    // the bilayers. We simply loop through this input list to build the tree of TkrBoundBoxPoints from which
+    // we can create a TkrBoundBox for each cluster. 
+    for(MinSpanTreeNodeList::const_iterator listItr = nodeList.begin(); listItr != nodeList.end(); listItr++)
+    {
+        const MinSpanTreeNode*          node       = *listItr;
+        const ClusterAnalysis::Cluster* topCluster = dynamic_cast<const ClusterAnalysis::Cluster*>(node->getPoint());
 
         // The best way to proceed here is to loop through this list and build a mapping between layers and 
         // a list in each layer. 
-        LayerToBBPointsListMap layerToPointsListMap;
+        BBPointsList pointsList;
 
-        Event::TkrBoundBoxPoint* topPoint = fillLayerToClusterMap(topCluster, 0, layerToPointsListMap);
+        Event::TkrBoundBoxPoint* topPoint = makeBoundBoxPoints(topCluster, 0, pointsList);
 
-        // Ok, now simply loop through the map, and then each of the node lists
-        for(LayerToBBPointsListMap::iterator mapIter  = layerToPointsListMap.begin();
-                                             mapIter != layerToPointsListMap.end();
-                                             mapIter++)
+        // Create the new TkrBoundBox
+        Event::TkrBoundBox* box = new Event::TkrBoundBox();
+    
+        // Things we are interested in...
+        double totNodeArea = 0.;
+        Point  averagePos  = Point(0.,0.,0.);
+        Point  lowEdge     = Point( 5000.,  5000., pointsList.front()->getPosition().z());
+        Point  highEdge    = Point(-5000., -5000., pointsList.front()->getPosition().z());
+    
+        // Loop through the individual nodes to accumulate information and add TkrVecPoints to the box
+        for(BBPointsList::iterator pointItr  = pointsList.begin();
+                                               pointItr != pointsList.end();
+                                               pointItr++)
         {
-            BBPointsList& pointsList = mapIter->second;
+            Event::TkrBoundBoxPoint* point = *pointItr;
 
-            // Create the new TkrBoundBox
-            Event::TkrBoundBox* box = new Event::TkrBoundBox();
-    
-            // Things we are interested in...
-            double totNodeArea = 0.;
-            Point  averagePos  = Point(0.,0.,0.);
-            Point  lowEdge     = Point( 5000.,  5000., pointsList.front()->getPosition().z());
-            Point  highEdge    = Point(-5000., -5000., pointsList.front()->getPosition().z());
-    
-            // Loop through the individual nodes to accumulate information and add TkrVecPoints to the box
-            for(BBPointsList::iterator pointItr  = pointsList.begin();
-                                                   pointItr != pointsList.end();
-                                                   pointItr++)
+            // Only look at points which are associated to TkrVecPoints
+            if (const Event::TkrVecPoint* vecPoint = point->getTkrVecPoint())
             {
-                Event::TkrBoundBoxPoint* point = *pointItr;
-
-                // Only look at points which are associated to TkrVecPoints
-                if (const Event::TkrVecPoint* vecPoint = point->getTkrVecPoint())
-                {
-                    Point  vecPointPos = point->getPosition();
-                    double clusSigX    = vecPoint->getXCluster()->size() * siStripPitch; // * 0.5; make 1 sigma past
-                    double clusSigY    = vecPoint->getYCluster()->size() * siStripPitch; // * 0.5;
+                Point  vecPointPos = point->getPosition();
+                double clusSigX    = vecPoint->getXCluster()->size() * siStripPitch; // * 0.5; make 1 sigma past
+                double clusSigY    = vecPoint->getYCluster()->size() * siStripPitch; // * 0.5;
     
-                    averagePos += vecPointPos;
+                averagePos += vecPointPos;
     
-                    if (vecPointPos.x() - clusSigX < lowEdge.x())  lowEdge.setX(vecPointPos.x()  - clusSigX);
-                    if (vecPointPos.y() - clusSigY < lowEdge.y())  lowEdge.setY(vecPointPos.y()  - clusSigY);
-                    if (vecPointPos.x() + clusSigX > highEdge.x()) highEdge.setX(vecPointPos.x() + clusSigX);
-                    if (vecPointPos.y() + clusSigY > highEdge.y()) highEdge.setY(vecPointPos.y() + clusSigY);
+                if (vecPointPos.x() - clusSigX < lowEdge.x())  lowEdge.setX(vecPointPos.x()  - clusSigX);
+                if (vecPointPos.y() - clusSigY < lowEdge.y())  lowEdge.setY(vecPointPos.y()  - clusSigY);
+                if (vecPointPos.x() + clusSigX > highEdge.x()) highEdge.setX(vecPointPos.x() + clusSigX);
+                if (vecPointPos.y() + clusSigY > highEdge.y()) highEdge.setY(vecPointPos.y() + clusSigY);
     
-                    totNodeArea += 4. * clusSigX * clusSigY;
+                totNodeArea += 4. * clusSigX * clusSigY;
     
-                    box->push_back(vecPoint);
-                }
+                box->push_back(vecPoint);
             }
-    
-            // Finish calculations
-            int    numPoints  = box->size();
-            double boxArea    = std::max(minBoxArea, (highEdge.x() - lowEdge.x()) * (highEdge.y() - lowEdge.y()));
-            double boxDensity = totNodeArea / boxArea;
-    
-            averagePos /= double(numPoints);
-    
-            box->setBiLayer(box->front()->getLayer());
-            box->setLowCorner(lowEdge);
-            box->setHighCorner(highEdge);
-            box->setAveragePosition(averagePos);
-            box->setHitDensity(boxDensity);
-//            box->setMeanDist(nodeList.getMeanDistance());
-//            box->setRmsDist(nodeList.getRmsDistance());
-    
-            // Add our bright shiny new box to the TDS! 
-            m_tkrBoundBoxCol->push_back(box);
-            m_pointToBBoxListMap[topPoint].push_back(box);
         }
-    //}
+    
+        // Finish calculations
+        int    numPoints  = box->size();
+        double boxArea    = std::max(minBoxArea, (highEdge.x() - lowEdge.x()) * (highEdge.y() - lowEdge.y()));
+        double boxDensity = totNodeArea / boxArea;
+    
+        averagePos /= double(numPoints);
+    
+        box->setBiLayer(box->front()->getLayer());
+        box->setLowCorner(lowEdge);
+        box->setHighCorner(highEdge);
+        box->setAveragePosition(averagePos);
+        box->setHitDensity(boxDensity);
+        box->setMeanDist(nodeList.getMeanDistance());
+        box->setRmsDist(nodeList.getRmsDistance());
 
-    // Sort the BBoxLists and we're done...
-    //m_TkrBoundBoxLists.sort(compareBBoxLists);
+        // Look up the parent link, if one exists
+        Event::TkrBoundBoxLink* parent        = 0;
+        NodeToLinkMap::iterator nodeToLinkItr = nodeToLinkMap.find(node->getParent());
 
-    return m_pointToBBoxListMap.size();
+        if (nodeToLinkItr != nodeToLinkMap.end()) parent = nodeToLinkItr->second;
+
+        // Create a link to associate these all together
+        Event::TkrBoundBoxLink* bbLink = new Event::TkrBoundBoxLink(parent, topPoint, box, averagePos, node->getDistToParent());
+
+        linksList.push_back(bbLink);
+        nodeToLinkMap[node->getPoint()] = bbLink;
+    
+        // Add our bright shiny new box to the TDS! 
+        m_tkrBoundBoxCol->push_back(box);
+        m_tkrBoundBoxLinksCol->push_back(bbLink);
+    }
+
+    return linksList.size();
 }
 
-Event::TkrBoundBoxPoint* TkrVecPointsFilterTool::fillLayerToClusterMap(const ClusterAnalysis::Cluster* topCluster, 
-                                                                       Event::TkrBoundBoxPoint*        parent,
-                                                                       LayerToBBPointsListMap&         layerToPointsListMap)
+Event::TkrBoundBoxPoint* TkrVecPointsFilterTool::makeBoundBoxPoints(const ClusterAnalysis::Cluster* topCluster, 
+                                                                    Event::TkrBoundBoxPoint*        parent,
+                                                                    BBPointsList&                   pointsList)
 {
     // Create the Bound Box point to associate to this cluster
     Event::TkrBoundBoxPoint* bbPoint = new Event::TkrBoundBoxPoint();
@@ -590,7 +639,7 @@ Event::TkrBoundBoxPoint* TkrVecPointsFilterTool::fillLayerToClusterMap(const Clu
     // Loop down left daughter path
     if (topCluster->getDaughter1()) 
     {
-        Event::TkrBoundBoxPoint* left  = fillLayerToClusterMap(topCluster->getDaughter1(), bbPoint, layerToPointsListMap);
+        Event::TkrBoundBoxPoint* left  = makeBoundBoxPoints(topCluster->getDaughter1(), bbPoint, pointsList);
 
         bbPoint->setLeft(left);
     }
@@ -598,7 +647,7 @@ Event::TkrBoundBoxPoint* TkrVecPointsFilterTool::fillLayerToClusterMap(const Clu
     // Loop down right daughter path
     if (topCluster->getDaughter2()) 
     {
-        Event::TkrBoundBoxPoint* right = fillLayerToClusterMap(topCluster->getDaughter2(), bbPoint, layerToPointsListMap);
+        Event::TkrBoundBoxPoint* right = makeBoundBoxPoints(topCluster->getDaughter2(), bbPoint, pointsList);
 
         bbPoint->setRight(right);
     }
@@ -607,135 +656,102 @@ Event::TkrBoundBoxPoint* TkrVecPointsFilterTool::fillLayerToClusterMap(const Clu
     int biLayer = topCluster->getBiLayer();
 
     // Add this cluster to the map
-    layerToPointsListMap[biLayer].push_back(bbPoint);
+    pointsList.push_back(bbPoint);
 
     // Done!
     return bbPoint;
 }
 
-int TkrVecPointsFilterTool::doMomentsAnalysis(Event::TkrEventParams* tkrEventParams)
+int TkrVecPointsFilterTool::doMomentsAnalysis(BBLinksList& linksList)
 {
-    // Use the list at the front as it will be "best"
-    for(PointToBBoxListMap::iterator pointToBoxItr  = m_pointToBBoxListMap.begin();
-                                     pointToBoxItr != m_pointToBBoxListMap.end();
-                                     pointToBoxItr++)
+    // Make sure we have enough links to do something here
+    if (linksList.size() < 2) return 0;
+
+    // Begin by building a Moments Data vector
+    TkrMomentsDataVec dataVec;
+    dataVec.clear();
+
+    // Create a new TkrFilterParams object here so we can build relational tables
+    // It will get filled down at the bottom. 
+    Event::TkrFilterParams* filterParams = new Event::TkrFilterParams();
+
+    // We will use a grand average position as starting point to moments analysis
+    Point  tkrAvePosition = Point(0.,0.,0.);
+    double sumWeights     = 0.;
+    int    lastBiLayer    = -1;
+    int    numBiLayers    = 0;
+
+    // Now go through and build the data list for the moments analysis
+    // First loop over "bilayers"
+    // Loop through the list of links
+    for(BBLinksList::iterator linksItr = linksList.begin(); linksItr != linksList.end(); linksItr++)
     {
-        // Make sure we have enough boxes to do something
-        if (pointToBoxItr->second.size() > 2)
+        Event::TkrBoundBoxLink*   link = *linksItr;
+        const Event::TkrBoundBox* box  = link->getBoundBox();
+
+        // Create a relation between this object and the top Bound Box Point
+        Event::TkrFilterParamsToLinksRel* paramsToPointsRel = 
+                        new Event::TkrFilterParamsToLinksRel(filterParams, link);
+
+        m_tkrFilterParamsToLinksTabList->push_back(paramsToPointsRel);
+
+        // Use the average position in the box 
+        const Point& avePos = box->getAveragePosition();
+        double       weight = box->getHitDensity();
+
+        // Update the grand average
+        tkrAvePosition += weight * avePos;
+        sumWeights     += weight;
+
+        // Add new point to collection
+        dataVec.push_back(TkrMomentsData(avePos, weight));
+
+        // Some accounting
+        if (lastBiLayer != box->getBiLayer())
         {
-            // De-reference the box list
-            BBoxList& boxList = pointToBoxItr->second;
-
-            // Begin by building a Moments Data vector
-            TkrMomentsDataVec dataVec;
-            dataVec.clear();
-
-            // Create a new TkrFilterParams object here so we can build relational tables
-            // It will get filled down at the bottom. 
-            Event::TkrFilterParams* filterParams = new Event::TkrFilterParams();
-
-            // Create a relation between this object and the top Bound Box Point
-            Event::TkrFilterParamsToPointsRel* paramsToPointsRel = 
-                                new Event::TkrFilterParamsToPointsRel(filterParams, pointToBoxItr->first);
-
-            m_tkrFilterParamsToPointsTabList->push_back(paramsToPointsRel);
-
-            // We will use a grand average position as starting point to moments analysis
-            Point  tkrAvePosition = Point(0.,0.,0.);
-            double sumWeights     = 0.;
-            int    lastBiLayer    = -1;
-            int    numBiLayers    = 0;
-
-            // Now go through and build the data list for the moments analysis
-            // First loop over "bilayers"
-            for(BBoxList::iterator boxIter = boxList.begin(); boxIter != boxList.end(); boxIter++)
-            {
-                // Deference box
-                Event::TkrBoundBox* box = *boxIter;
-
-                // At this point add it to the TDS
-                m_tkrBoundBoxCol->push_back(box);
-
-                // Create relation between this box and the filter params object
-                Event::TkrFilterParamsToBoxRel* paramsToBoxRel = new Event::TkrFilterParamsToBoxRel(filterParams, box);
-
-                m_tkrFilterParamsToBoxTabList->push_back(paramsToBoxRel);
-
-                // Use the average position in the box 
-                const Point& avePos = box->getAveragePosition();
-                double       weight = box->getHitDensity();
-
-                // Update the grand average
-                tkrAvePosition += weight * avePos;
-                sumWeights     += weight;
-
-                // Add new point to collection
-                dataVec.push_back(TkrMomentsData(avePos, weight));
-
-                // Some accounting
-                if (lastBiLayer != box->getBiLayer())
-                {
-                    numBiLayers++;
-                    lastBiLayer = box->getBiLayer();
-                }
-            }
-
-            // Do the average
-            tkrAvePosition /= sumWeights;
-
-            // Some statistics
-            int numIterations = 1;
-            int numTotal      = m_tkrBoundBoxCol->size();
-            int numDropped    = 0;
-
-            TkrMomentsAnalysis momentsAnalysis;
-
-            // fingers crossed! 
-            double chiSq = momentsAnalysis.doMomentsAnalysis(dataVec, tkrAvePosition);
-
-            // Retrieve the goodies
-            Point  momentsPosition = momentsAnalysis.getMomentsCentroid();
-            Vector momentsAxis     = momentsAnalysis.getMomentsAxis();
-
-            filterParams->setEventPosition(momentsPosition);
-            filterParams->setEventAxis(momentsAxis);
-            filterParams->setStatusBit(Event::TkrFilterParams::TKRPARAMS);
-            filterParams->setNumBiLayers(numBiLayers);
-            filterParams->setNumIterations(numIterations);
-            filterParams->setNumHitsTotal(numTotal);
-            filterParams->setNumDropped(numDropped);
-     
-            double rmsTrans  = momentsAnalysis.getTransverseRms();
-            double rmsLong   = momentsAnalysis.getLongAsymmetry();
-            double weightSum = momentsAnalysis.getWeightSum();
-     
-            // Scale the transverse moment
-            rmsTrans = sqrt(rmsTrans / weightSum);
-     
-            filterParams->setChiSquare(chiSq);
-            filterParams->setTransRms(rmsTrans);
-            filterParams->setLongRmsAve(rmsLong);
-
-            // Add to TDS collection
-            m_tkrFilterParamsCol->push_back(filterParams);
-
-            // Turn this off for now
-            //if (bBoxListsItr == m_TkrBoundBoxLists.begin())
-            //{
-            //    // Set the position and direction 
-            //    tkrEventParams->setEventPosition(momentsPosition);
-            //    tkrEventParams->setEventAxis(momentsAxis);
-            //    tkrEventParams->setStatusBit(Event::TkrEventParams::TKRPARAMS);
-            //    tkrEventParams->setNumBiLayers(numBiLayers);
-            //    tkrEventParams->setNumIterations(numIterations);
-            //    tkrEventParams->setNumHitsTotal(numTotal);
-            //    tkrEventParams->setNumDropped(numDropped);     
-            //    tkrEventParams->setChiSquare(chiSq);
-            //    tkrEventParams->setTransRms(rmsTrans);
-            //    tkrEventParams->setLongRmsAve(rmsLong);
-            //}
+            numBiLayers++;
+            lastBiLayer = box->getBiLayer();
         }
     }
+
+    // Do the average
+    tkrAvePosition /= sumWeights;
+
+    // Some statistics
+    int numIterations = 1;
+    int numTotal      = m_tkrBoundBoxCol->size();
+    int numDropped    = 0;
+
+    TkrMomentsAnalysis momentsAnalysis;
+
+    // fingers crossed! 
+    double chiSq = momentsAnalysis.doMomentsAnalysis(dataVec, tkrAvePosition);
+
+    // Retrieve the goodies
+    Point  momentsPosition = momentsAnalysis.getMomentsCentroid();
+    Vector momentsAxis     = momentsAnalysis.getMomentsAxis();
+
+    filterParams->setEventPosition(momentsPosition);
+    filterParams->setEventAxis(momentsAxis);
+    filterParams->setStatusBit(Event::TkrFilterParams::TKRPARAMS);
+    filterParams->setNumBiLayers(numBiLayers);
+    filterParams->setNumIterations(numIterations);
+    filterParams->setNumHitsTotal(numTotal);
+    filterParams->setNumDropped(numDropped);
+    
+    double rmsTrans  = momentsAnalysis.getTransverseRms();
+    double rmsLong   = momentsAnalysis.getLongAsymmetry();
+    double weightSum = momentsAnalysis.getWeightSum();
+    
+    // Scale the transverse moment
+    rmsTrans = sqrt(rmsTrans / weightSum);
+    
+    filterParams->setChiSquare(chiSq);
+    filterParams->setTransRms(rmsTrans);
+    filterParams->setLongRmsAve(rmsLong);
+
+    // Add to TDS collection
+    m_tkrFilterParamsCol->push_back(filterParams);
 
     return 0;
 }

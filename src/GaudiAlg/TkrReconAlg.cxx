@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.49 2010/09/27 23:24:59 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.50 2010/10/27 19:11:11 lsrea Exp $
 */
 
 
@@ -164,7 +164,7 @@ TkrReconAlg::TkrReconAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator) 
 {
     // Variable to select reconstruction type
-    declareProperty("TrackerReconType", m_TrackerReconType="Combo");
+    declareProperty("TrackerReconType", m_TrackerReconType="TreeBased");
     // the following are for testing and debugging the code
     // defaults are set correctly for standard use
 

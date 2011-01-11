@@ -97,7 +97,7 @@ void ClusterAnalysis::clearContainers()
     m_clusterVec.clear();
 
     // Now clear everything else
-    m_topCluster = 0;;
+    m_topCluster.clear();
 
     // Clear the maps
     m_objToClusMap.clear();
@@ -163,7 +163,7 @@ int  ClusterAnalysis::runSingleLinkage()
 {
     // This attempts to implement a single linkage clustering scheme
     // no result is default
-    m_topCluster = m_clusToClusMap.begin()->first;
+    Cluster* topCluster = m_clusToClusMap.begin()->first;
 
     // Infinity
     double toInfinityAndBeyond = 1000000.;
@@ -190,14 +190,14 @@ int  ClusterAnalysis::runSingleLinkage()
         }
 
         // Step 2 is to merge the results into a new cluster
-        m_topCluster = new Cluster();
+        topCluster = new Cluster();
 
-        m_clusterVec.push_back(m_topCluster);
+        m_clusterVec.push_back(topCluster);
         
-        bestPair.first->setParent(m_topCluster);
-        bestPair.second->setParent(m_topCluster);
-        m_topCluster->setDaughter1(bestPair.first);
-        m_topCluster->setDaughter2(bestPair.second);
+        bestPair.first->setParent(topCluster);
+        bestPair.second->setParent(topCluster);
+        topCluster->setDaughter1(bestPair.first);
+        topCluster->setDaughter2(bestPair.second);
 
         int numDaughters1 = bestPair.first->getNumDaughters()  + 1;
         int numDaughters2 = bestPair.second->getNumDaughters() + 1;
@@ -212,17 +212,19 @@ int  ClusterAnalysis::runSingleLinkage()
         clusPos += numDaughters2 * bestPair.second->getPosition();
         clusPos /= double(numDaughters1 + numDaughters2);
 
+        double distBtwnDaughters = pointToPointDistance(bestPair.first, *bestPair.second);
         double aveSep = numDaughters1 * bestPair.first->getAveClusterSep()
                       + numDaughters2 * bestPair.second->getAveClusterSep()
-                      + pointToPointDistance(bestPair.first, *bestPair.second);
+                      + distBtwnDaughters;
 
         aveSep /= double(numDaughters1 + numDaughters2 + 1);
 
-        m_topCluster->setBiLayer(bestPair.first->getBiLayer());
-        m_topCluster->setNumDaughters(numDaughters1 + numDaughters2);
-        m_topCluster->setPosition(clusPos);
-        m_topCluster->setAveClusterSep(aveSep);
-        m_topCluster->setDistFunc(m_distTo);
+        topCluster->setBiLayer(bestPair.first->getBiLayer());
+        topCluster->setNumDaughters(numDaughters1 + numDaughters2);
+        topCluster->setPosition(clusPos);
+        topCluster->setDistBtwnDaughters(distBtwnDaughters);
+        topCluster->setAveClusterSep(aveSep);
+        topCluster->setDistFunc(m_distTo);
 
         // Step 3 is to remove the old clusters from our distance map
         // Employ brute force yet again (so, there must be a better way)
@@ -239,13 +241,71 @@ int  ClusterAnalysis::runSingleLinkage()
         for(ClusterToClusterDistMap::iterator outItr = m_clusToClusMap.begin(); outItr != m_clusToClusMap.end(); outItr++)
         {
             Cluster* clusOld = outItr->first;
-            double   dist    = m_topCluster->getDistanceTo(*clusOld);
+            double   dist    = topCluster->getDistanceTo(*clusOld);
 
-            m_clusToClusMap[m_topCluster][clusOld] = dist;
-            m_clusToClusMap[clusOld][m_topCluster] = dist;
+            m_clusToClusMap[topCluster][clusOld] = dist;
+            m_clusToClusMap[clusOld][topCluster] = dist;
         }
     }
+
+    // Store the top cluster in the list
+    m_topCluster.insert(m_topCluster.end(), topCluster);
 
     return 1;
 }
 
+// Use this in sorting our BBoxLists to insure the "longest" is first
+bool compareClusterSizes(const ClusterAnalysis::Cluster* first, const ClusterAnalysis::Cluster* second)
+{
+    if (first->getNumDaughters() > second->getNumDaughters()) return true;
+
+    return false;
+}
+
+int ClusterAnalysis::splitClusters(double scaleFactor, double minValue)
+{
+    // Strategy for splitting is to divide and conquer until distance between clusters is less than threshold.
+    // For the threshold we scale the mean value of the separation, but with a minimum value to keep things 
+    // in perspective.
+    double threshold = scaleFactor * m_topCluster.front()->getAveClusterSep();
+
+    threshold = std::max(threshold, minValue);
+
+    bool splitEm = true;
+
+    while(splitEm)
+    {
+        // Assume this is the last time through
+        splitEm = false;
+
+        // Now loop through existing list of clusters and look for a split
+        ClusterList::iterator clusItr = m_topCluster.begin();
+
+        while(clusItr != m_topCluster.end())
+        {
+            const Cluster* cluster = *clusItr;
+
+            double distBetweenDaughters = cluster->getDistBtwnDaughters();
+
+            // If the average separation here is 
+            if (distBetweenDaughters > threshold)
+            {
+                // Add the daughters as the new top clusters
+                m_topCluster.insert(clusItr, cluster->getDaughter1());
+                m_topCluster.insert(clusItr, cluster->getDaughter2());
+
+                // Remove the current cluster from our "top" list
+                clusItr = m_topCluster.erase(clusItr);
+
+                // Maybe more splitting to do
+                splitEm = true;
+            }
+            else clusItr++;
+        }
+    }
+
+    // If more than one cluster then sort so "biggest" is first
+    if (m_topCluster.size() > 1) m_topCluster.sort(compareClusterSizes);
+
+    return m_topCluster.size();
+}
