@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Tue Jan 11 13:58:11 PST 2011
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrFindAlg.cxx TkrReconAlg.cxx 
+Log Message:
+Fix default running of Tree Based pat rec, run Combo for CR finder, modifications to the filter code
+    *
+------------------------------------------------------------
+User: usher  Tue Jan 11 13:58:11 PST 2011
 TkrRecon/src/Filter
 
 Modified Files:
