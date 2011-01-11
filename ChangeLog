@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue Jan 11 13:58:11 PST 2011
+TkrRecon/src/Filter
+
+Modified Files:
+	ClusterAnalysis.cxx ClusterAnalysis.h MinSpanTree.cxx 
+	TkrVecPointsFilterTool.cxx 
+Log Message:
+Fix default running of Tree Based pat rec, run Combo for CR finder, modifications to the filter code
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-22-01, operation: add
 Package: TkrRecon
