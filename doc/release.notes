@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-22-03 11-Jan-2011  lsrea fix to CR finding; set USEDCR bit
  TkrRecon-10-22-02 11-Jan-2011 TU Fix default pat rec, set combo for CR, updates to filter
  TkrRecon-10-22-01 06-Jan-2011  lsrea fixes for SCons
  TkrRecon-10-22-00  4-Jan-2011  TU    New MST/cluster filter, new scheme for accessing Cal params
