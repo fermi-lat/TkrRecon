@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.54 2010/10/27 19:11:12 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.55 2010/11/02 20:42:08 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -979,9 +979,16 @@ void ComboFindTrackTool::findCRCandidates()
 
     // Remove all of the hit flags so as not to affect any other pattern recognition routines
     int num_hits = m_tkrClus->size();
+    int numStandard = 0;
+    int numCR = 0;
     for(int i=0; i<num_hits; i++) {
-        (*m_tkrClus)[i]->unflag();
+        //std::cout << i << " " << std::hex << (*m_tkrClus)[i]->getStatusWord() << std::endl;
+        (*m_tkrClus)[i]->setUSEDCRBit();
+        //std::cout << i << " " << std::hex << (*m_tkrClus)[i]->getStatusWord() << std::endl;
+        //if((*m_tkrClus)[i]->getStatusWord() & Event::TkrCluster::maskUSED) numStandard++;
+        //if((*m_tkrClus)[i]->getStatusWord() & Event::TkrCluster::maskUSEDCR) numCR++;
     }
+        //std::cout << "numStd/CR " << numStandard << " " << numCR << std::endl;
 
     //  std::cout << NCRay << " cosmic ray candidates found" << std::endl;
     //  dumpCandidates();
