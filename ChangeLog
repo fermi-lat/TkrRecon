@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Tue Jan 11 16:21:33 PST 2011
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+	ComboFindTrackTool.cxx 
+Log Message:
+Fix invocation of CR finding
+Tag hits found with CR finding
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-22-02, operation: add
 Package: TkrRecon
