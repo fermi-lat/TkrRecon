@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Thu Jan 13 11:39:14 PST 2011
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+First attempt to sort out the bad interaction between TreeBased patrec and CR finding
+also... fix for test job (cmt and SCons)
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-22-03, operation: add
 Package: TkrRecon
