@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: lsrea  Thu Jan 13 11:39:15 PST 2011
+TkrRecon/src/test
+
+Modified Files:
+	jobOptions.txt 
+Log Message:
+First attempt to sort out the bad interaction between TreeBased patrec and CR finding
+also... fix for test job (cmt and SCons)
+
+    *
+------------------------------------------------------------
+User: lsrea  Thu Jan 13 11:39:15 PST 2011
 TkrRecon/src/PatRec/TreeBased
 
 Modified Files:
