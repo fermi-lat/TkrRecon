@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.7 2010/12/02 01:41:32 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.8 2010/12/02 20:53:01 usher Exp $
  *
 */
 
@@ -71,6 +71,10 @@ int TkrTreeBuilder::buildTrees(double eventEnergy)
 
     if (!tkrVecNodeCol->empty())
     {
+        Event::TkrTrackCol::iterator it;
+        it = tkrTrackCol->begin();
+        // a bit of footwork to add the tracks at the right place
+
         for(Event::TkrVecNodeColConPtr nodeItr = tkrVecNodeCol->begin(); nodeItr != tkrVecNodeCol->end(); nodeItr++)
         {
             try
@@ -90,9 +94,22 @@ int TkrTreeBuilder::buildTrees(double eventEnergy)
                     m_treeCol->push_back(tree);
 
                     // And turn ownership of the best track over to the TDS
-                    tkrTrackCol->push_back(const_cast<Event::TkrTrack*>(tree->getBestTrack()));
-
-                    if (tree->size() > 1) tkrTrackCol->push_back(tree->back());
+                    unsigned size = tkrTrackCol->size();
+                    // This is designed to add tracks to the end of the list if the list starts out empty
+                    // or just before the first existing track (CRs) otherwise
+                    // All this will go away when we move to separate collections
+                    if(size==0) {
+                        tkrTrackCol->push_back(const_cast<Event::TkrTrack*>(tree->getBestTrack()));
+                        it = tkrTrackCol->begin();
+                    } else {
+                        it = tkrTrackCol->insert(it, const_cast<Event::TkrTrack*>(tree->getBestTrack()));
+                    }
+                    it++;
+                    unsigned treeSize = tree->size();
+                    if (treeSize > 1) {
+                        it = tkrTrackCol->insert(it, tree->back());
+                        it++;
+                    }
                 }
             } 
             catch( TkrException& e )
