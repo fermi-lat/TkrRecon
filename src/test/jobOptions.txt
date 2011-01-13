@@ -22,7 +22,8 @@ ApplicationMgr.ExtSvc = {
 EventPersistencySvc.CnvServices = {"EventCnvSvc"};
 EventSelector.Input = "NONE";
 
-ParticlePropertySvc.ParticlePropertiesFile="$(TKRRECONJOBOPTIONSPATH)/test/ParticleTable.txt";
+// this doesn't work, add PARAMFILESROOT to cmt requirements
+// ParticlePropertySvc.ParticlePropertiesFile="$(TKRRECONJOBOPTIONSPATH)/test/ParticleTable.txt";
 
 // ----------------------------
 //  Geometry definition

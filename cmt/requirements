@@ -91,6 +91,7 @@ library TkrRecon  $(TkrRecon_headers)  \
 
 public 
 set JOBOPTIONS ${TKRRECONROOT}/src/test/jobOptions.txt
+set PARAMFILESROOT "${EXTFILESSYS}/gaudi"
 
 private
 application test_TkrRecon ${GuiMain} test/*.cxx ${Win32Resource}

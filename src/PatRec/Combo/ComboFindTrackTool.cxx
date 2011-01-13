@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.55 2010/11/02 20:42:08 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.56 2011/01/12 00:21:33 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -632,8 +632,8 @@ void ComboFindTrackTool::loadOutput()
         iterator hypo = begin();
         
         Event::TkrTrackCol::iterator it;
-        if(trackCol->size()==0) { it = trackCol->end(); }
-        else {it = trackCol->begin(); }
+        unsigned trackColSize = trackCol->size();
+        it = trackCol->begin(); 
         for(; hypo != end();   hypo++)
         {
             //Keep this track (but as a candidate)
@@ -641,19 +641,22 @@ void ComboFindTrackTool::loadOutput()
             //Erase Track from Candidate
             (*hypo)->nullTrackPntr();  
 
-            // Add to the TDS collection
-            // is this a Cosmicray event? if so it goes at the back
-            //  else, it goes in order at the front
-            //  (may have to rethink this eventually)
+             //Add to the TDS collection
+             //is this a Cosmicray event? if so it goes at the back
+             //else, it goes in order at the front
+             // (may have to rethink this eventually)
             if(newTrack->getStatusBits() & Event::TkrTrack::COSMICRAY) {
-
                 trackCol->push_back(newTrack);
             } else {
-                trackCol->insert(it, newTrack);
-                it++;
+                if(trackColSize==0) {
+                    trackCol->push_back(newTrack);
+                    it = trackCol->begin()++;
+                } else {
+                    it = trackCol->insert(it, newTrack);
+                    it++;
+                }
             }
-        
-
+  
             // Set the track energy status
             newTrack->setStatusBit(Event::TkrTrack::FOUND);
 
@@ -687,7 +690,11 @@ void ComboFindTrackTool::loadOutput()
                 // flag the hit
                 Event::TkrClusterPtr clus = hit->getClusterPtr();
                 if(clus!=0) {
-                    clus->flag();
+                    if(m_patrecMode!=COSMICRAY) {
+                        clus->flag();
+                    } else {
+                        clus->setUSEDCRBit();
+                    }
                 }
                 trackHitCol->push_back(hit);
             }    
@@ -982,16 +989,14 @@ void ComboFindTrackTool::findCRCandidates()
     int numStandard = 0;
     int numCR = 0;
     for(int i=0; i<num_hits; i++) {
-        //std::cout << i << " " << std::hex << (*m_tkrClus)[i]->getStatusWord() << std::endl;
-        (*m_tkrClus)[i]->setUSEDCRBit();
-        //std::cout << i << " " << std::hex << (*m_tkrClus)[i]->getStatusWord() << std::endl;
-        //if((*m_tkrClus)[i]->getStatusWord() & Event::TkrCluster::maskUSED) numStandard++;
-        //if((*m_tkrClus)[i]->getStatusWord() & Event::TkrCluster::maskUSEDCR) numCR++;
+        (*m_tkrClus)[i]->unflag();
+        //if((*m_tkrClus)[i]->isSet(Event::TkrCluster::maskUSED)) numStandard++;
+        //if((*m_tkrClus)[i]->isSet(Event::TkrCluster::maskUSEDCR)) numCR++;
     }
-        //std::cout << "numStd/CR " << numStandard << " " << numCR << std::endl;
-
-    //  std::cout << NCRay << " cosmic ray candidates found" << std::endl;
+    //std::cout << "numStd/CR " << numStandard << " " << numCR << std::endl;
+    //std::cout << NCRay << " cosmic ray candidates found" << std::endl;
     //  dumpCandidates();
+
     msgLog << MSG::DEBUG;
     if (msgLog.isActive()) msgLog << "CR search: " <<  m_candidates.size() << ", " << m_trials << " trials" 
         << m_quitCount << "quitCount";
