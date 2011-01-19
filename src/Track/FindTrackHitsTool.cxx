@@ -6,7 +6,7 @@
 * @author Tracking Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.38 2009/09/09 19:36:45 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.39 2010/12/06 21:11:27 lsrea Exp $
 */
 
 // to turn one debug variables
@@ -18,9 +18,11 @@
 #include "GaudiKernel/AlgTool.h"
 #include "GaudiKernel/GaudiException.h" 
 #include "GaudiKernel/IParticlePropertySvc.h"
+
 #include "TkrRecon/Track/IFindTrackHitsTool.h"
 #include "TkrRecon/Track/ITkrFitTool.h"
 #include "TkrUtil/ITkrSplitsSvc.h"
+#include "TkrRecon/Track/ITkrHitTruncationTool.h"
 //#include "src/TrackFit/KalmanFilterFit/TrackEnergy/RadLossHitEnergy.h"
 
 // TDS related stuff
@@ -38,7 +40,6 @@
 #include "TkrUtil/ITkrFailureModeSvc.h"
 #include "TkrUtil/TkrTrkParams.h"
 #include "TkrUtil/TkrCovMatrix.h"
-#include "Event/Recon/TkrRecon/TkrTruncationInfo.h"
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 
 #include "geometry/Ray.h"
@@ -50,9 +51,27 @@ namespace {
     int yPosIdx = TkrTrackParams::yPosIdx;
     int xSlpIdx = TkrTrackParams::xSlpIdx;
     int ySlpIdx = TkrTrackParams::ySlpIdx;
+
+    double _siThickness;
+    double _towerPitch;
+    int    _numPlanes;
+    int    _numXTowers;
+    int    _numYTowers;
+    double _trayWidth;
+    double _sigma_alt;
+    double _siResolution;
+    double _ladderPitch, _waferPitch;
+    double _ladderGap, _ladderInnerGap;
+    double _deadGap;
+    int    _nWafer;
+    double _activeWaferSide;
+
+    double _siStripPitch;
+    int    _ladderNStrips;
 }
 
-class FindTrackHitsTool : public AlgTool, virtual public IFindTrackHitsTool
+class FindTrackHitsTool : public AlgTool, 
+                          virtual public IFindTrackHitsTool
 {
 public:
     /// Standard Gaudi Tool interface constructor
@@ -72,8 +91,13 @@ public:
     /// @brief This method will attempt to find the hits prior to the first hit on track
     int addLeadingHits(TkrTrack* track);
 
+
 private:
+
     /// Private member methods
+
+
+
     /// Method to setup the first hit on a track
     TkrTrackHit* setFirstHit(TkrTrack* track);
 
@@ -82,6 +106,9 @@ private:
 
     /// Method to filter the ith step
     void filterStep(int /* i */) {return;} 
+
+    /// get slope-corrected error
+    double getSlopeCorrectedError(TkrTrackParams& params, int view);
 
     /// Pointer to the local Tracker geometry service
     ITkrGeometrySvc*     m_tkrGeom;
@@ -111,7 +138,12 @@ private:
     ITkrQueryClustersTool* m_clusTool;
 
     /// Pointer to the TkrClusters
-    TkrClusterCol* m_clusters; 
+    TkrClusterCol*       m_clusters; 
+
+    /// pointer to truncation tool
+    ITkrHitTruncationTool* m_truncTool;
+
+    bool m_newEvent;
 
     /// Declared properties to control behavior
 
@@ -172,8 +204,10 @@ StatusCode FindTrackHitsTool::initialize()
     //Set the properties
     setProperties();
 
+    m_newEvent = true;
+
     //Locate and store a pointer to the geometry service
-    IService*   iService = 0;
+    IService* iService = 0;
     if ((sc = serviceLocator()->getService("GlastDetSvc", iService, true)).isFailure())
     {
         throw GaudiException("Service [GlastDetSvc] not found", name(), sc);
@@ -220,11 +254,36 @@ StatusCode FindTrackHitsTool::initialize()
         throw GaudiException("ToolSvc could not find TkrQueryClusterTool", name(), sc);
     }
 
+    //Locate a pointer to the TrkHitTruncationTool
+    if ((toolSvc()->retrieveTool("TkrHitTruncationTool", m_truncTool)).isFailure())
+    {
+        throw GaudiException("ToolSvc could not find TkrHitTruncationTool", name(), sc);
+    }
     // Retrieve the pointer to the reconstructed clusters
     m_clusters = SmartDataPtr<TkrClusterCol>(m_dataSvc,EventModel::TkrRecon::TkrClusterCol);
 
     // Set up control
     m_control = TkrControl::getPtr();
+
+    _siThickness  = m_tkrGeom->siThickness();
+    _towerPitch   = m_tkrGeom->towerPitch();
+    _numPlanes    = m_tkrGeom->numPlanes();
+    _numXTowers   = m_tkrGeom->numXTowers();
+    _numYTowers   = m_tkrGeom->numYTowers();
+    _trayWidth    = m_tkrGeom->trayWidth();
+    _sigma_alt    = _trayWidth/sqrt(12.);
+    _siResolution = m_tkrGeom->siResolution();
+
+    _ladderPitch     = m_tkrGeom->ladderPitch();
+    _waferPitch      = m_tkrGeom->waferPitch();
+    _ladderGap       = m_tkrGeom->ladderGap();
+    _ladderInnerGap  = m_tkrGeom->ladderInnerGap();
+    _deadGap         = m_tkrGeom->siDeadDistance();
+    _nWafer          = m_tkrGeom->nWaferAcross();
+    _activeWaferSide = m_tkrGeom->siActiveWaferSide();
+    _siStripPitch    = m_tkrGeom->siStripPitch();
+    _ladderNStrips   = m_tkrGeom->ladderNStrips();
+
 
     return sc;
 }
@@ -311,7 +370,6 @@ StatusCode FindTrackHitsTool::findTrackHits(TkrTrack* track)
         track->getNumXHits() < 2 || track->getNumYHits() < 2) sc = StatusCode::FAILURE;
     else track->setStatusBit(TkrTrack::FOUND);
 
-
     // Remove trailing gap hits
     while(!track->back()->validCluster()) 
     {
@@ -354,7 +412,6 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
     if(!m_tkrGeom->isInActiveLAT(start_pos)) return trackHit;
 
     // Find the delta(z) for this step
-    int num_planes = m_tkrGeom->numPlanes();
     int nearest_plane = m_tkrGeom->getPlane(start_pos.z());
 
     double delta_z  = m_tkrGeom->getPlaneZ(nearest_plane) - start_pos.z(); 
@@ -362,7 +419,7 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
     double t_z = start_dir.z();
 
     // Check if going out the top or bottom
-    int limit_plane = ( t_z>0.0 ? num_planes-1 :  0 );
+    int limit_plane = ( t_z>0.0 ? _numPlanes-1 :  0 );
     if (t_z>0.0) {
         if (nearest_plane >= limit_plane) return trackHit;
     } else {
@@ -389,18 +446,14 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
     // Check on crossing from one tower to the next
     int iXTower, iYTower;
     int jXTower, jYTower;
-    double towerPitch = m_tkrGeom->towerPitch();
-    int numX = m_tkrGeom->numXTowers();
-    int numY = m_tkrGeom->numYTowers();
 
     if(!m_trackAcrossTowers) {
         // trucateCoord returns a double, but we only want the tower number here
-        m_tkrGeom->truncateCoord(start_pos.x(), towerPitch, numX, iXTower);
-        m_tkrGeom->truncateCoord(start_pos.y(), towerPitch, numY, iYTower);
-        m_tkrGeom->truncateCoord(end_pos.x(),   towerPitch, numX, jXTower);
-        m_tkrGeom->truncateCoord(end_pos.y(),   towerPitch, numY, jYTower);
+        m_tkrGeom->truncateCoord(start_pos.x(), _towerPitch, _numXTowers, iXTower);
+        m_tkrGeom->truncateCoord(start_pos.y(), _towerPitch, _numYTowers, iYTower);
+        m_tkrGeom->truncateCoord(end_pos.x(),   _towerPitch, _numXTowers, jXTower);
+        m_tkrGeom->truncateCoord(end_pos.y(),   _towerPitch, _numYTowers, jYTower);
         if(iXTower!=jXTower || iYTower!=jYTower) return trackHit;
-
     }
 
     // Setup the propagator and transport the track parameters along this step
@@ -422,7 +475,6 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
     // this is common to all hits
     if( (t_z > 0) != reverse) status_bits |= TkrTrackHit::UPWARDS;
 
-    double sigma_alt = m_tkrGeom->trayWidth()/sqrt(12.);
     int measIdx, nonmIdx;
 
     if(cluster) {
@@ -439,10 +491,10 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
 
         measIdx   = trackHit->getParamIndex(TkrTrackHit::SSDMEASURED,    TkrTrackParams::Position);
         nonmIdx   = trackHit->getParamIndex(TkrTrackHit::SSDNONMEASURED, TkrTrackParams::Position);
-        double sigma     = m_tkrGeom->siResolution();
+        double sigma     = _siResolution;
 
         params(measIdx,measIdx) = sigma * sigma;
-        params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
+        params(nonmIdx,nonmIdx) = _sigma_alt * _sigma_alt;
 
         // Last: set the hit status bits
         status_bits = TkrTrackHit::HITONFIT | TkrTrackHit::HASMEASURED |
@@ -461,9 +513,9 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
     // For now, use the nominal tower, tray, face and view
 
     double xTower = 
-        m_tkrGeom->truncateCoord(end_pos.x(), towerPitch, numX, iXTower);
+        m_tkrGeom->truncateCoord(end_pos.x(), _towerPitch, _numXTowers, iXTower);
     double yTower = 
-        m_tkrGeom->truncateCoord(end_pos.y(), towerPitch, numY, iYTower);
+        m_tkrGeom->truncateCoord(end_pos.y(), _towerPitch, _numYTowers, iYTower);
 
     int view  = m_tkrGeom->getView(next_plane);
     int tray, face;
@@ -491,14 +543,12 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
     // now take care of tower edges
     // Get the signed distance to the active edge of the tower
 
-    int nWafer = m_tkrGeom->nWaferAcross();
     double xPitch, yPitch, xSiGap, ySiGap;
-    double deadGap = m_tkrGeom->siDeadDistance();
 
-    xPitch = m_tkrGeom->ladderPitch();
-    yPitch = m_tkrGeom->waferPitch();
-    xSiGap = m_tkrGeom->ladderGap();
-    ySiGap = m_tkrGeom->ladderInnerGap();
+    xPitch = _ladderPitch;
+    yPitch = _waferPitch;
+    xSiGap = _ladderGap;
+    ySiGap = _ladderInnerGap;
     if (view==idents::TkrId::eMeasureX) {
         std::swap(xPitch, yPitch);
         std::swap(xSiGap, ySiGap);
@@ -506,12 +556,12 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
 
     // if these are negative, track misses active area of tower
     // probably no point in constraining hit in this plane
-    double xGap = xSiGap + 2*deadGap;
-    double xActiveDistTower = 0.5*(nWafer*xPitch - xGap) - fabs(xTower);
+    double xGap = xSiGap + 2*_deadGap;
+    double xActiveDistTower = 0.5*(_nWafer*xPitch - xGap) - fabs(xTower);
     double xError = sqrt(next_params(xPosIdx,xPosIdx));
 
-    double yGap = ySiGap + 2*deadGap;
-    double yActiveDistTower = 0.5*(nWafer*yPitch - yGap) - fabs(yTower);
+    double yGap = ySiGap + 2*_deadGap;
+    double yActiveDistTower = 0.5*(_nWafer*yPitch - yGap) - fabs(yTower);
     double yError = sqrt(next_params(yPosIdx,yPosIdx));
 
     // Need protection for first hit which gives an error = .5*tower_width
@@ -544,16 +594,15 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
 
     // We're in the active area of the tower, so interwafer gap is next:
 
-    double activeWaferSide = m_tkrGeom->siActiveWaferSide();
     // look for internal gaps
     int iXWafer;
-    double xWafer = m_tkrGeom->truncateCoord(xTower, xPitch, nWafer, iXWafer);
-    double xActiveDistWafer = 0.5*activeWaferSide - fabs(xWafer);
+    double xWafer = m_tkrGeom->truncateCoord(xTower, xPitch, _nWafer, iXWafer);
+    double xActiveDistWafer = 0.5*_activeWaferSide - fabs(xWafer);
     bool nearXEdge = (xActiveDistWafer/xError < m_rej_sigma);
 
     int iYWafer;
-    double yWafer = m_tkrGeom->truncateCoord(yTower, yPitch, nWafer, iYWafer);
-    double yActiveDistWafer = 0.5*activeWaferSide - fabs(yWafer);
+    double yWafer = m_tkrGeom->truncateCoord(yTower, yPitch, _nWafer, iYWafer);
+    double yActiveDistWafer = 0.5*_activeWaferSide - fabs(yWafer);
     bool nearYEdge = (yActiveDistWafer/yError < m_rej_sigma);
 
     if (nearXEdge || nearYEdge) {
@@ -587,8 +636,8 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
         params(yPosIdx) = yPos;
         params(ySlpIdx) = 0.;
 
-        if (nearXEdge) { yGap = towerPitch; }
-        else           { xGap = towerPitch; }
+        if (nearXEdge) { yGap = _towerPitch; }
+        else           { xGap = _towerPitch; }
 
         double sigmaX = xGap/sqrt(12.);
         double sigmaY = yGap/sqrt(12.);
@@ -604,74 +653,32 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
         trackHit->setStatusBit((TkrTrackHit::StatusBits)status_bits);
         return trackHit;
     }
-    // start of attempt to analyze truncated hits... don't bother if not truncated
-    // Get the truncation info data object
-    SmartDataPtr<TkrTruncationInfo> truncInfo( m_dataSvc, EventModel::TkrRecon::TkrTruncationInfo );
-    if (truncInfo->isTruncated()) {
-        TkrTruncationInfo::TkrTruncationMap*  truncMap = truncInfo->getTruncationMap();
-        SortId id(tower, tray, face, view);
-        TkrTruncationInfo::TkrTruncationMap::iterator iter = truncMap->find(id);
-        if (iter!=truncMap->end() ) {
-            TkrTruncatedPlane item = iter->second;
-            //SortId sortId = iter->first;
-            //std::cout << " FTT: T/T/F "<< sortId.getTower() << " " << sortId.getTray() << " " << sortId.getFace() << std::endl;
-            if (item.isTruncated()) {
-                // here's where the work begins!!
-                // first try: compare extrapolated position to missing strip locations
-                // check for RC truncation
-                int status = item.getStatus();
-                //const intVector&  stripNum = item.getStripNumber();
-                int splitPoint  = m_splitsSvc->getSplitPoint(tower, layer, view);
-                double stripPitch = m_tkrGeom->siStripPitch();
-                int nStrips = m_tkrGeom->ladderNStrips()*m_tkrGeom->nWaferAcross();
-                double splitPos = m_detSvc->stripLocalX(splitPoint);
-                //double splitPos = (splitPoint - (nStrips-1)*0.5)/stripPitch;             
-                bool lowSet  = ((status & TkrTruncatedPlane::END0SET)!=0);
-                bool RCHighSet = ((status & TkrTruncatedPlane::RC1SET)!=0);
-                //bool CCHighSet = ((status & TkrTruncatedPlane::CC1SET)!=0);
-                double lowPos = splitPos, highPos = splitPos;
 
-                // need a sigma as well as a position
-                double pos_cov, slope; 
-                if(view == idents::TkrId::eMeasureX) {
-                    pos_cov = next_params.getxPosxPos();
-                    slope   = next_params.getxSlope();
-                }
-                else {
-                    pos_cov = next_params.getyPosyPos();
-                    slope   = next_params.getySlope();
-                }
-                // Error due to finite SSD thickness -matters at large angles
-                double zError=m_tkrGeom->siThickness()*slope;
-                // Add them in quadrature
-                double rError=sqrt(pos_cov+zError*zError);
-                double xError = rError*m_rej_sigma;
+    // analyze truncated hits... 
 
-                double localX = (view == idents::TkrId::eMeasureX ? xTower : yTower);
-                const floatVector stripLocalX = item.getLocalX();
-                if(lowSet)    { lowPos  = stripLocalX[0];}
-                if(RCHighSet) { highPos = stripLocalX[1];}
-                bool truncBit = false;
-                if(highPos>lowPos) {
-                    if ((localX-lowPos)>-xError && (localX-highPos)<xError) {
-                        truncBit = true;
-                    }
-                }
-                // now do the same for the high end (CC1)
-                if ((status & TkrTruncatedPlane::CC1SET)!=0) {
-                    lowPos  = stripLocalX[2];
-                    highPos = 0.5*nStrips*stripPitch;
-                    if ((localX-lowPos)>-xError && (localX-highPos)<xError) {
-                        truncBit = true;
-                    }
-                }
-                if (truncBit) {
-                    status_bits |= TkrTrackHit::HITISTRUNCATED;
-                    trackHit->setStatusBit(status_bits);
-                    return trackHit;
-                }
-            }
-        }
+    Vector towerPos = Vector(xTower, yTower, planeZ);
+    double truncDist = m_truncTool->getDistanceToTruncation(tower, next_plane, towerPos );
+
+    // need a sigma as well as a position
+    double rError = getSlopeCorrectedError(next_params, view);
+    xError = rError*m_rej_sigma;
+
+    bool truncBit = (truncDist>-2000.0 && truncDist>-xError);
+
+/*
+    bool newTrunc = (-truncDist<xError);
+    double ratio = truncDist/xError;
+    if (truncDist==-2000) { newTrunc = false; ratio = 0; }
+    if (truncBit!=newTrunc || truncBit) 
+        std::cout << "truncBit= " << truncBit << ", newTrunc= " << newTrunc 
+        << " result: distance = " << truncDist << ", xError = " << xError 
+        << ", norm = " << ratio << std::endl;
+*/
+
+    if (truncBit) {
+        status_bits |= TkrTrackHit::HITISTRUNCATED;
+        trackHit->setStatusBit(status_bits);
+        return trackHit;
     }
 
     // BadCluster next:
@@ -717,9 +724,9 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
             status_bits |= TkrTrackHit::HASMEASURED;
             status_bits |= TkrTrackHit::HITISDEADST;
 
-            double sigma     = m_tkrGeom->siResolution();
+            double sigma     = _siResolution;
             params(measIdx,measIdx) = sigma * sigma;
-            params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
+            params(nonmIdx,nonmIdx) = _sigma_alt * _sigma_alt;
 
             trackHit->setStatusBit((TkrTrackHit::StatusBits)status_bits);
             return trackHit;
@@ -751,7 +758,6 @@ TkrTrackHit* FindTrackHitsTool::setFirstHit(TkrTrack* track)
     if(!m_tkrGeom->isInActiveLAT(start_pos)) return trackHit;
 
     // Find the delta(z) for this step
-    //int num_planes    = m_tkrGeom->numPlanes();
     int nearest_plane = m_tkrGeom->getPlane(start_pos.z());
 
     // Find the closest plane in z and use it irrespective of track direction
@@ -797,11 +803,10 @@ TkrTrackHit* FindTrackHitsTool::setFirstHit(TkrTrack* track)
 
     int    measIdx   = trackHit->getParamIndex(TkrTrackHit::SSDMEASURED,    TkrTrackParams::Position);
     int    nonmIdx   = trackHit->getParamIndex(TkrTrackHit::SSDNONMEASURED, TkrTrackParams::Position);
-    double sigma     = m_tkrGeom->siResolution();
-    double sigma_alt = m_tkrGeom->trayWidth()/sqrt(12.);
+    double sigma     = _siResolution;
 
     measPar(measIdx, measIdx) = sigma * sigma;
-    measPar(nonmIdx, nonmIdx) = sigma_alt * sigma_alt;
+    measPar(nonmIdx, nonmIdx) = _sigma_alt * _sigma_alt;
 
     // Now do the same for the FILTERED params
     TkrTrackParams& filtPar = trackHit->getTrackParams(TkrTrackHit::FILTERED);
@@ -810,7 +815,7 @@ TkrTrackHit* FindTrackHitsTool::setFirstHit(TkrTrack* track)
     // Make the cov. matrix from the hit position & set the slope elements
     // using the control parameters
     filtPar(measIdx, measIdx) = sigma * sigma;
-    filtPar(nonmIdx, nonmIdx) = sigma_alt * sigma_alt;
+    filtPar(nonmIdx, nonmIdx) = _sigma_alt * _sigma_alt;
     filtPar(xSlpIdx, xSlpIdx) = 
         m_control->getIniErrSlope() * m_control->getIniErrSlope();
     filtPar(ySlpIdx, ySlpIdx) = 
@@ -851,24 +856,10 @@ TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, TkrTrackParams* par
     // First extract the relevant projected hit errors from the parameters
     int layer, view;
     m_tkrGeom->planeToLayer (plane, layer, view);
-    double pos_cov, slope; 
-    if(view == idents::TkrId::eMeasureX) {
-        pos_cov = params->getxPosxPos();
-        slope   = params->getxSlope();
-    }
-    else {
-        pos_cov = params->getyPosyPos();
-        slope   = params->getySlope();
-    }
-
-    // Error due to finite SSD thickness -matters at large angles
-    double zError=m_tkrGeom->siThickness()*slope;
-
-    // Add them in quadrature
-    double rError=sqrt(pos_cov+zError*zError);
+    double rError = getSlopeCorrectedError(*params, view);
 
     // Set search region from control parameter, limit to 1/4 tray width
-    double max_dist = std::min(m_sigma*rError, m_tkrGeom->trayWidth()/4.);  
+    double max_dist = std::min(m_sigma*rError, _trayWidth/4.);  
 
     double x0=params->getxPosition();
     double y0=params->getyPosition();
@@ -891,7 +882,7 @@ TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, TkrTrackParams* par
             fabs(nearHit.x()-center.x()): fabs(nearHit.y()-center.y());
 
         // update min_dist in case we need to search again
-        min_dist = deltaStrip + 0.5*m_tkrGeom->siResolution();
+        min_dist = deltaStrip + 0.5*_siResolution;
 
         // Does measured co-ordinate fall outside search region?
         if (deltaStrip < max_dist)
@@ -905,13 +896,15 @@ TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, TkrTrackParams* par
         //if (indexHit > 0 && done) {
         int    meas_cluster_size = (int) cluster->size();
 
-        double num_strips_hit    = m_tkrGeom->siThickness()*fabs(slope)/m_tkrGeom->siStripPitch();
+        // need the slope here
+        double slope = (view == idents::TkrId::eMeasureX ? params->getxSlope() : params->getySlope()); 
+        double num_strips_hit    = _siThickness*fabs(slope)/_siStripPitch;
         int    pred_cluster_size = (int) std::max(num_strips_hit - 1., 1.);
 
         // Only care if meas. cluster size is too small
 
         if (meas_cluster_size < pred_cluster_size) {
-            int stripsPerLadder = m_tkrGeom->ladderNStrips();
+            int stripsPerLadder = _ladderNStrips;
             //could be okay if we're at the edge of a ladder
             bool isAtEdge = ((cluster->firstStrip()%stripsPerLadder==0) 
                 || ((cluster->lastStrip()+1)%stripsPerLadder==0));
@@ -921,7 +914,7 @@ TkrCluster* FindTrackHitsTool::findNearestCluster(int plane, TkrTrackParams* par
         // Check if predicted hit is inside this tower: non measured co-ordinate
         double outsideTower = (view == idents::TkrId::eMeasureY) ? 
             fabs(nearHit.x()-center.x()): fabs(nearHit.y()-center.y());
-        outsideTower -= m_tkrGeom->trayWidth()/2.;
+        outsideTower -= _trayWidth/2.;
         // Test is on number of sigmas in the outside co-ordinate (inside will be < 0) 
         if(outsideTower/rError > m_sigma) continue; 
 
@@ -1083,8 +1076,7 @@ int FindTrackHitsTool::addLeadingHits(TkrTrack* track)
             // The following was stolen for set first hit method. Should be done better?
             int    measIdx   = lastHit->getParamIndex(TkrTrackHit::SSDMEASURED,    TkrTrackParams::Position);
             int    nonmIdx   = lastHit->getParamIndex(TkrTrackHit::SSDNONMEASURED, TkrTrackParams::Position);
-            double sigma     = m_tkrGeom->siResolution();
-            double sigma_alt = m_tkrGeom->trayWidth()/sqrt(12.);
+            double sigma     = _siResolution;
 
             // Now do the same for the FILTERED params
             TkrTrackParams& filtPar = lastHit->getTrackParams(TkrTrackHit::FILTERED);
@@ -1095,7 +1087,7 @@ int FindTrackHitsTool::addLeadingHits(TkrTrack* track)
             // Make the cov. matrix from the hit position & set the slope elements
             // using the control parameters
             filtPar(measIdx,measIdx) = sigma * sigma;
-            filtPar(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
+            filtPar(nonmIdx,nonmIdx) = _sigma_alt * _sigma_alt;
 
             filtPar(xSlpIdx,xSlpIdx) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
             filtPar(ySlpIdx,ySlpIdx) = m_control->getIniErrSlope() * m_control->getIniErrSlope();
@@ -1128,4 +1120,22 @@ int FindTrackHitsTool::addLeadingHits(TkrTrack* track)
 
     // Return the number of planes added to track
     return added_hits; 
+}
+
+double FindTrackHitsTool::getSlopeCorrectedError(TkrTrackParams& params, int view)
+{
+    double pos_cov, slope; 
+    if(view == idents::TkrId::eMeasureX) {
+        pos_cov = params.getxPosxPos();
+        slope   = params.getxSlope();
+    }
+    else {
+        pos_cov = params.getyPosyPos();
+        slope   = params.getySlope();
+    }
+    // Error due to finite SSD thickness -matters at large angles
+    double zError=_siThickness*slope;
+    // Add them in quadrature
+    double rError=sqrt(pos_cov+zError*zError);
+    return rError;
 }
