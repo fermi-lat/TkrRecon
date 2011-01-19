@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Tue Jan 18 16:44:22 PST 2011
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx TkrHitTruncationTool.cxx 
+	TkrHitTruncationTool.h 
+Log Message:
+Move truncation-testing to TkrHitTruncationTool for now... should be accessible to Treebased patrec
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Jan 18 16:44:21 PST 2011
 TkrRecon/TkrRecon/Track
 
