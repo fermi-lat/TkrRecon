@@ -7,7 +7,7 @@
 * @brief This tool analyzes the digis to infer truncation
 *        
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrHitTruncationTool.h,v 1.1 2005/09/03 02:07:00 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrHitTruncationTool.h,v 1.2 2010/12/06 21:11:27 lsrea Exp $
 */
 
 
@@ -20,6 +20,7 @@
 
 #include "TkrRecon/Track/ITkrHitTruncationTool.h"
 #include "Event/TopLevel/EventModel.h"
+#include "Event/Recon/TkrRecon/TkrTruncationInfo.h"
 
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrSplitsSvc.h"
@@ -28,7 +29,8 @@
 namespace {
 }
 
-class TkrHitTruncationTool : public AlgTool, virtual public ITkrHitTruncationTool
+class TkrHitTruncationTool : public AlgTool, virtual public ITkrHitTruncationTool,
+                             virtual public IIncidentListener
 {
 public:
     /// Standard Gaudi Tool interface constructor
@@ -40,6 +42,11 @@ public:
     StatusCode analyzeDigis();
     StatusCode finalize();
 
+    double getDistanceToTruncation(int tower, int tray, int face, int view, 
+        double localX);
+    double getDistanceToTruncation(idents::TkrId id, Vector towerPos);
+    double getDistanceToTruncation(int tower, int plane, Vector towerPos);
+
 private:
     /// Pointer to the local Tracker geometry service
     ITkrGeometrySvc*    m_tkrGeom;
@@ -49,6 +56,13 @@ private:
     IDataProviderSvc*   m_dataSvc;
     ///
     IGlastDetSvc*       m_detSvc;
+
+    bool m_newEvent;
+
+    Event::TkrTruncationInfo::TkrTruncationMap* m_truncMap;
+
+    /// this is called by the incident service at the beginning of an event
+    void handle(const Incident& inc);
 
 };
 

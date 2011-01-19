@@ -6,7 +6,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrHitTruncationTool.cxx,v 1.4 2010/12/06 21:11:27 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrHitTruncationTool.cxx,v 1.5 2010/12/07 21:47:46 lsrea Exp $
 */
 
 #include "GaudiKernel/AlgTool.h"
@@ -15,6 +15,9 @@
 #include "GaudiKernel/SmartDataPtr.h"
 #include "GaudiKernel/GaudiException.h" 
 #include "GaudiKernel/IDataProviderSvc.h"
+
+#include "GaudiKernel/IIncidentListener.h"
+#include "GaudiKernel/IIncidentSvc.h"
 
 #include "Event/TopLevel/EventModel.h"
 
@@ -26,6 +29,8 @@ namespace {
     int _nStrips;
     int _nLadderStrips;
     double _activeGap;
+    double _stripPitch;
+
 
     bool debug;
 
@@ -83,9 +88,20 @@ StatusCode TkrHitTruncationTool::initialize()
         return sc;
     }
 
+    //Locate and store a pointer to the incident service
+    IIncidentSvc* incSvc = 0;
+    if ((sc = serviceLocator()->service("IncidentSvc", incSvc, true)).isFailure())
+    {
+        throw GaudiException("Service [IncidentSvc] not found", name(), sc);
+    }
+
+    //set up listener for IncidentSvc
+    incSvc->addListener(this, "BeginEvent", 100);
+
     _nLadderStrips = m_tkrGeom->ladderNStrips();
     _nStrips       = _nLadderStrips*m_tkrGeom->nWaferAcross();
     _activeGap     = 0.5*m_tkrGeom->ladderGap() + m_tkrGeom->siDeadDistance();
+    _stripPitch    = m_tkrGeom->siStripPitch();
 
     log << MSG::DEBUG;
     debug = log.isActive();
@@ -115,7 +131,7 @@ StatusCode TkrHitTruncationTool::analyzeDigis()
     count++;
 
     // First, the collection of TkrDigis is retrieved from the TDS
-    SmartDataPtr<Event::TkrDigiCol> digiCol( m_dataSvc, EventModel::Digi::TkrDigiCol );
+    SmartDataPtr<TkrDigiCol> digiCol( m_dataSvc, EventModel::Digi::TkrDigiCol );
 
     if (digiCol == 0) { return sc; }
 
@@ -127,10 +143,10 @@ StatusCode TkrHitTruncationTool::analyzeDigis()
     // Create the TkrTruncationInfo TDS object
     TkrTruncationInfo::TkrTruncationMap* truncMap = truncationInfo->getTruncationMap();
 
-    Event::TkrDigiCol::const_iterator pTkrDigi = digiCol->begin();
+    TkrDigiCol::const_iterator pTkrDigi = digiCol->begin();
     // do the strip counts and generate the RC truncation information
     for (; pTkrDigi!= digiCol->end(); pTkrDigi++) {
-        Event::TkrDigi* pDigi = *pTkrDigi;
+        TkrDigi* pDigi = *pTkrDigi;
 
         TowerId towerId = pDigi->getTower();
         //int towerX = towerId.ix();
@@ -143,7 +159,7 @@ StatusCode TkrHitTruncationTool::analyzeDigis()
         m_tkrGeom->layerToTray(layer, view, tray, face);
         int plane = m_tkrGeom->trayToPlane(tray, face);
 
-        Event::intVector stripCount(2,0);
+        intVector stripCount(2,0);
 
         int maxStrips[2];
         maxStrips[0]   = m_splitsSvc->getMaxStrips(tower, layer, view, 0);
@@ -152,7 +168,7 @@ StatusCode TkrHitTruncationTool::analyzeDigis()
 
         int lastC0Strip  = pDigi->getLastController0Strip();
 
-        Event::intVector stripNumber(4,0);
+        intVector stripNumber(4,0);
         stripNumber[0] = -1;          // highest low-side strip  (for RC0 and CC0)
         stripNumber[1] = _nStrips;     // lowest high-side strip  (for RC1)
         stripNumber[2] = _nStrips;     // highest high-side strip (for CC1)
@@ -188,26 +204,25 @@ StatusCode TkrHitTruncationTool::analyzeDigis()
             }
         }
    
-        double stripPitch = m_tkrGeom->siStripPitch();
-        Event::floatVector localX(4,0);
+        floatVector localX(4,0);
 
         // get the limits for the dead regions
         // tricky for -1 and nStrips (no limits) because neither is a legal strip number
         int strip = std::max(stripNumber[0], 0);
-        localX[0] = m_detSvc->stripLocalX(strip) + 0.5*stripPitch -
-            (stripNumber[0]==-1 ? stripPitch : 0);
+        localX[0] = m_detSvc->stripLocalX(strip) + 0.5*_stripPitch -
+            (stripNumber[0]==-1 ? _stripPitch : 0);
 
         strip = std::min(stripNumber[1], _nStrips-1);
-        localX[1] = m_detSvc->stripLocalX(strip) - 0.5*stripPitch +
-            (stripNumber[1]==_nStrips ? stripPitch : 0);
+        localX[1] = m_detSvc->stripLocalX(strip) - 0.5*_stripPitch +
+            (stripNumber[1]==_nStrips ? _stripPitch : 0);
 
         strip = std::min(stripNumber[2], _nStrips-1);
-        localX[2] = m_detSvc->stripLocalX(strip) + 0.5*stripPitch +
-            (stripNumber[2]==_nStrips ? stripPitch : 0);
+        localX[2] = m_detSvc->stripLocalX(strip) + 0.5*_stripPitch +
+            (stripNumber[2]==_nStrips ? _stripPitch : 0);
 
         strip = std::max(stripNumber[3], -1);
-        localX[3] = m_detSvc->stripLocalX(strip) + 0.5*stripPitch -
-            (stripNumber[3]==-1 ? stripPitch : 0);
+        localX[3] = m_detSvc->stripLocalX(strip) + 0.5*_stripPitch -
+            (stripNumber[3]==-1 ? _stripPitch : 0);
 
         //std::cout << localX[0] << " " << localX[1] << " "  << localX[2] << " "  << localX[3] << std::endl;
         float planeZ = m_tkrGeom->getPlaneZ(plane);
@@ -236,7 +251,7 @@ StatusCode TkrHitTruncationTool::analyzeDigis()
         m_tkrGeom->trayToLayer(tray, face, layer, view);
         TkrTruncatedPlane& trunc = iter->second;
         int end;
-        const Event::intVector& numStrips = trunc.getStripCount();
+        const intVector& numStrips = trunc.getStripCount();
         for (end=0; end<2; ++end) {
             int index = m_splitsSvc->getCableIndex(layer, view, end);
             cableHits[index] += numStrips[end];
@@ -330,4 +345,107 @@ StatusCode TkrHitTruncationTool::finalize()
     std::cout << "number of truncation records " << numRCTrunc << " " <<numCCTrunc << std::endl;
     std::cout << "number of calls " << count << std::endl;
     return StatusCode::SUCCESS;
+}
+
+void TkrHitTruncationTool::handle(const Incident & inc) 
+{    
+    MsgStream log(msgSvc(), name());
+
+    if(inc.type()=="BeginEvent") {
+        //std::cout << "handle called at BeginEvent" << std::endl;
+        m_newEvent = true;
+    }
+}
+
+double TkrHitTruncationTool::getDistanceToTruncation(int tower, int tray, int face, int view,
+                                                     double localX)
+{
+
+    using namespace Event;
+
+    if(m_newEvent) {
+        TkrTruncationInfo* truncationInfo = 
+            SmartDataPtr<TkrTruncationInfo>(m_dataSvc, EventModel::TkrRecon::TkrTruncationInfo);
+        m_truncMap = 0;
+        if (truncationInfo->isTruncated()) {
+             m_truncMap = truncationInfo->getTruncationMap();
+        }
+        m_newEvent = false;
+    }
+
+    double distance = -2000.0;
+
+    if(m_truncMap) {
+        SortId id(tower, tray, face, view);
+        TkrTruncationInfo::TkrTruncationMap::iterator iter = m_truncMap->find(id);
+        if (iter!=m_truncMap->end() ) {
+            TkrTruncatedPlane item = iter->second;
+            //SortId sortId = iter->first;
+            //std::cout << " FTT: T/T/F "<< sortId.getTower() << " " << sortId.getTray() << " " << sortId.getFace() << std::endl;
+            if (item.isTruncated()) {
+                // here's where the work begins!!
+                // first try: compare extrapolated position to missing strip locations
+                // check for RC truncation
+                int status = item.getStatus();
+                int layer = m_tkrGeom->trayToBiLayer(tray, face);
+                int splitPoint  = m_splitsSvc->getSplitPoint(tower, layer, view);
+                double splitPos = m_detSvc->stripLocalX(splitPoint);
+
+                bool lowSet  = ((status & TkrTruncatedPlane::END0SET)!=0);
+                bool RCHighSet = ((status & TkrTruncatedPlane::RC1SET)!=0);
+
+                double lowPos = splitPos;
+                double highPos = splitPos;
+
+                const floatVector stripLocalX = item.getLocalX();
+                if(lowSet)    { lowPos  = stripLocalX[0];}
+                if(RCHighSet) { highPos = stripLocalX[1];}
+
+                double dist1 = localX - lowPos;
+                double dist2 = highPos - localX;
+                if (dist1>=0&&dist2>=0) { distance = std::min(dist1, dist2); }
+                else if (dist1<0)     { distance = dist1; }
+                else                  { distance = dist2; }
+               
+                // now do the same for the high end (CC1)
+                if ((status & TkrTruncatedPlane::CC1SET)!=0) {
+                    lowPos  = stripLocalX[2];
+                    highPos = 0.5*_nStrips*_stripPitch;
+                    dist1 = localX - lowPos;
+                    dist2 = highPos - localX;
+                    double distance1;
+                    if (dist1>=0&&dist2>=0) { distance1 = std::min(dist1, dist2); }
+                    else if (dist1<0)     { distance1 = dist1; }
+                    else                  { distance1 = dist2; }
+
+                    if(fabs(distance1)<fabs(distance)) distance = distance1;
+                }
+            }
+        }
+    }
+
+    return distance;
+}
+
+double TkrHitTruncationTool::getDistanceToTruncation(idents::TkrId id, Vector towerPos)
+{
+    int tray = id.getTray();
+    int face = id.getBotTop();
+    int view = id.getView();
+    int iX = id.getTowerX();
+    int iY = id.getTowerY();
+    int tower = idents::TowerId(iX, iY).id();
+    double localX = (view==0 ? towerPos.x() : towerPos.y());
+    double result = getDistanceToTruncation(tower, tray, face, view, localX);
+    return result;
+}
+
+double TkrHitTruncationTool::getDistanceToTruncation(int tower, int plane, Vector towerPos)
+{
+    int tray = m_tkrGeom->planeToTray(plane);
+    int face = m_tkrGeom->planeToBotTop(plane);
+    int view = m_tkrGeom->getView(plane);
+    double localX = (view==0 ? towerPos.x() : towerPos.y());
+    double result = getDistanceToTruncation(tower, tray, face, view, localX);
+    return result;
 }
