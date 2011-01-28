@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.46 2010/12/04 03:08:28 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.47 2010/12/04 15:59:31 usher Exp $
  */
 
 // to turn one debug variables
@@ -106,7 +106,6 @@ private:
     double     doFilter(Event::TkrTrack& track);
     double     doFilterWithKinks(Event::TkrTrack& track);
     double     doSmoother(Event::TkrTrack& track);
-    void       getInitialFitHit(Event::TkrTrack& track);
 
     /// recursive fit to estimate energy from scattering
     int        doRecursiveFit(int numTrials, Event::TkrTrack& track);
@@ -859,7 +858,8 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
     Event::TkrTrackHitVecItr lastYIter = refIter;
 
     // Keep track of how many hits encountered
-    int numHits = 1;  // Have already "encountered" the reference hit
+    int numHits = 2;  // Have already "encountered" the reference hit
+                      // and first pass through will be working with second hit
 
     // Keep track of number of kinks encountered
     int numKinks = 0;
@@ -880,7 +880,7 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
         chiSqInc  = doFilterStep(referenceHit, filterHit);
 
         // If enough hits, check for a kink
-        if (++numHits > m_minNumLeadingHits && numKinks < m_maxNumKinks && filterHit.getClusterPtr())
+        if (numHits > m_minNumLeadingHits && numKinks < m_maxNumKinks && filterHit.getClusterPtr())
         {
             // We want to start by looking at the hit residual in the measured plane for this hit
             // To do so, we recover the "measured" track parameters and the "predicted" (non-filtered)
@@ -892,16 +892,11 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
             double measPos = measPar(measIdx);
             double measErr = sqrt(measPar(measIdx, measIdx));
             double predPos = predPar(measIdx);
-            double predSlp = predPar(measIdx+1);
             double dltaPos = measPos - predPos;
             double dltaNrm = dltaPos / measErr;
 
             if (fabs(dltaNrm) > m_minNrmResForKink) 
             {
-                // Don't be greedy... find new position one sigma from cluster on correct side
-                double offset     = 0.; //dltaPos > 0 ? -0.5*measErr : 0.5*measErr;
-                double predPosNew = measPos + offset;
-
                 // Get the previous hit in this measuring plane (which is most likely not the reference hit)
                 Event::TkrTrackHitVecItr prevFilterHitIter = filterHit.getTkrId().getView() == idents::TkrId::eMeasureX
                                                            ? lastXIter
@@ -909,43 +904,28 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
 
                 Event::TkrTrackHit& prevFilterHit = **prevFilterHitIter;
 
+                double predSlp    = predPar(measIdx+1);
                 double deltaZ     = filterHit.getZPlane() - prevFilterHit.getZPlane();
-                double cosTheta   = 1. / sqrt(1. + predSlp*predSlp);
-                double stepLen    = -deltaZ / cosTheta;
-                double dltaPosNew = predPosNew - predPos;
-                double dltaPosAng = dltaPosNew * cosTheta;
-                double kinkAngle  = -dltaPosAng / stepLen;
+                double theta      = atan(predSlp);
+                double newSlp     = (measPos - prevFilterHit.getTrackParams(Event::TkrTrackHit::FILTERED)(measIdx)) / deltaZ;
+                double thetaPr    = atan(newSlp);
+                double kinkAngle  = thetaPr - theta;
+
+                // Don't allow crazy kink angles
+                kinkAngle = std::max(-M_PI_2, std::min(M_PI_2, kinkAngle));
 
                 prevFilterHit.setKinkAngle(kinkAngle);
                 prevFilterHit.setStatusBit(Event::TkrTrackHit::HITHASKINKANG);
-
-//                // Will need the q material matrix as well
-//                Event::TkrTrackParams& scatPar = filterHit.getTrackParams(Event::TkrTrackHit::QMATERIAL);
-//
-//                // Slope parameters
-//                int    nonMeasIdx = filterHit.getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Position);
-//                double othrSlp    = predPar(nonMeasIdx+1, nonMeasIdx+1);
-//                double norm_term  = 1. + predSlp*predSlp + othrSlp* othrSlp;
-//                double p33        = (1. + predSlp*predSlp) * norm_term;
-//                double p34        = predSlp * othrSlp * norm_term;
-//
-//                // Extract maxtrix params we need to alter here
-//                double scat_dist = scatPar(measIdx, measIdx) / (1. + predSlp*predSlp);
-//                double scat_covr = sqrt(scat_dist) * fabs(kinkAngle) / sqrt(norm_term);
-//
-//                // update scattering matrix
-//                scatPar(measIdx+1, measIdx+1) = fabs(kinkAngle) * p33;
-//                scatPar(measIdx,   measIdx+1) = scatPar(measIdx+1, measIdx) = -scat_covr * p34;
 
                 numKinks++;
 
                 // Now must re-filter from the previous plane to the current hit
                 while(prevFilterHitIter != filtIter)
                 {
-                    Event::TkrTrackHit& firstHit = **prevFilterHitIter++;
-                    Event::TkrTrackHit& secndHit = **prevFilterHitIter;
+                    Event::TkrTrackHit& filtRefHit = **prevFilterHitIter++;
+                    Event::TkrTrackHit& filt2ndHit = **prevFilterHitIter;
 
-                    doFilterStep(firstHit, secndHit);
+                    chiSqInc = doFilterStep(filtRefHit, filt2ndHit);
                 }
 
                 // And set the bit on the track to indicate a kink
@@ -958,6 +938,7 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
         {
             if (filterHit.getTkrId().getView() == idents::TkrId::eMeasureX) lastXIter = filtIter;
             else                                                            lastYIter = filtIter;
+            numHits++;
         }
 
         chiSqFit += chiSqInc;
@@ -988,13 +969,11 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
     // Notice we make a copy here so we can modify if necessary without affecting stored parameters
     Event::TkrTrackParams& refHitFilteredParams = referenceHit.getTrackParams(Event::TkrTrackHit::FILTERED);
 
-    // Ok, get our local parameters
+    // Get the local version of the track parameters
     KFvector curStateVec(refHitFilteredParams);
-    KFmatrix curCovMat(refHitFilteredParams);
 
-    KFmatrix& Q = (*m_Qmat)(curStateVec, referenceZ, m_HitEnergy->kinETopBeta(referenceHit.getEnergy()), filterZ);
-
-    // Does this hit have a kink?
+    // Does this hit have a kink? 
+    // If so then we "reinitialize" the filter for this plane. 
     if (referenceHit.getStatusBits() & Event::TkrTrackHit::HITHASKINKANG)
     {
         int    measSlpIdx = referenceHit.getParamIndex(Event::TkrTrackHit::SSDMEASURED, Event::TkrTrackParams::Slope);
@@ -1006,26 +985,45 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
         measSlope  = tan(measAngle);
 
         curStateVec(measSlpIdx) = measSlope;
+    }
+
+    // Now get the updated covariance matrix
+    KFmatrix curCovMat(refHitFilteredParams);
+
+    KFmatrix& Q = (*m_Qmat)(curStateVec, referenceZ, m_HitEnergy->kinETopBeta(referenceHit.getEnergy()), filterZ);
+
+    // Round II of does this hit have a kink?
+    if (referenceHit.getStatusBits() & Event::TkrTrackHit::HITHASKINKANG)
+    {
+        int    measSlpIdx = referenceHit.getParamIndex(Event::TkrTrackHit::SSDMEASURED, Event::TkrTrackParams::Slope);
+        double measSlope  = curStateVec(measSlpIdx);
+        double kinkAngle  = referenceHit.getKinkAngle();
 
         // Slope parameters
         int    nonMeasIdx = referenceHit.getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Slope);
         double nonMeasSlp = refHitFilteredParams(nonMeasIdx);
-        double norm_term  = 1. + measSlope*measSlope + nonMeasSlp* nonMeasSlp;
+        double norm_term  = 1. + measSlope*measSlope + nonMeasSlp* nonMeasSlp; // this is (1/cosTheta)**2
         double p33        = (1. + measSlope*measSlope) * norm_term;
         double p34        = measSlope * nonMeasSlp * norm_term;
 
         // Extract maxtrix params we need to alter here
         double arcLen2    = deltaZ * deltaZ * (1. + measSlope*measSlope);
-        double scat_disp2 = arcLen2 * sin(kinkAngle) * sin(kinkAngle);
+        double scat_disp2 = arcLen2 * sin(kinkAngle) * sin(kinkAngle) * norm_term;
         double qAngle     = Q(measSlpIdx, measSlpIdx) / p33;
         double scat_angle = qAngle + kinkAngle * kinkAngle; 
-        double scat_dist  = Q(measSlpIdx-1, measSlpIdx-1) / (1. + measSlope*measSlope) + scat_disp2;
+        double scat_dist  = Q(measSlpIdx-1, measSlpIdx-1) / p33 + scat_disp2;
         double scat_covr  = sqrt(scat_dist * scat_angle) / sqrt(norm_term);
 
         // update scattering matrix
         Q(measSlpIdx,   measSlpIdx)   = scat_angle * p33;
         Q(measSlpIdx,   measSlpIdx-1) = Q(measSlpIdx-1, measSlpIdx) = -scat_covr * p34;
-        Q(measSlpIdx-1, measSlpIdx-1) = scat_dist * (1. + measSlope*measSlope);
+        Q(measSlpIdx-1, measSlpIdx-1) = scat_dist * p33;
+
+        // cross terms zeroed?
+        Q(1,3) = Q(3,1) = 0.;
+        Q(1,4) = Q(4,1) = 0.;
+        Q(2,3) = Q(3,2) = 0.;
+        Q(2,4) = Q(4,2) = 0.;
     }
 
     // Do we have a measurement at this hit?
@@ -1228,55 +1226,4 @@ double KalmanTrackFitTool::doSmoothStep(Event::TkrTrackHit& referenceHit, Event:
     smoothHit.setChiSquareSmooth(chiSqKF);
 
     return chiSqKF;
-}
-
-void KalmanTrackFitTool::getInitialFitHit(Event::TkrTrack& track)
-{
-
-    // This section for testing KalmanFilterUtils
-    // For the initial straight line fits
-    std::vector<double> x_measCoords;
-    std::vector<double> x_measErrs;
-    std::vector<double> x_zCoords;
-    std::vector<double> y_measCoords;
-    std::vector<double> y_measErrs;
-    std::vector<double> y_zCoords;
-
-    Point initPosition = track.getInitialPosition();
-
-    // Initial fit hit parameters are "guess" from initial trackp position and direction
-    TkrTrkParams stateFitPar(4);
-
-    Vector trackDir(track.getInitialDirection());
-
-    stateFitPar(1) = track.getInitialPosition().x();
-    stateFitPar(2) = trackDir.x()/trackDir.z();
-    stateFitPar(3) = track.getInitialPosition().y();
-    stateFitPar(4) = trackDir.y()/trackDir.z();
-
-#ifdef DEBUG
-    double initPosX = lineFitX.getPosAt(0.) + initPosition.x();
-    double initPosY = lineFitY.getPosAt(0.) + initPosition.y();
-
-    Event::TkrFitPar stateFitPar1(initPosition.x(), lineFitX.getFitSlope(),
-                                  initPosition.y(), lineFitY.getFitSlope());
-#endif
-
-    // Used this as the base for the "guessed" covariance matrix for the first fit hit
-    TkrCovMatrix stateCovMat(4,4,0);
-    stateCovMat(1,1) = (track[0]->getTrackParams(Event::TkrTrackHit::MEASURED))(1,1);
-    stateCovMat(2,2) = 0.001;
-    stateCovMat(3,3) = track[0]->getTrackParams(Event::TkrTrackHit::MEASURED)(3,3);
-    stateCovMat(4,4) = 0.001;
-
-    // Place this "fit" hit in the first slot on the track
-    Event::TkrTrackHit& trackHit = *track[0];
-    trackHit.setTrackParams(stateFitPar, Event::TkrTrackHit::FILTERED);
-    trackHit.setTrackParams(stateFitPar, Event::TkrTrackHit::PREDICTED);
-    trackHit.setTrackParams(stateCovMat, Event::TkrTrackHit::FILTERED);
-    trackHit.setTrackParams(stateCovMat, Event::TkrTrackHit::PREDICTED);
-
-    //int i = 0;
-
-    return;
 }
