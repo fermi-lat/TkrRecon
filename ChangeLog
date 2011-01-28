@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Jan 28 15:23:05 PST 2011
+TkrRecon/src/Track
+
+Modified Files:
+	KalmanTrackFitTool.cxx 
+Log Message:
+Fix calculation of the kink angle... may still need to work on Q matrix
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-24-00, operation: add
 Package: TkrRecon
