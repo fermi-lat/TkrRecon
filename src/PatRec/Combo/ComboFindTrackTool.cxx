@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.56 2011/01/12 00:21:33 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.57 2011/01/13 19:39:14 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -41,9 +41,9 @@
 
 
 namespace {
-    std::string searchDirectionStr;
-    std::string patrecModeStr;
-    std::string energyTypeStr;
+    //std::string searchDirectionStr;
+    //std::string patrecModeStr;
+    //std::string energyTypeStr;
 }
 
 //using namespace Event;
@@ -208,6 +208,9 @@ private:
     double          m_CREdgeCut;           // maximum transverse LAT coordinate for CR
     //int m_count;
     
+    std::string     m_searchDirectionStr;
+    std::string     m_patrecModeStr;
+    std::string     m_energyTypeStr;
 
     // to decode the particle charge
     IParticlePropertySvc* m_ppsvc;    
@@ -242,14 +245,14 @@ PatRecBaseTool(type, name, parent)
     declareProperty("MinPatRecQual",          m_minQuality = 10);
     declareProperty("MaxFirstGaps",           m_maxFirstGaps = 1);
     declareProperty("MaxTotalGaps",           m_maxTotalGaps = 2);
-    declareProperty("EnergyType",             energyTypeStr="Default");
-    declareProperty("Direction",              searchDirectionStr="Downwards");
+    declareProperty("EnergyType",             m_energyTypeStr="Default");
+    declareProperty("Direction",              m_searchDirectionStr="Downwards");
     declareProperty("AddLeadingHits",         m_leadingHits=true);
     declareProperty("ReverseLayerPenalty",    m_reverseLayerPenalty=1);
     declareProperty("MaxDeltaFirstLayer",     m_maxDeltaFirstLayer=1);
     declareProperty("CalPointingRes",         m_calAngleRes=.1);
     declareProperty("MinCalCosTheta",         m_minCalCosTheta=0.2);
-    declareProperty("PatrecMode",             patrecModeStr="Normal");
+    declareProperty("PatrecMode",             m_patrecModeStr="Normal");
     declareProperty("CREdgeCut",              m_CREdgeCut=560.);
 
     m_fitUtils = 0;
@@ -274,28 +277,28 @@ StatusCode ComboFindTrackTool::initialize()
 
     m_fitUtils = new TrackFitUtils(m_tkrGeom, 0);
 
-    if      (energyTypeStr=="Default") { m_energyType = DEFAULT; }
-    else if (energyTypeStr=="CALOnly") { m_energyType = CALONLY; }
-    else if (energyTypeStr=="User")    { m_energyType = USER; }
-    else if (energyTypeStr=="MC")      { m_energyType = MC; }
+    if      (m_energyTypeStr=="Default") { m_energyType = DEFAULT; }
+    else if (m_energyTypeStr=="CALOnly") { m_energyType = CALONLY; }
+    else if (m_energyTypeStr=="User")    { m_energyType = USER; }
+    else if (m_energyTypeStr=="MC")      { m_energyType = MC; }
     else {
-        msgLog << MSG::ERROR << "Illegal energyType: " << energyTypeStr << 
+        msgLog << MSG::ERROR << "Illegal energyType: " << m_energyTypeStr << 
             ", please fix." << endreq;
         return StatusCode::FAILURE;
     }
-    if      (searchDirectionStr=="Downwards") {m_searchDirection = DOWN; }
-    else if (searchDirectionStr=="Upwards")   {m_searchDirection = UP; }
+    if      (m_searchDirectionStr=="Downwards") {m_searchDirection = DOWN; }
+    else if (m_searchDirectionStr=="Upwards")   {m_searchDirection = UP; }
     else {
         msgLog << MSG::ERROR << "Illegal searchDirection: " 
-            << searchDirectionStr << ", please fix." << endreq;
+            << m_searchDirectionStr << ", please fix." << endreq;
         return StatusCode::FAILURE;
     }
 
-    if      (patrecModeStr=="Normal")    {m_patrecMode = NORMAL; }
-    else if (patrecModeStr=="CosmicRay") {m_patrecMode = COSMICRAY; }
+    if      (m_patrecModeStr=="Normal")    {m_patrecMode = NORMAL; }
+    else if (m_patrecModeStr=="CosmicRay") {m_patrecMode = COSMICRAY; }
     else {
         msgLog << MSG::ERROR << "Illegal patrec mode: " 
-            << patrecModeStr << ", please fix." << endreq;
+            << m_patrecModeStr << ", please fix." << endreq;
         return StatusCode::FAILURE;
     }
     if(m_maxTotalGaps<m_maxFirstGaps) {
@@ -340,11 +343,11 @@ StatusCode ComboFindTrackTool::findTracks()
     //m_count++;
     //setProperties();
     // need to check the mode again
-    if      (patrecModeStr=="Normal")    {m_patrecMode = NORMAL; }
-    else if (patrecModeStr=="CosmicRay") {m_patrecMode = COSMICRAY; }
+    if      (m_patrecModeStr=="Normal")    {m_patrecMode = NORMAL; }
+    else if (m_patrecModeStr=="CosmicRay") {m_patrecMode = COSMICRAY; }
     else {
         msgLog << MSG::ERROR << "Illegal patrec mode: " 
-            << patrecModeStr << ", please fix." << endreq;
+            << m_patrecModeStr << ", please fix." << endreq;
         return StatusCode::FAILURE;
     }
 
@@ -585,8 +588,12 @@ void ComboFindTrackTool::loadOutput()
     //const double oneOverSqrt12 = 1./sqrt(12.);
 
     // Retrieve a pointer (if it exists) to existing fit track collection
+    std::string trackColStr = m_patrecModeStr == "CosmicRay" 
+                            ? EventModel::TkrRecon::TkrCRTrackCol
+                            : EventModel::TkrRecon::TkrTrackCol;
+
     Event::TkrTrackCol* trackCol =
-        SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol);
+        SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,trackColStr);
 
     // If no pointer then create it
     if (trackCol == 0)
@@ -594,7 +601,7 @@ void ComboFindTrackTool::loadOutput()
         trackCol = new Event::TkrTrackCol();
 
         if ((m_dataSvc->registerObject(
-            EventModel::TkrRecon::TkrTrackCol, trackCol)).isFailure())
+            trackColStr, trackCol)).isFailure())
             throw TkrException("Failed to create Fit Track Collection!");
     }
     unsigned currentSize = trackCol->size();
