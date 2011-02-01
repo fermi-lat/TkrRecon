@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Feb  1 12:01:08 PST 2011
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrFindAlg.cxx 
+Log Message:
+Try to provide separate track collections in the TDS for "normal" tracks vs "cosmic ray" tracks
+    *
+------------------------------------------------------------
 User: usher  Fri Jan 28 15:23:05 PST 2011
 TkrRecon/src/Track
 
