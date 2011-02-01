@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.8 2010/12/02 20:53:01 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.9 2011/01/13 19:39:15 lsrea Exp $
  *
 */
 
@@ -94,22 +94,9 @@ int TkrTreeBuilder::buildTrees(double eventEnergy)
                     m_treeCol->push_back(tree);
 
                     // And turn ownership of the best track over to the TDS
-                    unsigned size = tkrTrackCol->size();
-                    // This is designed to add tracks to the end of the list if the list starts out empty
-                    // or just before the first existing track (CRs) otherwise
-                    // All this will go away when we move to separate collections
-                    if(size==0) {
-                        tkrTrackCol->push_back(const_cast<Event::TkrTrack*>(tree->getBestTrack()));
-                        it = tkrTrackCol->begin();
-                    } else {
-                        it = tkrTrackCol->insert(it, const_cast<Event::TkrTrack*>(tree->getBestTrack()));
-                    }
-                    it++;
-                    unsigned treeSize = tree->size();
-                    if (treeSize > 1) {
-                        it = tkrTrackCol->insert(it, tree->back());
-                        it++;
-                    }
+                    tkrTrackCol->push_back(const_cast<Event::TkrTrack*>(tree->getBestTrack()));
+
+                    if (tree->size() > 1) tkrTrackCol->push_back(tree->back());
                 }
             } 
             catch( TkrException& e )
@@ -1038,10 +1025,12 @@ TkrTreeBuilder::TkrInitParams TkrTreeBuilder::getInitialParams(BuildTkrTrack::Ca
 
     // For the second set of points we have to be sure we haven't skipped a layer
     int pointIdx = 2;
+    int nAvePts  = 3;
 
     while(!clusVec[pointIdx].second || !clusVec[pointIdx+1].second) 
     {
         pointIdx += 2;
+        nAvePts   = 1;
     }
 
     // default values for slope
@@ -1049,7 +1038,7 @@ TkrTreeBuilder::TkrInitParams TkrTreeBuilder::getInitialParams(BuildTkrTrack::Ca
     double tSlopeY = 0.;
 
     // Average over next two pairs of points
-    int stopIdx = pointIdx + 3;
+    int stopIdx = pointIdx + nAvePts;
     int nPoints = 0;
 
     if (stopIdx > int(clusVec.size())) stopIdx = clusVec.size();
