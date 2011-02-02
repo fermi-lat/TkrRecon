@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: heather  Tue Feb  1 18:43:38 PST 2011
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+make GlastSvc use generic
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-24-01, operation: add
 Package: TkrRecon
