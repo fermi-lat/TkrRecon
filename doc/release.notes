@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-24-03 21-Feb-2011 TU Include hard cut on # vec points to stop tree pat rec, temp I hope
  TkrRecon-10-24-02  1-Feb-2011 hmk Make GlastSvc use generic
  TkrRecon-10-24-01  1-Feb-2011 TU Move CR tracks into their own TDS collection: TkrCRTrackCol
  TkrRecon-10-24-00 18-Jan-2011  lsrea Move truncation-testing to TkrHitTruncationTool
