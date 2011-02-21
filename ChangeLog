@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Mon Feb 21 11:27:12 PST 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeBasedTool.cxx 
+Log Message:
+Include a hard cut on number of vector points to stop processing tree based tracking (at Johan's request to help eliminate the long recon time events). Minor updates to vec point filter
+    *
+------------------------------------------------------------
+User: usher  Mon Feb 21 11:27:12 PST 2011
 TkrRecon/src/Filter
 
 Modified Files:
