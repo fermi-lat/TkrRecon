@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Mon Feb 21 11:27:12 PST 2011
+TkrRecon/src/Filter
+
+Modified Files:
+	MinSpanTree.h TkrVecPointsFilterTool.cxx 
+Log Message:
+Include a hard cut on number of vector points to stop processing tree based tracking (at Johan's request to help eliminate the long recon time events). Minor updates to vec point filter
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-24-02, operation: add
 Package: TkrRecon
