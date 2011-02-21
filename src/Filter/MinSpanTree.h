@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/MinSpanTree.h,v 1.1 2010/12/16 20:44:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/MinSpanTree.h,v 1.2 2011/01/04 22:37:26 usher Exp $
  */
 
 #ifndef MinSpanTree_h
@@ -15,7 +15,7 @@
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "src/Track/TkrControl.h"
 
-class MinSpanTreeNode
+class MinSpanTreeNode 
 {
 public:
     MinSpanTreeNode(const IMSTObject* point) : 

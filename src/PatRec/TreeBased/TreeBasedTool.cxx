@@ -14,12 +14,13 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.6 2010/11/24 16:39:06 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.7 2010/12/16 20:44:45 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
 #include "GaudiKernel/SmartDataPtr.h"
 #include "GaudiKernel/GaudiException.h" 
+#include "GaudiKernel/IChronoStatSvc.h"
 
 #include "src/PatRec/PatRecBaseTool.h"
 
@@ -59,6 +60,9 @@ public:
     /// @brief Method to association the Monte Carlo hits into Pattern Candidate tracks
     StatusCode findTracks();
 
+    /// @brief Finalize method for outputting run statistics
+    StatusCode finalize();
+
 private:
 
     ///*** PRIVATE METHODS ***
@@ -73,25 +77,40 @@ private:
 
     ///*** PRIVATE DATA MEMBERS ***
     /// The track fit code
-    ITkrFitTool*          m_trackFitTool;
+    ITkrFitTool*               m_trackFitTool;
 
     /// Used for finding leading hits on tracks
-    IFindTrackHitsTool*   m_findHitsTool;
+    IFindTrackHitsTool*        m_findHitsTool;
 
     /// Services for hit arbitration
-    IGlastDetSvc*         m_glastDetSvc;
+    IGlastDetSvc*              m_glastDetSvc;
 
     /// Minimum energy
-    double                m_minEnergy;
-    double                m_fracEneFirstTrack;
+    double                     m_minEnergy;
+    double                     m_fracEneFirstTrack;
 
     /// Control for merging clusters
-    bool                  m_mergeClusters;
-    int                   m_nClusToMerge;
-    int                   m_stripGap;
+    bool                       m_mergeClusters;
+    int                        m_nClusToMerge;
+    int                        m_stripGap;
+
+    /// Let's keep track of event timing
+    IChronoStatSvc*            m_chronoSvc;
+    bool                       m_doTiming;
+    std::string                m_toolTag;
+    IChronoStatSvc::ChronoTime m_toolTime;
+    std::string                m_toolLinkTag;
+    IChronoStatSvc::ChronoTime m_linkTime;
+    std::string                m_toolNodeTag;
+    IChronoStatSvc::ChronoTime m_nodeTime;
+    std::string                m_toolBuildTag;
+    IChronoStatSvc::ChronoTime m_buildTime;
+
+    /// This places a hard cut on the number of vector points in a given event
+    size_t                     m_maxNumVecPoints;
 
     /// In the event we create fake TkrClusters, keep track of them here
-    Event::TkrClusterCol* m_clusterCol;
+    Event::TkrClusterCol*      m_clusterCol;
 };
 
 
@@ -109,8 +128,21 @@ TreeBasedTool::TreeBasedTool(const std::string& type, const std::string& name, c
     declareProperty("MergeClusters",      m_mergeClusters       = false);
     declareProperty("NumClustersToMerge", m_nClusToMerge        = 3);
     declareProperty("MergeStripGap",      m_stripGap            = 8);
+    declareProperty("DoToolTiming",       m_doTiming            = true);
+    declareProperty("MaxNumVecPoints",    m_maxNumVecPoints     = 10000);
 
     m_clusterCol = 0;
+
+    m_toolTag = this->name();
+
+    if (m_toolTag.find(".") < m_toolTag.size())
+    {
+        m_toolTag = m_toolTag.substr(m_toolTag.find(".")+1,m_toolTag.size());
+    }
+
+    m_toolLinkTag  = m_toolTag + "_link";
+    m_toolNodeTag  = m_toolTag + "_node";
+    m_toolBuildTag = m_toolTag + "_build";
 
     return;
 }
@@ -148,6 +180,12 @@ StatusCode TreeBasedTool::initialize()
             throw GaudiException("Service [GlastDetSvc] not found", name(), sc);
         }
         m_glastDetSvc = dynamic_cast<IGlastDetSvc*>(iService);
+
+        if ((sc = serviceLocator()->getService("ChronoStatSvc", iService, true)).isFailure())
+        {
+            throw GaudiException("Service [ChronoSvc] not found", name(), sc);
+        }
+        m_chronoSvc = dynamic_cast<IChronoStatSvc*>(iService);
     }
 
     // Create and clear a Cluster collection
@@ -186,6 +224,17 @@ StatusCode TreeBasedTool::findTracks()
     Event::TkrVecPointCol* tkrVecPointCol = 
         SmartDataPtr<Event::TkrVecPointCol>(m_dataSvc, EventModel::TkrRecon::TkrVecPointCol);
 
+    // If requested, start the tool timing
+    if (m_doTiming) 
+    {
+        m_toolTime  = 0;
+        m_linkTime  = 0;
+        m_nodeTime  = 0;
+        m_buildTime = 0;
+
+        m_chronoSvc->chronoStart(m_toolTag);
+    }
+
     // If they dont exist then we make them here
     if (!tkrVecPointCol)
     {
@@ -194,10 +243,19 @@ StatusCode TreeBasedTool::findTracks()
 
         // Build the list of all VecPoints
         TkrVecPointsBuilder vecPointsBuilder(numLyrsToSkip, m_dataSvc, m_tkrGeom, m_clusTool);
+    
+        // Re-recover the vector point collection
+        tkrVecPointCol = SmartDataPtr<Event::TkrVecPointCol>(m_dataSvc, EventModel::TkrRecon::TkrVecPointCol);
     }
+
+    // Place a temporary cut here to prevent out of control events
+    if (!tkrVecPointCol || tkrVecPointCol->size() > m_maxNumVecPoints) return sc;
         
     try
     {
+        // Checking timing of link building
+        if (m_doTiming) m_chronoSvc->chronoStart(m_toolLinkTag);
+
         // STEP TWO: Associate (link) adjacent pairs of VecPoints and store away
         TkrVecPointLinksBuilder vecPointLinksBuilder(eventEnergy,
                                                      m_dataSvc,
@@ -205,14 +263,24 @@ StatusCode TreeBasedTool::findTracks()
                                                      m_glastDetSvc,
                                                      m_clusTool);
 
+        if (m_doTiming) m_chronoSvc->chronoStop(m_toolLinkTag);
+
         if (vecPointLinksBuilder.getNumTkrVecPointsLinks() > 1) 
         {
             // STEP THREE(A): build the node trees
             try 
             {
+                if (m_doTiming) m_chronoSvc->chronoStart(m_toolNodeTag);
+
                 TkrVecNodesBuilder tkrNodesBldr(vecPointLinksBuilder, m_dataSvc, m_tkrGeom);
 
                 tkrNodesBldr.buildTrackElements();
+
+                if (m_doTiming)
+                {
+                    m_chronoSvc->chronoStop(m_toolNodeTag);
+                    m_chronoSvc->chronoStart(m_toolBuildTag);
+                }
 
                 TkrTreeBuilder tkrTreeBldr(tkrNodesBldr, 
                                            m_dataSvc, 
@@ -223,6 +291,8 @@ StatusCode TreeBasedTool::findTracks()
                                            m_clusterCol);
 
                 tkrTreeBldr.buildTrees(eventEnergy);
+
+                if (m_doTiming) m_chronoSvc->chronoStop(m_toolBuildTag);
             }
             catch(TkrException& e)
             {
@@ -239,12 +309,61 @@ StatusCode TreeBasedTool::findTracks()
     }
     catch(TkrException& e)
     {
+        if (m_doTiming) 
+        {
+            m_chronoSvc->chronoStop(m_toolTag);
+            m_chronoSvc->chronoStop(m_toolLinkTag);
+            m_chronoSvc->chronoStop(m_toolNodeTag);
+            m_chronoSvc->chronoStop(m_toolBuildTag);
+        }
+
         throw e;
     }
     catch(...)
     {
+        if (m_doTiming)
+        {
+            m_chronoSvc->chronoStop(m_toolTag);
+            m_chronoSvc->chronoStop(m_toolLinkTag);
+            m_chronoSvc->chronoStop(m_toolNodeTag);
+            m_chronoSvc->chronoStop(m_toolBuildTag);
+        }
+
         throw(TkrException("Unknown exception encountered in TkrVecLink building "));  
     }
+
+    // Make sure timer is shut down
+    if (m_doTiming)
+    {
+        m_chronoSvc->chronoStop(m_toolTag);
+    
+        m_toolTime  = m_chronoSvc->chronoDelta(m_toolTag,IChronoStatSvc::USER);
+        m_linkTime  = m_chronoSvc->chronoDelta(m_toolLinkTag, IChronoStatSvc::USER);
+        m_nodeTime  = m_chronoSvc->chronoDelta(m_toolNodeTag, IChronoStatSvc::USER);
+        m_buildTime = m_chronoSvc->chronoDelta(m_toolBuildTag, IChronoStatSvc::USER);
+
+        float toolDelta  = static_cast<float>(m_toolTime)*0.000001;
+        float linkDelta  = static_cast<float>(m_linkTime)*0.000001;
+        float nodeDelta  = static_cast<float>(m_nodeTime)*0.000001;
+        float buildDelta = static_cast<float>(m_buildTime)*0.000001;
+
+        MsgStream log(msgSvc(), name());
+
+        log << MSG::DEBUG << " total tool  time: " << toolDelta  << " sec\n" 
+                          << "       link  time: " << linkDelta  << " sec\n"
+                          << "       node  time: " << nodeDelta  << " sec\n"
+                          << "       build time: " << buildDelta << " sec\n"
+            << endreq ;
+    }
+
+    return sc;
+}
+
+StatusCode TreeBasedTool::finalize()
+{
+    StatusCode sc = StatusCode::SUCCESS;
+
+    if (m_doTiming) m_chronoSvc->chronoPrint(m_toolTag);
 
     return sc;
 }
