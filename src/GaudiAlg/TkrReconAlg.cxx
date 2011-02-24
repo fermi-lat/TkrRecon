@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.50 2010/10/27 19:11:11 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.51 2011/01/11 21:58:11 usher Exp $
 */
 
 
@@ -442,25 +442,31 @@ StatusCode TkrReconAlg::execute()
 
             // Check number of tracks returned
             if(doDebug) {
-                Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
+                Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),
+                    EventModel::TkrRecon::TkrTrackCol);
                 int numTracks = 0;
                 if(trackCol) numTracks = trackCol->size();
+                trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),
+                    EventModel::TkrRecon::TkrCRTrackCol);
+                int numCRTracks = 0;
+                if(trackCol) numCRTracks = trackCol->size();
                 // Check number of clusters returned
-                log << MSG::DEBUG << numTracks << " TkrTracks found" << endreq ;
+                log << MSG::DEBUG << numTracks << " Normal, " 
+                    << numCRTracks << " CR TkrTracks found" << endreq ;
             }
         }
 
         // Check for ghosts
-        Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
-        if(m_TkrFindAlg&&!s_ghostTrackDone&&m_ghostTool&&trackCol) {
-            m_stage = "GhostCheck - tracks";
-            s_ghostTrackDone = true;
-            sc = m_ghostTool->flagEarlyTracks(); 
-            if (sc.isFailure())
-            {
-                return handleError(stageFailed);
-            }
-        }
+        //Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
+        //if(m_TkrFindAlg&&!s_ghostTrackDone&&m_ghostTool&&trackCol) {
+        //    m_stage = "GhostCheck - tracks";
+        //    s_ghostTrackDone = true;
+        //    sc = m_ghostTool->flagEarlyTracks(); 
+        //    if (sc.isFailure())
+        //    {
+        //        return handleError(stageFailed);
+        //    }
+        //}
 
         // Call track fit
         m_stage = "TkrTrackFitAlg";
@@ -473,11 +479,16 @@ StatusCode TkrReconAlg::execute()
 
             // Check number of tracks again
             if(doDebug) {
-                Event::TkrTrackCol* trackCol = 
-                    SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
+                Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),
+                    EventModel::TkrRecon::TkrTrackCol);
                 int numTracks = 0;
                 if(trackCol) numTracks = trackCol->size();
-                log << MSG::DEBUG << numTracks << " TkrTracks remain after fitting" ;
+                trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),
+                    EventModel::TkrRecon::TkrCRTrackCol);
+                int numCRTracks = 0;
+                if(trackCol) numCRTracks = trackCol->size();
+                log << MSG::DEBUG << numTracks << " Normal, " 
+                    << numCRTracks << " TkrTracks remain after fitting" ;
                 log << endreq;
             }
         }

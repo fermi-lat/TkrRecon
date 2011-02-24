@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.47 2010/12/04 15:59:31 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.48 2011/01/28 23:23:05 usher Exp $
  */
 
 // to turn one debug variables
@@ -78,9 +78,13 @@ public:
     StatusCode doTrackReFit(Event::TkrTrack* track);
 
     /// @brief Method to set type of hit energy loss for a track
-    void       setHitEnergyLoss(const std::string& energyLossType);
+    void        setHitEnergyLoss(const std::string& energyLossType);
+    /// @brief Method to get type of hit energy loss for a track
+    std::string getHitEnergyLoss() {return m_HitEnergyType;}
     /// @brief Method to set the particle type assumed for a track
-    void       setParticleType(const std::string ParticleName) {m_ParticleName = ParticleName;}
+    void        setParticleType(const std::string ParticleName) {m_ParticleName = ParticleName;}
+    /// @brief Method to get the particle type assumed for a track
+    std::string getParticleType() {return m_ParticleName;}
     /// @brief Method to set method for determing cluster errors in fit 
     void       setClusErrCompType(const std::string& clusErrorType);
     /// @brief Method to set multiple scattering matrix computation

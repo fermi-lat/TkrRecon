@@ -34,11 +34,13 @@ class ITkrFitTool : virtual public IAlgTool
     /// @brief Given a pattern track, perform the track re-fit
     virtual StatusCode doTrackReFit(Event::TkrTrack* patCand)=0;
 
-    /// @brief Method to set type of hit energy loss for a track
-    virtual void       setHitEnergyLoss(const std::string& energyLossType) = 0; 
+    /// @brief Method to set (get) type of hit energy loss for a track
+    virtual void         setHitEnergyLoss(const std::string& energyLossType) = 0; 
+    virtual std::string  getHitEnergyLoss() = 0; 
 
-    /// @brief Method to set the particle type assumed for a track
-    virtual void       setParticleType(const std::string ParticleName) = 0;
+    /// @brief Method to set (get) the particle type assumed for a track
+    virtual void         setParticleType(const std::string ParticleName) = 0;
+    virtual std::string  getParticleType() = 0;
 
     /// @brief Method to set method for determing cluster errors in fit
     virtual void       setClusErrCompType(const std::string& clusErrorType) = 0; 

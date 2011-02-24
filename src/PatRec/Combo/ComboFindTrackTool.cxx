@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.57 2011/01/13 19:39:14 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.58 2011/02/01 20:01:08 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -77,10 +77,10 @@ protected:
     /// Pointer to TkrClusters - historical and will go. 
     Event::TkrClusterCol* m_tkrClus;
 
-    IFindTrackHitsTool *m_findHitTool;
-    ITkrFitTool *m_trackFitTool;
-    TrackFitUtils* m_fitUtils;
-    TkrControl*    m_control;
+    IFindTrackHitsTool* m_findHitTool;
+    ITkrFitTool*        m_trackFitTool;
+    TrackFitUtils*      m_fitUtils;
+    TkrControl*         m_control;
 
     class Candidate {
     public:
@@ -137,7 +137,8 @@ private:
     bool  incorporate(Candidate* cand);
     void  setTrackQuality(ComboFindTrackTool::Candidate *cand);
     bool  quitOnTrials() const {
-        return (m_trials > m_maxTrials || (m_quitCount > m_maxTotalTrials && m_trials > 5));
+        return (m_trials > m_maxTrials 
+            || (m_quitCount > m_maxTotalTrials && m_trials > 5));
     }
     void clearTrialCounters() {
         m_trials = 0;
@@ -205,12 +206,21 @@ private:
     searchType      m_searchType;          // Cal or blind
 
     patrecMode      m_patrecMode;          // normal or cosmic-ray mode
-    double          m_CREdgeCut;           // maximum transverse LAT coordinate for CR
-    //int m_count;
     
     std::string     m_searchDirectionStr;
     std::string     m_patrecModeStr;
     std::string     m_energyTypeStr;
+
+    // for Cosmic-ray finding
+    int        m_CRLowestLayer;       // lowest layer to use all hits for CR finding
+    double     m_CREdgeCut;           // maximum transverse LAT coordinate for CR
+    double     m_CREnergy;
+    double     m_CRMinCosKink;
+    double     m_CRMaxTripRes;
+    int        m_CRMaxFirstGaps;
+    int        m_CRMaxTotalGaps;
+    int        m_CRMaxCandidates;
+    //energyType m_CREnergyType; // how to set this?? it's not a Property type
 
     // to decode the particle charge
     IParticlePropertySvc* m_ppsvc;    
@@ -253,7 +263,17 @@ PatRecBaseTool(type, name, parent)
     declareProperty("CalPointingRes",         m_calAngleRes=.1);
     declareProperty("MinCalCosTheta",         m_minCalCosTheta=0.2);
     declareProperty("PatrecMode",             m_patrecModeStr="Normal");
-    declareProperty("CREdgeCut",              m_CREdgeCut=560.);
+
+    // for the CR finder
+    declareProperty("CREdgeCut",        m_CREdgeCut=560.);
+    declareProperty("CRLowestLayer",    m_CRLowestLayer=15);
+    declareProperty("CREnergy",         m_CREnergy = 800.0);
+    declareProperty("CRMinCosKink",     m_CRMinCosKink = 0.95);
+    declareProperty("CRMaxTripRes",     m_CRMaxTripRes = 10. );
+    declareProperty("CR<axFirstGaps",   m_CRMaxFirstGaps = 2 );
+    declareProperty("CRMaxTotalGaps",   m_CRMaxTotalGaps = 4 );
+    declareProperty("CRMaxCandidatest", m_CRMaxCandidates = 10 );
+    //declareProperty("CREnergyType",     m_CREnergyType = USER ); // doesn't work
 
     m_fitUtils = 0;
     return;
@@ -384,7 +404,7 @@ StatusCode ComboFindTrackTool::findTracks()
     m_calPos = origin;
     m_calDir = unit;
 
-    //If clusters, then retrieve estimate for the energy & centroid
+    // If clusters, then retrieve estimate for the energy & centroid
     // if (tkrEventParams)  - WBA - what's this line for - I've commented it out for now....
 
     //If Cal information available, then retrieve estimate for the energy & centroid
@@ -666,14 +686,7 @@ void ComboFindTrackTool::loadOutput()
   
             // Set the track energy status
             newTrack->setStatusBit(Event::TkrTrack::FOUND);
-
-            // Kludge to fix clearEnergyStatusBits in TkrTrack.h, which doesn't have enough f's in the mask
-            // TkrTrack.h problem fixed!  LSR
             newTrack->clearEnergyStatusBits();
-            //unsigned int TrackStatus= newTrack->getStatusBits();
-            //TrackStatus &= 0xfff0f;
-            //newTrack->clearStatusBits();
-            //newTrack->setStatusBit(TrackStatus);
 
             switch (m_energyType) 
             {
@@ -865,35 +878,46 @@ void ComboFindTrackTool::findCRCandidates()
 
     // Set all of the patrec parameters to values appropriate to finding high-momentum cosmic rays.
     // Save the original values so that these changes can be undone before exiting.
-    double t_energy=m_energy;
-    energyType t_energyType = m_energyType;
-    m_energyType = USER;
-    m_energy= 800.;           // Look only for high-momentum, straight tracks
 
+    double      t_energy;
+    energyType  t_energyType;
+    double      t_minCosKink;
+    double      t_maxTripRes;
+    int         t_maxFirstGaps;
+    int         t_maxTotalGaps;
+    int         t_maxCandidates;
+    std::string t_partTypeSave;   
+    std::string t_hitEnergyLossSave;   
 
-    double          t_minCosKink=m_minCosKink;          // Minimum cos(theta) for a track kink
-    m_minCosKink=0.95;
-    double          t_maxTripRes=m_maxTripRes;          // Max. un-normalized residual for first 3 TkrPoints
-    m_maxTripRes=10.;
-    int             t_maxFirstGaps=m_maxFirstGaps;        // Max. number of allowed gaps in the first 3 XY points
-    m_maxFirstGaps=2;
-    int             t_maxTotalGaps=m_maxTotalGaps;        // Max. total number of XY gaps in the track
-    m_maxTotalGaps=4;
-    int             t_maxCandidates=m_maxCandidates;        // Maximum number of candidates to store
-    m_maxCandidates= t_maxCandidates;                   // Make sure that space for cosmic-ray tracks always exists
-    int m_CRLowestLayer=3;                              // Lowest layer in which to start looking for CR tracks
+    // Look only for high-momentum, straight tracks
+    t_energy=m_energy;   m_energy = m_CREnergy;           
 
-    // Change the particle hypothesis for the Kalman filter.  Save the existing hypothesis, to set it back before exiting.
-    //  std::string PartTypeSave= m_trackFitTool->getParticleType();   // This method needs to be added to KalmanTrackFitTool
-    std::string PartTypeSave="e-";  // Temporary fix
-    m_trackFitTool->setParticleType("p+");  
-    //  std::string HitEnergyLossSave= m_trackFitTool->getHitEnergyLoss();   // This method needs to be added to KalmanTrackFitTool
-    std::string HitEnergyLossSave= "eRadLoss";   // Temporary fix
+     // Minimum cos(theta) for a track kink
+    t_minCosKink=m_minCosKink; m_minCosKink = m_CRMinCosKink; 
+     // Max. un-normalized residual for first 3 TkrPoints  
+    t_maxTripRes=m_maxTripRes;   m_maxTripRes = m_CRMaxTripRes;       
+    // Max. number of allowed gaps in the first 3 XY points
+    t_maxFirstGaps=m_maxFirstGaps; m_maxFirstGaps = m_CRMaxFirstGaps;       
+    // Max. total number of XY gaps in the track
+    t_maxTotalGaps=m_maxTotalGaps;  m_maxTotalGaps = m_CRMaxTotalGaps;      
+    // Maximum number of candidates to store
+    t_maxCandidates=m_maxCandidates;  m_maxCandidates= m_CRMaxCandidates; 
+
+    // the following are not attached to knobs (yet!)
+    // set energy type,
+    t_energyType = m_energyType; m_energyType = USER;
+    // Change the particle hypothesis for the Kalman filter.  
+    t_partTypeSave = m_trackFitTool->getParticleType();   
+    m_trackFitTool->setParticleType("p+");
+    // Energy loss mechanism, B-B for protons
+    t_hitEnergyLossSave = m_trackFitTool->getHitEnergyLoss();   
     m_trackFitTool->setHitEnergyLoss("BetheBloch");
 
     int NCRay=0;
-    for (; ilayer >= lastILayer; --ilayer) {    //RJ: search only top few layers for track start, but how to handle sides?
-        // Termination Criterion                //RJ: loop on all layers, but consider hits only near edge on all but top 2
+
+//RJ: loop on all layers, but consider hits only near edge on all but top 2
+    for (; ilayer >= lastILayer; --ilayer) {   
+        // Termination Criterion                
 
         if(quitOnTrials()) break;
 
@@ -906,7 +930,8 @@ void ComboFindTrackTool::findCRCandidates()
         // Create space point loops and check for hits
 
         //        double hit_region_size;
-        //        Point calPosPred = getCalPrediction(ilayer, hit_region_size);   RJ: CAL should not be in the equation
+        //        Point calPosPred = getCalPrediction(ilayer, hit_region_size);  
+        //    RJ: CAL should not be in the equation
 
         //        TkrPoints firstPoints(ilayer, m_clusTool, calPosPred, hit_region_size);
         TkrPoints firstPoints(ilayer, m_clusTool);
@@ -940,8 +965,9 @@ void ComboFindTrackTool::findCRCandidates()
                 // Does this miss the 2nd track of a pair if there's a gap in it?
                 // or if the 1st track has an added hit?
 
+                //RJ: eliminate this.  We need to find all cosmics, not just best track
                 //                if( igap > 0 &&
-                //                    (localBestHitCount > (jlayer+2)*2)) break;    //RJ: eliminate this.  We need to find all cosmics, not just best track
+                //                    (localBestHitCount > (jlayer+2)*2)) break;    
 
                 TkrPoints secondPoints(jlayer, m_clusTool);
                 if (secondPoints.empty()) continue;
@@ -979,17 +1005,19 @@ void ComboFindTrackTool::findCRCandidates()
         }  // end 1st points
     } // end ilayer
 
-    // Return all of the patrec and fit parameters to their original values, so that the photon patrec isn't screwed up.
+    // Return all of the patrec and fit parameters to their original values, 
+    // so that the photon patrec isn't screwed up.
 
-    m_trackFitTool->setParticleType(PartTypeSave);
-    m_trackFitTool->setHitEnergyLoss(HitEnergyLossSave);
-    m_energy=t_energy;
-    m_minCosKink=t_minCosKink;
-    m_maxTripRes=t_maxTripRes;
-    m_maxFirstGaps=t_maxFirstGaps;
-    m_maxTotalGaps=t_maxTotalGaps;
-    m_maxCandidates=t_maxCandidates;
-    m_energyType = t_energyType;
+    m_trackFitTool->setParticleType(t_partTypeSave);
+    m_trackFitTool->setHitEnergyLoss(t_hitEnergyLossSave);
+
+    m_energy        = t_energy;
+    m_minCosKink    = t_minCosKink;
+    m_maxTripRes    = t_maxTripRes;
+    m_maxFirstGaps  = t_maxFirstGaps;
+    m_maxTotalGaps  = t_maxTotalGaps;
+    m_maxCandidates = t_maxCandidates;
+    m_energyType    = t_energyType;
 
     // Remove all of the hit flags so as not to affect any other pattern recognition routines
     int num_hits = m_tkrClus->size();
@@ -1005,8 +1033,8 @@ void ComboFindTrackTool::findCRCandidates()
     //  dumpCandidates();
 
     msgLog << MSG::DEBUG;
-    if (msgLog.isActive()) msgLog << "CR search: " <<  m_candidates.size() << ", " << m_trials << " trials" 
-        << m_quitCount << "quitCount";
+    if (msgLog.isActive()) msgLog << "CR search: " <<  m_candidates.size() << ", " 
+        << m_trials << " trials" << m_quitCount << "quitCount";
     msgLog << endreq;
     return;
 }
