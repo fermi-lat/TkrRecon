@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.27 2011/01/11 21:58:11 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.28 2011/02/01 20:01:08 usher Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -31,8 +31,10 @@
 #include "TkrRecon/PatRec/ITkrFindTrackTool.h"
 
 #include "TkrUtil/ITkrQueryClustersTool.h"
+#include "TkrUtil/ITkrTrackVecTool.h"
+#include "TkrUtil/ITkrGhostTool.h"
 
-//#include "Event/Recon/TkrRecon/TkrTrack.h"
+#include "Event/Recon/TkrRecon/TkrTrack.h"
 
 /** 
  * @class TkrFindAlg
@@ -46,7 +48,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.27 2011/01/11 21:58:11 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.28 2011/02/01 20:01:08 usher Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -68,17 +70,18 @@ private:
     /// Always use the right tool for the job
     ITkrFindTrackTool* m_findTool;
     ITkrFindTrackTool* m_CRFindTool;
-   
+
     IDataProviderSvc*      m_dataSvc;
-
     ITkrQueryClustersTool* m_queryClustersTool;
+    ITkrTrackVecTool*      m_trackVecTool;
+    ITkrGhostTool*         m_ghostTool;
 
 
 
-    bool               m_doCRFinding;
-    bool               m_doStandardFinding;
-    bool               m_CRGhosts;
-    bool               m_standardGhosts;
+    bool     m_doCRFinding;
+    bool     m_doStandardFinding;
+    bool     m_CRGhosts;
+    bool     m_standardGhosts;
 };
 
 static const AlgFactory<TkrFindAlg>  Factory;
@@ -187,6 +190,17 @@ StatusCode TkrFindAlg::initialize()
     //    return sc;
     //}
 
+    m_trackVecTool = 0;
+    if (toolSvc()->retrieveTool("TkrTrackVecTool", m_trackVecTool).isFailure()) {
+        log << MSG::ERROR << "Couldn't retrieve TkrTrackVecTool" << endreq;
+        return StatusCode::FAILURE;
+    }
+
+    m_ghostTool = 0;
+    if (toolSvc()->retrieveTool("TkrGhostTool", m_ghostTool).isFailure()) {
+        log << MSG::ERROR << "Couldn't retrieve TkrGhostTool" << endreq;
+        return StatusCode::FAILURE;
+    }
     return sc;
 }
 
@@ -252,6 +266,10 @@ StatusCode TkrFindAlg::execute()
 
         findCRAlgTool->setProperty("PatrecMode", "CosmicRay");
         sc = m_CRFindTool->findTracks();
+
+        if(m_ghostTool && m_CRGhosts) {
+            sc = m_ghostTool->flagEarlyTracks();
+        }
     }
     
     // now set TkrQueryClustersTool to return only non-ghost tracks, and do normal patrec
@@ -266,7 +284,20 @@ StatusCode TkrFindAlg::execute()
             findAlgTool->setProperty("PatrecMode", "Normal");
         }
         sc = m_findTool->findTracks();
+
+        if(m_ghostTool && m_standardGhosts) {
+            sc = m_ghostTool->flagEarlyTracks();
+        }
     }
+
+    //std::vector<Event::TkrTrack*> trackVec = m_trackVecTool->getTrackVec();
+
+    //int i;
+    //for(i=0;i<trackVec.size(); ++i) {
+    //    Event::TkrTrack* track = trackVec[i];
+    //    int num = track->getNumFitHits();
+    //    std::cout << "track " << i << ", numhits = " << num << std::endl;
+    //}
 
     // leave this in for now, may need it later!
     /*
