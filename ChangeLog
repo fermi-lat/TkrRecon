@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: lsrea  Thu Feb 24 14:07:51 PST 2011
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrFindAlg.cxx TkrReconAlg.cxx 
+Log Message:
+KalmanTrackFitTool, ITkrFitTool: add methods to retrieve energy type and particle
+TkrReconAlg, TkrFindAlg: some reorg
+ComboFindTrackTool: reorg of CR finder (more knobs) and fix a bug
+
+
+    *
+------------------------------------------------------------
 User: lsrea  Thu Feb 24 14:07:50 PST 2011
 TkrRecon/TkrRecon/Track
 
