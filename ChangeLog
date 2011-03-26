@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Sat Mar 26 16:30:57 PDT 2011
+TkrRecon/TkrRecon/Track
+
+Removed Files:
+	ITkrHitTruncationTool.h 
+Log Message:
+Move TkrHitTruncationTool to TkrUtil, and change refs to it
+Start using TkrReasonsTool in FindTrackHitsTool
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-24-04, operation: add
 Package: TkrRecon
