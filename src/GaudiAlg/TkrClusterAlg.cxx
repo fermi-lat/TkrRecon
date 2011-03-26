@@ -10,7 +10,7 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.24 2009/01/31 17:10:00 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.25 2010/12/06 21:11:26 lsrea Exp $
 */
 
 #include "GaudiKernel/Algorithm.h"
@@ -31,7 +31,7 @@
 #include "TkrRecon/GaudiAlg/TkrClusterAlg.h"
 #include "src/Cluster/TkrMakeClusterTable.h"
 #include "TkrUtil/ITkrMakeClustersTool.h"
-#include "TkrRecon/Track/ITkrHitTruncationTool.h"
+#include "TkrUtil/ITkrHitTruncationTool.h"
 
 #include "Event/Digi/TkrDigi.h"
 

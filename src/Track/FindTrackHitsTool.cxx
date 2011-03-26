@@ -6,7 +6,7 @@
 * @author Tracking Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.39 2010/12/06 21:11:27 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.40 2011/01/19 00:44:22 lsrea Exp $
 */
 
 // to turn one debug variables
@@ -21,9 +21,7 @@
 
 #include "TkrRecon/Track/IFindTrackHitsTool.h"
 #include "TkrRecon/Track/ITkrFitTool.h"
-#include "TkrUtil/ITkrSplitsSvc.h"
-#include "TkrRecon/Track/ITkrHitTruncationTool.h"
-//#include "src/TrackFit/KalmanFilterFit/TrackEnergy/RadLossHitEnergy.h"
+#include "TkrUtil/ITkrHitTruncationTool.h"
 
 // TDS related stuff
 #include "Event/Recon/TkrRecon/TkrTrack.h"
@@ -35,12 +33,15 @@
 #include "src/TrackFit/KalmanFilterFit/TrackEnergy/IFitHitEnergy.h"
 
 // Utilities, geometry, etc.
+#include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
+
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrQueryClustersTool.h"
 #include "TkrUtil/ITkrFailureModeSvc.h"
+#include "TkrUtil/ITkrSplitsSvc.h"
+#include "TkrUtil/ITkrReasonsTool.h"
 #include "TkrUtil/TkrTrkParams.h"
 #include "TkrUtil/TkrCovMatrix.h"
-#include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 
 #include "geometry/Ray.h"
 
@@ -142,6 +143,8 @@ private:
 
     /// pointer to truncation tool
     ITkrHitTruncationTool* m_truncTool;
+
+    ITkrReasonsTool*     m_reasons;
 
     bool m_newEvent;
 
@@ -259,6 +262,13 @@ StatusCode FindTrackHitsTool::initialize()
     {
         throw GaudiException("ToolSvc could not find TkrHitTruncationTool", name(), sc);
     }
+
+    //Locate a pointer to the TrkReasonsTool
+    if ((toolSvc()->retrieveTool("TkrReasonsTool", m_reasons)).isFailure())
+    {
+        throw GaudiException("ToolSvc could not find TkrReasonsTool", name(), sc);
+    }
+
     // Retrieve the pointer to the reconstructed clusters
     m_clusters = SmartDataPtr<TkrClusterCol>(m_dataSvc,EventModel::TkrRecon::TkrClusterCol);
 
@@ -511,7 +521,12 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
 
     // Make up a TkrId for this hit... 
     // For now, use the nominal tower, tray, face and view
-
+    
+    // test of minimumDistance
+    // and set the params at the same time
+    //double dist = m_reasons->getMinimumDistance(end_pos /*, next_plane*/);
+    m_reasons->setParams(end_pos, next_plane);
+ 
     double xTower = 
         m_tkrGeom->truncateCoord(end_pos.x(), _towerPitch, _numXTowers, iXTower);
     double yTower = 
@@ -531,8 +546,8 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
     trackHit = new TkrTrackHit(0, tkrId, planeZ, 0., 0., 0., 0., 0.); 
 
     // first check for failed plane
-    if(m_failSvc && !m_failSvc->empty() 
-        && m_failSvc->isFailed(tower, layer, view) ) 
+    // call Reasons for layer failure
+    if (m_reasons->isFailed())
     {
         // nothing measured, just flag the hit
         status_bits |= TkrTrackHit::HITISDEADPLN;
@@ -554,14 +569,17 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
         std::swap(xSiGap, ySiGap);
     }
 
-    // if these are negative, track misses active area of tower
-    // probably no point in constraining hit in this plane
+    //// if the distances are negative, track misses active area of tower
+    //// probably no point in constraining hit in this plane
     double xGap = xSiGap + 2*_deadGap;
-    double xActiveDistTower = 0.5*(_nWafer*xPitch - xGap) - fabs(xTower);
-    double xError = sqrt(next_params(xPosIdx,xPosIdx));
-
     double yGap = ySiGap + 2*_deadGap;
-    double yActiveDistTower = 0.5*(_nWafer*yPitch - yGap) - fabs(yTower);
+
+    // call Reasons for edge   
+    Vector edgeDist = m_reasons->getEdgeDistance();
+    double xActiveDistTower = edgeDist.x();
+    double yActiveDistTower = edgeDist.y();
+
+    double xError = sqrt(next_params(xPosIdx,xPosIdx));
     double yError = sqrt(next_params(yPosIdx,yPosIdx));
 
     // Need protection for first hit which gives an error = .5*tower_width
@@ -597,12 +615,17 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
     // look for internal gaps
     int iXWafer;
     double xWafer = m_tkrGeom->truncateCoord(xTower, xPitch, _nWafer, iXWafer);
-    double xActiveDistWafer = 0.5*_activeWaferSide - fabs(xWafer);
-    bool nearXEdge = (xActiveDistWafer/xError < m_rej_sigma);
 
     int iYWafer;
     double yWafer = m_tkrGeom->truncateCoord(yTower, yPitch, _nWafer, iYWafer);
-    double yActiveDistWafer = 0.5*_activeWaferSide - fabs(yWafer);
+
+    // call Reasons for gaps
+    Vector gapDist = m_reasons->getGapDistance();
+    double xActiveDistWafer, yActiveDistWafer;
+    xActiveDistWafer = gapDist.x();
+    yActiveDistWafer = gapDist.y();
+
+    bool nearXEdge = (xActiveDistWafer/xError < m_rej_sigma);
     bool nearYEdge = (yActiveDistWafer/yError < m_rej_sigma);
 
     if (nearXEdge || nearYEdge) {
@@ -656,24 +679,14 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
 
     // analyze truncated hits... 
 
-    Vector towerPos = Vector(xTower, yTower, planeZ);
-    double truncDist = m_truncTool->getDistanceToTruncation(tower, next_plane, towerPos );
+    // call Reasons for distance to truncated hits
+    double truncDist = m_reasons->getTruncDistance();
 
     // need a sigma as well as a position
     double rError = getSlopeCorrectedError(next_params, view);
-    xError = rError*m_rej_sigma;
+    double xErrorTrunc = rError*m_rej_sigma;
 
-    bool truncBit = (truncDist>-2000.0 && truncDist>-xError);
-
-/*
-    bool newTrunc = (-truncDist<xError);
-    double ratio = truncDist/xError;
-    if (truncDist==-2000) { newTrunc = false; ratio = 0; }
-    if (truncBit!=newTrunc || truncBit) 
-        std::cout << "truncBit= " << truncBit << ", newTrunc= " << newTrunc 
-        << " result: distance = " << truncDist << ", xError = " << xError 
-        << ", norm = " << ratio << std::endl;
-*/
+    bool truncBit = (truncDist<xErrorTrunc);
 
     if (truncBit) {
         status_bits |= TkrTrackHit::HITISTRUNCATED;
@@ -694,17 +707,15 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
     TkrCluster* badCluster = 
         m_clusTool->nearestBadClusterOutside(view, layer, 0.0, end_pos);
 
-    double distance;
-    double width;
-
     if(badCluster) {
         // here is where we do something about the bad cluster
-        Point pos = badCluster->position();
-        Vector diff = end_pos - pos;
-        distance = fabs(diff[view]);
+        //Point pos = badCluster->position();
+        //Vector diff = end_pos - pos;
+        //distance = fabs(diff[view]);
         // get the cluster width, including gaps
-        width = m_clusTool->clusterWidth(badCluster);
-        double sig_bad = distance/(view==idents::TkrId::eMeasureX ? xError : yError);
+        //width = m_clusTool->clusterWidth(badCluster);
+       double distance = m_reasons->getBadClusterDistance();
+       double sig_bad = distance/(view==idents::TkrId::eMeasureX ? xError : yError);
 
         if(sig_bad < m_rej_sigma) {
 
