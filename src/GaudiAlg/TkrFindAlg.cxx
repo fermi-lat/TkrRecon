@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.28 2011/02/01 20:01:08 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.29 2011/02/24 22:07:51 lsrea Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -48,7 +48,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.28 2011/02/01 20:01:08 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.29 2011/02/24 22:07:51 lsrea Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -242,7 +242,7 @@ StatusCode TkrFindAlg::execute()
     // If no pointer then create it
     // Set TkrQueryClustersTool to return all hits, and look for "cosmics"
 
-    if(m_doCRFinding) {
+   if(m_doCRFinding) {
         // Set up the special cosmic ray track col here
         Event::TkrTrackCol* crTrackCol =
             SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrCRTrackCol);
