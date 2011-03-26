@@ -1,5 +1,18 @@
 ------------------------------------------------------------
 User: lsrea  Sat Mar 26 16:30:58 PDT 2011
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx 
+Removed Files:
+	TkrHitTruncationTool.cxx TkrHitTruncationTool.h 
+Log Message:
+Move TkrHitTruncationTool to TkrUtil, and change refs to it
+Start using TkrReasonsTool in FindTrackHitsTool
+
+    *
+------------------------------------------------------------
+User: lsrea  Sat Mar 26 16:30:58 PDT 2011
 TkrRecon/src/GaudiAlg
 
 Modified Files:
