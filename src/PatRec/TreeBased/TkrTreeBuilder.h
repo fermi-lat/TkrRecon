@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.h,v 1.2 2010/11/05 15:32:59 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.h,v 1.3 2010/11/24 16:39:06 usher Exp $
  *
 */
 
@@ -13,6 +13,7 @@
 #define __TkrTreeBuilder_H 1
 
 #include "Event/Recon/TkrRecon/TkrTree.h"
+#include "Event/Recon/TkrRecon/TkrBoundBox.h"
 
 #include "TkrVecNodesBuilder.h"
 
@@ -70,6 +71,13 @@ private:
                                   UsedClusterList&          usedCompositeClusters,
                                   double                    energy        = 1000., 
                                   int                       nRequiredHits = 5);
+
+    /// Use this to try to set up the tree axis
+    typedef std::list<Event::TkrBoundBox*> TkrBoundBoxList;
+
+    void findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBoundBoxList& bboxList);
+
+    Event::TkrFilterParams* doMomentsAnalysis(TkrBoundBoxList& bboxList);
 
     /// This makes map of "tree positions"
     typedef std::vector<TkrTreePosition>                 TkrTreePositionVec;
