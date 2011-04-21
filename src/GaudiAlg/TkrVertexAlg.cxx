@@ -17,7 +17,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.29 2004/12/16 05:04:21 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.30.658.1 2010/09/18 03:55:05 heather Exp $
  */
 
 #include "GaudiKernel/IToolSvc.h"
@@ -61,8 +61,9 @@ private:
 };
 
 // Used by Gaudi for identifying this algorithm
-static const AlgFactory<TkrVertexAlg>  Factory;
-const IAlgFactory& TkrVertexAlgFactory = Factory;
+//static const AlgFactory<TkrVertexAlg>  Factory;
+//const IAlgFactory& TkrVertexAlgFactory = Factory;
+DECLARE_ALGORITHM_FACTORY(TkrVertexAlg);
 
 // Standard Gaudi Constructor format
 TkrVertexAlg::TkrVertexAlg(const std::string& name, ISvcLocator* pSvcLocator) :

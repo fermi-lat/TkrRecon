@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.46 2009/01/22 01:42:11 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.47.78.1 2010/09/18 03:55:05 heather Exp $
 */
 
 
@@ -145,8 +145,9 @@ bool TkrReconAlg::s_failed = false;
 bool TkrReconAlg::s_saveBadEvents = true;
 
 // Definitions for use within Gaudi
-static const AlgFactory<TkrReconAlg>  Factory;
-const IAlgFactory& TkrReconAlgFactory = Factory;
+//static const AlgFactory<TkrReconAlg>  Factory;
+//const IAlgFactory& TkrReconAlgFactory = Factory;
+DECLARE_ALGORITHM_FACTORY(TkrReconAlg);
 
 // Algorithm constructor
 TkrReconAlg::TkrReconAlg(const std::string& name, ISvcLocator* pSvcLocator) :

@@ -16,11 +16,12 @@ ApplicationMgr.DLLs+= {"RootIo", "TkrRecon", "TkrUtil"};
 // setup basic event loop stuff
 //
 ApplicationMgr.ExtSvc = { 
-//    "GlastEventSelector/EventSelector" , 
-    "EventCnvSvc"
+    "DbEvtSelector/EventSelector" 
     };
 EventPersistencySvc.CnvServices = {"EventCnvSvc"};
-EventSelector.Input = "NONE";
+//EventSelector.Input = "NONE";
+
+ApplicationMgr.HistogramPersistency = "NONE";
 
 ParticlePropertySvc.ParticlePropertiesFile="../src/test/ParticleTable.txt";
 
