@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrMomentsAnalysis.h,v 1.2 2006/03/21 01:12:35 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrMomentsAnalysis.h,v 1.3 2009/09/09 19:34:32 lsrea Exp $
  */
 
 #include "geometry/Ray.h"
@@ -78,6 +78,7 @@ public:
     const Point  getMomentsCentroid()       const {return m_centroid;}
     const Vector getMoments()               const {return m_moment;}
     const Vector getMomentsAxis(int axis=1) const {return m_axis[axis];}
+    const double getAverageDistance()       const {return m_aveDist;}
     const double getLongitudinalRms()       const {return m_rmsLong;}
     const double getTransverseRms()         const {return m_rmsTrans;}
     const double getLongAsymmetry()         const {return m_rmsLongAsym;}
@@ -94,6 +95,8 @@ private:
     // Axis corresponding to the longest principal moment
     Vector m_axis[3];
 
+    // Average distance to axis 
+    double m_aveDist;
     // The Longitudinal rms of the distribution of points
     double m_rmsLong;
     // The transverse rms of the distribution of points
