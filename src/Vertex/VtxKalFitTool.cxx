@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.26 2005/02/11 07:14:55 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Vertex/VtxKalFitTool.cxx,v 1.27.652.1 2010/09/18 03:55:09 heather Exp $
 // Description:                                                  
 //      Implementation of the Kalman vertexer
 //
@@ -16,8 +16,9 @@
 #include "GaudiKernel/SmartDataPtr.h"
 #include "Event/TopLevel/EventModel.h"
 
-static ToolFactory<VtxKalFitTool> s_factory;
-const IToolFactory& VtxKalFitToolFactory = s_factory;
+//static ToolFactory<VtxKalFitTool> s_factory;
+//const IToolFactory& VtxKalFitToolFactory = s_factory;
+DECLARE_TOOL_FACTORY(VtxKalFitTool);
 
 
 VtxKalFitTool::VtxKalFitTool(const std::string& type, 
