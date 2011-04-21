@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: heather  Wed Apr 20 20:39:16 PDT 2011
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+      Tag: GlastReleasev18r7p1
+	TkrClusterAlg.cxx TkrDisplayAlg.cxx TkrFilterAlg.cxx 
+	TkrFindAlg.cxx TkrReconAlg.cxx TkrTrackFitAlg.cxx 
+	TkrVertexAlg.cxx 
+Log Message:
+merge in gaudi v21r7 mods
+    *
+------------------------------------------------------------
 User: heather  Wed Apr 20 20:39:15 PDT 2011
 TkrRecon/src/Filter
 
