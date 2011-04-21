@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+User: heather  Wed Apr 20 20:39:21 PDT 2011
+TkrRecon/src/test
+
+Modified Files:
+      Tag: GlastReleasev18r7p1
+	jobOptions.txt test_TkrRecon.cxx 
+Removed Files:
+      Tag: GlastReleasev18r7p1
+	test_TkrRecon_load.cxx 
+Log Message:
+merge in gaudi v21r7 mods
+    *
+------------------------------------------------------------
 User: heather  Wed Apr 20 20:39:20 PDT 2011
 TkrRecon/src/Vertex/Combo
 
