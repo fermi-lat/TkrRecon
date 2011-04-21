@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: heather  Wed Apr 20 20:39:20 PDT 2011
+TkrRecon/src/Vertex
+
+Modified Files:
+      Tag: GlastReleasev18r7p1
+	VtxKalFitTool.cxx VtxSingleTrkTool.cxx 
+Log Message:
+merge in gaudi v21r7 mods
+    *
+------------------------------------------------------------
 User: heather  Wed Apr 20 20:39:19 PDT 2011
 TkrRecon/src/Track
 
