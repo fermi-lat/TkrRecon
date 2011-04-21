@@ -213,11 +213,11 @@ int  ClusterAnalysis::runSingleLinkage()
         clusPos /= double(numDaughters1 + numDaughters2);
 
         double distBtwnDaughters = pointToPointDistance(bestPair.first, *bestPair.second);
-        double aveSep = numDaughters1 * bestPair.first->getAveClusterSep()
-                      + numDaughters2 * bestPair.second->getAveClusterSep()
+        double aveSep = (numDaughters1 - 1) * bestPair.first->getAveClusterSep()
+                      + (numDaughters2 - 1) * bestPair.second->getAveClusterSep()
                       + distBtwnDaughters;
 
-        aveSep /= double(numDaughters1 + numDaughters2 + 1);
+        aveSep /= double(numDaughters1 + numDaughters2 - 1);
 
         topCluster->setBiLayer(bestPair.first->getBiLayer());
         topCluster->setNumDaughters(numDaughters1 + numDaughters2);
@@ -270,6 +270,10 @@ int ClusterAnalysis::splitClusters(double scaleFactor, double minValue)
     double threshold = scaleFactor * m_topCluster.front()->getAveClusterSep();
 
     threshold = std::max(threshold, minValue);
+
+    // special case of two points but which are split by some distance
+//    int checkematthedoor = m_topCluster.front()->getNumDaughters();
+//    if (m_topCluster.size() == 1 && m_topCluster.front()->getNumDaughters() == 2) threshold = 2. * minValue;
 
     bool splitEm = true;
 

@@ -38,6 +38,7 @@ void MinSpanTree::setInputNodeList(MSTObjectVec& mstObjectVec)
     //Since we are making a new list, clear the existing one
     m_inputNodeList.clear();
     m_objectToNodeMap.clear();
+    m_objToObjDistMap.clear();
 
     // Build the adjacency list for all the TkrVecPoints in the list we are handed
     for(MSTObjectVec::iterator firstPtItr = mstObjectVec.begin(); firstPtItr != mstObjectVec.end(); firstPtItr++)
@@ -54,6 +55,8 @@ void MinSpanTree::setInputNodeList(MSTObjectVec& mstObjectVec)
             // For 3-D running, don't allow too many layers to be skipped
             int deltaLayers = abs(firstPoint->getBiLayer() - scndPoint->getBiLayer());
 
+            // We limit connections to be between bilayers, but skipping less than 3
+//            if (deltaLayers == 0 || deltaLayers > 3) continue;
             if (deltaLayers > 3) continue;
 
             // How far apart?

@@ -1,7 +1,7 @@
 /**
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/Attic/TkrMomentsAnalysis.cxx,v 1.1.2.1 2006/02/17 15:56:41 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrMomentsAnalysis.cxx,v 1.2 2006/03/21 01:12:34 usher Exp $
  */
 
 #include "src/Filter/TkrMomentsAnalysis.h"
@@ -10,6 +10,7 @@
 
 TkrMomentsAnalysis::TkrMomentsAnalysis() : m_moment(0.,0.,0.), 
                                            m_centroid(0.,0.,0.), 
+                                           m_aveDist(0.),
                                            m_rmsLong(0.),
                                            m_rmsTrans(0.),
                                            m_rmsLongAsym(0.),
@@ -118,26 +119,46 @@ double TkrMomentsAnalysis::doMomentsAnalysis(TkrMomentsDataVec& dataVec, const P
             if (m_axis[iroot].z() < 0.) m_axis[iroot] = -m_axis[iroot];
         }
 
-        // "Chi-squared" = sum of residuals about principal axis, through centroid, using input weight
+        // Make a pass through to get average distance from axis
+//        double aveDist = 0.;
+//        for(TkrMomentsDataVec::iterator vecIter = dataVec.begin(); vecIter != dataVec.end(); vecIter++)
+//        {
+//            TkrMomentsData& dataPoint = *vecIter;
+//
+//            double distToAxis = dataPoint.calcDistToAxis(m_centroid,m_axis[1]);
+//
+//            aveDist += distToAxis * distToAxis;
+//        }
+//        
+//        if (!dataVec.empty()) aveDist /= double(dataVec.size());
+
+        // "Chi-squared" = weighted sum of residuals about principal axis, through centroid, using input weight
+        double aveDist = 0.;
+
         chisq = 0.;
         for(TkrMomentsDataVec::iterator vecIter = dataVec.begin(); vecIter != dataVec.end(); vecIter++)
         {
             TkrMomentsData& dataPoint = *vecIter;
 
             double distToAxis = dataPoint.calcDistToAxis(m_centroid,m_axis[1]);
+            double weight     = dataPoint.getWeight();
 
-            chisq += dataPoint.getWeight() * distToAxis * distToAxis;
+            aveDist += distToAxis;
+            chisq   += weight * distToAxis * distToAxis;
         }
 
         // STkre by number of data points
-        chisq /= dataVec.size();
+        aveDist /= m_weightSum;
+        chisq   /= m_weightSum * dataVec.size();
 
         // Final Tkrculations to return moment of principal axis and average of other two
         double longMag1 = fabs(m_moment[0]);
 	    double longMag2 = fabs(m_moment[2]); 
+        double transMag = fabs(m_moment[1]);
 	
-        m_rmsLong     = (longMag1 + longMag2) / 2.;
-	    m_rmsTrans    =  fabs(m_moment[1]);
+        m_aveDist     = aveDist;
+        m_rmsLong     = sqrt((longMag1 + longMag2) / (2. * m_weightSum));
+	    m_rmsTrans    = sqrt(transMag / m_weightSum);
 	    m_rmsLongAsym = (longMag1 - longMag2)/(longMag1 + longMag2); 
     }
     else chisq = -1.;

@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrVecPointsFilterTool.cxx,v 1.4 2011/01/11 21:58:11 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrVecPointsFilterTool.cxx,v 1.5 2011/02/21 19:27:11 usher Exp $
  */
 
 // to turn one debug variables
@@ -432,13 +432,23 @@ void TkrVecPointsFilterTool::groupTkrVecPoints(Event::TkrVecPointCol* tkrVecPoin
         // Split the clusters if necessary
         int numClusters = clusterAnalysis->splitClusters();
 
+        // Store the cluster making object
+        m_lyrToClusterMap[mapItr->first] = clusterAnalysis;
+
+        // Add all clusters to our topCluster vector
+//        for(ClusterAnalysis::ClusterList::const_iterator clusItr = clusterAnalysis->getClusterList().begin();
+//                                                         clusItr != clusterAnalysis->getClusterList().end();
+//                                                         clusItr++)
+//        {
+//            const IMSTObject* cluster = *clusItr;
+//
+//            topClusterVec.push_back(const_cast<IMSTObject*>(cluster));
+//        }
+        
         // Did we get something?
         const IMSTObject* topCluster = 0;
         
         if (!clusterAnalysis->getClusterList().empty()) topCluster = clusterAnalysis->getClusterList().front();
-
-        // Store the cluster making object
-        m_lyrToClusterMap[mapItr->first] = clusterAnalysis;
 
         // Use this to determine the bounding boxes for this bilayer
         if (topCluster) topClusterVec.push_back(const_cast<IMSTObject*>(topCluster));
@@ -493,33 +503,20 @@ void TkrVecPointsFilterTool::groupTkrVecPoints(Event::TkrVecPointCol* tkrVecPoin
     // Sort if we must, put the "biggest" one at the front
     if (mstNodeLists.size() > 1) mstNodeLists.sort(compareMinSpanTreeNodeLists);
 
-    const MinSpanTreeNodeList& mstNodeList = mstNodeLists.front();
-
-    double aveDist = 0.;
-    int    nInAve  = 0;
-
-    for(MinSpanTreeNodeList::const_iterator nodeItr = mstNodeList.begin(); nodeItr != mstNodeList.end(); nodeItr++)
+    // Ok, loop over the node lists
+    for(MinSpanTreeNodeLists::const_iterator mstNodeIter = mstNodeLists.begin(); mstNodeIter != mstNodeLists.end(); mstNodeIter++)
     {
-        const MinSpanTreeNode* node = *nodeItr;
+        const MinSpanTreeNodeList& mstNodeList = *mstNodeIter;
 
-        if (node->getDistToParent() > 0.)
-        {
-            double distToParent = node->getDistToParent();
+        if (mstNodeList.size() < 2) continue;
 
-            aveDist += distToParent;
-            nInAve++;
-        }
+        BBLinksList linksList;
+
+        int numLinks = makeBoundingBoxes(mstNodeList, linksList);
+
+        // Now run the moments analysis to create a TkrFilterParams object
+        doMomentsAnalysis(linksList);
     }
-
-    aveDist /= double(nInAve);
-    int stophere = 0;
-
-    BBLinksList linksList;
-
-    int numLinks = makeBoundingBoxes(mstNodeLists.front(), linksList);
-
-    // Now run the moments analysis to create a TkrFilterParams object
-    doMomentsAnalysis(linksList);
 
     return;
 }
@@ -564,6 +561,12 @@ int TkrVecPointsFilterTool::makeBoundingBoxes(const MinSpanTreeNodeList& nodeLis
         Point  averagePos  = Point(0.,0.,0.);
         Point  lowEdge     = Point( 5000.,  5000., pointsList.front()->getPosition().z());
         Point  highEdge    = Point(-5000., -5000., pointsList.front()->getPosition().z());
+
+        // For getting average distance and rms
+        Point  lastPoint   = Point(0., 0., 0.);
+        double distSum     = 0.;
+        double distSum2    = 0.;
+        int    count       = 0;
     
         // Loop through the individual nodes to accumulate information and add TkrVecPoints to the box
         for(BBPointsList::iterator pointItr  = pointsList.begin();
@@ -587,6 +590,19 @@ int TkrVecPointsFilterTool::makeBoundingBoxes(const MinSpanTreeNodeList& nodeLis
                 if (vecPointPos.y() + clusSigY > highEdge.y()) highEdge.setY(vecPointPos.y() + clusSigY);
     
                 totNodeArea += 4. * clusSigX * clusSigY;
+
+                // Accumulate mean/rms info
+                if (pointItr != pointsList.begin())
+                {
+                    Vector distVec = vecPointPos - lastPoint;
+                    double dist    = distVec.magnitude();
+
+                    distSum  += dist;
+                    distSum2 += dist * dist;
+                    count++;
+                }
+
+                lastPoint = vecPointPos;
     
                 box->push_back(vecPoint);
             }
@@ -596,6 +612,8 @@ int TkrVecPointsFilterTool::makeBoundingBoxes(const MinSpanTreeNodeList& nodeLis
         int    numPoints  = box->size();
         double boxArea    = std::max(minBoxArea, (highEdge.x() - lowEdge.x()) * (highEdge.y() - lowEdge.y()));
         double boxDensity = totNodeArea / boxArea;
+        double aveDist    = count > 0 ? distSum / double(count) : 0.;
+        double rmsDist    = count > 0 ? sqrt(distSum2 / double(count)) : 0.;
     
         averagePos /= double(numPoints);
     
@@ -604,8 +622,8 @@ int TkrVecPointsFilterTool::makeBoundingBoxes(const MinSpanTreeNodeList& nodeLis
         box->setHighCorner(highEdge);
         box->setAveragePosition(averagePos);
         box->setHitDensity(boxDensity);
-        box->setMeanDist(nodeList.getMeanDistance());
-        box->setRmsDist(nodeList.getRmsDistance());
+        box->setMeanDist(aveDist);
+        box->setRmsDist(rmsDist);
 
         // Look up the parent link, if one exists
         Event::TkrBoundBoxLink* parent        = 0;
@@ -759,17 +777,18 @@ int TkrVecPointsFilterTool::doMomentsAnalysis(BBLinksList& linksList)
     filterParams->setNumIterations(numIterations);
     filterParams->setNumHitsTotal(numTotal);
     filterParams->setNumDropped(numDropped);
-    
-    double rmsTrans  = momentsAnalysis.getTransverseRms();
-    double rmsLong   = momentsAnalysis.getLongAsymmetry();
-    double weightSum = momentsAnalysis.getWeightSum();
-    
-    // Scale the transverse moment
-    rmsTrans = sqrt(rmsTrans / weightSum);
+
+    double aveDist     = momentsAnalysis.getAverageDistance();
+    double rmsTrans    = momentsAnalysis.getTransverseRms();
+    double rmsLong     = momentsAnalysis.getLongitudinalRms();
+    double rmsLongAsym = momentsAnalysis.getLongAsymmetry();
+    double weightSum   = momentsAnalysis.getWeightSum();
     
     filterParams->setChiSquare(chiSq);
+    filterParams->setAverageDistance(aveDist);
     filterParams->setTransRms(rmsTrans);
-    filterParams->setLongRmsAve(rmsLong);
+    filterParams->setLongRms(rmsLong);
+    filterParams->setLongRmsAsym(rmsLongAsym);
 
     // Add to TDS collection
     m_tkrFilterParamsCol->push_back(filterParams);
