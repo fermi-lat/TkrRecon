@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu May  5 12:33:21 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeBuilder.cxx TkrTreeBuilder.h 
+Log Message:
+Modifications to determination of tree axis - test version
+    *
+------------------------------------------------------------
 User: usher  Thu Apr 21 11:53:18 PDT 2011
 TkrRecon/src/Filter
 
