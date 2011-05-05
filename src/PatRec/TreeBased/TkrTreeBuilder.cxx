@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.10 2011/02/01 20:01:09 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.11 2011/04/21 18:52:58 usher Exp $
  *
 */
 
@@ -141,15 +141,6 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
     if (numLeaves > 0)
     {
         // First step is to get the tree axis
-        TkrBoundBoxList bboxList;
-
-        // Create the bounding box list
-        findTreeAxis(siblingMap, bboxList);
-
-        // Run the moments analysis to get the tree axis
-        axisParams = doMomentsAnalysis(bboxList);
-
-        // Find and fit the "best" track 
         // Now we proceed to extract the "best" track from the tree and fit it
         // Keep track of used clusters
         UsedClusterList usedClusters;
@@ -217,6 +208,9 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
             if (!(trackBest->getStatusBits() & Event::TkrTrack::COMPOSITE))
             {
                 // Composite track was not better, now look for the possibility 
+                setBranchBits(firstLeafNode, true);
+
+                // Composite track was not better, now look for the possibility 
                 // of a second track in the tree
                 // **********************************************
                 //  Put this here to see what will happen
@@ -270,28 +264,44 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
                 }
     
                 // no joy on second track
-                if (trackNextBest && trackNextBest->getNumFitHits() < 5)
+                if (trackNextBest)
                 {
-                    // clean up
-                    delete trackNextBest;
-                    trackNextBest = 0;
+                    if (trackNextBest->getNumFitHits() < 5)
+                    {
+                        // clean up
+                        delete trackNextBest;
+                        trackNextBest = 0;
+                    }
+                    else
+                    {
+                        flagUsedClusters(nextUsedClusters);
+                        setBranchBits(nextLeafNode, false);
+                    }
                 }
-                else flagUsedClusters(nextUsedClusters);
             }
     
             // Given the track we like, attempt to add leading hits
             m_findHitsTool->addLeadingHits(trackBest);
+        
+            // Last thing to do is get the tree axis (why isn't this first?)
+            TkrBoundBoxList bboxList;
+
+            // Create the bounding box list
+            findTreeAxis(siblingMap, bboxList);
+
+            // Run the moments analysis to get the tree axis
+            axisParams = doMomentsAnalysis(bboxList);
     
             // Finally, make the new TkrTree
             tree = new Event::TkrTree(headNode, siblingMap, axisParams, trackBest);
     
             if (trackNextBest) tree->push_back(trackNextBest);
-        }
 
-        // Need to clean up our bbox list
-        for(TkrBoundBoxList::iterator boxItr = bboxList.begin(); boxItr != bboxList.end(); boxItr++)
-        {
-            delete *boxItr;
+            // Need to clean up our bbox list
+            for(TkrBoundBoxList::iterator boxItr = bboxList.begin(); boxItr != bboxList.end(); boxItr++)
+            {
+                delete *boxItr;
+            }
         }
     }
 
@@ -354,11 +364,10 @@ int TkrTreeBuilder::makeLeafSet(Event::TkrVecNode*        curNode,
             
             const Event::TkrVecPoint* bottomPoint = nextNode->getAssociatedLink()->getSecondVecPoint();
 
-            if (bottomPoint->getXCluster()->hitFlagged() || bottomPoint->getYCluster()->hitFlagged()) continue;
 
             makeLeafSet(nextNode, toMainBranch, leafSet, siblingMap);
 
-            toMainBranch = 0;
+            toMainBranch = 1;
         }  
     }
     // Otherwise, we have found a leaf and need to add to our leaf set
@@ -373,7 +382,11 @@ int TkrTreeBuilder::makeLeafSet(Event::TkrVecNode*        curNode,
     if (!curNode->getParentNode())
     {
         // Sort the list by main branches
-        leafSet.sort(LeafSetComparator());
+        if (!leafSet.empty())
+        {
+            // Sort the list by main branches
+            leafSet.sort(LeafSetComparator());
+        }
     }
     // Otherwise our last act is to enter this node into the sibling map 
     else
@@ -384,6 +397,24 @@ int TkrTreeBuilder::makeLeafSet(Event::TkrVecNode*        curNode,
     }
 
     return leafSet.size();
+}
+
+void TkrTreeBuilder::setBranchBits(Event::TkrVecNode* node, bool isMainBranch)
+{
+    // If isMainBranch is true then we are setting the main branch bits
+    if (isMainBranch) node->setNodeOnBestBranch();
+    // Otherwise it is assumed to be the next best
+    else              node->setNodeOnNextBestBranch();
+
+    // If there is a parent then we need to keep moving "up"
+    if (node->getParentNode())
+    {
+        node = const_cast<Event::TkrVecNode*>(node->getParentNode());
+
+        setBranchBits(node, isMainBranch);
+    }
+
+    return;
 }
 
 void TkrTreeBuilder::leafToSiblingMap(Event::TkrNodeSiblingMap* siblingMap, 
@@ -545,7 +576,10 @@ void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBound
         lowEdge  = Point( 5000.,  5000., nodeVec.front()->getAssociatedLink()->getBotPosition().z());
         highEdge = Point(-5000., -5000., nodeVec.front()->getAssociatedLink()->getBotPosition().z());
 
-        double totNodeArea = 0.;
+        double layerWghtFctr = 1.;
+        double totNodeArea   = 0.;
+        double avePosMaxWght = 4. * double(nodeVec.size());
+        double avePosWghtSum = 0.;
         Point  averagePos(0.,0.,0.);
 
         // Create a new bounding box and add to list
@@ -572,11 +606,22 @@ void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBound
 
             // Now set the "area" of this point
             // Note the 4 is to scale up to the "total node area"
-            double weight = 4. * clusSigX * clusSigY;
+            double weight  = 4. * clusSigX * clusSigY;
+            double posWght = 1.;
+
+//            if      (node->isOnBestBranch())     posWght = avePosMaxWght;
+//            else if (node->isOnNextBestBranch()) posWght = avePosMaxWght;
+            posWght = double(node->getBiLyrs2MainBrch());
+
+            if (!(posWght > 0.))
+            {
+                int stopemintheirtracks = 0;
+            }
 
             // Accumulate stuff
-            averagePos  += linkPosAtBot;
-            totNodeArea += weight;
+            averagePos    += posWght * linkPosAtBot;
+            avePosWghtSum += posWght;
+            totNodeArea   += weight;
 
             if (linkPosAtBot.x() - clusSigX < lowEdge.x() ) lowEdge.setX(linkPosAtBot.x() - clusSigX);
             if (linkPosAtBot.y() - clusSigY < lowEdge.y() ) lowEdge.setY(linkPosAtBot.y() - clusSigY);
@@ -588,10 +633,14 @@ void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBound
 
         // Finish calculations
         int    numPoints  = box->size();
-        double boxArea    = std::max(minBoxArea, (highEdge.x() - lowEdge.x()) * (highEdge.y() - lowEdge.y()));
+        double boxArea    = layerWghtFctr * std::max(minBoxArea, (highEdge.x() - lowEdge.x()) * (highEdge.y() - lowEdge.y()));
         double boxDensity = totNodeArea / boxArea;
 
-        averagePos /= double(numPoints);
+        // This is meant to de-weight hits as we go further down in the event
+        layerWghtFctr *= 2.;
+
+//        averagePos /= double(numPoints);
+        averagePos /= avePosWghtSum;
 
         // Finish filling the box info
         box->setBiLayer(box->front()->getLayer());
