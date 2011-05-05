@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.h,v 1.3 2010/11/24 16:39:06 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.h,v 1.4 2011/04/21 18:52:58 usher Exp $
  *
 */
 
@@ -54,6 +54,9 @@ private:
                     int                       toMainBranch, 
                     Event::TkrVecNodeSet&     leafSet,
                     Event::TkrNodeSiblingMap& siblingMap);
+
+    /// Use this to define a look up object for used clusters
+    void setBranchBits(Event::TkrVecNode* node, bool isMainBranch);
 
     /// Use this to define a look up object for used clusters
     typedef std::set<const Event::TkrCluster*> UsedClusterList;
