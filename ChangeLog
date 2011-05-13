@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri May 13 00:15:15 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeBuilder.cxx 
+Log Message:
+Fix bug in first bound box position, change weighting scheme for box position
+    *
+------------------------------------------------------------
 User: usher  Thu May  5 12:33:21 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
