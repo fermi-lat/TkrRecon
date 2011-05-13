@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.11 2011/04/21 18:52:58 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.10 2011/02/01 20:01:09 usher Exp $
  *
 */
 
@@ -140,7 +140,7 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
     // If no leaves then no point in doing anything
     if (numLeaves > 0)
     {
-        // First step is to get the tree axis
+        // Find and fit the "best" track 
         // Now we proceed to extract the "best" track from the tree and fit it
         // Keep track of used clusters
         UsedClusterList usedClusters;
@@ -167,12 +167,9 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
             {
                 // Pick the best track... (always dangerous!)
                 // I'm thinking this will pick the "straightest" track...
-//                if (!trackBest || trackBest->getChiSquareSmooth() > 5. * trackAll->getChiSquareSmooth())
                 if ( !trackBest || 
                     (trackBest->chiSquareSegment() > 1. * trackAll->chiSquareSegment() && 
                      trackBest->getNumFitHits() - trackAll->getNumFitHits() < 10)
-//                    (trackBest->getChiSquareSmooth() > 2. * trackAll->getChiSquareSmooth() && 
-//                     trackBest->getNumFitHits() - trackAll->getNumFitHits() < 3)
                    )
                 {
                     Event::TkrTrack* temp = trackAll;
@@ -207,7 +204,7 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
     
             if (!(trackBest->getStatusBits() & Event::TkrTrack::COMPOSITE))
             {
-                // Composite track was not better, now look for the possibility 
+                // First thing is to set the "best branch" bits for the first track
                 setBranchBits(firstLeafNode, true);
 
                 // Composite track was not better, now look for the possibility 
@@ -364,9 +361,11 @@ int TkrTreeBuilder::makeLeafSet(Event::TkrVecNode*        curNode,
             
             const Event::TkrVecPoint* bottomPoint = nextNode->getAssociatedLink()->getSecondVecPoint();
 
+//            if (bottomPoint->getXCluster()->hitFlagged() || bottomPoint->getYCluster()->hitFlagged()) continue;
 
             makeLeafSet(nextNode, toMainBranch, leafSet, siblingMap);
 
+//            toMainBranch = 0;
             toMainBranch = 1;
         }  
     }
@@ -378,10 +377,10 @@ int TkrTreeBuilder::makeLeafSet(Event::TkrVecNode*        curNode,
     }
 
     // If we are the first node (hence returning to main calling sequence)
-    // then sort the nodes
+    // then sort the nodes and set the branch bits
     if (!curNode->getParentNode())
     {
-        // Sort the list by main branches
+        // Make sure the leaf set is not empty
         if (!leafSet.empty())
         {
             // Sort the list by main branches
@@ -538,7 +537,7 @@ void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBound
     const Event::TkrVecPoint*      firstHit   = pointsLink->getFirstVecPoint();
 
     // Position of this first point (corrected for angle)
-    const Point& linkPos = firstHit->getPosition();
+    const Point& linkPos = pointsLink->getPosition();
 
     // Recover the width of this first point
     double clusSigX = firstHit->getXCluster()->size() * siStripPitch;
@@ -607,16 +606,12 @@ void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBound
             // Now set the "area" of this point
             // Note the 4 is to scale up to the "total node area"
             double weight  = 4. * clusSigX * clusSigY;
-            double posWght = 1.;
+            double angWght = node->getBestRmsAngle();
 
-//            if      (node->isOnBestBranch())     posWght = avePosMaxWght;
-//            else if (node->isOnNextBestBranch()) posWght = avePosMaxWght;
-            posWght = double(node->getBiLyrs2MainBrch());
+            angWght = angWght > 0. ? angWght : 1.;
 
-            if (!(posWght > 0.))
-            {
-                int stopemintheirtracks = 0;
-            }
+            //posWght = altWght;
+            double posWght = 1. / (angWght * angWght);
 
             // Accumulate stuff
             averagePos    += posWght * linkPosAtBot;
@@ -1385,6 +1380,8 @@ Event::TkrFilterParams* TkrTreeBuilder::doMomentsAnalysis(TkrBoundBoxList& bboxL
     // Do the average
     tkrAvePosition /= sumWeights;
 
+    tkrAvePosition = (*bboxList.begin())->getAveragePosition();
+
     // Some statistics
     int numIterations = 1;
     int numTotal      = bboxList.size();
@@ -1396,7 +1393,7 @@ Event::TkrFilterParams* TkrTreeBuilder::doMomentsAnalysis(TkrBoundBoxList& bboxL
     double chiSq = momentsAnalysis.doMomentsAnalysis(dataVec, tkrAvePosition);
 
     // Retrieve the goodies
-    Point  momentsPosition = momentsAnalysis.getMomentsCentroid();
+    Point  momentsPosition = (*bboxList.begin())->getAveragePosition(); // momentsAnalysis.getMomentsCentroid();
     Vector momentsAxis     = momentsAnalysis.getMomentsAxis();
 
     // Create a new TkrFilterParams object here so we can build relational tables
