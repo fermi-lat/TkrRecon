@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sun May 15 07:59:05 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeBuilder.cxx 
+Log Message:
+Fix bug with only three points in moments determination
+    *
+------------------------------------------------------------
 User: usher  Fri May 13 00:15:15 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
