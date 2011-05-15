@@ -282,12 +282,13 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
         
             // Last thing to do is get the tree axis (why isn't this first?)
             TkrBoundBoxList bboxList;
+            Point           centroid(0.,0.,0.);
 
             // Create the bounding box list
-            findTreeAxis(siblingMap, bboxList);
+            findTreeAxis(siblingMap, bboxList, centroid);
 
             // Run the moments analysis to get the tree axis
-            axisParams = doMomentsAnalysis(bboxList);
+            axisParams = doMomentsAnalysis(bboxList, centroid);
     
             // Finally, make the new TkrTree
             tree = new Event::TkrTree(headNode, siblingMap, axisParams, trackBest);
@@ -512,7 +513,7 @@ Event::TkrTrack* TkrTreeBuilder::getTkrTrackFromLeaf(Event::TkrVecNode* leaf, do
     return track;
 }
     
-void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBoundBoxList& bboxList)
+void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBoundBoxList& bboxList, Point& centroid)
 {
     // Need the strip pitch
     static const double siStripPitch = m_tkrGeom->siStripPitch();
@@ -539,9 +540,17 @@ void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBound
     // Position of this first point (corrected for angle)
     const Point& linkPos = pointsLink->getPosition();
 
+    // Calculate position for moments analysis as in silicon layer just above this point
+    const Event::TkrCluster* xCluster = firstHit->getXCluster();
+    const Event::TkrCluster* yCluster = firstHit->getYCluster();
+
+    double zAtFirstPlane = std::max(xCluster->position().z(), yCluster->position().z());
+
+    centroid = pointsLink->getPosition(zAtFirstPlane);
+
     // Recover the width of this first point
-    double clusSigX = firstHit->getXCluster()->size() * siStripPitch;
-    double clusSigY = firstHit->getYCluster()->size() * siStripPitch;
+    double clusSigX = xCluster->size() * siStripPitch;
+    double clusSigY = yCluster->size() * siStripPitch;
 
     // Set edges
     Point lowEdge  = Point(linkPos.x()-clusSigX, linkPos.y()-clusSigY, linkPos.z());
@@ -1333,7 +1342,7 @@ void TkrTreeBuilder::flagUsedClusters(UsedClusterList& usedClusters)
     return;
 }
 
-Event::TkrFilterParams* TkrTreeBuilder::doMomentsAnalysis(TkrBoundBoxList& bboxList)
+Event::TkrFilterParams* TkrTreeBuilder::doMomentsAnalysis(TkrBoundBoxList& bboxList, Point& centroid)
 {
     // Set up to return a null pointer if nothing done
     Event::TkrFilterParams* filterParams = 0;
@@ -1380,8 +1389,6 @@ Event::TkrFilterParams* TkrTreeBuilder::doMomentsAnalysis(TkrBoundBoxList& bboxL
     // Do the average
     tkrAvePosition /= sumWeights;
 
-    tkrAvePosition = (*bboxList.begin())->getAveragePosition();
-
     // Some statistics
     int numIterations = 1;
     int numTotal      = bboxList.size();
@@ -1390,10 +1397,10 @@ Event::TkrFilterParams* TkrTreeBuilder::doMomentsAnalysis(TkrBoundBoxList& bboxL
     TkrMomentsAnalysis momentsAnalysis;
 
     // fingers crossed! 
-    double chiSq = momentsAnalysis.doMomentsAnalysis(dataVec, tkrAvePosition);
+    double chiSq = momentsAnalysis.doMomentsAnalysis(dataVec, centroid);
 
     // Retrieve the goodies
-    Point  momentsPosition = (*bboxList.begin())->getAveragePosition(); // momentsAnalysis.getMomentsCentroid();
+    Point  momentsPosition = centroid; // momentsAnalysis.getMomentsCentroid();
     Vector momentsAxis     = momentsAnalysis.getMomentsAxis();
 
     // Create a new TkrFilterParams object here so we can build relational tables
