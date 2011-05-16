@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sun May 15 20:49:20 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeBuilder.cxx 
+Log Message:
+Experimental: try using individual hits in the moments analysis to get tree axis
+    *
+------------------------------------------------------------
 User: usher  Sun May 15 08:07:50 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
