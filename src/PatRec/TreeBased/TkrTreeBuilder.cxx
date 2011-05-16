@@ -556,6 +556,14 @@ void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBound
     Point lowEdge  = Point(linkPos.x()-clusSigX, linkPos.y()-clusSigY, linkPos.z());
     Point highEdge = Point(linkPos.x()+clusSigX, linkPos.y()+clusSigY, linkPos.z());
 
+    // Retrieve the "best" angular deviation along this branch to use as the weight
+    double angWght = firstNode->getBestRmsAngle();
+
+    // Guard against zero deviation on short branches
+    angWght = angWght > 0. ? angWght : 1.;
+
+    double posWght = 1. / (angWght * angWght);
+
     // Create a bounding box for this point
     Event::TkrBoundBox* box = new Event::TkrBoundBox();
 
@@ -565,7 +573,7 @@ void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBound
     box->setLowCorner(lowEdge);
     box->setHighCorner(highEdge);
     box->setAveragePosition(linkPos);
-    box->setHitDensity(1.);
+    box->setHitDensity(posWght);
     box->setMeanDist(0.);
     box->setRmsDist(0.);
 
@@ -584,17 +592,6 @@ void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBound
         lowEdge  = Point( 5000.,  5000., nodeVec.front()->getAssociatedLink()->getBotPosition().z());
         highEdge = Point(-5000., -5000., nodeVec.front()->getAssociatedLink()->getBotPosition().z());
 
-        double layerWghtFctr = 1.;
-        double totNodeArea   = 0.;
-        double avePosMaxWght = 4. * double(nodeVec.size());
-        double avePosWghtSum = 0.;
-        Point  averagePos(0.,0.,0.);
-
-        // Create a new bounding box and add to list
-        box = new Event::TkrBoundBox();
-
-        bboxList.push_back(box);
-
         // Loop through the nodes at this bilayer 
         for(std::vector<const Event::TkrVecNode*>::const_iterator nodeItr = nodeVec.begin(); 
                 nodeItr != nodeVec.end(); nodeItr++)
@@ -612,48 +609,35 @@ void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBound
             clusSigX = hit->getXCluster()->size() * siStripPitch;
             clusSigY = hit->getYCluster()->size() * siStripPitch;
 
-            // Now set the "area" of this point
-            // Note the 4 is to scale up to the "total node area"
-            double weight  = 4. * clusSigX * clusSigY;
-            double angWght = node->getBestRmsAngle();
+            // Retrieve the "best" angular deviation along this branch to use as the weight
+            angWght = node->getBestRmsAngle();
 
+            // Guard against zero deviation on short branches
             angWght = angWght > 0. ? angWght : 1.;
 
-            //posWght = altWght;
-            double posWght = 1. / (angWght * angWght);
+            posWght = 1. / (angWght * angWght);
 
-            // Accumulate stuff
-            averagePos    += posWght * linkPosAtBot;
-            avePosWghtSum += posWght;
-            totNodeArea   += weight;
+            lowEdge.setX(linkPosAtBot.x() - clusSigX);
+            lowEdge.setY(linkPosAtBot.y() - clusSigY);
+            highEdge.setX(linkPosAtBot.x() + clusSigX);
+            highEdge.setY(linkPosAtBot.y() + clusSigY);
 
-            if (linkPosAtBot.x() - clusSigX < lowEdge.x() ) lowEdge.setX(linkPosAtBot.x() - clusSigX);
-            if (linkPosAtBot.y() - clusSigY < lowEdge.y() ) lowEdge.setY(linkPosAtBot.y() - clusSigY);
-            if (linkPosAtBot.x() + clusSigX > highEdge.x()) highEdge.setX(linkPosAtBot.x() + clusSigX);
-            if (linkPosAtBot.y() + clusSigY > highEdge.y()) highEdge.setY(linkPosAtBot.y() + clusSigY);
+            // Create a new bounding box and add to list
+            box = new Event::TkrBoundBox();
 
+            bboxList.push_back(box);
+            
             box->push_back(hit);
+
+            // Finish filling the box info
+            box->setBiLayer(box->front()->getLayer());
+            box->setLowCorner(lowEdge);
+            box->setHighCorner(highEdge);
+            box->setAveragePosition(linkPosAtBot);
+            box->setHitDensity(posWght);
+            box->setMeanDist(0.);
+            box->setRmsDist(0.);
         }
-
-        // Finish calculations
-        int    numPoints  = box->size();
-        double boxArea    = layerWghtFctr * std::max(minBoxArea, (highEdge.x() - lowEdge.x()) * (highEdge.y() - lowEdge.y()));
-        double boxDensity = totNodeArea / boxArea;
-
-        // This is meant to de-weight hits as we go further down in the event
-        layerWghtFctr *= 2.;
-
-//        averagePos /= double(numPoints);
-        averagePos /= avePosWghtSum;
-
-        // Finish filling the box info
-        box->setBiLayer(box->front()->getLayer());
-        box->setLowCorner(lowEdge);
-        box->setHighCorner(highEdge);
-        box->setAveragePosition(averagePos);
-        box->setHitDensity(boxDensity);
-        box->setMeanDist(0.);
-        box->setRmsDist(0.);
     }
 
     return;
