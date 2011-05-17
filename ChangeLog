@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue May 17 16:01:31 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeBuilder.cxx 
+Log Message:
+Modify to allow for inclusion of "hits" along skipping layer links in moments analysis
+    *
+------------------------------------------------------------
 User: usher  Sun May 15 20:49:20 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
