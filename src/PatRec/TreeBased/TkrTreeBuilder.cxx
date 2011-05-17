@@ -147,6 +147,7 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
 
         // The "best" track ends at the first leaf in our leaf set
         Event::TkrVecNode* firstLeafNode = leafSet.front();
+        Event::TkrVecNode* nextLeafNode  = 0;
 
         // Testing testing testing 1, 2, 3 ...
         Event::TkrTrack* trackBest = getTkrTrackFromLeaf(firstLeafNode, frstTrackEnergyScaleFctr * trackEnergy, usedClusters);
@@ -211,9 +212,8 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
                 // of a second track in the tree
                 // **********************************************
                 //  Put this here to see what will happen
-                Event::TkrVecNode* nextLeafNode   = 0;
-                int                mostUniqueHits = 0;
-                int                mostDist2Main  = 0;
+                int mostUniqueHits = 0;
+                int mostDist2Main  = 0;
     
                 Event::TkrVecNodeSet::iterator leafItr = leafSet.begin();
     
@@ -291,7 +291,7 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
             axisParams = doMomentsAnalysis(bboxList, centroid);
     
             // Finally, make the new TkrTree
-            tree = new Event::TkrTree(headNode, siblingMap, axisParams, trackBest);
+            tree = new Event::TkrTree(headNode, firstLeafNode, nextLeafNode, siblingMap, axisParams, trackBest);
     
             if (trackNextBest) tree->push_back(trackNextBest);
 
@@ -527,11 +527,6 @@ void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBound
     // node.
     std::vector<const Event::TkrVecNode*>& firstNodesVec = sibItr->second;
 
-    if (firstNodesVec.size() > 1)
-    {
-        int iThoughtThisWasImpossible = 0;
-    }
-
     // Follow through the chain to get at the top hit for this first node
     const Event::TkrVecNode*       firstNode  = firstNodesVec[0];
     const Event::TkrVecPointsLink* pointsLink = firstNode->getAssociatedLink();
@@ -630,13 +625,51 @@ void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBound
             box->push_back(hit);
 
             // Finish filling the box info
-            box->setBiLayer(box->front()->getLayer());
+            box->setBiLayer(hit->getLayer());
             box->setLowCorner(lowEdge);
             box->setHighCorner(highEdge);
             box->setAveragePosition(linkPosAtBot);
             box->setHitDensity(posWght);
             box->setMeanDist(0.);
             box->setRmsDist(0.);
+
+            // This to handle special case of links which skip layers
+            if (link->skipsLayers())
+            {
+                int breakpoint = 0;
+
+                // Reset box dimensions to average of top and bottom links
+                clusSigX = 0.5 * (hit->getXCluster()->size() + link->getFirstVecPoint()->getXCluster()->size()) * siStripPitch;
+                clusSigY = 0.5 * (hit->getYCluster()->size() + link->getFirstVecPoint()->getYCluster()->size()) * siStripPitch;
+
+                // Loop over intervening bilayers
+                for(int lyrIdx = hit->getLayer() + 1; lyrIdx < link->getFirstVecPoint()->getLayer(); lyrIdx++)
+                {
+                    double biLayerZ   = m_tkrGeom->getLayerZ(lyrIdx);
+                    Point  biLayerPos = link->getPosition(biLayerZ);
+
+                    lowEdge.setX(linkPosAtBot.x() - clusSigX);
+                    lowEdge.setY(linkPosAtBot.y() - clusSigY);
+                    highEdge.setX(linkPosAtBot.x() + clusSigX);
+                    highEdge.setY(linkPosAtBot.y() + clusSigY);
+
+                    // Create a new bounding box and add to list
+                    box = new Event::TkrBoundBox();
+
+                    bboxList.push_back(box);
+            
+                    box->push_back(hit);
+
+                    // Finish filling the box info
+                    box->setBiLayer(lyrIdx);
+                    box->setLowCorner(lowEdge);
+                    box->setHighCorner(highEdge);
+                    box->setAveragePosition(biLayerPos);
+                    box->setHitDensity(posWght);
+                    box->setMeanDist(0.);
+                    box->setRmsDist(0.);
+                }
+            }
         }
     }
 
