@@ -176,8 +176,11 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
             // Try to "find" a track from the hits in the tree (I hope) using hit finding method
             // For the direction we use the event axis direction, but remember that it points "opposite" our tracks
             Vector startDir = -axisParams->getEventAxis();
+            Point  startPos = axisParams->getEventPosition();
 
-            Event::TkrTrack* trackAll = getTkrTrackFromHits(trackBest->getInitialPosition(), startDir, trackEnergy);
+            if (trackBest) startPos = trackBest->getInitialPosition();
+
+            Event::TkrTrack* trackAll = getTkrTrackFromHits(startPos, startDir, trackEnergy);
 
             // Make sure the hit finding didn't screw up...
             if (trackAll && trackAll->getNumFitHits() > 4)
@@ -767,7 +770,7 @@ BuildTkrTrack::CandTrackHitVec TkrTreeBuilder::getCandTrackHitVecFromLeaf(Event:
     clusVec.clear();
 
     // Maximum allowed depth for shared hits
-    int maxSharedDepth = leaf->getDepth() - m_maxSharedLeadingHits / 2;
+    int maxSharedDepth = leaf->getBestNumBiLayers() - m_maxSharedLeadingHits / 2;
 
     // Handle the special case of the bottom hits first
     const Event::TkrVecPointsLink* pointsLink = leaf->getAssociatedLink();
@@ -778,13 +781,60 @@ BuildTkrTrack::CandTrackHitVec TkrTreeBuilder::getCandTrackHitVecFromLeaf(Event:
     while(leaf->getParentNode())
     {
         // If this node is skipping layers then we have some special handling
-        if (leaf->getAssociatedLink()->skipsLayers()) handleSkippedLayers(leaf, clusVec);
+        // Put the code for this inline since we are going "up" the branch and it can
+        // be confusing to separate out
+        if (leaf->getAssociatedLink()->skipsLayers())
+        {
+            const Event::TkrVecPointsLink* vecLink = leaf->getAssociatedLink();
+
+            // Loop through missing bilayers adding hit info, start at the bottom...
+            int nextPlane = 2 * vecLink->getSecondVecPoint()->getLayer() + 1;
+
+            // and work out way up to the top point
+            while(++nextPlane < 2 * vecLink->getFirstVecPoint()->getLayer())
+            {
+                // Recover the position of the plane we need to deal with
+                double nextPlaneZ = m_tkrGeom->getPlaneZ(nextPlane);
+                Point  nextPoint  = vecLink->getPosition(nextPlaneZ);
+
+                idents::TkrId nextTkrId = makeTkrId(nextPoint, nextPlane);
+
+                // Search for a nearby cluster -
+                // The assumption is that one plane is missing so no TkrVecPoint but perhaps the cluster is nearby
+                int view  = nextTkrId.getView();
+                int layer = nextPlane/2;
+
+                Event::TkrCluster* cluster = m_clusTool->nearestClusterOutside(view, layer, 0., nextPoint);
+
+                // If a cluster in this plane, check that it is nearby
+                if (cluster)
+                {
+                    // we are not allowed to use already flagged clusters, if not flagged checked proximity to track
+                    if (!cluster->hitFlagged())
+                    {
+                        double deltaPos = view == idents::TkrId::eMeasureX
+                                        ? nextPoint.x() - cluster->position().x()
+                                        : nextPoint.y() - cluster->position().y();
+
+                        // For now take anything "close"
+                        if (fabs(deltaPos) > 2.5 * m_tkrGeom->siStripPitch()) cluster = 0;
+                    }
+                    else cluster = 0;
+                }
+
+                clusVec.insert(clusVec.begin(),BuildTkrTrack::CandTrackHitPair(nextTkrId, cluster));
+            }
+        }
 
         // Recover current TkrVecPoint
         const Event::TkrVecPoint* curVecPoint = leaf->getAssociatedLink()->getFirstVecPoint();
 
         // Not allowed to use already flagged clusters! 
-        if (leaf->getDepth() <= maxSharedDepth && (curVecPoint->getXCluster()->hitFlagged() || curVecPoint->getYCluster()->hitFlagged())) break;
+        if (leaf->getDepth() <= maxSharedDepth && (curVecPoint->getXCluster()->hitFlagged() || curVecPoint->getYCluster()->hitFlagged())) 
+        {
+            clusVec.clear();
+            break;
+        }
 
         // Add the first clusters to the vector
         insertVecPointIntoClusterVec(leaf->getAssociatedLink()->getFirstVecPoint(), clusVec, usedClusters);
