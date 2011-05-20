@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri May 20 10:16:27 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeBuilder.cxx TkrTreeBuilder.h 
+Log Message:
+Modifications to track extraction, in particular now use complete kalman hit finder for "composite" tracks
+    *
+------------------------------------------------------------
 User: heather  Fri May 20 09:06:03 PDT 2011
 TkrRecon/doc
 
