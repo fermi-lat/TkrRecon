@@ -69,9 +69,12 @@ private:
     /// This makes a TkrTrack from the nodes given it in a TkrNodeSiblingMap
     Event::TkrTrack* getTkrTrackFromLeaf(Event::TkrVecNode* leaf, double energy, UsedClusterList& usedClusters);
 
+    /// This makes a TkrTrack, given a start point and direction, by using the kalman hit finder
+    Event::TkrTrack* getTkrTrackFromHits(Point  startPoint, Vector startDir, double energy);
+
     /// This makes a TkrTrack using a TkrNodeSiblingMap as a guide, depending on nRequiredHits
-    Event::TkrTrack* makeTkrTrack(Event::TkrNodeSiblingMap* siblingMap, 
-                                  UsedClusterList&          usedCompositeClusters,
+    Event::TkrTrack* makeTkrTrack(Event::TkrNodeSiblingMap* siblingMap,
+                                  Event::TkrFilterParams*   filterParams,
                                   double                    energy        = 1000., 
                                   int                       nRequiredHits = 5);
 
@@ -82,14 +85,13 @@ private:
 
     Event::TkrFilterParams* doMomentsAnalysis(TkrBoundBoxList& bboxList, Point& centroid);
 
-    /// This makes map of "tree positions"
-    typedef std::vector<TkrTreePosition>                 TkrTreePositionVec;
-    typedef std::map<int, std::vector<TkrTreePosition> > TkrTreePositionMap;
-    TkrTreePositionMap getTreePositions(Event::TkrNodeSiblingMap* siblingMap);
-
     /// Build the candidate track hit vector which is used to make TkrTracks
-    BuildTkrTrack::CandTrackHitVec getCandTrackHitVec(TkrTreePositionMap& treePositionMap);
+    BuildTkrTrack::CandTrackHitVec getCandTrackHitVec(Event::TkrNodeSiblingMap* siblingMap,
+                                                      Event::TkrFilterParams*   filterParams);
     BuildTkrTrack::CandTrackHitVec getCandTrackHitVecFromLeaf(Event::TkrVecNode* leaf, UsedClusterList& usedClusters);
+
+    /// Use this to handle links that skip layes in the above two methods
+    void handleSkippedLayers(const Event::TkrVecNode* node, BuildTkrTrack::CandTrackHitVec& clusVec);
 
     /// Attempt to not repeat code... 
     void insertVecPointIntoClusterVec(const Event::TkrVecPoint*       vecPoint, 
@@ -100,8 +102,11 @@ private:
     typedef std::pair<Point, Vector> TkrInitParams;
     TkrInitParams getInitialParams(BuildTkrTrack::CandTrackHitVec& clusVec);
 
-    /// Use this to flag the used clusters
+    /// Use this to flag the used clusters as they get used by found tracks
     void flagUsedClusters(UsedClusterList& usedClusters);
+
+    /// Use this to flag all clusters in a given tree (as the last step)
+    void flagAllUsedClusters(const Event::TkrTree* tree);
 
     /// Makes a TkrId
     idents::TkrId makeTkrId(Point& planeHit, int planeId);
@@ -132,6 +137,9 @@ private:
 
     /// Parameter to control when to allow hit finder to add hits
     double                 m_maxFilterChiSqFctr;
+
+    /// Parameter to control number of shared leading hits
+    int                    m_maxSharedLeadingHits;
 };
 
 #endif
