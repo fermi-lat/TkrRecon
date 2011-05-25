@@ -26,7 +26,7 @@ ComboVtxTool::ComboVtxTool( const std::string& type, const std::string& name, co
     declareInterface<IVtxBaseTool>(this);
 
     //Declare the control parameters for Combo Vertex.  Defaults appear here
-    declareProperty("MaxDOCA", m_maxDOCA = 20);
+    declareProperty("MaxDOCA", m_maxDOCA = 2.);
     declareProperty("MinQuality", m_minQuality = -100.);
 }
 
@@ -141,11 +141,14 @@ StatusCode ComboVtxTool::findVtxs()
             Event::TkrTrackParams tkr2Params = track2->front()->getTrackParams(Event::TkrTrackHit::SMOOTHED);
             idents::TkrId tkr2ID = track2->front()->getTkrId();
             const Event::TkrClusterPtr tkr2Cls  = track2->front()->getClusterPtr();
+			double e2 = track2->getInitialEnergy();
+			double eTot = e1 + e2;
 
             // Compute DOCA and DOCA location
             RayDoca doca    = RayDoca(Ray(tkr1Pos, tkr1Dir), Ray(tkr2Pos, tkr2Dir));
             double dist = doca.docaRay1Ray2();
-            if(dist >  m_maxDOCA) continue;
+			//if(dist >  m_maxDOCA*100./std::max(50.,std::min(500., eTot))) continue;
+			if(dist * sqrt(std::min(eTot, 5000.)/100.) > m_maxDOCA) continue;
 
             double s1   = doca.arcLenRay1();
             double s2   = doca.arcLenRay2(); 
@@ -156,19 +159,28 @@ StatusCode ComboVtxTool::findVtxs()
 
             // Determine where to locate the vertex in Z
             //  Initialize by putting vertex at z location of head of first track
-            if(s1 > 0 && s2 > 0) status |= Event::TkrVertex::CROSSTKR;
-            if(fabs(tkr1Pos.z() - tkr2Pos.z()) > .5*m_tkrGeom->trayHeight())
-                                 status |= Event::TkrVertex::STAGVTX;
-            double zVtx = tkr1Pos.z(); 
+			double zVtx = tkr1Pos.z(); 
 
-            if(tkr1Cls == tkr2Cls && tkr2Cls->size() < 3) 
-            {// Put vertex 1/2 way into preceeding radiator if first hit is in upper plane
-                int plane = m_tkrGeom->getPlane(tkr1ID);
-                int layer = m_tkrGeom->getLayer(plane);
-                bool isTopPlane = m_tkrGeom->isTopPlaneInLayer(plane);
-                if (!isTopPlane) {zVtx = m_tkrGeom->getConvZ(layer);}
-                status |= Event::TkrVertex::FIRSTHIT;
-            }
+			// Cycle through Vertex Types
+            if(s1 > 0 && s2 > 0 && tkr1Cls != tkr2Cls) 
+				status |= Event::TkrVertex::CROSSTKR;
+
+            if(fabs(tkr1Pos.z() - tkr2Pos.z()) > .5*m_tkrGeom->trayHeight()  && tkr1Cls != tkr2Cls)
+                 status |= Event::TkrVertex::STAGVTX;
+
+            double clsSize = tkr1Cls->size();
+			if(tkr1Cls == tkr2Cls) {
+				if(clsSize * fabs(tkr1Dir.z()) < 3.01 ) {
+            // Put vertex 1/2 way into preceeding radiator if first hit is in upper plane
+					int plane = m_tkrGeom->getPlane(tkr1ID);
+					int layer = m_tkrGeom->getLayer(plane);
+					bool isTopPlane = m_tkrGeom->isTopPlaneInLayer(plane);
+					if (isTopPlane) zVtx = m_tkrGeom->getConvZ(layer);
+					else // Leave zVtx in middle of first-hit-SSD
+						status |= Event::TkrVertex::FIRSTHIT;
+				}       // First Cluster too wide - punt - call it a multi-track vtx
+				else    status |= Event::TkrVertex::MULTKRVTX;
+			}
             else if((docaZPos-tkr1Pos.z()) > 0. && 
                     (docaZPos-tkr1Pos.z()) < m_tkrGeom->trayHeight())
             {// Put vertex at DOCA location   
@@ -186,7 +198,6 @@ StatusCode ComboVtxTool::findVtxs()
             Event::TkrTrackParams vtx1Params = m_propagatorTool->getTrackParams(fabs(sv1), e1, (sv1 < 0));
             double extraRadLen = m_propagatorTool->getRadLength();
 
-            double e2 = track2->getInitialEnergy();
             m_propagatorTool->setStepStart(tkr2Params, tkr2Pos.z(), (sv2 < 0));
             m_propagatorTool->step(fabs(sv2));
             Event::TkrTrackParams vtx2Params = m_propagatorTool->getTrackParams(fabs(sv2), e2, (sv2 < 0));
