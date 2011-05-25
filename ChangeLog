@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Wed May 25 11:24:22 PDT 2011
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	ComboVtxTool.cxx 
+Log Message:
+Fixed status bit defs.   keep in mind that "Multi Tkr" vertex bit is really  "First Cluster too wide"  bit.   Accepted vertex definition re-tuned for Tree Based tracking.
+    *
+------------------------------------------------------------
 User: usher  Fri May 20 14:32:27 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
