@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: lsrea  Thu May 26 09:34:59 PDT 2011
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	ComboVtxTool.cxx 
+Log Message:
+use renamed status bit WIDEFIRSTCLUSTER
+
+    *
+------------------------------------------------------------
 User: atwood  Wed May 25 11:24:22 PDT 2011
 TkrRecon/src/Vertex/Combo
 
