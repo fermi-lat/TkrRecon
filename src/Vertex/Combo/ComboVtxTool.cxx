@@ -178,8 +178,8 @@ StatusCode ComboVtxTool::findVtxs()
 					if (isTopPlane) zVtx = m_tkrGeom->getConvZ(layer);
 					else // Leave zVtx in middle of first-hit-SSD
 						status |= Event::TkrVertex::FIRSTHIT;
-				}       // First Cluster too wide - punt - call it a multi-track vtx
-				else    status |= Event::TkrVertex::MULTKRVTX;
+				}       // First Cluster too wide 
+				else    status |= Event::TkrVertex::WIDEFIRSTCLUSTER;
 			}
             else if((docaZPos-tkr1Pos.z()) > 0. && 
                     (docaZPos-tkr1Pos.z()) < m_tkrGeom->trayHeight())
