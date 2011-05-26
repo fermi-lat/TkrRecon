@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-25-02 26-May-2011  lsrea use renamed status bit WIDEFIRSTCLUSTER
  TkrRecon-10-25-01 20-May-2011 hmk    CLHEP 2.1.0.1 plus some Tracy updates
  TkrRecon-10-25-00 26-Mar-2011  lsrea Move TkrHitTruncationTool to TkrUtil; Start using TkrReasonsTool
  TkrRecon-10-24-04 18-Mar-2011  lsrea Updates to CR finding
