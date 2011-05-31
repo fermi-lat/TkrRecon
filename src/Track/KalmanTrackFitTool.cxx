@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.48 2011/01/28 23:23:05 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.49 2011/02/24 22:07:52 lsrea Exp $
  */
 
 // to turn one debug variables
@@ -154,7 +154,10 @@ private:
     /// To control kink angles in fit
     int                  m_minNumLeadingHits;
     int                  m_maxNumKinks;
+    double               m_minTrackChiSq;
+    double               m_minHitChiSquare;
     double               m_minNrmResForKink;
+    double               m_maxKinkAngle;
 
     /// The matrices which define the Kalman Filter
     IFitHitEnergy*       m_HitEnergy;
@@ -204,9 +207,19 @@ m_KalmanFit(0), m_nMeasPerPlane(0), m_nParams(0), m_fitErrs(0)
     declareProperty("FracDifference",    m_fracDifference = 0.01);
     declareProperty("MaxIterations",     m_maxIterations = 5);
 
+    /// Number of leading hits on track before allowing a kink
     declareProperty("nLeadingMinForKink", m_minNumLeadingHits = 4);
-    declareProperty("maxNumberOfKinks",   m_maxNumKinks = 4);
-    declareProperty("minNrmResForKink",   m_minNrmResForKink = 50.);
+    /// Maximum number of kinks allowed on the track
+    /// (somehow this should depend on track length)
+    declareProperty("maxNumberOfKinks",   m_maxNumKinks       = 8);
+    /// Minimum filter chi-square for track before looking for kinks
+    declareProperty("minTrackChiSq",      m_minTrackChiSq     = 2.);
+    /// Minimum hit chi-square to consider a kink at previous hit
+    declareProperty("minHitChiSquare",    m_minHitChiSquare   = 2.);
+    /// Minimum normalized hit residual to kink
+    declareProperty("minNrmResForKink",   m_minNrmResForKink  = 25.);
+    /// Don't allow crazy kink angles, constrain to 45 degrees maximum
+    declareProperty("maxKinkAngle",       m_maxKinkAngle      = M_PI_4);
 
     return;
 }
@@ -662,7 +675,12 @@ void KalmanTrackFitTool::doFullKalmanFit(Event::TkrTrack& track)
     int nHits = track.getNumFitHits();
     
     // Run the filter and follow with the smoother
-    double chiSqFit    = doFilter(track);
+    double chiSqFit    = 0.;
+    
+    // If the track has been found to have a kink(s) then refilter with the kink finder
+    if (track.getStatusBits() & Event::TkrTrack::HASKINKS) chiSqFit = doFilterWithKinks(track);
+    else                                                   chiSqFit = doFilter(track);
+
     double chiSqSmooth = doSmoother(track);
 
     // Number of degrees of freedom for the final chi-square
@@ -722,15 +740,41 @@ void KalmanTrackFitTool::doFilterFitWithKinks(Event::TkrTrack& track)
     // Restrictions and Caveats:  None
 
     int nHits = track.getNumFitHits();
-    
-    // Run the filter and follow with the smoother
-    double chiSqFit = doFilterWithKinks(track);
+
+    // First, run the standard filter in order to evaluate the situation
+    double chiSqFit = doFilter(track);
 
     // Number of degrees of freedom for the final chi-square
     int    numDegFree = m_nMeasPerPlane * nHits - m_nParams;
     
     // Compute the normalized chi-square
     chiSqFit /= numDegFree;
+
+    // If the resulting chi square is poor, then we attempt to insert kink angles
+    if (chiSqFit > m_minTrackChiSq)
+    {
+        // How many kinks do we have? Set up to make a pass through the 
+        // track hits to count kinks
+        int nKinksTot = 0;
+        int nKinksX   = 0;
+        int nKinksY   = 0;
+
+        for(Event::TkrTrackHitVecItr hitIter = track.begin(); hitIter != track.end(); hitIter++)
+        {
+            Event::TkrTrackHit* hit = *hitIter;
+
+            if (hit->getChiSquareFilter() > m_minHitChiSquare) 
+            {
+                nKinksTot++;
+                if (hit->getTkrId().getView() == idents::TkrId::eMeasureX) nKinksX++;
+                else                                                       nKinksY++;
+            }
+        }
+
+        // Make a pass through to find the offending hits
+        // Run the filter and follow with the smoother
+        if (nKinksTot > 0) chiSqFit = doFilterWithKinks(track) / numDegFree;
+    }
 
     // Set chi-square and status bits
     track.setChiSquareFilter(chiSqFit);
@@ -829,6 +873,9 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
     double chiSqInc = 0.;
     double chiSqFit = 0.;
 
+    // Assume no kinks
+    track.clearStatusBits(Event::TkrTrack::HASKINKS);
+
     // Set up a pair of iterators to go through the track hits
     Event::TkrTrackHitVecItr filtIter = track.begin();
     Event::TkrTrackHitVecItr refIter  = filtIter++;
@@ -880,11 +927,15 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
         // Update energy at the current hit
         m_HitEnergy->initialHitEnergy(track, referenceHit, referenceHit.getEnergy());
 
+        // Clear any existing kink angles
+        filterHit.setKinkAngle(0.);
+
         // Filter this step
         chiSqInc  = doFilterStep(referenceHit, filterHit);
 
         // If enough hits, check for a kink
-        if (numHits > m_minNumLeadingHits && numKinks < m_maxNumKinks && filterHit.getClusterPtr())
+//        if (numHits > m_minNumLeadingHits && numKinks < m_maxNumKinks && filterHit.getClusterPtr())
+        if (chiSqInc > m_minHitChiSquare && numHits > m_minNumLeadingHits && numKinks < m_maxNumKinks)
         {
             // We want to start by looking at the hit residual in the measured plane for this hit
             // To do so, we recover the "measured" track parameters and the "predicted" (non-filtered)
@@ -916,7 +967,7 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
                 double kinkAngle  = thetaPr - theta;
 
                 // Don't allow crazy kink angles
-                kinkAngle = std::max(-M_PI_2, std::min(M_PI_2, kinkAngle));
+                kinkAngle = std::max(-m_maxKinkAngle, std::min(m_maxKinkAngle, kinkAngle));
 
                 prevFilterHit.setKinkAngle(kinkAngle);
                 prevFilterHit.setStatusBit(Event::TkrTrackHit::HITHASKINKANG);
@@ -1001,7 +1052,7 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
     {
         int    measSlpIdx = referenceHit.getParamIndex(Event::TkrTrackHit::SSDMEASURED, Event::TkrTrackParams::Slope);
         double measSlope  = curStateVec(measSlpIdx);
-        double kinkAngle  = referenceHit.getKinkAngle();
+        double kinkAngle  = referenceHit.getKinkAngle() / sqrt(3.);
 
         // Slope parameters
         int    nonMeasIdx = referenceHit.getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Slope);
@@ -1009,12 +1060,13 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
         double norm_term  = 1. + measSlope*measSlope + nonMeasSlp* nonMeasSlp; // this is (1/cosTheta)**2
         double p33        = (1. + measSlope*measSlope) * norm_term;
         double p34        = measSlope * nonMeasSlp * norm_term;
+        double p44        = 1. + nonMeasSlp*nonMeasSlp * norm_term;
 
         // Extract maxtrix params we need to alter here
         double arcLen2    = deltaZ * deltaZ * (1. + measSlope*measSlope);
         double scat_disp2 = arcLen2 * sin(kinkAngle) * sin(kinkAngle) * norm_term;
         double qAngle     = Q(measSlpIdx, measSlpIdx) / p33;
-        double scat_angle = qAngle + kinkAngle * kinkAngle; 
+        double scat_angle = qAngle + kinkAngle * kinkAngle;  
         double scat_dist  = Q(measSlpIdx-1, measSlpIdx-1) / p33 + scat_disp2;
         double scat_covr  = sqrt(scat_dist * scat_angle) / sqrt(norm_term);
 
@@ -1022,12 +1074,19 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
         Q(measSlpIdx,   measSlpIdx)   = scat_angle * p33;
         Q(measSlpIdx,   measSlpIdx-1) = Q(measSlpIdx-1, measSlpIdx) = -scat_covr * p34;
         Q(measSlpIdx-1, measSlpIdx-1) = scat_dist * p33;
+        //Q(nonMeasIdx,   nonMeasIdx)   = 0.25 * scat_angle * p44;
+        //Q(nonMeasIdx,   nonMeasIdx-1) = Q(nonMeasIdx-1, nonMeasIdx) = -0.25 * scat_covr * p34;
+        //Q(nonMeasIdx-1, nonMeasIdx-1) = 0.25 * scat_dist * p44;
 
         // cross terms zeroed?
         Q(1,3) = Q(3,1) = 0.;
         Q(1,4) = Q(4,1) = 0.;
         Q(2,3) = Q(3,2) = 0.;
         Q(2,4) = Q(4,2) = 0.;
+        //Q(measSlpIdx-1, nonMeasIdx-1) = Q(nonMeasIdx-1, measSlpIdx-1) =  scat_dist  * p34;
+        //Q(measSlpIdx-1, nonMeasIdx  ) = Q(nonMeasIdx,   measSlpIdx-1) = 
+        //Q(measSlpIdx,   nonMeasIdx-1) = Q(nonMeasIdx-1, measSlpIdx  ) = -scat_covr  * p34;
+        //Q(measSlpIdx,   nonMeasIdx  ) = Q(nonMeasIdx,   measSlpIdx  ) =  scat_angle * p34;
     }
 
     // Do we have a measurement at this hit?

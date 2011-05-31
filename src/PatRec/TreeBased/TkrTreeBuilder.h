@@ -77,6 +77,10 @@ private:
                                   Event::TkrFilterParams*   filterParams,
                                   double                    energy        = 1000., 
                                   int                       nRequiredHits = 5);
+    Event::TkrTrack* makeTkrTrackFromMean(Event::TkrNodeSiblingMap* siblingMap,
+                                          Event::TkrFilterParams*   filterParams,
+                                          double                    energy        = 1000., 
+                                          int                       nRequiredHits = 5);
 
     /// Use this to try to set up the tree axis
     typedef std::list<Event::TkrBoundBox*> TkrBoundBoxList;
@@ -88,6 +92,8 @@ private:
     /// Build the candidate track hit vector which is used to make TkrTracks
     BuildTkrTrack::CandTrackHitVec getCandTrackHitVec(Event::TkrNodeSiblingMap* siblingMap,
                                                       Event::TkrFilterParams*   filterParams);
+    BuildTkrTrack::CandTrackHitVec getCandTrackHitVecFromMean(Event::TkrNodeSiblingMap* siblingMap,
+                                                              Event::TkrFilterParams*   filterParams);
     BuildTkrTrack::CandTrackHitVec getCandTrackHitVecFromLeaf(Event::TkrVecNode* leaf, UsedClusterList& usedClusters);
 
     /// Use this to handle links that skip layes in the above two methods

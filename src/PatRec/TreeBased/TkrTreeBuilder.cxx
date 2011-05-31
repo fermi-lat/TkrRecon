@@ -168,6 +168,7 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
 
         //*************************************************
         // If no track from best branch, or the fit is not good, then try to find an "alternative" primary track
+//        if ((!trackBest || trackBest->chiSquareSegment() > 4.) && siblingMap->size() > 1)
         if ((!trackBest || trackBest->chiSquareSegment() > 4.) && siblingMap->size() > 1)
         {
             // Use this to create a new TkrTrack
@@ -180,14 +181,16 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
 
             if (trackBest) startPos = trackBest->getInitialPosition();
 
-            Event::TkrTrack* trackAll = getTkrTrackFromHits(startPos, startDir, trackEnergy);
+//            Event::TkrTrack* trackAll = getTkrTrackFromHits(startPos, startDir, trackEnergy);
+            Event::TkrTrack* trackAll = makeTkrTrackFromMean(siblingMap, axisParams, trackEnergy);
 
             // Make sure the hit finding didn't screw up...
             if (trackAll && trackAll->getNumFitHits() > 4)
             {
                 // Pick the best track... (always dangerous!)
                 // I'm thinking this will pick the "straightest" track...
-                if ( !trackBest || 
+                //if ( !trackBest || 
+                if ( !trackBest ||
                     (trackBest->chiSquareSegment() > 1. * trackAll->chiSquareSegment() && 
                      trackBest->getNumFitHits() - trackAll->getNumFitHits() < 10)
                    )
@@ -241,6 +244,10 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
                 int mostDist2Main  = 0;
     
                 Event::TkrVecNodeSet::iterator leafItr = leafSet.begin();
+
+                // We do not allow hits to be shared on tracks or between trees unless "leading" hits
+                // Define the mask to check for this
+                unsigned usedCluster = Event::TkrCluster::maskUSED | Event::TkrCluster::maskONAGOODTREE;
     
                 while(++leafItr != leafSet.end())
                 {
@@ -253,8 +260,10 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
     
                     while(leaf->getParentNode())
                     {
-                        bool xClusUsed = leaf->getAssociatedLink()->getSecondVecPoint()->getXCluster()->hitFlagged() ? true : false;
-                        bool yClusUsed = leaf->getAssociatedLink()->getSecondVecPoint()->getYCluster()->hitFlagged() ? true : false;
+                        //bool xClusUsed = leaf->getAssociatedLink()->getSecondVecPoint()->getXCluster()->hitFlagged() ? true : false;
+                        //bool yClusUsed = leaf->getAssociatedLink()->getSecondVecPoint()->getYCluster()->hitFlagged() ? true : false;
+                        bool xClusUsed = leaf->getAssociatedLink()->getSecondVecPoint()->getXCluster()->isSet(usedCluster) ? true : false;
+                        bool yClusUsed = leaf->getAssociatedLink()->getSecondVecPoint()->getYCluster()->isSet(usedCluster) ? true : false;
 
                         // Kick out immediately if shared hits after number of allowed leading
                         if (leaf->getDepth() <= depthCheck && (xClusUsed || yClusUsed))
@@ -294,7 +303,7 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
                 {
                     trackNextBest = getTkrTrackFromLeaf(nextLeafNode, scndTrackEnergyScaleFctr * trackEnergy, nextUsedClusters);
                 }
-    
+   
                 // no joy on second track
                 if (trackNextBest)
                 {
@@ -567,6 +576,62 @@ Event::TkrTrack* TkrTreeBuilder::getTkrTrackFromHits(Point  startPoint, Vector s
     return track;
 }
 
+Event::TkrTrack* TkrTreeBuilder::makeTkrTrackFromMean(Event::TkrNodeSiblingMap* siblingMap, 
+                                                      Event::TkrFilterParams*   axisParams,
+                                                      double                    energy, 
+                                                      int                       nRequiredHits)
+{
+    Event::TkrTrack* track = 0;
+
+    // Handy tool for building TkrTracks
+    BuildTkrTrack trackBuilder(m_tkrGeom);
+
+    // The basic function here is to "find" a track by using the standard hit finding. To
+    // do that we first need to get the initial position and direction and build a trial 
+    // TkrTrack to feed to the hit finding. 
+
+    // First step in this process is to get a candidate TrackHit vector:
+    BuildTkrTrack::CandTrackHitVec clusVec = getCandTrackHitVecFromMean(siblingMap, axisParams);
+
+    // Just be sure to have enough hits
+    if (int(clusVec.size()) >= nRequiredHits)
+    {
+        // Get the initial parameters of this candidate track
+        TkrInitParams initParams = getInitialParams(clusVec);
+
+        // Now build the candidate track
+        track = trackBuilder.makeNewTkrTrack(initParams.first, initParams.second, energy, clusVec);
+
+        // Run the filter on this 
+        m_trackFitTool->doFilterFitWithKinks(*track);
+
+        // By definition, we always "find" a track here
+        track->setStatusBit(Event::TkrTrack::FOUND);
+        track->setStatusBit(Event::TkrTrack::TREEBASED);
+
+        // Remove trailing gap hits - this never happens here?
+        while(!track->back()->validCluster()) 
+        {
+            Event::TkrTrackHit* lastHit = track->back();
+            delete lastHit;
+            track->pop_back();
+        }
+
+        // Set the energy for the track and do the final fit
+        // ****** IS THIS NECESSARY?
+        track->setInitialEnergy(energy);
+
+        // Do the full fit
+        if (StatusCode sc = m_trackFitTool->doTrackFit(track) != StatusCode::SUCCESS)
+        {
+            throw(TkrException("Exception encountered when fitting track in tree builder "));  
+        }
+    }
+
+    // Finally, we're done!
+    return track;
+}
+
 Event::TkrTrack* TkrTreeBuilder::makeTkrTrack(Event::TkrNodeSiblingMap* siblingMap, 
                                               Event::TkrFilterParams*   axisParams,
                                               double                    energy, 
@@ -737,13 +802,108 @@ BuildTkrTrack::CandTrackHitVec TkrTreeBuilder::getCandTrackHitVec(Event::TkrNode
         clusVec.push_back(BuildTkrTrack::CandTrackHitPair(clusterY->getTkrId(), clusterY));
         clusVec.push_back(BuildTkrTrack::CandTrackHitPair(clusterX->getTkrId(), clusterX));
     }
-/*
-    // Now we need to find a third set of hits to add to the track... 
-    // Simplest option is to use the bottom point of the first daughter link of scnd node
-    const Event::TkrVecPoint* thrdHit = firstNode->front()->getAssociatedLink()->getSecondVecPoint();
 
-    clusterX  = thrdHit->getXCluster();
-    clusterY  = thrdHit->getYCluster();
+    return clusVec;
+}
+
+class TreeLayerMeanValues
+{
+public:
+    TreeLayerMeanValues() :  m_numInSum(0), 
+                             m_base(0.,0.,0.),
+                             m_averagePos(0.,0.,0.), 
+                             m_aveSquarePos(0.,0.,0.),
+                             m_avePosWghtSum(0.), 
+                             m_aveWidXSum(0.), 
+                             m_aveWidYSum(0.),
+                             m_bestDistToAxis(100000.),
+                             m_clusterX(0),
+                             m_clusterY(0)
+    {};
+
+    void   setClusterX(const Event::TkrCluster* clusterX) {m_clusterX       = clusterX;}
+    void   setClusterY(const Event::TkrCluster* clusterY) {m_clusterY       = clusterY;}
+    void   setBestDistToAxis(const double& bestDist)      {m_bestDistToAxis = bestDist;}
+
+    Point                    getAveragePos() 
+                                             {
+                                                 Point avePos(m_averagePos); 
+                                                 avePos /= m_avePosWghtSum; 
+                                                 avePos += m_base;
+                                                 return avePos;
+                                             }
+    Point                    getStdDev()
+                                                  {
+                                                      Point stdDev(0.,0.,0.);
+
+                                                      if (m_numInSum > 1)
+                                                      {
+                                                         Vector avePos  = getAveragePos() - m_base;
+                                                         double stdDevX = m_aveSquarePos.x() / double(m_numInSum) - avePos.x() * avePos.x();
+                                                         double stdDevY = m_aveSquarePos.y() / double(m_numInSum) - avePos.y() * avePos.y();
+                                                         double stdDevZ = m_aveSquarePos.z() / double(m_numInSum) - avePos.z() * avePos.z();
+                                                         stdDev = Point(sqrt(std::max(0.,stdDevX)),sqrt(std::max(0.,stdDevY)),sqrt(std::max(0.,stdDevZ)));
+                                                     }
+
+                                                     return stdDev;
+                                                 }
+    double                   getAveWidX()        {return sqrt(m_aveWidXSum / m_avePosWghtSum);}
+    double                   getAveWidY()        {return sqrt(m_aveWidYSum / m_avePosWghtSum);}
+    int                      getNumInSum()       {return m_numInSum;}
+    double                   getBestDistToAxis() {return m_bestDistToAxis;}
+    const Event::TkrCluster* getClusterX()       {return m_clusterX;}
+    const Event::TkrCluster* getClusterY()       {return m_clusterY;}
+
+    void   incrementSums(const Point& newPos, const double& wght, const int& xWid, const int& yWid)
+    {
+        if (!m_numInSum) m_base = newPos;
+
+        Vector accumVals = newPos - m_base;
+
+        m_numInSum++;
+        m_averagePos    += wght * (accumVals);
+        m_aveSquarePos  += Point(accumVals.x()*accumVals.x(),accumVals.y()*accumVals.y(),accumVals.z()*accumVals.z());
+        m_aveWidXSum    += wght * xWid * xWid;
+        m_aveWidYSum    += wght * yWid * yWid;
+        m_avePosWghtSum += wght;
+    }
+
+private:
+    int                      m_numInSum;
+    Point                    m_base;
+    Point                    m_averagePos;
+    Point                    m_aveSquarePos;
+    double                   m_avePosWghtSum ;
+    double                   m_aveWidXSum;
+    double                   m_aveWidYSum;
+    double                   m_bestDistToAxis;
+    const Event::TkrCluster* m_clusterX;
+    const Event::TkrCluster* m_clusterY;
+};
+
+BuildTkrTrack::CandTrackHitVec TkrTreeBuilder::getCandTrackHitVecFromMean(Event::TkrNodeSiblingMap* siblingMap,
+                                                                          Event::TkrFilterParams*   axisParams)
+{
+    // Given the map of cluster/positions by plane id, go through and create the "CandTrackHitVec" vector
+    // which can be used to create TkrTrackHits at each plane. This routine does that by determining the mean
+    // position of the hits at each layer. If there is only one hit then the "original" clusters are used, if
+    // an average of more than one hit then a "composite" cluster is created and used. 
+
+    // The candidate track hit vector to return
+    BuildTkrTrack::CandTrackHitVec clusVec;
+    clusVec.clear();
+
+    // Set up a reverse iterator to go through the sibling map from "top" to "bottom" 
+    Event::TkrNodeSiblingMap::reverse_iterator sibItr = siblingMap->rbegin();
+
+    // The first task is to set up the first point, which will be a single X-Y cluster pair
+    const Event::TkrVecNode* firstNode  = (sibItr->second)[0];
+
+    // Ok, recover the first hit and the associated clusters
+    const Event::TkrVecPointsLink* pointsLink = firstNode->getAssociatedLink();
+    const Event::TkrVecPoint*      firstHit   = pointsLink->getFirstVecPoint();
+    const Event::TkrCluster*       clusterX   = firstHit->getXCluster();
+    const Event::TkrCluster*       clusterY   = firstHit->getYCluster();
 
     // Need to add this in order
     if (clusterX->position().z() > clusterY->position().z()) 
@@ -756,7 +916,266 @@ BuildTkrTrack::CandTrackHitVec TkrTreeBuilder::getCandTrackHitVec(Event::TkrNode
         clusVec.push_back(BuildTkrTrack::CandTrackHitPair(clusterY->getTkrId(), clusterY));
         clusVec.push_back(BuildTkrTrack::CandTrackHitPair(clusterX->getTkrId(), clusterX));
     }
-*/
+
+    // Because we want to include the links that skip layers, we need to keep track of averages in 
+    // a map between layers and the info we want
+    std::map<int,TreeLayerMeanValues> lyrToAveragesMap;
+
+    static double siStripRes = m_tkrGeom->siStripPitch();
+
+    // Loop through layers to get positions
+    int strtLayer = firstNode->getTreeStartLayer();
+    int lastLayer = strtLayer - firstNode->getDepth();
+
+    // Loop through each of the bilayers
+    for(int topLayer = strtLayer; topLayer > lastLayer; topLayer--)
+    {
+        // Retrieve the sibling map information for this layer
+        Event::TkrNodeSiblingMap::iterator sibMapItr = siblingMap->find(topLayer);
+
+        // No entry means nothing to do
+        if (sibMapItr != siblingMap->end())
+        {
+            // Retrieve the vector of nodes at this layer
+            std::vector<const Event::TkrVecNode*>& firstNodesVec = sibItr++->second;
+
+            // Now loop through all of these nodes
+            std::vector<const Event::TkrVecNode*>::const_iterator firstItr   = firstNodesVec.begin();
+
+            // Want to associate clusters closest to tree axis as the "best" ones, keep track of that 
+            const Event::TkrVecNode* bestNode = 0;
+            double                   bestDist = 100000.;
+
+            // We will want to check the distance our bottom points are to the tree axis
+            // To help avoid numerical problems, transport the start point of the tree axis
+            // to a position at the expected bilayer
+            double zAtThisBiLayer = m_tkrGeom->getLayerZ(topLayer - 1);
+            double arcLen         = (zAtThisBiLayer - firstHit->getPosition().z()) / axisParams->getEventAxis().z();
+            Vector axisAtThisZ    = firstHit->getPosition() + arcLen * axisParams->getEventAxis();
+
+            for( ; firstItr != firstNodesVec.end(); firstItr++)
+            {
+                const Event::TkrVecNode*       node = *firstItr;
+                const Event::TkrVecPointsLink* link = node->getAssociatedLink();
+                const Event::TkrVecPoint*      hit  = link->getSecondVecPoint();
+
+                // Recover layer and increment values
+                int botLayer = hit->getLayer();
+
+                // Determine the distance of this node to the tree axis
+                Vector vecToAxis  = hit->getPosition() - axisAtThisZ;
+                //Vector nrmlToBoth = vecToAxis.cross(axisParams->getEventAxis());
+
+                // Get the distance to the axis
+                //double distToAxis = nrmlToBoth.magnitude();
+                double distToAxis = std::min(siStripRes, vecToAxis.magnitude());
+
+                // Ok, check to see if this is closer t the axis than the previous point
+                if (lyrToAveragesMap[botLayer].getBestDistToAxis() > distToAxis)
+                {
+                    lyrToAveragesMap[botLayer].setClusterX(hit->getXCluster());
+                    lyrToAveragesMap[botLayer].setClusterY(hit->getYCluster());
+                    lyrToAveragesMap[botLayer].setBestDistToAxis(distToAxis);
+                }
+
+                // get the weight for this point (points)
+                double weight  = node->getBestRmsAngle()    > 0. ? node->getBestRmsAngle()    : 1.;
+                double nInSum  = node->getBestNumBiLayers() > 0  ? node->getBestNumBiLayers() : 1.;
+                double posWght = nInSum * nInSum / (weight * weight);
+
+                if (link->skipsLayers()) 
+                {
+                    int iWantToStopHere = 0;
+                }
+
+                for (int layer = topLayer - 1; layer >= botLayer; layer--)
+                {
+                    double biLayerZ = m_tkrGeom->getLayerZ(layer);
+
+                    lyrToAveragesMap[layer].incrementSums(link->getPosition(biLayerZ), 
+                                                          posWght, 
+                                                          hit->getXCluster()->size(), 
+                                                          hit->getYCluster()->size());
+                }
+            }
+        }
+    }
+
+    int layer = strtLayer;
+
+    while(layer-- > lastLayer)
+    {
+        // Null pointers to clusters just in case
+        const Event::TkrCluster* clusterX = 0;
+        const Event::TkrCluster* clusterY = 0;
+        idents::TkrId            tkrIdX;
+        idents::TkrId            tkrIdY;
+
+        bool xOnTop = true;
+
+        // Recover the values for this layer
+        TreeLayerMeanValues& values = lyrToAveragesMap[layer];
+
+        // If we have set a cluster at this layer then go ahead and use accumulated values
+        // Also, this section makes a composite cluster so skip if not averaging position
+        if (values.getClusterX() && values.getNumInSum() > 1)
+        {
+            // Get the averages
+            Point  averagePos = values.getAveragePos();
+            Point  posStdDev  = values.getStdDev();
+            double aveWidXSum = values.getAveWidX();
+            double aveWidYSum = values.getAveWidY();
+
+            // Right now force average widths to be no less than 1
+            aveWidXSum = std::max(aveWidXSum, 0.9);
+            aveWidYSum = std::max(aveWidYSum, 0.9);
+
+            // Get widths based on standard deviations
+//            double stdDevWidX = std::min(std::max(posStdDev.x()/siStripRes, 0.9),10.);
+//            double stdDevWidY = std::min(std::max(posStdDev.y()/siStripRes, 0.9),10.);
+
+            // Take the bigger
+//            aveWidXSum = std::max(aveWidXSum, stdDevWidX);
+//            aveWidYSum = std::max(aveWidYSum, stdDevWidY);
+
+            // Use the stored cluster to make the composite one
+            clusterX = values.getClusterX();
+
+            // Adjust position to get to z plane of current X cluster
+            double arcLenX  = (clusterX->position().z() - averagePos.z()) / axisParams->getEventAxis().z();
+            Point  posClusX = averagePos + arcLenX * axisParams->getEventAxis();
+            int    nStripsX = aveWidXSum + 0.5;
+
+            // Reset position to follow cluster position scheme
+            posClusX = Point(posClusX.x(), clusterX->position().y(), clusterX->position().z());
+
+            // Ok, create a new cluster in X
+            Event::TkrCluster* cluster = new Event::TkrCluster(clusterX->getTkrId(),
+                                                               clusterX->firstStrip(),
+                                                               clusterX->firstStrip() + nStripsX,
+                                                               posClusX,
+                                                               clusterX->getRawToT(),
+                                                               clusterX->getMips(),
+                                                               clusterX->getStatusWord(),
+                                                               0);
+
+            // Mark it as "special"
+            cluster->setStatusBits(0x08000000);
+
+            // Save it in our personal collection for management
+            m_clusterCol->push_back(cluster);
+
+            // Finally, reset the x cluster pointer
+            clusterX = cluster;
+            tkrIdX   = cluster->getTkrId();
+
+            // Now do the same in the Y plane
+            clusterY = values.getClusterY();
+
+            // Adjust position to get to z plane of current Y cluster
+            double arcLenY  = (clusterY->position().z() - averagePos.z()) / axisParams->getEventAxis().z();
+            Point  posClusY = averagePos + arcLenY * axisParams->getEventAxis();
+            int    nStripsY = aveWidYSum + 0.5;
+
+            // Reset position to follow cluster position scheme
+            posClusY = Point(clusterY->position().x(), posClusY.y(), clusterY->position().z());
+
+            // Ok, create a new cluster in Y
+            cluster = new Event::TkrCluster(clusterY->getTkrId(),
+                                            clusterY->firstStrip(),
+                                            clusterY->firstStrip() + nStripsY,
+                                            posClusY,
+                                            clusterY->getRawToT(),
+                                            clusterY->getMips(),
+                                            clusterY->getStatusWord(),
+                                            0);
+
+            // Mark it as "special"
+            cluster->setStatusBits(0x08000000);
+
+            // Save it in our personal collection for management
+            m_clusterCol->push_back(cluster);
+
+            clusterY = cluster;
+            tkrIdY   = cluster->getTkrId();
+
+            if (clusterY->position().z() > clusterX->position().z()) xOnTop = false;
+        }
+        // Two cases to check:
+        // 1) we have only one hit in which case we simply use the existing clusters
+        // 2) we have no hit (skipping a layer) in which case we want to fill in a null entry
+        else
+        {
+            // Make sure there is a node at this layer
+            // Note that for the sibling map we need to reference the information in the bilayer
+            // above the one we are dealing with
+            Event::TkrNodeSiblingMap::iterator sibMapItr = siblingMap->find(layer+1);
+            const Event::TkrVecNode*           node      = 0;
+
+            if (sibMapItr != siblingMap->end())
+            {
+                // Dereference
+                node = sibMapItr->second.front();
+
+                // Only keep if not skipping layers
+                if (node->getAssociatedLink()->skipsLayers()) node = 0;
+            }
+
+            // So, the test is that we have a node satisfying the condition that it has a link
+            // ending on the layer we want
+            if (node)
+            {
+                // Retrieve clusters associated with first point
+                clusterX = node->getAssociatedLink()->getSecondVecPoint()->getXCluster();
+                clusterY = node->getAssociatedLink()->getSecondVecPoint()->getYCluster();
+
+                tkrIdX   = clusterX->getTkrId();
+                tkrIdY   = clusterY->getTkrId();
+
+                if (clusterY->position().z() > clusterX->position().z()) xOnTop = false;
+            }
+            // if no node then special handling required
+            else
+            {
+                int stopPlaneId = 2 * layer;
+                int planeId     = stopPlaneId + 2;
+
+                while(planeId-- > stopPlaneId)
+                {
+                    double        planeZ   = m_tkrGeom->getPlaneZ(planeId);
+                    double        arcLen   = (planeZ - axisParams->getEventPosition().z()) / -axisParams->getEventAxis().z();
+                    Point         planePos = axisParams->getEventPosition() - arcLen * axisParams->getEventAxis();
+                    idents::TkrId tkrId    = makeTkrId(planePos, planeId);
+
+                    if (tkrId.getView() == idents::TkrId::eMeasureX) 
+                    {
+                        tkrIdX = tkrId;
+                        if (planeId > stopPlaneId) xOnTop = true;
+                    }
+                    else
+                    {
+                        tkrIdY = tkrId;
+                        if (planeId > stopPlaneId) xOnTop = false;
+                    }
+                }
+            }
+        }
+
+        // Need to add this in order
+        if (xOnTop) 
+        {
+            clusVec.push_back(BuildTkrTrack::CandTrackHitPair(tkrIdX, clusterX));
+            clusVec.push_back(BuildTkrTrack::CandTrackHitPair(tkrIdY, clusterY));
+        }
+        else
+        {
+            clusVec.push_back(BuildTkrTrack::CandTrackHitPair(tkrIdY, clusterY));
+            clusVec.push_back(BuildTkrTrack::CandTrackHitPair(tkrIdX, clusterX));
+        }
+    }
+    
+    // Note that tree axis points "up", links will point "down"
+    //double cosBestAngle = -axisParams->getEventAxis().dot(firstNode->getAssociatedLink()->getVector());
 
     return clusVec;
 }
@@ -826,11 +1245,10 @@ BuildTkrTrack::CandTrackHitVec TkrTreeBuilder::getCandTrackHitVecFromLeaf(Event:
             }
         }
 
-        // Recover current TkrVecPoint
-        const Event::TkrVecPoint* curVecPoint = leaf->getAssociatedLink()->getFirstVecPoint();
-
         // Not allowed to use already flagged clusters! 
-        if (leaf->getDepth() <= maxSharedDepth && (curVecPoint->getXCluster()->hitFlagged() || curVecPoint->getYCluster()->hitFlagged())) 
+        if (leaf->getDepth() <= maxSharedDepth && 
+            (leaf->getAssociatedLink()->getSecondVecPoint()->getXCluster()->hitFlagged() || 
+             leaf->getAssociatedLink()->getSecondVecPoint()->getYCluster()->hitFlagged())  ) 
         {
             clusVec.clear();
             break;
@@ -1082,8 +1500,17 @@ void TkrTreeBuilder::flagAllUsedClusters(const Event::TkrTree* tree)
             const Event::TkrVecPointsLink* link = node->getAssociatedLink();
             const Event::TkrVecPoint*      hit  = link->getFirstVecPoint();
 
-            const_cast<Event::TkrCluster*>(hit->getXCluster())->flag();
-            const_cast<Event::TkrCluster*>(hit->getYCluster())->flag();
+            const_cast<Event::TkrCluster*>(hit->getXCluster())->setStatusBits(Event::TkrCluster::maskONAGOODTREE);
+            const_cast<Event::TkrCluster*>(hit->getYCluster())->setStatusBits(Event::TkrCluster::maskONAGOODTREE);
+
+            // If at the end of a branch then get the bottom points too
+            if (node->empty())
+            {
+                hit = link->getSecondVecPoint();
+
+                const_cast<Event::TkrCluster*>(hit->getXCluster())->setStatusBits(Event::TkrCluster::maskONAGOODTREE);
+                const_cast<Event::TkrCluster*>(hit->getYCluster())->setStatusBits(Event::TkrCluster::maskONAGOODTREE);
+            }
         }
     }
 
@@ -1130,12 +1557,10 @@ void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBound
     Point highEdge = Point(linkPos.x()+clusSigX, linkPos.y()+clusSigY, linkPos.z());
 
     // Retrieve the "best" angular deviation along this branch to use as the weight
-    double angWght = firstNode->getBestRmsAngle();
+    double angWght = firstNode->getBestRmsAngle()   > 0. ? firstNode->getBestRmsAngle()   : 1.;
+    double nInSum  = firstNode->getNumAnglesInSum() > 0  ? firstNode->getNumAnglesInSum() : 1.;
 
-    // Guard against zero deviation on short branches
-    angWght = angWght > 0. ? angWght : 1.;
-
-    double posWght = 1. / (angWght * angWght);
+    double posWght = nInSum * nInSum / (angWght * angWght);
 
     // Create a bounding box for this point
     Event::TkrBoundBox* box = new Event::TkrBoundBox();
@@ -1183,12 +1608,10 @@ void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBound
             clusSigY = hit->getYCluster()->size() * siStripPitch;
 
             // Retrieve the "best" angular deviation along this branch to use as the weight
-            angWght = node->getBestRmsAngle();
+            angWght = node->getBestRmsAngle()   > 0. ? node->getBestRmsAngle()   : 1.;
+            nInSum  = node->getNumAnglesInSum() > 0  ? node->getNumAnglesInSum() : 1.;
 
-            // Guard against zero deviation on short branches
-            angWght = angWght > 0. ? angWght : 1.;
-
-            posWght = 1. / (angWght * angWght);
+            posWght = nInSum * nInSum / (angWght * angWght);
 
             lowEdge.setX(linkPosAtBot.x() - clusSigX);
             lowEdge.setY(linkPosAtBot.y() - clusSigY);
