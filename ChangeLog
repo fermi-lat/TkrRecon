@@ -1,4 +1,12 @@
 ------------------------------------------------------------
+User: usher  Tue May 31 13:01:28 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeBuilder.cxx TkrTreeBuilder.h 
+Log Message:
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-25-02, operation: add
 Package: TkrRecon
