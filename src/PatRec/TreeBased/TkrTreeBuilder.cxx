@@ -168,8 +168,7 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
 
         //*************************************************
         // If no track from best branch, or the fit is not good, then try to find an "alternative" primary track
-//        if ((!trackBest || trackBest->chiSquareSegment() > 4.) && siblingMap->size() > 1)
-        if ((!trackBest || trackBest->chiSquareSegment() > 4.) && siblingMap->size() > 1)
+        if ((!trackBest || trackBest->chiSquareSegment() > 6.) && siblingMap->size() > 1)
         {
             // Use this to create a new TkrTrack
 //            Event::TkrTrack* trackAll = makeTkrTrack(siblingMap, axisParams, trackEnergy, 4);
@@ -181,8 +180,8 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
 
             if (trackBest) startPos = trackBest->getInitialPosition();
 
-//            Event::TkrTrack* trackAll = getTkrTrackFromHits(startPos, startDir, trackEnergy);
-            Event::TkrTrack* trackAll = makeTkrTrackFromMean(siblingMap, axisParams, trackEnergy);
+            Event::TkrTrack* trackAll = getTkrTrackFromHits(startPos, startDir, trackEnergy);
+//            Event::TkrTrack* trackAll = makeTkrTrackFromMean(siblingMap, axisParams, trackEnergy);
 
             // Make sure the hit finding didn't screw up...
             if (trackAll && trackAll->getNumFitHits() > 4)
@@ -1060,7 +1059,7 @@ BuildTkrTrack::CandTrackHitVec TkrTreeBuilder::getCandTrackHitVecFromMean(Event:
                                                                0);
 
             // Mark it as "special"
-            cluster->setStatusBits(0x08000000);
+            cluster->setStatusBits(Event::TkrCluster::maskCOMPOSITE);
 
             // Save it in our personal collection for management
             m_clusterCol->push_back(cluster);
@@ -1091,7 +1090,7 @@ BuildTkrTrack::CandTrackHitVec TkrTreeBuilder::getCandTrackHitVecFromMean(Event:
                                             0);
 
             // Mark it as "special"
-            cluster->setStatusBits(0x08000000);
+            cluster->setStatusBits(Event::TkrCluster::maskCOMPOSITE);
 
             // Save it in our personal collection for management
             m_clusterCol->push_back(cluster);
