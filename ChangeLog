@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Jun  1 13:54:19 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeBuilder.cxx TkrTreeBuilder.h 
+Log Message:
+A little bit of cleanup and adjust selection for looking for composite track
+    *
+------------------------------------------------------------
 User: usher  Wed Jun  1 07:54:16 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
