@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Jun  1 07:54:16 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeBuilder.cxx 
+Log Message:
+Switch to hit finding for composite tracks for test
+    *
+------------------------------------------------------------
 User: usher  Tue May 31 13:01:29 PDT 2011
 TkrRecon/src/Track
 
