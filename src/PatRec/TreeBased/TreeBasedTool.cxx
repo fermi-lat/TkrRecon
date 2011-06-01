@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.7 2010/12/16 20:44:45 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.8 2011/02/21 19:27:12 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -215,7 +215,10 @@ StatusCode TreeBasedTool::findTracks()
     //Register these objects in the TDS
     //sc = m_dataSvc->registerObject(EventModel::TkrRecon::TkrTrackCol,    tdsTracks);
 
-    SmartDataPtr<Event::TkrTrackCol> tdsTracks(m_dataSvc, EventModel::TkrRecon::TkrTrackCol);
+    SmartDataPtr<Event::TkrTrackMap> tdsTrackMap(m_dataSvc, EventModel::TkrRecon::TkrTrackMap);
+
+    // We are not meant to be able to get here without a track collection in the TDS
+    Event::TkrTrackCol* tdsTracks = (*tdsTrackMap)[EventModel::TkrRecon::TkrTrackCol];
     
     // Set the event energy
     double eventEnergy = getEventEnergy();
