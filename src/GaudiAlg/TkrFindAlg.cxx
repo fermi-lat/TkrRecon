@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.29 2011/02/24 22:07:51 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.30 2011/03/26 23:30:58 lsrea Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -48,7 +48,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.29 2011/02/24 22:07:51 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.30 2011/03/26 23:30:58 lsrea Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -223,40 +223,59 @@ StatusCode TkrFindAlg::execute()
     // move to TkrClusterAlg
     //sc = m_truncTool->analyzeDigis();
 
-    // Set up the track col here, in case nobody does it downstream
+    // Attempt to recover the map between track types and track collections
     // Retrieve a pointer (if it exists) to existing fit track collection
-    Event::TkrTrackCol* trackCol =
-        SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol);
+    Event::TkrTrackMap* trackMap =
+        SmartDataPtr<Event::TkrTrackMap>(m_dataSvc,EventModel::TkrRecon::TkrTrackMap);
 
     // If no pointer then create it
-    if (trackCol == 0)
+    if (trackMap == 0)
     {
-        trackCol = new Event::TkrTrackCol();
+        trackMap = new Event::TkrTrackMap();
+        if ((m_dataSvc->registerObject(
+            EventModel::TkrRecon::TkrTrackMap, trackMap)).isFailure()) {
+                log << MSG::ERROR << "could not register TkrTrackMap" << endreq;
+                return sc;
+        }
+    }
+
+    // Check to see if the Track Map already has a TkrTrackCol in it. 
+    // If not then we need to create one
+    if (trackMap->find(EventModel::TkrRecon::TkrTrackCol) == trackMap->end())
+    {
+        Event::TkrTrackCol* trackCol = new Event::TkrTrackCol();
         if ((m_dataSvc->registerObject(
             EventModel::TkrRecon::TkrTrackCol, trackCol)).isFailure()) {
                 log << MSG::ERROR << "could not register TkrTrackCol" << endreq;
                 return sc;
         }
+
+        (*trackMap)[EventModel::TkrRecon::TkrTrackCol] = trackCol;
     }
+
+    // Ok, if here then guaranteed to have a TkrTrackCol
+    Event::TkrTrackCol* trackCol = (*trackMap)[EventModel::TkrRecon::TkrTrackCol];
 
     // If no pointer then create it
     // Set TkrQueryClustersTool to return all hits, and look for "cosmics"
 
-   if(m_doCRFinding) {
-        // Set up the special cosmic ray track col here
-        Event::TkrTrackCol* crTrackCol =
-            SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrCRTrackCol);
+   if(m_doCRFinding) 
+   {
+       // Go through the same song and dance as above, but now for the CR track collection
+       if (trackMap->find(EventModel::TkrRecon::TkrCRTrackCol) == trackMap->end())
+       {
+           Event::TkrTrackCol* crTrackCol = new Event::TkrTrackCol();
+           if ((m_dataSvc->registerObject(
+               EventModel::TkrRecon::TkrCRTrackCol, crTrackCol)).isFailure()) {
+                   log << MSG::ERROR << "could not register Cosmic Ray TkrTrackCol" << endreq;
+                   return sc;
+           }
 
-        // If no pointer then create it
-        if (crTrackCol == 0)
-        {
-            crTrackCol = new Event::TkrTrackCol();
-            if ((m_dataSvc->registerObject(
-                EventModel::TkrRecon::TkrCRTrackCol, crTrackCol)).isFailure()) {
-                    log << MSG::ERROR << "could not register Cosmic Ray TkrTrackCol" << endreq;
-                    return sc;
-            }
-        }
+            (*trackMap)[EventModel::TkrRecon::TkrCRTrackCol] = crTrackCol;
+       }
+
+        // Ok, if here then guaranteed to have a TkrCRTrackCol
+        Event::TkrTrackCol* crTrackCol = (*trackMap)[EventModel::TkrRecon::TkrCRTrackCol];
 
         ITkrQueryClustersTool::filterType type = 
             (m_CRGhosts ? ITkrQueryClustersTool::ALL : ITkrQueryClustersTool::NORMAL);
