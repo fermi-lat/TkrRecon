@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Jun  1 14:03:14 PDT 2011
+TkrRecon/src/Track
+
+Modified Files:
+	FindTrackHitsTool.cxx 
+Log Message:
+Don't "find" clusters which are associated to a "good" tree
+    *
+------------------------------------------------------------
 User: usher  Wed Jun  1 13:54:19 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
