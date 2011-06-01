@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Wed Jun  1 16:13:53 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeBasedTool.cxx 
+Log Message:
+Mods to trial the usage of TkrTrackMap instead of just the collections...
+    *
+------------------------------------------------------------
+User: usher  Wed Jun  1 16:13:53 PDT 2011
 TkrRecon/src/GaudiAlg
 
 Modified Files:
