@@ -36,6 +36,7 @@ TkrTreeBuilder::TkrTreeBuilder(TkrVecNodesBuilder&    vecNodesBldr,
                                 m_trackFitTool(trackFitTool),
                                 m_findHitsTool(findHitsTool),
                                 m_clusterCol(clusterCol),
+                                m_maxChiSqSeg4Composite(3.),
                                 m_maxFilterChiSqFctr(100.),
                                 m_maxSharedLeadingHits(4)
 {
@@ -168,7 +169,7 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
 
         //*************************************************
         // If no track from best branch, or the fit is not good, then try to find an "alternative" primary track
-        if ((!trackBest || trackBest->chiSquareSegment() > 6.) && siblingMap->size() > 1)
+        if ((!trackBest || trackBest->chiSquareSegment() > m_maxChiSqSeg4Composite) && siblingMap->size() > 1)
         {
             // Use this to create a new TkrTrack
 //            Event::TkrTrack* trackAll = makeTkrTrack(siblingMap, axisParams, trackEnergy, 4);
@@ -188,10 +189,9 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
             {
                 // Pick the best track... (always dangerous!)
                 // I'm thinking this will pick the "straightest" track...
-                //if ( !trackBest || 
                 if ( !trackBest ||
-                    (trackBest->chiSquareSegment() > 1. * trackAll->chiSquareSegment() && 
-                     trackBest->getNumFitHits() - trackAll->getNumFitHits() < 10)
+                    (trackBest->chiSquareSegment() > trackAll->chiSquareSegment() && 
+                     trackBest->getNumFitHits() - trackAll->getNumFitHits() < 6)
                    )
                 {
                     Event::TkrTrack* temp = trackAll;

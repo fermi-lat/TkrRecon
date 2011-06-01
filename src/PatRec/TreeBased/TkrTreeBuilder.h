@@ -141,6 +141,9 @@ private:
     /// Pointer to the local cluster collection that we manage
     Event::TkrClusterCol*  m_clusterCol;
 
+    /// Parameter to determine whether to try a composite track
+    double                 m_maxChiSqSeg4Composite;
+
     /// Parameter to control when to allow hit finder to add hits
     double                 m_maxFilterChiSqFctr;
 
