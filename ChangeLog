@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: kadrlica  Fri Jun  3 15:20:08 PDT 2011
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrFindAlg.cxx 
+Log Message:
+Added ghost to CalCluster association step
+    *
+------------------------------------------------------------
 User: usher  Fri Jun  3 09:50:01 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
