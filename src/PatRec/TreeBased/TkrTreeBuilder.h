@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.h,v 1.3 2010/11/24 16:39:06 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.h,v 1.9 2011/06/01 20:54:19 usher Exp $
  *
 */
 
@@ -71,6 +71,7 @@ private:
 
     /// This makes a TkrTrack, given a start point and direction, by using the kalman hit finder
     Event::TkrTrack* getTkrTrackFromHits(Point  startPoint, Vector startDir, double energy);
+    Event::TkrTrack* getTkrTrackFromHits2(const Event::TkrVecPointsLink* firstLink, double energy);
 
     /// This makes a TkrTrack using a TkrNodeSiblingMap as a guide, depending on nRequiredHits
     Event::TkrTrack* makeTkrTrack(Event::TkrNodeSiblingMap* siblingMap,
@@ -96,8 +97,10 @@ private:
                                                               Event::TkrFilterParams*   filterParams);
     BuildTkrTrack::CandTrackHitVec getCandTrackHitVecFromLeaf(Event::TkrVecNode* leaf, UsedClusterList& usedClusters);
 
+    BuildTkrTrack::CandTrackHitVec getCandTrackHitVecFromFirstLink(const Event::TkrVecPointsLink* vecLink);
+
     /// Use this to handle links that skip layes in the above two methods
-    void handleSkippedLayers(const Event::TkrVecNode* node, BuildTkrTrack::CandTrackHitVec& clusVec);
+    void handleSkippedLayers(const Event::TkrVecPointsLink* vecLink, BuildTkrTrack::CandTrackHitVec& clusVec);
 
     /// Attempt to not repeat code... 
     void insertVecPointIntoClusterVec(const Event::TkrVecPoint*       vecPoint, 
@@ -149,6 +152,12 @@ private:
 
     /// Parameter to control number of shared leading hits
     int                    m_maxSharedLeadingHits;
+
+    /// Parameter used in track hit finding determining maximum gaps between hits
+    int                    m_maxGaps;
+
+    /// Parameter used in track hit finding determing maximum consecutive gaps
+    int                    m_maxConsecutiveGaps;
 };
 
 #endif

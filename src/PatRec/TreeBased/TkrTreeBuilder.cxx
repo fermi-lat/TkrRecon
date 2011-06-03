@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.10 2011/02/01 20:01:09 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.21 2011/06/01 20:54:19 usher Exp $
  *
 */
 
@@ -36,9 +36,11 @@ TkrTreeBuilder::TkrTreeBuilder(TkrVecNodesBuilder&    vecNodesBldr,
                                 m_trackFitTool(trackFitTool),
                                 m_findHitsTool(findHitsTool),
                                 m_clusterCol(clusterCol),
-                                m_maxChiSqSeg4Composite(3.),
+                                m_maxChiSqSeg4Composite(1.1),
                                 m_maxFilterChiSqFctr(100.),
-                                m_maxSharedLeadingHits(4)
+                                m_maxSharedLeadingHits(4),
+                                m_maxGaps(2),
+                                m_maxConsecutiveGaps(1)
 {
     // Get a new head node collection for the TDS
     m_treeCol = new Event::TkrTreeCol();
@@ -181,7 +183,8 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode, double 
 
             if (trackBest) startPos = trackBest->getInitialPosition();
 
-            Event::TkrTrack* trackAll = getTkrTrackFromHits(startPos, startDir, trackEnergy);
+            Event::TkrTrack* trackAll = getTkrTrackFromHits2(headNode->front()->getAssociatedLink(), trackEnergy);
+//            Event::TkrTrack* trackAll = getTkrTrackFromHits(startPos, startDir, trackEnergy);
 //            Event::TkrTrack* trackAll = makeTkrTrackFromMean(siblingMap, axisParams, trackEnergy);
 
             // Make sure the hit finding didn't screw up...
@@ -575,6 +578,119 @@ Event::TkrTrack* TkrTreeBuilder::getTkrTrackFromHits(Point  startPoint, Vector s
     return track;
 }
 
+Event::TkrTrack* TkrTreeBuilder::getTkrTrackFromHits2(const Event::TkrVecPointsLink* firstLink, double energy)
+{
+    // The aim of this routine is to determine a good starting point and direction and 
+    // then use the kalman filter hit finding to find the associated hits, similarly to
+    // what is done in the combo pat rec. The first link is used to give the first two
+    // pairs of clusters, the initial starting point and direction and then its all handed
+    // off to the track hit finder.
+
+    // Use the "standard" tools for getting the first set of hits on the track
+    // The candidate track hit vector to return
+    BuildTkrTrack::CandTrackHitVec clusVec;
+    clusVec.clear();
+
+    clusVec = getCandTrackHitVecFromFirstLink(firstLink);
+        
+    // Get the initial parameters of the candidate track
+    TkrInitParams initParams = getInitialParams(clusVec);
+
+    // Handy tool for building TkrTracks
+    BuildTkrTrack trackBuilder(m_tkrGeom);
+
+    // Now build the candidate track
+    Event::TkrTrack* track = trackBuilder.makeNewTkrTrack(initParams.first, initParams.second, energy, clusVec);
+
+    // Run the filter on this 
+    m_trackFitTool->doFilterFit(*track);
+
+    // Do the hit finding
+    int  nGaps            = 0;
+    int  nConsecutiveGaps = 0;
+
+    // Keep track of the "last" hit
+    Event::TkrTrackHit* lastHit = track->back();
+
+    // Loop until no more track hits found or hit of type HITISUNKNOWN is returned  
+    // Stop when m_maxGaps or m_maxConsecutiveGaps is exceeded.
+    while(Event::TkrTrackHit* trackHit = m_findHitsTool->findNextHit(lastHit, false))
+    {
+        // Could be a hit of type HITISUNKNOWN... terminate for now
+        if(((trackHit->getStatusBits()) & Event::TkrTrackHit::HITISUNKNOWN)!=0) 
+        {
+            nGaps++;
+            nConsecutiveGaps++;
+        } 
+        else 
+        {
+            nConsecutiveGaps = 0;
+        }
+
+        if(nGaps > m_maxGaps || nConsecutiveGaps > m_maxConsecutiveGaps) 
+        {
+            //we're done here
+            delete trackHit;
+            break;
+        }
+
+        // Run the filter
+        m_trackFitTool->doFilterStep(*lastHit, *trackHit);
+
+        // Add this to the track itself
+        track->push_back(trackHit);
+        
+        if(trackHit->hitUsedOnFit()) 
+        {
+            if(trackHit->getStatusBits() & Event::TkrTrackHit::MEASURESX) 
+            {
+                int numX = track->getNumXHits() + 1;
+                track->setNumXHits(numX);
+            }
+            else 
+            {
+                int numY = track->getNumYHits() + 1;
+                track->setNumYHits(numY);
+            }
+        }
+
+        // update the "last" hit
+        lastHit = trackHit;
+    }
+
+    // Check the minimum criterion for a "found" track: 4 deg. of freedom req. 5 hits
+    // at least 2 in each projection
+    if(!((track->getNumXHits()+ track->getNumYHits()) < 5 ||
+        track->getNumXHits() < 2 || track->getNumYHits() < 2)) 
+        track->setStatusBit(Event::TkrTrack::FOUND);
+
+    // Remove trailing gap hits
+    while(!track->back()->validCluster()) 
+    {
+        Event::TkrTrackHit* lastHit = track->back();
+        delete lastHit;
+        track->pop_back();
+    }
+
+    // If successful in finding hits then run the smoother
+    if(track->getStatusBits()& Event::TkrTrack::FOUND)
+    {
+        // Do the full fit
+        if (StatusCode sc = m_trackFitTool->doTrackFit(track) != StatusCode::SUCCESS)
+        {
+            throw(TkrException("Exception encountered when fitting track in tree TkrTreeBuilder::getTkrTrackFromHits "));  
+        }
+    }
+    else
+    {
+        delete track;
+        track = 0;
+    }
+
+    // What could be easier?
+    return track;
+}
+
 Event::TkrTrack* TkrTreeBuilder::makeTkrTrackFromMean(Event::TkrNodeSiblingMap* siblingMap, 
                                                       Event::TkrFilterParams*   axisParams,
                                                       double                    energy, 
@@ -782,10 +898,59 @@ BuildTkrTrack::CandTrackHitVec TkrTreeBuilder::getCandTrackHitVec(Event::TkrNode
     }
 
     // Watch for first links that skip layers... in this case we need to insert some blank hits
-    if (pointsLink->skipsLayers()) handleSkippedLayers(firstNode, clusVec);
+    if (pointsLink->skipsLayers()) handleSkippedLayers(firstNode->getAssociatedLink(), clusVec);
 
     // Now repeat the above operation for the second hit on the link
     const Event::TkrVecPoint* scndHit  = pointsLink->getSecondVecPoint();
+
+    clusterX  = scndHit->getXCluster();
+    clusterY  = scndHit->getYCluster();
+
+    // Need to add this in order
+    if (clusterX->position().z() > clusterY->position().z()) 
+    {
+        clusVec.push_back(BuildTkrTrack::CandTrackHitPair(clusterX->getTkrId(), clusterX));
+        clusVec.push_back(BuildTkrTrack::CandTrackHitPair(clusterY->getTkrId(), clusterY));
+    }
+    else
+    {
+        clusVec.push_back(BuildTkrTrack::CandTrackHitPair(clusterY->getTkrId(), clusterY));
+        clusVec.push_back(BuildTkrTrack::CandTrackHitPair(clusterX->getTkrId(), clusterX));
+    }
+
+    return clusVec;
+}
+
+BuildTkrTrack::CandTrackHitVec TkrTreeBuilder::getCandTrackHitVecFromFirstLink(const Event::TkrVecPointsLink* vecLink)
+{
+    // Given the map of cluster/positions by plane id, go through and create the "CandTrackHitVec" vector
+    // which can be used to create TkrTrackHits at each plane
+    // The candidate track hit vector to return
+    BuildTkrTrack::CandTrackHitVec clusVec;
+    clusVec.clear();
+
+    // Ok, recover the first hit and the associated clusters
+    const Event::TkrVecPoint* firstHit = vecLink->getFirstVecPoint();
+    const Event::TkrCluster*  clusterX = firstHit->getXCluster();
+    const Event::TkrCluster*  clusterY = firstHit->getYCluster();
+
+    // Need to add this in order
+    if (clusterX->position().z() > clusterY->position().z()) 
+    {
+        clusVec.push_back(BuildTkrTrack::CandTrackHitPair(clusterX->getTkrId(), clusterX));
+        clusVec.push_back(BuildTkrTrack::CandTrackHitPair(clusterY->getTkrId(), clusterY));
+    }
+    else
+    {
+        clusVec.push_back(BuildTkrTrack::CandTrackHitPair(clusterY->getTkrId(), clusterY));
+        clusVec.push_back(BuildTkrTrack::CandTrackHitPair(clusterX->getTkrId(), clusterX));
+    }
+
+    // Watch for first links that skip layers... in this case we need to insert some blank hits
+    if (vecLink->skipsLayers()) handleSkippedLayers(vecLink, clusVec);
+
+    // Now repeat the above operation for the second hit on the link
+    const Event::TkrVecPoint* scndHit  = vecLink->getSecondVecPoint();
 
     clusterX  = scndHit->getXCluster();
     clusterY  = scndHit->getYCluster();
@@ -1263,9 +1428,9 @@ BuildTkrTrack::CandTrackHitVec TkrTreeBuilder::getCandTrackHitVecFromLeaf(Event:
     return clusVec;
 }
     
-void TkrTreeBuilder::handleSkippedLayers(const Event::TkrVecNode* node, BuildTkrTrack::CandTrackHitVec& clusVec)
+void TkrTreeBuilder::handleSkippedLayers(const Event::TkrVecPointsLink* vecLink, BuildTkrTrack::CandTrackHitVec& clusVec)
 {
-    const Event::TkrVecPointsLink* vecLink = node->getAssociatedLink();
+    //const Event::TkrVecPointsLink* vecLink = node->getAssociatedLink();
 
     // Loop through missing bilayers adding hit info
     int nextPlane = 2 * vecLink->getFirstVecPoint()->getLayer();
