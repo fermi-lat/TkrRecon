@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Jun 28 10:01:29 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeCalClusterAssociator.cxx 
+Log Message:
+Protect against no cal clusters in TDS
+    *
+------------------------------------------------------------
 User: usher  Tue Jun 28 07:40:06 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
