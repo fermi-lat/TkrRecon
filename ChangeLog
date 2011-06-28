@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Tue Jun 28 07:40:06 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeBuilder.cxx TkrTreeBuilder.h TreeBasedTool.cxx 
+Added Files:
+	TkrTreeTrackFinder.cxx TkrTreeTrackFinder.h 
+	TreeCalClusterAssociator.cxx TreeCalClusterAssociator.h 
+Log Message:
+Main purpose is to separate the creation of the tree with axis finding from the step in which the tracks are extracted. This allows an intermediate step of tree to cluster association using the tree axis (and could ulimately allow energy algorithms to run with the tree axis). Somewhat experimental at this time, not sure if this is the ultimate form this will take
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-25-03, operation: add
 Package: TkrRecon
