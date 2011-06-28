@@ -59,71 +59,76 @@ int TreeCalClusterAssociator::AssociateTreeToClusters(Event::TkrTree* tree)
     // Count the number of clusters we actually associate
     int numClusters = 0;
 
-    // Recover the stuff we will need no matter what
-    const Event::TkrFilterParams* axisParams   = tree->getAxisParams();
-    
-    // Use the event axis direction, but remember that it points "opposite" our tracks
-    Vector startDir = -axisParams->getEventAxis();
-    Point  startPos =  axisParams->getEventPosition();
-
-    // First of all, make sure the tree has not "ranged out" before getting to the calorimeter
-    double calZTop     = m_tkrGeom->calZTop();
-    double arcToCalTop = (calZTop - startPos.z()) / startDir.z();
-    Point  posAtCalTop = startPos + arcToCalTop * startDir;
-
-    // Check X and Y coordinates
-    double calXWidth   = m_tkrGeom->calXWidth();
-    double calYWidth   = m_tkrGeom->calYWidth();
-
-    if (abs(posAtCalTop.x()) > calXWidth + 50. || abs(posAtCalTop.y()) > calYWidth + 50.) 
-        return numClusters;
-
-    // Initialize loop end point
-    Event::CalClusterCol::iterator lastItr = m_calClusterCol->end();
-
-    // When more than one cluster the last is the "uber" and is to be ignored
-    if (m_calClusterCol->size() > 1) lastItr = m_calClusterCol->end() - 1;
-
     // Keep track of the "best"
     Event::CalCluster* bestCluster           = 0;
     double             bestTreeToClusterDoca = m_minTreeToClusterDoca + 100.;
     double             bestCosAngle          = 0.;
     double             bestDeltaPos          = 0.;
 
-    // Loop through the list of clusters
-    for(Event::CalClusterCol::iterator clusItr = m_calClusterCol->begin(); clusItr != lastItr; clusItr++)
+    // It can happen that we are doing tracking with no cal cluster collection available
+    // Check to make sure we have valid clusters, otherwise skip this step
+    if (m_calClusterCol)
     {
-        Event::CalCluster* cluster = *clusItr;
-
-        // Not interested in single crystals...
-//        if (cluster->getMomParams().getNumXtals() < 2) continue;
-
-        const Point& clusCentroid = cluster->getMomParams().getCentroid();
+        // Recover the stuff we will need no matter what
+        const Event::TkrFilterParams* axisParams   = tree->getAxisParams();
         
-        // Get the vector from the tree start to the cal cluster centroid
-        Vector treeToClusPoint    = clusCentroid - startPos;
+        // Use the event axis direction, but remember that it points "opposite" our tracks
+        Vector startDir = -axisParams->getEventAxis();
+        Point  startPos =  axisParams->getEventPosition();
 
-        // Take the cross product with the tree direction
-        Vector treeToClusVec      = startDir.cross(treeToClusPoint);
+        // First of all, make sure the tree has not "ranged out" before getting to the calorimeter
+        double calZTop     = m_tkrGeom->calZTop();
+        double arcToCalTop = (calZTop - startPos.z()) / startDir.z();
+        Point  posAtCalTop = startPos + arcToCalTop * startDir;
 
-        // The magnitude is the distance of closest approach
-        double treeToClusterDoca  = treeToClusVec.magnitude();
-        double arcLen             = (clusCentroid.z() - startPos.z()) / startDir.z();
-        Point  axisAtThisZ        = startPos + arcLen * startDir;
-        Vector deltaPosVec        = axisAtThisZ - clusCentroid;
-        double deltaPos           = deltaPosVec.magnitude();
-        double cosAngle           = startDir.dot(cluster->getMomParams().getAxis());
+        // Check X and Y coordinates
+        double calXMax     = 0.5 * m_tkrGeom->calXWidth();
+        double calYMax     = 0.5 * m_tkrGeom->calYWidth();
 
-        // Don't bother if doca is not "reasonably" close
-        if (treeToClusterDoca > m_minTreeToClusterDoca) continue;
+        if (abs(posAtCalTop.x()) > calXMax + 50. || abs(posAtCalTop.y()) > calYMax + 50.) 
+            return numClusters;
 
-        // Keep track of best association, where the metric is the treeToClusDoca
-        if (treeToClusterDoca < bestTreeToClusterDoca)
+        // Initialize loop end point
+        Event::CalClusterCol::iterator lastItr = m_calClusterCol->end();
+
+        // When more than one cluster the last is the "uber" and is to be ignored
+        if (m_calClusterCol->size() > 1) lastItr = m_calClusterCol->end() - 1;
+
+        // Loop through the list of clusters
+        for(Event::CalClusterCol::iterator clusItr = m_calClusterCol->begin(); clusItr != lastItr; clusItr++)
         {
-            bestCluster           = cluster;
-            bestTreeToClusterDoca = treeToClusterDoca;
-            bestCosAngle          = cosAngle;
-            bestDeltaPos          = deltaPos;
+            Event::CalCluster* cluster = *clusItr;
+
+            // Not interested in single crystals...
+//          if (cluster->getMomParams().getNumXtals() < 2) continue;
+
+            const Point& clusCentroid = cluster->getMomParams().getCentroid();
+            
+            // Get the vector from the tree start to the cal cluster centroid
+            Vector treeToClusPoint    = clusCentroid - startPos;
+
+            // Take the cross product with the tree direction
+            Vector treeToClusVec      = startDir.cross(treeToClusPoint);
+
+            // The magnitude is the distance of closest approach
+            double treeToClusterDoca  = treeToClusVec.magnitude();
+            double arcLen             = (clusCentroid.z() - startPos.z()) / startDir.z();
+            Point  axisAtThisZ        = startPos + arcLen * startDir;
+            Vector deltaPosVec        = axisAtThisZ - clusCentroid;
+            double deltaPos           = deltaPosVec.magnitude();
+            double cosAngle           = startDir.dot(cluster->getMomParams().getAxis());
+
+            // Don't bother if doca is not "reasonably" close
+            if (treeToClusterDoca > m_minTreeToClusterDoca) continue;
+
+            // Keep track of best association, where the metric is the treeToClusDoca
+            if (treeToClusterDoca < bestTreeToClusterDoca)
+            {
+                bestCluster           = cluster;
+                bestTreeToClusterDoca = treeToClusterDoca;
+                bestCosAngle          = cosAngle;
+                bestDeltaPos          = deltaPos;
+            }
         }
     }
 
