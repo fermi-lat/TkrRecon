@@ -320,39 +320,45 @@ StatusCode TreeBasedTool::findTracks()
                         int results = 0;
                     }
 
-                    // The Cal cluster ordering should reflect the output of the classification tree where the first
-                    // cluster is thought to be "the" gamma cluster. Loop through clusters in order and do the 
-                    // tree ordering
-                    // We first need to set the end condition...
-                    Event::CalClusterCol::iterator clusColEnd = calClusterCol->end();
-
-                    // If more than one cluster then the last is the "uber" and to be avoided
-                    if (calClusterCol->size() > 1) clusColEnd = calClusterCol->end() - 1;
-
+                    // Now set up to loop through the trees associated to Cal Clusters. 
                     // Vector to keep track of newly ordered results
                     TreeCalClusterAssociator::TreeClusterRelationVec treeRelVec;
 
-                    // Now loop over clusters
-                    for(Event::CalClusterCol::iterator clusItr = calClusterCol->begin(); clusItr != clusColEnd; clusItr++)
+                    // Note that we must protect against the case where there are no clusters
+                    // in the TDS colletion!
+                    if (calClusterCol)
                     {
-                        // Cluster pointer
-                        Event::CalCluster* cluster = *clusItr;
+                        // The Cal cluster ordering should reflect the output of the classification tree where the first
+                        // cluster is thought to be "the" gamma cluster. Loop through clusters in order and do the 
+                        // tree ordering
+                        // We first need to set the end condition...
+                        Event::CalClusterCol::iterator clusColEnd = calClusterCol->end();
 
-                        // Retrieve the vector of tree associations for this cluster
-                        TreeCalClusterAssociator::TreeClusterRelationVec& relVec = associator.getClusterToRelationVec(cluster);
+                        // If more than one cluster then the last is the "uber" and to be avoided
+                        if (calClusterCol->size() > 1) clusColEnd = calClusterCol->end() - 1;
 
-                        // If more than one tree associated to this cluster then we need to so some reordering
-                        if (relVec.size() > 1) 
-                        { // for debugging
-                            std::sort(relVec.begin(), relVec.end(), CompareTreeClusterRelations());
-                        }
-
-                        // Now keep track of the results
-                        for(TreeCalClusterAssociator::TreeClusterRelationVec::iterator relVecItr  = relVec.begin();
-                                                                                       relVecItr != relVec.end();
-                                                                                       relVecItr++)
+                        // Now loop over clusters
+                        for(Event::CalClusterCol::iterator clusItr = calClusterCol->begin(); clusItr != clusColEnd; clusItr++)
                         {
-                            treeRelVec.push_back(*relVecItr);
+                            // Cluster pointer
+                            Event::CalCluster* cluster = *clusItr;
+
+                            // Retrieve the vector of tree associations for this cluster
+                            TreeCalClusterAssociator::TreeClusterRelationVec& relVec = associator.getClusterToRelationVec(cluster);
+
+                            // If more than one tree associated to this cluster then we need to so some reordering
+                            if (relVec.size() > 1) 
+                            { // for debugging
+                                std::sort(relVec.begin(), relVec.end(), CompareTreeClusterRelations());
+                            }
+
+                            // Now keep track of the results
+                            for(TreeCalClusterAssociator::TreeClusterRelationVec::iterator relVecItr  = relVec.begin();
+                                                                                           relVecItr != relVec.end();
+                                                                                           relVecItr++)
+                            {
+                                treeRelVec.push_back(*relVecItr);
+                            }
                         }
                     }
 
