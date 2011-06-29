@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Jun 28 20:21:08 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeCalClusterAssociator.cxx 
+Log Message:
+Make sure of adherence to convention that tree always creates a relation!
+    *
+------------------------------------------------------------
 User: usher  Tue Jun 28 10:08:50 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
