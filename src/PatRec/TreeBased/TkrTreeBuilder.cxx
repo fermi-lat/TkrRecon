@@ -49,12 +49,6 @@ TkrTreeBuilder::~TkrTreeBuilder()
 //
 Event::TkrTreeCol* TkrTreeBuilder::buildTrees()
 {
-    // Recover pointer to the track collection in the TDS
-    // Should be created already at a higher level
-    Event::TkrTrackCol* tkrTrackCol = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol);
-
-    if (!tkrTrackCol) return 0;
-
     // Recover a pointer to the "head node" collection in the TDS
     const Event::TkrVecNodeCol* tkrVecNodeCol = m_vecNodesBldr.getVecNodeCol(); 
 
@@ -62,10 +56,10 @@ Event::TkrTreeCol* TkrTreeBuilder::buildTrees()
 
     if (!tkrVecNodeCol->empty())
     {
-        Event::TkrTrackCol::iterator it;
-        it = tkrTrackCol->begin();
-        // a bit of footwork to add the tracks at the right place
+        // Set the tree ID upon successful finding of tree
+        int treeID = 0;
 
+        // Loop through the input collection of head nodes and build the naked trees (no tracks yet)
         for(Event::TkrVecNodeColConPtr nodeItr = tkrVecNodeCol->begin(); nodeItr != tkrVecNodeCol->end(); nodeItr++)
         {
             try
@@ -80,7 +74,11 @@ Event::TkrTreeCol* TkrTreeBuilder::buildTrees()
                 Event::TkrTree* tree = makeTkrTree(headNode);
 
                 // If a positive result then store in the TDS collection
-                if (tree) m_treeCol->push_back(tree);
+                if (tree) 
+                {
+                    m_treeCol->push_back(tree);
+                    headNode->setTreeId(++treeID);
+                }
             } 
             catch( TkrException& e )
             {

@@ -170,20 +170,31 @@ const bool CompareTreeClusterRelations::operator()(const TreeCalClusterAssociato
     // First section only if both related to a cal cluster
     if (left->getCluster() && right->getCluster())
     {
-      if (left->getTreeClusDoca() < right->getTreeClusDoca()) return true;
-      else                                                    return false;
+        if (left->getClusEnergy() > m_minEnergy && right->getClusEnergy() > m_minEnergy)
+        {
+            double leftRmsTrans  = left->getCluster()->getMomParams().getTransRms();
+            double rightRmsTrans = right->getCluster()->getMomParams().getTransRms();
+
+            double leftTest  = left->getTreeClusDoca()  / leftRmsTrans;
+            double rightTest = right->getTreeClusDoca() / rightRmsTrans;
+
+            if (leftTest < rightTest) return true;
+            else                      return false;
+        }
+        else if (left->getClusEnergy()  > m_minEnergy) return true;
+        else if (right->getClusEnergy() > m_minEnergy) return false;
     }
     // if left only has cluster
-    else if (left->getCluster() && !right->getCluster())
+    else if (left->getCluster() && !right->getCluster() && left->getClusEnergy() > m_minEnergy)
     {
         return true;
     }
     // if right only has cluster
-    else if (!left->getCluster() && right->getCluster())
+    else if (!left->getCluster() && right->getCluster() && right->getClusEnergy() > m_minEnergy)
     {
         return false;
     }
 
     // if neither have cluster then preserve tree ordering
-    return true;
+    return left->getTree()->getHeadNode()->getTreeId() < right->getTree()->getHeadNode()->getTreeId();
 }

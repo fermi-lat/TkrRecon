@@ -138,12 +138,13 @@ private:
     class CompareTreeClusterRelations
     {
     public:
-        CompareTreeClusterRelations() {};
+        CompareTreeClusterRelations(double minEnergy=1000.) : m_minEnergy(minEnergy) {};
        ~CompareTreeClusterRelations() {};
     
        const bool operator()(const TreeCalClusterAssociator::TreeClusterRelation* left, 
                              const TreeCalClusterAssociator::TreeClusterRelation* right) const;
-
+    private:
+        double m_minEnergy;
     };
 
 #endif
