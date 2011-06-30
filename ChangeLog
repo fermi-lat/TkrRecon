@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Thu Jun 30 14:02:07 PDT 2011
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointLinksBuilder.cxx TkrVecPointLinksBuilder.h 
+	VectorLinksTool.cxx 
+Log Message:
+First step in converting to the "reasons" tool
+    *
+------------------------------------------------------------
 User: usher  Thu Jun 30 14:02:06 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
