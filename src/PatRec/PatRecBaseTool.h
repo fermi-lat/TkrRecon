@@ -3,6 +3,7 @@
 
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrQueryClustersTool.h"
+#include "TkrUtil/ITkrReasonsTool.h"
 #include "TkrRecon/PatRec/ITkrFindTrackTool.h"
 #include "GaudiKernel/AlgTool.h"
 #include "GaudiKernel/IDataProviderSvc.h"
@@ -11,7 +12,7 @@
  * @class PatRecBaseTool
  * @brief Base class for the concrete pattern recognition tools.
  * @author GLAST Tracker Software group
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/PatRecBaseTool.h,v 1.5 2004/12/16 05:04:22 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/PatRecBaseTool.h,v 1.6 2005/05/11 04:14:31 lsrea Exp $
  */
 class PatRecBaseTool : public AlgTool, virtual public ITkrFindTrackTool 
 {
@@ -39,6 +40,9 @@ class PatRecBaseTool : public AlgTool, virtual public ITkrFindTrackTool
 
   /// Query Clusters tool
   ITkrQueryClustersTool* m_clusTool;
+
+  /// Reasons tool
+  ITkrReasonsTool*       m_reasonsTool;
 
 };
 #endif

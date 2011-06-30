@@ -23,11 +23,13 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtE
                                                  ITkrGeometrySvc*           tkrGeom,
                                                  IGlastDetSvc*              detSvc,
                                                  ITkrQueryClustersTool*     clusTool,
+                                                 ITkrReasonsTool*           reasonsTool,
                                                  bool                       fillInternalTables)
                                                  : m_dataSvc(dataSvc),
                                                    m_tkrGeom(tkrGeom), 
                                                    m_detSvc(detSvc),
                                                    m_clusTool(clusTool), 
+                                                   m_reasonsTool(reasonsTool),
                                                    m_evtEnergy(evtEnergy), 
                                                    m_numVecLinks(0),
                                                    m_fillInternalTables(fillInternalTables)
@@ -292,12 +294,13 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                 double botPointDist = secondPoint->getXCluster()->size()*secondPoint->getXCluster()->size()
                                     + secondPoint->getYCluster()->size()*secondPoint->getYCluster()->size();
                 double searchDist   = 0.5 * m_siStripPitch * (sqrt(topPointDist) + sqrt(botPointDist));
+                double truncDistVar = 0.;
 
                 // Check that the last layer is not truncated
                 bool secondLayerTruncated = endLayer > 0 
                                           ? false
-                                          : inTruncatedRegion(secondPoint->getXCluster()->position(), m_tkrGeom->towerPitch()) || 
-                                            inTruncatedRegion(secondPoint->getYCluster()->position(), m_tkrGeom->towerPitch());
+                                          : inTruncatedRegion(secondPoint->getXCluster()->position(), truncDistVar) || 
+                                            inTruncatedRegion(secondPoint->getYCluster()->position(), truncDistVar);
 
                 // If an intervening missing layer then check for nearest hits
                 while(intPointsItr != nextPointsItr)
@@ -334,39 +337,45 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                                             linkY - arcLenX * startToEnd.y(),
                                             linkZ - arcLenX * startToEnd.z());
 
-                    // Local variables for checking distance to active areas
-                    int    iXTower      = 0;
-                    int    iYTower      = 0;
-                    double xActiveDistX = 0.;
-                    double yActiveDistX = 0.;
-                    double xGap         = 0.;
-                    double yGap         = 0.;
+                    // Initialize the reasons tool with the current point in this plane
+                    m_reasonsTool->setParams(layerPtX, -1);
 
-                    // Check to see if our point is within the active area of silicon so that we can reasonably 
-                    // expect that a hit is nearby. This first checks the x plane in the bilayer we're in
-                    bool   isInTower   = m_tkrGeom->inTower(0, layerPtX, iXTower, iYTower, xActiveDistX, yActiveDistX, xGap, yGap);
+                    // Retrieve the active distances to the edges in this tower
+                    Vector towerEdge = m_reasonsTool->getEdgeDistance();
 
-                    // If we are not in the active silicon then we may want to keep this link
-                    if (!isInTower) 
-                    {
-                        continue;
-                    }
+                    // If either are negative we are not in the general active area
+                    if (towerEdge.x() < 0 || towerEdge.y() < 0) continue;
+
+                    // Retrieve the distance to any gaps we might be in
+                    Vector gapEdge = m_reasonsTool->getGapDistance();
+
+                    // Dereference the gap active distances to local variables
+                    double xActiveDistX = gapEdge.x();
+                    double yActiveDistX = gapEdge.y();
 
                     // Now look where we might be in Y
-                    double xActiveDistY = 0.;
-                    double yActiveDistY = 0.;
-                    Point  layerPtY     = Point(linkX - arcLenY * startToEnd.x(),
-                                                linkY - arcLenY * startToEnd.y(),
-                                                linkZ - arcLenY * startToEnd.z());
+                    Point  layerPtY = Point(linkX - arcLenY * startToEnd.x(),
+                                            linkY - arcLenY * startToEnd.y(),
+                                            linkZ - arcLenY * startToEnd.z());
 
-                    // Check for hit near our point in the Y view
-                    isInTower  = m_tkrGeom->inTower(0, layerPtY, iXTower, iYTower, xActiveDistY, yActiveDistY, xGap, yGap);
+                    // Reinitialize the reasons tool to the Y plane 
+                    m_reasonsTool->setParams(layerPtY, -1);
 
-                    // Again, give benefit of doubt if near the edge of the active area
-                    if (!isInTower) 
-                    {
-                        continue;
-                    }
+                    // Recover the active distance to the active area in the tower
+                    towerEdge = m_reasonsTool->getEdgeDistance();
+
+                    // As before, if either are negative then we are not in active area
+                    if (towerEdge.x() < 0 || towerEdge.y() < 0) continue;
+
+                    // Recover the active distance to any gaps
+                    gapEdge = m_reasonsTool->getGapDistance();
+
+                    //double trunDistY = m_reasonsTool->getTruncDistance();
+                    //double badDistY  = m_reasonsTool->getBadClusterDistance();
+
+                    // and dereference thes to local variables...
+                    double xActiveDistY = gapEdge.x();
+                    double yActiveDistY = gapEdge.y();
 
                     // If here we have no nearby hit and we believe we are in the confines of the active silicon. 
                     // At this point we might be very near the edge, or in a gap in the middle of a tower. So, now 
@@ -392,7 +401,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     bool   siHitGapX   = siHitDistXx < edgeTol || siHitDistXy < edgeTol;
                     bool   siHitGapY   = siHitDistYx < edgeTol || siHitDistYy < edgeTol;
 
-                    // If we are in a gap in both planes then we are good to make the link
+                    // If we are definitely in a gap, ie both planes, then we are good to make the link
                     if (siHitGapX && siHitGapY)
                     {
                         continue;
@@ -405,11 +414,13 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                         break;
                     }
 
-                    // Ok, we are in the silicon in both planes. The silicon is not 100% efficient, though nearly so, so if we 
-                    // are here then we **think** about whether we should let it go...
-                    // One thing... let's see how many hits are "nearby"... this will help us decide if we
+                    // At this point we are in the general active silicon and are definitely not in a gap (both planes). We are 
+                    // either in active silicon expecting a hit in both planes, or might be in a gap in one plane... if the latter 
+                    // we want to make sure we have a hit near in the active plane. 
+                    // The silicon is not 100% efficient, though nearly so, so if we are here then we **think** about whether we 
+                    // should let it go... One thing... let's see how many hits are "nearby"... this will help us decide if we
                     // might be in the core of a shower and probably not willing to make the link
-                    double nearDist   = 50. * m_siStripPitch;
+//                    double nearDist   = 50. * m_siStripPitch;
 //                    int    numNearInX = m_clusTool->numberOfHitsNear(idents::TkrId::eMeasureX, intMissLyr, nearDist, layerPtX);
 //                    int    numNearInY = m_clusTool->numberOfHitsNear(idents::TkrId::eMeasureY, intMissLyr, nearDist, layerPtY);
 
@@ -419,11 +430,13 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
 //                        break;
 //                    }
 
+                    double distToNearestVecPoint = 0.;
+
                     // Neither are in a gap
                     if (!siHitGapX && !siHitGapY) // && numNearInX > 0 && numNearInY > 0)
                     {
-                        double                    dist2VecPoint = nearDist; //10. * searchDist; //1000.;
-                        const Event::TkrVecPoint* nearestHit    = findNearestTkrVecPoint(intPointsPair, layerPt, dist2VecPoint);
+//                        double                    dist2VecPoint = 0.; //nearDist; //10. * searchDist; //1000.;
+                        const Event::TkrVecPoint* nearestHit    = findNearestTkrVecPoint(intPointsPair, layerPt, distToNearestVecPoint);
                 
                         // If we found a hit nearby then the first thing to do is to check and see if 
                         // that hit lies on this link. If so then we are going to reject the link
@@ -444,6 +457,12 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                                 inActiveArea = true;
                                 break;
                             }
+                        }
+                        // else there is no hit within the range of this tower and we think there should be! 
+                        // Could this be inefficiency? 
+                        else
+                        {
+                            int letstophereandthink = 0;
                         }
                     }
 
@@ -476,7 +495,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     // 2) Neither plane is in a gap and there are no nearby clusters in either plane
 
                     // Let's check to see if we are in a truncated region, but only if not on the bottom layer
-                    if ((endLayer != 0 || !secondLayerTruncated) && skippedLayers < 2)
+                    if ((endLayer != 0 || !secondLayerTruncated) && skippedLayers < 0) //2)
                     {
                         bool inTruncRegionX = inTruncatedRegion(layerPtX, searchDist);
                         bool inTruncRegionY = inTruncatedRegion(layerPtY, searchDist);
@@ -495,6 +514,15 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                             if (siHitGapX) continue;
                             if (clusterX && hitDeltaX < m_siStripPitch * clusterX->size()) continue;
                         }
+                    }
+
+                    // Are there bad clusters to explain this? 
+                    // that check goes here...
+
+                    // Ok... if there are absolutely no hits nearby then maybe should be ok with this? 
+                    if (!siHitGapX && !siHitGapY && distToNearestVecPoint >= m_tkrGeom->towerPitch())
+                    {
+                        continue;
                     }
 
                     // Otherwise, we're outa here
@@ -561,85 +589,17 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
     return m_tkrVecPointsLinkCol->size() - nCurLinks;
 }
     
-bool TkrVecPointLinksBuilder::inTruncatedRegion(const Point& planeHit, double halfWidth)
+bool TkrVecPointLinksBuilder::inTruncatedRegion(const Point& planeHit, double& truncatedDist)
 {
     bool truncatedRegion = false;
 
-    // These will be constants used in this code
-    static const double stripPitch = m_tkrGeom->siStripPitch();
-    static const int    nStrips    = m_tkrGeom->ladderNStrips() * m_tkrGeom->nWaferAcross();
-    static const int    nTowersX   = m_tkrGeom->numXTowers();
-    static const int    nTowersY   = m_tkrGeom->numYTowers();
-    static const double towerPitch = m_tkrGeom->towerPitch();
+    // Initialize the reasons tool
+    m_reasonsTool->setParams(planeHit, -1);
 
-    if (m_truncationInfo && m_truncationInfo->isTruncated())
-    {
-        // Recover the pointer to the truncated map
-        Event::TkrTruncationInfo::TkrTruncationMap* truncationMap = m_truncationInfo->getTruncationMap();
-                
-        // Given the input point, figure out where we are in useful coordinates
-        idents::TkrId tkrId = makeTkrId(planeHit);
-        int tower = idents::TowerId(tkrId.getTowerX(), tkrId.getTowerY()).id();
-        int tray  = 0;
-        int face  = 0;
-        int layer = m_tkrGeom->getLayer(tkrId);
+    // Get active distance to nearest truncated region
+    truncatedDist = m_reasonsTool->getTruncDistance();
 
-        m_tkrGeom->layerToTray(layer, tkrId.getView(), tray, face);
-
-        // From the useful information, build a key to access the right info in our map
-        Event::SortId id(tower, tray, face, tkrId.getView());
-
-        Event::TkrTruncationInfo::TkrTruncationMap::iterator iter = truncationMap->find(id);
-
-        if (iter!=truncationMap->end() ) 
-        {
-            Event::TkrTruncatedPlane item = iter->second;
-
-            // Is this particular item truncated?
-            if (item.isTruncated()) 
-            {
-                // The following is taken pretty much exactly from the FindTrackHitsTool and
-                // is due to LSREA:
-                // here's where the work begins!!
-                // first try: compare extrapolated position to missing strip locations
-                // check for RC truncation
-                int status = item.getStatus();
-
-                // for me
-                int numTrunc  = item.getStripCount().size();
-
-                // Get local coordinates of my position for the comparison here
-                double localPos = tkrId.getView() == idents::TkrId::eMeasureX
-                                ? planeHit.x() - (tkrId.getTowerX() - 1.5) * towerPitch
-                                : planeHit.y() - (tkrId.getTowerY() - 1.5) * towerPitch;
-
-                // Retrieve the split point for this tower/plane
-//                int splitPoint  = m_tkrGeom->getTkrSplitsSvc()->getSplitPoint(tower, layer, tkrId.getView());
-
-                // And convert that to a local coordinate
-//                double splitPos = m_detSvc->stripLocalX(splitPoint);
-                double splitPos = item.getLocalX()[3];
-
-                // Use this to initialize our initial high/low variables
-                double lowPos   = status & Event::TkrTruncatedPlane::RC0SET ? item.getLocalX()[0] : splitPos;
-                double highPos  = status & Event::TkrTruncatedPlane::RC1SET ? item.getLocalX()[1] : splitPos;
-
-                if (highPos > lowPos)
-                {
-                    if ((localPos - lowPos) > -halfWidth && (localPos - highPos) < halfWidth) truncatedRegion = true;
-                }
-
-                // now do the same for the high end (CC1)
-                if (status & Event::TkrTruncatedPlane::CC1SET) 
-                {
-                    lowPos  = item.getLocalX()[2];
-                    highPos = 0.5*nStrips*stripPitch;
-
-                    if ((localPos - lowPos) > -halfWidth && (localPos - highPos) < halfWidth) truncatedRegion = true;
-                }
-            }
-        }
-    }
+    if (truncatedDist < 0) truncatedRegion = true;
 
     return truncatedRegion;
 }
