@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Jun 30 14:02:06 PDT 2011
+TkrRecon/src/PatRec
+
+Modified Files:
+	PatRecBaseTool.cxx PatRecBaseTool.h 
+Log Message:
+First step in converting to the "reasons" tool
+    *
+------------------------------------------------------------
 User: usher  Wed Jun 29 18:18:00 PDT 2011
 TkrRecon/src/PatRec/VectorLinks
 
