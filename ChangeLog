@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Jun 29 18:17:59 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeBuilder.cxx TreeBasedTool.cxx 
+	TreeCalClusterAssociator.cxx TreeCalClusterAssociator.h 
+Log Message:
+Attempting small improvement in efficiency
+    *
+------------------------------------------------------------
 User: usher  Tue Jun 28 20:21:08 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
