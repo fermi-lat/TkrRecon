@@ -287,7 +287,7 @@ StatusCode TreeBasedTool::findTracks()
                     m_chronoSvc->chronoStart(m_toolBuildTag);
                 }
 
-                // STEP FOUR: build the basic trees including getting their axis parameters
+                // STEP FOUR: build the nakded trees including getting their axis parameters
                 TkrTreeBuilder tkrTreeBldr(tkrNodesBldr, m_dataSvc, m_tkrGeom);
 
                 if (Event::TkrTreeCol* treeCol = tkrTreeBldr.buildTrees())
@@ -315,9 +315,7 @@ StatusCode TreeBasedTool::findTracks()
                     {
                         Event::TkrTree* tree = *treeItr;
 
-                        int numClusters = associator.AssociateTreeToClusters(tree);
-
-                        int results = 0;
+                        associator.AssociateTreeToClusters(tree);
                     }
 
                     // Now set up to loop through the trees associated to Cal Clusters. 
@@ -405,40 +403,20 @@ StatusCode TreeBasedTool::findTracks()
                             // And turn ownership of the best track over to the TDS
                             tdsTracks->push_back(const_cast<Event::TkrTrack*>(tree->getBestTrack()));
 
+                            // If a second track, add that to the TDS collection too! 
                             if (tree->size() > 1) tdsTracks->push_back(tree->back());
+
+                            // Finally, add back into the tree collection in the TDS
+                            treeCol->push_back(tree);
                         }
-
-                        // Finally, re-enter the tree in the tree collection in the TDS
-                        treeCol->push_back(tree);
-                    }
-
-/*
-                    // Loop through the tree collection and look for tracks
-                    for(Event::TkrTreeCol::iterator treeItr = treeCol->begin(); treeItr != treeCol->end(); treeItr++)
-                    {
-                        Event::TkrTree* tree       = *treeItr;
-                        double          treeEnergy = 30.;
-
-                        // Find the cluster associated to this tree, if there is one...
-                        TreeCalClusterAssociator::TreeToClusterMap::iterator treeClusItr = associator.getTreeToClusterMap().find(tree);
-
-                        if (treeClusItr != associator.getTreeToClusterMap().end()) 
+                        // No tracks means a useless tree? 
+                        // Delete to prevent memory leak
+                        else
                         {
-                            treeEnergy = treeClusItr->second->getMomParams().getEnergy();
-                        }
-
-                        int numTracks = tkrTreeFinder.findTracks(tree, treeEnergy);
-
-                        // We should abandon any trees with no tracks
-                        if (numTracks > 0)
-                        {
-                            // And turn ownership of the best track over to the TDS
-                            tdsTracks->push_back(const_cast<Event::TkrTrack*>(tree->getBestTrack()));
-
-                            if (tree->size() > 1) tdsTracks->push_back(tree->back());
+                            delete tree;
+                            relation->setTree(0);
                         }
                     }
-*/
                 }
 
                 if (m_doTiming) m_chronoSvc->chronoStop(m_toolBuildTag);
