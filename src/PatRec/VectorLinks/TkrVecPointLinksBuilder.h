@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.h,v 1.5 2010/11/24 16:39:06 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.h,v 1.6 2010/12/16 20:44:46 usher Exp $
  *
 */
 
@@ -20,6 +20,7 @@
 #include "TkrUtil/ITkrSplitsSvc.h"
 #include "GaudiKernel/IDataProviderSvc.h"
 #include "TkrUtil/ITkrQueryClustersTool.h"
+#include "TkrUtil/ITkrReasonsTool.h"
 
 #include <vector>
 typedef Event::TkrVecPointsLinkPtrVec    TkrVecPointsLinkVec;
@@ -33,6 +34,7 @@ public:
                             ITkrGeometrySvc*           tkrGeom,
                             IGlastDetSvc*              detSvc,
                             ITkrQueryClustersTool*     clusTool,
+                            ITkrReasonsTool*           reasonsTool,
                             bool                       fillInternalMap = false);
 
     ~TkrVecPointLinksBuilder();
@@ -72,7 +74,7 @@ private:
     int pruneNonVerifiedLinks(TkrVecPointsLinkVec& linkVec, Event::TkrVecPointsLinkCol* tkrVecPointsLinkCol);
 
     /// This checks to see if we are in a truncated region
-    bool inTruncatedRegion(const Point& planeHit, double halfWidth);
+    bool inTruncatedRegion(const Point& planeHit, double& truncatedDist);
 
     /// Make a TkrId given position
     idents::TkrId makeTkrId(const Point& planeHit);
@@ -92,6 +94,7 @@ private:
     ITkrGeometrySvc*              m_tkrGeom;
     IGlastDetSvc*                 m_detSvc;
     ITkrQueryClustersTool*        m_clusTool;
+    ITkrReasonsTool*              m_reasonsTool;
 
     // Event axis vector from TkrEventParams
     Vector                        m_eventAxis;

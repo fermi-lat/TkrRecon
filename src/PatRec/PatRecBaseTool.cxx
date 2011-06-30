@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/PatRecBaseTool.cxx,v 1.8 2005/05/11 04:14:31 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/PatRecBaseTool.cxx,v 1.9 2005/08/16 21:21:16 usher Exp $
 // Description:
 //      Implementation of the base class of concrete pattern recognition tools
 //
@@ -55,6 +55,12 @@ StatusCode PatRecBaseTool::initialize()
       if ((toolSvc()->retrieveTool("TkrQueryClustersTool", m_clusTool)).isFailure())
       {
           log << MSG::ERROR << "Could not find TkrQueryClustersTool" << endreq;
+          return fail;
+      }
+
+      if ((toolSvc()->retrieveTool("TkrReasonsTool", m_reasonsTool)).isFailure())
+      {
+          log << MSG::ERROR << "Could not find TkrReasonsTool" << endreq;
           return fail;
       }
 

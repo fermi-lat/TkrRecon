@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/VectorLinksTool.cxx,v 1.8 2010/11/24 16:39:06 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/VectorLinksTool.cxx,v 1.9 2010/12/16 20:44:46 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -196,6 +196,7 @@ StatusCode VectorLinksTool::findTracks()
                                                      m_tkrGeom,
                                                      m_glastDetSvc,
                                                      m_clusTool,
+                                                     m_reasonsTool,
                                                      true);
 
         if (vecPointLinksBuilder.getNumTkrVecPointsLinks() > 1) 

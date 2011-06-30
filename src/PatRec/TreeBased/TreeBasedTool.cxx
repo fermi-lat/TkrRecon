@@ -266,7 +266,8 @@ StatusCode TreeBasedTool::findTracks()
                                                      m_dataSvc,
                                                      m_tkrGeom,
                                                      m_glastDetSvc,
-                                                     m_clusTool);
+                                                     m_clusTool,
+                                                     m_reasonsTool);
 
         if (m_doTiming) m_chronoSvc->chronoStop(m_toolLinkTag);
 
