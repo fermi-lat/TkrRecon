@@ -341,17 +341,13 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     m_reasonsTool->setParams(layerPtX, -1);
 
                     // Retrieve the active distances to the edges in this tower
-                    Vector towerEdge = m_reasonsTool->getEdgeDistance();
+                    Vector towerEdgeX = m_reasonsTool->getEdgeDistance();
 
                     // If either are negative we are not in the general active area
-                    if (towerEdge.x() < 0 || towerEdge.y() < 0) continue;
+                    ///if (towerEdgeX.x() < 0 || towerEdgeX.y() < 0) continue;
 
                     // Retrieve the distance to any gaps we might be in
-                    Vector gapEdge = m_reasonsTool->getGapDistance();
-
-                    // Dereference the gap active distances to local variables
-                    double xActiveDistX = gapEdge.x();
-                    double yActiveDistX = gapEdge.y();
+                    Vector gapEdgeX = m_reasonsTool->getGapDistance();
 
                     // Now look where we might be in Y
                     Point  layerPtY = Point(linkX - arcLenY * startToEnd.x(),
@@ -362,20 +358,69 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     m_reasonsTool->setParams(layerPtY, -1);
 
                     // Recover the active distance to the active area in the tower
-                    towerEdge = m_reasonsTool->getEdgeDistance();
+                    Vector towerEdgeY = m_reasonsTool->getEdgeDistance();
 
                     // As before, if either are negative then we are not in active area
-                    if (towerEdge.x() < 0 || towerEdge.y() < 0) continue;
+                    //if (towerEdgeY.x() < 0 || towerEdgeY.y() < 0) continue;
 
                     // Recover the active distance to any gaps
-                    gapEdge = m_reasonsTool->getGapDistance();
+                    Vector gapEdgeY = m_reasonsTool->getGapDistance();
 
-                    //double trunDistY = m_reasonsTool->getTruncDistance();
-                    //double badDistY  = m_reasonsTool->getBadClusterDistance();
+                    // The first big test is to see if we are in an intertower gap
+                    static double towerEdgeTol = -2.0 * m_siStripPitch;
 
-                    // and dereference thes to local variables...
-                    double xActiveDistY = gapEdge.x();
-                    double yActiveDistY = gapEdge.y();
+                    if ((towerEdgeX.x() < towerEdgeTol || towerEdgeX.y() < towerEdgeTol) &&
+                        (towerEdgeY.x() < towerEdgeTol || towerEdgeY.y() < towerEdgeTol) )
+                    {
+                        continue;
+                    }
+
+                    // For breakpoint
+                    if (towerEdgeX.x() < 0. || towerEdgeX.y() < 0. || towerEdgeY.x() < 0. || towerEdgeY.y() < 0.)
+                    {
+                        int breakeronenine = 0;
+                    }
+
+                    double distToNearestVecPoint = 0.;
+                    const Event::TkrVecPoint* nearestHit = findNearestTkrVecPoint(intPointsPair, layerPt, distToNearestVecPoint);
+                
+                    // If we found a hit nearby then the first thing to do is to check and see if 
+                    // that hit lies on this link. If so then we are going to reject the link
+                    if (nearestHit && distToNearestVecPoint < 0.2 * m_tkrGeom->towerPitch())
+                    {
+//                        // Get the delta to this hit
+//                        Vector deltaPos = nearestHit->getPosition() - layerPt;
+//                
+//                        // Get difference between cluster positions and link projected positions
+//                        double deltaProjX  = fabs(deltaPos.x());
+//                        double deltaProjY  = fabs(deltaPos.y());
+//                
+//                        // Should this cluster be on the link we are trying to make?
+//                        if (deltaProjX < 5.0 * skippedLayers * m_siStripPitch * nearestHit->getXCluster()->size() &&
+//                            deltaProjY < 5.0 * skippedLayers * m_siStripPitch * nearestHit->getYCluster()->size()) 
+//                        {
+//                            inActiveArea = true;
+//                            break;
+//                        }
+                        double sigmaX    = nearestHit->getXCluster()->size();
+                        double sigmaY    = nearestHit->getYCluster()->size();
+                        double quadSigma = sqrt(sigmaX*sigmaX + sigmaY*sigmaY);
+                        double scaleFctr = 10. * skippedLayers * m_siStripPitch;
+
+                        // scale back the scalefctr if possibly in a gap
+                        if (gapEdgeX.x() < 0. || gapEdgeX.y() < 0. || gapEdgeY.x() < 0. || gapEdgeY.y() < 0.) 
+                        {
+                            scaleFctr *= 0.5;
+
+                            if ((gapEdgeX.x() < 0. || gapEdgeX.y() < 0.) && (gapEdgeY.x() < 0. || gapEdgeY.y() < 0.)) scaleFctr *= 0.5;
+                        }
+
+                        if (distToNearestVecPoint < scaleFctr * quadSigma)
+                        {
+                            inActiveArea = true;
+                            break;
+                        }
+                    }
 
                     // If here we have no nearby hit and we believe we are in the confines of the active silicon. 
                     // At this point we might be very near the edge, or in a gap in the middle of a tower. So, now 
@@ -389,17 +434,17 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     // the active area, positive if inside. If we add this to our projected distance, then we would get
                     // zero if the link just clips the active silicon, it will be positive as we hit more silicon, negative
                     // if we miss completely
-                    double siHitDistXx = 0.5 * projectedX + xActiveDistX;
-                    double siHitDistXy = 0.5 * projectedY + yActiveDistX;
-                    double siHitDistYx = 0.5 * projectedX + xActiveDistY;
-                    double siHitDistYy = 0.5 * projectedY + yActiveDistY;
+                    double siHitDistXx = 0.5 * projectedX + gapEdgeX.x();
+                    double siHitDistXy = 0.5 * projectedY + gapEdgeX.y();
+                    double siHitDistYx = 0.5 * projectedX + gapEdgeY.x();
+                    double siHitDistYy = 0.5 * projectedY + gapEdgeY.y();
 
-                    static double nStripsEdgeTol = 3.0; //1.25;
+                    static double nStripsEdgeTol = 2.0; //1.25;
                     static double edgeTol        = nStripsEdgeTol * m_siStripPitch;             // Set at 1/2 strip
 
                     // Useful to break down
-                    bool   siHitGapX   = siHitDistXx < edgeTol || siHitDistXy < edgeTol;
-                    bool   siHitGapY   = siHitDistYx < edgeTol || siHitDistYy < edgeTol;
+                    bool siHitGapX = siHitDistXx < edgeTol || siHitDistXy < edgeTol;
+                    bool siHitGapY = siHitDistYx < edgeTol || siHitDistYy < edgeTol;
 
                     // If we are definitely in a gap, ie both planes, then we are good to make the link
                     if (siHitGapX && siHitGapY)
@@ -409,6 +454,13 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
 
                     // Restrict links from skipping too many layers "arbitrarily"
                     if (skippedLayers > 2)
+                    {
+                        inActiveArea = true;
+                        break;
+                    }
+
+                    // At this point restrict to the same tower?
+                    if (firstPoint->getTower() != secondPoint->getTower()) 
                     {
                         inActiveArea = true;
                         break;
@@ -430,43 +482,32 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
 //                        break;
 //                    }
 
-                    double distToNearestVecPoint = 0.;
+//                    double distToNearestVecPoint = 0.;
+//                    const Event::TkrVecPoint* nearestHit = findNearestTkrVecPoint(intPointsPair, layerPt, distToNearestVecPoint);
+//                
+//                    // If we found a hit nearby then the first thing to do is to check and see if 
+//                    // that hit lies on this link. If so then we are going to reject the link
+//                    if (nearestHit)
+//                    {
+//                        // Get the delta to this hit
+//                        Vector deltaPos = nearestHit->getPosition() - layerPt;
+//                
+//                        // Get difference between cluster positions and link projected positions
+//                        double deltaProjX  = fabs(deltaPos.x());
+//                        double deltaProjY  = fabs(deltaPos.y());
+//                
+//                        // Should this cluster be on the link we are trying to make?
+//                        if (deltaProjX < 1.5 * skippedLayers * m_siStripPitch * nearestHit->getXCluster()->size() &&
+//                            deltaProjY < 1.5 * skippedLayers * m_siStripPitch * nearestHit->getYCluster()->size()) 
+//                        {
+//                            inActiveArea = true;
+//                            break;
+//                        }
+//                    }
 
-                    // Neither are in a gap
-                    if (!siHitGapX && !siHitGapY) // && numNearInX > 0 && numNearInY > 0)
-                    {
-//                        double                    dist2VecPoint = 0.; //nearDist; //10. * searchDist; //1000.;
-                        const Event::TkrVecPoint* nearestHit    = findNearestTkrVecPoint(intPointsPair, layerPt, distToNearestVecPoint);
-                
-                        // If we found a hit nearby then the first thing to do is to check and see if 
-                        // that hit lies on this link. If so then we are going to reject the link
-                        if (nearestHit)
-                        {
-                            // Get the position of the cluster in each plane
-                            double nearestHitX = nearestHit->getXCluster()->position().x();
-                            double nearestHitY = nearestHit->getYCluster()->position().y();
-                
-                            // Get difference between cluster positions and link projected positions
-                            double deltaProjX  = fabs(nearestHitX - (linkX - arcLenX * startToEnd.x()));
-                            double deltaProjY  = fabs(nearestHitY - (linkY - arcLenY * startToEnd.y()));
-                
-                            // Should this cluster be on the link we are trying to make?
-                            if (deltaProjX < 1.5 * m_siStripPitch * nearestHit->getXCluster()->size() &&
-                                deltaProjY < 1.5 * m_siStripPitch * nearestHit->getYCluster()->size()) 
-                            {
-                                inActiveArea = true;
-                                break;
-                            }
-                        }
-                        // else there is no hit within the range of this tower and we think there should be! 
-                        // Could this be inefficiency? 
-                        else
-                        {
-                            int letstophereandthink = 0;
-                        }
-                    }
-
-                    // Define pointers to potential nearby clusters
+                    // We do not have a TkrVecPoint nearby that we should be "on", look at the less restrictive
+                    // case that a single cluster is nearby in one plane or the other
+                    // Start by retrieving the nearest cluster (if one exists)
                     Event::TkrCluster* clusterX = m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureX, intMissLyr, 0., layerPtX);
                     Event::TkrCluster* clusterY = m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureY, intMissLyr, 0., layerPtY);
 
@@ -474,13 +515,13 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     double hitDeltaY = clusterY ? fabs(layerPtY.y() - clusterY->position().y()) : 100.;
 
                     // Case: in a gap in the X plane, on cluster in the Y plane
-                    if (siHitGapX && clusterY && hitDeltaY < 5. * m_siStripPitch * clusterY->size()) 
+                    if (siHitGapX && clusterY && hitDeltaY < 2.5 * m_siStripPitch * clusterY->size()) 
                     {
                         continue;
                     }
 
                     // Case: in a gap in the Y plane, on cluster in the X plane
-                    if (siHitGapY && clusterX && hitDeltaX < 5. * m_siStripPitch * clusterX->size()) 
+                    if (siHitGapY && clusterX && hitDeltaX < 2.5 * skippedLayers * m_siStripPitch * clusterX->size()) 
                     {
                         continue;
                     }
@@ -495,34 +536,49 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     // 2) Neither plane is in a gap and there are no nearby clusters in either plane
 
                     // Let's check to see if we are in a truncated region, but only if not on the bottom layer
-                    if ((endLayer != 0 || !secondLayerTruncated) && skippedLayers < 0) //2)
+                    if ((endLayer != 0 || !secondLayerTruncated) && skippedLayers < 2)
                     {
-                        bool inTruncRegionX = inTruncatedRegion(layerPtX, searchDist);
-                        bool inTruncRegionY = inTruncatedRegion(layerPtY, searchDist);
+                        double truncDistX     = 0.;
+                        double truncDistY     = 0.;
+                        bool   inTruncRegionX = inTruncatedRegion(layerPtX, truncDistX);
+                        bool   inTruncRegionY = inTruncatedRegion(layerPtY, truncDistY);
+
+                        // If both truncated then we should keep?
+                        if (inTruncRegionX && inTruncRegionY)
+                        {
+                            continue;
+                        }
 
                         // Ok, look at the possibilities here... 
                         // We are in a truncated region in X
                         if (inTruncRegionX)
                         {
                             if (siHitGapY) continue;
-                            if (clusterY && hitDeltaY < m_siStripPitch * clusterY->size()) continue;
+                            if (clusterY && hitDeltaY < 2.5 * m_siStripPitch * clusterY->size()) continue;
                         }
                         
                         // We are in a truncated region in Y
                         if (inTruncRegionY)
                         {
                             if (siHitGapX) continue;
-                            if (clusterX && hitDeltaX < m_siStripPitch * clusterX->size()) continue;
+                            if (clusterX && hitDeltaX < 2.5 * m_siStripPitch * clusterX->size()) continue;
                         }
                     }
 
                     // Are there bad clusters to explain this? 
                     // that check goes here...
 
-                    // Ok... if there are absolutely no hits nearby then maybe should be ok with this? 
+                    // Ok... if there are absolutely no hits nearby then open up
+                    // the restriction a bit on the gap edges
                     if (!siHitGapX && !siHitGapY && distToNearestVecPoint >= m_tkrGeom->towerPitch())
                     {
-                        continue;
+                        double generousEdgeTol = 10. * edgeTol;
+
+                        if (   siHitDistXx < generousEdgeTol || siHitDistXy < generousEdgeTol 
+                            || siHitDistYx < generousEdgeTol || siHitDistYy < generousEdgeTol)
+                        {
+                            continue;
+                        }
                     }
 
                     // Otherwise, we're outa here
