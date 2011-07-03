@@ -369,16 +369,20 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     // The first big test is to see if we are in an intertower gap
                     static double towerEdgeTol = -2.0 * m_siStripPitch;
 
+                    // ***** ACCEPT LINK *****
+                    // Clearly in an inter tower gap
                     if ((towerEdgeX.x() < towerEdgeTol || towerEdgeX.y() < towerEdgeTol) &&
                         (towerEdgeY.x() < towerEdgeTol || towerEdgeY.y() < towerEdgeTol) )
                     {
                         continue;
                     }
 
-                    // For breakpoint
-                    if (towerEdgeX.x() < 0. || towerEdgeX.y() < 0. || towerEdgeY.x() < 0. || towerEdgeY.y() < 0.)
+                    // ***** ACCEPT LINK *****
+                    // Clearly in a gap between wafers - negative active distance in both planes
+                    if ((gapEdgeX.x() < 0. || gapEdgeX.y() < 0.) &&
+                        (gapEdgeY.x() < 0. || gapEdgeY.y() < 0.) )
                     {
-                        int breakeronenine = 0;
+                        continue;
                     }
 
                     double distToNearestVecPoint = 0.;
@@ -388,20 +392,6 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     // that hit lies on this link. If so then we are going to reject the link
                     if (nearestHit && distToNearestVecPoint < 0.2 * m_tkrGeom->towerPitch())
                     {
-//                        // Get the delta to this hit
-//                        Vector deltaPos = nearestHit->getPosition() - layerPt;
-//                
-//                        // Get difference between cluster positions and link projected positions
-//                        double deltaProjX  = fabs(deltaPos.x());
-//                        double deltaProjY  = fabs(deltaPos.y());
-//                
-//                        // Should this cluster be on the link we are trying to make?
-//                        if (deltaProjX < 5.0 * skippedLayers * m_siStripPitch * nearestHit->getXCluster()->size() &&
-//                            deltaProjY < 5.0 * skippedLayers * m_siStripPitch * nearestHit->getYCluster()->size()) 
-//                        {
-//                            inActiveArea = true;
-//                            break;
-//                        }
                         double sigmaX    = nearestHit->getXCluster()->size();
                         double sigmaY    = nearestHit->getYCluster()->size();
                         double quadSigma = sqrt(sigmaX*sigmaX + sigmaY*sigmaY);
@@ -415,6 +405,8 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                             if ((gapEdgeX.x() < 0. || gapEdgeX.y() < 0.) && (gapEdgeY.x() < 0. || gapEdgeY.y() < 0.)) scaleFctr *= 0.5;
                         }
 
+                        // ***** REJECT LINK *****
+                        // There is a TkrVecPoint within tolerance
                         if (distToNearestVecPoint < scaleFctr * quadSigma)
                         {
                             inActiveArea = true;
@@ -434,24 +426,27 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     // the active area, positive if inside. If we add this to our projected distance, then we would get
                     // zero if the link just clips the active silicon, it will be positive as we hit more silicon, negative
                     // if we miss completely
-                    double siHitDistXx = 0.5 * projectedX + gapEdgeX.x();
-                    double siHitDistXy = 0.5 * projectedY + gapEdgeX.y();
-                    double siHitDistYx = 0.5 * projectedX + gapEdgeY.x();
-                    double siHitDistYy = 0.5 * projectedY + gapEdgeY.y();
+                    double siHitDistXx = gapEdgeX.x() - projectedX;
+                    double siHitDistXy = gapEdgeX.y() - projectedY;
+                    double siHitDistYx = gapEdgeY.x() - projectedX;
+                    double siHitDistYy = gapEdgeY.y() - projectedY;
 
-                    static double nStripsEdgeTol = 2.0; //1.25;
-                    static double edgeTol        = nStripsEdgeTol * m_siStripPitch;             // Set at 1/2 strip
+                    static double nStripsEdgeTol = 10.0; //1.25;
+                    static double gapEdgeTol     = nStripsEdgeTol * m_siStripPitch;             // Set at 1/2 strip
 
                     // Useful to break down
-                    bool siHitGapX = siHitDistXx < edgeTol || siHitDistXy < edgeTol;
-                    bool siHitGapY = siHitDistYx < edgeTol || siHitDistYy < edgeTol;
+                    bool siHitGapX = siHitDistXx < gapEdgeTol || siHitDistXy < gapEdgeTol;
+                    bool siHitGapY = siHitDistYx < gapEdgeTol || siHitDistYy < gapEdgeTol;
 
-                    // If we are definitely in a gap, ie both planes, then we are good to make the link
-                    if (siHitGapX && siHitGapY)
+                    // ***** ACCEPT THE LINK *****
+                    // If definitely in a gap in one plane and maybe in a gap in the other plane... 
+                    if (((gapEdgeX.x() < 0. || gapEdgeX.y() < 0.) && siHitGapY) ||
+                        ((gapEdgeY.x() < 0. || gapEdgeY.y() < 0.) && siHitGapX) )
                     {
                         continue;
                     }
 
+                    // ***** REJECT LINK *****
                     // Restrict links from skipping too many layers "arbitrarily"
                     if (skippedLayers > 2)
                     {
@@ -459,6 +454,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                         break;
                     }
 
+                    // ***** REJECT LINK *****
                     // At this point restrict to the same tower?
                     if (firstPoint->getTower() != secondPoint->getTower()) 
                     {
@@ -526,6 +522,13 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                         continue;
                     }
 
+                    // ***** ACCEPT LINK *****
+                    // A special case where we are close to a gap AND there are not hits/clusters anywhere nearby
+                    if (siHitGapX && siHitGapY && distToNearestVecPoint >= m_tkrGeom->towerPitch() && hitDeltaX > 40. && hitDeltaY > 40.)
+                    {
+                        continue;
+                    }
+
                     // If we are here we have checked
                     // 1) the proposed link crosses the planes of this bilayer in the intertower gap
                     // 2) both points at the plane crossing are in a gap
@@ -567,19 +570,6 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
 
                     // Are there bad clusters to explain this? 
                     // that check goes here...
-
-                    // Ok... if there are absolutely no hits nearby then open up
-                    // the restriction a bit on the gap edges
-                    if (!siHitGapX && !siHitGapY && distToNearestVecPoint >= m_tkrGeom->towerPitch())
-                    {
-                        double generousEdgeTol = 10. * edgeTol;
-
-                        if (   siHitDistXx < generousEdgeTol || siHitDistXy < generousEdgeTol 
-                            || siHitDistYx < generousEdgeTol || siHitDistYy < generousEdgeTol)
-                        {
-                            continue;
-                        }
-                    }
 
                     // Otherwise, we're outa here
                     inActiveArea = true;
