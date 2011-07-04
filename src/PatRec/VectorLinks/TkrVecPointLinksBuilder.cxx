@@ -273,6 +273,9 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
 
             if (testAngle > toleranceAngle) continue;
 
+            // In the event of skipping layers links, set a status bit word to help determine what happened
+            unsigned int skippedStatus = 0;
+
             // Set up to loop over "missing" layers with the iterators passed in
             Event::TkrLyrToVecPointItrMap::reverse_iterator intPointsItr = firstPointsItr;
             int                                             intMissLyr   = startLayer; 
@@ -374,6 +377,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     if ((towerEdgeX.x() < towerEdgeTol || towerEdgeX.y() < towerEdgeTol) &&
                         (towerEdgeY.x() < towerEdgeTol || towerEdgeY.y() < towerEdgeTol) )
                     {
+                        skippedStatus |= Event::TkrVecPointsLink::INTERTOWER;
                         continue;
                     }
 
@@ -382,6 +386,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     if ((gapEdgeX.x() < 0. || gapEdgeX.y() < 0.) &&
                         (gapEdgeY.x() < 0. || gapEdgeY.y() < 0.) )
                     {
+                        skippedStatus |= Event::TkrVecPointsLink::WAFERGAP;
                         continue;
                     }
 
@@ -431,7 +436,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     double siHitDistYx = gapEdgeY.x() - projectedX;
                     double siHitDistYy = gapEdgeY.y() - projectedY;
 
-                    static double nStripsEdgeTol = 10.0; //1.25;
+                    static double nStripsEdgeTol = 8.; //1.25;
                     static double gapEdgeTol     = nStripsEdgeTol * m_siStripPitch;             // Set at 1/2 strip
 
                     // Useful to break down
@@ -443,6 +448,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     if (((gapEdgeX.x() < 0. || gapEdgeX.y() < 0.) && siHitGapY) ||
                         ((gapEdgeY.x() < 0. || gapEdgeY.y() < 0.) && siHitGapX) )
                     {
+                        skippedStatus |= Event::TkrVecPointsLink::WAFERGAPPLUS;
                         continue;
                     }
 
@@ -519,6 +525,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     // Case: in a gap in the Y plane, on cluster in the X plane
                     if (siHitGapY && clusterX && hitDeltaX < 2.5 * skippedLayers * m_siStripPitch * clusterX->size()) 
                     {
+                        skippedStatus |= Event::TkrVecPointsLink::GAPANDCLUS;
                         continue;
                     }
 
@@ -526,6 +533,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     // A special case where we are close to a gap AND there are not hits/clusters anywhere nearby
                     if (siHitGapX && siHitGapY && distToNearestVecPoint >= m_tkrGeom->towerPitch() && hitDeltaX > 40. && hitDeltaY > 40.)
                     {
+                        skippedStatus |= Event::TkrVecPointsLink::GAPANDCLUS;
                         continue;
                     }
 
@@ -556,15 +564,23 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                         // We are in a truncated region in X
                         if (inTruncRegionX)
                         {
-                            if (siHitGapY) continue;
-                            if (clusterY && hitDeltaY < 2.5 * m_siStripPitch * clusterY->size()) continue;
+                            if (siHitGapY || 
+                               (clusterY && hitDeltaY < 2.5 * m_siStripPitch * clusterY->size()))
+                            {
+                                skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
+                                continue;
+                            }
                         }
                         
                         // We are in a truncated region in Y
                         if (inTruncRegionY)
                         {
-                            if (siHitGapX) continue;
-                            if (clusterX && hitDeltaX < 2.5 * m_siStripPitch * clusterX->size()) continue;
+                            if (siHitGapX ||
+                               (clusterX && hitDeltaX < 2.5 * m_siStripPitch * clusterX->size()))
+                            {
+                                skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
+                                continue;
+                            }
                         }
                     }
 
@@ -619,10 +635,12 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
             if (m_fillInternalTables) linkStoreVec.back().push_back(tkrVecPointsLink);
 
             // Update any layer skipping info
-            if (skippedLayers == 1)      tkrVecPointsLink->setSkip1Layer();
+            if      (skippedLayers == 1) tkrVecPointsLink->setSkip1Layer();
             else if (skippedLayers == 2) tkrVecPointsLink->setSkip2Layer();
             else if (skippedLayers == 3) tkrVecPointsLink->setSkip3Layer();
             else if (skippedLayers >  3) tkrVecPointsLink->setSkipNLayer();
+
+            tkrVecPointsLink->updateStatusBits(skippedStatus);
 
             // Finally, create a relation between the top TkrVecPoint and this link
             Event::TkrVecPointToLinksRel* pointToLink = 
