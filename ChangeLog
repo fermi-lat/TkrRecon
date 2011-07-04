@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Mon Jul  4 10:03:38 PDT 2011
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointLinksBuilder.cxx 
+Log Message:
+Set status bits for links that skip layers to give more information on how they get formed
+    *
+------------------------------------------------------------
 User: usher  Sun Jul  3 09:15:46 PDT 2011
 TkrRecon/src/PatRec/VectorLinks
 
