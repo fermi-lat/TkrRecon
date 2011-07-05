@@ -250,13 +250,14 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
             double startToEndMag  = startToEnd.magnitude();
             double startToEndDist = startToEndMag * sin(startToEnd.theta());
             double towerPitch     = m_tkrGeom->towerPitch();
+            double maxStartToEnd  = towerPitch;
 
             // Make startToEnd a unit vector
             startToEnd = startToEnd.unit();
 
-            if (firstPoint->getTower() != secondPoint->getTower()) towerPitch *= 0.5;
+            if (firstPoint->getTower() != secondPoint->getTower()) maxStartToEnd *= 0.5;
 
-            if (startToEndDist > towerPitch) continue;
+            if (startToEndDist > maxStartToEnd) continue;
 
             // Loop through intervening layers to check if we should expect intermediate hits for 
             // a "layer skipping" link
@@ -390,12 +391,13 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                         continue;
                     }
 
-                    double distToNearestVecPoint = 0.;
-                    const Event::TkrVecPoint* nearestHit = findNearestTkrVecPoint(intPointsPair, layerPt, distToNearestVecPoint);
+                    double distToNearestVecPoint = 0.25 * towerPitch;
+                    int    nHitsInRange          = 0;
+                    const Event::TkrVecPoint* nearestHit = findNearestTkrVecPoint(intPointsPair, layerPt, distToNearestVecPoint, nHitsInRange);
                 
                     // If we found a hit nearby then the first thing to do is to check and see if 
                     // that hit lies on this link. If so then we are going to reject the link
-                    if (nearestHit && distToNearestVecPoint < 0.2 * m_tkrGeom->towerPitch())
+                    if (nearestHit && distToNearestVecPoint < 0.2 * towerPitch)
                     {
                         double sigmaX    = nearestHit->getXCluster()->size();
                         double sigmaY    = nearestHit->getYCluster()->size();
@@ -406,8 +408,6 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                         if (gapEdgeX.x() < 0. || gapEdgeX.y() < 0. || gapEdgeY.x() < 0. || gapEdgeY.y() < 0.) 
                         {
                             scaleFctr *= 0.5;
-
-                            if ((gapEdgeX.x() < 0. || gapEdgeX.y() < 0.) && (gapEdgeY.x() < 0. || gapEdgeY.y() < 0.)) scaleFctr *= 0.5;
                         }
 
                         // ***** REJECT LINK *****
@@ -436,8 +436,8 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     double siHitDistYx = gapEdgeY.x() - projectedX;
                     double siHitDistYy = gapEdgeY.y() - projectedY;
 
-                    static double nStripsEdgeTol = 8.; //1.25;
-                    static double gapEdgeTol     = nStripsEdgeTol * m_siStripPitch;             // Set at 1/2 strip
+                    static double nStripsEdgeTol = nHitsInRange > 3 ? 4. : 8.;
+                    static double gapEdgeTol     = nStripsEdgeTol * m_siStripPitch; 
 
                     // Useful to break down
                     bool siHitGapX = siHitDistXx < gapEdgeTol || siHitDistXy < gapEdgeTol;
@@ -516,25 +516,28 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     double hitDeltaX = clusterX ? fabs(layerPtX.x() - clusterX->position().x()) : 100.;
                     double hitDeltaY = clusterY ? fabs(layerPtY.y() - clusterY->position().y()) : 100.;
 
-                    // Case: in a gap in the X plane, on cluster in the Y plane
-                    if (siHitGapX && clusterY && hitDeltaY < 2.5 * m_siStripPitch * clusterY->size()) 
+                    if (siHitGapX || siHitGapY)
                     {
-                        continue;
-                    }
+                        // Case: in a gap in the X plane, on cluster in the Y plane
+                        if (siHitGapX && clusterY && hitDeltaY < 2.5 * m_siStripPitch * clusterY->size()) 
+                        {
+                            continue;
+                        }
 
-                    // Case: in a gap in the Y plane, on cluster in the X plane
-                    if (siHitGapY && clusterX && hitDeltaX < 2.5 * skippedLayers * m_siStripPitch * clusterX->size()) 
-                    {
-                        skippedStatus |= Event::TkrVecPointsLink::GAPANDCLUS;
-                        continue;
-                    }
+                        // Case: in a gap in the Y plane, on cluster in the X plane
+                        if (siHitGapY && clusterX && hitDeltaX < 2.5 * skippedLayers * m_siStripPitch * clusterX->size()) 
+                        {
+                            skippedStatus |= Event::TkrVecPointsLink::GAPANDCLUS;
+                            continue;
+                        }
 
-                    // ***** ACCEPT LINK *****
-                    // A special case where we are close to a gap AND there are not hits/clusters anywhere nearby
-                    if (siHitGapX && siHitGapY && distToNearestVecPoint >= m_tkrGeom->towerPitch() && hitDeltaX > 40. && hitDeltaY > 40.)
-                    {
-                        skippedStatus |= Event::TkrVecPointsLink::GAPANDCLUS;
-                        continue;
+                        // ***** ACCEPT LINK *****
+                        // A special case where we are close to a gap AND there are not hits/clusters anywhere nearby
+                        if (siHitGapX && siHitGapY && distToNearestVecPoint >= towerPitch && hitDeltaX > 40. && hitDeltaY > 40.)
+                        {
+                            skippedStatus |= Event::TkrVecPointsLink::GAPANDCLUS;
+                            continue;
+                        }
                     }
 
                     // If we are here we have checked
@@ -557,6 +560,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                         // If both truncated then we should keep?
                         if (inTruncRegionX && inTruncRegionY)
                         {
+                            skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
                             continue;
                         }
 
@@ -616,7 +620,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
             double maxAngle = 2. * std::max(geoAngle, msScatAng);
 
             // Set a maximum angle of half a tower pitch
-            maxAngle = std::min(0.5 * m_tkrGeom->towerPitch(), maxAngle);
+            maxAngle = std::min(0.5 * towerPitch, maxAngle);
 
             // Update the point status words
             const_cast<Event::TkrVecPoint*>(firstPoint)->setAssociated();
@@ -694,26 +698,41 @@ idents::TkrId TkrVecPointLinksBuilder::makeTkrId(const Point& planeHit)
 
 const Event::TkrVecPoint* TkrVecPointLinksBuilder::findNearestTkrVecPoint(const Event::TkrVecPointItrPair& intPointsPair, 
                                                                           Point                            layerPt,
-                                                                          double&                          dist2VecPoint)
+                                                                          double&                          dist2VecPoint,
+                                                                          int&                             nHitsInRange)
 {
-    const Event::TkrVecPoint* foundVecPoint = 0;
+    const Event::TkrVecPoint* foundVecPoint   = 0;
+    double                    dist2VecPoint2  = dist2VecPoint * dist2VecPoint;
+    double                    bestDist2Point2 = dist2VecPoint2;
 
-    dist2VecPoint = m_tkrGeom->towerPitch() * m_tkrGeom->towerPitch();
+    // See if we can speed up the loop a tiny bit...
+    idents::TkrId tkrId = makeTkrId(layerPt);
+    int           tower = idents::TowerId(tkrId.getTowerX(),tkrId.getTowerY()).id();
+
+    nHitsInRange = 0;
 
     for(Event::TkrVecPointColPtr intPointsItr = intPointsPair.first; intPointsItr != intPointsPair.second; intPointsItr++)
     {
         const Event::TkrVecPoint* vecPoint = *intPointsItr;
 
-        double distBtwnPoints = vecPoint->getDistanceSquaredTo(layerPt);
+        // If not same tower then skip
+        if (vecPoint->getTower() != tower) continue;
 
-        if (distBtwnPoints < dist2VecPoint)
+        double distBtwnPoints2 = vecPoint->getDistanceSquaredTo(layerPt);
+
+        // Keep track of the number of points within the search region
+        if (distBtwnPoints2 < dist2VecPoint2) nHitsInRange++;
+
+        // Do we have a new "best"? 
+        if (distBtwnPoints2 < bestDist2Point2)
         {
-            foundVecPoint = vecPoint;
-            dist2VecPoint = distBtwnPoints;
+            foundVecPoint   = vecPoint;
+            bestDist2Point2 = distBtwnPoints2;
         }
     }
 
-    dist2VecPoint = sqrt(dist2VecPoint);
+    // Return the distance to the nearest point
+    dist2VecPoint = sqrt(bestDist2Point2);
 
     return foundVecPoint;
 }

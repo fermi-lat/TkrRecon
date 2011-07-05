@@ -289,6 +289,8 @@ StatusCode TreeBasedTool::findTracks()
                 }
 
                 // STEP FOUR: build the nakded trees including getting their axis parameters
+                try
+                {
                 TkrTreeBuilder tkrTreeBldr(tkrNodesBldr, m_dataSvc, m_tkrGeom);
 
                 if (Event::TkrTreeCol* treeCol = tkrTreeBldr.buildTrees())
@@ -312,6 +314,8 @@ StatusCode TreeBasedTool::findTracks()
                     // Make a pass through the trees to do the association
                     // This pass should result in an association map between trees and relation objects which is in the
                     // same order as the collection in the TDS
+                    try
+                    {
                     for(Event::TkrTreeCol::iterator treeItr = treeCol->begin(); treeItr != treeCol->end(); treeItr++)
                     {
                         Event::TkrTree* tree = *treeItr;
@@ -319,12 +323,25 @@ StatusCode TreeBasedTool::findTracks()
                         associator.AssociateTreeToClusters(tree);
                     }
 
+                    }
+                    catch(TkrException& e)
+                    {
+                        throw e;
+                    }
+                    catch(...)
+                    {
+                        throw(TkrException("Unknown exception encountered in TkrVecNode and TkrTree building "));  
+                    }
+
+
                     // Now set up to loop through the trees associated to Cal Clusters. 
                     // Vector to keep track of newly ordered results
                     TreeCalClusterAssociator::TreeClusterRelationVec treeRelVec;
 
                     // Note that we must protect against the case where there are no clusters
                     // in the TDS colletion!
+                    try
+                    {
                     if (calClusterCol)
                     {
                         // The Cal cluster ordering should reflect the output of the classification tree where the first
@@ -360,9 +377,21 @@ StatusCode TreeBasedTool::findTracks()
                             }
                         }
                     }
+                
+                    }
+                    catch(TkrException& e)
+                    {
+                        throw e;
+                    }
+                    catch(...)
+                    {
+                        throw(TkrException("Unknown exception encountered in TkrVecNode and TkrTree building "));  
+                    }
 
                     // Let's not forget the other trees, loop through and simply tag onto the end any which are not related to a cluster
                     // Remember, a tree can be related to only one cluster!
+                    try
+                    {
                     for(TreeCalClusterAssociator::TreeToRelationMap::iterator treeItr  = associator.getTreeToRelationMap().begin();
                                                                               treeItr != associator.getTreeToRelationMap().end();
                                                                               treeItr++)
@@ -384,10 +413,22 @@ StatusCode TreeBasedTool::findTracks()
                         treeCol->erase(treeCol->begin());
                     }
 
+                    }
+                    catch(TkrException& e)
+                    {
+                        throw e;
+                    }
+                    catch(...)
+                    {
+                        throw(TkrException("Unknown exception encountered in TkrVecNode and TkrTree building "));  
+                    }
+
                     // **********************************************************************************************************
 
                     // Now ready to extract tracks for each of the trees. Do this by looping over the TreeClusterRelation vector 
                     // formed above which, theoretically, has not been reordered to have the really best tree first. 
+                    try
+                    {
                     for(TreeCalClusterAssociator::TreeClusterRelationVec::iterator treeItr  = treeRelVec.begin();
                                                                                    treeItr != treeRelVec.end();
                                                                                    treeItr++)
@@ -418,9 +459,29 @@ StatusCode TreeBasedTool::findTracks()
                             relation->setTree(0);
                         }
                     }
+                    }
+                    catch(TkrException& e)
+                    {
+                        throw e;
+                    }
+                    catch(...)
+                    {
+                        throw(TkrException("Unknown exception encountered in TkrVecNode and TkrTree building "));  
+                    }
+
                 }
 
                 if (m_doTiming) m_chronoSvc->chronoStop(m_toolBuildTag);
+
+                }
+                catch(TkrException& e)
+                {
+                    throw e;
+                }
+                catch(...)
+                {
+                    throw(TkrException("Unknown exception encountered in TkrVecNode and TkrTree building "));  
+                }
             }
             catch(TkrException& e)
             {
@@ -464,6 +525,9 @@ StatusCode TreeBasedTool::findTracks()
     if (m_doTiming)
     {
         m_chronoSvc->chronoStop(m_toolTag);
+        m_chronoSvc->chronoStop(m_toolLinkTag);
+        m_chronoSvc->chronoStop(m_toolNodeTag);
+        m_chronoSvc->chronoStop(m_toolBuildTag);
     
         m_toolTime  = m_chronoSvc->chronoDelta(m_toolTag,IChronoStatSvc::USER);
         m_linkTime  = m_chronoSvc->chronoDelta(m_toolLinkTag, IChronoStatSvc::USER);
