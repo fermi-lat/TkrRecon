@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Jul  5 13:36:18 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeBasedTool.cxx 
+Log Message:
+Tiny bit more optimization on link building, kludge in timing information for temporary output to ntuple
+    *
+------------------------------------------------------------
 User: usher  Mon Jul  4 10:03:38 PDT 2011
 TkrRecon/src/PatRec/VectorLinks
 
