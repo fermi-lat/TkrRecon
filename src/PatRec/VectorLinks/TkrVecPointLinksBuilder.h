@@ -66,7 +66,8 @@ private:
     /// This finds the TkrVecPoint nearest to the given Point
     const Event::TkrVecPoint* findNearestTkrVecPoint(const Event::TkrVecPointItrPair& intPoints, 
                                                      Point                            layerPt,
-                                                     double&                          dist2VecPoint);
+                                                     double&                          dist2VecPoint,
+                                                     int&                             nHitsInRange);
 
     void markLinkVerified(std::vector<Event::TkrVecPointToLinksRel*>& pointToLinkVec, const Event::TkrVecPoint* point);
 
