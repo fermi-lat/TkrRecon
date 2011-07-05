@@ -521,6 +521,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                         // Case: in a gap in the X plane, on cluster in the Y plane
                         if (siHitGapX && clusterY && hitDeltaY < 2.5 * m_siStripPitch * clusterY->size()) 
                         {
+                            skippedStatus |= Event::TkrVecPointsLink::GAPANDCLUS;
                             continue;
                         }
 
@@ -732,7 +733,7 @@ const Event::TkrVecPoint* TkrVecPointLinksBuilder::findNearestTkrVecPoint(const 
     }
 
     // Return the distance to the nearest point
-    dist2VecPoint = sqrt(bestDist2Point2);
+    dist2VecPoint = foundVecPoint ? sqrt(bestDist2Point2) : m_tkrGeom->towerPitch();
 
     return foundVecPoint;
 }
