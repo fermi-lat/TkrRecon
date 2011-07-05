@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Tue Jul  5 13:36:18 PDT 2011
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointLinksBuilder.cxx TkrVecPointLinksBuilder.h 
+Log Message:
+Tiny bit more optimization on link building, kludge in timing information for temporary output to ntuple
+    *
+------------------------------------------------------------
+User: usher  Tue Jul  5 13:36:18 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
 Modified Files:
