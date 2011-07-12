@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Jul 12 13:55:32 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeCalClusterAssociator.cxx 
+Log Message:
+Simple minded cut to only consider trees which extend to cal when doing association to clusters
+    *
+------------------------------------------------------------
 User: usher  Tue Jul  5 13:51:17 PDT 2011
 TkrRecon/src/PatRec/VectorLinks
 
