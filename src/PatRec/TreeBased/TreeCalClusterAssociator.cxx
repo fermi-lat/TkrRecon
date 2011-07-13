@@ -73,7 +73,7 @@ int TreeCalClusterAssociator::AssociateTreeToClusters(Event::TkrTree* tree)
 
         // Require trees to end near the last bilayer of the tracker - we allow a little bit of 
         // slop to account for truncated layers at the bottom (most likely place)
-        if (lastLayer < 3)
+        if (tree->getHeadNode()->getDepth() > 5 || lastLayer < 3)
         {
             // Recover the stuff we will need no matter what
             const Event::TkrFilterParams* axisParams   = tree->getAxisParams();
