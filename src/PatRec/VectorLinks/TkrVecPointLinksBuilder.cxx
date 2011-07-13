@@ -534,7 +534,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
 
                         // ***** ACCEPT LINK *****
                         // A special case where we are close to a gap AND there are not hits/clusters anywhere nearby
-                        if (siHitGapX && siHitGapY && distToNearestVecPoint >= towerPitch && hitDeltaX > 40. && hitDeltaY > 40.)
+                        if (siHitGapX && siHitGapY && distToNearestVecPoint >= towerPitch && (hitDeltaX > 40. || hitDeltaY > 40.))
                         {
                             skippedStatus |= Event::TkrVecPointsLink::GAPANDCLUS;
                             continue;
