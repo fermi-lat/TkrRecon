@@ -1,4 +1,12 @@
 ------------------------------------------------------------
+User: usher  Tue Jul 12 21:06:37 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrVecNodesBuilder.cxx TreeCalClusterAssociator.cxx 
+Log Message:
+    *
+------------------------------------------------------------
 User: usher  Tue Jul 12 13:55:32 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
