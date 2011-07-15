@@ -87,9 +87,9 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtE
     // Otherwise we are using the cal axis and need to check that it points into the tracker
     else if (tkrEventParams->getEventEnergy() > 20.)
     {
-        Point& calCntr   = tkrEventParams->getEventPosition();
-        double arcLen    = (m_tkrGeom->gettkrZBot() - calCntr.z()) / m_eventAxis.z();
-        Point  tkrBotPos = calCntr + arcLen * m_eventAxis;
+        const Point& calCntr = tkrEventParams->getEventPosition();
+        double arcLen        = (m_tkrGeom->gettkrZBot() - calCntr.z()) / m_eventAxis.z();
+        Point  tkrBotPos     = calCntr + arcLen * m_eventAxis;
 
         // Are we outside the fiducial area already?
         if (std::fabs(tkrBotPos.x()) > 0.5 * m_tkrGeom->calXWidth() || tkrBotPos.y() > 0.5 * m_tkrGeom->calYWidth())
