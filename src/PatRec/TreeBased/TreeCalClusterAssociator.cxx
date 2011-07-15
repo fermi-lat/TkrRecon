@@ -73,7 +73,7 @@ int TreeCalClusterAssociator::AssociateTreeToClusters(Event::TkrTree* tree)
 
         // Require trees to end near the last bilayer of the tracker - we allow a little bit of 
         // slop to account for truncated layers at the bottom (most likely place)
-        if (tree->getHeadNode()->getDepth() > 5 || lastLayer < 3)
+        if (tree->getHeadNode()->getDepth() > 5 || lastLayer < 11)
         {
             // Recover the stuff we will need no matter what
             const Event::TkrFilterParams* axisParams   = tree->getAxisParams();
@@ -84,6 +84,7 @@ int TreeCalClusterAssociator::AssociateTreeToClusters(Event::TkrTree* tree)
 
             // First of all, make sure the tree has not "ranged out" before getting to the calorimeter
             double calZTop     = m_tkrGeom->calZTop();
+            double tkrZBot     = m_tkrGeom->gettkrZBot();
             double arcToCalTop = (calZTop - startPos.z()) / startDir.z();
             Point  posAtCalTop = startPos + arcToCalTop * startDir;
 
@@ -92,7 +93,8 @@ int TreeCalClusterAssociator::AssociateTreeToClusters(Event::TkrTree* tree)
             double calYMax     = 0.5 * m_tkrGeom->calYWidth();
 
             // Only consider if axis projection is within region of calorimeter
-            if (abs(posAtCalTop.x()) < calXMax + 50. && abs(posAtCalTop.y()) < calYMax + 50.) 
+//            if (abs(posAtCalTop.x()) < calXMax + 50. && abs(posAtCalTop.y()) < calYMax + 50.) 
+            if (abs(posAtCalTop.x()) < calXMax + 500. && abs(posAtCalTop.y()) < calYMax + 500.) 
             {
                 // Initialize loop end point
                 Event::CalClusterCol::iterator lastItr = m_calClusterCol->end();
@@ -174,10 +176,81 @@ const bool TreeCalClusterAssociator::TreeClusterRelation::operator<(const TreeCa
 const bool CompareTreeClusterRelations::operator()(const TreeCalClusterAssociator::TreeClusterRelation* left, 
                                                    const TreeCalClusterAssociator::TreeClusterRelation* right) const
 {
+    // We're going to try to do the simplest possible solution here... if two trees are similar then we'll take the one closest
+    // to the cluster, otherwise we are simply keeping the original ordering scheme
+    if (left->getCluster() && right->getCluster())
+    {
+        if (left->getCluster() == right->getCluster())
+        {
+            const Event::TkrVecNode* leftHeadNode = left->getTree()->getHeadNode();
+            const Event::TkrVecNode* rightHeadNode = right->getTree()->getHeadNode();
+
+            int leftLastLayer  = leftHeadNode->getTreeStartLayer()  - leftHeadNode->getDepth();
+            int rightLastLayer = rightHeadNode->getTreeStartLayer() - rightHeadNode->getDepth();
+            int deltaDepth     = leftHeadNode->getDepth() - rightHeadNode->getDepth();
+
+            if (leftLastLayer < 4 && rightLastLayer < 4 && abs(deltaDepth) < 3)
+            {
+                double leftRmsTrans  = left->getCluster()->getMomParams().getTransRms();
+                double rightRmsTrans = right->getCluster()->getMomParams().getTransRms();
+
+                double leftTest  = left->getTreeClusDoca()  / leftRmsTrans;
+                double rightTest = right->getTreeClusDoca() / rightRmsTrans;
+
+                // Take the closest to the centroid
+                if (leftTest < rightTest) return true;
+                else                      return false;
+            }
+        }
+    }
+
+/*
     // First section only if both related to a cal cluster
     if (left->getCluster() && right->getCluster())
     {
-        if (left->getClusEnergy() > m_minEnergy && right->getClusEnergy() > m_minEnergy)
+        if (left->getCluster() == right->getCluster())
+        {
+            const Event::TkrVecNode* leftHeadNode = left->getTree()->getHeadNode();
+            const Event::TkrVecNode* rightHeadNode = right->getTree()->getHeadNode();
+
+            int leftLastLayer  = leftHeadNode->getTreeStartLayer()  - leftHeadNode->getDepth();
+            int rightLastLayer = rightHeadNode->getTreeStartLayer() - rightHeadNode->getDepth();
+            int deltaDepth     = leftHeadNode->getDepth() - rightHeadNode->getDepth();
+
+            if (leftLastLayer  < 3 && rightLastLayer < 3)
+            {
+                double leftRmsTrans  = left->getCluster()->getMomParams().getTransRms();
+                double rightRmsTrans = right->getCluster()->getMomParams().getTransRms();
+
+                double leftTest  = left->getTreeClusDoca()  / leftRmsTrans;
+                double rightTest = right->getTreeClusDoca() / rightRmsTrans;
+
+                // If one or other is within the rms trans then go here
+                if (leftTest < 1. || rightTest < 1.)
+                {
+                    // If both within spitting range of centroid and one is significantly
+                    // longer then take it always
+                    if (leftTest < 3. && rightTest < 3.)
+                    {
+                        if      (deltaDepth >  5) return true;
+                        else if (deltaDepth < -5) return false;
+                    }
+
+                    // Take the closest to the centroid
+                    if (leftTest < rightTest) return true;
+                    else                      return false;
+                }
+                else return leftTest < rightTest;
+            }
+            else if (leftHeadNode->getDepth() > 5 || rightHeadNode->getDepth() > 5)
+            {
+                if (deltaDepth > 2)       return true;
+                else if (deltaDepth < -2) return false;
+            }
+            else if (leftLastLayer  < 3 || leftHeadNode->getDepth()  > 5) return true;
+            else if (rightLastLayer < 3 || rightHeadNode->getDepth() > 5) return false;
+        }
+        else if (left->getClusEnergy() > m_minEnergy && right->getClusEnergy() > m_minEnergy)
         {
             double leftRmsTrans  = left->getCluster()->getMomParams().getTransRms();
             double rightRmsTrans = right->getCluster()->getMomParams().getTransRms();
@@ -185,8 +258,11 @@ const bool CompareTreeClusterRelations::operator()(const TreeCalClusterAssociato
             double leftTest  = left->getTreeClusDoca()  / leftRmsTrans;
             double rightTest = right->getTreeClusDoca() / rightRmsTrans;
 
-            if (leftTest < rightTest) return true;
-            else                      return false;
+            if (leftTest < 1. || rightTest < 1.)
+            {
+                if (leftTest < rightTest) return true;
+                else                      return false;
+            }
         }
         else if (left->getClusEnergy()  > m_minEnergy) return true;
         else if (right->getClusEnergy() > m_minEnergy) return false;
@@ -201,6 +277,7 @@ const bool CompareTreeClusterRelations::operator()(const TreeCalClusterAssociato
     {
         return false;
     }
+*/
 
     // if neither have cluster then preserve tree ordering
     return left->getTree()->getHeadNode()->getTreeId() < right->getTree()->getHeadNode()->getTreeId();
