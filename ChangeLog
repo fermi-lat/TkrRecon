@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Jul 14 18:56:09 PDT 2011
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointLinksBuilder.cxx 
+Log Message:
+Fix linux compile error
+    *
+------------------------------------------------------------
 User: usher  Thu Jul 14 18:52:11 PDT 2011
 TkrRecon/src/PatRec/VectorLinks
 
