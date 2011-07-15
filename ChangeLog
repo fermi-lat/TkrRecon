@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Jul 14 18:52:11 PDT 2011
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointLinksBuilder.cxx 
+Log Message:
+This should fix the issues with associaton to clusters
+    *
+------------------------------------------------------------
 User: usher  Thu Jul 14 18:52:10 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
