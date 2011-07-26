@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: heather  Tue Jul 26 07:20:23 PDT 2011
+TkrRecon/doc
+
+Modified Files:
+      Tag: GlastReleasev17r35p23
+	release.notes 
+Log Message:
+updates for SCons on P7 branch
+    *
+------------------------------------------------------------
+User: heather  Tue Jul 26 07:20:23 PDT 2011
 TkrRecon/cmt
 
 Modified Files:
