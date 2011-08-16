@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.27 2005/07/05 16:29:05 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.28 2010/10/27 19:11:11 lsrea Exp $
  */
 
 #include <vector>
@@ -133,7 +133,8 @@ StatusCode TkrTrackFitAlg::initialize()
         sc = StatusCode::FAILURE;
     }
 
-    sc = toolSvc()->retrieveTool("TkrTrackEnergyTool", m_EnergyTool);
+    //sc = toolSvc()->retrieveTool("TkrTrackEnergyTool", m_EnergyTool);
+    sc = toolSvc()->retrieveTool("TkrEnergySplitTool", m_EnergyTool);
     sc = toolSvc()->retrieveTool("TkrAlignHitsTool",   m_AlignTool);
 
     return sc;
