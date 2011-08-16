@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Aug 16 11:56:05 PDT 2011
+TkrRecon/src/Track
+
+Modified Files:
+	TkrEnergySplitTool.cxx 
+Log Message:
+Make sure the ntuple is filled for each event in which the tool is called
+    *
+------------------------------------------------------------
 User: usher  Tue Aug 16 11:36:26 PDT 2011
 TkrRecon/xml
 
