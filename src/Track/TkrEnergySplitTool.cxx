@@ -102,7 +102,7 @@ TkrEnergySplitTool::TkrEnergySplitTool(const std::string& type, const std::strin
     //Declare the additional interface
     declareInterface<ITkrTrackEnergyTool>(this);
 
-    declareProperty("TupleFileName",    m_tupleFileName       = "TkrEnergySplitTuple.root");
+    declareProperty("TupleFileName",    m_tupleFileName       = "$(GLEAMDATAPATH)/TkrEnergySplitTuple.root");
     declareProperty("TupleName",        m_tupleName           = "TkrEnergySplit");
     declareProperty("AnalysisFileName", m_analysisXmlFileName = "$(TKRRECONXMLPATH)/EnergySplitter.xml");
     declareProperty("MinCalEnergyRaw",  m_minCalEnergyRaw     = 10.);
