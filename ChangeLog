@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Aug 16 11:33:27 PDT 2011
+TkrRecon/src/Track
+
+Modified Files:
+	TkrEnergySplitTool.cxx 
+Log Message:
+This version ensures the output root file goes to GLEAMDATAPATH, though we might want to consider a better location?
+    *
+------------------------------------------------------------
 User: usher  Tue Aug 16 11:30:20 PDT 2011
 TkrRecon/src/Track
 
