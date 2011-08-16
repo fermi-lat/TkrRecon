@@ -199,6 +199,12 @@ StatusCode TkrEnergySplitTool::SetTrackEnergies()
     //Always believe in success
     StatusCode sc = StatusCode::SUCCESS;
 
+    // Recover the forest
+    Event::TkrTreeCol* treeCol = SmartDataPtr<Event::TkrTreeCol>(m_dataSvc,"/Event/TkrRecon/TkrTreeCol");
+
+    // No forest, no work
+    if (treeCol->empty()) return sc;
+
     // Find the collection of candidate tracks
     Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol);
 
@@ -210,18 +216,21 @@ StatusCode TkrEnergySplitTool::SetTrackEnergies()
         // Get the first track to find out the energy option used 
         // execute default (LATENERGY) if appropriate
         Event::TkrTrack* firstCandTrk = *trackItr++;
+        Event::TkrTrack* secndCandTrk = 0;
+            
+        if (trackItr != trackCol->end()) secndCandTrk = *trackItr;
+
+        // ALWAYS fill the ntuple so one can study offline...
+        // To do that we need to find the collection of cal clusters to get the raw energy
+        Event::CalClusterCol* clusterCol = SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
+
+        // Use these to "set" the tuple variables for the classification
+        setTupleValues(treeCol, clusterCol, firstCandTrk, secndCandTrk);
 
         // Check the status of the first track in the list 
         // Should be NO cosmic ray tracks in this list (they are stored separately in the TDS)
         if(firstCandTrk->getStatusBits() & Event::TkrTrack::LATENERGY) 
         {
-            Event::TkrTrack* secndCandTrk = 0;
-            
-            if (trackItr != trackCol->end()) 
-            {
-                secndCandTrk = *trackItr;
-            }
-
             // Recover TkrEventParams from which we get the event energy  
             Event::TkrEventParams* tkrEventParams = 
                        SmartDataPtr<Event::TkrEventParams>(m_dataSvc,EventModel::TkrRecon::TkrEventParams);
@@ -293,18 +302,8 @@ void TkrEnergySplitTool::setTrackEnergy(Event::TkrTrack* track, double energy)
 void TkrEnergySplitTool::setTrackEnergies(Event::TkrTrack* first, Event::TkrTrack* second, double ene_total)
 {
     // Ok, if here then we have two tracks and will employ a classification tree to decide how to apportion the 
-    // total energy between the two tracks. The first task will be to set up the tuple values that the classification
-    // tree will use... 
-    // to do that we need to find the collection of cal clusters to get the raw energy
-    Event::CalClusterCol* clusterCol = SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
-
-    // And, of course, we need the forest
-    Event::TkrTreeCol* treeCol = SmartDataPtr<Event::TkrTreeCol>(m_dataSvc,"/Event/TkrRecon/TkrTreeCol");
-
-    // Use these to "set" the tuple variables for the classification
-    setTupleValues(treeCol, clusterCol, first, second);
-
-    // Execute the classification
+    // total energy between the two tracks. With the assumption that our variables have already been filled, we
+    // simply execute the classification analysis
     m_classifyTool->runClassification();
 
     // Ok, now assume that all the energy is split evenly to start
@@ -370,12 +369,24 @@ void TkrEnergySplitTool::setTupleValues(Event::TkrTreeCol*    trees,
     hit = (*track1)[1];
     m_tupleMap["Tkr12ndHitSChi"] = hit->validCluster() ? hit->getChiSquareSmooth() : 0.;
  
-    m_tupleMap["Tkr2KalEne"]     = track2->getKalEnergy();
-    m_tupleMap["Tkr2Chisq"]      = track2->getChiSquareSmooth();
-    m_tupleMap["Tkr2FirstChisq"] = track2->chiSquareSegment();
-    m_tupleMap["Tkr2XDir"]       = track2->getInitialDirection().x();
-    m_tupleMap["Tkr2YDir"]       = track2->getInitialDirection().y();
-    m_tupleMap["Tkr2ZDir"]       = track2->getInitialDirection().z();
+    if (track2)
+    {
+        m_tupleMap["Tkr2KalEne"]     = track2->getKalEnergy();
+        m_tupleMap["Tkr2Chisq"]      = track2->getChiSquareSmooth();
+        m_tupleMap["Tkr2FirstChisq"] = track2->chiSquareSegment();
+        m_tupleMap["Tkr2XDir"]       = track2->getInitialDirection().x();
+        m_tupleMap["Tkr2YDir"]       = track2->getInitialDirection().y();
+        m_tupleMap["Tkr2ZDir"]       = track2->getInitialDirection().z();
+    }
+    else
+    {
+        m_tupleMap["Tkr2KalEne"]     = 0.;
+        m_tupleMap["Tkr2Chisq"]      = 0.;
+        m_tupleMap["Tkr2FirstChisq"] = 0.;
+        m_tupleMap["Tkr2XDir"]       = 0.;
+        m_tupleMap["Tkr2YDir"]       = 0.;
+        m_tupleMap["Tkr2ZDir"]       = 0.;
+    }
 
     Vector treeDir(0.,0.,0.);
 
