@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Aug 16 11:30:19 PDT 2011
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrTrackFitAlg.cxx 
+Log Message:
+Add new tool for assigning energy to tracks in the second pass. This tool interfaces to GlastClassify to enable the use of classification trees to determine how to assign energy to the tracks. Note that this will create an output ntuple by default, updates in future will allow this to be optional
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-17-35-24-gr02, operation: add
 Package: TkrRecon
