@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Aug 17 12:03:14 PDT 2011
+TkrRecon/src/Dll
+
+Modified Files:
+	tkrRecon_load.cxx 
+Log Message:
+Need this to find the new split energy tool
+    *
+------------------------------------------------------------
 User: usher  Tue Aug 16 20:07:09 PDT 2011
 TkrRecon/src/Track
 
