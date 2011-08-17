@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Aug 16 20:07:09 PDT 2011
+TkrRecon/src/Track
+
+Modified Files:
+	TkrEnergySplitTool.cxx 
+Log Message:
+Modifications to help make sure the ntuple is written out correctly
+    *
+------------------------------------------------------------
 User: usher  Tue Aug 16 11:56:05 PDT 2011
 TkrRecon/src/Track
 
