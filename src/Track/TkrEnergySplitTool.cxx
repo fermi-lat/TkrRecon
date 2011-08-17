@@ -47,7 +47,8 @@ public:
     ///        needed from the TDS, then create and use a new KalFitTrack object to 
     ///        fit the track via a Kalman Filter. Successfully fit tracks are then 
     ///        added to the collection in the TDS.
-    virtual StatusCode SetTrackEnergies();
+    StatusCode SetTrackEnergies();
+
 
 private:
     /// Internal methods
@@ -59,9 +60,8 @@ private:
     void   setTrackEnergies(Event::TkrTrack* first, Event::TkrTrack* second, double energy);
 
     void   setTupleValues(Event::TkrTreeCol*    trees, 
-                          Event::CalClusterCol* calClusters, 
-                          Event::TkrTrack*      track1, 
-                          Event::TkrTrack*      track2);
+                          Event::TkrTrackCol*   tracks,
+                          Event::CalClusterCol* calClusters);
 
     /// Pointer to the local Tracker Energy tool (for total event energy)
     ITkrEnergyTool*                 m_tkrEnergyTool;
@@ -225,7 +225,7 @@ StatusCode TkrEnergySplitTool::SetTrackEnergies()
         Event::CalClusterCol* clusterCol = SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
 
         // Use these to "set" the tuple variables for the classification
-        setTupleValues(treeCol, clusterCol, firstCandTrk, secndCandTrk);
+        setTupleValues(treeCol, trackCol, clusterCol);
 
         // Check the status of the first track in the list 
         // Should be NO cosmic ray tracks in this list (they are stored separately in the TDS)
@@ -277,9 +277,6 @@ StatusCode TkrEnergySplitTool::SetTrackEnergies()
                 } 
                 else                       // Divide up the energy between the first two tracks
                 {
-                    // Need to set this value externally
-                    m_tupleMap["TkrNumTracks"] = trackCol->size();
-
                     setTrackEnergies(firstCandTrk, secndCandTrk, ene_total);
                 }
             }
@@ -340,11 +337,13 @@ void TkrEnergySplitTool::setTrackEnergies(Event::TkrTrack* first, Event::TkrTrac
 }
     
 void TkrEnergySplitTool::setTupleValues(Event::TkrTreeCol*    trees, 
-                                        Event::CalClusterCol* calClusters, 
-                                        Event::TkrTrack*      track1, 
-                                        Event::TkrTrack*      track2)
+                                        Event::TkrTrackCol*   tracks,
+                                        Event::CalClusterCol* calClusters)
 {
     // Set the "tuple" values that are used in this objects classification tree here
+    // Start with the number of tracks this event
+    m_tupleMap["TkrNumTracks"] = tracks->size();
+
     // raw calorimeter energy
     double calEnergyRaw = 0.;
 
@@ -354,29 +353,36 @@ void TkrEnergySplitTool::setTupleValues(Event::TkrTreeCol*    trees,
 
     m_tupleMap["CalEnergyRaw"]   = calEnergyRaw;
 
-    // Retrieve the parameters for the tracks
-    m_tupleMap["Tkr1KalEne"]     = track1->getKalEnergy();
-    m_tupleMap["Tkr1Chisq"]      = track1->getChiSquareSmooth();
-    m_tupleMap["Tkr1FirstChisq"] = track1->chiSquareSegment();
-    m_tupleMap["Tkr1XDir"]       = track1->getInitialDirection().x();
-    m_tupleMap["Tkr1YDir"]       = track1->getInitialDirection().y();
-    m_tupleMap["Tkr1ZDir"]       = track1->getInitialDirection().z();
+    // Get the track information
+    Event::TkrTrackCol::iterator trackItr = tracks->begin();
+    Event::TkrTrack*             track    = *trackItr++;
 
-    Event::TkrTrackHit* hit = (*track1)[0];
+    // Retrieve the parameters for the tracks
+    m_tupleMap["Tkr1KalEne"]     = track->getKalEnergy();
+    m_tupleMap["Tkr1Chisq"]      = track->getChiSquareSmooth();
+    m_tupleMap["Tkr1FirstChisq"] = track->chiSquareSegment();
+    m_tupleMap["Tkr1XDir"]       = track->getInitialDirection().x();
+    m_tupleMap["Tkr1YDir"]       = track->getInitialDirection().y();
+    m_tupleMap["Tkr1ZDir"]       = track->getInitialDirection().z();
+
+    Event::TkrTrackHit* hit = (*track)[0];
     m_tupleMap["Tkr11stHitSChi"] = hit->validCluster() ? hit->getChiSquareSmooth() : 0.;
     m_tupleMap["Tkr1FirstLayer"] = m_tkrGeom->getLayer(hit->getTkrId());
 
-    hit = (*track1)[1];
+    hit = (*track)[1];
     m_tupleMap["Tkr12ndHitSChi"] = hit->validCluster() ? hit->getChiSquareSmooth() : 0.;
  
-    if (track2)
+    // Now get the next track
+    if (trackItr != tracks->end())
     {
-        m_tupleMap["Tkr2KalEne"]     = track2->getKalEnergy();
-        m_tupleMap["Tkr2Chisq"]      = track2->getChiSquareSmooth();
-        m_tupleMap["Tkr2FirstChisq"] = track2->chiSquareSegment();
-        m_tupleMap["Tkr2XDir"]       = track2->getInitialDirection().x();
-        m_tupleMap["Tkr2YDir"]       = track2->getInitialDirection().y();
-        m_tupleMap["Tkr2ZDir"]       = track2->getInitialDirection().z();
+        track = *trackItr++;
+
+        m_tupleMap["Tkr2KalEne"]     = track->getKalEnergy();
+        m_tupleMap["Tkr2Chisq"]      = track->getChiSquareSmooth();
+        m_tupleMap["Tkr2FirstChisq"] = track->chiSquareSegment();
+        m_tupleMap["Tkr2XDir"]       = track->getInitialDirection().x();
+        m_tupleMap["Tkr2YDir"]       = track->getInitialDirection().y();
+        m_tupleMap["Tkr2ZDir"]       = track->getInitialDirection().z();
     }
     else
     {
