@@ -35,6 +35,7 @@ DECLARE_FACTORY_ENTRIES(TkrRecon)
     DECLARE_TOOL(      MonteCarloFindTrackTool );
     DECLARE_TOOL(      VectorLinksTool         );
     DECLARE_TOOL(      TkrTrackEnergyTool      );
+    DECLARE_TOOL(      TkrEnergySplitTool      );
     DECLARE_TOOL(      TkrAlignHitsTool        );
     DECLARE_TOOL(      FindTrackHitsTool       );
     //DECLARE_TOOL(      TkrHitTruncationTool    ); // Moved to TkrUtil 
