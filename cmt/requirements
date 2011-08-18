@@ -1,5 +1,5 @@
 package TkrRecon
-version v10r16p7gr01
+version v10r16p7gr02
 
 author Tracy Usher    <usher@slac.stanford.edu>
 author Leon Rochester <lsrea@slac.stanford.edu>
@@ -90,6 +90,7 @@ library TkrRecon  $(TkrRecon_headers)  \
 
 public 
 set JOBOPTIONS ${TKRRECONROOT}/src/test/jobOptions.txt
+set PARAMFILESROOT "${EXTFILESSYS}/gaudi"
 
 private
 application test_TkrRecon ${GuiMain} test/*.cxx ${Win32Resource}

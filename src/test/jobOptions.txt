@@ -22,7 +22,8 @@ ApplicationMgr.ExtSvc = {
 EventPersistencySvc.CnvServices = {"EventCnvSvc"};
 EventSelector.Input = "NONE";
 
-ParticlePropertySvc.ParticlePropertiesFile="../src/test/ParticleTable.txt";
+// Setting PARAMFILESROOT in cmt requirements
+//ParticlePropertySvc.ParticlePropertiesFile="../src/test/ParticleTable.txt";
 
 // ----------------------------
 //  Geometry definition
@@ -58,7 +59,7 @@ ApplicationMgr.ExtSvc += { "TkrGeometrySvc", "TkrInitSvc" };
 
 // filters some random badStrips
 ApplicationMgr.ExtSvc += { "TkrBadStripsSvc" };
-TkrBadStripsSvc.badStripsFile = "$(TKRUTILROOT)/src/test/badStrips.txt";
+TkrBadStripsSvc.badStripsFile = "$(TKRUTILJOBOPTIONSPATH)/src/test/badStrips.txt";
 
 // Set output level threshold (2=DEBUG, 3=INFO, 4=WARNING, 5=ERROR, 6=FATAL )
 MessageSvc.OutputLevel = 3;
