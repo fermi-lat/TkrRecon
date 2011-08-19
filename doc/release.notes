@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-26-00 19-Aug-2011 TU Add ability to use classification to split energy between tracks & store tree/cluster relations in TDS
  TkrRecon-10-25-04 25-Jul-2011 TU relatively minor changes to "tune" the tree based pat rec a bit more
  TkrRecon-10-25-03 04-Jun-2011 kadrlica Added call to ghost-CalCluster association in TkrFindAlg
  TkrRecon-10-25-02 26-May-2011  lsrea use renamed status bit WIDEFIRSTCLUSTER
