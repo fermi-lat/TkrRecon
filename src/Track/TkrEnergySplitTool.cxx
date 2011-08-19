@@ -17,6 +17,7 @@
 #include "GaudiKernel/GaudiException.h" 
 
 #include "Event/TopLevel/EventModel.h"
+#include "Event/Recon/TreeClusterRelation.h"
 #include "Event/Recon/TkrRecon/TkrTree.h"
 #include "Event/Recon/TkrRecon/TkrTrack.h"
 #include "Event/Recon/CalRecon/CalCluster.h"
@@ -59,9 +60,10 @@ private:
 
     void   setTrackEnergies(Event::TkrTrack* first, Event::TkrTrack* second, double energy);
 
-    void   setTupleValues(Event::TkrTreeCol*    trees, 
-                          Event::TkrTrackCol*   tracks,
-                          Event::CalClusterCol* calClusters);
+    void   setTupleValues(Event::TkrTreeCol*        trees, 
+                          Event::TkrTrackCol*       tracks,
+                          Event::CalClusterCol*     calClusters,
+                          Event::TreeToRelationMap* treeToRelationMap);
 
     /// Pointer to the local Tracker Energy tool (for total event energy)
     ITkrEnergyTool*                 m_tkrEnergyTool;
@@ -169,6 +171,10 @@ StatusCode TkrEnergySplitTool::initialize()
     m_tupleMap["TkrTree1DirX"]   = 0.; // direction cosine X for tree 1
     m_tupleMap["TkrTree1DirY"]   = 0.; // direction cosine Y for tree 1
     m_tupleMap["TkrTree1DirZ"]   = 0.; // direction cosine Z for tree 1
+    m_tupleMap["TreeClusDoca"]   = 0.; // Distance of closest approach of tree to cluster
+    m_tupleMap["TreeClusAngle"]  = 0.; // Angle between Tree axis and Cluster axis
+    m_tupleMap["TreeClusDocaZ"]  = 0.; // Distance between Tree axis and Cluster at cluster centroid z
+    m_tupleMap["TreeClusEnergy"] = 0.; // Energy of cluster associated to the tree
 
     // Expected output variables here for completeness
     m_outTupleMap["CTBTkr1EnergyProb"] = 0.;
@@ -224,8 +230,11 @@ StatusCode TkrEnergySplitTool::SetTrackEnergies()
         // To do that we need to find the collection of cal clusters to get the raw energy
         Event::CalClusterCol* clusterCol = SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
 
+        // Also retrieve a pointer to the tree to cluster association map (if there)
+        Event::TreeToRelationMap* treeToRelationMap = SmartDataPtr<Event::TreeToRelationMap>(m_dataSvc, EventModel::Recon::TreeToRelationMap);
+
         // Use these to "set" the tuple variables for the classification
-        setTupleValues(treeCol, trackCol, clusterCol);
+        setTupleValues(treeCol, trackCol, clusterCol, treeToRelationMap);
 
         // Check the status of the first track in the list 
         // Should be NO cosmic ray tracks in this list (they are stored separately in the TDS)
@@ -336,9 +345,10 @@ void TkrEnergySplitTool::setTrackEnergies(Event::TkrTrack* first, Event::TkrTrac
     return;
 }
     
-void TkrEnergySplitTool::setTupleValues(Event::TkrTreeCol*    trees, 
-                                        Event::TkrTrackCol*   tracks,
-                                        Event::CalClusterCol* calClusters)
+void TkrEnergySplitTool::setTupleValues(Event::TkrTreeCol*        trees, 
+                                        Event::TkrTrackCol*       tracks,
+                                        Event::CalClusterCol*     calClusters,
+                                        Event::TreeToRelationMap* treeToRelationMap)
 {
     // Set the "tuple" values that are used in this objects classification tree here
     // Start with the number of tracks this event
@@ -347,6 +357,7 @@ void TkrEnergySplitTool::setTupleValues(Event::TkrTreeCol*    trees,
     // raw calorimeter energy
     double calEnergyRaw = 0.;
 
+    // CalEnergyRaw from the Uber cluster (total energy of event)
     if (calClusters && !calClusters->empty()) calEnergyRaw = calClusters->back()->getXtalsParams().getXtalRawEneSum();
 
     calEnergyRaw = std::max(m_minCalEnergyRaw, calEnergyRaw);
@@ -403,6 +414,24 @@ void TkrEnergySplitTool::setTupleValues(Event::TkrTreeCol*    trees,
     m_tupleMap["TkrTree1DirX"]   = treeDir.x();
     m_tupleMap["TkrTree1DirY"]   = treeDir.y();
     m_tupleMap["TkrTree1DirZ"]   = treeDir.z();
+
+    // Finally, get cluster related to this tree
+    if (treeToRelationMap)
+    {
+        Event::TreeToRelationMap::iterator relItr = treeToRelationMap->find(tree1);
+
+        if (relItr != treeToRelationMap->end())
+        {
+            Event::TreeClusterRelation* treeClusterRel = relItr->second.front();
+
+            const Event::CalCluster* cluster = treeClusterRel->getCluster();
+
+            m_tupleMap["TreeClusDoca"]   = treeClusterRel->getTreeClusDoca();
+            m_tupleMap["TreeClusAngle"]  = treeClusterRel->getTreeClusCosAngle();
+            m_tupleMap["TreeClusDocaZ"]  = treeClusterRel->getTreeClusDistAtZ();
+            m_tupleMap["TreeClusEnergy"] = treeClusterRel->getClusEnergy();
+        }
+    }
     
     return;
 }

@@ -66,8 +66,11 @@ private:
     /// For the alignment
     ITkrAlignHitsTool* m_AlignTool;
 
-    /// And for the energy too
-    ITkrTrackEnergyTool* m_EnergyTool;
+    /// Give a choice of energy assignment tools
+    std::string  m_energyToolName;
+
+    /// And for the energy tool
+    ITkrTrackEnergyTool* m_energyTool;
 };
 
 // Used by Gaudi for identifying this algorithm
@@ -79,8 +82,9 @@ TkrTrackFitAlg::TkrTrackFitAlg(const std::string& name, ISvcLocator* pSvcLocator
 Algorithm(name, pSvcLocator) 
 {
     // Controls which fit to use
-    declareProperty("TrackFitType",  m_TrackFitType="Combo");
-    declareProperty("UseGenericFit", m_GenericFit=true);
+    declareProperty("TrackFitType",   m_TrackFitType="Combo");
+    declareProperty("UseGenericFit",  m_GenericFit=true);
+    declareProperty("EnergyToolName", m_energyToolName = "TkrEnergySplitTool");
 }
 
 StatusCode TkrTrackFitAlg::initialize()
@@ -134,8 +138,8 @@ StatusCode TkrTrackFitAlg::initialize()
     }
 
     //sc = toolSvc()->retrieveTool("TkrTrackEnergyTool", m_EnergyTool);
-    sc = toolSvc()->retrieveTool("TkrEnergySplitTool", m_EnergyTool);
-    sc = toolSvc()->retrieveTool("TkrAlignHitsTool",   m_AlignTool);
+    sc = toolSvc()->retrieveTool(m_energyToolName,   m_energyTool);
+    sc = toolSvc()->retrieveTool("TkrAlignHitsTool", m_AlignTool);
 
     return sc;
 }
@@ -249,7 +253,7 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
     if(trackCol->size() < 1) return sc;
 
     // Set the energy of the tracks
-    m_EnergyTool->SetTrackEnergies();
+    m_energyTool->SetTrackEnergies();
 
     // Ok, now set up to loop over candidate tracks
     for(Event::TkrTrackColPtr trackIter = trackCol->begin(); trackIter != trackCol->end(); trackIter++)

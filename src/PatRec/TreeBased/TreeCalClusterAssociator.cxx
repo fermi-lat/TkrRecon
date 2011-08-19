@@ -29,27 +29,40 @@ TreeCalClusterAssociator::TreeCalClusterAssociator(Event::CalClusterCol* calClus
                                 m_minTreeToClusterDoca(minTreeToClusterDoca),
                                 m_minEnergy(30.)
 {
-    // And store in the TDS
-//    StatusCode sc = dataSvc->registerObject("/Event/TkrRecon/TkrTreeCol", m_treeCol);
+    // Create the necessary relation data objects and store in the TDS
+    m_treeClusterRelationCol = new Event::TreeClusterRelationCol();
+    m_treeToRelationMap      = new Event::TreeToRelationMap();
+    m_clusterToRelationMap   = new Event::ClusterToRelationMap();
+    
+    // First we need to follow through on some craziness to create our subdirectory...
+    DataObject* pnode =0;
+    StatusCode sc = m_dataSvc->retrieveObject(EventModel::Recon::Event, pnode);
+    
+    if( sc.isFailure() ) 
+    {
+        sc = m_dataSvc->registerObject(EventModel::Recon::Event, new DataObject);
+        if( sc.isFailure() ) 
+        {
+//            log << MSG::ERROR << "Could not create Recon directory" 
+//                << endreq;
+            return;
+        }
+    }
+
+    sc = dataSvc->registerObject(EventModel::Recon::TreeClusterRelationCol, m_treeClusterRelationCol);
+    sc = dataSvc->registerObject(EventModel::Recon::TreeToRelationMap,      m_treeToRelationMap);
+    sc = dataSvc->registerObject(EventModel::Recon::ClusterToRelationMap,   m_clusterToRelationMap);
 
     return;
 }
 
 TreeCalClusterAssociator::~TreeCalClusterAssociator()
 {
-    // Need to delete the relations since we own them
-    for(TreeToRelationMap::iterator itr = m_treeToRelationMap.begin(); itr != m_treeToRelationMap.end(); itr++)
-    {
-        TreeClusterRelationVec& relVec = itr->second;
-
-        for(TreeClusterRelationVec::iterator vecItr = itr->second.begin(); vecItr != itr->second.end(); vecItr++)
-        {
-            delete *vecItr;
-        }
-    }
+    // We don't own the relations, the TDS does, so no need to do anything here
+    return;
 }
 
-int TreeCalClusterAssociator::AssociateTreeToClusters(Event::TkrTree* tree)
+int TreeCalClusterAssociator::associateTreeToClusters(Event::TkrTree* tree)
 {
     // The aim here is to associate a given tree with a given cal cluster. 
     // Convention is that a tree can only be associated to one cal cluster,
@@ -147,19 +160,23 @@ int TreeCalClusterAssociator::AssociateTreeToClusters(Event::TkrTree* tree)
     // Create a new relation between the track and cluster
     // First, retrieve the energy being careful to check on valid cluster status
     double energy = bestCluster ? bestCluster->getMomParams().getEnergy() : m_minEnergy;
-    TreeClusterRelation* rel = new TreeClusterRelation(tree, 
-                                                       bestCluster, 
-                                                       bestTreeToClusterDoca, 
-                                                       bestCosAngle, 
-                                                       bestDeltaPos, 
-                                                       energy); 
+    Event::TreeClusterRelation* rel = new Event::TreeClusterRelation(tree, 
+                                                                     bestCluster, 
+                                                                     bestTreeToClusterDoca, 
+                                                                     bestCosAngle, 
+                                                                     bestDeltaPos, 
+                                                                     energy); 
 
-    m_treeToRelationMap[tree].push_back(rel);
+    // Give ownership of this object to the TDS
+    m_treeClusterRelationCol->push_back(rel);
+
+    // Set the mapping (which are not owners!)
+    (*m_treeToRelationMap)[tree].push_back(rel);
 
     // Only store in cluster map if a best cluster
     if (bestCluster) 
     {
-        m_clusterToRelationMap[bestCluster].push_back(rel);
+        (*m_clusterToRelationMap)[bestCluster].push_back(rel);
 
         numClusters++;
     }
@@ -167,14 +184,9 @@ int TreeCalClusterAssociator::AssociateTreeToClusters(Event::TkrTree* tree)
     return numClusters;
 }
 
-const bool TreeCalClusterAssociator::TreeClusterRelation::operator<(const TreeCalClusterAssociator::TreeClusterRelation* right) const
-{
-    return true;
-}
-
 //const bool TreeCalClusterAssociator::CompareTreeClusterRelations::operator()(const TreeClusterRelation* left, const TreeClusterRelation* right) const
-const bool CompareTreeClusterRelations::operator()(const TreeCalClusterAssociator::TreeClusterRelation* left, 
-                                                   const TreeCalClusterAssociator::TreeClusterRelation* right) const
+const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelation* left, 
+                                                   const Event::TreeClusterRelation* right) const
 {
     // We're going to try to do the simplest possible solution here... if two trees are similar then we'll take the one closest
     // to the cluster, otherwise we are simply keeping the original ordering scheme
