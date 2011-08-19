@@ -110,6 +110,10 @@ private:
     /// This places a hard cut on the number of vector points in a given event
     size_t                     m_maxNumVecPoints;
 
+    /// In case we want to turn off track-cluster association
+    bool                       m_associateClusters;
+    bool                       m_reorderTrees;
+
     /// In the event we create fake TkrClusters, keep track of them here
     Event::TkrClusterCol*      m_clusterCol;
 };
@@ -131,6 +135,8 @@ TreeBasedTool::TreeBasedTool(const std::string& type, const std::string& name, c
     declareProperty("MergeStripGap",      m_stripGap            = 8);
     declareProperty("DoToolTiming",       m_doTiming            = true);
     declareProperty("MaxNumVecPoints",    m_maxNumVecPoints     = 10000);
+    declareProperty("AssociateClusters",  m_associateClusters   = true);
+    declareProperty("ReorderTrees",       m_reorderTrees        = false);
 
     m_clusterCol = 0;
 
@@ -162,12 +168,12 @@ StatusCode TreeBasedTool::initialize()
     PatRecBaseTool::initialize();
     StatusCode sc   = StatusCode::SUCCESS;
 
-    if( (sc = toolSvc()->retrieveTool("KalmanTrackFitTool", m_trackFitTool)).isFailure() )
+    if( (sc = toolSvc()->retrieveTool("KalmanTrackFitTool", "KalmanTrackFitTool", m_trackFitTool)).isFailure() )
     {
         throw GaudiException("ToolSvc could not find KalmanTrackFitTool", name(), sc);
     }
 
-    if( (sc = toolSvc()->retrieveTool("FindTrackHitsTool", m_findHitsTool)).isFailure() )
+    if( (sc = toolSvc()->retrieveTool("FindTrackHitsTool", "FindTrackHitsTool", m_findHitsTool)).isFailure() )
     {
         throw GaudiException("ToolSvc could not find FindTrackHitsTool", name(), sc);
     }
@@ -304,171 +310,194 @@ StatusCode TreeBasedTool::findTracks()
                                                      m_findHitsTool, 
                                                      m_clusterCol);
 
-                    // *********************************************************************************************
-                    // Recover the cal cluster collection from the TDS
-                    SmartDataPtr<Event::CalClusterCol> calClusterCol(m_dataSvc, EventModel::CalRecon::CalClusterCol);
-
-                    // Now set up the track - cluster associator
-                    TreeCalClusterAssociator associator(calClusterCol, m_dataSvc, m_tkrGeom);
-
-                    // Make a pass through the trees to do the association
-                    // This pass should result in an association map between trees and relation objects which is in the
-                    // same order as the collection in the TDS
-                    try
+                    // If associating clusters to tracks, do it here
+                    if (m_associateClusters)
                     {
-                    for(Event::TkrTreeCol::iterator treeItr = treeCol->begin(); treeItr != treeCol->end(); treeItr++)
-                    {
-                        Event::TkrTree* tree = *treeItr;
+                        // Recover the cal cluster collection from the TDS
+                        SmartDataPtr<Event::CalClusterCol> calClusterCol(m_dataSvc, EventModel::CalRecon::CalClusterCol);
 
-                        associator.AssociateTreeToClusters(tree);
-                    }
+                        // Now set up the track - cluster associator
+                        TreeCalClusterAssociator associator(calClusterCol, m_dataSvc, m_tkrGeom);
 
-                    }
-                    catch(TkrException& e)
-                    {
-                        throw e;
-                    }
-                    catch(...)
-                    {
-                        throw(TkrException("Unknown exception encountered in TkrVecNode and TkrTree building "));  
-                    }
-
-
-                    // Now set up to loop through the trees associated to Cal Clusters. 
-                    // Vector to keep track of newly ordered results
-                    TreeCalClusterAssociator::TreeClusterRelationVec treeRelVec;
-
-                    // Note that we must protect against the case where there are no clusters
-                    // in the TDS colletion!
-                    try
-                    {
-                    if (calClusterCol)
-                    {
-                        // The Cal cluster ordering should reflect the output of the classification tree where the first
-                        // cluster is thought to be "the" gamma cluster. Loop through clusters in order and do the 
-                        // tree ordering
-                        // We first need to set the end condition...
-                        Event::CalClusterCol::iterator clusColEnd = calClusterCol->end();
-
-                        // If more than one cluster then the last is the "uber" and to be avoided
-                        if (calClusterCol->size() > 1) clusColEnd = calClusterCol->end() - 1;
-
-                        // Now loop over clusters
-                        for(Event::CalClusterCol::iterator clusItr = calClusterCol->begin(); clusItr != clusColEnd; clusItr++)
+                        // Make a pass through the trees to do the association
+                        // This pass should result in an association map between trees and relation objects which is in the
+                        // same order as the collection in the TDS
+                        try
                         {
-                            // Cluster pointer
-                            Event::CalCluster* cluster = *clusItr;
-
-                            // Retrieve the vector of tree associations for this cluster
-                            TreeCalClusterAssociator::TreeClusterRelationVec& relVec = associator.getClusterToRelationVec(cluster);
-
-                            // If more than one tree associated to this cluster then we need to so some reordering
-                            if (relVec.size() > 1) 
-                            { // for debugging
-                                std::sort(relVec.begin(), relVec.end(), CompareTreeClusterRelations());
-                            }
-
-                            // Now keep track of the results
-                            for(TreeCalClusterAssociator::TreeClusterRelationVec::iterator relVecItr  = relVec.begin();
-                                                                                           relVecItr != relVec.end();
-                                                                                           relVecItr++)
+                            for(Event::TkrTreeCol::iterator treeItr = treeCol->begin(); treeItr != treeCol->end(); treeItr++)
                             {
-                                treeRelVec.push_back(*relVecItr);
+                                Event::TkrTree* tree = *treeItr;
+
+                                associator.associateTreeToClusters(tree);
                             }
                         }
-                    }
-                
-                    }
-                    catch(TkrException& e)
-                    {
-                        throw e;
-                    }
-                    catch(...)
-                    {
-                        throw(TkrException("Unknown exception encountered in TkrVecNode and TkrTree building "));  
-                    }
-
-                    // Let's not forget the other trees, loop through and simply tag onto the end any which are not related to a cluster
-                    // Remember, a tree can be related to only one cluster!
-                    try
-                    {
-                    for(TreeCalClusterAssociator::TreeToRelationMap::iterator treeItr  = associator.getTreeToRelationMap().begin();
-                                                                              treeItr != associator.getTreeToRelationMap().end();
-                                                                              treeItr++)
-                    {
-                        TreeCalClusterAssociator::TreeClusterRelation* treeClusRel = treeItr->second.front();
-
-                        if (!treeClusRel->getCluster()) treeRelVec.push_back(treeClusRel);
-                    }
-
-                    // Ok, now the big step... we want to clear the current tree collection in the TDS - without deleting the trees - 
-                    // so we can reorder it according to the above associations
-                    // To do this we need to make sure that Gaudi doesn't delete the tree and in order to do that we need to set the
-                    // parent to zero and call the erase method handing it an iterator to the object in question... Seems contorted but
-                    // this does the job. 
-                    int nTrees = treeCol->size();
-                    while(nTrees--)
-                    {
-                        (*treeCol->begin())->setParent(0);
-                        treeCol->erase(treeCol->begin());
-                    }
-
-                    }
-                    catch(TkrException& e)
-                    {
-                        throw e;
-                    }
-                    catch(...)
-                    {
-                        throw(TkrException("Unknown exception encountered in TkrVecNode and TkrTree building "));  
-                    }
-
-                    // **********************************************************************************************************
-
-                    // Now ready to extract tracks for each of the trees. Do this by looping over the TreeClusterRelation vector 
-                    // formed above which, theoretically, has not been reordered to have the really best tree first. 
-                    try
-                    {
-                    for(TreeCalClusterAssociator::TreeClusterRelationVec::iterator treeItr  = treeRelVec.begin();
-                                                                                   treeItr != treeRelVec.end();
-                                                                                   treeItr++)
-                    {
-                        TreeCalClusterAssociator::TreeClusterRelation* relation = *treeItr;
-                        Event::TkrTree*                                tree     = relation->getTree();
-                        double                                         energy   = relation->getClusEnergy();
-
-                        int numTracks = tkrTreeFinder.findTracks(tree, energy);
-
-                        // We should abandon any trees with no tracks
-                        if (numTracks > 0)
+                        catch(TkrException& e)
                         {
-                            // And turn ownership of the best track over to the TDS
-                            tdsTracks->push_back(const_cast<Event::TkrTrack*>(tree->getBestTrack()));
-
-                            // If a second track, add that to the TDS collection too! 
-                            if (tree->size() > 1) tdsTracks->push_back(tree->back());
-
-                            // Finally, add back into the tree collection in the TDS
-                            treeCol->push_back(tree);
+                            throw e;
                         }
-                        // No tracks means a useless tree? 
-                        // Delete to prevent memory leak
-                        else
+                        catch(...)
                         {
-                            delete tree;
-                            relation->setTree(0);
+                            throw(TkrException("Unknown exception encountered in TkrVecNode and TkrTree building "));  
+                        }
+
+
+                        // Now set up to loop through the trees associated to Cal Clusters. 
+                        // Vector to keep track of newly ordered results
+                        Event::TreeClusterRelationVec treeRelVec;
+
+                        // Note that we must protect against the case where there are no clusters
+                        // in the TDS colletion!
+                        try
+                        {
+                            if (calClusterCol)
+                            {
+                                // The Cal cluster ordering should reflect the output of the classification tree where the first
+                                // cluster is thought to be "the" gamma cluster. Loop through clusters in order and do the 
+                                // tree ordering
+                                // We first need to set the end condition...
+                                Event::CalClusterCol::iterator clusColEnd = calClusterCol->end();
+
+                                // If more than one cluster then the last is the "uber" and to be avoided
+                                if (calClusterCol->size() > 1) clusColEnd = calClusterCol->end() - 1;
+
+                                // Now loop over clusters
+                                for(Event::CalClusterCol::iterator clusItr = calClusterCol->begin(); clusItr != clusColEnd; clusItr++)
+                                {
+                                    // Cluster pointer
+                                    Event::CalCluster* cluster = *clusItr;
+
+                                    // Retrieve the vector of tree associations for this cluster
+                                    Event::TreeClusterRelationVec& relVec = associator.getClusterToRelationVec(cluster);
+
+                                    // If more than one tree associated to this cluster then we need to so some reordering
+                                    if (m_reorderTrees && relVec.size() > 1) 
+                                    { // for debugging
+                                        std::sort(relVec.begin(), relVec.end(), CompareTreeClusterRelations());
+                                    }
+
+                                    // Now keep track of the results
+                                    for(Event::TreeClusterRelationVec::iterator relVecItr  = relVec.begin();
+                                                                                             relVecItr != relVec.end();
+                                                                                             relVecItr++)
+                                    {
+                                        treeRelVec.push_back(*relVecItr);
+                                    }
+                                }
+                            }
+                        }
+                        catch(TkrException& e)
+                        {
+                            throw e;
+                        }
+                        catch(...)
+                        {
+                            throw(TkrException("Unknown exception encountered in TkrVecNode and TkrTree building "));  
+                        }
+
+                        // Let's not forget the other trees, loop through and simply tag onto the end any which are not related to a cluster
+                        // Remember, a tree can be related to only one cluster!
+                        try
+                        {
+                            for(Event::TreeToRelationMap::iterator treeItr  = associator.getTreeToRelationMap().begin();
+                                                                   treeItr != associator.getTreeToRelationMap().end();
+                                                                   treeItr++)
+                            {
+                                Event::TreeClusterRelation* treeClusRel = treeItr->second.front();
+
+                                if (!treeClusRel->getCluster()) treeRelVec.push_back(treeClusRel);
+                            }
+
+                            // Ok, now the big step... we want to clear the current tree collection in the TDS - without deleting the trees - 
+                            // so we can reorder it according to the above associations
+                            // To do this we need to make sure that Gaudi doesn't delete the tree and in order to do that we need to set the
+                            // parent to zero and call the erase method handing it an iterator to the object in question... Seems contorted but
+                            // this does the job. 
+                            int nTrees = treeCol->size();
+                            while(nTrees--)
+                            {
+                                (*treeCol->begin())->setParent(0);
+                                treeCol->erase(treeCol->begin());
+                            }
+                        }
+                        catch(TkrException& e)
+                        {
+                            throw e;
+                        }
+                        catch(...)
+                        {
+                            throw(TkrException("Unknown exception encountered in TkrVecNode and TkrTree building "));  
+                        }
+
+                        // Now ready to extract tracks for each of the trees. Do this by looping over the TreeClusterRelation vector 
+                        // formed above which, theoretically, has not been reordered to have the really best tree first. 
+                        try
+                        {
+                        for(Event::TreeClusterRelationVec::iterator treeItr  = treeRelVec.begin();
+                                                                    treeItr != treeRelVec.end();
+                                                                    treeItr++)
+                        {
+                            Event::TreeClusterRelation* relation = *treeItr;
+                            Event::TkrTree*             tree     = relation->getTree();
+                            double                      energy   = relation->getClusEnergy();
+
+                            int numTracks = tkrTreeFinder.findTracks(tree, energy);
+
+                            // We should abandon any trees with no tracks
+                            if (numTracks > 0)
+                            {
+                                // And turn ownership of the best track over to the TDS
+                                tdsTracks->push_back(const_cast<Event::TkrTrack*>(tree->getBestTrack()));
+
+                                // If a second track, add that to the TDS collection too! 
+                                if (tree->size() > 1) tdsTracks->push_back(tree->back());
+
+                                // Finally, add back into the tree collection in the TDS
+                                treeCol->push_back(tree);
+                            }
+                        
+                            // No tracks means a useless tree? 
+                            // Delete to prevent memory leak
+                            else
+                            {
+                                delete tree;
+                                relation->setTree(0);
+                            }
+                        }
+                        }
+                        catch(TkrException& e)
+                        {
+                            throw e;
+                        }
+                        catch(...)
+                        {
+                            throw(TkrException("Unknown exception encountered in TkrVecNode and TkrTree building "));  
                         }
                     }
-                    }
-                    catch(TkrException& e)
+                    // Otherwise, if here, we extract tracks always relating to the first cluster
+                    else
                     {
-                        throw e;
-                    }
-                    catch(...)
-                    {
-                        throw(TkrException("Unknown exception encountered in TkrVecNode and TkrTree building "));  
-                    }
+                        double energy = getEventEnergy();
 
+                        for(Event::TkrTreeCol::iterator treeItr = treeCol->begin(); treeItr != treeCol->end(); treeItr++)
+                        {
+                            Event::TkrTree* tree = *treeItr;
+
+                            int numTracks = tkrTreeFinder.findTracks(tree, energy);
+
+                            // We should abandon any trees with no tracks
+                            if (numTracks > 0)
+                            {
+                                // And turn ownership of the best track over to the TDS
+                                tdsTracks->push_back(const_cast<Event::TkrTrack*>(tree->getBestTrack()));
+
+                                // If a second track, add that to the TDS collection too! 
+                                if (tree->size() > 1) tdsTracks->push_back(tree->back());
+                            }
+
+                            // After first tree, set energy to minimum
+                            energy = m_minEnergy;
+                        }
+                    }
                 }
 
                 if (m_doTiming) m_chronoSvc->chronoStop(m_toolBuildTag);
