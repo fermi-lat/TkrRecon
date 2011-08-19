@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Aug 19 12:32:40 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeBasedTool.cxx TreeCalClusterAssociator.cxx 
+	TreeCalClusterAssociator.h 
+Log Message:
+    *
+------------------------------------------------------------
 User: usher  Fri Aug 19 12:32:39 PDT 2011
 TkrRecon/src/GaudiAlg
 
