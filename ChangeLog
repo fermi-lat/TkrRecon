@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sat Aug 20 16:08:51 PDT 2011
+TkrRecon/src/Track
+
+Modified Files:
+	TkrEnergySplitTool.cxx 
+Log Message:
+Running combo means no trees, hence can't fill in ntuple variables so much check for this condition!
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-26-00, operation: add
 Package: TkrRecon
