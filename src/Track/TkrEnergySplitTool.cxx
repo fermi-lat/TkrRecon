@@ -209,7 +209,7 @@ StatusCode TkrEnergySplitTool::SetTrackEnergies()
     Event::TkrTreeCol* treeCol = SmartDataPtr<Event::TkrTreeCol>(m_dataSvc,"/Event/TkrRecon/TkrTreeCol");
 
     // No forest, no work
-    if (treeCol->empty()) return sc;
+    if (treeCol && treeCol->empty()) return sc;
 
     // Find the collection of candidate tracks
     Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol);
@@ -407,29 +407,33 @@ void TkrEnergySplitTool::setTupleValues(Event::TkrTreeCol*        trees,
 
     Vector treeDir(0.,0.,0.);
 
-    Event::TkrTree* tree1 = trees->front();
-
-    if (tree1->getAxisParams()) treeDir = tree1->getAxisParams()->getEventAxis();
-
-    m_tupleMap["TkrTree1DirX"]   = treeDir.x();
-    m_tupleMap["TkrTree1DirY"]   = treeDir.y();
-    m_tupleMap["TkrTree1DirZ"]   = treeDir.z();
-
-    // Finally, get cluster related to this tree
-    if (treeToRelationMap)
+    // If we have trees then fill in the following
+    if (trees)
     {
-        Event::TreeToRelationMap::iterator relItr = treeToRelationMap->find(tree1);
+        Event::TkrTree* tree1 = trees->front();
 
-        if (relItr != treeToRelationMap->end())
+        if (tree1->getAxisParams()) treeDir = tree1->getAxisParams()->getEventAxis();
+
+        m_tupleMap["TkrTree1DirX"]   = treeDir.x();
+        m_tupleMap["TkrTree1DirY"]   = treeDir.y();
+        m_tupleMap["TkrTree1DirZ"]   = treeDir.z();
+
+        // Finally, get cluster related to this tree
+        if (treeToRelationMap)
         {
-            Event::TreeClusterRelation* treeClusterRel = relItr->second.front();
+            Event::TreeToRelationMap::iterator relItr = treeToRelationMap->find(tree1);
 
-            const Event::CalCluster* cluster = treeClusterRel->getCluster();
+            if (relItr != treeToRelationMap->end())
+            {
+                Event::TreeClusterRelation* treeClusterRel = relItr->second.front();
 
-            m_tupleMap["TreeClusDoca"]   = treeClusterRel->getTreeClusDoca();
-            m_tupleMap["TreeClusAngle"]  = treeClusterRel->getTreeClusCosAngle();
-            m_tupleMap["TreeClusDocaZ"]  = treeClusterRel->getTreeClusDistAtZ();
-            m_tupleMap["TreeClusEnergy"] = treeClusterRel->getClusEnergy();
+                const Event::CalCluster* cluster = treeClusterRel->getCluster();
+
+                m_tupleMap["TreeClusDoca"]   = treeClusterRel->getTreeClusDoca();
+                m_tupleMap["TreeClusAngle"]  = treeClusterRel->getTreeClusCosAngle();
+                m_tupleMap["TreeClusDocaZ"]  = treeClusterRel->getTreeClusDistAtZ();
+                m_tupleMap["TreeClusEnergy"] = treeClusterRel->getClusEnergy();
+            }
         }
     }
     
