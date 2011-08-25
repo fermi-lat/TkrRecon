@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Aug 25 12:31:43 PDT 2011
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointLinksBuilder.cxx TkrVecPointLinksBuilder.h 
+Log Message:
+Experimental updates aimed at improving link building and attachment efficiency
+    *
+------------------------------------------------------------
 User: usher  Thu Aug 25 12:31:42 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
