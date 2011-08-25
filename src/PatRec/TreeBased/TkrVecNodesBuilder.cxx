@@ -267,14 +267,13 @@ void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, 
                     && !bestNode->front()->getAssociatedLink()->skipsLayers()
                     &&  bestNode->getTreeStartLayer() == bestNode->getCurrentBiLayer() 
                     &&  (nextLink->skip2Layer() || nextLink->skip3Layer())) 
-//                    &&  nextLink->skipsLayers()) 
                     continue;
 
                 // Can't attach links that skip layers to a node/link that already skips layers
                 if (   bestNode->getAssociatedLink() 
-                    && bestNode->getBestNumBiLayers() < 3
+                    && bestNode->getNumBiLayers() < 4
                     && bestNode->getAssociatedLink()->skipsLayers() 
-                    && nextLink->skipsLayers()) 
+                    &&  (nextLink->skip2Layer() || nextLink->skip3Layer())) 
                     continue;
 
                 // We next want to check the angle to the "best" node...
@@ -288,13 +287,16 @@ void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, 
                 {
                     angleToNode = nextLink->angleToNextLink(*bestNode->getAssociatedLink());
                 
-                    Vector pointDiff = nextLink->getPosition() - bestNode->getAssociatedLink()->getBotPosition();
+                //    Vector pointDiff = nextLink->getPosition() - bestNode->getAssociatedLink()->getBotPosition();
 
-                    double xDiffNorm = fabs(pointDiff.x()) / (stripPitch * nextLink->getFirstVecPoint()->getXCluster()->size());
-                    double yDiffNorm = fabs(pointDiff.y()) / (stripPitch * nextLink->getFirstVecPoint()->getYCluster()->size());
+                //    double xDiffNorm = fabs(pointDiff.x()) / (stripPitch * nextLink->getFirstVecPoint()->getXCluster()->size());
+                //    double yDiffNorm = fabs(pointDiff.y()) / (stripPitch * nextLink->getFirstVecPoint()->getYCluster()->size());
 
-                    // Reject outright bad combinations
-                    if (xDiffNorm > m_qSumDispAttachCut || yDiffNorm > m_qSumDispAttachCut) continue;
+                //    // Reject outright bad combinations
+                //    if (xDiffNorm > m_qSumDispAttachCut || yDiffNorm > m_qSumDispAttachCut) continue;
+                    Vector nrmDispVec = getLinkDisplacement(bestNode->getAssociatedLink(), nextLink);
+
+                    if (nrmDispVec.x() > 0.5 || nrmDispVec.y() > 0.5) continue;
                 }
 
                 // Update angle information at this point
@@ -460,9 +462,10 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
 
             // Can't attach links that skip layers to a node/link that already skips layers
             if (   curNode->getAssociatedLink() 
-                && curNode->getBestNumBiLayers() < 3
+                && curNode->getNumBiLayers() < 4
                 && curNode->getAssociatedLink()->skipsLayers() 
-                && curLink->skipsLayers()) continue;
+                && (curLink->skip2Layer() || curLink->skip3Layer())) continue;
+//                && curLink->skipsLayers()) continue;
 
             // Start by updating the rms angle information for the "updateNode"
             double angleToNode = 0.;
@@ -473,18 +476,22 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
             {
                 angleToNode = curLink->angleToNextLink(*curNode->getAssociatedLink());
                 
-                Vector pointDiff = curLinkPos - curNode->getAssociatedLink()->getBotPosition();
-                dBtwnPoints = pointDiff.mag();
+            //    Vector pointDiff = curLinkPos - curNode->getAssociatedLink()->getBotPosition();
+            //    dBtwnPoints = pointDiff.mag();
 
-                double xDiffNorm = fabs(pointDiff.x()) / (stripPitch * xCluster->size());
-                double yDiffNorm = fabs(pointDiff.y()) / (stripPitch * yCluster->size());
+            //    double xDiffNorm = fabs(pointDiff.x()) / (stripPitch * xCluster->size());
+            //    double yDiffNorm = fabs(pointDiff.y()) / (stripPitch * yCluster->size());
 
                 // This attempts to weed out "ghost" points/links since they most likely will 
                 // result in very poor tail to head matches
-                if ((xDiffNorm > m_bestqSumDispCut || yDiffNorm > m_bestqSumDispCut) && angleToNode > m_bestAngleToNodeCut)
-                {
-                    continue;
-                }
+            //    if ((xDiffNorm > m_bestqSumDispCut || yDiffNorm > m_bestqSumDispCut) && angleToNode > m_bestAngleToNodeCut)
+            //    {
+            //        continue;
+            //    }
+
+                Vector nrmDispVec = getLinkDisplacement(curNode->getAssociatedLink(), curLink);
+
+                if (nrmDispVec.x() > 0.5 || nrmDispVec.y() > 0.5 || angleToNode > m_bestAngleToNodeCut) continue;
             }
 
             // Update angle information at this point
@@ -938,4 +945,48 @@ void TkrVecNodesBuilder::removeRelations(Event::TkrVecNode* node)
     }
 
     return;
+}
+
+Vector TkrVecNodesBuilder::getLinkDisplacement(const Event::TkrVecPointsLink* firstLink, const Event::TkrVecPointsLink* secondLink)
+{
+    // The idea here is that we want to determine the distance between the clusters at the bottom of the
+    // top link and the top of the bottom link, taking into account the cluster widths. We want to do this
+    // in a way that a positive result indicates that they are overlapped, a negative result says they
+    // are displaced and the magnitude gives the distance apart. 
+    // Start in the x plane
+    double xPosLow  = firstLink->getBotPosition().x();
+    double xWidLow  = firstLink->getSecondVecPoint()->getXCluster()->size();
+    double xPosHigh = secondLink->getPosition().x();
+    double xWidHigh = secondLink->getFirstVecPoint()->getXCluster()->size();
+
+    // Make sure the low is really low
+    if (xPosLow > xPosHigh)
+    {
+        std::swap(xPosLow, xPosHigh);
+        std::swap(xWidLow, xWidHigh);
+    }
+
+    double xDisplacement = (xPosHigh - 0.5 * xWidHigh * m_tkrGeom->siStripPitch())
+                         - (xPosLow  + 0.5 * xWidLow  * m_tkrGeom->siStripPitch());
+    double xDispSigma    = m_tkrGeom->siStripPitch() * sqrt(xWidLow * xWidLow + xWidHigh * xWidHigh);
+
+    // Follow up with the y plane
+    double yPosLow  = firstLink->getBotPosition().y();
+    double yWidLow  = firstLink->getSecondVecPoint()->getYCluster()->size();
+    double yPosHigh = secondLink->getPosition().y();
+    double yWidHigh = secondLink->getFirstVecPoint()->getYCluster()->size();
+
+    // Make sure the low is really low
+    if (yPosLow > yPosHigh)
+    {
+        std::swap(yPosLow, yPosHigh);
+        std::swap(yWidLow, yWidHigh);
+    }
+
+    double yDisplacement = (yPosHigh - 0.5 * yWidHigh * m_tkrGeom->siStripPitch())
+                         - (yPosLow  + 0.5 * yWidLow  * m_tkrGeom->siStripPitch());
+
+    double yDispSigma    = m_tkrGeom->siStripPitch() * sqrt(yWidLow * yWidLow + yWidHigh * yWidHigh);
+
+    return Vector(xDisplacement/xDispSigma, yDisplacement/yDispSigma, 0.);
 }

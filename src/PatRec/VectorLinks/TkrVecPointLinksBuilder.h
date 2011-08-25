@@ -101,6 +101,9 @@ private:
     Vector                        m_eventAxis;
     double                        m_toleranceAngle;
 
+    // Cut on the normalized projected width vs actual cluster width
+    double                        m_nrmProjDistCut;
+
     // Keep track of the total number of links
     int                           m_numVecLinks;
 
