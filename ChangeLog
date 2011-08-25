@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Aug 25 12:31:42 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrVecNodesBuilder.cxx TkrVecNodesBuilder.h 
+Log Message:
+Experimental updates aimed at improving link building and attachment efficiency
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-26-01, operation: add
 Package: TkrRecon
