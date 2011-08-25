@@ -31,6 +31,7 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtE
                                                    m_clusTool(clusTool), 
                                                    m_reasonsTool(reasonsTool),
                                                    m_evtEnergy(evtEnergy), 
+                                                   m_nrmProjDistCut(1.25),
                                                    m_numVecLinks(0),
                                                    m_fillInternalTables(fillInternalTables)
 {
@@ -124,6 +125,9 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtE
             m_toleranceAngle = std::max(m_toleranceAngle, M_PI / 8.);  // 22.5 degrees absolute minimum
         }
     }
+
+    // Perhaps limiting the angle by too much is unwise... loosen a bit
+    m_toleranceAngle = std::max(m_toleranceAngle, 0.85);
 
     // Final bits of preparation here...
     // Initialize the relational table
@@ -301,7 +305,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
             if (++intPointsItr != nextPointsItr)
             {
                 // Improve accuracy by adjusting starting vec point position for slope of the proposed link
-                double cosToEnd = cos(startToEnd.theta());
+                double cosToEnd = startToEnd.cosTheta();
                 double linkZ    = firstPoint->getPosition().z();
                 double aLen2X   = (firstPoint->getXCluster()->position().z() - linkZ) / cosToEnd;
                 double linkX    = firstPoint->getXCluster()->position().x() - aLen2X * startToEnd.x();
@@ -321,6 +325,36 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                                           ? false
                                           : inTruncatedRegion(secondPoint->getXCluster()->position(), truncDistVar) || 
                                             inTruncatedRegion(secondPoint->getYCluster()->position(), truncDistVar);
+
+                // Define angles in x and y planes here in case we loop over layers and need them
+                double cosPhi    = std::cos(startToEnd.phi());
+                double sinPhi    = std::sin(startToEnd.phi());
+                double tanTheta  = std::tan(startToEnd.theta());
+                double tanThetaX = fabs(cosPhi * tanTheta);
+                double cosThetaX = sqrt(1. / (1. + tanThetaX * tanThetaX));
+                double tanThetaY = fabs(sinPhi * tanTheta);
+                double cosThetaY = sqrt(1. / (1. + tanThetaY * tanThetaY));
+
+                // Projected distance in the X and Y views for the proposed link
+                double projectX  = m_tkrGeom->siThickness() * tanThetaX;
+                double projectY  = m_tkrGeom->siThickness() * tanThetaY;
+
+                bool   topXWidOk =  projectX / (firstPoint->getXCluster()->size() * m_siStripPitch)  < m_nrmProjDistCut;
+                bool   topYWidOk =  projectY / (firstPoint->getYCluster()->size() * m_siStripPitch)  < m_nrmProjDistCut;
+                bool   botXWidOk =  projectX / (secondPoint->getXCluster()->size() * m_siStripPitch) < m_nrmProjDistCut;
+                bool   botYWidOk =  projectY / (secondPoint->getYCluster()->size() * m_siStripPitch) < m_nrmProjDistCut;
+                bool   best3of4  =  topXWidOk && botXWidOk && botYWidOk
+                                 || topYWidOk && botXWidOk && botYWidOk
+                                 || topXWidOk && topYWidOk && botXWidOk
+                                 || topXWidOk && topYWidOk && botYWidOk;
+
+                // skip if best3of4 is not true (which should include 4 of 4). Idea is that this allows case
+                // where you have an edge hit, or dead strip, or something, without actually looking
+                if (!(best3of4))
+                {
+                    inActiveArea = true;
+                    break;
+                }
 
                 // If an intervening missing layer then check for nearest hits
                 while(intPointsItr != nextPointsItr)
@@ -346,13 +380,8 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     double arcLenX  = (linkZ - zLayerX) / cosToEnd;
                     double arcLenY  = (linkZ - zLayerY) / cosToEnd;
 
-                    // Get point at midplane
-                    Point  layerPt  = Point(linkX - arcLen * startToEnd.x(),
-                                            linkY - arcLen * startToEnd.y(),
-                                            linkZ - arcLen * startToEnd.z());
-
-                    // If here then we have no nearby hit. The next is to check to see if we are in active silicon
-                    // So, start by getting the point at the X plane
+                    // The first thing we are going to do is check each of the sense planes for their 
+                    // distance to an edge. Start this up by getting the projected position in the X plane
                     Point  layerPtX = Point(linkX - arcLenX * startToEnd.x(),
                                             linkY - arcLenX * startToEnd.y(),
                                             linkZ - arcLenX * startToEnd.z());
@@ -362,9 +391,6 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
 
                     // Retrieve the active distances to the edges in this tower
                     Vector towerEdgeX = m_reasonsTool->getEdgeDistance();
-
-                    // If either are negative we are not in the general active area
-                    ///if (towerEdgeX.x() < 0 || towerEdgeX.y() < 0) continue;
 
                     // Retrieve the distance to any gaps we might be in
                     Vector gapEdgeX = m_reasonsTool->getGapDistance();
@@ -380,32 +406,45 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     // Recover the active distance to the active area in the tower
                     Vector towerEdgeY = m_reasonsTool->getEdgeDistance();
 
-                    // As before, if either are negative then we are not in active area
-                    //if (towerEdgeY.x() < 0 || towerEdgeY.y() < 0) continue;
-
                     // Recover the active distance to any gaps
                     Vector gapEdgeY = m_reasonsTool->getGapDistance();
 
                     // The first big test is to see if we are in an intertower gap
-                    static double towerEdgeTol = -2.0 * m_siStripPitch;
+                    // Note that if the returned value for "towerEdge" is negative, we are outside 
+                    // the active area. Note that our test is to ACCEPT this link, at least at this
+                    // stage. As such, if we want to allow for edge effects then we need to set our
+                    // tolerance test to be slightly generous, meaning a positive value. And to allow
+                    // for edge/angle effects we also scale by the projected angle in the plane
+//                    static double towerEdgeTol = -2.0 * m_siStripPitch;
+                    double towerEdgeTolX = 2.0 * m_siStripPitch / fabs(cosThetaX);
+                    double towerEdgeTolY = 2.0 * m_siStripPitch / fabs(cosThetaY);
 
                     // ***** ACCEPT LINK *****
                     // Clearly in an inter tower gap
-                    if ((towerEdgeX.x() < towerEdgeTol || towerEdgeX.y() < towerEdgeTol) &&
-                        (towerEdgeY.x() < towerEdgeTol || towerEdgeY.y() < towerEdgeTol) )
+                    if ((towerEdgeX.x() < towerEdgeTolX || towerEdgeX.y() < towerEdgeTolY) &&
+                        (towerEdgeY.x() < towerEdgeTolX || towerEdgeY.y() < towerEdgeTolY) )
                     {
                         skippedStatus |= Event::TkrVecPointsLink::INTERTOWER;
                         continue;
                     }
 
+                    // Give a slightly tighter tolerance for the gap edges
+                    towerEdgeTolX *= 0.5;
+                    towerEdgeTolY *= 0.5;
+
                     // ***** ACCEPT LINK *****
                     // Clearly in a gap between wafers - negative active distance in both planes
-                    if ((gapEdgeX.x() < 0. || gapEdgeX.y() < 0.) &&
-                        (gapEdgeY.x() < 0. || gapEdgeY.y() < 0.) )
+                    if ((gapEdgeX.x() < towerEdgeTolX || gapEdgeX.y() < towerEdgeTolY) &&
+                        (gapEdgeY.x() < towerEdgeTolX || gapEdgeY.y() < towerEdgeTolY) )
                     {
                         skippedStatus |= Event::TkrVecPointsLink::WAFERGAP;
                         continue;
                     }
+
+                    // Get point at midplane
+                    Point  layerPt  = Point(linkX - arcLen * startToEnd.x(),
+                                            linkY - arcLen * startToEnd.y(),
+                                            linkZ - arcLen * startToEnd.z());
 
                     double distToNearestVecPoint = 0.25 * towerPitch;
                     int    nHitsInRange          = 0;

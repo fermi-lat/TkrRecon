@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.h,v 1.2 2010/11/24 16:39:06 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.h,v 1.3 2010/12/16 20:44:45 usher Exp $
  *
 */
 
@@ -89,6 +89,9 @@ private:
 
     /// Remove relations 
     void   removeRelations(Event::TkrVecNode* node);
+
+    /// For determining the displacement of one TkrVecPoint relative to another
+    Vector getLinkDisplacement(const Event::TkrVecPointsLink* firstLink, const Event::TkrVecPointsLink* secondLink);
 
     /// Pointer to the local Tracker geometry service
     ITkrGeometrySvc*                 m_tkrGeom;
