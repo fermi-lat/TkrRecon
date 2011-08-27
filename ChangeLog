@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sat Aug 27 09:55:55 PDT 2011
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointLinksBuilder.cxx 
+Log Message:
+More mods aimed at improving efficiency of linking
+    *
+------------------------------------------------------------
 User: usher  Sat Aug 27 09:55:54 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
