@@ -91,7 +91,7 @@ private:
     void   removeRelations(Event::TkrVecNode* node);
 
     /// For determining the displacement of one TkrVecPoint relative to another
-    Vector getLinkDisplacement(const Event::TkrVecPointsLink* firstLink, const Event::TkrVecPointsLink* secondLink);
+    //Vector getLinkDisplacement(const Event::TkrVecPointsLink* firstLink, const Event::TkrVecPointsLink* secondLink);
 
     /// Pointer to the local Tracker geometry service
     ITkrGeometrySvc*                 m_tkrGeom;
@@ -119,6 +119,9 @@ private:
     double m_bestRmsAngleValue;      // Initial value for rms angle cut when finding "best" link
     double m_bestqSumDispCut;        // quad displacement sum cut for finding "best" link
     double m_bestAngleToNodeCut;     // best angle to node cut for finding "best" link
+
+    double m_linkNrmDispCut;         // Normalized link displacement cut value actually used
+    double m_linkNrmDispCutMin;      // The value to "reset" to each event
 };
 
 #endif

@@ -15,6 +15,9 @@
 
 #include <iterator>
 
+// Forward declaration
+Vector getLinkDisplacement(const Event::TkrVecPointsLink* firstLink, const Event::TkrVecPointsLink* secondLink);
+
 TkrVecNodesBuilder::TkrVecNodesBuilder(TkrVecPointLinksBuilder& vecPointLinksBldr,
                                        IDataProviderSvc*        dataSvc, 
                                        ITkrGeometrySvc*         geoSvc)
@@ -42,15 +45,15 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(TkrVecPointLinksBuilder& vecPointLinksBld
     m_clustersToNodesTab->init();
 
     // Initialize control varialbes (done here to make easier to read)
-    m_cosKinkCut         = 0.94;    // cos(theta) to determine a kink for first link attachments
-//    m_qSumDispAttachCut  = 1.5;      // quad displacement sum cut for attaching a link
-    m_qSumDispAttachCut  = 1.1;      // quad displacement sum cut for attaching a link
-    m_rmsAngleAttachCut  = 0.1;     // rms angle cut for attaching a link
-    m_rmsAngleMinValue   = 0.05;    //005;   // minimum allowed value for rms angle cut
-    m_bestRmsAngleValue  = M_PI/2.; // Initial value for rms angle cut when finding "best" link
-//    m_bestqSumDispCut    = 1.5;     // quad displacement sum cut for finding "best" link
-    m_bestqSumDispCut    = 1.1;     // quad displacement sum cut for finding "best" link
-    m_bestAngleToNodeCut = 0.5;    // best angle to node cut for finding "best" link
+    m_cosKinkCut         = cos(M_PI / 8.); //0.94;      // cos(theta) to determine a kink for first link attachments
+//    m_qSumDispAttachCut  = 1.5;          // quad displacement sum cut for attaching a link
+    m_qSumDispAttachCut  = 1.1;            // quad displacement sum cut for attaching a link
+    m_rmsAngleAttachCut  = 0.1;            // rms angle cut for attaching a link
+    m_rmsAngleMinValue   = 0.05;           //005;   // minimum allowed value for rms angle cut
+    m_bestRmsAngleValue  = M_PI/2.;        // Initial value for rms angle cut when finding "best" link
+//    m_bestqSumDispCut    = 1.5;          // quad displacement sum cut for finding "best" link
+    m_bestqSumDispCut    = 1.1;            // quad displacement sum cut for finding "best" link
+    m_bestAngleToNodeCut = M_PI / 3.;      //0.5;    // best angle to node cut for finding "best" link
 
     // liberalize cuts for events with few links (as the are probably low energy)
     if (m_vecPointLinksBldr.getNumTkrVecPointsLinks() < 100)
@@ -59,6 +62,10 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(TkrVecPointLinksBuilder& vecPointLinksBld
         m_bestqSumDispCut    *= 10.;
 //        m_bestAngleToNodeCut *= 10.;
     }
+
+    // Value for the link displacement cut
+    m_linkNrmDispCutMin = 0.25;
+    m_linkNrmDispCut    = 0.25;
 
     return;
 }
@@ -82,6 +89,15 @@ int TkrVecNodesBuilder::buildTrackElements()
     Event::TkrVecNodeSet headNodes;
 
     headNodes.clear();
+
+    // Reset the link displacement cut
+    m_linkNrmDispCut = m_linkNrmDispCutMin;
+
+    // Check the possible combinations, if not too large then expand this cut a bit?
+    if (m_vecPointLinksBldr.getNumTkrVecPointsLinks() < 100) 
+    {
+        m_linkNrmDispCut = 2. * m_linkNrmDispCutMin;
+    }
 
     // Start your engines! 
     for(Event::TkrLyrToVecPointItrMap::reverse_iterator vecPointLyrItr  = m_tkrVecPointInfo->getLyrToVecPointItrMap()->rbegin();
@@ -148,7 +164,7 @@ int TkrVecNodesBuilder::buildTrackElements()
 class ComparePointToNodeRels
 {
 public:
-    ComparePointToNodeRels(const Vector& inVector) : m_baseVec(inVector) {}
+    ComparePointToNodeRels(const Event::TkrVecPointsLink* inLink) : m_baseLink(inLink) {}
 
     const bool operator()(const Event::TkrVecPointToLinksRel* left, const Event::TkrVecPointToLinksRel* right) const
     {
@@ -158,7 +174,21 @@ public:
         if (( left->getSecond()->getStatusBits() & Event::TkrVecPointsLink::SKIPSLAYERS) ==
             (right->getSecond()->getStatusBits() & Event::TkrVecPointsLink::SKIPSLAYERS) )
         {
-            return m_baseVec.dot(left->getSecond()->getVector()) > m_baseVec.dot(right->getSecond()->getVector());
+            Vector leftDisp  = getLinkDisplacement(m_baseLink, left->getSecond());
+            Vector rightDisp = getLinkDisplacement(m_baseLink, right->getSecond());
+
+            // Get the maximum displacement in either projection
+            double leftMax   = std::max(leftDisp.x(),  leftDisp.y());
+            double rightMax  = std::max(rightDisp.x(), rightDisp.y());
+
+            // If both overlap then take the best angle
+            if (leftMax < 0.25 && rightMax < 0.25)
+            {
+                return m_baseLink->getVector().dot(left->getSecond()->getVector()) 
+                          > m_baseLink->getVector().dot(right->getSecond()->getVector());
+            }
+            // otherwise we order by displacement
+            else return leftMax < rightMax;
         }
         else
         {
@@ -178,7 +208,7 @@ public:
         }
     }
 private:
-    const Vector& m_baseVec;
+    const Event::TkrVecPointsLink* m_baseLink;
 };
 
 void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, const Event::TkrVecPoint* point)
@@ -263,40 +293,39 @@ void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, 
                 if (!bestNode->getParentNode() && (nextLink->skip2Layer() || nextLink->skip3Layer())) continue;
 
                 // More complicated version of the above but allowing skipping if no links already
-                if (   !bestNode->empty() 
-                    && !bestNode->front()->getAssociatedLink()->skipsLayers()
-                    &&  bestNode->getTreeStartLayer() == bestNode->getCurrentBiLayer() 
-                    &&  (nextLink->skip2Layer() || nextLink->skip3Layer())) 
+                if (   !bestNode->getParentNode()                              // We are a head node with no parent
+                    &&  nextLink->skipsLayers()                                // Proposed link skips layers
+                    && !nextLink->skip1Layer()                                 // And it skips more than one bilayer
+                    && !bestNode->empty()                                      // We have nodes already attached
+                    && !bestNode->front()->getAssociatedLink()->skipsLayers()) // The first one does not skip any layers
                     continue;
 
                 // Can't attach links that skip layers to a node/link that already skips layers
-                if (   bestNode->getAssociatedLink() 
-                    && bestNode->getNumBiLayers() < 4
-                    && bestNode->getAssociatedLink()->skipsLayers() 
-                    &&  (nextLink->skip2Layer() || nextLink->skip3Layer())) 
+                if (    nextLink->skipsLayers()                                // Proposed link skips layers
+                    && !nextLink->skip1Layer()                                 // and it skips more than one bilayer
+                    &&  bestNode->getAssociatedLink()                          // current node has a link associated to it
+                    &&  bestNode->getNumBiLayers() < 4                         // current node is not deep yet
+                    &&  bestNode->getAssociatedLink()->skipsLayers())          // link associated to this node skips layers
                     continue;
 
                 // We next want to check the angle to the "best" node...
                 // So, get angle between links. 
                 // Also use this as an opportunity to make one last rejection cut (on distance between links)
-                double angleToNode = 0.;
+                double angleToNode = nextLink->getMaxScatAngle();
+                Vector linkDispVec(0., 0., 0.);
 
                 // In the case of a starting node there is no associated link... but if we have associated link
                 // then check the distance of closest approach between the point and the link
                 if (bestNode->getAssociatedLink())
                 {
                     angleToNode = nextLink->angleToNextLink(*bestNode->getAssociatedLink());
-                
-                //    Vector pointDiff = nextLink->getPosition() - bestNode->getAssociatedLink()->getBotPosition();
+                    linkDispVec = getLinkDisplacement(bestNode->getAssociatedLink(), nextLink);
 
-                //    double xDiffNorm = fabs(pointDiff.x()) / (stripPitch * nextLink->getFirstVecPoint()->getXCluster()->size());
-                //    double yDiffNorm = fabs(pointDiff.y()) / (stripPitch * nextLink->getFirstVecPoint()->getYCluster()->size());
+                    // Determine whether the two points actually overlap
+                    double overlap = std::max(linkDispVec.x(), linkDispVec.y());
 
-                //    // Reject outright bad combinations
-                //    if (xDiffNorm > m_qSumDispAttachCut || yDiffNorm > m_qSumDispAttachCut) continue;
-                    Vector nrmDispVec = getLinkDisplacement(bestNode->getAssociatedLink(), nextLink);
-
-                    if (nrmDispVec.x() > 0.5 || nrmDispVec.y() > 0.5) continue;
+                    // This is a little bit generous, requires both out of range to reject
+                    if (overlap > m_linkNrmDispCut) continue;
                 }
 
                 // Update angle information at this point
@@ -420,10 +449,14 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
     // Pointer to the winning node
     Event::TkrVecPointToNodesRel* bestNodeRel = 0;
 
+    int numPointsToLinks = pointToLinkVec.size();
+    int numPointsToNodes = pointToNodesVec.size();
+
     // If nothing to do then no point continuing! 
     if (pointToNodesVec.empty()) return bestNodeRel;
 
     // Set the bar as low as possible
+    double bestAngle     = 0.5*M_PI;
     double bestRmsAngle  = 0.5*M_PI;
     int    bestNumRmsSum = 0;
     double stripPitch    = m_tkrGeom->siStripPitch();
@@ -455,43 +488,31 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
             // More complicated version of the above but allowing skipping if no links already
             if (   !curNode->empty() 
                 && !curNode->front()->getAssociatedLink()->skipsLayers()
-                &&  curNode->getTreeStartLayer() == curNode->getCurrentBiLayer() 
-                &&  (curLink->skip2Layer() || curLink->skip3Layer())) 
-//                &&  curLink->skipsLayers()) 
+                && !curNode->getParentNode()                             // same thing as? curNode->getTreeStartLayer() == curNode->getCurrentBiLayer() 
+                &&  curLink->skipsLayers()
+                && !curLink->skip1Layer()) 
                  continue;
 
             // Can't attach links that skip layers to a node/link that already skips layers
-            if (   curNode->getAssociatedLink() 
-                && curNode->getNumBiLayers() < 4
-                && curNode->getAssociatedLink()->skipsLayers() 
-                && (curLink->skip2Layer() || curLink->skip3Layer())) continue;
-//                && curLink->skipsLayers()) continue;
+            if (    curNode->getAssociatedLink() 
+                &&  curNode->getNumBiLayers() < 4
+                &&  curNode->getAssociatedLink()->skipsLayers() 
+                &&  curLink->skipsLayers() && !curLink->skip1Layer()) continue;
 
             // Start by updating the rms angle information for the "updateNode"
-            double angleToNode = 0.;
-            double dBtwnPoints = 0.;
-            double quadSum     = 100.;
+            double angleToNode = curLink->getMaxScatAngle();
+            Vector linkDispVec(0., 0., 0.);
 
             if (curNode->getAssociatedLink())
             {
                 angleToNode = curLink->angleToNextLink(*curNode->getAssociatedLink());
-                
-            //    Vector pointDiff = curLinkPos - curNode->getAssociatedLink()->getBotPosition();
-            //    dBtwnPoints = pointDiff.mag();
+                linkDispVec  = getLinkDisplacement(curNode->getAssociatedLink(), curLink);
 
-            //    double xDiffNorm = fabs(pointDiff.x()) / (stripPitch * xCluster->size());
-            //    double yDiffNorm = fabs(pointDiff.y()) / (stripPitch * yCluster->size());
+                // Get variable that determines overlap
+                double overlap = std::max(linkDispVec.x(), linkDispVec.y());
 
-                // This attempts to weed out "ghost" points/links since they most likely will 
-                // result in very poor tail to head matches
-            //    if ((xDiffNorm > m_bestqSumDispCut || yDiffNorm > m_bestqSumDispCut) && angleToNode > m_bestAngleToNodeCut)
-            //    {
-            //        continue;
-            //    }
-
-                Vector nrmDispVec = getLinkDisplacement(curNode->getAssociatedLink(), curLink);
-
-                if (nrmDispVec.x() > 0.5 || nrmDispVec.y() > 0.5 || angleToNode > m_bestAngleToNodeCut) continue;
+//                if ((nrmDispVec.x() > m_linkNrmDispCut && nrmDispVec.y() > m_linkNrmDispCut) || angleToNode > m_bestAngleToNodeCut) continue;
+                if (overlap > m_linkNrmDispCut || angleToNode > m_bestAngleToNodeCut) continue;
             }
 
             // Update angle information at this point
@@ -499,8 +520,12 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
             double rmsAngle    = curNode->getRmsAngleSum() + angleToNode * angleToNode;
 
             // Is this a good match in terms of angle?
-            if ((bestNumRmsSum <= 2 && numInAngSum > 3) || rmsAngle / double(numInAngSum) < bestRmsAngle) 
+            // The first part below is an attempt to prevent selection of beginning nodes over longer branches 
+            // solely because the rmsAngle is effectively zero
+//            if ((bestNumRmsSum <= 2 && numInAngSum > 3) || rmsAngle / double(numInAngSum) < bestRmsAngle) 
+            if ((numInAngSum > 2 && rmsAngle / double(numInAngSum) < bestRmsAngle) || (numInAngSum < 3 && angleToNode < bestAngle))
             {
+                bestAngle     = angleToNode;
                 bestRmsAngle  = rmsAngle / double(numInAngSum);
                 bestNumRmsSum = numInAngSum;
                 bestNodeRel   = *ptToNodesItr;
@@ -515,7 +540,7 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
         Event::TkrVecNode* node = bestNodeRel->getSecond();
 
         if (node->getAssociatedLink()) 
-            std::sort(pointToLinkVec.begin(), pointToLinkVec.end(), ComparePointToNodeRels(node->getAssociatedLink()->getVector()));
+            std::sort(pointToLinkVec.begin(), pointToLinkVec.end(), ComparePointToNodeRels(node->getAssociatedLink()));
     }
 
     return bestNodeRel;
@@ -947,8 +972,11 @@ void TkrVecNodesBuilder::removeRelations(Event::TkrVecNode* node)
     return;
 }
 
-Vector TkrVecNodesBuilder::getLinkDisplacement(const Event::TkrVecPointsLink* firstLink, const Event::TkrVecPointsLink* secondLink)
+Vector getLinkDisplacement(const Event::TkrVecPointsLink* firstLink, const Event::TkrVecPointsLink* secondLink)
 {
+    // Have to define this here for the usage we want... until I can think of a better way to do this...
+    static const double siStripPitch = 0.228;
+
     // The idea here is that we want to determine the distance between the clusters at the bottom of the
     // top link and the top of the bottom link, taking into account the cluster widths. We want to do this
     // in a way that a positive result indicates that they are overlapped, a negative result says they
@@ -966,9 +994,9 @@ Vector TkrVecNodesBuilder::getLinkDisplacement(const Event::TkrVecPointsLink* fi
         std::swap(xWidLow, xWidHigh);
     }
 
-    double xDisplacement = (xPosHigh - 0.5 * xWidHigh * m_tkrGeom->siStripPitch())
-                         - (xPosLow  + 0.5 * xWidLow  * m_tkrGeom->siStripPitch());
-    double xDispSigma    = m_tkrGeom->siStripPitch() * sqrt(xWidLow * xWidLow + xWidHigh * xWidHigh);
+    double xDisplacement = (xPosHigh - 0.5 * xWidHigh * siStripPitch)
+                         - (xPosLow  + 0.5 * xWidLow  * siStripPitch);
+    double xDispSigma    = siStripPitch * sqrt(xWidLow * xWidLow + xWidHigh * xWidHigh);
 
     // Follow up with the y plane
     double yPosLow  = firstLink->getBotPosition().y();
@@ -983,10 +1011,10 @@ Vector TkrVecNodesBuilder::getLinkDisplacement(const Event::TkrVecPointsLink* fi
         std::swap(yWidLow, yWidHigh);
     }
 
-    double yDisplacement = (yPosHigh - 0.5 * yWidHigh * m_tkrGeom->siStripPitch())
-                         - (yPosLow  + 0.5 * yWidLow  * m_tkrGeom->siStripPitch());
+    double yDisplacement = (yPosHigh - 0.5 * yWidHigh * siStripPitch)
+                         - (yPosLow  + 0.5 * yWidLow  * siStripPitch);
 
-    double yDispSigma    = m_tkrGeom->siStripPitch() * sqrt(yWidLow * yWidLow + yWidHigh * yWidHigh);
+    double yDispSigma    = siStripPitch * sqrt(yWidLow * yWidLow + yWidHigh * yWidHigh);
 
     return Vector(xDisplacement/xDispSigma, yDisplacement/yDispSigma, 0.);
 }
