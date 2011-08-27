@@ -449,30 +449,30 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     double distToNearestVecPoint = 0.25 * towerPitch;
                     int    nHitsInRange          = 0;
                     const Event::TkrVecPoint* nearestHit = findNearestTkrVecPoint(intPointsPair, layerPt, distToNearestVecPoint, nHitsInRange);
-                
-                    // If we found a hit nearby then the first thing to do is to check and see if 
-                    // that hit lies on this link. If so then we are going to reject the link
-                    if (nearestHit && distToNearestVecPoint < 0.2 * towerPitch)
-                    {
-                        double sigmaX    = nearestHit->getXCluster()->size();
-                        double sigmaY    = nearestHit->getYCluster()->size();
-                        double quadSigma = sqrt(sigmaX*sigmaX + sigmaY*sigmaY);
-                        double scaleFctr = 10. * skippedLayers * m_siStripPitch;
-
-                        // scale back the scalefctr if possibly in a gap
-                        if (gapEdgeX.x() < 0. || gapEdgeX.y() < 0. || gapEdgeY.x() < 0. || gapEdgeY.y() < 0.) 
-                        {
-                            scaleFctr *= 0.5;
-                        }
-
-                        // ***** REJECT LINK *****
-                        // There is a TkrVecPoint within tolerance
-                        if (distToNearestVecPoint < scaleFctr * quadSigma)
-                        {
-                            inActiveArea = true;
-                            break;
-                        }
-                    }
+//                
+//                    // If we found a hit nearby then the first thing to do is to check and see if 
+//                    // that hit lies on this link. If so then we are going to reject the link
+//                    if (nearestHit && distToNearestVecPoint < 0.2 * towerPitch)
+//                    {
+//                        double sigmaX    = nearestHit->getXCluster()->size();
+//                        double sigmaY    = nearestHit->getYCluster()->size();
+//                        double quadSigma = sqrt(sigmaX*sigmaX + sigmaY*sigmaY);
+//                        double scaleFctr = 10. * skippedLayers * m_siStripPitch;
+//
+//                        // scale back the scalefctr if possibly in a gap
+//                        if (gapEdgeX.x() < 0. || gapEdgeX.y() < 0. || gapEdgeY.x() < 0. || gapEdgeY.y() < 0.) 
+//                        {
+//                            scaleFctr *= 0.5;
+//                        }
+//
+//                        // ***** REJECT LINK *****
+//                        // There is a TkrVecPoint within tolerance
+//                        if (distToNearestVecPoint < scaleFctr * quadSigma)
+//                        {
+//                            inActiveArea = true;
+//                            break;
+//                        }
+//                    }
 
                     // If here we have no nearby hit and we believe we are in the confines of the active silicon. 
                     // At this point we might be very near the edge, or in a gap in the middle of a tower. So, now 
@@ -513,6 +513,51 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     {
                         inActiveArea = true;
                         break;
+                    }
+
+                    Event::TkrCluster* clusterX = m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureX, intMissLyr, 0., layerPtX);
+                    Event::TkrCluster* clusterY = m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureY, intMissLyr, 0., layerPtY);
+
+                    double hitDeltaX = clusterX ? fabs(layerPtX.x() - clusterX->position().x()) : 100.;
+                    double hitDeltaY = clusterY ? fabs(layerPtY.y() - clusterY->position().y()) : 100.;
+
+                    // Let's check to see if we are in a truncated region, but only if not on the bottom layer
+                    if ((endLayer != 0 || !secondLayerTruncated) && skippedLayers < 2)
+                    {
+                        double truncDistX     = 0.;
+                        double truncDistY     = 0.;
+                        bool   inTruncRegionX = inTruncatedRegion(layerPtX, truncDistX);
+                        bool   inTruncRegionY = inTruncatedRegion(layerPtY, truncDistY);
+
+                        // If both truncated then we should keep?
+                        if (inTruncRegionX && inTruncRegionY)
+                        {
+                            skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
+                            continue;
+                        }
+
+                        // Ok, look at the possibilities here... 
+                        // We are in a truncated region in X
+                        if (inTruncRegionX)
+                        {
+                            if (siHitGapY || 
+                               (clusterY && hitDeltaY < 2.5 * m_siStripPitch * clusterY->size()))
+                            {
+                                skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
+                                continue;
+                            }
+                        }
+                        
+                        // We are in a truncated region in Y
+                        if (inTruncRegionY)
+                        {
+                            if (siHitGapX ||
+                               (clusterX && hitDeltaX < 2.5 * m_siStripPitch * clusterX->size()))
+                            {
+                                skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
+                                continue;
+                            }
+                        }
                     }
 
                     // ***** REJECT LINK *****
@@ -561,15 +606,39 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
 //                            break;
 //                        }
 //                    }
+                
+                    // If we found a hit nearby then the first thing to do is to check and see if 
+                    // that hit lies on this link. If so then we are going to reject the link
+                    if (nearestHit && distToNearestVecPoint < 0.2 * towerPitch)
+                    {
+                        double sigmaX    = nearestHit->getXCluster()->size();
+                        double sigmaY    = nearestHit->getYCluster()->size();
+                        double quadSigma = sqrt(sigmaX*sigmaX + sigmaY*sigmaY);
+                        double scaleFctr = 10. * skippedLayers * m_siStripPitch;
+
+                        // scale back the scalefctr if possibly in a gap
+                        if (gapEdgeX.x() < 0. || gapEdgeX.y() < 0. || gapEdgeY.x() < 0. || gapEdgeY.y() < 0.) 
+                        {
+                            scaleFctr *= 0.5;
+                        }
+
+                        // ***** REJECT LINK *****
+                        // There is a TkrVecPoint within tolerance
+                        if (distToNearestVecPoint < scaleFctr * quadSigma)
+                        {
+                            inActiveArea = true;
+                            break;
+                        }
+                    }
 
                     // We do not have a TkrVecPoint nearby that we should be "on", look at the less restrictive
                     // case that a single cluster is nearby in one plane or the other
                     // Start by retrieving the nearest cluster (if one exists)
-                    Event::TkrCluster* clusterX = m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureX, intMissLyr, 0., layerPtX);
-                    Event::TkrCluster* clusterY = m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureY, intMissLyr, 0., layerPtY);
+//                    Event::TkrCluster* clusterX = m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureX, intMissLyr, 0., layerPtX);
+//                    Event::TkrCluster* clusterY = m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureY, intMissLyr, 0., layerPtY);
 
-                    double hitDeltaX = clusterX ? fabs(layerPtX.x() - clusterX->position().x()) : 100.;
-                    double hitDeltaY = clusterY ? fabs(layerPtY.y() - clusterY->position().y()) : 100.;
+//                    double hitDeltaX = clusterX ? fabs(layerPtX.x() - clusterX->position().x()) : 100.;
+//                    double hitDeltaY = clusterY ? fabs(layerPtY.y() - clusterY->position().y()) : 100.;
 
                     if (siHitGapX || siHitGapY)
                     {
@@ -606,43 +675,43 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     // 2) Neither plane is in a gap and there are no nearby clusters in either plane
 
                     // Let's check to see if we are in a truncated region, but only if not on the bottom layer
-                    if ((endLayer != 0 || !secondLayerTruncated) && skippedLayers < 2)
-                    {
-                        double truncDistX     = 0.;
-                        double truncDistY     = 0.;
-                        bool   inTruncRegionX = inTruncatedRegion(layerPtX, truncDistX);
-                        bool   inTruncRegionY = inTruncatedRegion(layerPtY, truncDistY);
-
-                        // If both truncated then we should keep?
-                        if (inTruncRegionX && inTruncRegionY)
-                        {
-                            skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
-                            continue;
-                        }
-
-                        // Ok, look at the possibilities here... 
-                        // We are in a truncated region in X
-                        if (inTruncRegionX)
-                        {
-                            if (siHitGapY || 
-                               (clusterY && hitDeltaY < 2.5 * m_siStripPitch * clusterY->size()))
-                            {
-                                skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
-                                continue;
-                            }
-                        }
-                        
-                        // We are in a truncated region in Y
-                        if (inTruncRegionY)
-                        {
-                            if (siHitGapX ||
-                               (clusterX && hitDeltaX < 2.5 * m_siStripPitch * clusterX->size()))
-                            {
-                                skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
-                                continue;
-                            }
-                        }
-                    }
+//                    if ((endLayer != 0 || !secondLayerTruncated) && skippedLayers < 2)
+//                    {
+//                        double truncDistX     = 0.;
+//                        double truncDistY     = 0.;
+//                        bool   inTruncRegionX = inTruncatedRegion(layerPtX, truncDistX);
+//                        bool   inTruncRegionY = inTruncatedRegion(layerPtY, truncDistY);
+//
+//                        // If both truncated then we should keep?
+//                        if (inTruncRegionX && inTruncRegionY)
+//                        {
+//                            skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
+//                            continue;
+//                        }
+//
+//                        // Ok, look at the possibilities here... 
+//                        // We are in a truncated region in X
+//                        if (inTruncRegionX)
+//                        {
+//                            if (siHitGapY || 
+//                               (clusterY && hitDeltaY < 2.5 * m_siStripPitch * clusterY->size()))
+//                            {
+//                                skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
+//                                continue;
+//                            }
+//                        }
+//                        
+//                        // We are in a truncated region in Y
+//                        if (inTruncRegionY)
+//                        {
+//                            if (siHitGapX ||
+//                               (clusterX && hitDeltaX < 2.5 * m_siStripPitch * clusterX->size()))
+//                            {
+//                                skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
+//                                continue;
+//                            }
+//                        }
+//                    }
 
                     // Are there bad clusters to explain this? 
                     // that check goes here...
