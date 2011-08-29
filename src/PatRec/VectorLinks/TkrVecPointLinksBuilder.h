@@ -42,6 +42,10 @@ public:
     // How many links do we have? 
     int                     getNumTkrVecPointsLinks()     {return m_numVecLinks;}
 
+    // Get information on average proposed link direction
+    Vector                  getLinkAveVec()               {return m_linkAveVec;}
+    double                  getNumAveLinks()              {return m_numAveLinks;}
+
     // To accommodate links that skip bilayers, everything stored in a map by number of
     // bilayers that get skipped
     typedef std::map<int, TkrVecPointsLinkVecVec> TkrVecPointsLinksByLayerMap;
@@ -109,6 +113,10 @@ private:
 
     /// We seem to use this a lot, keep track of it
     double                        m_siStripPitch;
+
+    /// Use for determining the average unit vector of all links considered
+    double                        m_numAveLinks;
+    Vector                        m_linkAveVec;
 
     /// We will use these objects but they are owned by TDS so we don't manage them
     Event::TkrVecPointsLinkCol*   m_tkrVecPointsLinkCol;
