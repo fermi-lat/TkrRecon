@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sun Aug 28 20:30:55 PDT 2011
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointLinksBuilder.cxx TkrVecPointLinksBuilder.h 
+Log Message:
+Rearrange slightly the order of link acceptance to fix some special cases, also apply projected width cut to all links
+    *
+------------------------------------------------------------
 User: usher  Sat Aug 27 09:55:55 PDT 2011
 TkrRecon/src/PatRec/VectorLinks
 
