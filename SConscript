@@ -1,7 +1,7 @@
 # -*- python -*-
-# $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/SConscript,v 1.48 2011/08/19 19:44:29 usher Exp $ 
+# $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/SConscript,v 1.49 2011/08/22 21:18:14 usher Exp $ 
 # Authors: Leon Rochester <lsrea@slac.stanford.edu>, Tracy Usher <usher@slac.stanford.edu>
-# Version: TkrRecon-10-26-01
+# Version: TkrRecon-10-26-02
 Import('baseEnv')
 Import('listFiles')
 Import('packages')
@@ -46,6 +46,7 @@ progEnv.Tool('registerTargets', package='TkrRecon',
              libraryCxts = [[TkrRecon,libEnv]],
              testAppCxts = [[test_TkrRecon, progEnv]],
              includes = listFiles(['TkrRecon/*'], recursive = 1),
+             xml=listFiles(files = ['xml/*'], recursive = True),
              jo = ['src/test/jobOptions.txt'])
 
 
