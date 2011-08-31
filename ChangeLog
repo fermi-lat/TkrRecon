@@ -1,13 +1,4 @@
 ------------------------------------------------------------
-User: heather  Wed Aug 31 10:50:13 PDT 2011
-TkrRecon
-
-Modified Files:
-	SConscript 
-Log Message:
-SCons patch for xml files setup
-    *
-------------------------------------------------------------
 User: usher  Sun Aug 28 20:30:55 PDT 2011
 TkrRecon/src/PatRec/VectorLinks
 
