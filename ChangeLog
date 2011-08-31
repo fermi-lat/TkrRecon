@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: heather  Wed Aug 31 10:50:14 PDT 2011
+TkrRecon/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+SCons patch for xml files setup
+    *
+------------------------------------------------------------
 User: heather  Wed Aug 31 10:50:13 PDT 2011
 TkrRecon
 
