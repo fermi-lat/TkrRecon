@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Sep  1 11:52:14 PDT 2011
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointLinksBuilder.cxx 
+Log Message:
+Fix bug in link building, trial allowing new starting condition
+    *
+------------------------------------------------------------
 User: usher  Thu Sep  1 11:52:12 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
