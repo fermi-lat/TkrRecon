@@ -30,6 +30,7 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtE
                                                    m_detSvc(detSvc),
                                                    m_clusTool(clusTool), 
                                                    m_reasonsTool(reasonsTool),
+                                                   m_eventAxis(0.,0.,1.),
                                                    m_evtEnergy(evtEnergy), 
                                                    m_nrmProjDistCut(1.25),
                                                    m_numVecLinks(0),
@@ -75,7 +76,13 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtE
     Event::TkrEventParams* tkrEventParams = 
         SmartDataPtr<Event::TkrEventParams>(m_dataSvc,EventModel::TkrRecon::TkrEventParams);
 
-    m_eventAxis      = tkrEventParams->getEventAxis();
+    // This is meant to be a unit vector and sometimes its not, check here
+    if (tkrEventParams->getEventAxis().mag() < 0.98)
+    {
+        int stopandfigurethisout = 0;
+    }
+
+    if (tkrEventParams->getEventAxis().mag() > 0.98) m_eventAxis = tkrEventParams->getEventAxis();
     m_toleranceAngle = M_PI;
 
     // Also look up the Tkr Filter information
@@ -245,6 +252,10 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
     // Get the second VecPointsVec
     const Event::TkrVecPointItrPair& secondPair = nextPointsItr->second;
 
+    // What is the "distance" between the start/stop iterators here?
+    int numFirstPoints  = std::distance(firstPair.first,  firstPair.second);
+    int numSecondPoints = std::distance(secondPair.first, secondPair.second);
+
     // Loop through the first and then second hits and build the pairs
     for (Event::TkrVecPointColPtr frstItr = firstPair.first; frstItr != firstPair.second; frstItr++)
     {
@@ -253,11 +264,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
         // Is this point usable?
         if (!firstPoint->isUsablePoint()) continue;
 
-        // Use the existing point to link relations if skipping layers
-////        std::vector<Event::TkrVecPointToLinksRel*> firstPointToLinkVec;
-        
-////        if (skipsLayers) firstPointToLinkVec = m_pointToLinksTab->getRelByFirst(firstPoint);
-
+        // Loop over the second hits
         for (Event::TkrVecPointColPtr scndItr = secondPair.first; scndItr != secondPair.second; scndItr++)
         {
             const Event::TkrVecPoint* secondPoint = *scndItr;
@@ -265,60 +272,61 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
             // Is this point usable?
             if (!secondPoint->isUsablePoint()) continue;
 
-            // We are going to require that both points are in the same tower
-            //if (firstPoint.getTower() != secondPoint.getTower()) continue;
-
-            // Looks like a good link... pre-calculate expected max scattering angle
-            // Determine a minimum "geometric" angle over the arc length between points
+            // Worth considering this link... 
+            // Start getting the layer information
             int    startLayer    = firstPoint->getLayer();
             int    endLayer      = secondPoint->getLayer();
             int    skippedLayers = startLayer - endLayer - 1;
 
+            // Get a vector from the first point to the second point
             Vector startToEnd = firstPoint->getPosition() - secondPoint->getPosition();
 
-            // Try to limit distance apart to no more than a tower width
+            // Use this to try to limit distance apart to no more than a tower width
             double startToEndMag  = startToEnd.magnitude();
             double startToEndDist = startToEndMag * sin(startToEnd.theta());
             double towerPitch     = m_tkrGeom->towerPitch();
-            double maxStartToEnd  = towerPitch;
-
-            // Make startToEnd a unit vector
-            startToEnd = startToEnd.unit();
+            double maxStartToEnd  = (1. + 0.2 * skippedLayers) * towerPitch;
 
             if (firstPoint->getTower() != secondPoint->getTower()) maxStartToEnd *= 0.5;
 
             if (startToEndDist > maxStartToEnd) continue;
 
+            // Really getting serious now, create an instance of a candidate link to facilitate
+            // further checking 
+            Event::TkrVecPointsLink* candLink    = new Event::TkrVecPointsLink(firstPoint, secondPoint, 0.);
+            const Vector&            candLinkVec = -candLink->getVector();
+
             // Keep track of average for case of adjacent layer links
             if (skippedLayers < 1)
             {
                 m_numAveLinks++;
-                m_linkAveVec += startToEnd;
+                m_linkAveVec += candLinkVec;
             }
 
             // Check angle link makes with event axis
             double toleranceAngle = m_toleranceAngle;
-            double cosTestAngle   = m_eventAxis.dot(startToEnd);
+            double cosTestAngle   = m_eventAxis.dot(candLinkVec);
             double testAngle      = acos(std::max(0.,std::min(1.,cosTestAngle)));
 
-            // Be stingy with angles on links that skip layers
-//            if (skippedLayers > 0) toleranceAngle /= 2. * skippedLayers;
-
-            if (testAngle > toleranceAngle) continue;
+            // If the test angle exceeds our tolerance then reject
+            if (testAngle > toleranceAngle) 
+            {
+                delete candLink;
+                continue;
+            }
 
             // Define angles in x and y planes here in case we loop over layers and need them
-            double cosPhi    = std::cos(startToEnd.phi());
-            double sinPhi    = std::sin(startToEnd.phi());
-            double tanTheta  = std::tan(startToEnd.theta());
-            double tanThetaX = fabs(cosPhi * tanTheta);
+            double tanThetaX = candLinkVec.x() / candLinkVec.z();
             double cosThetaX = sqrt(1. / (1. + tanThetaX * tanThetaX));
-            double tanThetaY = fabs(sinPhi * tanTheta);
+            double tanThetaY = candLinkVec.y() / candLinkVec.z();
             double cosThetaY = sqrt(1. / (1. + tanThetaY * tanThetaY));
 
             // Projected distance in the X and Y views for the proposed link
-            double projectX  = m_tkrGeom->siThickness() * tanThetaX;
-            double projectY  = m_tkrGeom->siThickness() * tanThetaY;
+            double projectX  = m_tkrGeom->siThickness() * fabs(tanThetaX);
+            double projectY  = m_tkrGeom->siThickness() * fabs(tanThetaY);
 
+            // Develop the logic to check that the projected widths are consistent with the observed
+            // cluster widths. Currently we use a best 3 of 4 logic to accept further processing
             bool   topXWidOk =  projectX / (firstPoint->getXCluster()->size() * m_siStripPitch)  < m_nrmProjDistCut;
             bool   topYWidOk =  projectY / (firstPoint->getYCluster()->size() * m_siStripPitch)  < m_nrmProjDistCut;
             bool   botXWidOk =  projectX / (secondPoint->getXCluster()->size() * m_siStripPitch) < m_nrmProjDistCut;
@@ -330,7 +338,11 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
 
             // skip if best3of4 is not true (which should include 4 of 4). Idea is that this allows case
             // where you have an edge hit, or dead strip, or something, without actually looking
-            if (!(best3of4)) continue;
+            if (!(best3of4)) 
+            {
+                delete candLink;
+                continue;
+            }
 
             // In the event of skipping layers links, set a status bit word to help determine what happened
             unsigned int skippedStatus = 0;
@@ -341,404 +353,294 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                 // Set up to loop through intervening layers to check if we should expect intermediate hits for 
                 // a "layer skipping" link
                 bool inActiveArea  = false;
+                    
+                // Use this to define search areas 
+                double topPointDist = firstPoint->getXCluster()->size()*firstPoint->getXCluster()->size()
+                                    + firstPoint->getYCluster()->size()*firstPoint->getYCluster()->size();
+                double botPointDist = secondPoint->getXCluster()->size()*secondPoint->getXCluster()->size()
+                                    + secondPoint->getYCluster()->size()*secondPoint->getYCluster()->size();
+                double searchDist   = 0.5 * m_siStripPitch * (sqrt(topPointDist) + sqrt(botPointDist));
+                double truncDistVar = 0.;
+
+                // Check that the last layer is not truncated
+                bool secondLayerTruncated = endLayer > 0 
+                                          ? false
+                                          : inTruncatedRegion(secondPoint->getXCluster()->position(), truncDistVar) || 
+                                            inTruncatedRegion(secondPoint->getYCluster()->position(), truncDistVar);
 
                 // Set up to loop over "missing" layers with the iterators passed in
                 Event::TkrLyrToVecPointItrMap::reverse_iterator intPointsItr = firstPointsItr;
                 int                                             intMissLyr   = startLayer; 
 
-                // If we have intermediate layers then do some checking
-                if (++intPointsItr != nextPointsItr)
+                // If an intervening missing layer then check for nearest hits
+                while(++intPointsItr != nextPointsItr)
                 {
-                    // Improve accuracy by adjusting starting vec point position for slope of the proposed link
-                    double cosToEnd = startToEnd.cosTheta();
-                    double linkZ    = firstPoint->getPosition().z();
-                    double aLen2X   = (firstPoint->getXCluster()->position().z() - linkZ) / cosToEnd;
-                    double linkX    = firstPoint->getXCluster()->position().x() - aLen2X * startToEnd.x();
-                    double aLen2Y   = (firstPoint->getYCluster()->position().z() - linkZ) / cosToEnd;
-                    double linkY    = firstPoint->getYCluster()->position().y() - aLen2Y * startToEnd.y();
+                    // Retrieve the vector of TkrVecPoints for this bilayer
+                    const Event::TkrVecPointItrPair& intPointsPair = intPointsItr->second;
 
-                    // Use this to define search areas 
-                    double topPointDist = firstPoint->getXCluster()->size()*firstPoint->getXCluster()->size()
-                                        + firstPoint->getYCluster()->size()*firstPoint->getYCluster()->size();
-                    double botPointDist = secondPoint->getXCluster()->size()*secondPoint->getXCluster()->size()
-                                        + secondPoint->getYCluster()->size()*secondPoint->getYCluster()->size();
-                    double searchDist   = 0.5 * m_siStripPitch * (sqrt(topPointDist) + sqrt(botPointDist));
-                    double truncDistVar = 0.;
+                    // Where are we? Unfortunately, we need to keep track of what layer we are looking at 
+                    // by keeping count through this loop...
+                    intMissLyr--;
 
-                    // Check that the last layer is not truncated
-                    bool secondLayerTruncated = endLayer > 0 
-                                              ? false
-                                              : inTruncatedRegion(secondPoint->getXCluster()->position(), truncDistVar) || 
-                                                inTruncatedRegion(secondPoint->getYCluster()->position(), truncDistVar);
-
-                    // If an intervening missing layer then check for nearest hits
-                    while(intPointsItr != nextPointsItr)
-                    {
-                        // Retrieve the vector of TkrVecPoints for this bilayer
-                        const Event::TkrVecPointItrPair& intPointsPair = intPointsItr->second;
-                        intPointsItr++;
-
-                        // What we do:
+                    // What we do:
           //ingore all this for now              // First we look for a TkrVecPoint "nearby". If this is true then we know we
-                        // aren't going to make a layer skipping link, but we can also then mark the 
-                        // intervening links as 'good'. 
-                        // After this step then we check to see if we are in (or close to) an active 
-                        // area in the x view
-                        // Then check the same for the y view
-                        // If in active area (or close enough) then we look for the nearest hit
-                        // And, finally, if the hit is "nearby" then we don't create a vector link here
-                        // 
-                        // So, start by setting up to see where the potential link will put us in x
-                        double zLayerX  = m_tkrGeom->getLayerZ(--intMissLyr, 0);
-                        double zLayerY  = m_tkrGeom->getLayerZ(intMissLyr, 1);
-                        double arcLen   = (linkZ - 0.5 * (zLayerX + zLayerY)) / cosToEnd;
-                        double arcLenX  = (linkZ - zLayerX) / cosToEnd;
-                        double arcLenY  = (linkZ - zLayerY) / cosToEnd;
+                    // aren't going to make a layer skipping link, but we can also then mark the 
+                    // intervening links as 'good'. 
+                    // After this step then we check to see if we are in (or close to) an active 
+                    // area in the x view
+                    // Then check the same for the y view
+                    // If in active area (or close enough) then we look for the nearest hit
+                    // And, finally, if the hit is "nearby" then we don't create a vector link here
+                    // 
+                    // So, start by setting up to see where the potential link will put us in x
+                    double zLayerX  = m_tkrGeom->getLayerZ(intMissLyr, 0);
+                    double zLayerY  = m_tkrGeom->getLayerZ(intMissLyr, 1);
+                    double zLayer   = 0.5 * (zLayerX + zLayerY);
 
-                        // The first thing we are going to do is check each of the sense planes for their 
-                        // distance to an edge. Start this up by getting the projected position in the X plane
-                        Point  layerPtX = Point(linkX - arcLenX * startToEnd.x(),
-                                                linkY - arcLenX * startToEnd.y(),
-                                                linkZ - arcLenX * startToEnd.z());
+                    // The first thing we are going to do is check each of the sense planes for their 
+                    // distance to an edge. Start this up by getting the projected position in the X plane
+                    Point  layerPtX = candLink->getPosition(zLayerX);
 
-                        // Initialize the reasons tool with the current point in this plane
-                        m_reasonsTool->setParams(layerPtX, -1);
+                    // Initialize the reasons tool with the current point in this plane
+                    m_reasonsTool->setParams(layerPtX, -1);
 
-                        // Retrieve the active distances to the edges in this tower
-                        Vector towerEdgeX = m_reasonsTool->getEdgeDistance();
+                    // Retrieve the active distances to the edges in this tower
+                    Vector towerEdgeX = m_reasonsTool->getEdgeDistance();
 
-                        // Retrieve the distance to any gaps we might be in
-                        Vector gapEdgeX = m_reasonsTool->getGapDistance();
+                    // Retrieve the distance to any gaps we might be in
+                    Vector gapEdgeX = m_reasonsTool->getGapDistance();
 
-                        // Now look where we might be in Y
-                        Point  layerPtY = Point(linkX - arcLenY * startToEnd.x(),
-                                                linkY - arcLenY * startToEnd.y(),
-                                                linkZ - arcLenY * startToEnd.z());
+                    // Now look where we might be in Y
+                    Point  layerPtY = candLink->getPosition(zLayerY);
 
-                        // Reinitialize the reasons tool to the Y plane 
-                        m_reasonsTool->setParams(layerPtY, -1);
+                    // Reinitialize the reasons tool to the Y plane 
+                    m_reasonsTool->setParams(layerPtY, -1);
 
-                        // Recover the active distance to the active area in the tower
-                        Vector towerEdgeY = m_reasonsTool->getEdgeDistance();
+                    // Recover the active distance to the active area in the tower
+                    Vector towerEdgeY = m_reasonsTool->getEdgeDistance();
 
-                        // Recover the active distance to any gaps
-                        Vector gapEdgeY = m_reasonsTool->getGapDistance();
+                    // Recover the active distance to any gaps
+                    Vector gapEdgeY = m_reasonsTool->getGapDistance();
 
-                        // The first big test is to see if we are in an intertower gap
-                        // Note that if the returned value for "towerEdge" is negative, we are outside 
-                        // the active area. Note that our test is to ACCEPT this link, at least at this
-                        // stage. As such, if we want to allow for edge effects then we need to set our
-                        // tolerance test to be slightly generous, meaning a positive value. And to allow
-                        // for edge/angle effects we also scale by the projected angle in the plane
-//  //                    static double towerEdgeTol = -2.0 * m_siStripPitch;
-                        double towerEdgeTolX = 2.0 * m_siStripPitch / fabs(cosThetaX);
-                        double towerEdgeTolY = 2.0 * m_siStripPitch / fabs(cosThetaY);
+                    // The first big test is to see if we are in an intertower gap
+                    // Note that if the returned value for "towerEdge" is negative, we are outside 
+                    // the active area. Note that our test is to ACCEPT this link, at least at this
+                    // stage. As such, if we want to allow for edge effects then we need to set our
+                    // tolerance test to be slightly generous, meaning a positive value. And to allow
+                    // for edge/angle effects we also scale by the projected angle in the plane
+//  //                static double towerEdgeTol = -2.0 * m_siStripPitch;
+                    double towerEdgeTolX = 2.0 * m_siStripPitch / fabs(cosThetaX);
+                    double towerEdgeTolY = 2.0 * m_siStripPitch / fabs(cosThetaY);
 
-                        // ***** ACCEPT LINK *****
-                        // Clearly in an inter tower gap
-                        if ((towerEdgeX.x() < towerEdgeTolX || towerEdgeX.y() < towerEdgeTolY) &&
-                            (towerEdgeY.x() < towerEdgeTolX || towerEdgeY.y() < towerEdgeTolY) )
+                    // ***** ACCEPT LINK *****
+                    // Clearly in an inter tower gap
+                    if ((towerEdgeX.x() < towerEdgeTolX || towerEdgeX.y() < towerEdgeTolY) &&
+                        (towerEdgeY.x() < towerEdgeTolX || towerEdgeY.y() < towerEdgeTolY) )
+                    {
+                        skippedStatus |= Event::TkrVecPointsLink::INTERTOWER;
+                        continue;
+                    }
+
+                    // Give a slightly tighter tolerance for the gap edges
+                    towerEdgeTolX *= 0.5;
+                    towerEdgeTolY *= 0.5;
+
+                    // ***** ACCEPT LINK *****
+                    // Clearly in a gap between wafers - negative active distance in both planes
+                    if ((gapEdgeX.x() < towerEdgeTolX || gapEdgeX.y() < towerEdgeTolY) &&
+                        (gapEdgeY.x() < towerEdgeTolX || gapEdgeY.y() < towerEdgeTolY) )
+                    {
+                        skippedStatus |= Event::TkrVecPointsLink::WAFERGAP;
+                        continue;
+                    }
+
+                    // If here we have no nearby hit and we believe we are in the confines of the active silicon. 
+                    // At this point we might be very near the edge, or in a gap in the middle of a tower. So, now 
+                    // test for that special case! 
+                    // First get the projected width of the link through the silicon
+                    double projectedX = fabs(m_tkrGeom->siThickness() * tanThetaX);
+                    double projectedY = fabs(m_tkrGeom->siThickness() * tanThetaY);
+
+                    // Add this to the "active distance" to get a number that should give us an idea of how much 
+                    // active silicon an edge hit would be seeing. Remember, "active distance" is negative if outside
+                    // the active area, positive if inside. If we add this to our projected distance, then we would get
+                    // zero if the link just clips the active silicon, it will be positive as we hit more silicon, negative
+                    // if we miss completely
+                    double siHitDistXx = gapEdgeX.x() - projectedX;
+                    double siHitDistXy = gapEdgeX.y() - projectedY;
+                    double siHitDistYx = gapEdgeY.x() - projectedX;
+                    double siHitDistYy = gapEdgeY.y() - projectedY;
+
+                    double nStripsEdgeTol = numFirstPoints * numSecondPoints > 4 ? 4. : 8; // Tighten this back up now that bug fixed nHitsInRange > 3 ? 4. : 8.;
+                    double gapEdgeTol     = nStripsEdgeTol * m_siStripPitch; 
+
+                    // Useful to break down
+                    bool siHitGapX = siHitDistXx < gapEdgeTol || siHitDistXy < gapEdgeTol;
+                    bool siHitGapY = siHitDistYx < gapEdgeTol || siHitDistYy < gapEdgeTol;
+
+                    // ***** ACCEPT THE LINK *****
+                    // If definitely in a gap in one plane and maybe in a gap in the other plane... 
+                    // Effectively this is the same test as above...
+                    if (((gapEdgeX.x() < 0. || gapEdgeX.y() < 0.) && siHitGapY) ||
+                        ((gapEdgeY.x() < 0. || gapEdgeY.y() < 0.) && siHitGapX) )
+                    {
+                        skippedStatus |= Event::TkrVecPointsLink::WAFERGAPPLUS;
+                        continue;
+                    }
+
+                    // ***** REJECT LINK *****
+                    // Restrict links from skipping too many layers "arbitrarily"
+                    // This means that links skipping more than two layers must be traversing all gaps
+                    if (skippedLayers > 2)
+                    {
+                        inActiveArea = true;
+                        break;
+                    }
+
+                    Event::TkrCluster* clusterX = m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureX, intMissLyr, 0., layerPtX);
+                    Event::TkrCluster* clusterY = m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureY, intMissLyr, 0., layerPtY);
+
+                    double hitDeltaX = clusterX ? fabs(layerPtX.x() - clusterX->position().x()) : 100.;
+                    double hitDeltaY = clusterY ? fabs(layerPtY.y() - clusterY->position().y()) : 100.;
+
+                    // Let's check to see if we are in a truncated region, but only if not on the bottom layer
+                    if ((endLayer != 0 || !secondLayerTruncated) && skippedLayers < 2)
+                    {
+                        double truncDistX     = 0.;
+                        double truncDistY     = 0.;
+                        bool   inTruncRegionX = inTruncatedRegion(layerPtX, truncDistX);
+                        bool   inTruncRegionY = inTruncatedRegion(layerPtY, truncDistY);
+
+                        // If both truncated then we should keep?
+                        if (inTruncRegionX && inTruncRegionY)
                         {
-                            skippedStatus |= Event::TkrVecPointsLink::INTERTOWER;
+                            skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
                             continue;
                         }
 
-                        // Give a slightly tighter tolerance for the gap edges
-                        towerEdgeTolX *= 0.5;
-                        towerEdgeTolY *= 0.5;
-
-                        // ***** ACCEPT LINK *****
-                        // Clearly in a gap between wafers - negative active distance in both planes
-                        if ((gapEdgeX.x() < towerEdgeTolX || gapEdgeX.y() < towerEdgeTolY) &&
-                            (gapEdgeY.x() < towerEdgeTolX || gapEdgeY.y() < towerEdgeTolY) )
+                        // Ok, look at the possibilities here... 
+                        // We are in a truncated region in X
+                        if (inTruncRegionX)
                         {
-                            skippedStatus |= Event::TkrVecPointsLink::WAFERGAP;
-                            continue;
-                        }
-
-                        // Get point at midplane
-                        Point  layerPt  = Point(linkX - arcLen * startToEnd.x(),
-                                                linkY - arcLen * startToEnd.y(),
-                                                linkZ - arcLen * startToEnd.z());
-
-                        double distToNearestVecPoint = 0.25 * towerPitch;
-                        int    nHitsInRange          = 0;
-                        const Event::TkrVecPoint* nearestHit = findNearestTkrVecPoint(intPointsPair, layerPt, distToNearestVecPoint, nHitsInRange);
-//  //                
-//  //                    // If we found a hit nearby then the first thing to do is to check and see if 
-//  //                    // that hit lies on this link. If so then we are going to reject the link
-//  //                    if (nearestHit && distToNearestVecPoint < 0.2 * towerPitch)
-//  //                    {
-//  //                        double sigmaX    = nearestHit->getXCluster()->size();
-//  //                        double sigmaY    = nearestHit->getYCluster()->size();
-//  //                        double quadSigma = sqrt(sigmaX*sigmaX + sigmaY*sigmaY);
-//  //                        double scaleFctr = 10. * skippedLayers * m_siStripPitch;
-////
-//  //                        // scale back the scalefctr if possibly in a gap
-//  //                        if (gapEdgeX.x() < 0. || gapEdgeX.y() < 0. || gapEdgeY.x() < 0. || gapEdgeY.y() < 0.) 
-//  //                        {
-//  //                            scaleFctr *= 0.5;
-//  //                        }
-////
-//  //                        // ***** REJECT LINK *****
-//  //                        // There is a TkrVecPoint within tolerance
-//  //                        if (distToNearestVecPoint < scaleFctr * quadSigma)
-//  //                        {
-//  //                            inActiveArea = true;
-//  //                            break;
-//  //                        }
-//  //                    }
-
-                        // If here we have no nearby hit and we believe we are in the confines of the active silicon. 
-                        // At this point we might be very near the edge, or in a gap in the middle of a tower. So, now 
-                        // test for that special case! 
-                        // First get the projected width of the link through the silicon
-                        double projectedX = fabs(m_tkrGeom->siThickness() * startToEnd.x() / startToEnd.z());
-                        double projectedY = fabs(m_tkrGeom->siThickness() * startToEnd.y() / startToEnd.z());
-
-                        // Add this to the "active distance" to get a number that should give us an idea of how much 
-                        // active silicon an edge hit would be seeing. Remember, "active distance" is negative if outside
-                        // the active area, positive if inside. If we add this to our projected distance, then we would get
-                        // zero if the link just clips the active silicon, it will be positive as we hit more silicon, negative
-                        // if we miss completely
-                        double siHitDistXx = gapEdgeX.x() - projectedX;
-                        double siHitDistXy = gapEdgeX.y() - projectedY;
-                        double siHitDistYx = gapEdgeY.x() - projectedX;
-                        double siHitDistYy = gapEdgeY.y() - projectedY;
-
-                        static double nStripsEdgeTol = nHitsInRange > 3 ? 4. : 8.;
-                        static double gapEdgeTol     = nStripsEdgeTol * m_siStripPitch; 
-
-                        // Useful to break down
-                        bool siHitGapX = siHitDistXx < gapEdgeTol || siHitDistXy < gapEdgeTol;
-                        bool siHitGapY = siHitDistYx < gapEdgeTol || siHitDistYy < gapEdgeTol;
-
-                        // ***** ACCEPT THE LINK *****
-                        // If definitely in a gap in one plane and maybe in a gap in the other plane... 
-                        if (((gapEdgeX.x() < 0. || gapEdgeX.y() < 0.) && siHitGapY) ||
-                            ((gapEdgeY.x() < 0. || gapEdgeY.y() < 0.) && siHitGapX) )
-                        {
-                            skippedStatus |= Event::TkrVecPointsLink::WAFERGAPPLUS;
-                            continue;
-                        }
-
-                        // ***** REJECT LINK *****
-                        // Restrict links from skipping too many layers "arbitrarily"
-                        if (skippedLayers > 2)
-                        {
-                            inActiveArea = true;
-                            break;
-                        }
-
-                        Event::TkrCluster* clusterX = m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureX, intMissLyr, 0., layerPtX);
-                        Event::TkrCluster* clusterY = m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureY, intMissLyr, 0., layerPtY);
-
-                        double hitDeltaX = clusterX ? fabs(layerPtX.x() - clusterX->position().x()) : 100.;
-                        double hitDeltaY = clusterY ? fabs(layerPtY.y() - clusterY->position().y()) : 100.;
-
-                        // Let's check to see if we are in a truncated region, but only if not on the bottom layer
-                        if ((endLayer != 0 || !secondLayerTruncated) && skippedLayers < 2)
-                        {
-                            double truncDistX     = 0.;
-                            double truncDistY     = 0.;
-                            bool   inTruncRegionX = inTruncatedRegion(layerPtX, truncDistX);
-                            bool   inTruncRegionY = inTruncatedRegion(layerPtY, truncDistY);
-
-                            // If both truncated then we should keep?
-                            if (inTruncRegionX && inTruncRegionY)
+                            if (siHitGapY || 
+                               (clusterY && hitDeltaY < 2.5 * m_siStripPitch * clusterY->size()))
                             {
                                 skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
                                 continue;
                             }
-
-                            // Ok, look at the possibilities here... 
-                            // We are in a truncated region in X
-                            if (inTruncRegionX)
+                        }
+                        
+                        // We are in a truncated region in Y
+                        if (inTruncRegionY)
+                        {
+                            if (siHitGapX ||
+                               (clusterX && hitDeltaX < 2.5 * m_siStripPitch * clusterX->size()))
                             {
-                                if (siHitGapY || 
-                                   (clusterY && hitDeltaY < 2.5 * m_siStripPitch * clusterY->size()))
-                                {
-                                    skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
-                                    continue;
-                                }
-                            }
-                            
-                            // We are in a truncated region in Y
-                            if (inTruncRegionY)
-                            {
-                                if (siHitGapX ||
-                                   (clusterX && hitDeltaX < 2.5 * m_siStripPitch * clusterX->size()))
-                                {
-                                    skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
-                                    continue;
-                                }
+                                skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
+                                continue;
                             }
                         }
+                    }
 
-                        // At this point we are in the general active silicon and are definitely not in a gap (both planes). We are 
-                        // either in active silicon expecting a hit in both planes, or might be in a gap in one plane... if the latter 
-                        // we want to make sure we have a hit near in the active plane. 
-                        // The silicon is not 100% efficient, though nearly so, so if we are here then we **think** about whether we 
-                        // should let it go... One thing... let's see how many hits are "nearby"... this will help us decide if we
-                        // might be in the core of a shower and probably not willing to make the link
-//  //                    double nearDist   = 50. * m_siStripPitch;
-//  //                    int    numNearInX = m_clusTool->numberOfHitsNear(idents::TkrId::eMeasureX, intMissLyr, nearDist, layerPtX);
-//  //                    int    numNearInY = m_clusTool->numberOfHitsNear(idents::TkrId::eMeasureY, intMissLyr, nearDist, layerPtY);
+                    // At this point we are in the general active silicon and are definitely not in a gap (both planes). We are 
+                    // either in active silicon expecting a hit in both planes, or might be in a gap in one plane... if the latter 
+                    // we want to make sure we have a hit near in the active plane. 
+                    // The silicon is not 100% efficient, though nearly so, so if we are here then we **think** about whether we 
+                    // should let it go... One thing... let's see how many hits are "nearby"... this will help us decide if we
+                    // might be in the core of a shower and probably not willing to make the link
+                
+                    // If we found a hit nearby then the first thing to do is to check and see if 
+                    // that hit lies on this link. If so then we are going to reject the link
+                    // Get point at midplane
+                    Point  layerPt  = candLink->getPosition(zLayer);
 
-//  //                    if (numNearInX > 2 && numNearInY > 2)
-//  //                    {
-//  //                        inActiveArea = true;
-//  //                        break;
-//  //                    }
+                    double distToNearestVecPoint = 0.25 * towerPitch;
+                    int    nHitsInRange          = 0;
+                    const Event::TkrVecPoint* nearestHit = findNearestTkrVecPoint(intPointsPair, layerPt, distToNearestVecPoint, nHitsInRange);
 
-//  //                    double distToNearestVecPoint = 0.;
-//  //                    const Event::TkrVecPoint* nearestHit = findNearestTkrVecPoint(intPointsPair, layerPt, distToNearestVecPoint);
-//  //                
-//  //                    // If we found a hit nearby then the first thing to do is to check and see if 
-//  //                    // that hit lies on this link. If so then we are going to reject the link
-//  //                    if (nearestHit)
-//  //                    {
-//  //                        // Get the delta to this hit
-//  //                        Vector deltaPos = nearestHit->getPosition() - layerPt;
-//  //                
-//  //                        // Get difference between cluster positions and link projected positions
-//  //                        double deltaProjX  = fabs(deltaPos.x());
-//  //                        double deltaProjY  = fabs(deltaPos.y());
-//  //                
-//  //                        // Should this cluster be on the link we are trying to make?
-//  //                        if (deltaProjX < 1.5 * skippedLayers * m_siStripPitch * nearestHit->getXCluster()->size() &&
-//  //                            deltaProjY < 1.5 * skippedLayers * m_siStripPitch * nearestHit->getYCluster()->size()) 
-//  //                        {
-//  //                            inActiveArea = true;
-//  //                            break;
-//  //                        }
-//  //                    }
-                    
-                        // If we found a hit nearby then the first thing to do is to check and see if 
-                        // that hit lies on this link. If so then we are going to reject the link
-                        if (nearestHit && distToNearestVecPoint < 0.2 * towerPitch)
+                    if (nearestHit && distToNearestVecPoint < 0.2 * towerPitch)
+                    {
+                        double sigmaX    = nearestHit->getXCluster()->size();
+                        double sigmaY    = nearestHit->getYCluster()->size();
+                        double quadSigma = sqrt(sigmaX*sigmaX + sigmaY*sigmaY);
+                        double scaleFctr = 10. * skippedLayers * m_siStripPitch;
+
+                        // scale back the scalefctr if possibly in a gap
+                        if (gapEdgeX.x() < 0. || gapEdgeX.y() < 0. || gapEdgeY.x() < 0. || gapEdgeY.y() < 0.) 
                         {
-                            double sigmaX    = nearestHit->getXCluster()->size();
-                            double sigmaY    = nearestHit->getYCluster()->size();
-                            double quadSigma = sqrt(sigmaX*sigmaX + sigmaY*sigmaY);
-                            double scaleFctr = 10. * skippedLayers * m_siStripPitch;
-
-                            // scale back the scalefctr if possibly in a gap
-                            if (gapEdgeX.x() < 0. || gapEdgeX.y() < 0. || gapEdgeY.x() < 0. || gapEdgeY.y() < 0.) 
-                            {
-                                scaleFctr *= 0.5;
-                            }
-
-                            // ***** REJECT LINK *****
-                            // There is a TkrVecPoint within tolerance
-                            if (distToNearestVecPoint < scaleFctr * quadSigma)
-                            {
-                                inActiveArea = true;
-                                break;
-                            }
-                        }
-
-                        // We do not have a TkrVecPoint nearby that we should be "on", look at the less restrictive
-                        // case that a single cluster is nearby in one plane or the other
-                        // Start by retrieving the nearest cluster (if one exists)
-//  //                    Event::TkrCluster* clusterX = m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureX, intMissLyr, 0., layerPtX);
-//  //                    Event::TkrCluster* clusterY = m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureY, intMissLyr, 0., layerPtY);
-
-//  //                    double hitDeltaX = clusterX ? fabs(layerPtX.x() - clusterX->position().x()) : 100.;
-//  //                    double hitDeltaY = clusterY ? fabs(layerPtY.y() - clusterY->position().y()) : 100.;
-
-                        if (siHitGapX || siHitGapY)
-                        {
-                            // Case: in a gap in the X plane, on cluster in the Y plane
-                            if (siHitGapX && clusterY && hitDeltaY < 2.5 * m_siStripPitch * clusterY->size()) 
-                            {
-                                skippedStatus |= Event::TkrVecPointsLink::GAPANDCLUS;
-                                continue;
-                            }
-
-                            // Case: in a gap in the Y plane, on cluster in the X plane
-                            if (siHitGapY && clusterX && hitDeltaX < 2.5 * skippedLayers * m_siStripPitch * clusterX->size()) 
-                            {
-                                skippedStatus |= Event::TkrVecPointsLink::GAPANDCLUS;
-                                continue;
-                            }
-
-                            // ***** ACCEPT LINK *****
-                            // A special case where we are close to a gap AND there are not hits/clusters anywhere nearby
-                            if (siHitGapX && siHitGapY && distToNearestVecPoint >= towerPitch && (hitDeltaX > 40. || hitDeltaY > 40.))
-                            {
-                                skippedStatus |= Event::TkrVecPointsLink::GAPANDCLUS;
-                                continue;
-                            }
+                            scaleFctr *= 0.5;
                         }
 
                         // ***** REJECT LINK *****
-                        // At this point restrict to the same tower?
-                        if (firstPoint->getTower() != secondPoint->getTower()) 
+                        // There is a TkrVecPoint within tolerance
+                        if (distToNearestVecPoint < scaleFctr * quadSigma)
                         {
                             inActiveArea = true;
                             break;
                         }
+                    }
 
-                        // If we are here we have checked
-                        // 1) the proposed link crosses the planes of this bilayer in the intertower gap
-                        // 2) both points at the plane crossing are in a gap
-                        // 3) neither points are in a gap and there is no nearby hit
-                        // 4) the proposed link is in a gap in one plane and "on" a cluster in the other plane
-                        // What's left to check?
-                        // 1) One plane is in a gap, the other has no nearby cluster
-                        // 2) Neither plane is in a gap and there are no nearby clusters in either plane
+                    // We do not have a TkrVecPoint nearby that we should be "on", look at the less restrictive
+                    // case that a single cluster is nearby in one plane or the other
+                    // Start by retrieving the nearest cluster (if one exists)
+                    if (siHitGapX || siHitGapY)
+                    {
+                        // Case: in a gap in the X plane, on cluster in the Y plane
+                        if (siHitGapX && clusterY && hitDeltaY < 2.5 * m_siStripPitch * clusterY->size()) 
+                        {
+                            skippedStatus |= Event::TkrVecPointsLink::GAPANDCLUS;
+                            continue;
+                        }
 
-                        // Let's check to see if we are in a truncated region, but only if not on the bottom layer
-//  //                    if ((endLayer != 0 || !secondLayerTruncated) && skippedLayers < 2)
-//  //                    {
-//  //                        double truncDistX     = 0.;
-//  //                        double truncDistY     = 0.;
-//  //                        bool   inTruncRegionX = inTruncatedRegion(layerPtX, truncDistX);
-//  //                        bool   inTruncRegionY = inTruncatedRegion(layerPtY, truncDistY);
-////
-//  //                        // If both truncated then we should keep?
-//  //                        if (inTruncRegionX && inTruncRegionY)
-//  //                        {
-//  //                            skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
-//  //                            continue;
-//  //                        }
-////
-//  //                        // Ok, look at the possibilities here... 
-//  //                        // We are in a truncated region in X
-//  //                        if (inTruncRegionX)
-//  //                        {
-//  //                            if (siHitGapY || 
-//  //                               (clusterY && hitDeltaY < 2.5 * m_siStripPitch * clusterY->size()))
-//  //                            {
-//  //                                skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
-//  //                                continue;
-//  //                            }
-//  //                        }
-//  //                        
-//  //                        // We are in a truncated region in Y
-//  //                        if (inTruncRegionY)
-//  //                        {
-//  //                            if (siHitGapX ||
-//  //                               (clusterX && hitDeltaX < 2.5 * m_siStripPitch * clusterX->size()))
-//  //                            {
-//  //                                skippedStatus |= Event::TkrVecPointsLink::TRUNCATED;
-//  //                                continue;
-//  //                            }
-//  //                        }
-//  //                    }
+                        // Case: in a gap in the Y plane, on cluster in the X plane
+                        if (siHitGapY && clusterX && hitDeltaX < 2.5 * skippedLayers * m_siStripPitch * clusterX->size()) 
+                        {
+                            skippedStatus |= Event::TkrVecPointsLink::GAPANDCLUS;
+                            continue;
+                        }
 
-                        // Are there bad clusters to explain this? 
-                        // that check goes here...
+                        // ***** ACCEPT LINK *****
+                        // A special case where we are close to a gap AND there are not hits/clusters anywhere nearby
+                        if (siHitGapX && siHitGapY && distToNearestVecPoint >= towerPitch && (hitDeltaX > 40. || hitDeltaY > 40.))
+                        {
+                            skippedStatus |= Event::TkrVecPointsLink::GAPANDCLUS;
+                            continue;
+                        }
+                    }
 
-                        // Otherwise, we're outa here
+                    // ***** REJECT LINK *****
+                    // At this point restrict to the same tower?
+                    if (firstPoint->getTower() != secondPoint->getTower()) 
+                    {
                         inActiveArea = true;
                         break;
                     }
+
+                    // If we are here we have checked
+                    // 1) the proposed link crosses the planes of this bilayer in the intertower gap
+                    // 2) both points at the plane crossing are in a gap
+                    // 3) neither points are in a gap and there is no nearby hit
+                    // 4) the proposed link is in a gap in one plane and "on" a cluster in the other plane
+                    // What's left to check?
+                    // 1) One plane is in a gap, the other has no nearby cluster
+                    // 2) Neither plane is in a gap and there are no nearby clusters in either plane
+
+                    // Let's check to see if we are in a truncated region, but only if not on the bottom layer
+
+                    // Are there bad clusters to explain this? 
+                    // that check goes here...
+
+                    // Otherwise, we're outa here
+                    inActiveArea = true;
+                    break;
                 }
 
                 // If result of above check is that there are nearby points then we don't proceed to make a link
-                if (inActiveArea) continue;
+                if (inActiveArea) 
+                {
+                    delete candLink;
+                    continue;
+                }
             }
 
             // Now determine an expected angle due to MS 
@@ -775,21 +677,23 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                 const_cast<Event::TkrVecPoint*>(secondPoint)->setLinkBotHit();
             }
 
-            Event::TkrVecPointsLink* tkrVecPointsLink = new Event::TkrVecPointsLink(firstPoint, secondPoint, maxAngle);
-            m_tkrVecPointsLinkCol->push_back(tkrVecPointsLink);
-            if (m_fillInternalTables) linkStoreVec.back().push_back(tkrVecPointsLink);
+            candLink->setMaxScatAngle(maxAngle);
+
+            // Give ownership of the candidate link to the TDS and fill our tables
+            m_tkrVecPointsLinkCol->push_back(candLink);
+            if (m_fillInternalTables) linkStoreVec.back().push_back(candLink);
 
             // Update any layer skipping info
-            if      (skippedLayers == 1) tkrVecPointsLink->setSkip1Layer();
-            else if (skippedLayers == 2) tkrVecPointsLink->setSkip2Layer();
-            else if (skippedLayers == 3) tkrVecPointsLink->setSkip3Layer();
-            else if (skippedLayers >  3) tkrVecPointsLink->setSkipNLayer();
+            if      (skippedLayers == 1) candLink->setSkip1Layer();
+            else if (skippedLayers == 2) candLink->setSkip2Layer();
+            else if (skippedLayers == 3) candLink->setSkip3Layer();
+            else if (skippedLayers >  3) candLink->setSkipNLayer();
 
-            tkrVecPointsLink->updateStatusBits(skippedStatus);
+            candLink->updateStatusBits(skippedStatus);
 
             // Finally, create a relation between the top TkrVecPoint and this link
             Event::TkrVecPointToLinksRel* pointToLink = 
-                    new Event::TkrVecPointToLinksRel(const_cast<Event::TkrVecPoint*>(firstPoint), tkrVecPointsLink);
+                    new Event::TkrVecPointToLinksRel(const_cast<Event::TkrVecPoint*>(firstPoint), candLink);
             if (!m_pointToLinksTab->addRelation(pointToLink)) delete pointToLink;
         }
     }
