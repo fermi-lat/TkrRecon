@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Sep  1 11:52:12 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrVecNodesBuilder.cxx 
+Log Message:
+Fix bug in link building, trial allowing new starting condition
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-19-03-06, operation: add
 Package: TkrRecon
