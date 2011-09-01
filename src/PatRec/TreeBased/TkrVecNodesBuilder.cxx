@@ -64,7 +64,7 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(TkrVecPointLinksBuilder& vecPointLinksBld
     }
 
     // Value for the link displacement cut
-    m_linkNrmDispCutMin = 0.25;
+    m_linkNrmDispCutMin = 0.25;  // This actually needs to somehow depend on energy...
     m_linkNrmDispCut    = 0.25;
 
     return;
@@ -96,7 +96,7 @@ int TkrVecNodesBuilder::buildTrackElements()
     // Check the possible combinations, if not too large then expand this cut a bit?
     if (m_vecPointLinksBldr.getNumTkrVecPointsLinks() < 100) 
     {
-        m_linkNrmDispCut = 2. * m_linkNrmDispCutMin;
+        m_linkNrmDispCut = 5. * m_linkNrmDispCutMin;
     }
 
     // Start your engines! 
@@ -289,8 +289,14 @@ void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, 
                 // Get link associated to this point
                 Event::TkrVecPointsLink* nextLink = (*ptToLinkItr)->getSecond();
 
-                // If this is a head node then we are not allowed to start with a link skipping 2 bilayers
-                if (!bestNode->getParentNode() && (nextLink->skip2Layer() || nextLink->skip3Layer())) continue;
+                // If this is a head node then we are not allowed to start with a link skipping 
+                // more than 2 bilayers (except if we know we have clusters)
+                if (   !bestNode->getParentNode() 
+                    && ((nextLink->skip2Layer() && !(nextLink->getStatusBits() & Event::TkrVecPointsLink::GAPANDCLUS))
+                        || nextLink->skip3Layer() 
+                        || nextLink->skipNLayer())
+                   ) 
+                    continue;
 
                 // More complicated version of the above but allowing skipping if no links already
                 if (   !bestNode->getParentNode()                              // We are a head node with no parent
@@ -483,7 +489,12 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
             Event::TkrVecNode* curNode = (*ptToNodesItr)->getSecond();
 
             // If this is a head node then we are not allowed to start with a link skipping 2 bilayers
-            if (!curNode->getParentNode() && (curLink->skip2Layer() || curLink->skip3Layer())) continue;
+            if (   !curNode->getParentNode() 
+                && ((curLink->skip2Layer() && !(curLink->getStatusBits() & Event::TkrVecPointsLink::GAPANDCLUS))
+                    || curLink->skip3Layer() 
+                    || curLink->skipNLayer())
+               ) 
+                continue;
 
             // More complicated version of the above but allowing skipping if no links already
             if (   !curNode->empty() 
