@@ -90,7 +90,7 @@ private:
     /// Remove relations 
     void   removeRelations(Event::TkrVecNode* node);
 
-    /// For determining the displacement of one TkrVecPoint relative to another
+    /// Pointer to the local Tracker geometry service
     //Vector getLinkDisplacement(const Event::TkrVecPointsLink* firstLink, const Event::TkrVecPointsLink* secondLink);
 
     /// Pointer to the local Tracker geometry service
