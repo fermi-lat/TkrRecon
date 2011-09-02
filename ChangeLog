@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Fri Sep  2 15:48:26 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeBuilder.cxx TkrTreeBuilder.h TkrVecNodesBuilder.cxx 
+	TkrVecNodesBuilder.h TreeBasedTool.cxx 
+	TreeCalClusterAssociator.cxx TreeCalClusterAssociator.h 
+Log Message:
+Tightening up constraints on link building and also some fixes for tree building
+    *
+------------------------------------------------------------
 User: usher  Thu Sep  1 11:52:14 PDT 2011
 TkrRecon/src/PatRec/VectorLinks
 
