@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Fri Sep  2 15:48:26 PDT 2011
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointLinksBuilder.cxx 
+Log Message:
+Tightening up constraints on link building and also some fixes for tree building
+    *
+------------------------------------------------------------
+User: usher  Fri Sep  2 15:48:26 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
 Modified Files:
