@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.5 2010/12/19 18:37:00 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.6 2011/07/13 04:06:36 usher Exp $
  *
 */
 
@@ -15,7 +15,6 @@
 
 #include <iterator>
 
-// Forward declaration
 Vector getLinkDisplacement(const Event::TkrVecPointsLink* firstLink, const Event::TkrVecPointsLink* secondLink);
 
 TkrVecNodesBuilder::TkrVecNodesBuilder(TkrVecPointLinksBuilder& vecPointLinksBldr,
@@ -90,7 +89,7 @@ int TkrVecNodesBuilder::buildTrackElements()
 
     headNodes.clear();
 
-    // Reset the link displacement cut
+    // Start your engines! 
     m_linkNrmDispCut = m_linkNrmDispCutMin;
 
     // Check the possible combinations, if not too large then expand this cut a bit?
@@ -130,6 +129,7 @@ int TkrVecNodesBuilder::buildTrackElements()
         bool               keepNode = false;
 
         // Update the parameters to their "final" state
+        headNode->setRmsAngleInfo(0., 0);
         updateTreeParams(headNode);
 
         // Clean out any garbage first branches
@@ -174,21 +174,8 @@ public:
         if (( left->getSecond()->getStatusBits() & Event::TkrVecPointsLink::SKIPSLAYERS) ==
             (right->getSecond()->getStatusBits() & Event::TkrVecPointsLink::SKIPSLAYERS) )
         {
-            Vector leftDisp  = getLinkDisplacement(m_baseLink, left->getSecond());
-            Vector rightDisp = getLinkDisplacement(m_baseLink, right->getSecond());
-
-            // Get the maximum displacement in either projection
-            double leftMax   = std::max(leftDisp.x(),  leftDisp.y());
-            double rightMax  = std::max(rightDisp.x(), rightDisp.y());
-
-            // If both overlap then take the best angle
-            if (leftMax < 0.25 && rightMax < 0.25)
-            {
-                return m_baseLink->getVector().dot(left->getSecond()->getVector()) 
-                          > m_baseLink->getVector().dot(right->getSecond()->getVector());
-            }
-            // otherwise we order by displacement
-            else return leftMax < rightMax;
+            return m_baseLink->getVector().dot(left->getSecond()->getVector()) 
+                      > m_baseLink->getVector().dot(right->getSecond()->getVector());
         }
         else
         {
@@ -289,7 +276,7 @@ void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, 
                 // Get link associated to this point
                 Event::TkrVecPointsLink* nextLink = (*ptToLinkItr)->getSecond();
 
-                // If this is a head node then we are not allowed to start with a link skipping 
+                // If this is a head node then we are not allowed to start with a link skipping 2 bilayers
                 // more than 2 bilayers (except if we know we have clusters)
                 if (   !bestNode->getParentNode() 
                     && ((nextLink->skip2Layer() && !(nextLink->getStatusBits() & Event::TkrVecPointsLink::GAPANDCLUS))
@@ -304,6 +291,7 @@ void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, 
                     && !nextLink->skip1Layer()                                 // And it skips more than one bilayer
                     && !bestNode->empty()                                      // We have nodes already attached
                     && !bestNode->front()->getAssociatedLink()->skipsLayers()) // The first one does not skip any layers
+//                    &&  nextLink->skipsLayers()) 
                     continue;
 
                 // Can't attach links that skip layers to a node/link that already skips layers
@@ -317,21 +305,21 @@ void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, 
                 // We next want to check the angle to the "best" node...
                 // So, get angle between links. 
                 // Also use this as an opportunity to make one last rejection cut (on distance between links)
-                double angleToNode = nextLink->getMaxScatAngle();
-                Vector linkDispVec(0., 0., 0.);
+                double angleToNode = 0.;
 
                 // In the case of a starting node there is no associated link... but if we have associated link
                 // then check the distance of closest approach between the point and the link
                 if (bestNode->getAssociatedLink())
                 {
                     angleToNode = nextLink->angleToNextLink(*bestNode->getAssociatedLink());
-                    linkDispVec = getLinkDisplacement(bestNode->getAssociatedLink(), nextLink);
+                
+                    Vector pointDiff = nextLink->getPosition() - bestNode->getAssociatedLink()->getBotPosition();
 
-                    // Determine whether the two points actually overlap
-                    double overlap = std::max(linkDispVec.x(), linkDispVec.y());
+                    double xDiffNorm = fabs(pointDiff.x()) / (stripPitch * nextLink->getFirstVecPoint()->getXCluster()->size());
+                    double yDiffNorm = fabs(pointDiff.y()) / (stripPitch * nextLink->getFirstVecPoint()->getYCluster()->size());
 
-                    // This is a little bit generous, requires both out of range to reject
-                    if (overlap > m_linkNrmDispCut) continue;
+                    // Reject outright bad combinations
+                    if (xDiffNorm > m_qSumDispAttachCut || yDiffNorm > m_qSumDispAttachCut) continue;
                 }
 
                 // Update angle information at this point
@@ -455,9 +443,6 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
     // Pointer to the winning node
     Event::TkrVecPointToNodesRel* bestNodeRel = 0;
 
-    int numPointsToLinks = pointToLinkVec.size();
-    int numPointsToNodes = pointToNodesVec.size();
-
     // If nothing to do then no point continuing! 
     if (pointToNodesVec.empty()) return bestNodeRel;
 
@@ -502,6 +487,7 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
                 && !curNode->getParentNode()                             // same thing as? curNode->getTreeStartLayer() == curNode->getCurrentBiLayer() 
                 &&  curLink->skipsLayers()
                 && !curLink->skip1Layer()) 
+//                &&  curLink->skipsLayers()) 
                  continue;
 
             // Can't attach links that skip layers to a node/link that already skips layers
@@ -512,18 +498,25 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
 
             // Start by updating the rms angle information for the "updateNode"
             double angleToNode = curLink->getMaxScatAngle();
-            Vector linkDispVec(0., 0., 0.);
+            double dBtwnPoints = 0.;
+            double quadSum     = 100.;
 
             if (curNode->getAssociatedLink())
             {
                 angleToNode = curLink->angleToNextLink(*curNode->getAssociatedLink());
-                linkDispVec  = getLinkDisplacement(curNode->getAssociatedLink(), curLink);
+                
+                Vector pointDiff = curLinkPos - curNode->getAssociatedLink()->getBotPosition();
+                dBtwnPoints = pointDiff.mag();
 
-                // Get variable that determines overlap
-                double overlap = std::max(linkDispVec.x(), linkDispVec.y());
+                double xDiffNorm = fabs(pointDiff.x()) / (stripPitch * xCluster->size());
+                double yDiffNorm = fabs(pointDiff.y()) / (stripPitch * yCluster->size());
 
-//                if ((nrmDispVec.x() > m_linkNrmDispCut && nrmDispVec.y() > m_linkNrmDispCut) || angleToNode > m_bestAngleToNodeCut) continue;
-                if (overlap > m_linkNrmDispCut || angleToNode > m_bestAngleToNodeCut) continue;
+                // This attempts to weed out "ghost" points/links since they most likely will 
+                // result in very poor tail to head matches
+                if ((xDiffNorm > m_bestqSumDispCut || yDiffNorm > m_bestqSumDispCut) && angleToNode > m_bestAngleToNodeCut)
+                {
+                    continue;
+                }
             }
 
             // Update angle information at this point
@@ -531,10 +524,7 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
             double rmsAngle    = curNode->getRmsAngleSum() + angleToNode * angleToNode;
 
             // Is this a good match in terms of angle?
-            // The first part below is an attempt to prevent selection of beginning nodes over longer branches 
-            // solely because the rmsAngle is effectively zero
-//            if ((bestNumRmsSum <= 2 && numInAngSum > 3) || rmsAngle / double(numInAngSum) < bestRmsAngle) 
-            if ((numInAngSum > 2 && rmsAngle / double(numInAngSum) < bestRmsAngle) || (numInAngSum < 3 && angleToNode < bestAngle))
+            if ((bestNumRmsSum <= 2 && numInAngSum > 3) || rmsAngle / double(numInAngSum) < bestRmsAngle) 
             {
                 bestAngle     = angleToNode;
                 bestRmsAngle  = rmsAngle / double(numInAngSum);
@@ -888,21 +878,22 @@ void TkrVecNodesBuilder::updateTreeParams(Event::TkrVecNode* updateNode)
             Event::TkrVecNode* daughter = *nodeItr;
 
             // Start by updating the rms angle information for the "updateNode"
-            double angleToNode = 0.;
+            double rmsAngle = updateNode->getRmsAngleSum();
+            int    numInSum = updateNode->getNumAnglesInSum();
 
+            // If there is a link then we need to get the new angle information
             if (updateNode->getAssociatedLink())
             {
                 // Recover link to the link between points
                 Event::TkrVecPointsLink* updateLink = const_cast<Event::TkrVecPointsLink*>(updateNode->getAssociatedLink());
             
-                angleToNode = updateLink->angleToNextLink(*daughter->getAssociatedLink());
+                double angleToNode = updateLink->angleToNextLink(*daughter->getAssociatedLink());
+
+                rmsAngle += angleToNode * angleToNode;
+                numInSum++;
             }
 
             // Update angle information at this point
-            double rmsAngle = updateNode->getRmsAngleSum() + angleToNode * angleToNode;
-            int    numInSum = updateNode->getNumAnglesInSum() + 1;
-
-            // And now update the node
             daughter->setRmsAngleInfo(rmsAngle, numInSum);
 
             // Update the rms for this

@@ -496,6 +496,37 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                         inActiveArea = true;
                         break;
                     }
+                
+                    // If we found a hit nearby then the first thing to do is to check and see if 
+                    // that hit lies on this link. If so then we are going to reject the link
+                    // Get point at midplane
+                    Point  layerPt  = candLink->getPosition(zLayer);
+
+                    double distToNearestVecPoint = 0.25 * towerPitch;
+                    int    nHitsInRange          = 0;
+                    const Event::TkrVecPoint* nearestHit = findNearestTkrVecPoint(intPointsPair, layerPt, distToNearestVecPoint, nHitsInRange);
+
+                    if (nearestHit && distToNearestVecPoint < 0.2 * towerPitch)
+                    {
+                        double sigmaX    = nearestHit->getXCluster()->size();
+                        double sigmaY    = nearestHit->getYCluster()->size();
+                        double quadSigma = sqrt(sigmaX*sigmaX + sigmaY*sigmaY);
+                        double scaleFctr = 10. * skippedLayers * m_siStripPitch;
+
+                        // scale back the scalefctr if possibly in a gap
+                        if (gapEdgeX.x() < 0. || gapEdgeX.y() < 0. || gapEdgeY.x() < 0. || gapEdgeY.y() < 0.) 
+                        {
+                            scaleFctr *= 0.5;
+                        }
+
+                        // ***** REJECT LINK *****
+                        // There is a TkrVecPoint within tolerance
+                        if (distToNearestVecPoint < scaleFctr * quadSigma)
+                        {
+                            inActiveArea = true;
+                            break;
+                        }
+                    }
 
                     Event::TkrCluster* clusterX = m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureX, intMissLyr, 0., layerPtX);
                     Event::TkrCluster* clusterY = m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureY, intMissLyr, 0., layerPtY);
@@ -548,37 +579,6 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
                     // The silicon is not 100% efficient, though nearly so, so if we are here then we **think** about whether we 
                     // should let it go... One thing... let's see how many hits are "nearby"... this will help us decide if we
                     // might be in the core of a shower and probably not willing to make the link
-                
-                    // If we found a hit nearby then the first thing to do is to check and see if 
-                    // that hit lies on this link. If so then we are going to reject the link
-                    // Get point at midplane
-                    Point  layerPt  = candLink->getPosition(zLayer);
-
-                    double distToNearestVecPoint = 0.25 * towerPitch;
-                    int    nHitsInRange          = 0;
-                    const Event::TkrVecPoint* nearestHit = findNearestTkrVecPoint(intPointsPair, layerPt, distToNearestVecPoint, nHitsInRange);
-
-                    if (nearestHit && distToNearestVecPoint < 0.2 * towerPitch)
-                    {
-                        double sigmaX    = nearestHit->getXCluster()->size();
-                        double sigmaY    = nearestHit->getYCluster()->size();
-                        double quadSigma = sqrt(sigmaX*sigmaX + sigmaY*sigmaY);
-                        double scaleFctr = 10. * skippedLayers * m_siStripPitch;
-
-                        // scale back the scalefctr if possibly in a gap
-                        if (gapEdgeX.x() < 0. || gapEdgeX.y() < 0. || gapEdgeY.x() < 0. || gapEdgeY.y() < 0.) 
-                        {
-                            scaleFctr *= 0.5;
-                        }
-
-                        // ***** REJECT LINK *****
-                        // There is a TkrVecPoint within tolerance
-                        if (distToNearestVecPoint < scaleFctr * quadSigma)
-                        {
-                            inActiveArea = true;
-                            break;
-                        }
-                    }
 
                     // We do not have a TkrVecPoint nearby that we should be "on", look at the less restrictive
                     // case that a single cluster is nearby in one plane or the other

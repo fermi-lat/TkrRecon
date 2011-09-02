@@ -115,13 +115,13 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode)
     { 
         // The first task is to get the axis of the tree using the moments analysis
         TkrBoundBoxList bboxList;
-        Point           centroid(0.,0.,0.);
+        PointVector     centroidVec;
 
         // Create the bounding box list
-        findTreeAxis(siblingMap, bboxList, centroid);
+        findTreeAxis(siblingMap, bboxList, centroidVec);
 
         // Run the moments analysis to get the tree axis
-        axisParams = doMomentsAnalysis(bboxList, centroid);
+        axisParams = doMomentsAnalysis(bboxList, centroidVec);
 
         // This will not fail, but have it anyway?
         if (axisParams)
@@ -210,7 +210,7 @@ void TkrTreeBuilder::setBranchBits(Event::TkrVecNode* node, bool isMainBranch)
 }
 
     
-void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBoundBoxList& bboxList, Point& centroid)
+void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBoundBoxList& bboxList, PointVector& centroidVec)
 {
     // Need the strip pitch
     static const double siStripPitch = m_tkrGeom->siStripPitch();
@@ -238,7 +238,10 @@ void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBound
 
     double zAtFirstPlane = std::max(xCluster->position().z(), yCluster->position().z());
 
-    centroid = pointsLink->getPosition(zAtFirstPlane);
+    Point  centroid      = pointsLink->getPosition(zAtFirstPlane);
+
+    // Add this to the vector
+    centroidVec.push_back(centroid);
 
     // Recover the width of this first point
     double clusSigX = xCluster->size() * siStripPitch;
@@ -278,6 +281,12 @@ void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBound
         int firstBiLayer = sibItr->first;
         int nodeVecSize  = nodeVec.size();
 
+        // Reset the centroid for this layer
+        centroid = Point(0.,0.,0.);
+
+        // Weight sum for centroid calculation
+        double weightSum = 0.;
+
         // Initialize before looping through all the links
         lowEdge  = Point( 5000.,  5000., nodeVec.front()->getAssociatedLink()->getBotPosition().z());
         highEdge = Point(-5000., -5000., nodeVec.front()->getAssociatedLink()->getBotPosition().z());
@@ -309,6 +318,10 @@ void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBound
             lowEdge.setY(linkPosAtBot.y() - clusSigY);
             highEdge.setX(linkPosAtBot.x() + clusSigX);
             highEdge.setY(linkPosAtBot.y() + clusSigY);
+
+            // Accumulate centroid and weight sum
+            centroid  += posWght * linkPosAtBot;
+            weightSum += posWght;
 
             // Create a new bounding box and add to list
             box = new Event::TkrBoundBox();
@@ -364,12 +377,17 @@ void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBound
                 }
             }
         }
+
+        // Keep track of weight average position at this layer
+        if (weightSum > 0.) centroid /= weightSum;
+
+        centroidVec.push_back(centroid);
     }
 
     return;
 }
 
-Event::TkrFilterParams* TkrTreeBuilder::doMomentsAnalysis(TkrBoundBoxList& bboxList, Point& centroid)
+Event::TkrFilterParams* TkrTreeBuilder::doMomentsAnalysis(TkrBoundBoxList& bboxList, PointVector& centroidVec)
 {
     // Set up to return a null pointer if nothing done
     Event::TkrFilterParams* filterParams = 0;
@@ -387,6 +405,10 @@ Event::TkrFilterParams* TkrTreeBuilder::doMomentsAnalysis(TkrBoundBoxList& bboxL
     int    lastBiLayer    = -1;
     int    numBiLayers    = 0;
 
+    // Scale the weights by the value of the first box in the list to try to 
+    // limit potential issues with lots of big numbers 
+    double weightSclFctr = bboxList.front()->getHitDensity();
+
     // Now go through and build the data list for the moments analysis
     // First loop over "bilayers"
     // Loop through the list of links
@@ -396,7 +418,7 @@ Event::TkrFilterParams* TkrTreeBuilder::doMomentsAnalysis(TkrBoundBoxList& bboxL
 
         // Use the average position in the box 
         const Point& avePos = box->getAveragePosition();
-        double       weight = box->getHitDensity();
+        double       weight = box->getHitDensity() / weightSclFctr;
 
         // Update the grand average
         tkrAvePosition += weight * avePos;
@@ -421,14 +443,27 @@ Event::TkrFilterParams* TkrTreeBuilder::doMomentsAnalysis(TkrBoundBoxList& bboxL
     int numTotal      = bboxList.size();
     int numDropped    = 0;
 
+    // Recover the first point centroid
+    Point& centroid = centroidVec.front();
+
     TkrMomentsAnalysis momentsAnalysis;
 
     // fingers crossed! 
     double chiSq = momentsAnalysis.doMomentsAnalysis(dataVec, centroid);
 
     // Retrieve the goodies
-    Point  momentsPosition = centroid; // momentsAnalysis.getMomentsCentroid();
+    Point  momentsPosition = centroid;
     Vector momentsAxis     = momentsAnalysis.getMomentsAxis();
+
+    // If the moments analysis "failed" (negative chiSq) then we need to do something to 
+    // estimate the direction. So, build an axis from the first point to the mean of 
+    // the last hits, which will be the last element of the input centroidVec
+    if (chiSq < 0.)
+    {
+        Vector axisVec = centroid - centroidVec.back();
+
+        momentsAxis = axisVec.unit();
+    }
 
     // Create a new TkrFilterParams object here so we can build relational tables
     filterParams = new Event::TkrFilterParams();

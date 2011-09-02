@@ -52,10 +52,11 @@ private:
 
     /// Use this to try to set up the tree axis
     typedef std::list<Event::TkrBoundBox*> TkrBoundBoxList;
+    typedef std::vector<Point>             PointVector;
 
-    void findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBoundBoxList& bboxList, Point& centroid);
+    void findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBoundBoxList& bboxList, PointVector& centroidVec);
 
-    Event::TkrFilterParams* doMomentsAnalysis(TkrBoundBoxList& bboxList, Point& centroid);
+    Event::TkrFilterParams* doMomentsAnalysis(TkrBoundBoxList& bboxList, PointVector& centroidVec);
 
     /// TkrVecNodesBuilder
     TkrVecNodesBuilder&    m_vecNodesBldr;
