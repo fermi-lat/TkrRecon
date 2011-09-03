@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: heather  Fri Sep  2 19:21:20 PDT 2011
+TkrRecon
+
+Modified Files:
+      Tag: GlastReleasev19r3p5
+	SConscript 
+Log Message:
+branching SCons patch
+    *
+------------------------------------------------------------
 User: usher  Fri Sep  2 15:48:26 PDT 2011
 TkrRecon/src/PatRec/VectorLinks
 
