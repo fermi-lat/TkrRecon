@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: heather  Fri Sep  2 19:21:21 PDT 2011
+TkrRecon/doc
+
+Modified Files:
+      Tag: GlastReleasev19r3p5
+	release.notes 
+Log Message:
+branching SCons patch
+    *
+------------------------------------------------------------
+User: heather  Fri Sep  2 19:21:21 PDT 2011
 TkrRecon/cmt
 
 Modified Files:
