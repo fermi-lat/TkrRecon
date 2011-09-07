@@ -969,7 +969,7 @@ void TkrVecNodesBuilder::updateTreeParams(Event::TkrVecNode* updateNode)
         int numBiLayers  = 0;
 
         if (updateNode->getAssociatedLink()) 
-            numBiLayers = startBiLayer - updateNode->getAssociatedLink()->getSecondVecPoint()->getLayer();
+            numBiLayers = startBiLayer - updateNode->getAssociatedLink()->getSecondVecPoint()->getLayer() + 1;
 
         updateNode->setNumLeaves(1);
         updateNode->setNumBranches(0);
