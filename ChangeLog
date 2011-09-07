@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Sep  7 15:00:26 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrVecNodesBuilder.cxx 
+Log Message:
+Try to improve the efficiency a bit...
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-17-35-24-gr04, operation: add
 Package: TkrRecon
