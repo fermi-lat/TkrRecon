@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.cxx,v 1.7 2010/12/16 20:44:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.cxx,v 1.22 2011/09/02 22:48:26 usher Exp $
  *
 */
 
@@ -83,7 +83,7 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtE
     }
 
     if (tkrEventParams->getEventAxis().mag() > 0.98) m_eventAxis = tkrEventParams->getEventAxis();
-    m_toleranceAngle = M_PI;
+    m_toleranceAngle = 2. * M_PI; // Take all comers!
 
     // Also look up the Tkr Filter information
     Event::TkrFilterParamsCol* tkrFilterParamsCol = 
@@ -117,26 +117,30 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtE
     // Following is a completely ad hoc scheme to constrain links as energy increases
     // But only do this if the event axis points into tracker in some semi reasonable manner
 //    if (vecPointInfo->getMaxNumLinkCombinations() > 5000. || m_eventAxis.cosTheta() < 0.5)   // Just past 60 degrees
-    if (vecPointInfo->getMaxNumLinkCombinations() > 30000. || m_eventAxis.cosTheta() < 0.1)   // Just past 60 degrees
+    if (vecPointInfo->getMaxNumLinkCombinations() > 5000. || m_eventAxis.cosTheta() < 0.1)   // Just past 60 degrees
     {
         // Enough energy to think axis is reasonable, constrain so links are within pi/2
-        if (tkrEventParams->getEventEnergy() > 250.)   m_toleranceAngle /=2.;
+//        if (tkrEventParams->getEventEnergy() > 250.)   m_toleranceAngle /=2.;
         // GeV range events should have links within pi/4
-        if (tkrEventParams->getEventEnergy() > 2500.)  m_toleranceAngle /=2.;
+//        if (tkrEventParams->getEventEnergy() > 2500.)  m_toleranceAngle /=2.;
         // High energy events should agree well with the axis - pi/8
-        if (tkrEventParams->getEventEnergy() > 25000.) m_toleranceAngle /=2.;
+//        if (tkrEventParams->getEventEnergy() > 25000.) m_toleranceAngle /=2.;
+
+        m_toleranceAngle *= 0.5;
 
         if (vecPointInfo->getMaxNumLinkCombinations() > 20000.) 
         {
-            if (m_eventAxis.cosTheta() > 0.5) m_toleranceAngle = std::min(m_toleranceAngle, M_PI / 3.);    // 45 degrees
-            else                              m_toleranceAngle = std::min(m_toleranceAngle, M_PI / 2.);    // 60 degrees
+            if (m_eventAxis.cosTheta() > 0.5) m_toleranceAngle = std::min(m_toleranceAngle, M_PI / 3.);    // 60 degrees
+            else                              m_toleranceAngle = std::min(m_toleranceAngle, M_PI / 2.);    // 90 degrees
+
+            if (vecPointInfo->getMaxNumLinkCombinations() > 50000.) m_toleranceAngle *= 0.5;
 
             m_toleranceAngle = std::max(m_toleranceAngle, M_PI / 8.);  // 22.5 degrees absolute minimum
         }
     }
 
     // Perhaps limiting the angle by too much is unwise... loosen a bit
-    m_toleranceAngle = std::max(m_toleranceAngle, 0.85);
+    m_toleranceAngle = std::max(m_toleranceAngle, M_PI / 4.);
 
     // Clear the average vector containers
     m_numAveLinks = 0.;
