@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+TAG
+Tag name: GlastRelease-19-03-07, operation: add
+Package: TkrRecon
+User: heather  Wed Sep  7 10:38:37 2011
+Files:
+  TkrRecon/.cvsignore  1.5
+  TkrRecon/ChangeLog  1.2482
+  TkrRecon/SConscript  1.49.6.1
+  TkrRecon/TkrReconLib.py  1.5
+
+    *
+------------------------------------------------------------
 User: usher  Tue Sep  6 20:19:22 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
