@@ -2,6 +2,14 @@
 TAG
 Tag name: GlastRelease-17-35-24-gr04, operation: add
 Package: TkrRecon
+User: heather  Wed Sep  7 14:45:12 2011
+Files:
+
+    *
+------------------------------------------------------------
+TAG
+Tag name: GlastRelease-17-35-24-gr04, operation: add
+Package: TkrRecon
 User: heather  Wed Sep  7 14:44:59 2011
 Files:
   TkrRecon/.cvsignore  1.4
