@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Sep  6 20:19:22 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrVecNodesBuilder.cxx 
+Log Message:
+clean up from last debacle
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-19-03-07, operation: del
 Package: TkrRecon
