@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 TAG
+Tag name: GlastRelease-17-35-24-gr04, operation: add
+Package: TkrRecon
+User: heather  Wed Sep  7 14:44:59 2011
+Files:
+  TkrRecon/.cvsignore  1.4
+  TkrRecon/ChangeLog  1.2139
+  TkrRecon/SConscript  1.12.80.1
+  TkrRecon/TkrReconLib.py  1.4.128.1
+
+    *
+------------------------------------------------------------
+TAG
 Tag name: GlastRelease-19-03-07, operation: add
 Package: TkrRecon
 User: heather  Wed Sep  7 10:38:37 2011
