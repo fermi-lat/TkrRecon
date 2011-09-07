@@ -2,6 +2,16 @@
 TAG
 Tag name: GlastRelease-17-35-24-gr04, operation: add
 Package: TkrRecon
+User: heather  Wed Sep  7 14:45:25 2011
+Files:
+  TkrRecon/TkrRecon/PatRec/TkrPatRecon.h  1.5
+  TkrRecon/TkrRecon/PatRec/ITkrFindTrackTool.h  1.1
+
+    *
+------------------------------------------------------------
+TAG
+Tag name: GlastRelease-17-35-24-gr04, operation: add
+Package: TkrRecon
 User: heather  Wed Sep  7 14:45:18 2011
 Files:
   TkrRecon/TkrRecon/GaudiAlg/TkrFindAlg.h  1.8
