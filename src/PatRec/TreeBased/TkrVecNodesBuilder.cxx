@@ -5,7 +5,11 @@
  *
  * @authors Tracy Usher
  *
+<<<<<<< TkrVecNodesBuilder.cxx
  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.6 2011/07/13 04:06:36 usher Exp $
+=======
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.10 2011/09/02 22:48:26 usher Exp $
+>>>>>>> 1.10
  *
 */
 
@@ -78,6 +82,47 @@ TkrVecNodesBuilder::~TkrVecNodesBuilder()
     delete m_clustersToNodesTab;
 }
 
+// Define a comparator which will be used to set the order of nodes inserted into
+// the set of daughter nodes. Idea is "best" branch will be first. 
+class TkrVecNodesSetTreeOrder
+{
+public:
+    // Define operator to facilitate sorting
+    const bool operator()(const Event::TkrVecNode* left, const Event::TkrVecNode* right) const
+    {
+        // Most number of bilayers wins (longest)
+        int deltaBiLayers = std::abs(left->getBestNumBiLayers() - right->getBestNumBiLayers());
+
+        if (deltaBiLayers < 0)
+        {
+            int stopem = 0;
+        }
+
+//        if (deltaBiLayers > 1)
+        {
+            if      (left->getDepth() > right->getDepth()) return true;
+            else if (left->getDepth() < right->getDepth()) return false;
+        }
+
+        // Check special case of stubs starting with skipping layer links
+        if (left->getNumAnglesInSum() == 1 || right->getNumAnglesInSum() == 1)
+        {
+            if      (left->getDepth() < right->getDepth()) return false;
+            else if (left->getDepth() > right->getDepth()) return true;
+        }
+
+        // Last check is to take the branch that is "straightest". 
+        // Use the scaled rms angle to determine straightest...
+        double leftRmsAngle  = left->getBestRmsAngle() * double(left->getNumBiLayers()) / double(left->getDepth());
+        double rightRmsAngle = right->getBestRmsAngle() * double(right->getNumBiLayers()) / double(right->getDepth());
+    
+        //if (left->getBestRmsAngle() < right->getBestRmsAngle()) return true;
+        if (leftRmsAngle < rightRmsAngle) return true;
+
+        return false;
+    }
+};
+
 //
 // Step three of the Pattern Recognition Algorithm:
 // This associates the VecPointsLinks into candidate tracks
@@ -121,7 +166,6 @@ int TkrVecNodesBuilder::buildTrackElements()
     // Make a pass through to transfer the "good" head nodes to the TDS
     // where we reset the tree id for those that are going to be "saved"
     Event::TkrVecNodeSet::iterator headVecItr = headNodes.begin();
-    int                            treeId     = 0;
 
     while(headVecItr != headNodes.end())
     {
@@ -138,7 +182,6 @@ int TkrVecNodesBuilder::buildTrackElements()
         // Hmmm... the thought here was to do some stuff... 
         if (headNode->getDepth() > 2 && goodStartPoint(headNode->front()->getAssociatedLink()->getFirstVecPoint())) 
         {
-//            headNode->setTreeId(treeId++);
             keepNode = true;
         }
         
@@ -876,7 +919,7 @@ void TkrVecNodesBuilder::updateTreeParams(Event::TkrVecNode* updateNode)
         for(Event::TkrVecNodeSet::iterator nodeItr = updateNode->begin(); nodeItr != updateNode->end(); nodeItr++)
         {
             Event::TkrVecNode* daughter = *nodeItr;
-
+        
             // Start by updating the rms angle information for the "updateNode"
             double rmsAngle = updateNode->getRmsAngleSum();
             int    numInSum = updateNode->getNumAnglesInSum();
