@@ -83,7 +83,6 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtE
     }
 
     if (tkrEventParams->getEventAxis().mag() > 0.98) m_eventAxis = tkrEventParams->getEventAxis();
-    m_toleranceAngle = 2. * M_PI; // Take all comers!
 
     // Also look up the Tkr Filter information
     Event::TkrFilterParamsCol* tkrFilterParamsCol = 
@@ -114,6 +113,9 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtE
     // If the energy is zero then there is no axis so set to point "up"
     if (tkrEventParams->getEventEnergy() == 0.) m_eventAxis = Vector(0.,0.,1.);
 
+    // Set the default value for the tolerance angle
+    m_toleranceAngle = 7. * M_PI / 12.; // 105 degrees or take almost all comers!
+
     // Develop estimate of links based on number of vec points
     double numVecPoints = vecPointInfo->getNumTkrVecPoints();
     double expVecPoints = numVecPoints > 0. ? log10(numVecPoints) : 1.;
@@ -126,13 +128,13 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtE
     // study looking at some histograms of # vec points vs time, etc. 
     if (expVecPoints > 3.2)   
     {
-        // Constrain down the angle to be less than 90 degrees
-        m_toleranceAngle = 0.5 * M_PI; 
+        // Constrain down the angle to be less than 60 degrees
+        m_toleranceAngle = M_PI / 3.; 
 
-        // If we are starting to get extreme them drop the tolerance angle down to 45 degrees
+        // If we are starting to get extreme them drop the tolerance angle down to 30 degrees
         if (expVecPoints > 3.75) 
         {
-            m_toleranceAngle = 0.25 * M_PI;
+            m_toleranceAngle = M_PI / 6.;
         }
     }
 
