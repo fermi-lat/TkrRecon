@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Sep  8 07:06:18 PDT 2011
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointLinksBuilder.cxx 
+Log Message:
+Widen the angle between the potential link and the cal axis, almost irrelevant now
+    *
+------------------------------------------------------------
 User: usher  Wed Sep  7 15:00:26 PDT 2011
 TkrRecon/src/PatRec/VectorLinks
 
