@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Sep  8 15:24:58 PDT 2011
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointLinksBuilder.cxx 
+Log Message:
+Modify scheme for constraining potential links to decouple even further from calorimeter
+    *
+------------------------------------------------------------
 User: usher  Thu Sep  8 07:06:18 PDT 2011
 TkrRecon/src/PatRec/VectorLinks
 
