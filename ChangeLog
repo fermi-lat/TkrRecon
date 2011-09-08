@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Sep  8 15:58:24 PDT 2011
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointLinksBuilder.cxx 
+Log Message:
+Try to constrain a tiny bit more than just wide open
+    *
+------------------------------------------------------------
 User: usher  Thu Sep  8 15:24:58 PDT 2011
 TkrRecon/src/PatRec/VectorLinks
 
