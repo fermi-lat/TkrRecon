@@ -126,16 +126,16 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtE
         // High energy events should agree well with the axis - pi/8
 //        if (tkrEventParams->getEventEnergy() > 25000.) m_toleranceAngle /=2.;
 
-        m_toleranceAngle *= 0.5;
+        m_toleranceAngle = M_PI; //*= 0.5;
 
-        if (vecPointInfo->getMaxNumLinkCombinations() > 20000.) 
+        if (vecPointInfo->getMaxNumLinkCombinations() > 50000.) 
         {
             if (m_eventAxis.cosTheta() > 0.5) m_toleranceAngle = std::min(m_toleranceAngle, M_PI / 3.);    // 60 degrees
             else                              m_toleranceAngle = std::min(m_toleranceAngle, M_PI / 2.);    // 90 degrees
 
-            if (vecPointInfo->getMaxNumLinkCombinations() > 50000.) m_toleranceAngle *= 0.5;
+            if (vecPointInfo->getMaxNumLinkCombinations() > 200000.) m_toleranceAngle *= 0.5;
 
-            m_toleranceAngle = std::max(m_toleranceAngle, M_PI / 8.);  // 22.5 degrees absolute minimum
+            //m_toleranceAngle = std::max(m_toleranceAngle, M_PI / 8.);  // 22.5 degrees absolute minimum
         }
     }
 
