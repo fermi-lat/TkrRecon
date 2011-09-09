@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.cxx,v 1.22 2011/09/02 22:48:26 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.cxx,v 1.26 2011/09/08 22:58:23 usher Exp $
  *
 */
 
@@ -114,7 +114,7 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtE
     if (tkrEventParams->getEventEnergy() == 0.) m_eventAxis = Vector(0.,0.,1.);
 
     // Set the default value for the tolerance angle
-    m_toleranceAngle = 7. * M_PI / 12.; // 105 degrees or take almost all comers!
+    m_toleranceAngle = M_PI; // Take all comers!
 
     // Develop estimate of links based on number of vec points
     double numVecPoints = vecPointInfo->getNumTkrVecPoints();
@@ -129,12 +129,12 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtE
     if (expVecPoints > 3.2)   
     {
         // Constrain down the angle to be less than 60 degrees
-        m_toleranceAngle = M_PI / 3.; 
+        m_toleranceAngle = M_PI / 2.; 
 
         // If we are starting to get extreme them drop the tolerance angle down to 30 degrees
         if (expVecPoints > 3.75) 
         {
-            m_toleranceAngle = M_PI / 6.;
+            m_toleranceAngle = M_PI / 4.;
         }
     }
 
@@ -306,7 +306,7 @@ int TkrVecPointLinksBuilder::buildLinksGivenVecs(TkrVecPointsLinkVecVec&        
             // Check angle link makes with event axis
             double toleranceAngle = m_toleranceAngle;
             double cosTestAngle   = m_eventAxis.dot(candLinkVec);
-            double testAngle      = acos(std::max(0.,std::min(1.,cosTestAngle)));
+            double testAngle      = acos(std::max(-1.,std::min(1.,cosTestAngle)));
 
             // If the test angle exceeds our tolerance then reject
             if (testAngle > toleranceAngle) 
