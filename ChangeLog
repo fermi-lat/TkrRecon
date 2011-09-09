@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Sep  8 20:27:06 PDT 2011
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointLinksBuilder.cxx 
+Log Message:
+Modify scheme for constraining potential links to event axis
+    *
+------------------------------------------------------------
 User: usher  Thu Sep  8 15:58:24 PDT 2011
 TkrRecon/src/PatRec/VectorLinks
 
