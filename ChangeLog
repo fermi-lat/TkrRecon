@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Sep  9 17:39:12 PDT 2011
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointLinksBuilder.cxx 
+Log Message:
+tighten down for large potential link combinations (again)
+    *
+------------------------------------------------------------
 User: usher  Thu Sep  8 20:27:06 PDT 2011
 TkrRecon/src/PatRec/VectorLinks
 
