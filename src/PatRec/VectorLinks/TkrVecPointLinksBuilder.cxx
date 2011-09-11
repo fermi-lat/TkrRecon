@@ -34,6 +34,7 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtE
                                                    m_evtEnergy(evtEnergy), 
                                                    m_nrmProjDistCut(1.3),
                                                    m_numVecLinks(0),
+                                                   m_numVecPoints(0),
                                                    m_numAveLinks(0),
                                                    m_linkAveVec(0.,0.,0.),
                                                    m_fillInternalTables(fillInternalTables)
@@ -116,12 +117,23 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtE
     // Set the default value for the tolerance angle
     m_toleranceAngle = M_PI; // Take all comers!
 
+    // Get the number of TkrVecPoints
+    m_numVecPoints = vecPointInfo->getNumTkrVecPoints();
+
     // Develop estimate of links based on number of vec points
-    double numVecPoints = vecPointInfo->getNumTkrVecPoints();
-    double expVecPoints = numVecPoints > 0. ? log10(numVecPoints) : 1.;
+    double expVecPoints = m_numVecPoints > 0. ? log10(double(m_numVecPoints)) : 0.;
     double ordVecLinks  = 2. * expVecPoints - 1.;
     double guessNLinks  = vecPointInfo->getMaxNumLinkCombinations();
-    double expGuessNL   = guessNLinks > 0. ? log10(guessNLinks) : 1.;
+    double expGuessNL   = guessNLinks > 0. ? log10(guessNLinks) : 0.;
+
+    // Following is a completely ad hoc scheme to increase efficiency of link production
+    // when there are a few number of hits, likely to happen at low energy
+    if (expVecPoints < 1.5)
+    {
+        double sclFctr = 1.5 - expVecPoints;
+
+        m_nrmProjDistCut += sclFctr;
+    }
 
     // Following is a completely ad hoc scheme to constrain links if we think 
     // combinatorics are about to go out of control. All of this based on a quick
