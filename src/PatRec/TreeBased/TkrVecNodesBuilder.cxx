@@ -48,22 +48,22 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(TkrVecPointLinksBuilder& vecPointLinksBld
     m_clustersToNodesTab->init();
 
     // Initialize control varialbes (done here to make easier to read)
-    m_cosKinkCut         = cos(M_PI / 8.); //0.94;      // cos(theta) to determine a kink for first link attachments
+    m_cosKinkCut         = cos(M_PI / 8.); // cos(theta) to determine a kink for first link attachments
 //    m_qSumDispAttachCut  = 1.5;          // quad displacement sum cut for attaching a link
-    m_qSumDispAttachCut  = 1.1;            // quad displacement sum cut for attaching a link
-    m_rmsAngleAttachCut  = 0.1;            // rms angle cut for attaching a link
-    m_rmsAngleMinValue   = 0.05;           //005;   // minimum allowed value for rms angle cut
+    m_qSumDispAttachCut  = 1.25;           // quad displacement sum cut for attaching a link
+    m_rmsAngleAttachCut  = 0.25;           // rms angle cut for attaching a link
+    m_rmsAngleMinValue   = 0.05;           // minimum allowed value for rms angle cut
     m_bestRmsAngleValue  = M_PI/2.;        // Initial value for rms angle cut when finding "best" link
 //    m_bestqSumDispCut    = 1.5;          // quad displacement sum cut for finding "best" link
-    m_bestqSumDispCut    = 1.1;            // quad displacement sum cut for finding "best" link
-    m_bestAngleToNodeCut = M_PI / 3.;      //0.5;    // best angle to node cut for finding "best" link
+    m_bestqSumDispCut    = 1.25;           // quad displacement sum cut for finding "best" link
+    m_bestAngleToNodeCut = M_PI / 4.;      // best angle to node cut for finding "best" link
 
     // liberalize cuts for events with few links (as the are probably low energy)
     if (m_vecPointLinksBldr.getNumTkrVecPointsLinks() < 100)
     {
-        m_qSumDispAttachCut  *= 10.;
-        m_bestqSumDispCut    *= 10.;
-//        m_bestAngleToNodeCut *= 10.;
+        m_qSumDispAttachCut  *= 4.;
+        m_bestqSumDispCut    *= 4.;
+        m_bestAngleToNodeCut  = M_PI / 2.;
     }
 
     // Value for the link displacement cut
