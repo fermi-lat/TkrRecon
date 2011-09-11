@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sun Sep 11 10:20:54 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrVecNodesBuilder.cxx 
+Log Message:
+Try to scale cuts for low number of TkrVecPoints
+    *
+------------------------------------------------------------
 User: usher  Sat Sep 10 21:32:10 PDT 2011
 TkrRecon/src/PatRec/VectorLinks
 
