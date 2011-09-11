@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.h,v 1.6 2010/12/16 20:44:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointLinksBuilder.h,v 1.10 2011/08/29 03:30:55 usher Exp $
  *
 */
 
@@ -41,6 +41,9 @@ public:
 
     // How many links do we have? 
     int                     getNumTkrVecPointsLinks()     {return m_numVecLinks;}
+
+    // And how many points were input?
+    int                     getNumTkrVecPoints()          {return m_numVecPoints;}
 
     // Get information on average proposed link direction
     Vector                  getLinkAveVec()               {return m_linkAveVec;}
@@ -110,6 +113,9 @@ private:
 
     // Keep track of the total number of links
     int                           m_numVecLinks;
+
+    // Also keep count of the number of input TkrVecPoints
+    int                           m_numVecPoints;
 
     /// We seem to use this a lot, keep track of it
     double                        m_siStripPitch;

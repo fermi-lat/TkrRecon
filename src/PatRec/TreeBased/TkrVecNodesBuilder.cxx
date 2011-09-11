@@ -47,24 +47,37 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(TkrVecPointLinksBuilder& vecPointLinksBld
     m_pointsToNodesTab->init();
     m_clustersToNodesTab->init();
 
-    // Initialize control varialbes (done here to make easier to read)
+    // Initialize control variables (done here to make easier to read)
     m_cosKinkCut         = cos(M_PI / 8.); // cos(theta) to determine a kink for first link attachments
-//    m_qSumDispAttachCut  = 1.5;          // quad displacement sum cut for attaching a link
     m_qSumDispAttachCut  = 1.25;           // quad displacement sum cut for attaching a link
     m_rmsAngleAttachCut  = 0.25;           // rms angle cut for attaching a link
     m_rmsAngleMinValue   = 0.05;           // minimum allowed value for rms angle cut
     m_bestRmsAngleValue  = M_PI/2.;        // Initial value for rms angle cut when finding "best" link
-//    m_bestqSumDispCut    = 1.5;          // quad displacement sum cut for finding "best" link
     m_bestqSumDispCut    = 1.25;           // quad displacement sum cut for finding "best" link
     m_bestAngleToNodeCut = M_PI / 4.;      // best angle to node cut for finding "best" link
 
     // liberalize cuts for events with few links (as the are probably low energy)
-    if (m_vecPointLinksBldr.getNumTkrVecPointsLinks() < 100)
+    double numVecPoints = m_vecPointLinksBldr.getNumTkrVecPoints();
+    double expVecPoints = numVecPoints > 0. ? log10(numVecPoints) : 0.;
+
+    if (expVecPoints < 1.6)
     {
-        m_qSumDispAttachCut  *= 4.;
-        m_bestqSumDispCut    *= 4.;
-        m_bestAngleToNodeCut  = M_PI / 2.;
+        double quadSclFctr = 6. - 3.75 * expVecPoints;
+
+        m_qSumDispAttachCut += quadSclFctr;
+        m_bestqSumDispCut   += quadSclFctr;
+
+        double angSclFctr = M_PI / 2. - M_PI * expVecPoints / 3.2;
+
+        m_bestAngleToNodeCut += angSclFctr;
     }
+
+    //if (m_vecPointLinksBldr.getNumTkrVecPointsLinks() < 100)
+    //{
+    //    m_qSumDispAttachCut  *= 4.;
+    //    m_bestqSumDispCut    *= 4.;
+    //    m_bestAngleToNodeCut  = M_PI / 2.;
+    //}
 
     // Value for the link displacement cut
     m_linkNrmDispCutMin = 0.25;  // This actually needs to somehow depend on energy...
@@ -133,15 +146,6 @@ int TkrVecNodesBuilder::buildTrackElements()
     Event::TkrVecNodeSet headNodes;
 
     headNodes.clear();
-
-    // Start your engines! 
-    m_linkNrmDispCut = m_linkNrmDispCutMin;
-
-    // Check the possible combinations, if not too large then expand this cut a bit?
-    if (m_vecPointLinksBldr.getNumTkrVecPointsLinks() < 100) 
-    {
-        m_linkNrmDispCut = 5. * m_linkNrmDispCutMin;
-    }
 
     // Start your engines! 
     for(Event::TkrLyrToVecPointItrMap::reverse_iterator vecPointLyrItr  = m_tkrVecPointInfo->getLyrToVecPointItrMap()->rbegin();
