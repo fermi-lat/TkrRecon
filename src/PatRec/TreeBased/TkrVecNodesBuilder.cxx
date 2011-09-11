@@ -50,7 +50,7 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(TkrVecPointLinksBuilder& vecPointLinksBld
     // Initialize control variables (done here to make easier to read)
     m_cosKinkCut         = cos(M_PI / 8.); // cos(theta) to determine a kink for first link attachments
     m_qSumDispAttachCut  = 1.25;           // quad displacement sum cut for attaching a link
-    m_rmsAngleAttachCut  = 0.25;           // rms angle cut for attaching a link
+    m_rmsAngleAttachCut  = 0.1;            // rms angle cut for attaching a link
     m_rmsAngleMinValue   = 0.05;           // minimum allowed value for rms angle cut
     m_bestRmsAngleValue  = M_PI/2.;        // Initial value for rms angle cut when finding "best" link
     m_bestqSumDispCut    = 1.25;           // quad displacement sum cut for finding "best" link
@@ -70,6 +70,14 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(TkrVecPointLinksBuilder& vecPointLinksBld
         double angSclFctr = M_PI / 2. - M_PI * expVecPoints / 3.2;
 
         m_bestAngleToNodeCut += angSclFctr;
+    }
+
+    // Apply a different scaling for the rms cut
+    if (expVecPoints < 2.2)
+    {
+        double rmsSclFctr = 0.275 - 0.125 * expVecPoints;
+
+        m_rmsAngleAttachCut += rmsSclFctr;
     }
 
     //if (m_vecPointLinksBldr.getNumTkrVecPointsLinks() < 100)
