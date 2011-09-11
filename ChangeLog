@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Sun Sep 11 10:20:54 PDT 2011
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointLinksBuilder.cxx TkrVecPointLinksBuilder.h 
+Log Message:
+Try to scale cuts for low number of TkrVecPoints
+    *
+------------------------------------------------------------
+User: usher  Sun Sep 11 10:20:54 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
 Modified Files:
