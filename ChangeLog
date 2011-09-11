@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sat Sep 10 21:32:09 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrVecNodesBuilder.cxx 
+Log Message:
+Try to improve efficiency at low energy
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-26-03, operation: add
 Package: TkrRecon
