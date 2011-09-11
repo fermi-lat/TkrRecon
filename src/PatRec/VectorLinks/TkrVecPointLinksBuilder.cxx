@@ -32,7 +32,7 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtE
                                                    m_reasonsTool(reasonsTool),
                                                    m_eventAxis(0.,0.,1.),
                                                    m_evtEnergy(evtEnergy), 
-                                                   m_nrmProjDistCut(1.25),
+                                                   m_nrmProjDistCut(1.3),
                                                    m_numVecLinks(0),
                                                    m_numAveLinks(0),
                                                    m_linkAveVec(0.,0.,0.),
