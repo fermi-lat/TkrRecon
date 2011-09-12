@@ -80,6 +80,14 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(TkrVecPointLinksBuilder& vecPointLinksBld
         m_rmsAngleAttachCut += rmsSclFctr;
     }
 
+    // And apply another scaling for the kink cut
+    if (expVecPoints < 3.0)
+    {
+        double kinkFctr = 0.1825 - 0.0625 * expVecPoints;
+
+        m_cosKinkCut -= kinkFctr;
+    }
+
     //if (m_vecPointLinksBldr.getNumTkrVecPointsLinks() < 100)
     //{
     //    m_qSumDispAttachCut  *= 4.;
