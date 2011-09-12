@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sun Sep 11 20:14:22 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrVecNodesBuilder.cxx 
+Log Message:
+Don't forget to adjust kink angle cut too
+    *
+------------------------------------------------------------
 User: usher  Sun Sep 11 10:32:51 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
