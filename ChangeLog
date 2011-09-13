@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Mon Sep 12 18:43:08 PDT 2011
+TkrRecon
+
+Modified Files:
+	SConscript 
+Log Message:
+Tagging TkrRecon to preserve the current state of development
+    *
+------------------------------------------------------------
 User: usher  Sun Sep 11 20:14:22 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
