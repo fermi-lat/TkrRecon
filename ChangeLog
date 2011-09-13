@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Sep 13 15:16:04 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrVecNodesBuilder.cxx TkrVecNodesBuilder.h 
+Log Message:
+First try at changing link attachment metric from angles between links to displacement of links at plane of converters (middle of bilayer for no converter planes)
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-26-04, operation: add
 Package: TkrRecon
