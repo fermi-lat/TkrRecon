@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.h,v 1.3 2010/12/16 20:44:45 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.h,v 1.6 2011/09/02 22:48:26 usher Exp $
  *
 */
 
@@ -52,7 +52,10 @@ private:
     Event::TkrVecPointToNodesRel* makeNewHeadNodeRel(Event::TkrVecNodeSet& headNodes, const Event::TkrVecPoint* point);
 
     /// Create a new node
-    Event::TkrVecPointToNodesRel* createNewNode(Event::TkrVecNode* parent, Event::TkrVecPointsLink* link, Event::TkrVecPoint* point);
+    Event::TkrVecPointToNodesRel* createNewNode(Event::TkrVecNode*       parent, 
+                                                Event::TkrVecPointsLink* link, 
+                                                Event::TkrVecPoint*      point,
+                                                double                   quadSum = 0.);
 
     /// Delete a previously created node (and all of its daughters)
     bool deleteNode(Event::TkrVecNode* node);
