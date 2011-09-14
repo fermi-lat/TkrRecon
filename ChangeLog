@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Sep 14 13:41:39 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrVecNodesBuilder.cxx TkrVecNodesBuilder.h 
+Log Message:
+Beginning serious revamp of link attachment code. This version fixes a bug found in "old" version which may have impacted a certain category of low energy events. Give this a try on the batch farm...
+    *
+------------------------------------------------------------
 User: usher  Tue Sep 13 15:16:04 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
