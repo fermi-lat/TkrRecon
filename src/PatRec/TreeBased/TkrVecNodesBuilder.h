@@ -64,17 +64,20 @@ private:
     Event::TkrVecPointToNodesRel* findBestNodeLinkMatch(std::vector<Event::TkrVecPointToLinksRel*>& pointToLinkVec,
                                                         std::vector<Event::TkrVecPointToNodesRel*>& pointToNodesVec);
 
-    /// given a list of nodes at a given bilayer, return average rms angle to them
-    double aveRmsAngle(const std::vector<Event::TkrVecPointToNodesRel*>& nodeRelVec);
+    /// Return the "association value" (the metric) between two links sharing a common point
+    double getLinkAssociation(const Event::TkrVecPointsLink* topLink, const Event::TkrVecPointsLink* botLink);
 
     /// This will check cluster relations to see if there is a better existing node/link match not
     /// shared by the common point
     /// First the call interface from the regular code
-    bool betterClusterMatch(Event::TkrVecNode* curNode, Event::TkrVecPointsLink* curLink);
+    bool betterClusterMatch(Event::TkrVecNode*       curNode, 
+                            Event::TkrVecPointsLink* curLink,
+                            double                   curQuadSum);
 
     /// Now the specific handler for a given cluster relation vector
     bool betterClusterMatch(Event::TkrVecNode*       curNode, 
-                            Event::TkrVecPointsLink* curLink, 
+                            Event::TkrVecPointsLink* curLink,
+                            double                   curQuadSum,
                             std::vector<Event::TkrClusterToNodesRel*>& clusToNodesVec,
                             std::set<Event::TkrVecNode*>&              nodesToDeleteSet);
 

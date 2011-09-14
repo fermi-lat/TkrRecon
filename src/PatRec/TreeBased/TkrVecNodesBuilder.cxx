@@ -19,8 +19,6 @@
 
 #include <iterator>
 
-Vector getLinkDisplacement(const Event::TkrVecPointsLink* firstLink, const Event::TkrVecPointsLink* secondLink);
-
 TkrVecNodesBuilder::TkrVecNodesBuilder(TkrVecPointLinksBuilder& vecPointLinksBldr,
                                        IDataProviderSvc*        dataSvc, 
                                        ITkrGeometrySvc*         geoSvc)
@@ -324,31 +322,6 @@ void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, 
             // Ok! Start charging ahead with building out a new node
             Event::TkrVecNode* bestNode = bestNodeRel->getSecond();
 
-            // Set default values for z coordinate
-            double curZPos = 0.;
-            Point  bestNodePos(0.,0.,0.);
-
-            // If we have associated link then set up the z coordinate and node position
-            if (bestNode->getAssociatedLink())
-            {
-                // Dereference the first hit
-                const Event::TkrVecPoint* botVecPoint = bestNode->getAssociatedLink()->getSecondVecPoint();
-
-                // What type of bilayer do we have?
-                convType lyrType   = m_tkrGeom->getReconLayerType(botVecPoint->getLayer());
-                double   lyrOffset = 0.5 * (botVecPoint->getXCluster()->position().z()
-                                   +        botVecPoint->getYCluster()->position().z());
-
-                if      (lyrType == STANDARD) lyrOffset = 0.600;
-                else if (lyrType == SUPER   ) lyrOffset = 0.900;
-
-                // Get the slope corrected position at the bottom of this link
-                curZPos     = std::max(botVecPoint->getXCluster()->position().z(),
-                                       botVecPoint->getYCluster()->position().z())
-                            + lyrOffset;
-                bestNodePos = bestNode->getAssociatedLink()->getPosition(curZPos);
-            }
-
             // Get the average rms angle which we can use to help guide the attachment of links
             double rmsAngleCut   = std::min(M_PI/3., std::max(m_rmsAngleAttachCut,10.*bestNode->getRmsAngle()*bestNode->getRmsAngle()));
             double rmsQuadSumCut = 1.2;
@@ -402,16 +375,11 @@ void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, 
                 if (bestNode->getAssociatedLink())
                 {
                     angleToNode = nextLink->angleToNextLink(*bestNode->getAssociatedLink());
-                
-                    Vector pointDiff = nextLink->getPosition(curZPos) - bestNodePos;
-
-                    double xDiffNorm = fabs(pointDiff.x()) / (stripPitch * nextLink->getFirstVecPoint()->getXCluster()->size());
-                    double yDiffNorm = fabs(pointDiff.y()) / (stripPitch * nextLink->getFirstVecPoint()->getYCluster()->size());
-
-                    quadSum = sqrt(xDiffNorm * xDiffNorm + yDiffNorm * yDiffNorm);
+                    quadSum     = getLinkAssociation(bestNode->getAssociatedLink(), nextLink);
 
                     // Reject outright bad combinations
-                    if (xDiffNorm > m_qSumDispAttachCut || yDiffNorm > m_qSumDispAttachCut) continue;
+//////*******                    if (xDiffNorm > m_qSumDispAttachCut || yDiffNorm > m_qSumDispAttachCut) continue;
+                    if (quadSum > 900.) continue;
                 }
 
                 // Update angle information at this point
@@ -425,7 +393,7 @@ void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, 
                 {
                     // Last thing - consider that one of the clusters associated with this point is a better 
                     // match to another (existing) combination. Check that here. 
-                    if (!betterClusterMatch(bestNode, nextLink))
+                    if (!betterClusterMatch(bestNode, nextLink, quadSum))
                     {
                         // Ok, if here then we want to attach this link to our node 
                         // Get a new node (remembering that this will update the rms angle to this node)
@@ -554,22 +522,6 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
     {
         // Get link associated to this point
         Event::TkrVecPointsLink* curLink = (*ptToLinkItr)->getSecond();
-
-        // What type of bilayer do we have?
-        convType lyrType   = m_tkrGeom->getReconLayerType(curLink->getFirstVecPoint()->getLayer());
-        double   lyrOffset = 0.5 * (curLink->getFirstVecPoint()->getXCluster()->position().z()
-                           +        curLink->getFirstVecPoint()->getYCluster()->position().z());
-
-        if      (lyrType == STANDARD) lyrOffset = 0.600;
-        else if (lyrType == SUPER   ) lyrOffset = 0.900;
-
-        // Get the slope corrected position at the bottom of this link
-        double                   curZPos    = std::max(curLink->getFirstVecPoint()->getXCluster()->position().z(),
-                                                       curLink->getFirstVecPoint()->getYCluster()->position().z())
-                                            + lyrOffset;
-        Point                    curLinkPos = curLink->getPosition(curZPos);
-        const Event::TkrCluster* xCluster   = curLink->getFirstVecPoint()->getXCluster();
-        const Event::TkrCluster* yCluster   = curLink->getFirstVecPoint()->getYCluster();
     
         // Inner loop is now over the set of nodes/links which end at this point. We will try to 
         // attach the "next" link to the "best" node in the list
@@ -610,18 +562,12 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
             if (curNode->getAssociatedLink())
             {
                 angleToNode = curLink->angleToNextLink(*curNode->getAssociatedLink());
-                
-                Vector pointDiff = curLinkPos - curNode->getAssociatedLink()->getPosition(curZPos); //getBotPosition();
-                dBtwnPoints = pointDiff.mag();
-
-                double xDiffNorm = fabs(pointDiff.x()) / (stripPitch * xCluster->size());
-                double yDiffNorm = fabs(pointDiff.y()) / (stripPitch * yCluster->size());
-
-                quadSum = sqrt(xDiffNorm * xDiffNorm + yDiffNorm * yDiffNorm);
+                quadSum     = getLinkAssociation(curNode->getAssociatedLink(), curLink);
 
                 // This attempts to weed out "ghost" points/links since they most likely will 
                 // result in very poor tail to head matches
-                if ((xDiffNorm > m_bestqSumDispCut || yDiffNorm > m_bestqSumDispCut) && angleToNode > m_bestAngleToNodeCut)
+//////////**************                if ((xDiffNorm > m_bestqSumDispCut || yDiffNorm > m_bestqSumDispCut) && angleToNode > m_bestAngleToNodeCut)
+                if (quadSum > 900. && angleToNode > m_bestAngleToNodeCut)
                 {
                     continue;
                 }
@@ -656,6 +602,50 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
     }
 
     return bestNodeRel;
+}
+
+/// Calculate the metric used to associate links
+double TkrVecNodesBuilder::getLinkAssociation(const Event::TkrVecPointsLink* topLink, 
+                                              const Event::TkrVecPointsLink* botLink)
+{
+    // This function calculates the metric used to associate two links. 
+    double metric = 10000.;
+
+    // The strip pitch will be used over and over again
+    static double stripPitch = m_tkrGeom->siStripPitch();
+
+    // The top link must share its bottom TkrVecPoint with the bottom link
+    if (topLink->getSecondVecPoint() == botLink->getFirstVecPoint())
+    {
+        // This specific version of this function calculates the quadrature
+        // sum of the normalized squares of the displacement between the 
+        // two links at a given plane. 
+        const Event::TkrVecPoint* theVecPoint = topLink->getSecondVecPoint();
+
+        // What type of bilayer do we have?
+        convType lyrType   = m_tkrGeom->getReconLayerType(theVecPoint->getLayer());
+        double   lyrOffset = -0.5 * fabs(theVecPoint->getXCluster()->position().z()
+                           -             theVecPoint->getYCluster()->position().z());
+
+        if      (lyrType == STANDARD) lyrOffset = 0.600;
+        else if (lyrType == SUPER   ) lyrOffset = 0.900;
+
+        // Get the slope corrected position at the bottom of this link
+        double zPos       = std::max(theVecPoint->getXCluster()->position().z(),
+                                     theVecPoint->getYCluster()->position().z())
+                          + lyrOffset;
+        Point  topNodePos = topLink->getPosition(zPos);
+        Point  botNodePos = botLink->getPosition(zPos);
+        Vector pointDiff  = topNodePos - botNodePos;
+
+        double xDiffNorm = fabs(pointDiff.x()) / (stripPitch * theVecPoint->getXCluster()->size());
+        double yDiffNorm = fabs(pointDiff.y()) / (stripPitch * theVecPoint->getYCluster()->size());
+
+        if (xDiffNorm < m_bestqSumDispCut && yDiffNorm < m_bestqSumDispCut) 
+                metric = sqrt(xDiffNorm * xDiffNorm + yDiffNorm * yDiffNorm);
+    }
+    
+    return metric;
 }
 
 /// Create a new node
@@ -730,37 +720,8 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::makeNewHeadNodeRel(Event::TkrV
 
     return pointToNodeRel;
 }
-
-double TkrVecNodesBuilder::aveRmsAngle(const std::vector<Event::TkrVecPointToNodesRel*>& nodeRelVec)
-{
-    double rmsAngle = 2. * M_PI;
-
-    if (!nodeRelVec.empty())
-    {
-        // Make sure we have a few links in the chain to have a reasonable rms
-        if (nodeRelVec.front()->getSecond()->getNumAnglesInSum() > 1)
-        {
-            double aveRmsAngle = 0.;
-            double numRmsAngle = 0.;
-
-            for(std::vector<Event::TkrVecPointToNodesRel*>::const_iterator ptToNodesItr = nodeRelVec.begin(); 
-                ptToNodesItr != nodeRelVec.end(); ptToNodesItr++)
-            {
-                // "Other" node associated with this point
-                Event::TkrVecNode* curNode = (*ptToNodesItr)->getSecond();
-
-                aveRmsAngle += curNode->getRmsAngle();
-                numRmsAngle += 1.;
-            }
-
-            rmsAngle = aveRmsAngle / numRmsAngle;
-        }
-    }
-
-    return rmsAngle;
-}
     
-bool TkrVecNodesBuilder::betterClusterMatch(Event::TkrVecNode* curNode, Event::TkrVecPointsLink* curLink)
+bool TkrVecNodesBuilder::betterClusterMatch(Event::TkrVecNode* curNode, Event::TkrVecPointsLink* curLink, double curQuadSum)
 {
     bool betterClusterMatchExists = false;
 
@@ -776,7 +737,7 @@ bool TkrVecNodesBuilder::betterClusterMatch(Event::TkrVecNode* curNode, Event::T
         // Retrieve node/cluster relations for the given cluster in X (start somewhere!)
         std::vector<Event::TkrClusterToNodesRel*> clusXToNodesVec = m_clustersToNodesTab->getRelByFirst(clusterX);
 
-        betterClusterMatchExists = betterClusterMatch(curNode, curLink, clusXToNodesVec, nodesToDeleteSet);
+        betterClusterMatchExists = betterClusterMatch(curNode, curLink, curQuadSum, clusXToNodesVec, nodesToDeleteSet);
 
         if (!betterClusterMatchExists)
         {
@@ -784,7 +745,7 @@ bool TkrVecNodesBuilder::betterClusterMatch(Event::TkrVecNode* curNode, Event::T
 
             std::vector<Event::TkrClusterToNodesRel*> clusYToNodesVec = m_clustersToNodesTab->getRelByFirst(clusterY);
 
-            betterClusterMatchExists = betterClusterMatch(curNode, curLink, clusYToNodesVec, nodesToDeleteSet);
+            betterClusterMatchExists = betterClusterMatch(curNode, curLink, curQuadSum, clusYToNodesVec, nodesToDeleteSet);
 
             // Do we have a better overall match?
             if (!betterClusterMatchExists)
@@ -793,6 +754,8 @@ bool TkrVecNodesBuilder::betterClusterMatch(Event::TkrVecNode* curNode, Event::T
                 for(std::set<Event::TkrVecNode*>::iterator nodeItr = nodesToDeleteSet.begin(); nodeItr != nodesToDeleteSet.end(); nodeItr++)
                 {
                     Event::TkrVecNode* nodeToDelete = *nodeItr;
+
+                    deleteNode(nodeToDelete);
                 }
             }
         }
@@ -802,7 +765,8 @@ bool TkrVecNodesBuilder::betterClusterMatch(Event::TkrVecNode* curNode, Event::T
 }
 
 bool TkrVecNodesBuilder::betterClusterMatch(Event::TkrVecNode*                         curNode, 
-                                            Event::TkrVecPointsLink*                   curLink, 
+                                            Event::TkrVecPointsLink*                   curLink,
+                                            double                                     curQuadSum,
                                             std::vector<Event::TkrClusterToNodesRel*>& clusToNodesVec,
                                             std::set<Event::TkrVecNode*>&              nodesToDeleteSet)
 {
@@ -821,7 +785,7 @@ bool TkrVecNodesBuilder::betterClusterMatch(Event::TkrVecNode*                  
         if (curNode->getAssociatedLink())
         {
             angleToNode = acos(curLink->getVector().dot(curNode->getAssociatedLink()->getVector()));
-            rmsAngle    = (curNode->getRmsAngleSum() + angleToNode * angleToNode) / double(numInSum + 1);
+            rmsAngle    = sqrt(curNode->getRmsAngleSum() + curQuadSum * curQuadSum) / double(numInSum + 1);
         }
 
         // Useful to have the cluster here as well
@@ -845,7 +809,7 @@ bool TkrVecNodesBuilder::betterClusterMatch(Event::TkrVecNode*                  
             if (cluster->size() > 4) continue;
 
             // Other nodes's rmsAngle
-            double otherNodeRmsAngle = otherNode->getRmsAngleSum() / double(otherNode->getNumAnglesInSum());
+            double otherNodeRmsAngle = sqrt(otherNode->getRmsAngleSum()) / double(otherNode->getNumAnglesInSum());
 
             // Is the proposed node to link rms angle going to be much better than with the other node?
             if (rmsAngle < 0.1 * otherNodeRmsAngle)
@@ -1123,51 +1087,4 @@ void TkrVecNodesBuilder::removeRelations(Event::TkrVecNode* node)
     }
 
     return;
-}
-
-Vector getLinkDisplacement(const Event::TkrVecPointsLink* firstLink, const Event::TkrVecPointsLink* secondLink)
-{
-    // Have to define this here for the usage we want... until I can think of a better way to do this...
-    static const double siStripPitch = 0.228;
-
-    // The idea here is that we want to determine the distance between the clusters at the bottom of the
-    // top link and the top of the bottom link, taking into account the cluster widths. We want to do this
-    // in a way that a positive result indicates that they are overlapped, a negative result says they
-    // are displaced and the magnitude gives the distance apart. 
-    // Start in the x plane
-    double xPosLow  = firstLink->getBotPosition().x();
-    double xWidLow  = firstLink->getSecondVecPoint()->getXCluster()->size();
-    double xPosHigh = secondLink->getPosition().x();
-    double xWidHigh = secondLink->getFirstVecPoint()->getXCluster()->size();
-
-    // Make sure the low is really low
-    if (xPosLow > xPosHigh)
-    {
-        std::swap(xPosLow, xPosHigh);
-        std::swap(xWidLow, xWidHigh);
-    }
-
-    double xDisplacement = (xPosHigh - 0.5 * xWidHigh * siStripPitch)
-                         - (xPosLow  + 0.5 * xWidLow  * siStripPitch);
-    double xDispSigma    = siStripPitch * sqrt(xWidLow * xWidLow + xWidHigh * xWidHigh);
-
-    // Follow up with the y plane
-    double yPosLow  = firstLink->getBotPosition().y();
-    double yWidLow  = firstLink->getSecondVecPoint()->getYCluster()->size();
-    double yPosHigh = secondLink->getPosition().y();
-    double yWidHigh = secondLink->getFirstVecPoint()->getYCluster()->size();
-
-    // Make sure the low is really low
-    if (yPosLow > yPosHigh)
-    {
-        std::swap(yPosLow, yPosHigh);
-        std::swap(yWidLow, yWidHigh);
-    }
-
-    double yDisplacement = (yPosHigh - 0.5 * yWidHigh * siStripPitch)
-                         - (yPosLow  + 0.5 * yWidLow  * siStripPitch);
-
-    double yDispSigma    = siStripPitch * sqrt(yWidLow * yWidLow + yWidHigh * yWidHigh);
-
-    return Vector(xDisplacement/xDispSigma, yDisplacement/yDispSigma, 0.);
 }
