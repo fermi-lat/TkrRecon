@@ -45,10 +45,25 @@ public:
 
 private:
 
-    /// Recursive function to do all of the work
+    /// Make the sort class a friend so that it can access the link association metric
+    friend class ComparePointToNodeRels;
+
+    /// This is the main driving function for attaching links beginning at the give point to 
+    /// either existing nodes or to new nodes which satisfy starting conditions
     void   associateLinksToTrees(Event::TkrVecNodeSet& headNodes, const Event::TkrVecPoint* point);
 
-    /// Setup a new head node
+    /// The workhorse routine which compares nodes ending at the given point to the provided list of 
+    /// links beginning at that point, finds the best node-link combinations and returns it. In the event
+    /// no acceptable combination is found then will create a new head node if at a valid starting point
+    Event::TkrVecPointToNodesRel* findBestNodeLinkMatch(Event::TkrVecNodeSet&                       headNodes,
+                                                        std::vector<Event::TkrVecPointToLinksRel*>& pointToLinkVec,
+                                                        const Event::TkrVecPoint*                   point);
+
+    /// Given a node and a list of links, attach them to the node 
+    void attachLinksToNode(Event::TkrVecPointToNodesRel*               nodeRel, 
+                           std::vector<Event::TkrVecPointToLinksRel*>& pointToLinkVec);
+
+    /// This does the work of creating a new head node and setting all relations
     Event::TkrVecPointToNodesRel* makeNewHeadNodeRel(Event::TkrVecNodeSet& headNodes, const Event::TkrVecPoint* point);
 
     /// Create a new node
@@ -60,12 +75,11 @@ private:
     /// Delete a previously created node (and all of its daughters)
     bool deleteNode(Event::TkrVecNode* node);
 
-    /// Given link and node relations, find the best match
-    Event::TkrVecPointToNodesRel* findBestNodeLinkMatch(std::vector<Event::TkrVecPointToLinksRel*>& pointToLinkVec,
-                                                        std::vector<Event::TkrVecPointToNodesRel*>& pointToNodesVec);
-
     /// Return the "association value" (the metric) between two links sharing a common point
-    double getLinkAssociation(const Event::TkrVecPointsLink* topLink, const Event::TkrVecPointsLink* botLink);
+    const double getLinkAssociation(const Event::TkrVecPointsLink* topLink, const Event::TkrVecPointsLink* botLink) const;
+
+    /// Check a node to link association
+    double checkNodeLinkAssociation(Event::TkrVecNode* curNode, Event::TkrVecPointsLink* curLink);
 
     /// This will check cluster relations to see if there is a better existing node/link match not
     /// shared by the common point

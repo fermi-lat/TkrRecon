@@ -225,7 +225,8 @@ int TkrVecNodesBuilder::buildTrackElements()
 class ComparePointToNodeRels
 {
 public:
-    ComparePointToNodeRels(const Event::TkrVecPointsLink* inLink) : m_baseLink(inLink) {}
+    ComparePointToNodeRels(const Event::TkrVecPointsLink* inLink, const TkrVecNodesBuilder* builder) : 
+      m_baseLink(inLink), m_builder(builder) {}
 
     const bool operator()(const Event::TkrVecPointToLinksRel* left, const Event::TkrVecPointToLinksRel* right) const
     {
@@ -235,8 +236,10 @@ public:
         if (( left->getSecond()->getStatusBits() & Event::TkrVecPointsLink::SKIPSLAYERS) ==
             (right->getSecond()->getStatusBits() & Event::TkrVecPointsLink::SKIPSLAYERS) )
         {
-            return m_baseLink->getVector().dot(left->getSecond()->getVector()) 
-                      > m_baseLink->getVector().dot(right->getSecond()->getVector());
+            double quadSumLeft  = m_builder->getLinkAssociation(m_baseLink, left->getSecond());
+            double quadSumRight = m_builder->getLinkAssociation(m_baseLink, right->getSecond());
+
+            return quadSumLeft < quadSumRight;
         }
         else
         {
@@ -257,6 +260,7 @@ public:
     }
 private:
     const Event::TkrVecPointsLink* m_baseLink;
+    const TkrVecNodesBuilder*      m_builder;
 };
 
 void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, const Event::TkrVecPoint* point)
@@ -268,172 +272,20 @@ void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, 
     // Do we have links starting at this point?
     if (!pointToLinkVec.empty())
     {
-        // Next is to retrieve all nodes which land on this point (which we'll need no matter what)
-        std::vector<Event::TkrVecPointToNodesRel*> pointToNodesVec = m_pointsToNodesTab->getRelByFirst(point);
+        // This method will attempt to find the best match between the nodes(links) which terminate on this
+        // point and the links which begin at this point. In the event that no acceptable match is found then
+        // it will check to see if it needs to create a new head node. 
+        // The return from this will be the "best" node and the returned pointToLinkVec will have been
+        // modified for only those links that are "acceptable" combinations to this link
+        Event::TkrVecPointToNodesRel* bestNodeRel = findBestNodeLinkMatch(headNodes, pointToLinkVec, point);
 
-        // This will compare all nodes (links ending at this point) to all links emanating from this point
-        // and find the "best" combination that is within tolerances. 
-        Event::TkrVecPointToNodesRel* bestNodeRel = findBestNodeLinkMatch(pointToLinkVec, pointToNodesVec);
-
-        // If no relation is returned then we assume that this is a potential starting point for a new tree
-        // Use the "goodStartPoint" method to verify that it is a potential starting point, if so then 
-        // make a new node
-        if (bestNodeRel == 0 && goodStartPoint(point))
-        {
-            bestNodeRel = makeNewHeadNodeRel(headNodes, point);
-            pointToNodesVec.push_back(bestNodeRel);
-        }
-
-        // Did we find a "best" node or have a good starting point?
+        // Is there a good node to attach links to?
         if (bestNodeRel)
         {
-            // If a best node/link match found then the first thing is to check the special case of a potential 
-            // kink when trying to attach the first link to a link...
-            if (pointToNodesVec.size() == 1)
-            {
-                Event::TkrVecNode* bestNode = bestNodeRel->getSecond();
-
-                // Kink checking on the first link to link combo only
-                if (bestNode->getParentNode() && bestNode->getTreeStartLayer() == bestNode->getCurrentBiLayer())
-                {
-                    // Best link match should be at the front of the vector
-                    Event::TkrVecPointsLink* bestLink = pointToLinkVec.front()->getSecond();
-
-                    // Get angle between links
-                    double cosLinkAng = 1.;
-            
-                    if (bestNode->getAssociatedLink()) cosLinkAng = bestLink->getVector().dot(bestNode->getAssociatedLink()->getVector());
-
-                    // This is a "kink angle" test, if a kink then we skip
-                    if (cosLinkAng < m_cosKinkCut) 
-                    {
-                        // Kink detected with the "best" node... 
-                        // Remove this node 
-                        deleteNode(bestNode);
-                        pointToNodesVec.clear();
-
-                        // And now create a new head node starting at this point
-                        bestNodeRel = makeNewHeadNodeRel(headNodes, point);
-                        pointToNodesVec.push_back(bestNodeRel);
-                    }
-                }
-            }
-
-            // Ok! Start charging ahead with building out a new node
-            Event::TkrVecNode* bestNode = bestNodeRel->getSecond();
-
-            // Get the average rms angle which we can use to help guide the attachment of links
-            double rmsAngleCut   = std::min(M_PI/3., std::max(m_rmsAngleAttachCut,10.*bestNode->getRmsAngle()*bestNode->getRmsAngle()));
-            double rmsQuadSumCut = 1.2;
-            double stripPitch    = m_tkrGeom->siStripPitch();
-                
-            int    nodeNumInSum  = bestNode->getNumAnglesInSum();
-            double nodeRmsAngle  = bestNode->getRmsAngleSum();
-
-            // The outer loop is over the set of links which start at this point. These are links
-            // to be attached to any nodes ending at this point -or- will start a new tree
-            for(std::vector<Event::TkrVecPointToLinksRel*>::iterator ptToLinkItr = pointToLinkVec.begin(); 
-                ptToLinkItr != pointToLinkVec.end(); ptToLinkItr++)
-            {
-                // Get link associated to this point
-                Event::TkrVecPointsLink* nextLink = (*ptToLinkItr)->getSecond();
-
-                // If this is a head node then we are not allowed to start with a link skipping 2 bilayers
-                // more than 2 bilayers (except if we know we have clusters)
-                if (   !bestNode->getParentNode() 
-                    && ((nextLink->skip2Layer() && !(nextLink->getStatusBits() & Event::TkrVecPointsLink::GAPANDCLUS))
-                        || nextLink->skip3Layer() 
-                        || nextLink->skipNLayer())
-                   ) 
-                    continue;
-
-                // More complicated version of the above but allowing skipping if no links already
-                if (   !bestNode->getParentNode()                              // We are a head node with no parent
-                    &&  nextLink->skipsLayers()                                // Proposed link skips layers
-                    && !nextLink->skip1Layer()                                 // And it skips more than one bilayer
-                    && !bestNode->empty()                                      // We have nodes already attached
-                    && !bestNode->front()->getAssociatedLink()->skipsLayers()) // The first one does not skip any layers
-//                    &&  nextLink->skipsLayers()) 
-                    continue;
-
-                // Can't attach links that skip layers to a node/link that already skips layers
-                if (    nextLink->skipsLayers()                                // Proposed link skips layers
-                    && !nextLink->skip1Layer()                                 // and it skips more than one bilayer
-                    &&  bestNode->getAssociatedLink()                          // current node has a link associated to it
-                    &&  bestNode->getNumBiLayers() < 4                         // current node is not deep yet
-                    &&  bestNode->getAssociatedLink()->skipsLayers())          // link associated to this node skips layers
-                    continue;
-
-                // We next want to check the angle to the "best" node...
-                // So, get angle between links. 
-                // Also use this as an opportunity to make one last rejection cut (on distance between links)
-                double angleToNode = 0.;
-                double quadSum     = 0.;
-
-                // In the case of a starting node there is no associated link... but if we have associated link
-                // then check the distance of closest approach between the point and the link
-                if (bestNode->getAssociatedLink())
-                {
-                    angleToNode = nextLink->angleToNextLink(*bestNode->getAssociatedLink());
-                    quadSum     = getLinkAssociation(bestNode->getAssociatedLink(), nextLink);
-
-                    // Reject outright bad combinations
-//////*******                    if (xDiffNorm > m_qSumDispAttachCut || yDiffNorm > m_qSumDispAttachCut) continue;
-                    if (quadSum > 900.) continue;
-                }
-
-                // Update angle information at this point
-                int    numInSum   = nodeNumInSum + 1;
-                double rmsAngle   = (nodeRmsAngle + angleToNode * angleToNode) / double(numInSum);
-                double rmsQuadSum = sqrt(nodeRmsAngle + quadSum * quadSum) / double(numInSum);
-
-                // Keeper?
-                //if (rmsAngle < rmsAngleCut) 
-                if (rmsQuadSum < rmsQuadSumCut) 
-                {
-                    // Last thing - consider that one of the clusters associated with this point is a better 
-                    // match to another (existing) combination. Check that here. 
-                    if (!betterClusterMatch(bestNode, nextLink, quadSum))
-                    {
-                        // Ok, if here then we want to attach this link to our node 
-                        // Get a new node (remembering that this will update the rms angle to this node)
-                        Event::TkrVecPointToNodesRel* nodeRel = 
-                            createNewNode(bestNode, nextLink, const_cast<Event::TkrVecPoint*>(nextLink->getSecondVecPoint()), quadSum);
-
-                        // With at least one link added, tighten down on the rms cut
-                        if (numInSum > 4 && 5.*rmsAngle < rmsAngleCut) 
-                            rmsAngleCut = std::min(M_PI/3.,std::max(m_rmsAngleMinValue,5.*rmsAngle));;
-                    }
-                }
-            }
-
-            // If we have attached something to a best node, and there is more than one node ending at 
-            // this point, then go through and delete the losers.
-
-            // We only allow attaching links to the "best" node 
-            // The corollary is that we zap any nodes that terminate on this point since
-            // they can't be "right"... 
-            if (!bestNodeRel->getSecond()->empty() && pointToNodesVec.size() > 1)
-            {
-                // Now we go through and delete the "other" nodes
-                for(std::vector<Event::TkrVecPointToNodesRel*>::iterator nodeItr  = pointToNodesVec.begin();
-                                                                         nodeItr != pointToNodesVec.end();
-                                                                         nodeItr++)
-                {
-                    // Don't delete our best node! 
-                    if (bestNodeRel == *nodeItr) continue;
-
-                    // Get the node
-                    Event::TkrVecNode* nodeToDel = (*nodeItr)->getSecond();
-
-                    // zap it
-                    deleteNode(nodeToDel);
-                }
-
-                // Good housekeeping seal of approval...
-                pointToNodesVec.clear();
-                pointToNodesVec.push_back(bestNodeRel);
-            }
+            // Call the following to go through and actually attach the links to the node. What this really
+            // means is to go through and make the final decision on attaching the links and, if doing that, 
+            // to create new daughter nodes. 
+            attachLinksToNode(bestNodeRel, pointToLinkVec);
         
             // No matter what we want to mark the point as associated
             const_cast<Event::TkrVecPoint*>(point)->setAssociatedToNode();
@@ -497,96 +349,66 @@ void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, 
     return;
 }
 
-Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vector<Event::TkrVecPointToLinksRel*>& pointToLinkVec,
-                                                                        std::vector<Event::TkrVecPointToNodesRel*>& pointToNodesVec)
+Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(Event::TkrVecNodeSet&                       headNodes,
+                                                                        std::vector<Event::TkrVecPointToLinksRel*>& pointToLinkVec,
+                                                                        const Event::TkrVecPoint*                   point)
 {
     // Goal of this routine is to find the "best" match between the links starting at a given point and the nodes which 
     // end at this point, in the input lists. 
     // Pointer to the winning node
     Event::TkrVecPointToNodesRel* bestNodeRel = 0;
 
+    // Next is to retrieve all nodes which land on this point (which we'll need no matter what)
+    std::vector<Event::TkrVecPointToNodesRel*> pointToNodesVec = m_pointsToNodesTab->getRelByFirst(point);
+
     // If nothing to do then no point continuing! 
-    if (pointToNodesVec.empty()) return bestNodeRel;
+//    if (pointToNodesVec.empty()) return bestNodeRel;
 
     // Set the bar as low as possible
-    double bestAngle     = 0.5*M_PI;
-    double bestRmsAngle  = 0.5*M_PI;
     double bestQuadSum   = 1000.;
     int    bestNumRmsSum = 0;
     double stripPitch    = m_tkrGeom->siStripPitch();
 
-    // The outer loop is over the set of links which start at this point. These are links
-    // to be attached to any nodes ending at this point -or- will start a new tree
-    for(std::vector<Event::TkrVecPointToLinksRel*>::iterator ptToLinkItr = pointToLinkVec.begin(); 
-        ptToLinkItr != pointToLinkVec.end(); ptToLinkItr++)
+    // Keep track of the links which are valid associations to the nodes
+    std::map<Event::TkrVecPointToNodesRel*, std::vector<Event::TkrVecPointToLinksRel*> > nodeToLinkVecMap;
+
+    // Only loop through links if there is a node to match too!
+    if (!pointToNodesVec.empty())
     {
-        // Get link associated to this point
-        Event::TkrVecPointsLink* curLink = (*ptToLinkItr)->getSecond();
-    
-        // Inner loop is now over the set of nodes/links which end at this point. We will try to 
-        // attach the "next" link to the "best" node in the list
-        for(std::vector<Event::TkrVecPointToNodesRel*>::iterator ptToNodesItr = pointToNodesVec.begin(); 
-            ptToNodesItr != pointToNodesVec.end(); ptToNodesItr++)
+        // The outer loop is over the set of links which start at this point. These are links
+        // to be attached to any nodes ending at this point -or- will start a new tree
+        for(std::vector<Event::TkrVecPointToLinksRel*>::iterator ptToLinkItr = pointToLinkVec.begin(); 
+            ptToLinkItr != pointToLinkVec.end(); ptToLinkItr++)
         {
-            // "Other" node associated with this point
-            Event::TkrVecNode* curNode = (*ptToNodesItr)->getSecond();
-
-            // If this is a head node then we are not allowed to start with a link skipping 2 bilayers
-            if (   !curNode->getParentNode() 
-                && ((curLink->skip2Layer() && !(curLink->getStatusBits() & Event::TkrVecPointsLink::GAPANDCLUS))
-                    || curLink->skip3Layer() 
-                    || curLink->skipNLayer())
-               ) 
-                continue;
-
-            // More complicated version of the above but allowing skipping if no links already
-            if (   !curNode->empty() 
-                && !curNode->front()->getAssociatedLink()->skipsLayers()
-                && !curNode->getParentNode()                             // same thing as? curNode->getTreeStartLayer() == curNode->getCurrentBiLayer() 
-                &&  curLink->skipsLayers()
-                && !curLink->skip1Layer()) 
-//                &&  curLink->skipsLayers()) 
-                 continue;
-
-            // Can't attach links that skip layers to a node/link that already skips layers
-            if (    curNode->getAssociatedLink() 
-                &&  curNode->getNumBiLayers() < 4
-                &&  curNode->getAssociatedLink()->skipsLayers() 
-                &&  curLink->skipsLayers() && !curLink->skip1Layer()) continue;
-
-            // Start by updating the rms angle information for the "updateNode"
-            double angleToNode = curLink->getMaxScatAngle();
-            double dBtwnPoints = 0.;
-            double quadSum     = 100.;
-
-            if (curNode->getAssociatedLink())
+            // Get link associated to this point
+            Event::TkrVecPointsLink* curLink = (*ptToLinkItr)->getSecond();
+        
+            // Inner loop is now over the set of nodes/links which end at this point. We will try to 
+            // attach the "next" link to the "best" node in the list
+            for(std::vector<Event::TkrVecPointToNodesRel*>::iterator ptToNodesItr = pointToNodesVec.begin(); 
+                ptToNodesItr != pointToNodesVec.end(); ptToNodesItr++)
             {
-                angleToNode = curLink->angleToNextLink(*curNode->getAssociatedLink());
-                quadSum     = getLinkAssociation(curNode->getAssociatedLink(), curLink);
+                // "Other" node associated with this point
+                Event::TkrVecNode* curNode = (*ptToNodesItr)->getSecond();
 
-                // This attempts to weed out "ghost" points/links since they most likely will 
-                // result in very poor tail to head matches
-//////////**************                if ((xDiffNorm > m_bestqSumDispCut || yDiffNorm > m_bestqSumDispCut) && angleToNode > m_bestAngleToNodeCut)
-                if (quadSum > 900. && angleToNode > m_bestAngleToNodeCut)
+                double metric = checkNodeLinkAssociation(curNode, curLink);
+
+                if (metric < 0.) continue;
+
+                // The link is considered a keeper, store away
+                nodeToLinkVecMap[*ptToNodesItr].push_back(*ptToLinkItr);
+
+                // Update angle information at this point
+                int    numInAngSum = curNode->getNumAnglesInSum() + 1;
+                double rmsQuadSum  = sqrt(curNode->getRmsAngleSum() + metric * metric);
+
+                // Is this a good match in terms of angle?
+                if ((bestNumRmsSum <= 2 && numInAngSum > 3) || rmsQuadSum / double(numInAngSum) < bestQuadSum) 
                 {
-                    continue;
+                    bestQuadSum   = rmsQuadSum / double(numInAngSum);
+                    bestNumRmsSum = numInAngSum;
+                    bestNodeRel   = *ptToNodesItr;
                 }
-            }
-
-            // Update angle information at this point
-            int    numInAngSum = curNode->getNumAnglesInSum() + 1;
-            double rmsAngle    = curNode->getRmsAngleSum() + angleToNode * angleToNode;
-            double rmsQuadSum  = sqrt(curNode->getRmsAngleSum() + quadSum * quadSum);
-
-            // Is this a good match in terms of angle?
-//            if ((bestNumRmsSum <= 2 && numInAngSum > 3) || rmsAngle / double(numInAngSum) < bestRmsAngle) 
-            if ((bestNumRmsSum <= 2 && numInAngSum > 3) || rmsQuadSum / double(numInAngSum) < bestQuadSum) 
-            {
-                bestAngle     = angleToNode;
-                bestQuadSum   = rmsQuadSum / double(numInAngSum);
-                bestRmsAngle  = rmsAngle / double(numInAngSum);
-                bestNumRmsSum = numInAngSum;
-                bestNodeRel   = *ptToNodesItr;
             }
         }
     }
@@ -595,18 +417,112 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(std::vec
     // Also note that this will put the links that skip layers at the end of the list
     if (bestNodeRel) 
     {
+        // Overwrite the input point to link relation vector with the list of "valid" relations to consider
+        pointToLinkVec = nodeToLinkVecMap[bestNodeRel];
+
+        // Now set up to sort this vector
         Event::TkrVecNode* node = bestNodeRel->getSecond();
 
+        // Can only sort if not a head node
         if (node->getAssociatedLink()) 
-            std::sort(pointToLinkVec.begin(), pointToLinkVec.end(), ComparePointToNodeRels(node->getAssociatedLink()));
+            std::sort(pointToLinkVec.begin(), pointToLinkVec.end(), ComparePointToNodeRels(node->getAssociatedLink(), this));
+    }
+    // Otherwise we evaluate whether we should create the head of a new tree
+    else
+    {
+        if (goodStartPoint(point))
+        {
+            bestNodeRel = makeNewHeadNodeRel(headNodes, point);
+        }
     }
 
     return bestNodeRel;
 }
+    
+void TkrVecNodesBuilder::attachLinksToNode(Event::TkrVecPointToNodesRel*               nodeRel, 
+                                           std::vector<Event::TkrVecPointToLinksRel*>& pointToLinkVec)
+{
+    // Ok! Start charging ahead with building out a new node
+    Event::TkrVecNode* bestNode = nodeRel->getSecond();
+
+    // Get the average rms angle which we can use to help guide the attachment of links
+    double rmsQuadSumCut = 1.2;
+    double stripPitch    = m_tkrGeom->siStripPitch();
+        
+    int    nodeNumInSum  = bestNode->getNumAnglesInSum();
+    double nodeRmsAngle  = bestNode->getRmsAngleSum();
+
+    // The outer loop is over the set of links which start at this point. These are links
+    // to be attached to any nodes ending at this point -or- will start a new tree
+    for(std::vector<Event::TkrVecPointToLinksRel*>::iterator ptToLinkItr = pointToLinkVec.begin(); 
+        ptToLinkItr != pointToLinkVec.end(); ptToLinkItr++)
+    {
+        // Get link associated to this point
+        Event::TkrVecPointsLink* nextLink = (*ptToLinkItr)->getSecond();
+        // We next want to check the angle to the "best" node...
+        // So, get angle between links. 
+        // Also use this as an opportunity to make one last rejection cut (on distance between links)
+        double angleToNode = 0.;
+        double quadSum     = 0.;
+
+        // In the case of a starting node there is no associated link... but if we have associated link
+        // then check the distance of closest approach between the point and the link
+        if (bestNode->getAssociatedLink())
+        {
+            angleToNode = nextLink->angleToNextLink(*bestNode->getAssociatedLink());
+            quadSum     = getLinkAssociation(bestNode->getAssociatedLink(), nextLink);
+
+            // Reject outright bad combinations
+            if (quadSum > 900.) continue;
+        }
+
+        // Update angle information at this point
+        int    numInSum   = nodeNumInSum + 1;
+        double rmsAngle   = (nodeRmsAngle + angleToNode * angleToNode) / double(numInSum);
+        double rmsQuadSum = sqrt(nodeRmsAngle + quadSum * quadSum) / double(numInSum);
+
+        // Last thing - consider that one of the clusters associated with this point is a better 
+        // match to another (existing) combination. Check that here. 
+        if (!betterClusterMatch(bestNode, nextLink, quadSum))
+        {
+            // Ok, if here then we want to attach this link to our node 
+            // Get a new node (remembering that this will update the rms angle to this node)
+            Event::TkrVecPointToNodesRel* nodeRel = 
+                createNewNode(bestNode, nextLink, const_cast<Event::TkrVecPoint*>(nextLink->getSecondVecPoint()), quadSum);
+        }
+    }
+
+    // If we have attached something to a best node, and there is more than one node ending at 
+    // this point, then go through and delete the losers.
+    std::vector<Event::TkrVecPointToNodesRel*> pointToNodesVec = m_pointsToNodesTab->getRelByFirst(nodeRel->getFirst());
+
+    // We only allow attaching links to the "best" node 
+    // The corollary is that we zap any nodes that terminate on this point since
+    // they can't be "right"... 
+    if (!nodeRel->getSecond()->empty() && pointToNodesVec.size() > 1)
+    {
+        // Now we go through and delete the "other" nodes
+        for(std::vector<Event::TkrVecPointToNodesRel*>::iterator nodeItr  = pointToNodesVec.begin();
+                                                                 nodeItr != pointToNodesVec.end();
+                                                                 nodeItr++)
+        {
+            // Don't delete our best node! 
+            if (nodeRel == *nodeItr) continue;
+
+            // Get the node
+            Event::TkrVecNode* nodeToDel = (*nodeItr)->getSecond();
+
+            // zap it
+            deleteNode(nodeToDel);
+        }
+    }
+
+    return;
+}
 
 /// Calculate the metric used to associate links
-double TkrVecNodesBuilder::getLinkAssociation(const Event::TkrVecPointsLink* topLink, 
-                                              const Event::TkrVecPointsLink* botLink)
+const double TkrVecNodesBuilder::getLinkAssociation(const Event::TkrVecPointsLink* topLink, 
+                                                    const Event::TkrVecPointsLink* botLink) const
 {
     // This function calculates the metric used to associate two links. 
     double metric = 10000.;
@@ -645,6 +561,59 @@ double TkrVecNodesBuilder::getLinkAssociation(const Event::TkrVecPointsLink* top
                 metric = sqrt(xDiffNorm * xDiffNorm + yDiffNorm * yDiffNorm);
     }
     
+    return metric;
+}
+    
+double TkrVecNodesBuilder::checkNodeLinkAssociation(Event::TkrVecNode* curNode, Event::TkrVecPointsLink* curLink)
+{
+    double metric = -1.;
+
+    // If this is a head node then we are not allowed to start with a link skipping 2 bilayers
+    if (   !curNode->getParentNode() 
+        && ((curLink->skip2Layer() && !(curLink->getStatusBits() & Event::TkrVecPointsLink::GAPANDCLUS))
+            || curLink->skip3Layer() 
+            || curLink->skipNLayer())
+       ) 
+        return metric;
+
+    // More complicated version of the above but allowing skipping if no links already
+    if (   !curNode->empty() 
+        && !curNode->front()->getAssociatedLink()->skipsLayers()
+        && !curNode->getParentNode()                             // same thing as? curNode->getTreeStartLayer() == curNode->getCurrentBiLayer() 
+        &&  curLink->skipsLayers()
+        && !curLink->skip1Layer()) 
+         return metric;
+
+    // Can't attach links that skip layers to a node/link that already skips layers
+    if (    curNode->getAssociatedLink() 
+        &&  curNode->getNumBiLayers() < 4
+        &&  curNode->getAssociatedLink()->skipsLayers() 
+        &&  curLink->skipsLayers() && !curLink->skip1Layer()) 
+         return metric;
+
+    // Start by updating the rms angle information for the "updateNode"
+    if (curNode->getAssociatedLink())
+    {
+        double angleToNode = curLink->angleToNextLink(*curNode->getAssociatedLink());
+
+        // Check the special case of a potential kink at the head of a tree
+        if (curNode->getTreeStartLayer() == curNode->getCurrentBiLayer())
+        {
+            // Change this to the angle cut above
+            double cosLinkAng = curNode->getAssociatedLink()->getVector().dot(curLink->getVector());
+
+            if (cosLinkAng < m_cosKinkCut) return metric;
+        }
+
+        // This attempts to weed out "ghost" points/links since they most likely will 
+        // result in very poor tail to head matches
+        if (angleToNode < m_bestAngleToNodeCut)
+            metric = getLinkAssociation(curNode->getAssociatedLink(), curLink);
+
+        // Convention is to return a negative value if metric is "bad"
+        if (metric > 1000.) metric = -1.;
+    }
+
     return metric;
 }
 
