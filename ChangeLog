@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Sep 15 16:10:59 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrVecNodesBuilder.cxx TkrVecNodesBuilder.h 
+Log Message:
+Complete re-work of logic, check in to test to make sure I have not broken anything
+    *
+------------------------------------------------------------
 User: usher  Wed Sep 14 13:41:39 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
