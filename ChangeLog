@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Sep 16 16:33:01 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrVecNodesBuilder.cxx 
+Log Message:
+See if we can improve low energy efficiency without crushing high energy
+    *
+------------------------------------------------------------
 User: usher  Thu Sep 15 16:10:59 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
