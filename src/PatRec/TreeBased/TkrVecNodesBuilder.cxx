@@ -539,7 +539,7 @@ const double TkrVecNodesBuilder::getLinkAssociation(const Event::TkrVecPointsLin
         const Event::TkrVecPoint* theVecPoint = topLink->getSecondVecPoint();
 
         // What type of bilayer do we have?
-        convType lyrType   = m_tkrGeom->getReconLayerType(theVecPoint->getLayer());
+        convType lyrType   = m_tkrGeom->getLayerType(theVecPoint->getLayer());
         double   lyrOffset = -0.5 * fabs(theVecPoint->getXCluster()->position().z()
                            -             theVecPoint->getYCluster()->position().z());
 
@@ -557,7 +557,10 @@ const double TkrVecNodesBuilder::getLinkAssociation(const Event::TkrVecPointsLin
         double xDiffNorm = fabs(pointDiff.x()) / (stripPitch * theVecPoint->getXCluster()->size());
         double yDiffNorm = fabs(pointDiff.y()) / (stripPitch * theVecPoint->getYCluster()->size());
 
-        if (xDiffNorm < m_bestqSumDispCut && yDiffNorm < m_bestqSumDispCut) 
+        double diffNormCut = lyrOffset * m_bestAngleToNodeCut / stripPitch;
+
+//        if (xDiffNorm < m_bestqSumDispCut && yDiffNorm < m_bestqSumDispCut) 
+        if (xDiffNorm < m_bestqSumDispCut || yDiffNorm < m_bestqSumDispCut) 
                 metric = sqrt(xDiffNorm * xDiffNorm + yDiffNorm * yDiffNorm);
     }
     
@@ -724,7 +727,7 @@ bool TkrVecNodesBuilder::betterClusterMatch(Event::TkrVecNode* curNode, Event::T
                 {
                     Event::TkrVecNode* nodeToDelete = *nodeItr;
 
-                    deleteNode(nodeToDelete);
+//                    deleteNode(nodeToDelete);
                 }
             }
         }
@@ -941,7 +944,7 @@ void TkrVecNodesBuilder::updateTreeParams(Event::TkrVecNode* updateNode)
             const Event::TkrVecPoint* botVecPoint = updateLink->getSecondVecPoint();
 
             // What type of bilayer do we have?
-            convType lyrType   = m_tkrGeom->getReconLayerType(botVecPoint->getLayer());
+            convType lyrType   = m_tkrGeom->getLayerType(botVecPoint->getLayer());
             double   lyrOffset = 0.5 * (botVecPoint->getXCluster()->position().z()
                                +        botVecPoint->getYCluster()->position().z());
 
