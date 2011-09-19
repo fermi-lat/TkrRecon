@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Mon Sep 19 10:51:46 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrVecNodesBuilder.cxx TreeCalClusterAssociator.cxx 
+Log Message:
+Improve low energy efficiency and cal cluster association
+    *
+------------------------------------------------------------
 User: usher  Fri Sep 16 16:33:01 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
