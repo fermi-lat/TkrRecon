@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.cxx,v 1.22 2011/06/03 16:50:01 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.cxx,v 1.9 2011/09/02 22:48:26 usher Exp $
  *
 */
 
@@ -209,9 +209,15 @@ const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelat
                 double leftTest  = left->getTreeClusDoca()  / leftRmsTrans;
                 double rightTest = right->getTreeClusDoca() / rightRmsTrans;
 
-                // Take the closest to the centroid
-                if (leftTest < rightTest) return true;
-                else                      return false;
+                // if both are inside the rms trans (taken as a measure of the error) then 
+                // pick the one most aligned with the cal axis
+                if (leftTest < 1. && rightTest < 1.)
+                {
+                    return fabs(left->getTreeClusCosAngle()) > fabs(right->getTreeClusCosAngle());
+                }
+
+                // Otherwise take the closest to the centroid
+                return leftTest <= rightTest;
             }
         }
     }
