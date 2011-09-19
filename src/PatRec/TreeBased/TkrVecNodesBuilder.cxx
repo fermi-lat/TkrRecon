@@ -557,10 +557,11 @@ const double TkrVecNodesBuilder::getLinkAssociation(const Event::TkrVecPointsLin
         double xDiffNorm = fabs(pointDiff.x()) / (stripPitch * theVecPoint->getXCluster()->size());
         double yDiffNorm = fabs(pointDiff.y()) / (stripPitch * theVecPoint->getYCluster()->size());
 
-        double diffNormCut = lyrOffset * m_bestAngleToNodeCut / stripPitch;
+        double diffNormCut = m_bestqSumDispCut + fabs(lyrOffset) * m_bestAngleToNodeCut / stripPitch;
 
 //        if (xDiffNorm < m_bestqSumDispCut && yDiffNorm < m_bestqSumDispCut) 
-        if (xDiffNorm < m_bestqSumDispCut || yDiffNorm < m_bestqSumDispCut) 
+//        if (xDiffNorm < m_bestqSumDispCut || yDiffNorm < m_bestqSumDispCut) 
+        if (xDiffNorm < diffNormCut && yDiffNorm < diffNormCut) 
                 metric = sqrt(xDiffNorm * xDiffNorm + yDiffNorm * yDiffNorm);
     }
     
