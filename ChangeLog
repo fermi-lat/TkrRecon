@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Sep 21 11:30:24 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeBasedTool.cxx TreeCalClusterAssociator.cxx 
+Log Message:
+First attempt at matching and sorting trees and clusters
+    *
+------------------------------------------------------------
 User: usher  Mon Sep 19 10:51:46 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
