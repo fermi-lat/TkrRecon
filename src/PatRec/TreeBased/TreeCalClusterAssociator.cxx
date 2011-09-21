@@ -137,7 +137,7 @@ int TreeCalClusterAssociator::associateTreeToClusters(Event::TkrTree* tree)
                     Point  axisAtThisZ        = startPos + arcLen * startDir;
                     Vector deltaPosVec        = axisAtThisZ - clusCentroid;
                     double deltaPos           = deltaPosVec.magnitude();
-                    double cosAngle           = startDir.dot(cluster->getMomParams().getAxis());
+                    double cosAngle           = startDir.dot(-cluster->getMomParams().getAxis());
 
                     // Don't bother if doca is not "reasonably" close
                     if (treeToClusterDoca > m_minTreeToClusterDoca) continue;
@@ -213,7 +213,7 @@ const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelat
                 // pick the one most aligned with the cal axis
                 if (leftTest < 1. && rightTest < 1.)
                 {
-                    return fabs(left->getTreeClusCosAngle()) > fabs(right->getTreeClusCosAngle());
+                    return left->getTreeClusCosAngle() > right->getTreeClusCosAngle();
                 }
 
                 // Otherwise take the closest to the centroid
