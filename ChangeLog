@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: heather  Fri Sep 23 06:59:24 PDT 2011
+TkrRecon
+
+Modified Files:
+      Tag: GlastReleasev17r35p23
+	SConscript 
+Log Message:
+Scons unit test patch
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-17-35-24-gr05, operation: add
 Package: TkrRecon
