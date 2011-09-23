@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: heather  Fri Sep 23 06:59:25 PDT 2011
+TkrRecon/cmt
+
+Modified Files:
+      Tag: GlastReleasev17r35p23
+	requirements 
+Log Message:
+Scons unit test patch
+    *
+------------------------------------------------------------
 User: heather  Fri Sep 23 06:59:24 PDT 2011
 TkrRecon
 
