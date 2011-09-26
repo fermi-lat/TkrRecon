@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.17 2011/09/02 22:48:26 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.18 2011/09/21 18:30:24 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -598,12 +598,12 @@ public:
                           const Event::TreeClusterRelation* right) const
     {
         // Try sorting simply by closest DOCA or angle
-        if (left->getTreeClusDoca() < right->getTreeClusDoca() || left->getTreeClusCosAngle() > right->getTreeClusCosAngle())
+        if (left->getTreeClusDoca() > right->getTreeClusDoca() || left->getTreeClusCosAngle() < right->getTreeClusCosAngle())
         {
-            return true;
+            return false;
         }
 
-        return false;
+        return true;
     }
 };
 
