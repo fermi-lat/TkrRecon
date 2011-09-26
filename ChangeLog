@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Mon Sep 26 12:41:18 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeBasedTool.cxx 
+Log Message:
+Modifying logic in sort routine
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-17-35-24-gr07, operation: add
 Package: TkrRecon
