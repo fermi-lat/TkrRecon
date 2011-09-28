@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.51 2011/01/11 21:58:11 usher Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.52 2011/02/24 22:07:51 lsrea Exp $
 */
 
 
@@ -309,9 +309,6 @@ StatusCode TkrReconAlg::initialize()
 
     // Set the property controlling the type of track fitting to perform
     if(m_TkrTrackFitAlg) m_TkrTrackFitAlg->setProperty("TrackFitType", m_TrackerReconType);
-
-    // Set the property controlling the type of vertex fitting to perform
-    if(m_TkrVertexAlg) m_TkrVertexAlg->setProperty("VertexerType", "DEFAULT");
 
     // Ghost Tool
     sc = toolSvc()->retrieveTool("TkrGhostTool", m_ghostTool);

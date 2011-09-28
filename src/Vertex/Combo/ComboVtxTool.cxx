@@ -7,8 +7,7 @@
 #include "GaudiKernel/GaudiException.h" 
 
 #include "Event/TopLevel/EventModel.h"
-#include "Event/Recon/TkrRecon/TkrTrack.h"
-#include "Event/Recon/TkrRecon/TkrTrackParams.h"
+#include "Event/Recon/TkrRecon/TkrTree.h"
 #include "Event/Recon/TkrRecon/TkrVertex.h"
 #include "Event/Recon/TkrRecon/TkrEventParams.h"
 
@@ -26,7 +25,7 @@ ComboVtxTool::ComboVtxTool( const std::string& type, const std::string& name, co
     declareInterface<IVtxBaseTool>(this);
 
     //Declare the control parameters for Combo Vertex.  Defaults appear here
-    declareProperty("MaxDOCA", m_maxDOCA = 2.);
+    declareProperty("MaxDOCA",    m_maxDOCA    =  2.);
     declareProperty("MinQuality", m_minQuality = -100.);
 }
 
@@ -56,6 +55,7 @@ StatusCode ComboVtxTool::initialize()
             return fail;
         }
     }
+
     //Locate a pointer to the G4Propagator
     if( (sc = toolSvc()->retrieveTool("G4PropagationTool", m_propagatorTool)).isFailure() )
     {
@@ -75,175 +75,187 @@ StatusCode ComboVtxTool::findVtxs()
     //Always believe in success
     StatusCode sc = StatusCode::SUCCESS;
 
-    //Retrieve the pointer to the required data object collections
-    Event::TkrTrackCol*   pTracks     = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol); 
+    // Retrieve the collection of trees from the TDS
+    Event::TkrTreeCol* treeCol = SmartDataPtr<Event::TkrTreeCol>(m_dataSvc, "/Event/TkrRecon/TkrTreeCol");
 
-    Event::TkrVertexCol*  pVerts      = SmartDataPtr<Event::TkrVertexCol>(m_dataSvc,EventModel::TkrRecon::TkrVertexCol); 
+    // If no tree collection then nothing to do
+    if (!treeCol) return sc;
 
-    if(!pTracks || !pVerts) return sc;
+    // Now recover the vertex collection
+    Event::TkrVertexCol* vertexCol = SmartDataPtr<Event::TkrVertexCol>(m_dataSvc, EventModel::TkrRecon::TkrVertexCol);
 
-    //Define a vector to contain a list of "isolated" tracks
-    int    numTracks = pTracks->size();
-    if(numTracks < 1) return sc;
+    // If there is no vertex collection then this is really an error, but return anyway
+    if (!vertexCol) return sc;
 
-    std::vector<bool> unused(numTracks);
-    while(numTracks--) unused[numTracks] = true;
-    
-    //Track counter
-    int   tkr1Idx = 0;
-    
-    //double gamEne = 0.;
-    
-    
-    Event::TkrTrackColPtr pTrack1 = pTracks->begin();
-   
-    // Loop over all tracks and try to find a mate within declared properties tolerances
-    for(; pTrack1 != pTracks->end(); pTrack1++, tkr1Idx++)
+    // The strategy here is to only combine tracks which result from a single tree, so the outside loop
+    // here is over trees, not over tracks
+    for(Event::TkrTreeCol::iterator treeItr = treeCol->begin(); treeItr != treeCol->end(); treeItr++)
     {
-        if(!unused[tkr1Idx]) continue; 
+        Event::TkrTree* tree = *treeItr;
 
-        Event::TkrTrack* track1 = *pTrack1;
-		Event::TkrVertex *newVertex = 0;
-        if (track1->getStatusBits() & Event::TkrTrack::COSMICRAY) continue;  //RJ: don't use CR tracks for vertexing
+        // Now we can recover the tracks associated with this tree
+        Event::TkrTrackVec* trackCol = tree;
 
-        Point   tkr1Pos = track1->front()->getPoint(Event::TkrTrackHit::SMOOTHED);
-        Vector  tkr1Dir = track1->front()->getDirection(Event::TkrTrackHit::SMOOTHED);
-        Event::TkrTrackParams tkr1Params = track1->front()->getTrackParams(Event::TkrTrackHit::SMOOTHED);
-        idents::TkrId tkr1ID = track1->front()->getTkrId();
-        const Event::TkrClusterPtr  tkr1Cls  = track1->front()->getClusterPtr();
-        double e1  = track1->getInitialEnergy();
+        // Skip if there are no tracks 
+        if(trackCol->empty()) continue;
 
-        // Set up a new vertex - it may only contain this track
-        double best_quality = -100.;
-        newVertex = new Event::TkrVertex(tkr1ID, e1, best_quality, 0.,
-                                                    0., 0., 0., 0., tkr1Pos.z(), tkr1Params); 
-        newVertex->setStatusBit(Event::TkrVertex::ONETKRVTX);
-        newVertex->addTrack(track1);
-		double Tkr1CovDet = tkr1Params.getxSlpxSlp()*tkr1Params.getySlpySlp() - tkr1Params.getxSlpySlp()*tkr1Params.getxSlpySlp();
-
-
-
-    //Loop over possible 2nd tracks to pair with #1
-        Event::TkrTrack *best_track2;
-        Event::TkrTrackColPtr pTrack2 = pTrack1;
-        pTrack2++; 
-        int   tkr2Idx = tkr1Idx+1;
-        int   best_tkr2Idx = -1; 
-        for (; pTrack2!=pTracks->end(); pTrack2++, tkr2Idx++) 
+        //Define a vector to contain a list of "isolated" tracks
+        int numTracks = trackCol->size();
+        std::vector<bool>  unused(numTracks);
+        while(numTracks--) unused[numTracks] = true;
+    
+        //Track counter
+        int   tkr1Idx = 0;
+      
+        // Loop over all tracks and try to find a mate within declared properties tolerances
+        for(Event::TkrTrackColPtr pTrack1 = trackCol->begin(); pTrack1 != trackCol->end(); pTrack1++, tkr1Idx++)
         {
-            if(!unused[tkr2Idx]) continue;
+            if(!unused[tkr1Idx]) continue; 
 
-            Event::TkrTrack* track2 = *pTrack2;
-			if (track2->getStatusBits() & Event::TkrTrack::COSMICRAY) continue;  //RJ: don't use CR tracks for vertexing
+            Event::TkrTrack*  track1    = *pTrack1;
+			Event::TkrVertex* newVertex = 0;
 
-            Point   tkr2Pos = track2->front()->getPoint(Event::TkrTrackHit::SMOOTHED);
-            Vector  tkr2Dir = track2->front()->getDirection(Event::TkrTrackHit::SMOOTHED);
-            Event::TkrTrackParams tkr2Params = track2->front()->getTrackParams(Event::TkrTrackHit::SMOOTHED);
-            idents::TkrId tkr2ID = track2->front()->getTkrId();
-            const Event::TkrClusterPtr tkr2Cls  = track2->front()->getClusterPtr();
-			double e2 = track2->getInitialEnergy();
-			double eTot = e1 + e2;
+            if (track1->getStatusBits() & Event::TkrTrack::COSMICRAY) continue;  //RJ: don't use CR tracks for vertexing
 
-            // Compute DOCA and DOCA location
-            RayDoca doca    = RayDoca(Ray(tkr1Pos, tkr1Dir), Ray(tkr2Pos, tkr2Dir));
-            double dist = doca.docaRay1Ray2();
-			//if(dist >  m_maxDOCA*100./std::max(50.,std::min(500., eTot))) continue;
-			if(dist * sqrt(std::min(eTot, 5000.)/100.) > m_maxDOCA) continue;
+            Point   tkr1Pos = track1->front()->getPoint(Event::TkrTrackHit::SMOOTHED);
+            Vector  tkr1Dir = track1->front()->getDirection(Event::TkrTrackHit::SMOOTHED);
+            Event::TkrTrackParams tkr1Params = track1->front()->getTrackParams(Event::TkrTrackHit::SMOOTHED);
+            idents::TkrId tkr1ID = track1->front()->getTkrId();
+            const Event::TkrClusterPtr  tkr1Cls  = track1->front()->getClusterPtr();
+            double e1  = track1->getInitialEnergy();
 
-            double s1   = doca.arcLenRay1();
-            double s2   = doca.arcLenRay2(); 
-            double docaZPos = .5*(tkr1Pos.z() + s1*tkr1Dir.z() + tkr2Pos.z() + s2*tkr2Dir.z());
+            // Set up a new vertex - it may only contain this track
+            double best_quality = -100.;
+            newVertex = new Event::TkrVertex(tkr1ID, e1, best_quality, 0.,
+                                                        0., 0., 0., 0., tkr1Pos.z(), tkr1Params); 
+            newVertex->setStatusBit(Event::TkrVertex::ONETKRVTX);
+            newVertex->addTrack(track1);
+			double Tkr1CovDet = tkr1Params.getxSlpxSlp()*tkr1Params.getySlpySlp() - tkr1Params.getxSlpySlp()*tkr1Params.getxSlpySlp();
 
-            // 2-track vertices from here out
-            unsigned int status = Event::TkrVertex::TWOTKRVTX;
 
-            // Determine where to locate the vertex in Z
-            //  Initialize by putting vertex at z location of head of first track
-			double zVtx = tkr1Pos.z(); 
 
-			// Cycle through Vertex Types
-            if(s1 > 0 && s2 > 0 && tkr1Cls != tkr2Cls) 
-				status |= Event::TkrVertex::CROSSTKR;
-
-            if(fabs(tkr1Pos.z() - tkr2Pos.z()) > .5*m_tkrGeom->trayHeight()  && tkr1Cls != tkr2Cls)
-                 status |= Event::TkrVertex::STAGVTX;
-
-            double clsSize = tkr1Cls->size();
-			if(tkr1Cls == tkr2Cls) {
-				if(clsSize * fabs(tkr1Dir.z()) < 3.01 ) {
-            // Put vertex 1/2 way into preceeding radiator if first hit is in upper plane
-					int plane = m_tkrGeom->getPlane(tkr1ID);
-					int layer = m_tkrGeom->getLayer(plane);
-					bool isTopPlane = m_tkrGeom->isTopPlaneInLayer(plane);
-					if (isTopPlane) zVtx = m_tkrGeom->getConvZ(layer);
-					else // Leave zVtx in middle of first-hit-SSD
-						status |= Event::TkrVertex::FIRSTHIT;
-				}       // First Cluster too wide 
-				else    status |= Event::TkrVertex::WIDEFIRSTCLUSTER;
-			}
-            else if((docaZPos-tkr1Pos.z()) > 0. && 
-                    (docaZPos-tkr1Pos.z()) < m_tkrGeom->trayHeight())
-            {// Put vertex at DOCA location   
-                zVtx = docaZPos;
-                status |= Event::TkrVertex::DOCAVTX; 
-            }
-			// Limit vertexing to at most propagating tracks by one layer
-			if(fabs(zVtx - tkr1Pos.z()) > 37. || fabs(zVtx - tkr2Pos.z()) > 37.) continue;
-            double sv1 = (zVtx - tkr1Pos.z())/tkr1Dir.z();
-            double sv2 = (zVtx - tkr2Pos.z())/tkr2Dir.z();
-            
-            // Propagate the TkrParams to the vertex location
-            m_propagatorTool->setStepStart(tkr1Params, tkr1Pos.z(), (sv1 < 0));
-            m_propagatorTool->step(fabs(sv1));
-            Event::TkrTrackParams vtx1Params = m_propagatorTool->getTrackParams(fabs(sv1), e1, (sv1 < 0));
-            double extraRadLen = m_propagatorTool->getRadLength();
-
-            m_propagatorTool->setStepStart(tkr2Params, tkr2Pos.z(), (sv2 < 0));
-            m_propagatorTool->step(fabs(sv2));
-            Event::TkrTrackParams vtx2Params = m_propagatorTool->getTrackParams(fabs(sv2), e2, (sv2 < 0));
-
-            // Get the covariance weighted average (Note this method also computes
-            // the chi-square for the association. Results in m_chisq)
-            Event::TkrTrackParams vtxParams = getParamAve(vtx1Params, vtx2Params); 
-
-            // Calculate quality for this vertex
-			if(m_chisq < 0) continue;
-            double trial_quality = -fabs(s1 - s2) - m_chisq/3.; 
-			double VtxCovDet = vtxParams.getxSlpxSlp()*vtxParams.getySlpySlp()- vtxParams.getxSlpySlp()*vtxParams.getxSlpySlp();
-
-            // Deside if to update vertex using this track
-            if(trial_quality > best_quality && trial_quality > m_minQuality && 
-				VtxCovDet > 0. && VtxCovDet < Tkr1CovDet) 
+        //Loop over possible 2nd tracks to pair with #1
+            Event::TkrTrack *best_track2;
+//            Event::TkrTrackColPtr pTrack2 = pTrack1;
+//            pTrack2++; 
+            int   tkr2Idx = tkr1Idx+1;
+            int   best_tkr2Idx = -1; 
+            for (Event::TkrTrackColPtr pTrack2 = pTrack1 + 1; pTrack2 != trackCol->end(); pTrack2++, tkr2Idx++) 
             {
-                if(newVertex->getNumTracks() > 1) newVertex->deleteTrack();
-                newVertex->addTrack(track2);
-                newVertex->setParams(vtxParams);
-                newVertex->setPosition(Point(vtxParams(1), vtxParams(3), zVtx));
-                newVertex->setDirection(Vector(-vtxParams(2), -vtxParams(4), -1.).unit());
-                newVertex->setEnergy(e1 + e2);
-                newVertex->setChiSquare(m_chisq);
-                newVertex->setQuality(trial_quality);
-                newVertex->setAddedRadLen(extraRadLen);
-                newVertex->setDOCA(dist);
-                newVertex->setTkr1ArcLen(sv1);
-                newVertex->setTkr2ArcLen(sv2);
-                newVertex->clearStatusBits();
-                newVertex->setStatusBit(status);
+                if(!unused[tkr2Idx]) continue;
 
-                best_quality = trial_quality;
-                best_track2 = track2;
-                best_tkr2Idx = tkr2Idx;
-            }
-        }  // Close loop over 2nd track
-        
-        // Add track to TkrVertexCol
-        if(newVertex) pVerts->push_back(newVertex); // RJ LSR
+                Event::TkrTrack* track2 = *pTrack2;
+				if (track2->getStatusBits() & Event::TkrTrack::COSMICRAY) continue;  //RJ: don't use CR tracks for vertexing
 
-        unused[tkr1Idx] = false;
-        if(best_tkr2Idx > -1) unused[best_tkr2Idx] = false;
-    }      // Close loop over 1st track
+                Point   tkr2Pos = track2->front()->getPoint(Event::TkrTrackHit::SMOOTHED);
+                Vector  tkr2Dir = track2->front()->getDirection(Event::TkrTrackHit::SMOOTHED);
+                Event::TkrTrackParams tkr2Params = track2->front()->getTrackParams(Event::TkrTrackHit::SMOOTHED);
+                idents::TkrId tkr2ID = track2->front()->getTkrId();
+                const Event::TkrClusterPtr tkr2Cls  = track2->front()->getClusterPtr();
+				double e2 = track2->getInitialEnergy();
+				double eTot = e1 + e2;
 
-	if(pVerts->size()>0) sc = neutralEnergyVtx(); // RJ LSR
+                // Compute DOCA and DOCA location
+                RayDoca doca    = RayDoca(Ray(tkr1Pos, tkr1Dir), Ray(tkr2Pos, tkr2Dir));
+                double dist = doca.docaRay1Ray2();
+				//if(dist >  m_maxDOCA*100./std::max(50.,std::min(500., eTot))) continue;
+				if(dist * sqrt(std::min(eTot, 5000.)/100.) > m_maxDOCA) continue;
+
+                double s1   = doca.arcLenRay1();
+                double s2   = doca.arcLenRay2(); 
+                double docaZPos = .5*(tkr1Pos.z() + s1*tkr1Dir.z() + tkr2Pos.z() + s2*tkr2Dir.z());
+
+                // 2-track vertices from here out
+                unsigned int status = Event::TkrVertex::TWOTKRVTX;
+
+                // Determine where to locate the vertex in Z
+                //  Initialize by putting vertex at z location of head of first track
+				double zVtx = tkr1Pos.z(); 
+
+				// Cycle through Vertex Types
+                if(s1 > 0 && s2 > 0 && tkr1Cls != tkr2Cls) 
+					status |= Event::TkrVertex::CROSSTKR;
+
+                if(fabs(tkr1Pos.z() - tkr2Pos.z()) > .5*m_tkrGeom->trayHeight()  && tkr1Cls != tkr2Cls)
+                     status |= Event::TkrVertex::STAGVTX;
+
+                double clsSize = tkr1Cls->size();
+				if(tkr1Cls == tkr2Cls) {
+					if(clsSize * fabs(tkr1Dir.z()) < 3.01 ) {
+                // Put vertex 1/2 way into preceeding radiator if first hit is in upper plane
+						int plane = m_tkrGeom->getPlane(tkr1ID);
+						int layer = m_tkrGeom->getLayer(plane);
+						bool isTopPlane = m_tkrGeom->isTopPlaneInLayer(plane);
+						if (isTopPlane) zVtx = m_tkrGeom->getConvZ(layer);
+						else // Leave zVtx in middle of first-hit-SSD
+							status |= Event::TkrVertex::FIRSTHIT;
+					}       // First Cluster too wide 
+					else    status |= Event::TkrVertex::WIDEFIRSTCLUSTER;
+				}
+                else if((docaZPos-tkr1Pos.z()) > 0. && 
+                        (docaZPos-tkr1Pos.z()) < m_tkrGeom->trayHeight())
+                {// Put vertex at DOCA location   
+                    zVtx = docaZPos;
+                    status |= Event::TkrVertex::DOCAVTX; 
+                }
+				// Limit vertexing to at most propagating tracks by one layer
+				if(fabs(zVtx - tkr1Pos.z()) > 37. || fabs(zVtx - tkr2Pos.z()) > 37.) continue;
+                double sv1 = (zVtx - tkr1Pos.z())/tkr1Dir.z();
+                double sv2 = (zVtx - tkr2Pos.z())/tkr2Dir.z();
+                
+                // Propagate the TkrParams to the vertex location
+                m_propagatorTool->setStepStart(tkr1Params, tkr1Pos.z(), (sv1 < 0));
+                m_propagatorTool->step(fabs(sv1));
+                Event::TkrTrackParams vtx1Params = m_propagatorTool->getTrackParams(fabs(sv1), e1, (sv1 < 0));
+                double extraRadLen = m_propagatorTool->getRadLength();
+
+                m_propagatorTool->setStepStart(tkr2Params, tkr2Pos.z(), (sv2 < 0));
+                m_propagatorTool->step(fabs(sv2));
+                Event::TkrTrackParams vtx2Params = m_propagatorTool->getTrackParams(fabs(sv2), e2, (sv2 < 0));
+
+                // Get the covariance weighted average (Note this method also computes
+                // the chi-square for the association. Results in m_chisq)
+                Event::TkrTrackParams vtxParams = getParamAve(vtx1Params, vtx2Params); 
+
+                // Calculate quality for this vertex
+				if(m_chisq < 0) continue;
+                double trial_quality = -fabs(s1 - s2) - m_chisq/3.; 
+				double VtxCovDet = vtxParams.getxSlpxSlp()*vtxParams.getySlpySlp()- vtxParams.getxSlpySlp()*vtxParams.getxSlpySlp();
+
+                // Deside if to update vertex using this track
+                if(trial_quality > best_quality && trial_quality > m_minQuality && 
+					VtxCovDet > 0. && VtxCovDet < Tkr1CovDet) 
+                {
+                    if(newVertex->getNumTracks() > 1) newVertex->deleteTrack();
+                    newVertex->addTrack(track2);
+                    newVertex->setParams(vtxParams);
+                    newVertex->setPosition(Point(vtxParams(1), vtxParams(3), zVtx));
+                    newVertex->setDirection(Vector(-vtxParams(2), -vtxParams(4), -1.).unit());
+                    newVertex->setEnergy(e1 + e2);
+                    newVertex->setChiSquare(m_chisq);
+                    newVertex->setQuality(trial_quality);
+                    newVertex->setAddedRadLen(extraRadLen);
+                    newVertex->setDOCA(dist);
+                    newVertex->setTkr1ArcLen(sv1);
+                    newVertex->setTkr2ArcLen(sv2);
+                    newVertex->clearStatusBits();
+                    newVertex->setStatusBit(status);
+
+                    best_quality = trial_quality;
+                    best_track2 = track2;
+                    best_tkr2Idx = tkr2Idx;
+                }
+            }  // Close loop over 2nd track
+            
+            // Add track to TkrVertexCol
+            if(newVertex) vertexCol->push_back(newVertex); // RJ LSR
+
+            unused[tkr1Idx] = false;
+            if(best_tkr2Idx > -1) unused[best_tkr2Idx] = false;
+        }      // Close loop over 1st track
+    }
+
+	if (!vertexCol->empty()) sc = neutralEnergyVtx(); // RJ LSR
     
     return sc;
 }
