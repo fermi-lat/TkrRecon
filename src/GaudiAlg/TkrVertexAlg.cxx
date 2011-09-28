@@ -17,7 +17,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.30 2005/05/11 04:14:30 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrVertexAlg.cxx,v 1.31 2010/10/27 19:11:11 lsrea Exp $
  */
 
 #include "GaudiKernel/IToolSvc.h"
@@ -54,10 +54,10 @@ public:
     
 private:
     // Type of vertexing algorithm to run
-    std::string   m_VertexerType;
+    std::string   m_vertexToolName;
 
     // Yet another fine tool from Sears
-    IVtxBaseTool* m_VtxTool;
+    IVtxBaseTool* m_vertexTool;
 };
 
 // Used by Gaudi for identifying this algorithm
@@ -68,7 +68,7 @@ const IAlgFactory& TkrVertexAlgFactory = Factory;
 TkrVertexAlg::TkrVertexAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator)  
 { 
-    declareProperty("VertexerType", m_VertexerType = std::string("DEFAULT"));
+    declareProperty("VertexerType", m_vertexToolName = "ComboVtxTool");
 }
 
 
@@ -89,6 +89,13 @@ StatusCode TkrVertexAlg::initialize()
         log << "Initializing TkrVertexAlg";
     }
     log <<endreq;
+
+    StatusCode sc = toolSvc()->retrieveTool(m_vertexToolName, m_vertexTool);
+
+    if (sc.isFailure()) {
+        log << MSG::ERROR << "Cannot initialize vertexing tool: " << m_vertexToolName << endreq;
+        return sc;
+    }
 
     return StatusCode::SUCCESS;
 }
@@ -137,38 +144,9 @@ StatusCode TkrVertexAlg::execute()
     // If we have fit tracks then proceed with the vertexing
     if(sc.isSuccess() && pTkrTracks->size() > 0)
     {
-        std::string VtxToolName;
-
-        // The particular choice of vertex tool is allowed to change from event
-        // to event. This is used to determine which tool to activate for a particular
-        // event.
-        if(m_VertexerType == std::string("DEFAULT"))
-        {
-            // Use the "Combo" vertexing
-            VtxToolName = std::string("ComboVtxTool");
-        }
-        else if(m_VertexerType == std::string("KALMAN"))
-        {
-            // Kalman Filter vertexing, tool depends upon the number of tracks
-            if(pTkrTracks->size() == 1) { VtxToolName = std::string("VtxSingleTrkTool");}
-            else                        { VtxToolName = std::string("VtxKalFitTool");}
-        }
-        else
-        {
-            VtxToolName = std::string("DEFAULT");
-        }
-
-        log << MSG::DEBUG;
-        if (log.isActive()) {
-            log << "Vertexing performed with: "<< VtxToolName.c_str();
-        }
-        log <<endreq;
-
-        // Look up (and instantiate if necessary) a private version of the tool
-        sc = toolSvc()->retrieveTool(VtxToolName.c_str(), m_VtxTool, this);
-
         // This tells the tool to perform the vertexing
-        sc = m_VtxTool->findVtxs();
+        sc = m_vertexTool->findVtxs();
+
         log << MSG::DEBUG;
         if (log.isActive()) log << pVtxCol->size() << " vertices found ";
         log << endreq;
