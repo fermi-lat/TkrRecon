@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Oct  5 12:31:00 PDT 2011
+TkrRecon/src/PatRec/LinkAndTree
+
+Modified Files:
+	LinkAndTreeFindTrackTool.cxx LinkAndTreeFindTrackTool.h 
+Log Message:
+Restructure Tree Based tracking to find trees only in first pass of TkrRecon, extract tracks and fit them in the second pass. Utilizes modifications in CalRecon to allow energy reconstruction algorithms to be attached to clusters. Assumes "final" energy has been reconstructed and properly stored in the CalEventEnergy object.
+    *
+------------------------------------------------------------
 User: usher  Wed Oct  5 12:30:59 PDT 2011
 TkrRecon/src/PatRec/Combo
 
