@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Oct  5 15:14:39 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeBasedTool.cxx 
+Log Message:
+Restructure to make sure we delete trees with no tracks
+    *
+------------------------------------------------------------
 User: usher  Wed Oct  5 12:31:02 PDT 2011
 TkrRecon/src/Track
 
