@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinder.cxx,v 1.22 2011/06/03 16:50:01 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinder.cxx,v 1.1 2011/06/28 14:40:06 usher Exp $
  *
 */
 
@@ -243,7 +243,14 @@ int TkrTreeTrackFinder::findTracks(Event::TkrTree* tree, double trackEnergy)
                 }
         
                 // Given the track we like, attempt to add leading hits
-                m_findHitsTool->addLeadingHits(trackBest);
+                if (int nHitsAdded = m_findHitsTool->addLeadingHits(trackBest))
+                {
+                    // Must do the full refit of the track one last time
+                    if (StatusCode sc = m_trackFitTool->doTrackFit(trackBest) != StatusCode::SUCCESS)
+                    {
+                        throw(TkrException("Exception encountered when doing final full fit after leading hit addition "));  
+                    }
+                }
         
                 // Finally, make the new TkrTree
                 tree->setBestLeaf(firstLeafNode);

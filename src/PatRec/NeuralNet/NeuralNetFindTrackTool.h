@@ -6,56 +6,10 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.h,v 1.8 2004/12/16 05:04:22 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.h,v 1.9 2005/05/11 04:14:33 lsrea Exp $
  */
 
 #ifndef NEURALNETFINDTRACKTOOL_H
 #define NEURALNETFINDTRACKTOOL_H
-
-#include "GaudiKernel/DataSvc.h"
-#include "TkrUtil/ITkrGeometrySvc.h"
-#include "src/PatRec/NeuralNet/TkrNeuron.h"
-#include "src/PatRec/PatRecBaseTool.h"
-#include "Event/Recon/TkrRecon/TkrTrack.h"
-
-class NeuralNetFindTrackTool : public PatRecBaseTool
-{
- public:
-
-  /// Standard Gaudi Tool interface constructor
-  NeuralNetFindTrackTool(const std::string& type, 
-             const std::string& name, 
-             const IInterface* parent);
-
-  virtual ~NeuralNetFindTrackTool() {}
-  
-  /// initialize method allows to load the properties
-  StatusCode initialize();
-
-  /// @brief Method to find candidate tracks. Will retrieve the necessary information from
-  ///        the TDS, including calorimeter energy, and then use TkrNeuralNet to find all
-  ///        possible track candidates. The resulting track candidate collection is then   
-  ///        stored in the TDS for the next stage.
-  StatusCode findTracks();
-
-
-  /// Instantiation and fake fit of the TkrPatCand candidate tracks.
-  void buildCand( Event::TkrTrackCol&, 
-                  const TkrNeuronList&, 
-                  Event::TkrClusterCol* );
-  
-
- private:
-  /// The properties to be passed to TkrNeuralNet
-  double m_MaxLayerDiff;
-  double m_MaxPitch;
-  double m_Lambda;
-  double m_Mu;
-  double m_AlphaUP;
-  double m_AlphaDOWN;
-  double m_Bias;
-  double m_Gamma;
-  double m_temperature;
-};
 
 #endif

@@ -188,6 +188,10 @@ int TreeCalClusterAssociator::associateTreeToClusters(Event::TkrTree* tree)
 const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelation* left, 
                                                    const Event::TreeClusterRelation* right) const
 {
+    // A bit of protection here
+    if (!right->getTree()) return true;
+    if (!left->getTree())  return false;
+
     // We're going to try to do the simplest possible solution here... if two trees are similar then we'll take the one closest
     // to the cluster, otherwise we are simply keeping the original ordering scheme
     if (left->getCluster() && right->getCluster())

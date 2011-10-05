@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.58 2011/02/01 20:01:08 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.59 2011/02/24 22:07:51 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -71,7 +71,8 @@ public:
     /// put actual init stuff here
     StatusCode initialize();
     /// does the work
-    StatusCode findTracks(); 
+    StatusCode firstPass(); 
+    StatusCode secondPass() {return StatusCode::SUCCESS;}
 
 protected:
     /// Pointer to TkrClusters - historical and will go. 
@@ -355,7 +356,7 @@ StatusCode ComboFindTrackTool::initialize()
     return sc;
 }
 
-StatusCode ComboFindTrackTool::findTracks()
+StatusCode ComboFindTrackTool::firstPass()
 {
 
     MsgStream msgLog(msgSvc(), name());

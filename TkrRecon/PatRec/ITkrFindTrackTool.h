@@ -23,7 +23,10 @@ class ITkrFindTrackTool : virtual public IAlgTool
   /// Retrieve interface ID
   static const InterfaceID& interfaceID() { return IID_ITkrFindTrackTool; }
 
-  /// @brief Given a pattern track, perform the track fit
-  virtual StatusCode findTracks()=0;
+  /// @brief Perform first pass track finding tasks (implementation dependent)
+  virtual StatusCode firstPass()=0;
+
+  /// @brief Perform second pass track finding tasks (implementation dependent)
+  virtual StatusCode secondPass()=0;
 };
 #endif

@@ -231,6 +231,11 @@ StatusCode TkrReconAlg::initialize()
         }
 
         // No Track finding algorithm on iteration
+        if( createSubAlgorithm("TkrFindAlg", "TkrFindIter", m_TkrFindAlg).isFailure() ) 
+        {
+            log << MSG::ERROR << " could not open TkrFindAlg/TkrFindIter " << endreq;
+            return StatusCode::FAILURE;
+        }
 
         // Track Fitting algorithm
         if( createSubAlgorithm("TkrTrackFitAlg", "TkrFitIter", m_TkrTrackFitAlg).isFailure() ) 
@@ -430,7 +435,8 @@ StatusCode TkrReconAlg::execute()
 
         // Call track finding if in first pass mode
         m_stage = "TkrFindAlg";
-        if (m_TkrFindAlg && m_lastStage>=PATREC && m_firstStage<=PATREC) {
+//        if (m_TkrFindAlg && m_lastStage>=PATREC && m_firstStage<=PATREC) {
+        if (m_TkrFindAlg && m_lastStage>=PATREC && m_firstStage<=FITTING) {
             sc = m_TkrFindAlg->execute();
             if (sc.isFailure())
             {

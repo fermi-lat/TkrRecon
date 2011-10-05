@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/VectorLinksTool.cxx,v 1.9 2010/12/16 20:44:46 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/VectorLinksTool.cxx,v 1.10 2011/06/30 21:02:07 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -53,7 +53,10 @@ public:
     StatusCode initialize();
 
     /// @brief Method to association the Monte Carlo hits into Pattern Candidate tracks
-    StatusCode findTracks();
+    StatusCode firstPass();
+
+    /// @brief This method does nothing in this pat rec scheme
+    StatusCode secondPass() {return StatusCode::SUCCESS;}
 
 private:
 
@@ -162,7 +165,7 @@ StatusCode VectorLinksTool::initialize()
 // Method called externally to drives the finding of the 
 // pattern candidate tracks
 //
-StatusCode VectorLinksTool::findTracks()
+StatusCode VectorLinksTool::firstPass()
 {
     // Always believe in success
     StatusCode sc = StatusCode::SUCCESS;

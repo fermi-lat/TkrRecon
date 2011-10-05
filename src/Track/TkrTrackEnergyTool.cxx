@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.31 2005/06/22 21:39:36 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.32 2010/10/27 19:11:13 lsrea Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -16,8 +16,10 @@
 #include "GaudiKernel/GaudiException.h" 
 
 #include "Event/TopLevel/EventModel.h"
-#include "Event/Recon/TkrRecon/TkrTrack.h"
+#include "Event/Recon/TkrRecon/TkrTree.h"
 #include "Event/Recon/TkrRecon/TkrEventParams.h"
+#include "Event/Recon/TreeClusterRelation.h"
+#include "Event/Recon/CalRecon/CalEventEnergy.h"
 
 #include "src/Track/TkrTrackEnergyTool.h"
 #include "src/Track/TkrControl.h"
@@ -137,75 +139,120 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
     StatusCode sc = StatusCode::SUCCESS;
 
     // Find the collection of candidate tracks
-    Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol);
+    Event::TkrTreeCol* treeCol = SmartDataPtr<Event::TkrTreeCol>(m_dataSvc,EventModel::TkrRecon::TkrTreeCol);
+
+    // Also retrieve a pointer to the tree and cluster to cluster association map (if there)
+    Event::TreeToRelationMap*    treeToRelationMap    = SmartDataPtr<Event::TreeToRelationMap>(m_dataSvc,    EventModel::Recon::TreeToRelationMap);
+    Event::ClusterToRelationMap* clusterToRelationMap = SmartDataPtr<Event::ClusterToRelationMap>(m_dataSvc, EventModel::Recon::ClusterToRelationMap);
+    Event::CalEventEnergyMap*    calEventEnergyMap    = SmartDataPtr<Event::CalEventEnergyMap>(m_dataSvc,    EventModel::CalRecon::CalEventEnergyMap);
 
     //If candidates, then proceed
-    if (trackCol->size() > 0)
+    if (treeCol && !treeCol->empty())
     {
-        // Get the first track to find out the energy option used 
-        // execute default (LATENERGY) if appropriate
-        Event::TkrTrack* firstCandTrk = trackCol->front();
-
-        if((firstCandTrk->getStatusBits() & Event::TkrTrack::LATENERGY)>=0 
-            && !(firstCandTrk->getStatusBits() & Event::TkrTrack::COSMICRAY)) 
+        // Loop through the trees to get to the individual tracks
+        for(Event::TkrTreeCol::iterator treeItr = treeCol->begin(); treeItr != treeCol->end(); treeItr++)
         {
-            Event::TkrTrack* secndCandTrk = 0;
+            // Get the tree
+            Event::TkrTree* tree = *treeItr;
+
+            // Technically, this can't happen but let's be sure we have some tracks here
+            if (tree->empty()) continue;
+
+            // Recover the related Cal Cluster
+            Event::CalCluster*                 calCluster = 0;
+            Event::TreeToRelationMap::iterator treeCalItr = treeToRelationMap->find(tree);
+
+            if (treeCalItr != treeToRelationMap->end())
+            {
+                calCluster = treeCalItr->second.front()->getCluster();
+
+                // Now do the reverse to see if this is the "first" tree associated to the cluster
+                Event::ClusterToRelationMap::iterator calTreeItr = clusterToRelationMap->find(calCluster);
+
+                // If there was no cluster then we'll not have a corrected energy object
+                if (calTreeItr != clusterToRelationMap->end())
+                {
+                    // Our last check is to be sure the tree we are refitting is the "first" one associated to the cluster
+                    Event::TkrTree* firstTree = calTreeItr->second.front()->getTree();
+             
+                    // If we are not the first tree related to the cluster then we skip processing
+                    if (tree != firstTree) calCluster = 0;
+                }
+                else calCluster = 0;
+            }
             
-            if (trackCol->size() > 1) {
-                secndCandTrk = (*trackCol)[1];
-			    if (secndCandTrk->getStatusBits() & Event::TkrTrack::COSMICRAY) 
-                    secndCandTrk = 0;  //RJ: Avoid cosmic-ray tracks
-            }
-            // Recover TkrEventParams from which we get the event energy  
-            Event::TkrEventParams* tkrEventParams = 
-                       SmartDataPtr<Event::TkrEventParams>(m_dataSvc,EventModel::TkrRecon::TkrEventParams);
-
-            // At this stage, TkrEventParams MUST exist
-            if (tkrEventParams == 0) throw GaudiException("No TkrEventParams found", name(), StatusCode::FAILURE);
-
-            // If no Cal energy then use the MS energy from the track itself
-            if ((tkrEventParams->getStatusBits() & Event::TkrEventParams::CALPARAMS) != 
-                Event::TkrEventParams::CALPARAMS || tkrEventParams->getEventEnergy() <= 0.) 
+            // Get the first track to find out the energy option used 
+            // execute default (LATENERGY) if appropriate
+            Event::TkrTrack* firstCandTrk = tree->front();
+    
+            if((firstCandTrk->getStatusBits() & Event::TkrTrack::LATENERGY)
+                && !(firstCandTrk->getStatusBits() & Event::TkrTrack::COSMICRAY)) 
             {
-                // no cal info... set track energies to MS energies if possible.
-                double minEnergy = m_control->getMinEnergy();
- //               if (trackCol->size() > 1) minEnergy *= 0.5;
-				if (secndCandTrk) minEnergy *=0.5;    // RJ
-
-                if (firstCandTrk->getNumFitHits() > 7) 
+                Event::TkrTrack* secndCandTrk = 0;
+                
+                if (tree->size() > 1) 
                 {
-                    double msEnergy = std::max(firstCandTrk->getKalEnergy(),minEnergy);
-
-                    setTrackEnergy(firstCandTrk, msEnergy);
+                    secndCandTrk = tree->back();
+				    if (secndCandTrk->getStatusBits() & Event::TkrTrack::COSMICRAY) 
+                        secndCandTrk = 0;  //RJ: Avoid cosmic-ray tracks
                 }
-                if (secndCandTrk && secndCandTrk->getNumFitHits() > 7) 
+                // Recover TkrEventParams from which we get the event energy  
+                //Event::TkrEventParams* tkrEventParams = 
+                //           SmartDataPtr<Event::TkrEventParams>(m_dataSvc,EventModel::TkrRecon::TkrEventParams);
+    
+                // At this stage, TkrEventParams MUST exist
+                //if (tkrEventParams == 0) throw GaudiException("No TkrEventParams found", name(), StatusCode::FAILURE);
+    
+                // If no Cal energy then use the MS energy from the track itself
+                //if ((tkrEventParams->getStatusBits() & Event::TkrEventParams::CALPARAMS) != 
+                //    Event::TkrEventParams::CALPARAMS || tkrEventParams->getEventEnergy() <= 0.) 
+                if (!calCluster)
                 {
-                    double msEnergy = std::max(secndCandTrk->getKalEnergy(),minEnergy);
-
-                    setTrackEnergy(secndCandTrk, msEnergy);
+                    // no cal info... set track energies to MS energies if possible.
+                    double minEnergy = m_control->getMinEnergy();
+					if (secndCandTrk) minEnergy *=0.5;    // RJ
+    
+                    if (firstCandTrk->getNumFitHits() > 7) 
+                    {
+                        double msEnergy = std::max(firstCandTrk->getKalEnergy(),minEnergy);
+    
+                        setTrackEnergy(firstCandTrk, msEnergy);
+                    }
+                    if (secndCandTrk && secndCandTrk->getNumFitHits() > 7) 
+                    {
+                        double msEnergy = std::max(secndCandTrk->getKalEnergy(),minEnergy);
+    
+                        setTrackEnergy(secndCandTrk, msEnergy);
+                    }
                 }
-            }
-            // Otherwise, we have valid cal energy so proceed to give it to the tracks
-            else
-            {
-                double cal_Energy = std::max(tkrEventParams->getEventEnergy(), 0.5*m_control->getMinEnergy());
-
-                // Get best track ray
-                Event::TkrTrack* firstCandTrk = trackCol->front();   // RJ: why is this repeated??
-
-                // Augment Cal energy with tracker energy loss
-                double ene_total = m_tkrEnergyTool->getTotalEnergy(firstCandTrk, cal_Energy);
-
-                // Now constrain the energies of the first 2 tracks. 
-                //    This isn't valid for non-gamma conversions
- //               if(trackCol->size() == 1)  // One track - it gets it all - not right but what else?
-				if (!secndCandTrk)  // RJ
+                // Otherwise, we have valid cal energy so proceed to give it to the tracks
+                else
                 {
-                    setTrackEnergy(firstCandTrk, ene_total);
-                } 
-                else                       // Divide up the energy between the first two tracks
-                {
-                    setTrackEnergies(firstCandTrk, secndCandTrk, ene_total);
+                    // Initialize calEnergy
+                    double calEnergy = 0.;
+
+                    // Using the first Cluster as the key, recover the "correct" energy relations
+                    Event::CalEventEnergyMap::iterator calEnergyItr = calEventEnergyMap->find(calCluster);
+
+                    if (calEnergyItr != calEventEnergyMap->end()) 
+                            calEnergy = calEnergyItr->second.front()->getParams().getEnergy();
+
+                    // Recover the "best" cal energy for this Tree
+                    double evtEnergy = std::max(calEnergy, 0.5 * m_control->getMinEnergy());
+    
+                    // Augment Cal energy with tracker energy loss
+                    double totEnergy = m_tkrEnergyTool->getTotalEnergy(firstCandTrk, evtEnergy);
+    
+                    // Now constrain the energies of the first 2 tracks. 
+                    //    This isn't valid for non-gamma conversions
+					if (!secndCandTrk)  // RJ
+                    {
+                        setTrackEnergy(firstCandTrk, totEnergy);
+                    } 
+                    else                       // Divide up the energy between the first two tracks
+                    {
+                        setTrackEnergies(firstCandTrk, secndCandTrk, totEnergy);
+                    }
                 }
             }
         }
