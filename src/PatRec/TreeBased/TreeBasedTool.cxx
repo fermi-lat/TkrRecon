@@ -435,7 +435,7 @@ StatusCode TreeBasedTool::secondPass()
     Event::TkrTreeCol* treeCol = SmartDataPtr<Event::TkrTreeCol>(m_dataSvc,"/Event/TkrRecon/TkrTreeCol");
 
     // No forest, no work
-    if (treeCol && treeCol->empty()) return sc;
+    if (!treeCol || treeCol->empty()) return sc;
 
     // Recover the tds track collection in the TDS
     Event::TkrTrackMap* tdsTrackMap = SmartDataPtr<Event::TkrTrackMap>(m_dataSvc, EventModel::TkrRecon::TkrTrackMap);
@@ -519,7 +519,6 @@ StatusCode TreeBasedTool::secondPass()
                     // Delete to prevent memory leak
                     else
                     {
-                        delete tree;
                         relation->setTree(0);
                     }
                 }
@@ -557,7 +556,6 @@ StatusCode TreeBasedTool::secondPass()
                 // Delete to prevent memory leak
                 else
                 {
-                    delete tree;
                     relation->setTree(0);
                 }
             }
@@ -592,6 +590,25 @@ StatusCode TreeBasedTool::secondPass()
             // After first tree, set energy to minimum
             energy = m_minEnergy;
         }
+    }
+
+    // The final task is to go through the tree collection and weed out any trees which didn't produce tracks
+    Event::TkrTreeCol::iterator treeItr = treeCol->begin(); 
+    
+    while(treeItr != treeCol->end())
+    {
+        Event::TkrTree* tree = *treeItr;
+
+        if (tree->empty())
+        {
+            // Recall that the TreeCol "owns" the tree, hence this operation will delete it
+            // But also remember that this erase crap is tricky and we have to remember
+            // where we are
+            Event::TkrTreeCol::iterator nxtTreeItr = treeItr + 1;
+            treeCol->erase(treeItr);
+            treeItr = nxtTreeItr;
+        }
+        else treeItr++;
     }
 
     return sc;
