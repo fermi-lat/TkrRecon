@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrFilterTool.cxx,v 1.5 2006/03/21 01:12:34 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrFilterTool.cxx,v 1.7 2009/10/05 22:59:58 usher Exp $
  */
 
 // to turn one debug variables
@@ -244,13 +244,22 @@ StatusCode TkrFilterTool::doFilterStep()
     }
 
     // Recover pointer to Cal Cluster info  
-    Event::CalEventEnergyCol * calEventEnergyCol = 
-        SmartDataPtr<Event::CalEventEnergyCol>(m_dataSvc,EventModel::CalRecon::CalEventEnergyCol) ;
-    Event::CalEventEnergy * calEventEnergy = 0 ;
-    if ((calEventEnergyCol!=0)&&(!calEventEnergyCol->empty()))
-        calEventEnergy = calEventEnergyCol->front() ;
-    Event::CalClusterCol* calClusterCol = 
+    Event::CalEventEnergy*    calEventEnergy    = 0;
+    Event::CalEventEnergyMap* calEventEnergyMap = 
+        SmartDataPtr<Event::CalEventEnergyMap>(m_dataSvc,EventModel::CalRecon::CalEventEnergyMap) ;
+
+    //  Be sure there is something to do here...
+    if (calEventEnergyMap && !calEventEnergyMap->empty())
+    {
+        // We need to use the first cluster in the collection as the key
+        Event::CalClusterCol* calClusterCol = 
                  SmartDataPtr<Event::CalClusterCol>(m_dataSvc, EventModel::CalRecon::CalClusterCol);
+
+        // If there are cal energy objects there must be clusters so no need to check
+        Event::CalEventEnergyMap::iterator calEnergyItr = calEventEnergyMap->find(calClusterCol->front());
+
+        if (calEnergyItr != calEventEnergyMap->end()) calEventEnergy = calEnergyItr->second.front();
+    }
 
     // If calEventEnergy then fill TkrEventParams
     // Note: TkrEventParams initializes to zero in the event of no CalEventEnergy

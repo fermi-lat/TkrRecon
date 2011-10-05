@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrCalFilterTool.cxx,v 1.5 2007/10/15 23:13:30 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrCalFilterTool.cxx,v 1.6 2009/09/09 19:34:32 lsrea Exp $
  */
 
 // to turn one debug variables
@@ -124,11 +124,22 @@ StatusCode TkrCalFilterTool::doFilterStep()
     }
 
     // Recover pointer to Cal Cluster info  
-    Event::CalEventEnergyCol * calEventEnergyCol = 
-        SmartDataPtr<Event::CalEventEnergyCol>(m_dataSvc,EventModel::CalRecon::CalEventEnergyCol) ;
-    Event::CalEventEnergy * calEventEnergy = 0 ;
-    if ((calEventEnergyCol!=0)&&(!calEventEnergyCol->empty()))
-        calEventEnergy = calEventEnergyCol->front() ;
+    Event::CalEventEnergy*    calEventEnergy    = 0;
+    Event::CalEventEnergyMap* calEventEnergyMap = 
+            SmartDataPtr<Event::CalEventEnergyMap>(m_dataSvc,EventModel::CalRecon::CalEventEnergyMap);
+
+    if (calEventEnergyMap && !calEventEnergyMap->empty())
+    {
+        // Recover the collection of Cal Clusters in the TDS
+        Event::CalClusterCol* calClusterCol = 
+            SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
+
+        // Using the first Cluster as the key, recover the "correct" energy relations
+        Event::CalEventEnergyMap::iterator calEnergyItr = calEventEnergyMap->find(calClusterCol->front());
+
+        if (calEnergyItr != calEventEnergyMap->end())
+            calEventEnergy = calEnergyItr->second.front();
+    }
 
     // If calEventEnergy then fill TkrEventParams
     // Note: TkrEventParams initializes to zero in the event of no CalEventEnergy
@@ -156,14 +167,6 @@ StatusCode TkrCalFilterTool::doFilterStep()
                 tkrEventParams->setTransRms(calClusters->front()->getRmsTrans());
                 tkrEventParams->setLongRmsAve(calClusters->front()->getRmsLong());
             }
-
-// DC: there is no more PASS_ONE or PASS_TWO in CalEventEnergy, but
-// a VALIDPARAMS instead.
-//            if (calEventEnergy->getStatusBits() & Event::CalEventEnergy::PASS_ONE) 
-//                tkrEventParams->setStatusBit(Event::TkrEventParams::FIRSTPASS);
-//
-//            if (calEventEnergy->getStatusBits() & Event::CalEventEnergy::PASS_TWO) 
-//                tkrEventParams->setStatusBit(Event::TkrEventParams::SECONDPASS);
         }
     }
 

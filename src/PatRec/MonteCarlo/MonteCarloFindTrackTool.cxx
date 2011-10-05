@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.31 2009/10/05 22:59:59 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.32 2010/12/19 17:30:34 lbaldini Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -43,7 +43,9 @@ public:
     /// @brief Intialization of the tool
     StatusCode initialize();
     /// @brief Method to association the Monte Carlo hits into Pattern Candidate tracks
-    StatusCode findTracks();
+    StatusCode firstPass();
+
+    StatusCode secondPass() {return StatusCode::SUCCESS;}
 
 private:
     /// private method to build an individual Monte Carlo track
@@ -158,7 +160,7 @@ StatusCode MonteCarloFindTrackTool::initialize()
 // Drives the finding of the pattern candidate tracks
 //
 
-StatusCode MonteCarloFindTrackTool::findTracks()
+StatusCode MonteCarloFindTrackTool::firstPass()
 {
     // Always believe in success
     StatusCode sc = StatusCode::SUCCESS;

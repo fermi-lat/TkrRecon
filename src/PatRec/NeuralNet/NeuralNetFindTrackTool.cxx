@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.18 2005/05/26 20:33:05 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.19 2010/12/19 17:30:34 lbaldini Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the Neural Net approach
@@ -7,20 +7,67 @@
 // Author:
 //      The Tracking Software Group  
 
-#include "src/PatRec/NeuralNet/NeuralNetFindTrackTool.h"
-#include "src/Utilities/TkrBase.h"
+#include "GaudiKernel/DataSvc.h"
 #include "GaudiKernel/ToolFactory.h"
 #include "GaudiKernel/SmartDataPtr.h"
 
 #include "Event/TopLevel/EventModel.h"
+#include "Event/Recon/TkrRecon/TkrTrack.h"
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "Event/Recon/CalRecon/CalCluster.h"
 
+#include "TkrUtil/ITkrGeometrySvc.h"
+
+#include "src/PatRec/NeuralNet/TkrNeuron.h"
+#include "src/PatRec/PatRecBaseTool.h"
 #include "src/PatRec/NeuralNet/TkrNeuralNet.h"
+#include "src/Utilities/TkrBase.h"
 
 #include "src/Track/TkrControl.h"
 
 #include <map>
+
+class NeuralNetFindTrackTool : public PatRecBaseTool
+{
+ public:
+
+  /// Standard Gaudi Tool interface constructor
+  NeuralNetFindTrackTool(const std::string& type, 
+             const std::string& name, 
+             const IInterface* parent);
+
+  virtual ~NeuralNetFindTrackTool() {}
+  
+  /// initialize method allows to load the properties
+  StatusCode initialize();
+
+  /// @brief Method to find candidate tracks. Will retrieve the necessary information from
+  ///        the TDS, including calorimeter energy, and then use TkrNeuralNet to find all
+  ///        possible track candidates. The resulting track candidate collection is then   
+  ///        stored in the TDS for the next stage.
+  StatusCode firstPass();
+
+  StatusCode  secondPass() {return StatusCode::SUCCESS;}
+
+
+  /// Instantiation and fake fit of the TkrPatCand candidate tracks.
+  void buildCand( Event::TkrTrackCol&, 
+                  const TkrNeuronList&, 
+                  Event::TkrClusterCol* );
+  
+
+ private:
+  /// The properties to be passed to TkrNeuralNet
+  double m_MaxLayerDiff;
+  double m_MaxPitch;
+  double m_Lambda;
+  double m_Mu;
+  double m_AlphaUP;
+  double m_AlphaDOWN;
+  double m_Bias;
+  double m_Gamma;
+  double m_temperature;
+};
 
 static ToolFactory<NeuralNetFindTrackTool> s_factory;
 const IToolFactory& NeuralNetFindTrackToolFactory = s_factory;
@@ -56,7 +103,7 @@ StatusCode NeuralNetFindTrackTool::initialize()
   return sc;
 }
 
-StatusCode NeuralNetFindTrackTool::findTracks()
+StatusCode NeuralNetFindTrackTool::firstPass()
 {
   //Always believe in success
   StatusCode sc = StatusCode::SUCCESS;

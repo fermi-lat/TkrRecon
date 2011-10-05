@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.22 2011/06/03 16:50:01 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.25 2011/09/02 22:48:26 usher Exp $
  *
 */
 
@@ -34,7 +34,7 @@ TkrTreeBuilder::TkrTreeBuilder(TkrVecNodesBuilder&    vecNodesBldr,
     m_treeCol->clear();
 
     // And store in the TDS
-    StatusCode sc = dataSvc->registerObject("/Event/TkrRecon/TkrTreeCol", m_treeCol);
+    StatusCode sc = dataSvc->registerObject(EventModel::TkrRecon::TkrTreeCol, m_treeCol);
 
     return;
 }
