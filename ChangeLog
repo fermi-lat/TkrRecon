@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Oct 12 10:33:48 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeBasedTool.cxx 
+Log Message:
+Better mechanism for cleaning up the tree collection when no tracks returned
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-17-35-24-gr09, operation: add
 Package: TkrRecon
