@@ -593,22 +593,26 @@ StatusCode TreeBasedTool::secondPass()
     }
 
     // The final task is to go through the tree collection and weed out any trees which didn't produce tracks
-    Event::TkrTreeCol::iterator treeItr = treeCol->begin(); 
-    
-    while(treeItr != treeCol->end())
+    if (!treeCol->empty())
     {
-        Event::TkrTree* tree = *treeItr;
+        int                         numTrees    = treeCol->size();
+        Event::TkrTreeCol::iterator lastElemItr = treeCol->end() - 1;
 
-        if (tree->empty())
+        // Loop over the number of trees in the collection
+        while(numTrees--)
         {
-            // Recall that the TreeCol "owns" the tree, hence this operation will delete it
-            // But also remember that this erase crap is tricky and we have to remember
-            // where we are
-            Event::TkrTreeCol::iterator nxtTreeItr = treeItr + 1;
-            treeCol->erase(treeItr);
-            treeItr = nxtTreeItr;
+            // This is meant to give us valid iterators to the current element
+            // and to the previous element in the event we remove the current one
+            Event::TkrTreeCol::iterator curElemItr = lastElemItr--;
+
+            // If there are no tracks associated with this tree...
+            if ((*curElemItr)->empty())
+            {
+                // then remove it from the Tree Collection 
+                // (noting that this operation also deletes the tree)
+                treeCol->erase(curElemItr);
+            }
         }
-        else treeItr++;
     }
 
     return sc;
@@ -826,7 +830,10 @@ Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRel
         int nTrees = treeCol->size();
         while(nTrees--)
         {
-            (*treeCol->begin())->setParent(0);
+            // If the tree is not empty then we don't want to delete it
+            if (!treeCol->front()->empty()) treeCol->front()->setParent(0);
+
+            // Ok, erase this tree (temporarily) from the collection
             treeCol->erase(treeCol->begin());
         }
 
