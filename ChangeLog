@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Oct 18 16:40:22 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeCalClusterAssociator.cxx 
+Log Message:
+Add more protection for the "unguarded" sort on linux
+    *
+------------------------------------------------------------
 User: usher  Tue Oct 18 16:11:08 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
