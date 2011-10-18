@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue Oct 18 16:11:08 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeBasedTool.cxx TreeCalClusterAssociator.cxx 
+	TreeCalClusterAssociator.h 
+Log Message:
+Fix crash on tree cluster relation sorting
+    *
+------------------------------------------------------------
 User: usher  Tue Oct 18 13:24:02 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
