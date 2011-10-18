@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue Oct 18 13:24:02 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeBuilder.cxx TkrTreeBuilder.h TkrTreeTrackFinder.cxx 
+	TkrVecNodesBuilder.cxx TreeBasedTool.cxx 
+Log Message:
+Fix bug in node builder where bottom layer offset was incorrectly calculated - affecting the determination of the best branch. Update code to initially build more trees and then prune back to reasonable number after associaton to cal clusters. Also changed "composite track" seeding to use tree axis
+    *
+------------------------------------------------------------
 User: usher  Wed Oct 12 10:33:48 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
