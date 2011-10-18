@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.h,v 1.10 2011/06/03 16:50:01 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.h,v 1.4 2011/09/02 22:48:26 usher Exp $
  *
 */
 
@@ -35,11 +35,11 @@ public:
     int                            associateTreeToClusters(Event::TkrTree* tree);
 
     /// Return the Track to relation map
-    Event::TreeClusterRelationVec& getTreeToRelationVec(Event::TkrTree* tree)          {return (*m_treeToRelationMap)[tree];}
-    Event::TreeToRelationMap&      getTreeToRelationMap()                              {return *m_treeToRelationMap;}
+    Event::TreeClusterRelationVec* getTreeToRelationVec(Event::TkrTree* tree);
+    Event::TreeToRelationMap*      getTreeToRelationMap()                              {return m_treeToRelationMap;}
 
-    Event::TreeClusterRelationVec& getClusterToRelationVec(Event::CalCluster* cluster) {return (*m_clusterToRelationMap)[cluster];}
-    Event::ClusterToRelationMap&   getClusterToRelationMap()                           {return *m_clusterToRelationMap;}
+    Event::TreeClusterRelationVec* getClusterToRelationVec(Event::CalCluster* cluster);
+    Event::ClusterToRelationMap*   getClusterToRelationMap()                           {return m_clusterToRelationMap;}
 
 private:
 

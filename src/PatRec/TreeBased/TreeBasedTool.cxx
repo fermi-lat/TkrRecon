@@ -347,8 +347,8 @@ StatusCode TreeBasedTool::firstPass()
                         // Ok, for right now our last step is going to be to go through and reorder the trees, which we do through the 
                         // back door using this method... 
                         if (m_reorderTrees)
-                            Event::TreeClusterRelationVec treeRelVec = buildTreeRelVec(&associator.getClusterToRelationMap(), 
-                                                                                       &associator.getTreeToRelationMap(), 
+                            Event::TreeClusterRelationVec treeRelVec = buildTreeRelVec(associator.getClusterToRelationMap(), 
+                                                                                       associator.getTreeToRelationMap(), 
                                                                                        treeCol, 
                                                                                        calClusterCol);
                     }
@@ -753,6 +753,8 @@ Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRel
     // Tacked onto the end of the list will be any trees which were not originally associated to a cluster (can happen!)
     Event::TreeClusterRelationVec treeRelVec;
 
+    treeRelVec.clear();
+
     // Note that we must protect against the case where there are no clusters
     // in the TDS colletion!
     try
@@ -779,17 +781,17 @@ Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRel
 
                 if (clusToRelationItr != clusToRelationMap->end())
                 {
-                    Event::TreeClusterRelationVec& relVec = clusToRelationItr->second;
+                    Event::TreeClusterRelationVec* relVec = &clusToRelationItr->second;
 
                     // If more than one tree associated to this cluster then we need to so some reordering
-                    if (relVec.size() > 1) 
+                    if (relVec && relVec->size() > 1) 
                     { // for debugging
-                        std::sort(relVec.begin(), relVec.end(), CompareTreeClusterRelations());
+                        std::sort(relVec->begin(), relVec->end(), CompareTreeClusterRelations());
                     }
 
                     // Now keep track of the results
-                    for(Event::TreeClusterRelationVec::iterator relVecItr  = relVec.begin();
-                                                                             relVecItr != relVec.end();
+                    for(Event::TreeClusterRelationVec::iterator relVecItr  = relVec->begin();
+                                                                             relVecItr != relVec->end();
                                                                              relVecItr++)
                     {
                         if ((*relVecItr)->getTree()) treeRelVec.push_back(*relVecItr);
