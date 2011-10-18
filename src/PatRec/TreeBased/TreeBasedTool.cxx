@@ -104,6 +104,9 @@ private:
     int                        m_nClusToMerge;
     int                        m_stripGap;
 
+    /// Maximum number of trees to return
+    int                        m_maxTrees;
+
     /// Let's keep track of event timing
     IChronoStatSvc*            m_chronoSvc;
     bool                       m_doTiming;
@@ -142,6 +145,7 @@ TreeBasedTool::TreeBasedTool(const std::string& type, const std::string& name, c
     declareProperty("MergeClusters",      m_mergeClusters       = false);
     declareProperty("NumClustersToMerge", m_nClusToMerge        = 3);
     declareProperty("MergeStripGap",      m_stripGap            = 8);
+    declareProperty("MaxNumTrees",        m_maxTrees            = 10);
     declareProperty("DoToolTiming",       m_doTiming            = true);
     declareProperty("MaxNumVecPoints",    m_maxNumVecPoints     = 10000);
     declareProperty("AssociateClusters",  m_associateClusters   = true);
@@ -339,6 +343,14 @@ StatusCode TreeBasedTool::firstPass()
                         {
                             throw(TkrException("Unknown exception encountered in TkrVecNode and TkrTree building "));  
                         }
+
+                        // Ok, for right now our last step is going to be to go through and reorder the trees, which we do through the 
+                        // back door using this method... 
+                        if (m_reorderTrees)
+                            Event::TreeClusterRelationVec treeRelVec = buildTreeRelVec(&associator.getClusterToRelationMap(), 
+                                                                                       &associator.getTreeToRelationMap(), 
+                                                                                       treeCol, 
+                                                                                       calClusterCol);
                     }
                 }
 
@@ -561,10 +573,10 @@ StatusCode TreeBasedTool::secondPass()
             }
         }
 
-        // Ok, for right now our last step is going to be to go through and reorder the trees, which we do through the 
-        // back door using this method... 
-        if (m_reorderTrees)
-            Event::TreeClusterRelationVec treeRelVec = buildTreeRelVec(clusterToRelationMap, treeToRelationMap, treeCol, calClusterCol);
+//        // Ok, for right now our last step is going to be to go through and reorder the trees, which we do through the 
+//        // back door using this method... 
+//        if (m_reorderTrees)
+//            Event::TreeClusterRelationVec treeRelVec = buildTreeRelVec(clusterToRelationMap, treeToRelationMap, treeCol, calClusterCol);
     }
         // Otherwise, if here, we extract tracks always relating to the first cluster
     else
@@ -606,8 +618,14 @@ StatusCode TreeBasedTool::secondPass()
             Event::TkrTreeCol::iterator curElemItr = lastElemItr--;
 
             // If there are no tracks associated with this tree...
-            if ((*curElemItr)->empty())
+            if ((*curElemItr)->empty() || numTrees > m_maxTrees - 1)
             {
+                // If pruning out useless trees then don't forget to delete the tracks
+                for(Event::TkrTree::iterator treeTrkItr = (*curElemItr)->begin(); treeTrkItr != (*curElemItr)->end(); treeTrkItr++)
+                {
+                    delete *treeTrkItr;
+                }
+
                 // then remove it from the Tree Collection 
                 // (noting that this operation also deletes the tree)
                 treeCol->erase(curElemItr);
@@ -831,7 +849,8 @@ Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRel
         while(nTrees--)
         {
             // If the tree is not empty then we don't want to delete it
-            if (!treeCol->front()->empty()) treeCol->front()->setParent(0);
+//            if (!treeCol->front()->empty()) treeCol->front()->setParent(0);
+            treeCol->front()->setParent(0);
 
             // Ok, erase this tree (temporarily) from the collection
             treeCol->erase(treeCol->begin());

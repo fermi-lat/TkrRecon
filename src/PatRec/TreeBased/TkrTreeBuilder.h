@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.h,v 1.10 2011/06/03 16:50:01 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.h,v 1.12 2011/09/02 22:48:26 usher Exp $
  *
 */
 
@@ -30,7 +30,8 @@ class TkrTreeBuilder
 public:
     TkrTreeBuilder(TkrVecNodesBuilder&    vecNodesBldr,
                    IDataProviderSvc*      dataSvc, 
-                   ITkrGeometrySvc*       geoSvc);
+                   ITkrGeometrySvc*       geoSvc,
+                   int                    maxTrees = 30);
 
     ~TkrTreeBuilder();
 
@@ -69,6 +70,9 @@ private:
 
     /// Pointer to our TkrTree collection in the TDS
     Event::TkrTreeCol*     m_treeCol;
+
+    /// Control the maximum number of trees to return
+    int                    m_maxTrees;
 };
 
 #endif
