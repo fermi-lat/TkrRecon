@@ -946,8 +946,8 @@ void TkrVecNodesBuilder::updateTreeParams(Event::TkrVecNode* updateNode)
 
             // What type of bilayer do we have?
             convType lyrType   = m_tkrGeom->getLayerType(botVecPoint->getLayer());
-            double   lyrOffset = 0.5 * (botVecPoint->getXCluster()->position().z()
-                               +        botVecPoint->getYCluster()->position().z());
+            double   lyrOffset = -0.5 * fabs(botVecPoint->getXCluster()->position().z()
+                               -             botVecPoint->getYCluster()->position().z());
 
             if      (lyrType == STANDARD) lyrOffset = 0.600;
             else if (lyrType == SUPER   ) lyrOffset = 0.900;

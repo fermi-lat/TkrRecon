@@ -24,10 +24,12 @@
 
 TkrTreeBuilder::TkrTreeBuilder(TkrVecNodesBuilder&    vecNodesBldr,
                                IDataProviderSvc*      dataSvc, 
-                               ITkrGeometrySvc*       geoSvc)
+                               ITkrGeometrySvc*       geoSvc,
+                               int                    maxTrees)
                               : m_vecNodesBldr(vecNodesBldr),
                                 m_dataSvc(dataSvc), 
-                                m_tkrGeom(geoSvc)
+                                m_tkrGeom(geoSvc),
+                                m_maxTrees(maxTrees)
 {
     // Get a new head node collection for the TDS
     m_treeCol = new Event::TkrTreeCol();
@@ -90,7 +92,7 @@ Event::TkrTreeCol* TkrTreeBuilder::buildTrees()
             }
 
             // Arbitrary limit on the number of trees = 10
-            if (m_treeCol->size() >= 10) break;
+            if (m_treeCol->size() >= m_maxTrees) break;
         }
     }
 

@@ -102,8 +102,8 @@ int TkrTreeTrackFinder::findTracks(Event::TkrTree* tree, double trackEnergy)
 
                 if (trackBest) startPos = trackBest->getInitialPosition();
 
-                Event::TkrTrack* trackAll = getTkrTrackFromHits2(headNode->front()->getAssociatedLink(), trackEnergy);
-//  //            Event::TkrTrack* trackAll = getTkrTrackFromHits(startPos, startDir, trackEnergy);
+//                Event::TkrTrack* trackAll = getTkrTrackFromHits2(headNode->front()->getAssociatedLink(), trackEnergy);
+                Event::TkrTrack* trackAll = getTkrTrackFromHits(startPos, startDir, trackEnergy);
 //  //            Event::TkrTrack* trackAll = makeTkrTrackFromMean(siblingMap, axisParams, trackEnergy);
 
                 // Make sure the hit finding didn't screw up...
@@ -469,6 +469,11 @@ Event::TkrTrack* TkrTreeTrackFinder::getTkrTrackFromHits(Point  startPoint, Vect
         {
             throw(TkrException("Exception encountered when fitting track in tree TkrTreeTrackFinder::getTkrTrackFromHits "));  
         }
+    }
+    else
+    {
+        delete track;
+        track = 0;
     }
 
     // What could be easier?
