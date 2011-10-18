@@ -49,6 +49,12 @@ TreeCalClusterAssociator::TreeCalClusterAssociator(Event::CalClusterCol* calClus
         }
     }
 
+    // Make sure they are all cleared (which they should already be since they are new?)
+    m_treeClusterRelationCol->clear();
+    m_treeToRelationMap->clear();
+    m_clusterToRelationMap->clear();
+
+    // Turn them over to the TDS for safekeeping (and responsibility for deletion!)
     sc = dataSvc->registerObject(EventModel::Recon::TreeClusterRelationCol, m_treeClusterRelationCol);
     sc = dataSvc->registerObject(EventModel::Recon::TreeToRelationMap,      m_treeToRelationMap);
     sc = dataSvc->registerObject(EventModel::Recon::ClusterToRelationMap,   m_clusterToRelationMap);
@@ -182,6 +188,34 @@ int TreeCalClusterAssociator::associateTreeToClusters(Event::TkrTree* tree)
     }
 
     return numClusters;
+}
+
+Event::TreeClusterRelationVec* TreeCalClusterAssociator::getTreeToRelationVec(Event::TkrTree* tree)
+{
+    Event::TreeClusterRelationVec* relVec = 0;
+
+    Event::TreeToRelationMap::iterator relItr = m_treeToRelationMap->find(tree);
+
+    if (relItr != m_treeToRelationMap->end())
+    {
+        relVec = &relItr->second;
+    }
+
+    return relVec;
+}
+    
+Event::TreeClusterRelationVec* TreeCalClusterAssociator::getClusterToRelationVec(Event::CalCluster* cluster)
+{
+    Event::TreeClusterRelationVec* relVec = 0;
+
+    Event::ClusterToRelationMap::iterator relItr = m_clusterToRelationMap->find(cluster);
+
+    if (relItr != m_clusterToRelationMap->end())
+    {
+        relVec = &relItr->second;
+    }
+
+    return relVec;
 }
 
 //const bool TreeCalClusterAssociator::CompareTreeClusterRelations::operator()(const TreeClusterRelation* left, const TreeClusterRelation* right) const
