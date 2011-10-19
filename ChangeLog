@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Oct 18 19:47:07 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeCalClusterAssociator.cxx 
+Log Message:
+One more place to enforce strict weak ordering
+    *
+------------------------------------------------------------
 User: usher  Tue Oct 18 19:24:33 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
