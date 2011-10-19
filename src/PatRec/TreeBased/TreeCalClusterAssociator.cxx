@@ -255,7 +255,7 @@ const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelat
                 }
 
                 // Otherwise take the closest to the centroid
-                return leftTest <= rightTest;
+                return leftTest < rightTest;
             }
         }
     }
