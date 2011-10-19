@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Oct 18 19:24:33 PDT 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeCalClusterAssociator.cxx 
+Log Message:
+Might not have been strictly weak ordering?
+    *
+------------------------------------------------------------
 User: usher  Tue Oct 18 16:40:22 PDT 2011
 TkrRecon/src/PatRec/TreeBased
 
