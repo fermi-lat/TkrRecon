@@ -223,8 +223,8 @@ const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelat
                                                    const Event::TreeClusterRelation* right) const
 {
     // A bit of protection here
-    if (!right || !right->getTree()) return true;
     if (!left  || !left->getTree() ) return false;
+    if (!right || !right->getTree()) return true;
 
     // We're going to try to do the simplest possible solution here... if two trees are similar then we'll take the one closest
     // to the cluster, otherwise we are simply keeping the original ordering scheme
