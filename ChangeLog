@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Nov 16 15:20:55 PST 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeBasedTool.cxx 
+Log Message:
+Make the reordering of the trees by their cluster associations the default
+    *
+------------------------------------------------------------
 User: usher  Wed Nov 16 15:03:49 PST 2011
 TkrRecon/src/Track
 
