@@ -7,7 +7,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrEnergySplitTool.cxx,v 1.0 2010/10/27 19:11:13 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrEnergySplitTool.cxx,v 1.6 2011/08/20 23:08:51 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -23,6 +23,7 @@
 #include "Event/Recon/CalRecon/CalCluster.h"
 #include "Event/Recon/TkrRecon/TkrEventParams.h"
 
+#include "GlastSvc/GlastClassify/ITupleInterface.h"
 #include "GlastSvc/GlastClassify/IClassifyTool.h"
 
 #include "src/Track/TkrTrackEnergyTool.h"
@@ -30,6 +31,67 @@
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrEnergyTool.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
+
+// Define a concrete implementation of our "items"
+template <class T> class ClassifyItem : public GlastClassify::Item 
+{
+public:
+    ClassifyItem<T>(const std::string& name, const std::string& type, T* data) :
+      m_pdata(data), m_name(name), m_type(type)   {}
+    
+    virtual ~ClassifyItem<T>() {}
+
+    operator double()const {
+        return (double)*m_pdata;
+    }
+
+    void*              getDataAddr() const {return m_pdata;}
+
+    const std::string& getDataName() const {return m_name;}
+    const std::string& getDataType() const {return m_type;}
+
+// LSR 14-Jul-08 code for ntuple types
+
+    void setDataValue(void* data) 
+    {
+        if (m_type == "UInt_t")
+        {
+            *m_pdata = *(reinterpret_cast<int*>(data));
+        }
+        else if (m_type == "ULong64_t")
+        {
+            *m_pdata = *(reinterpret_cast<unsigned long long*>(data));
+        }
+        else if (m_type == "Float_t")
+        {
+            *m_pdata = *(reinterpret_cast<float*>(data));
+        }
+        else if (m_type == "Double_t")
+        {
+            *m_pdata = *(reinterpret_cast<double*>(data));
+        }
+        else if (m_type == "UChar_t")
+        {
+            memset(m_pdata, ' ', 80);
+            strcpy(reinterpret_cast<char*>(m_pdata), reinterpret_cast<char*>(data));
+        }
+        else if (m_type == "Char_t")
+        {
+            memset(m_pdata, ' ', 80);
+            strcpy(reinterpret_cast<char*>(m_pdata), reinterpret_cast<char*>(data));
+        }
+        else
+        {
+            throw std::invalid_argument("ClassifyItem: attempting to set an unrecognized data type");
+        }
+    }
+
+private:
+    T*          m_pdata;
+    std::string m_name;
+    std::string m_type;
+    void*       m_treePtr;
+};
 
 class TkrEnergySplitTool : public AlgTool, virtual public ITkrTrackEnergyTool
 {
@@ -78,6 +140,9 @@ private:
     IClassifyTool::VarNameToValueMap m_tupleMap;
     IClassifyTool::VarNameToValueMap m_outTupleMap;
 
+    /// Local storage of variables
+    std::map<std::string, float>     m_floatAddrMap;
+
     /// Pointer to the ClassifyTool
     IClassifyTool*                  m_classifyTool;
 
@@ -111,6 +176,7 @@ TkrEnergySplitTool::TkrEnergySplitTool(const std::string& type, const std::strin
 
     m_tupleMap.clear();
     m_outTupleMap.clear();
+    m_floatAddrMap.clear();
 
     return;
 }
@@ -151,33 +217,78 @@ StatusCode TkrEnergySplitTool::initialize()
     }
 
     // Explicitly add the variables we will use to the map here so we can document them
-    m_tupleMap["TkrNumTracks"]   = 0.; // Number of tracks (excluding CR tracks)
-    m_tupleMap["CalEnergyRaw"]   = 0.; // Energy_tot (min > 10 MeV)
-    m_tupleMap["Tkr1Chisq"]      = 0.; // Chisq for track 1
-    m_tupleMap["Tkr1FirstChisq"] = 0.; // Chisq for first segment of track 1
-    m_tupleMap["Tkr11stHitSChi"] = 0.; // 1st hit smoothed chisquare of track 1
-    m_tupleMap["Tkr12ndHitSChi"] = 0.; // 2nd hit smoothed chisquare of track 1
-    m_tupleMap["Tkr1FirstLayer"] = 0.; // First layer of track
-    m_tupleMap["Tkr1KalEne"]     = 0.; // Kalman derived energy for track 1
-    m_tupleMap["Tkr1XDir"]       = 0.; // direction cosine X for track 1
-    m_tupleMap["Tkr1YDir"]       = 0.; // direction cosine Y for track 1
-    m_tupleMap["Tkr1ZDir"]       = 0.; // direction cosine Z for track 1
-    m_tupleMap["Tkr2Chisq"]      = 0.; // Chisq for track 2
-    m_tupleMap["Tkr2FirstChisq"] = 0.; // Chisq for first segment of track 2
-    m_tupleMap["Tkr2KalEne"]     = 0.; // Kalman derived energy for track 2
-    m_tupleMap["Tkr2XDir"]       = 0.; // direction cosine X for track 2
-    m_tupleMap["Tkr2YDir"]       = 0.; // direction cosine Y for track 2
-    m_tupleMap["Tkr2ZDir"]       = 0.; // direction cosine Z for track 2
-    m_tupleMap["TkrTree1DirX"]   = 0.; // direction cosine X for tree 1
-    m_tupleMap["TkrTree1DirY"]   = 0.; // direction cosine Y for tree 1
-    m_tupleMap["TkrTree1DirZ"]   = 0.; // direction cosine Z for tree 1
-    m_tupleMap["TreeClusDoca"]   = 0.; // Distance of closest approach of tree to cluster
-    m_tupleMap["TreeClusAngle"]  = 0.; // Angle between Tree axis and Cluster axis
-    m_tupleMap["TreeClusDocaZ"]  = 0.; // Distance between Tree axis and Cluster at cluster centroid z
-    m_tupleMap["TreeClusEnergy"] = 0.; // Energy of cluster associated to the tree
-
-    // Expected output variables here for completeness
-    m_outTupleMap["CTBTkr1EnergyProb"] = 0.;
+    m_tupleMap["TkrNumTracks"]   = new ClassifyItem<float>("TkrNumTracks", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["TkrNumTracks"]); // Number of tracks (excluding CR tracks)
+    m_tupleMap["CalEnergyRaw"]   = new ClassifyItem<float>("CalEnergyRaw", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["CalEnergyRaw"]);   // Energy_tot (min > 10 MeV)
+    m_tupleMap["Tkr1Chisq"]      = new ClassifyItem<float>("Tkr1Chisq", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["Tkr1Chisq"]);      // Chisq for track 1
+    m_tupleMap["Tkr1FirstChisq"] = new ClassifyItem<float>("Tkr1FirstChisq", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["Tkr1FirstChisq"]); // Chisq for first segment of track 1
+    m_tupleMap["Tkr11stHitSChi"] = new ClassifyItem<float>("Tkr11stHitSChi", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["Tkr11stHitSChi"]); // 1st hit smoothed chisquare of track 1
+    m_tupleMap["Tkr12ndHitSChi"] = new ClassifyItem<float>("Tkr12ndHitSChi", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["Tkr12ndHitSChi"]); // 2nd hit smoothed chisquare of track 1
+    m_tupleMap["Tkr1FirstLayer"] = new ClassifyItem<float>("Tkr1FirstLayer", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["Tkr1FirstLayer"]); // First layer of track
+    m_tupleMap["Tkr1KalEne"]     = new ClassifyItem<float>("Tkr1KalEne", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["Tkr1KalEne"]);     // Kalman derived energy for track 1
+    m_tupleMap["Tkr1XDir"]       = new ClassifyItem<float>("Tkr1XDir", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["Tkr1XDir"]);       // direction cosine X for track 1
+    m_tupleMap["Tkr1YDir"]       = new ClassifyItem<float>("Tkr1YDir", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["Tkr1YDir"]);       // direction cosine Y for track 1
+    m_tupleMap["Tkr1ZDir"]       = new ClassifyItem<float>("Tkr1ZDir", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["Tkr1ZDir"]);       // direction cosine Z for track 1
+    m_tupleMap["Tkr2Chisq"]      = new ClassifyItem<float>("Tkr2Chisq", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["Tkr2Chisq"]);      // Chisq for track 2
+    m_tupleMap["Tkr2FirstChisq"] = new ClassifyItem<float>("Tkr2FirstChisq", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["Tkr2FirstChisq"]); // Chisq for first segment of track 2
+    m_tupleMap["Tkr2KalEne"]     = new ClassifyItem<float>("Tkr2KalEne", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["Tkr2KalEne"]);     // Kalman derived energy for track 2
+    m_tupleMap["Tkr2XDir"]       = new ClassifyItem<float>("Tkr2XDir", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["Tkr2XDir"]);       // direction cosine X for track 2
+    m_tupleMap["Tkr2YDir"]       = new ClassifyItem<float>("Tkr2YDir", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["Tkr2YDir"]);       // direction cosine Y for track 2
+    m_tupleMap["Tkr2ZDir"]       = new ClassifyItem<float>("TkrNumTracks", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["TkrNumTracks"]);   // direction cosine Z for track 2
+    m_tupleMap["TkrTree1DirX"]   = new ClassifyItem<float>("TkrTree1DirX", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["TkrTree1DirX"]);   // direction cosine X for tree 1
+    m_tupleMap["TkrTree1DirY"]   = new ClassifyItem<float>("TkrTree1DirY", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["TkrTree1DirY"]);   // direction cosine Y for tree 1
+    m_tupleMap["TkrTree1DirZ"]   = new ClassifyItem<float>("TkrTree1DirZ", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["TkrTree1DirZ"]);   // direction cosine Z for tree 1
+    m_tupleMap["TreeClusDoca"]   = new ClassifyItem<float>("TreeClusDoca", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["TreeClusDoca"]);   // Distance of closest approach of tree to cluster
+    m_tupleMap["TreeClusAngle"]  = new ClassifyItem<float>("TreeClusAngle", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["TreeClusAngle"]);   // Angle between Tree axis and Cluster axis
+    m_tupleMap["TreeClusDocaZ"]  = new ClassifyItem<float>("TreeClusDocaZ", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["TreeClusDocaZ"]);   // Distance between Tree axis and Cluster at cluster centroid z
+    m_tupleMap["TreeClusEnergy"] = new ClassifyItem<float>("TreeClusEnergy", 
+                                                           "Float_t", 
+                                                           &m_floatAddrMap["TreeClusEnergy"]);   // Energy of cluster associated to the tree
 
     if ((sc = toolSvc()->retrieveTool("ClassifyTool", "ClassifyTool", m_classifyTool)).isFailure())
     {
@@ -186,6 +297,16 @@ StatusCode TkrEnergySplitTool::initialize()
 
     // Initialize it
     m_classifyTool->setUpClassification(m_tupleMap, m_analysisXmlFileName, m_tupleName, m_tupleFileName);
+
+    // The output of the classification is handled differently from the intput, in that the "Item"'s for 
+    // the output are set up in the above initialization. To keep local copies we simply look up those
+    // Item's and keep track of them in our own internal map
+    GlastClassify::Item* energyProb = 0;
+
+    if (m_classifyTool->getVariable("CTBTkr1EnergyProb", energyProb))
+    {
+        m_outTupleMap["CTBTkr1EnergyProb"] = energyProb;
+    }
     
     return sc;
 }
@@ -317,26 +438,19 @@ void TkrEnergySplitTool::setTrackEnergies(Event::TkrTrack* first, Event::TkrTrac
     double e2_con = 0.5 * ene_total;
 
     // Get back the result
-    if (m_classifyTool->getVariable(m_outTupleMap.begin()->first, m_outTupleMap.begin()->second))
-    {
-        double tkr1EnergyProb = m_outTupleMap.begin()->second;
+    double tkr1EnergyProb = *m_outTupleMap["CTBTkr1EnergyProb"];
 
-        // For this stage of code development, assume if first track is "right" that we give it 75% of the energy
-        if (tkr1EnergyProb >= 0.5)
-        {
-            e1_con = 0.75 * ene_total;
-            e2_con = 0.25 * ene_total;
-        }
-        // Otherwise its the other way around
-        else
-        {
-            e1_con = 0.25 * ene_total;
-            e2_con = 0.75 * ene_total;
-        }
+    // For this stage of code development, assume if first track is "right" that we give it 75% of the energy
+    if (tkr1EnergyProb >= 0.5)
+    {
+        e1_con = 0.75 * ene_total;
+        e2_con = 0.25 * ene_total;
     }
+    // Otherwise its the other way around
     else
     {
-        int j = 0;
+        e1_con = 0.25 * ene_total;
+        e2_con = 0.75 * ene_total;
     }
 
     setTrackEnergy(first,  e1_con);
@@ -352,7 +466,7 @@ void TkrEnergySplitTool::setTupleValues(Event::TkrTreeCol*        trees,
 {
     // Set the "tuple" values that are used in this objects classification tree here
     // Start with the number of tracks this event
-    m_tupleMap["TkrNumTracks"] = tracks->size();
+    m_floatAddrMap["TkrNumTracks"] = tracks->size();
 
     // raw calorimeter energy
     double calEnergyRaw = 0.;
@@ -362,47 +476,47 @@ void TkrEnergySplitTool::setTupleValues(Event::TkrTreeCol*        trees,
 
     calEnergyRaw = std::max(m_minCalEnergyRaw, calEnergyRaw);
 
-    m_tupleMap["CalEnergyRaw"]   = calEnergyRaw;
+    m_floatAddrMap["CalEnergyRaw"]   = calEnergyRaw;
 
     // Get the track information
     Event::TkrTrackCol::iterator trackItr = tracks->begin();
     Event::TkrTrack*             track    = *trackItr++;
 
     // Retrieve the parameters for the tracks
-    m_tupleMap["Tkr1KalEne"]     = track->getKalEnergy();
-    m_tupleMap["Tkr1Chisq"]      = track->getChiSquareSmooth();
-    m_tupleMap["Tkr1FirstChisq"] = track->chiSquareSegment();
-    m_tupleMap["Tkr1XDir"]       = track->getInitialDirection().x();
-    m_tupleMap["Tkr1YDir"]       = track->getInitialDirection().y();
-    m_tupleMap["Tkr1ZDir"]       = track->getInitialDirection().z();
+    m_floatAddrMap["Tkr1KalEne"]     = track->getKalEnergy();
+    m_floatAddrMap["Tkr1Chisq"]      = track->getChiSquareSmooth();
+    m_floatAddrMap["Tkr1FirstChisq"] = track->chiSquareSegment();
+    m_floatAddrMap["Tkr1XDir"]       = track->getInitialDirection().x();
+    m_floatAddrMap["Tkr1YDir"]       = track->getInitialDirection().y();
+    m_floatAddrMap["Tkr1ZDir"]       = track->getInitialDirection().z();
 
     Event::TkrTrackHit* hit = (*track)[0];
-    m_tupleMap["Tkr11stHitSChi"] = hit->validCluster() ? hit->getChiSquareSmooth() : 0.;
-    m_tupleMap["Tkr1FirstLayer"] = m_tkrGeom->getLayer(hit->getTkrId());
+    m_floatAddrMap["Tkr11stHitSChi"] = hit->validCluster() ? hit->getChiSquareSmooth() : 0.;
+    m_floatAddrMap["Tkr1FirstLayer"] = m_tkrGeom->getLayer(hit->getTkrId());
 
     hit = (*track)[1];
-    m_tupleMap["Tkr12ndHitSChi"] = hit->validCluster() ? hit->getChiSquareSmooth() : 0.;
+    m_floatAddrMap["Tkr12ndHitSChi"] = hit->validCluster() ? hit->getChiSquareSmooth() : 0.;
  
     // Now get the next track
     if (trackItr != tracks->end())
     {
         track = *trackItr++;
 
-        m_tupleMap["Tkr2KalEne"]     = track->getKalEnergy();
-        m_tupleMap["Tkr2Chisq"]      = track->getChiSquareSmooth();
-        m_tupleMap["Tkr2FirstChisq"] = track->chiSquareSegment();
-        m_tupleMap["Tkr2XDir"]       = track->getInitialDirection().x();
-        m_tupleMap["Tkr2YDir"]       = track->getInitialDirection().y();
-        m_tupleMap["Tkr2ZDir"]       = track->getInitialDirection().z();
+        m_floatAddrMap["Tkr2KalEne"]     = track->getKalEnergy();
+        m_floatAddrMap["Tkr2Chisq"]      = track->getChiSquareSmooth();
+        m_floatAddrMap["Tkr2FirstChisq"] = track->chiSquareSegment();
+        m_floatAddrMap["Tkr2XDir"]       = track->getInitialDirection().x();
+        m_floatAddrMap["Tkr2YDir"]       = track->getInitialDirection().y();
+        m_floatAddrMap["Tkr2ZDir"]       = track->getInitialDirection().z();
     }
     else
     {
-        m_tupleMap["Tkr2KalEne"]     = 0.;
-        m_tupleMap["Tkr2Chisq"]      = 0.;
-        m_tupleMap["Tkr2FirstChisq"] = 0.;
-        m_tupleMap["Tkr2XDir"]       = 0.;
-        m_tupleMap["Tkr2YDir"]       = 0.;
-        m_tupleMap["Tkr2ZDir"]       = 0.;
+        m_floatAddrMap["Tkr2KalEne"]     = 0.;
+        m_floatAddrMap["Tkr2Chisq"]      = 0.;
+        m_floatAddrMap["Tkr2FirstChisq"] = 0.;
+        m_floatAddrMap["Tkr2XDir"]       = 0.;
+        m_floatAddrMap["Tkr2YDir"]       = 0.;
+        m_floatAddrMap["Tkr2ZDir"]       = 0.;
     }
 
     Vector treeDir(0.,0.,0.);
@@ -414,9 +528,9 @@ void TkrEnergySplitTool::setTupleValues(Event::TkrTreeCol*        trees,
 
         if (tree1->getAxisParams()) treeDir = tree1->getAxisParams()->getEventAxis();
 
-        m_tupleMap["TkrTree1DirX"]   = treeDir.x();
-        m_tupleMap["TkrTree1DirY"]   = treeDir.y();
-        m_tupleMap["TkrTree1DirZ"]   = treeDir.z();
+        m_floatAddrMap["TkrTree1DirX"]   = treeDir.x();
+        m_floatAddrMap["TkrTree1DirY"]   = treeDir.y();
+        m_floatAddrMap["TkrTree1DirZ"]   = treeDir.z();
 
         // Finally, get cluster related to this tree
         if (treeToRelationMap)
@@ -429,10 +543,10 @@ void TkrEnergySplitTool::setTupleValues(Event::TkrTreeCol*        trees,
 
                 const Event::CalCluster* cluster = treeClusterRel->getCluster();
 
-                m_tupleMap["TreeClusDoca"]   = treeClusterRel->getTreeClusDoca();
-                m_tupleMap["TreeClusAngle"]  = treeClusterRel->getTreeClusCosAngle();
-                m_tupleMap["TreeClusDocaZ"]  = treeClusterRel->getTreeClusDistAtZ();
-                m_tupleMap["TreeClusEnergy"] = treeClusterRel->getClusEnergy();
+                m_floatAddrMap["TreeClusDoca"]   = treeClusterRel->getTreeClusDoca();
+                m_floatAddrMap["TreeClusAngle"]  = treeClusterRel->getTreeClusCosAngle();
+                m_floatAddrMap["TreeClusDocaZ"]  = treeClusterRel->getTreeClusDistAtZ();
+                m_floatAddrMap["TreeClusEnergy"] = treeClusterRel->getClusEnergy();
             }
         }
     }
