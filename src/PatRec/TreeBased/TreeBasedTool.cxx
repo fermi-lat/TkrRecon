@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.17 2011/09/02 22:48:26 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.24 2011/10/18 23:11:08 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -149,7 +149,7 @@ TreeBasedTool::TreeBasedTool(const std::string& type, const std::string& name, c
     declareProperty("DoToolTiming",       m_doTiming            = true);
     declareProperty("MaxNumVecPoints",    m_maxNumVecPoints     = 10000);
     declareProperty("AssociateClusters",  m_associateClusters   = true);
-    declareProperty("ReorderTrees",       m_reorderTrees        = false);
+    declareProperty("ReorderTrees",       m_reorderTrees        = true);
 
     m_clusterCol = 0;
 
