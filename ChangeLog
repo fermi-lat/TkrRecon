@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Nov 18 09:38:55 PST 2011
+TkrRecon/src/Track
+
+Modified Files:
+	TkrEnergySplitTool.cxx 
+Log Message:
+Make memory resident ntuple the default setting
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-27-00, operation: add
 Package: TkrRecon
