@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-27-01 18-Nov-2011  TU Make memory resident ntuple default for the track energy splitter
  TkrRecon-10-27-00 17-Nov-2011  TU New recon flow implemented, based on Tree/Cluster associations
  TkrRecon-10-26-04 26-Sep-2011  TU Another current state tag, this with improved cal cluster association and tree sorting
  TkrRecon-10-26-04 12-Sep-2011  TU Tag the current state to preserve before completely dismantling the link attachment code
