@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.cxx,v 1.9 2011/09/02 22:48:26 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.cxx,v 1.16 2011/10/19 02:47:07 usher Exp $
  *
 */
 
@@ -223,8 +223,8 @@ const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelat
                                                    const Event::TreeClusterRelation* right) const
 {
     // A bit of protection here
-    if (!left  || !left->getTree() ) return false;
     if (!right || !right->getTree()) return true;
+    if (!left  || !left->getTree() ) return false;
 
     // We're going to try to do the simplest possible solution here... if two trees are similar then we'll take the one closest
     // to the cluster, otherwise we are simply keeping the original ordering scheme
