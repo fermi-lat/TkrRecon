@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sat Nov 19 10:17:33 PST 2011
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeCalClusterAssociator.cxx 
+Log Message:
+attempting to comply with strict weak ordering
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-27-01, operation: add
 Package: TkrRecon
