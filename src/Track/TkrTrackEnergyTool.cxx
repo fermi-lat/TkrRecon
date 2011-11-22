@@ -159,26 +159,32 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
             if (tree->empty()) continue;
 
             // Recover the related Cal Cluster
-            Event::CalCluster*                 calCluster = 0;
-            Event::TreeToRelationMap::iterator treeCalItr = treeToRelationMap->find(tree);
+            Event::CalCluster* calCluster = 0;
 
-            if (treeCalItr != treeToRelationMap->end())
+            // If we are running in Combo mode then there will be no relation maps in the TDS
+            if (treeToRelationMap && clusterToRelationMap)
             {
-                calCluster = treeCalItr->second.front()->getCluster();
+                // Set up to find the cluster related to this tree/track
+                Event::TreeToRelationMap::iterator treeCalItr = treeToRelationMap->find(tree);
 
-                // Now do the reverse to see if this is the "first" tree associated to the cluster
-                Event::ClusterToRelationMap::iterator calTreeItr = clusterToRelationMap->find(calCluster);
-
-                // If there was no cluster then we'll not have a corrected energy object
-                if (calTreeItr != clusterToRelationMap->end())
+                if (treeCalItr != treeToRelationMap->end())
                 {
-                    // Our last check is to be sure the tree we are refitting is the "first" one associated to the cluster
-                    Event::TkrTree* firstTree = calTreeItr->second.front()->getTree();
+                    calCluster = treeCalItr->second.front()->getCluster();
+
+                    // Now do the reverse to see if this is the "first" tree associated to the cluster
+                    Event::ClusterToRelationMap::iterator calTreeItr = clusterToRelationMap->find(calCluster);
+
+                    // If there was no cluster then we'll not have a corrected energy object
+                    if (calTreeItr != clusterToRelationMap->end())
+                    {
+                        // Our last check is to be sure the tree we are refitting is the "first" one associated to the cluster
+                        Event::TkrTree* firstTree = calTreeItr->second.front()->getTree();
              
-                    // If we are not the first tree related to the cluster then we skip processing
-                    if (tree != firstTree) calCluster = 0;
+                        // If we are not the first tree related to the cluster then we skip processing
+                        if (tree != firstTree) calCluster = 0;
+                    }
+                    else calCluster = 0;
                 }
-                else calCluster = 0;
             }
             
             // Get the first track to find out the energy option used 
@@ -197,16 +203,22 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
                         secndCandTrk = 0;  //RJ: Avoid cosmic-ray tracks
                 }
                 // Recover TkrEventParams from which we get the event energy  
-                //Event::TkrEventParams* tkrEventParams = 
-                //           SmartDataPtr<Event::TkrEventParams>(m_dataSvc,EventModel::TkrRecon::TkrEventParams);
-    
-                // At this stage, TkrEventParams MUST exist
-                //if (tkrEventParams == 0) throw GaudiException("No TkrEventParams found", name(), StatusCode::FAILURE);
-    
-                // If no Cal energy then use the MS energy from the track itself
-                //if ((tkrEventParams->getStatusBits() & Event::TkrEventParams::CALPARAMS) != 
-                //    Event::TkrEventParams::CALPARAMS || tkrEventParams->getEventEnergy() <= 0.) 
+                Event::TkrEventParams* tkrEventParams = 0;
+
                 if (!calCluster)
+                {
+                    tkrEventParams = SmartDataPtr<Event::TkrEventParams>(m_dataSvc,EventModel::TkrRecon::TkrEventParams);
+    
+                    // At this stage, TkrEventParams MUST exist
+                    if (tkrEventParams == 0) throw GaudiException("No TkrEventParams found", name(), StatusCode::FAILURE);
+                }
+    
+                // If no CalCluster then we will have a TkrEventParams object. 
+                // If we have it and its not set with Cal energy then execute this section of
+                // code... use the MS energy from the track itself
+                if (tkrEventParams 
+                    && ((tkrEventParams->getStatusBits() & Event::TkrEventParams::CALPARAMS) != Event::TkrEventParams::CALPARAMS)
+                    || tkrEventParams->getEventEnergy() <= 0.) 
                 {
                     // no cal info... set track energies to MS energies if possible.
                     double minEnergy = m_control->getMinEnergy();
@@ -231,11 +243,16 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
                     // Initialize calEnergy
                     double calEnergy = 0.;
 
-                    // Using the first Cluster as the key, recover the "correct" energy relations
-                    Event::CalEventEnergyMap::iterator calEnergyItr = calEventEnergyMap->find(calCluster);
+                    // If a valid CalCluster then look up the energy here
+                    if (calCluster)
+                    {
+                        // Using the first Cluster as the key, recover the "correct" energy relations
+                        Event::CalEventEnergyMap::iterator calEnergyItr = calEventEnergyMap->find(calCluster);
 
-                    if (calEnergyItr != calEventEnergyMap->end()) 
+                        if (calEnergyItr != calEventEnergyMap->end()) 
                             calEnergy = calEnergyItr->second.front()->getParams().getEnergy();
+                    }
+                    else calEnergy = tkrEventParams->getEventEnergy();
 
                     // Recover the "best" cal energy for this Tree
                     double evtEnergy = std::max(calEnergy, 0.5 * m_control->getMinEnergy());
