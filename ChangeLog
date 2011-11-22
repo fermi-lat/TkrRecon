@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Mon Nov 21 16:04:49 PST 2011
+TkrRecon/src/Track
+
+Modified Files:
+	TkrTrackEnergyTool.cxx 
+Log Message:
+Attempting to resurrect the combo pat rec. Technique is to stuff the tracks into a fake tree (with axis params) so that processing can proceed in the new recon scheme.
+    *
+------------------------------------------------------------
 User: usher  Mon Nov 21 16:04:48 PST 2011
 TkrRecon/src/PatRec/Combo
 
