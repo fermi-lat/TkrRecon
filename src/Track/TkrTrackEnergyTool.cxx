@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.32 2010/10/27 19:11:13 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.34 2011/11/22 00:04:49 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -216,9 +216,9 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
                 // If no CalCluster then we will have a TkrEventParams object. 
                 // If we have it and its not set with Cal energy then execute this section of
                 // code... use the MS energy from the track itself
-                if (tkrEventParams 
-                    && ((tkrEventParams->getStatusBits() & Event::TkrEventParams::CALPARAMS) != Event::TkrEventParams::CALPARAMS)
-                    || tkrEventParams->getEventEnergy() <= 0.) 
+                if (tkrEventParams
+                    && ((tkrEventParams->getStatusBits() & Event::TkrEventParams::CALPARAMS) != Event::TkrEventParams::CALPARAMS
+                    || tkrEventParams->getEventEnergy() <= 0.)) 
                 {
                     // no cal info... set track energies to MS energies if possible.
                     double minEnergy = m_control->getMinEnergy();
