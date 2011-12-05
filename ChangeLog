@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sun Dec  4 19:05:17 PST 2011
+TkrRecon/src/Dll
+
+Modified Files:
+	tkrRecon_load.cxx 
+Log Message:
+Importing a first test version of a filter loosely based on a Hough transform
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-17-35-24-gr15, operation: add
 Package: TkrRecon
