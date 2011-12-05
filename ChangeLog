@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sun Dec  4 19:12:46 PST 2011
+TkrRecon/src/Filter
+
+Added Files:
+	TkrHoughFilterTool.cxx 
+Log Message:
+Importing the first test version of a filter based loosely on a Hough transform
+    *
+------------------------------------------------------------
 User: usher  Sun Dec  4 19:05:17 PST 2011
 TkrRecon/src/Dll
 
