@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.h,v 1.6 2011/09/02 22:48:26 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.h,v 1.9 2011/09/15 23:10:59 usher Exp $
  *
 */
 
@@ -14,6 +14,7 @@
 
 #include "Event/Recon/TkrRecon/TkrVecNodes.h"
 #include "Event/Recon/TkrRecon/TkrVecPointInfo.h"
+#include "Event/Recon/TkrRecon/TkrVecPointsLinkInfo.h"
 #include "Event/Recon/TkrRecon/TkrTrackElements.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "GaudiKernel/IDataProviderSvc.h"
@@ -24,9 +25,8 @@
 class TkrVecNodesBuilder 
 {
 public:
-    TkrVecNodesBuilder(TkrVecPointLinksBuilder& vecPointLinksBldr,
-                       IDataProviderSvc*        dataSvc, 
-                       ITkrGeometrySvc*         geoSvc);
+    TkrVecNodesBuilder(IDataProviderSvc* dataSvc, 
+                       ITkrGeometrySvc*  geoSvc);
 
     ~TkrVecNodesBuilder();
 
@@ -116,11 +116,9 @@ private:
     /// Pointer to the local Tracker geometry service
     ITkrGeometrySvc*                 m_tkrGeom;
 
-    /// Keep reference to links builder
-    TkrVecPointLinksBuilder&         m_vecPointLinksBldr;
-
-    /// We will also want its companion "info" object
+    /// We will also want its companion "info" objects
     Event::TkrVecPointInfo*          m_tkrVecPointInfo;
+    Event::TkrVecPointsLinkInfo*     m_tkrVecPointsLinkInfo;
 
     /// Define a container for the "head" nodes
     Event::TkrVecNodeCol*            m_headNodes;
