@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sun Dec  4 19:54:28 PST 2011
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecPointLinksBuilder.cxx 
+Log Message:
+Modifications to enable the new trial filter
+    *
+------------------------------------------------------------
 User: usher  Sun Dec  4 19:54:27 PST 2011
 TkrRecon/src/PatRec/TreeBased
 
