@@ -13,6 +13,7 @@
 #include "Event/TopLevel/EventModel.h"
 #include "Event/Recon/TkrRecon/TkrEventParams.h"
 #include "Event/Recon/TkrRecon/TkrFilterParams.h"
+#include "Event/Recon/TkrRecon/TkrVecPointsLinkInfo.h"
 #include "GaudiKernel/SmartDataPtr.h"
 
 //Exception handler
@@ -225,6 +226,16 @@ TkrVecPointLinksBuilder::TkrVecPointLinksBuilder(double                     evtE
     // Calculate the average over all links considered
     if (m_numAveLinks > 0.) m_linkAveVec /= m_numAveLinks;
 
+    // Before exiting create the TkrVecPointsLinkInfo object and store in the TDS
+    Event::TkrVecPointsLinkInfo* vecPointsLinkInfo = new Event::TkrVecPointsLinkInfo();
+
+    vecPointsLinkInfo->setTkrVecPointsLinkCol(m_tkrVecPointsLinkCol);
+    vecPointsLinkInfo->setTkrVecPointToLinksTab(m_pointToLinksTab);
+
+    // Store in TDS
+    sc = dataSvc->registerObject(EventModel::TkrRecon::TkrVecPointsLinkInfo, vecPointsLinkInfo);
+
+
     return;
 }
 
@@ -248,7 +259,7 @@ TkrVecPointLinksBuilder::~TkrVecPointLinksBuilder()
     m_tkrVecPointsLinksByLayerMap.clear();
 
     // Finally, zap the relational table (though remember that the actual list is in the TDS)
-    delete m_pointToLinksTab;
+//    delete m_pointToLinksTab; // Now owned by TkrVecPointsLinkInfo
 
     return;
 }

@@ -6,9 +6,9 @@
  * @authors Tracy Usher
  *
 <<<<<<< TkrVecNodesBuilder.cxx
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.6 2011/07/13 04:06:36 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.23 2011/10/18 20:24:02 usher Exp $
 =======
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.10 2011/09/02 22:48:26 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.23 2011/10/18 20:24:02 usher Exp $
 >>>>>>> 1.10
  *
 */
@@ -19,14 +19,14 @@
 
 #include <iterator>
 
-TkrVecNodesBuilder::TkrVecNodesBuilder(TkrVecPointLinksBuilder& vecPointLinksBldr,
-                                       IDataProviderSvc*        dataSvc, 
+TkrVecNodesBuilder::TkrVecNodesBuilder(IDataProviderSvc*        dataSvc, 
                                        ITkrGeometrySvc*         geoSvc)
-                        : m_vecPointLinksBldr(vecPointLinksBldr),
-                          m_tkrGeom(geoSvc)
+                        : m_tkrGeom(geoSvc)
 {
-    // Retrieve the TkrVecPointInfo object from the TDS
+    // Retrieve the TkrVecPointInfo and TkrVecPointsLinkInfo objects from the TDS
+    // They are assumed be gauranteed to exist
     m_tkrVecPointInfo = SmartDataPtr<Event::TkrVecPointInfo>(dataSvc, EventModel::TkrRecon::TkrVecPointInfo);
+    m_tkrVecPointsLinkInfo = SmartDataPtr<Event::TkrVecPointsLinkInfo>(dataSvc, EventModel::TkrRecon::TkrVecPointsLinkInfo);
 
     // String for lookup in TDS
     static std::string tkrVecNodeCol = "/Event/TkrRecon/TkrVecNodeCol";
@@ -55,7 +55,7 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(TkrVecPointLinksBuilder& vecPointLinksBld
     m_bestAngleToNodeCut = M_PI / 4.;      // best angle to node cut for finding "best" link
 
     // liberalize cuts for events with few links (as the are probably low energy)
-    double numVecPoints = m_vecPointLinksBldr.getNumTkrVecPoints();
+    double numVecPoints = m_tkrVecPointsLinkInfo->getTkrVecPointsLinkCol()->size(); 
     double expVecPoints = numVecPoints > 0. ? log10(numVecPoints) : 0.;
 
     if (expVecPoints < 1.6)
@@ -266,8 +266,10 @@ private:
 void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, const Event::TkrVecPoint* point)
 {
     // First step is to retrieve all relations between this point and links starting at it
+//    std::vector<Event::TkrVecPointToLinksRel*> pointToLinkVec = 
+//               m_vecPointLinksBldr.getPointToLinksTab()->getRelByFirst(point);
     std::vector<Event::TkrVecPointToLinksRel*> pointToLinkVec = 
-               m_vecPointLinksBldr.getPointToLinksTab()->getRelByFirst(point);
+               m_tkrVecPointsLinkInfo->getTkrVecPointToLinksTab()->getRelByFirst(point);
 
     // Do we have links starting at this point?
     if (!pointToLinkVec.empty())
