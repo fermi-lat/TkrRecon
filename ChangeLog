@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: heather  Mon Dec 12 12:57:16 PST 2011
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	ComboVtxTool.cxx 
+Log Message:
+merge Gaudi v21r7
+    *
+------------------------------------------------------------
 User: heather  Mon Dec 12 12:57:15 PST 2011
 TkrRecon/src/Vertex
 
