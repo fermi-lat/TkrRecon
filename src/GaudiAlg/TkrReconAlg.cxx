@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.52 2011/02/24 22:07:51 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.54 2011/10/05 19:30:59 usher Exp $
 */
 
 
@@ -156,8 +156,9 @@ bool TkrReconAlg::s_ghostTrackDone   = false;
 bool TkrReconAlg::s_ghostVertexDone  = false;
 
 // Definitions for use within Gaudi
-static const AlgFactory<TkrReconAlg>  Factory;
-const IAlgFactory& TkrReconAlgFactory = Factory;
+//static const AlgFactory<TkrReconAlg>  Factory;
+//const IAlgFactory& TkrReconAlgFactory = Factory;
+DECLARE_ALGORITHM_FACTORY(TkrReconAlg);
 
 // Algorithm constructor
 TkrReconAlg::TkrReconAlg(const std::string& name, ISvcLocator* pSvcLocator) :

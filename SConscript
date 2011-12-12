@@ -1,7 +1,7 @@
 # -*- python -*-
-# $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/SConscript,v 1.54 2011/11/17 18:35:00 usher Exp $ 
+# $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/SConscript,v 1.55 2011/11/18 17:40:25 usher Exp $ 
 # Authors: Leon Rochester <lsrea@slac.stanford.edu>, Tracy Usher <usher@slac.stanford.edu>
-# Version: TkrRecon-10-27-01
+# Version: TkrRecon-10-28-00
 Import('baseEnv')
 Import('listFiles')
 Import('packages')
@@ -10,7 +10,7 @@ libEnv = baseEnv.Clone()
 
 libEnv.Tool('addLinkDeps', package='TkrRecon', toBuild='component')
 TkrRecon=libEnv.SharedLibrary('TkrRecon',
-                              listFiles(['src/Dll/*.cxx','src/GaudiAlg/*.cxx',
+                              listFiles(['src/GaudiAlg/*.cxx',
                                          'src/Display/*.cxx','src/Services/*.cxx',
                                          'src/Cluster/*.cxx','src/Filter/*.cxx',
                                          'src/PatRec/*.cxx',

@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.32 2011/06/03 22:20:08 kadrlica Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.33 2011/10/05 19:30:59 usher Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -48,7 +48,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.32 2011/06/03 22:20:08 kadrlica Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.33 2011/10/05 19:30:59 usher Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -84,8 +84,9 @@ private:
     bool     m_standardGhosts;
 };
 
-static const AlgFactory<TkrFindAlg>  Factory;
-const IAlgFactory& TkrFindAlgFactory = Factory;
+//static const AlgFactory<TkrFindAlg>  Factory;
+//const IAlgFactory& TkrFindAlgFactory = Factory;
+DECLARE_ALGORITHM_FACTORY(TkrFindAlg);
 
 TkrFindAlg::TkrFindAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator)  

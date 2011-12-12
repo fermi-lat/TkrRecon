@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.6 2011/04/21 18:53:17 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.1 2011/12/05 03:12:46 usher Exp $
  */
 
 // to turn one debug variables
@@ -199,8 +199,9 @@ private:
     double                     m_tkrHighXY;
 };
 
-static ToolFactory<TkrHoughFilterTool> s_factory;
-const IToolFactory& TkrHoughFilterToolFactory = s_factory;
+//static ToolFactory<TkrHoughFilterTool> s_factory;
+//const IToolFactory& TkrHoughFilterToolFactory = s_factory;
+DECLARE_TOOL_FACTORY(TkrHoughFilterTool);
 
 //
 // Feeds Combo pattern recognition tracks to Kalman Filter

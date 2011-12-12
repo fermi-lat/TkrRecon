@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.34 2011/11/22 00:04:49 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.35 2011/11/22 18:16:33 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -63,8 +63,9 @@ private:
     DataSvc*               m_dataSvc;
 };
 
-static ToolFactory<TkrTrackEnergyTool> s_factory;
-const IToolFactory& TkrTrackEnergyToolFactory = s_factory;
+//static ToolFactory<TkrTrackEnergyTool> s_factory;
+//const IToolFactory& TkrTrackEnergyToolFactory = s_factory;
+DECLARE_TOOL_FACTORY(TkrTrackEnergyTool);
 
 // constants defined at file scope
 

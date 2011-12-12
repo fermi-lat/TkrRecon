@@ -7,7 +7,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrEnergySplitTool.cxx,v 1.7 2011/11/16 23:03:49 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrEnergySplitTool.cxx,v 1.8 2011/11/18 17:38:55 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -156,8 +156,9 @@ private:
     DataSvc*                        m_dataSvc;
 };
 
-static ToolFactory<TkrEnergySplitTool> s_factory;
-const IToolFactory& TkrEnergySplitToolFactory = s_factory;
+//static ToolFactory<TkrEnergySplitTool> s_factory;
+//const IToolFactory& TkrEnergySplitToolFactory = s_factory;
+DECLARE_TOOL_FACTORY(TkrEnergySplitTool);
 
 //
 // Feeds Combo pattern recognition tracks to Kalman Filter

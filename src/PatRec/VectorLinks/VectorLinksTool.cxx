@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/VectorLinksTool.cxx,v 1.10 2011/06/30 21:02:07 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/VectorLinksTool.cxx,v 1.11 2011/10/05 19:31:01 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -106,8 +106,9 @@ private:
 };
 
 
-static ToolFactory<VectorLinksTool> s_factory;
-const IToolFactory& VectorLinksToolFactory = s_factory;
+//static ToolFactory<VectorLinksTool> s_factory;
+//const IToolFactory& VectorLinksToolFactory = s_factory;
+DECLARE_TOOL_FACTORY(VectorLinksTool);
 
 //
 // Class constructor, no initialization here

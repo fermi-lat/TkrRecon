@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.32 2010/12/19 17:30:34 lbaldini Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.33 2011/10/05 19:31:00 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -98,8 +98,10 @@ private:
 };
 
 
-static ToolFactory<MonteCarloFindTrackTool> s_factory;
-const IToolFactory& MonteCarloFindTrackToolFactory = s_factory;
+//static ToolFactory<MonteCarloFindTrackTool> s_factory;
+//const IToolFactory& MonteCarloFindTrackToolFactory = s_factory;
+DECLARE_TOOL_FACTORY(MonteCarloFindTrackTool);
+
 //
 // Class constructor, no initialization here
 //

@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.24 2011/10/18 23:11:08 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.26 2011/12/05 03:54:27 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -131,8 +131,9 @@ private:
 };
 
 
-static ToolFactory<TreeBasedTool> s_factory;
-const IToolFactory& TreeBasedToolFactory = s_factory;
+//static ToolFactory<TreeBasedTool> s_factory;
+//const IToolFactory& TreeBasedToolFactory = s_factory;
+DECLARE_TOOL_FACTORY(TreeBasedTool);
 
 //
 // Class constructor, no initialization here

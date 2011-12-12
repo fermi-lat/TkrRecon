@@ -36,6 +36,7 @@
  TkrRecon-10-20-00 04-Nov-2010  lsrea Turn on cosmic-ray finding by default
  TkrRecon-10-18-00 27-Sep-2010  lsrea Redo logic to make more robust
  TkrRecon-10-17-00 23-Sep-2010  lsrea Tag TkrRecon to synchronize with latest Gleam
+ TkrRecon-10-16-11-gr01 21-Apr-2011 hmk upgrade for Gaudi v21r7
  TkrRecon-10-16-11 12-Jun-2010    jrb upgrades for SCons builds
  TkrRecon-10-16-10 25-Feb-2010  lsrea modify 'MC' energy option to just use MC-energy in patrec
  TkrRecon-10-16-09 12-Nov-2009    jrb Updates for SCons
