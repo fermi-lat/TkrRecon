@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: heather  Mon Dec 12 12:57:09 PST 2011
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrClusterAlg.cxx TkrDisplayAlg.cxx TkrFilterAlg.cxx 
+	TkrFindAlg.cxx TkrReconAlg.cxx TkrTrackFitAlg.cxx 
+	TkrVertexAlg.cxx 
+Log Message:
+merge Gaudi v21r7
+    *
+------------------------------------------------------------
 User: heather  Mon Dec 12 12:57:08 PST 2011
 TkrRecon/src/Filter
 
