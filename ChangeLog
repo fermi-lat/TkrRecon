@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: heather  Mon Dec 12 12:57:15 PST 2011
+TkrRecon/src/Vertex
+
+Modified Files:
+	VtxKalFitTool.cxx VtxSingleTrkTool.cxx 
+Log Message:
+merge Gaudi v21r7
+    *
+------------------------------------------------------------
 User: heather  Mon Dec 12 12:57:14 PST 2011
 TkrRecon/src/Track
 
