@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: heather  Mon Dec 12 12:57:17 PST 2011
+TkrRecon/src/test
+
+Modified Files:
+	jobOptions.txt test_TkrRecon.cxx 
+Removed Files:
+	test_TkrRecon_load.cxx 
+Log Message:
+merge Gaudi v21r7
+    *
+------------------------------------------------------------
 User: heather  Mon Dec 12 12:57:16 PST 2011
 TkrRecon/src/Vertex/Combo
 
