@@ -10,7 +10,7 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.25 2010/12/06 21:11:26 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.26 2011/03/26 23:30:58 lsrea Exp $
 */
 
 #include "GaudiKernel/Algorithm.h"
@@ -71,8 +71,9 @@ private:
     bool m_redoToTsOnly;
 };
 
-static const AlgFactory<TkrClusterAlg>  Factory;
-const IAlgFactory& TkrClusterAlgFactory = Factory;
+//static const AlgFactory<TkrClusterAlg>  Factory;
+//const IAlgFactory& TkrClusterAlgFactory = Factory;
+DECLARE_ALGORITHM_FACTORY(TkrClusterAlg);
 
 TkrClusterAlg::TkrClusterAlg(const std::string& name, 
                              ISvcLocator* pSvcLocator) :

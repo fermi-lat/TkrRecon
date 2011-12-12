@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.20 2005/02/07 20:38:27 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.21.654.1 2011/04/21 03:39:16 heather Exp $
 //
 // Description:
 //      Contains the implementation of the methods for setting up the TkrRecon display
@@ -32,8 +32,9 @@
 #include "TkrUtil/ITkrGeometrySvc.h"
 
 
-static const AlgFactory<TkrDisplayAlg>  Factory;
-const IAlgFactory& TkrDisplayAlgFactory = Factory;
+//static const AlgFactory<TkrDisplayAlg>  Factory;
+//const IAlgFactory& TkrDisplayAlgFactory = Factory;
+DECLARE_ALGORITHM_FACTORY(TkrDisplayAlg);
 
 //------------------------------------------------------------------------------
 /// Algorithm parameters which can be set at run time must be declared.

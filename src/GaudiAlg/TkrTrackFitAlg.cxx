@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.30 2011/08/19 19:32:39 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.31 2011/10/05 19:30:59 usher Exp $
  */
 
 #include <vector>
@@ -74,8 +74,9 @@ private:
 };
 
 // Used by Gaudi for identifying this algorithm
-static const AlgFactory<TkrTrackFitAlg>  Factory;
-const IAlgFactory& TkrTrackFitAlgFactory = Factory;
+//static const AlgFactory<TkrTrackFitAlg>  Factory;
+//const IAlgFactory& TkrTrackFitAlgFactory = Factory;
+DECLARE_ALGORITHM_FACTORY(TkrTrackFitAlg);
 
 // Standard Gaudi Constructor format
 TkrTrackFitAlg::TkrTrackFitAlg(const std::string& name, ISvcLocator* pSvcLocator) :

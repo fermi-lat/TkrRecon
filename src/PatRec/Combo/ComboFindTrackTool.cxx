@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.60 2011/10/05 19:30:59 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.61 2011/11/22 00:04:48 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -229,8 +229,10 @@ private:
 
 };
 
-static ToolFactory<ComboFindTrackTool> s_factory;
-const IToolFactory& ComboFindTrackToolFactory = s_factory;
+//static ToolFactory<ComboFindTrackTool> s_factory;
+//const IToolFactory& ComboFindTrackToolFactory = s_factory;
+DECLARE_TOOL_FACTORY(ComboFindTrackTool);
+
 //
 // Feeds Combo pattern recognition tracks to Kalman Filter
 //

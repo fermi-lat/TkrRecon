@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/LinkAndTree/LinkAndTreeFindTrackTool.cxx,v 1.16 2010/12/19 17:30:33 lbaldini Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/LinkAndTree/LinkAndTreeFindTrackTool.cxx,v 1.17 2011/10/05 19:31:00 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the Link and Tree approach
@@ -40,8 +40,10 @@ public:
 
 };
 
-static ToolFactory<LinkAndTreeFindTrackTool> s_factory;
-const IToolFactory& LinkAndTreeFindTrackToolFactory = s_factory;
+//static ToolFactory<LinkAndTreeFindTrackTool> s_factory;
+//const IToolFactory& LinkAndTreeFindTrackToolFactory = s_factory;
+DECLARE_TOOL_FACTORY(LinkAndTreeFindTrackTool);
+
 //
 // Feeds Combo pattern recognition tracks to Kalman Filter
 //

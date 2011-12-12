@@ -10,7 +10,7 @@
 * @author Leon Rochester
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.cxx,v 1.8 2005/07/05 16:29:06 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.cxx,v 1.9.654.1 2011/04/21 03:39:19 heather Exp $
 */
 
 #include "src/Track/TkrAlignHitsTool.h"
@@ -22,6 +22,8 @@
 namespace {
     bool debug = false;
 }
+
+DECLARE_TOOL_FACTORY(TkrAlignHitsTool);
 
 TkrAlignHitsTool::TkrAlignHitsTool(const std::string& type, 
                                    const std::string& name, 

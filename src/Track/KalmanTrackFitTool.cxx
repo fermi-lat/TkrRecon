@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.49 2011/02/24 22:07:52 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.50 2011/05/31 20:01:29 usher Exp $
  */
 
 // to turn one debug variables
@@ -176,8 +176,9 @@ private:
     IComputeMeasErrors* m_fitErrs;
 };
 
-static ToolFactory<KalmanTrackFitTool> s_factory;
-const IToolFactory& KalmanTrackFitToolFactory = s_factory;
+//static ToolFactory<KalmanTrackFitTool> s_factory;
+//const IToolFactory& KalmanTrackFitToolFactory = s_factory;
+DECLARE_TOOL_FACTORY(KalmanTrackFitTool);
 
 //
 // Feeds Combo pattern recognition tracks to Kalman Filter

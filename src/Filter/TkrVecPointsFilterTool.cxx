@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrVecPointsFilterTool.cxx,v 1.5 2011/02/21 19:27:11 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrVecPointsFilterTool.cxx,v 1.6 2011/04/21 18:53:17 usher Exp $
  */
 
 // to turn one debug variables
@@ -151,8 +151,9 @@ private:
     MinSpanTreeNodeListsMap                 m_mstNodeListsMap;
 };
 
-static ToolFactory<TkrVecPointsFilterTool> s_factory;
-const IToolFactory& TkrVecPointsFilterToolFactory = s_factory;
+//static ToolFactory<TkrVecPointsFilterTool> s_factory;
+//const IToolFactory& TkrVecPointsFilterToolFactory = s_factory;
+DECLARE_TOOL_FACTORY(TkrVecPointsFilterTool);
 
 //
 // Feeds Combo pattern recognition tracks to Kalman Filter
