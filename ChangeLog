@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: heather  Fri Jan 20 09:06:05 PST 2012
+TkrRecon
+
+Modified Files:
+	SConscript 
+Log Message:
+avoid automaticallly loading GuiSvc in TkrDisplayAlg
+    *
+------------------------------------------------------------
 User: lsrea  Thu Jan 19 17:56:41 PST 2012
 TkrRecon/src/GaudiAlg
 
