@@ -4,6 +4,8 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-28-02 20-Jan-2012 HMK patch to avoid automatically loading GuiSvc
+   in TkrDislayAlg
  TkrRecon-10-28-01 16-Jan-2012 HMK windows patches
  TkrRecon-10-28-00    Dec-2011 HMK Gaudi upgrade
  TkrRecon-10-27-01 18-Nov-2011  TU Make memory resident ntuple default for the track energy splitter
