@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Thu Jan 19 17:56:41 PST 2012
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+      Tag: GlastReleasev19r4p1
+	TkrClusterAlg.cxx 
+Log Message:
+Mods to fix the cable truncation calculation
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-28-01, operation: add
 Package: TkrRecon
