@@ -10,7 +10,7 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.26 2011/03/26 23:30:58 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.27 2011/12/12 20:57:09 heather Exp $
 */
 
 #include "GaudiKernel/Algorithm.h"
@@ -18,6 +18,8 @@
 #include "GaudiKernel/AlgFactory.h"
 #include "GaudiKernel/IDataProviderSvc.h"
 #include "GaudiKernel/SmartDataPtr.h"
+#include "GaudiKernel/DataSvc.h"
+#include "GaudiKernel/GaudiException.h"
 
 #include <vector>
 #include "geometry/Point.h"
@@ -32,6 +34,9 @@
 #include "src/Cluster/TkrMakeClusterTable.h"
 #include "TkrUtil/ITkrMakeClustersTool.h"
 #include "TkrUtil/ITkrHitTruncationTool.h"
+#include "TkrUtil/ITkrDiagnosticTool.h"
+#include "TkrUtil/ITkrMapTool.h"
+#include "LdfEvent/DiagnosticData.h"
 
 #include "Event/Digi/TkrDigi.h"
 
@@ -67,8 +72,12 @@ private:
     Event::TkrIdClusterMap*  m_TkrIdClusterMap;
     /// truncation tool
     ITkrHitTruncationTool*   m_truncTool;
+    ITkrDiagnosticTool*      m_pDiagTool;
+    ITkrMapTool*             m_mapTool;
+    DataSvc*                 m_dataSvc;
 
     bool m_redoToTsOnly;
+    bool m_useDiagInfo;
 };
 
 //static const AlgFactory<TkrClusterAlg>  Factory;
@@ -80,6 +89,7 @@ TkrClusterAlg::TkrClusterAlg(const std::string& name,
 Algorithm(name, pSvcLocator)  
 { 
     declareProperty("redoToTsOnly" , m_redoToTsOnly=false);
+    declareProperty("UseDiagnosticInfo", m_useDiagInfo=true);
 }
 
 using namespace Event;
@@ -125,6 +135,23 @@ StatusCode TkrClusterAlg::initialize()
         log << MSG::ERROR << "Cannot initialize hit-truncation tool" << endreq;
         return sc;
     }
+    sc = toolSvc()->retrieveTool("TkrMapTool", m_mapTool);
+    if (sc.isFailure()) {
+        log << MSG::ERROR << "Cannot initialize TKR map tool" << endreq;
+        return sc;
+    }
+    m_pDiagTool = 0;
+    if (toolSvc()->retrieveTool("TkrDiagnosticTool", m_pDiagTool).isFailure()) {
+        log << MSG::ERROR << "Couldn't retrieve TkrDiagnosticTool" << endreq;
+        return StatusCode::FAILURE;
+    }    
+    //Locate and store a pointer to the data service
+    IService* iService = 0;
+    if ((sc = serviceLocator()->getService("EventDataSvc", iService)).isFailure())
+    {
+        throw GaudiException("Service [EventDataSvc] not found", name(), sc);
+    }
+    m_dataSvc = dynamic_cast<DataSvc*>(iService);
 
     return StatusCode::SUCCESS;
 }
@@ -168,6 +195,20 @@ StatusCode TkrClusterAlg::execute()
     m_TkrDigiCol = SmartDataPtr<TkrDigiCol>(eventSvc(),
         EventModel::Digi::TkrDigiCol);
     if(!m_TkrDigiCol) return StatusCode::SUCCESS;
+    Event::TkrDigiCol::const_iterator ppDigi;
+    unsigned nDigisOrig = m_TkrDigiCol->size();
+    if(nDigisOrig==0) return sc;
+    if(m_useDiagInfo) {
+        m_truncTool->addEmptyDigis();
+    }
+    // Do the trucation analysis
+    sc = m_truncTool->analyzeDigis();
+    // remove empty digis
+    //std::cout << "orig " << nDigisOrig << ", current " << m_TkrDigiCol->size()<< std::endl;
+    if(nDigisOrig<m_TkrDigiCol->size()) {
+        m_truncTool->removeEmptyDigis();
+        //std::cout << "after deletion " << m_TkrDigiCol->size() << std::endl;
+    }
     
     // Create the TkrClusterCol TDS object
     m_TkrClusterCol = new TkrClusterCol();
@@ -211,7 +252,6 @@ StatusCode TkrClusterAlg::execute()
 
     }   
 
-    sc = m_truncTool->analyzeDigis();
 
     return sc;
 }
