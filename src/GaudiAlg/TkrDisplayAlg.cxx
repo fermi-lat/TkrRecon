@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.21.654.1 2011/04/21 03:39:16 heather Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrDisplayAlg.cxx,v 1.22 2011/12/12 20:57:09 heather Exp $
 //
 // Description:
 //      Contains the implementation of the methods for setting up the TkrRecon display
@@ -55,7 +55,7 @@ StatusCode TkrDisplayAlg::initialize()
 {
     //Look for the gui service
     IGuiSvc*   guiSvc = 0;
-    StatusCode sc     = service("GuiSvc", guiSvc);
+    StatusCode sc     = service("GuiSvc", guiSvc, false);
     if( sc.isFailure() )  
     {
         MsgStream   log( msgSvc(), name() );
