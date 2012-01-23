@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Jan 23 09:47:49 PST 2012
+TkrRecon/src/Filter
+
+Added Files:
+      Tag: GlastReleasev19r4p1
+	TkrHoughFilterTool.cxx 
+Log Message:
+Initial implementation of a filter based loosely on a Hough Transform. For initial testing.
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-17-35-24-br01, operation: add
 Package: TkrRecon
