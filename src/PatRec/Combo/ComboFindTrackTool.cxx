@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.59 2011/02/24 22:07:51 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.60 2011/10/05 19:30:59 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -20,6 +20,7 @@
 #include "Event/Recon/TkrRecon/TkrTrackHit.h"
 #include "Event/Recon/TkrRecon/TkrTrack.h"
 #include "Event/Recon/TkrRecon/TkrEventParams.h"
+#include "Event/Recon/TkrRecon/TkrTree.h"
 #include "Event/TopLevel/EventModel.h"
 #include "Event/MonteCarlo/McParticle.h"
 
@@ -659,6 +660,9 @@ void ComboFindTrackTool::loadOutput()
 
         iterator hypo = begin();
         
+        // In order to maintain compatibility with the new reconstruction scheme
+        Event::TkrTree* tree = 0;
+
         Event::TkrTrackCol::iterator it;
         unsigned trackColSize = trackCol->size();
         it = trackCol->begin(); 
@@ -676,6 +680,47 @@ void ComboFindTrackTool::loadOutput()
             if(newTrack->getStatusBits() & Event::TkrTrack::COSMICRAY) {
                 trackCol->push_back(newTrack);
             } else {
+                // New track has been added to the standard collection, if first time
+                // then create a TkrTree to wrap the collection and stuff into TDS
+                if (!tree)
+                {
+                    // First create the associated paraphanelia that will be needed
+                    Event::TkrNodeSiblingMap* siblingMap   = new Event::TkrNodeSiblingMap();
+                    Event::TkrVecNode*        headNode     = 0; //new Event::TkrVecNode(0, 0);
+                    Event::TkrFilterParams*   axisParams   = new Event::TkrFilterParams();
+
+                    // If the first valid track then update the filter parameters
+                    axisParams->setEventPosition(newTrack->getInitialPosition());
+                    axisParams->setEventAxis(-newTrack->getInitialDirection());
+                    axisParams->setStatusBit(Event::TkrFilterParams::TKRPARAMS);
+
+                    siblingMap->clear();
+
+                    // Now create an instance of the tree
+                    tree = new Event::TkrTree(headNode, 0, 0, siblingMap, axisParams, 0);
+
+                    // Retrieve the tree collection from the TDS (if there is one)
+                    Event::TkrTreeCol* treeCol = SmartDataPtr<Event::TkrTreeCol>(m_dataSvc,EventModel::TkrRecon::TkrTreeCol);
+
+                    // If there is not one then make it and store in TDS
+                    if (!treeCol)
+                    {
+                        // Get a new head node collection for the TDS
+                        treeCol = new Event::TkrTreeCol();
+                        treeCol->clear();
+
+                        // And store in the TDS
+                        StatusCode sc = m_dataSvc->registerObject(EventModel::TkrRecon::TkrTreeCol, treeCol);
+                    }
+
+                    // Add the tree to the collection
+                    treeCol->push_back(tree);
+                }
+
+                // Add the track to the Tree object
+                tree->push_back(newTrack);
+
+                // Ok, now store appropriately in the TDS
                 if(trackColSize==0) {
                     trackCol->push_back(newTrack);
                     it = trackCol->begin()++;
