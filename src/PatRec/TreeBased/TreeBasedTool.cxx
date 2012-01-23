@@ -272,23 +272,35 @@ StatusCode TreeBasedTool::firstPass()
         if (m_doTiming) m_chronoSvc->chronoStart(m_toolLinkTag);
 
         // STEP TWO: Associate (link) adjacent pairs of VecPoints and store away
-        TkrVecPointLinksBuilder vecPointLinksBuilder(eventEnergy,
-                                                     m_dataSvc,
-                                                     m_tkrGeom,
-                                                     m_glastDetSvc,
-                                                     m_clusTool,
-                                                     m_reasonsTool);
+        Event::TkrVecPointsLinkCol* tkrVecPointsLinkCol = 
+            SmartDataPtr<Event::TkrVecPointsLinkCol>(m_dataSvc, EventModel::TkrRecon::TkrVecPointsLinkCol);
+
+        int numVecPointsLinks = 0;
+
+        // If no collection then we must build it here
+        if (!tkrVecPointsLinkCol)
+        {
+            TkrVecPointLinksBuilder vecPointLinksBuilder(eventEnergy,
+                                                         m_dataSvc,
+                                                         m_tkrGeom,
+                                                         m_glastDetSvc,
+                                                         m_clusTool,
+                                                         m_reasonsTool);
+
+            numVecPointsLinks = vecPointLinksBuilder.getNumTkrVecPoints();
+        }
+        else numVecPointsLinks = tkrVecPointsLinkCol->size();
 
         if (m_doTiming) m_chronoSvc->chronoStop(m_toolLinkTag);
 
-        if (vecPointLinksBuilder.getNumTkrVecPointsLinks() > 1) 
+        if (numVecPointsLinks > 1) 
         {
             // STEP THREE: build the node trees
             try 
             {
                 if (m_doTiming) m_chronoSvc->chronoStart(m_toolNodeTag);
 
-                TkrVecNodesBuilder tkrNodesBldr(vecPointLinksBuilder, m_dataSvc, m_tkrGeom);
+                TkrVecNodesBuilder tkrNodesBldr(m_dataSvc, m_tkrGeom);
 
                 tkrNodesBldr.buildTrackElements();
 
