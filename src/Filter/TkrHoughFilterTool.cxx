@@ -46,7 +46,7 @@
 #include "src/Filter/TkrMomentsAnalysis.h"
 
 // Some testing to see what we might do with a PCA 
-#include "TDecompSVD.h"
+//#include "TDecompSVD.h"
 
 #include <list>
 
@@ -935,7 +935,7 @@ Event::TkrFilterParams* TkrHoughFilterTool::testSVD(Event::TkrVecPointCol* vecPo
     // see what happens
     // Assume failure
     Event::TkrFilterParams* svdParams = 0;
-
+/***************************************************************************************************
     // First loop through the vec points to do the mean normalizaton
     Point meanPos(0.,0.,0.);
 
@@ -1024,7 +1024,7 @@ Event::TkrFilterParams* TkrHoughFilterTool::testSVD(Event::TkrVecPointCol* vecPo
         svdParams->setLongRms(prin3);
         svdParams->setLongRmsAsym(0.);
     }
-
+**********************************************************************************/
     return svdParams;
 }
 
