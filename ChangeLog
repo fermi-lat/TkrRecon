@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue Jan 24 08:09:35 PST 2012
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+      Tag: GlastReleasev19r4p1
+	TreeCalClusterAssociator.cxx 
+Log Message:
+Backing way off on the sorting routine to try to get compliance with strict weak ordering (and I do understand the issue better now!)
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-27-02-gr02, operation: add
 Package: TkrRecon
