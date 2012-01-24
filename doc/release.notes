@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-27-02-gr03 24-Jan-2012 TU Remove SVD from Hough Filter for now, update Tree/Cluster sort comparator
  TkrRecon-10-27-02-gr02 23-Jan-2012  lsrea Fix for no clusterCol bug
  TkrRecon-10-27-02-gr01 20-Jan-2012  lsrea cc cable truncation code on v19r4p1 branch
  TkrRecon-10-27-02 16-Jan-2012  TU Resurrect Combo in new recon scheme, fix strict weak ordering in tree/cluster sort
