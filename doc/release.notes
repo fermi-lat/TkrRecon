@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-27-02-gr02 23-Jan-2012  lsrea Fix for no clusterCol bug
  TkrRecon-10-27-02-gr01 20-Jan-2012  lsrea cc cable truncation code on v19r4p1 branch
  TkrRecon-10-27-02 16-Jan-2012  TU Resurrect Combo in new recon scheme, fix strict weak ordering in tree/cluster sort
  TkrRecon-10-27-01 18-Nov-2011  TU Make memory resident ntuple default for the track energy splitter
