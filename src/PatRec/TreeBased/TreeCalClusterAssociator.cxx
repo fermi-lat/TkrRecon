@@ -239,7 +239,7 @@ const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelat
             int rightLastLayer = rightHeadNode->getTreeStartLayer() - rightHeadNode->getDepth() + 1;
             int deltaDepth     = leftHeadNode->getDepth() - rightHeadNode->getDepth();
 
-            if (leftLastLayer <= 4 && rightLastLayer <= 4 && abs(deltaDepth) < 4)
+            if (leftLastLayer <= 4 && rightLastLayer <= 4)
             {
                 double leftRmsTrans  = left->getCluster()->getMomParams().getTransRms();
                 double rightRmsTrans = right->getCluster()->getMomParams().getTransRms();
@@ -249,7 +249,7 @@ const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelat
 
                 // if both are inside the rms trans (taken as a measure of the error) then 
                 // pick the one most aligned with the cal axis
-                if (leftTest < 1. && rightTest < 1.)
+                if (leftTest < 1. && rightTest < 1. && abs(deltaDepth) < 4)
                 {
                     return left->getTreeClusCosAngle() > right->getTreeClusCosAngle();
                 }
@@ -257,89 +257,11 @@ const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelat
                 // Otherwise take the closest to the centroid
                 return leftTest < rightTest;
             }
-            // Otherwise, return the longer one
-            else
-            {
-                return leftHeadNode->getDepth() > rightHeadNode->getDepth();
-            }
+            else if (leftLastLayer <= 4)  return true;
+            else if (rightLastLayer <= 4) return false;
         }
     }
-
-/*
-    // First section only if both related to a cal cluster
-    if (left->getCluster() && right->getCluster())
-    {
-        if (left->getCluster() == right->getCluster())
-        {
-            const Event::TkrVecNode* leftHeadNode = left->getTree()->getHeadNode();
-            const Event::TkrVecNode* rightHeadNode = right->getTree()->getHeadNode();
-
-            int leftLastLayer  = leftHeadNode->getTreeStartLayer()  - leftHeadNode->getDepth();
-            int rightLastLayer = rightHeadNode->getTreeStartLayer() - rightHeadNode->getDepth();
-            int deltaDepth     = leftHeadNode->getDepth() - rightHeadNode->getDepth();
-
-            if (leftLastLayer  < 3 && rightLastLayer < 3)
-            {
-                double leftRmsTrans  = left->getCluster()->getMomParams().getTransRms();
-                double rightRmsTrans = right->getCluster()->getMomParams().getTransRms();
-
-                double leftTest  = left->getTreeClusDoca()  / leftRmsTrans;
-                double rightTest = right->getTreeClusDoca() / rightRmsTrans;
-
-                // If one or other is within the rms trans then go here
-                if (leftTest < 1. || rightTest < 1.)
-                {
-                    // If both within spitting range of centroid and one is significantly
-                    // longer then take it always
-                    if (leftTest < 3. && rightTest < 3.)
-                    {
-                        if      (deltaDepth >  5) return true;
-                        else if (deltaDepth < -5) return false;
-                    }
-
-                    // Take the closest to the centroid
-                    if (leftTest < rightTest) return true;
-                    else                      return false;
-                }
-                else return leftTest < rightTest;
-            }
-            else if (leftHeadNode->getDepth() > 5 || rightHeadNode->getDepth() > 5)
-            {
-                if (deltaDepth > 2)       return true;
-                else if (deltaDepth < -2) return false;
-            }
-            else if (leftLastLayer  < 3 || leftHeadNode->getDepth()  > 5) return true;
-            else if (rightLastLayer < 3 || rightHeadNode->getDepth() > 5) return false;
-        }
-        else if (left->getClusEnergy() > m_minEnergy && right->getClusEnergy() > m_minEnergy)
-        {
-            double leftRmsTrans  = left->getCluster()->getMomParams().getTransRms();
-            double rightRmsTrans = right->getCluster()->getMomParams().getTransRms();
-
-            double leftTest  = left->getTreeClusDoca()  / leftRmsTrans;
-            double rightTest = right->getTreeClusDoca() / rightRmsTrans;
-
-            if (leftTest < 1. || rightTest < 1.)
-            {
-                if (leftTest < rightTest) return true;
-                else                      return false;
-            }
-        }
-        else if (left->getClusEnergy()  > m_minEnergy) return true;
-        else if (right->getClusEnergy() > m_minEnergy) return false;
-    }
-    // if left only has cluster
-    else if (left->getCluster() && !right->getCluster() && left->getClusEnergy() > m_minEnergy)
-    {
-        return true;
-    }
-    // if right only has cluster
-    else if (!left->getCluster() && right->getCluster() && right->getClusEnergy() > m_minEnergy)
-    {
-        return false;
-    }
-*/
 
     // if neither have cluster then preserve tree ordering
-    return left->getTree()->getHeadNode()->getTreeId() < right->getTree()->getHeadNode()->getTreeId();
+    return true;
 }
