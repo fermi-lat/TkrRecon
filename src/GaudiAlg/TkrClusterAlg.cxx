@@ -10,7 +10,7 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.27 2011/12/12 20:57:09 heather Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.28 2012/01/20 19:22:22 lsrea Exp $
 */
 
 #include "GaudiKernel/Algorithm.h"
@@ -196,6 +196,11 @@ StatusCode TkrClusterAlg::execute()
         EventModel::Digi::TkrDigiCol);
     if(!m_TkrDigiCol) return StatusCode::SUCCESS;
     Event::TkrDigiCol::const_iterator ppDigi;
+    // Create the TkrClusterCol TDS object, whether or not there are any digi hits
+    m_TkrClusterCol = new TkrClusterCol();
+    // Register the object in the TDS
+    sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrClusterCol,
+        m_TkrClusterCol);
     unsigned nDigisOrig = m_TkrDigiCol->size();
     if(nDigisOrig==0) return sc;
     if(m_useDiagInfo) {
@@ -210,11 +215,6 @@ StatusCode TkrClusterAlg::execute()
         //std::cout << "after deletion " << m_TkrDigiCol->size() << std::endl;
     }
     
-    // Create the TkrClusterCol TDS object
-    m_TkrClusterCol = new TkrClusterCol();
-    // Register the object in the TDS
-    sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrClusterCol,
-        m_TkrClusterCol);
     // Create the TkrIdClusterMMapCol TDS object
     m_TkrIdClusterMap = new TkrIdClusterMap();
     // Register the object in the TDS
