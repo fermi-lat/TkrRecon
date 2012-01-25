@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.32 2011/06/03 22:20:08 kadrlica Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.33 2011/10/05 19:30:59 usher Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -48,7 +48,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.32 2011/06/03 22:20:08 kadrlica Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.33 2011/10/05 19:30:59 usher Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -219,6 +219,12 @@ StatusCode TkrFindAlg::execute()
 
     // Message to acknowledge at this stage
     log << MSG::DEBUG << "------- TkrFindAlg - looking for tracks -------" << endreq;
+
+    // skip all this if there are no clusters
+    Event::TkrClusterCol* clustCol = 
+        SmartDataPtr<Event::TkrClusterCol>(m_dataSvc, EventModel::TkrRecon::TkrClusterCol);
+    if(!clustCol) return sc;
+    if(clustCol->size()==0) return sc;
 
     // move to TkrClusterAlg
     //sc = m_truncTool->analyzeDigis();
