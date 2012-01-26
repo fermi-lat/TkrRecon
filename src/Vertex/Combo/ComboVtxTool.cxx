@@ -16,8 +16,9 @@
 #include "src/Vertex/Combo/TkrComboVtxRecon.h"
 #include "src/Vertex/Combo/RayDoca.h"
 
-static ToolFactory<ComboVtxTool> s_factory;
-const IToolFactory& ComboVtxToolFactory = s_factory;
+//static ToolFactory<ComboVtxTool> s_factory;
+//const IToolFactory& ComboVtxToolFactory = s_factory;
+DECLARE_TOOL_FACTORY(ComboVtxTool);
 
 ComboVtxTool::ComboVtxTool( const std::string& type, const std::string& name, const IInterface* parent)
 : AlgTool(type,name,parent)

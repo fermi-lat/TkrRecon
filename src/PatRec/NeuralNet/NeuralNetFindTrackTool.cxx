@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.17 2005/05/11 04:14:33 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/NeuralNet/NeuralNetFindTrackTool.cxx,v 1.18 2005/05/26 20:33:05 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the Neural Net approach
@@ -22,8 +22,9 @@
 
 #include <map>
 
-static ToolFactory<NeuralNetFindTrackTool> s_factory;
-const IToolFactory& NeuralNetFindTrackToolFactory = s_factory;
+//static ToolFactory<NeuralNetFindTrackTool> s_factory;
+//const IToolFactory& NeuralNetFindTrackToolFactory = s_factory;
+DECLARE_TOOL_FACTORY(NeuralNetFindTrackTool);
 //
 // Feeds Combo pattern recognition tracks to Kalman Filter
 //

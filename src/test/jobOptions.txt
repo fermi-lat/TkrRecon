@@ -16,14 +16,15 @@ ApplicationMgr.DLLs+= {"RootIo", "TkrRecon", "TkrUtil"};
 // setup basic event loop stuff
 //
 ApplicationMgr.ExtSvc = { 
-//    "GlastEventSelector/EventSelector" , 
-    "EventCnvSvc"
+    "DbEvtSelector/EventSelector" 
     };
 EventPersistencySvc.CnvServices = {"EventCnvSvc"};
-EventSelector.Input = "NONE";
+//EventSelector.Input = "NONE";
 
-// Setting PARAMFILESROOT in cmt requirements
-//ParticlePropertySvc.ParticlePropertiesFile="../src/test/ParticleTable.txt";
+ApplicationMgr.HistogramPersistency = "NONE";
+
+// this doesn't work, add PARAMFILESROOT to cmt requirements
+// ParticlePropertySvc.ParticlePropertiesFile="$(TKRRECONJOBOPTIONSPATH)/test/ParticleTable.txt";
 
 // ----------------------------
 //  Geometry definition
