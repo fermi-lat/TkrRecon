@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-27-02-gr05 26-Jan-2012  lsrea another attempt to fix the null-pointer bug
  TkrRecon-10-27-02-gr04 24-Jan-2012  lsrea More protection for empty events
  TkrRecon-10-27-02-gr03 24-Jan-2012 TU Remove SVD from Hough Filter for now, update Tree/Cluster sort comparator
  TkrRecon-10-27-02-gr02 23-Jan-2012  lsrea Fix for no clusterCol bug
