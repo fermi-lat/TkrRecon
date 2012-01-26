@@ -6,7 +6,7 @@
 * @author Tracking Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.35 2005/12/20 17:23:16 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.37 2007/12/07 21:39:09 lsrea Exp $
 */
 
 // to turn one debug variables
@@ -126,8 +126,9 @@ private:
     int    m_maxConsecutiveGaps; // Max. # of consecutive gaps (hitType = UNKNOWN) allowed
 };
 
-static ToolFactory<FindTrackHitsTool> s_factory;
-const IToolFactory& FindTrackHitsToolFactory = s_factory;
+//static ToolFactory<FindTrackHitsTool> s_factory;
+//const IToolFactory& FindTrackHitsToolFactory = s_factory;
+DECLARE_TOOL_FACTORY(FindTrackHitsTool);
 
 //
 // Does hit finding for candidate tracks

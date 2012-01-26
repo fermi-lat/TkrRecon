@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.20 2005/09/03 02:06:59 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.21 2006/03/21 01:12:35 usher Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -40,7 +40,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.20 2005/09/03 02:06:59 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.21 2006/03/21 01:12:35 usher Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -65,8 +65,9 @@ private:
     ITkrHitTruncationTool* m_truncTool;
 };
 
-static const AlgFactory<TkrFindAlg>  Factory;
-const IAlgFactory& TkrFindAlgFactory = Factory;
+//static const AlgFactory<TkrFindAlg>  Factory;
+//const IAlgFactory& TkrFindAlgFactory = Factory;
+DECLARE_ALGORITHM_FACTORY(TkrFindAlg);
 
 TkrFindAlg::TkrFindAlg(const std::string& name, ISvcLocator* pSvcLocator) :
 Algorithm(name, pSvcLocator)  

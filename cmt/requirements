@@ -1,5 +1,5 @@
 package TkrRecon
-version v10r16p7gr03
+version v10r16p7gr04
 
 author Tracy Usher    <usher@slac.stanford.edu>
 author Leon Rochester <lsrea@slac.stanford.edu>
@@ -13,7 +13,7 @@ apply_pattern packageShr
 apply_pattern package_include
 
 use Event      v*
-use GlastSvc   v9*
+use GlastSvc   v*
 use GuiSvc
 use geometry
 #use xml
@@ -26,9 +26,11 @@ use LdfEvent     v*
 private 
 #-----------------------
 # everything below here is private
-
+use astro *
+use RootConvert v* -no_auto_imports
 use RootIo v* -no_auto_imports
 #use RootPolicy v2r* -no_auto_imports
+use RootmapPolicy * GlastPolicy
 use gr_app v*
 
 
@@ -51,7 +53,6 @@ macro TkrRecon_headers   "" WIN32 "\
 macro source "*.cxx" WIN32 "*.h *.cxx"
 
 library TkrRecon  $(TkrRecon_headers)  \
-  -s=Dll *.cxx\
   -s=GaudiAlg $(source)\
   -s=Display $(source)\
   -s=Services $(source)\
@@ -83,7 +84,7 @@ library TkrRecon  $(TkrRecon_headers)  \
   -s=Vertex/DocaVtx $(source)
 
   
-
+apply_pattern generate_rootmap library=TkrRecon
 
 
 # build this for testing
@@ -93,6 +94,6 @@ set JOBOPTIONS ${TKRRECONROOT}/src/test/jobOptions.txt
 set PARAMFILESROOT "${EXTFILESSYS}/gaudi"
 
 private
-application test_TkrRecon ${GuiMain} test/*.cxx ${Win32Resource}
+application test_TkrRecon ${GuiMain} test/*.cxx ${Win32Resource} ${WinMain}
 
 

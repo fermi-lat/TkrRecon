@@ -3,6 +3,7 @@
 @verbatim
   Managers: Tracy Usher, Leon Rochester 
 
+  TkrRecon-10-16-07-gr04 26-Jan-2012 HMK Gaudi v21r7
   TkrRecon-10-16-07-gr03 23-Sep-2011 HMK patch for unit test
   v10r16p7gr02 18-Aug-2011 HMK fix up env var usage in unit test JO and
      set up PARAMFILESROOT in cmt/requirements

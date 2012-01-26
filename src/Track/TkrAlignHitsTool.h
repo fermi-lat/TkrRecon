@@ -12,7 +12,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.h,v 1.3 2004/12/16 05:04:23 usher Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.h,v 1.5 2011/12/12 20:57:14 heather Exp $
 */
 
 
@@ -99,7 +99,7 @@ private:
     */
 };
 
-static ToolFactory<TkrAlignHitsTool> s_factory;
-const IToolFactory& TkrAlignHitsToolFactory = s_factory;
+//static ToolFactory<TkrAlignHitsTool> s_factory;
+//const IToolFactory& TkrAlignHitsToolFactory = s_factory;
 
 #endif

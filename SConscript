@@ -1,7 +1,7 @@
 # -*- python -*-
-# $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/SConscript,v 1.12.80.2 2011/08/18 17:06:21 heather Exp $ 
+# $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/SConscript,v 1.59 2012/01/20 17:06:05 heather Exp $ 
 # Authors: Leon Rochester <lsrea@slac.stanford.edu>, Tracy Usher <usher@slac.stanford.edu>
-# Version: TkrRecon-10-16-07-gr03
+# Version: TkrRecon-10-16-07-gr04
 Import('baseEnv')
 Import('listFiles')
 Import('packages')
@@ -10,7 +10,7 @@ libEnv = baseEnv.Clone()
 
 libEnv.Tool('addLinkDeps', package='TkrRecon', toBuild='component')
 TkrRecon=libEnv.SharedLibrary('TkrRecon',
-                              listFiles(['src/Dll/*.cxx','src/GaudiAlg/*.cxx',
+                              listFiles(['src/GaudiAlg/*.cxx',
                                          'src/Display/*.cxx','src/Services/*.cxx',
                                          'src/Cluster/*.cxx','src/Filter/*.cxx',
                                          'src/PatRec/*.cxx',
@@ -46,6 +46,7 @@ progEnv.Tool('registerTargets', package='TkrRecon',
              libraryCxts = [[TkrRecon,libEnv]],
              testAppCxts = [[test_TkrRecon, progEnv]],
              includes = listFiles(['TkrRecon/*'], recursive = 1),
+             xml=listFiles(files = ['xml/*'], recursive = True),
              jo = ['src/test/jobOptions.txt'])
 
 

@@ -4,8 +4,9 @@
 #include "TkrRecon/Services/TkrInitSvc.h"
 #include "src/Track/TkrControl.h"
 
-static const SvcFactory<TkrInitSvc> s_factory;
-const ISvcFactory& TkrInitSvcFactory = s_factory;
+//static const SvcFactory<TkrInitSvc> s_factory;
+//const ISvcFactory& TkrInitSvcFactory = s_factory;
+DECLARE_SERVICE_FACTORY(TkrInitSvc);
 
 TkrInitSvc::TkrInitSvc(const std::string& name, ISvcLocator* pSvcLocator) :
 Service(name, pSvcLocator)
