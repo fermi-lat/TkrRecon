@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Thu Jan 26 09:08:36 PST 2012
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+      Tag: GlastReleasev19r4p1
+	TkrClusterAlg.cxx 
+Log Message:
+Looks like the null-pointer bug never made it to cvs
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-29-02, operation: add
 Package: TkrRecon
