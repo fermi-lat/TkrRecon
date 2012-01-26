@@ -10,7 +10,7 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.26.34.1 2012/01/20 01:56:41 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.26.34.2 2012/01/24 06:08:58 lsrea Exp $
 */
 
 #include "GaudiKernel/Algorithm.h"
@@ -191,20 +191,20 @@ StatusCode TkrClusterAlg::execute()
         }
     }
     
-    // Recover a pointer to the raw digi objects
-    m_TkrDigiCol = SmartDataPtr<TkrDigiCol>(eventSvc(),
-        EventModel::Digi::TkrDigiCol);
-    if(!m_TkrDigiCol) return StatusCode::SUCCESS;
-    Event::TkrDigiCol::const_iterator ppDigi;
-    unsigned nDigisOrig = m_TkrDigiCol->size();
-
     // Create the TkrClusterCol TDS object
     m_TkrClusterCol = new TkrClusterCol();
     // Register the object in the TDS
     sc = eventSvc()->registerObject(EventModel::TkrRecon::TkrClusterCol,
         m_TkrClusterCol);
 
+    // Recover a pointer to the raw digi objects
+    m_TkrDigiCol = SmartDataPtr<TkrDigiCol>(eventSvc(),
+        EventModel::Digi::TkrDigiCol);
+    if(!m_TkrDigiCol) return StatusCode::SUCCESS;
+    Event::TkrDigiCol::const_iterator ppDigi;
+    unsigned nDigisOrig = m_TkrDigiCol->size();
     if(nDigisOrig==0) return sc;
+
     if(m_useDiagInfo) {
         m_truncTool->addEmptyDigis();
     }
