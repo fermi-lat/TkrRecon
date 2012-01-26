@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: heather  Thu Jan 26 10:07:20 PST 2012
+TkrRecon/src/Vertex
+
+Modified Files:
+      Tag: GlastRelease-17-35-24-br01
+	VtxKalFitTool.cxx VtxSingleTrkTool.cxx 
+Log Message:
+Gaudi v21r7
+    *
+------------------------------------------------------------
 User: heather  Thu Jan 26 10:07:19 PST 2012
 TkrRecon/src/Track
 
