@@ -35,7 +35,8 @@
 #include "TkrRecon/Track/IFindTrackHitsTool.h"
 #include "src/Track/TkrControl.h"
 #include "../VectorLinks/TkrVecPointsBuilder.h"
-#include "../VectorLinks/TkrVecPointLinksBuilder.h"
+//#include "../VectorLinks/TkrVecPointLinksBuilder.h"
+#include "../VectorLinks/ITkrVecPointLinksBuilder.h"
 #include "TkrVecNodesBuilder.h"
 #include "TkrTreeBuilder.h"
 #include "TkrTreeTrackFinder.h"
@@ -94,6 +95,9 @@ private:
 
     /// Services for hit arbitration
     IGlastDetSvc*              m_glastDetSvc;
+
+    /// Link builder tool
+    ITkrVecPointsLinkBuilder*  m_linkBuilder;
 
     /// Minimum energy
     double                     m_minEnergy;
@@ -190,6 +194,11 @@ StatusCode TreeBasedTool::initialize()
     {
         throw GaudiException("ToolSvc could not find FindTrackHitsTool", name(), sc);
     }
+
+    if( (sc = toolSvc()->retrieveTool("TkrVecLinkBuilderTool", "TkrVecLinkBuilderTool", m_linkBuilder)).isFailure() )
+    {
+        throw GaudiException("ToolSvc could not find TkrVecLinkBuilderTool", name(), sc);
+    }
   
     // Get the Glast Det Service
     if( serviceLocator() ) 
@@ -272,24 +281,63 @@ StatusCode TreeBasedTool::firstPass()
         if (m_doTiming) m_chronoSvc->chronoStart(m_toolLinkTag);
 
         // STEP TWO: Associate (link) adjacent pairs of VecPoints and store away
-        Event::TkrVecPointsLinkCol* tkrVecPointsLinkCol = 
-            SmartDataPtr<Event::TkrVecPointsLinkCol>(m_dataSvc, EventModel::TkrRecon::TkrVecPointsLinkCol);
 
-        int numVecPointsLinks = 0;
 
-        // If no collection then we must build it here
-        if (!tkrVecPointsLinkCol)
+        // We need to give the link building code a reference point/axis and energy
+        // Set base values
+        Point  refPoint(0.,0.,0.);
+        Vector refAxis(0., 0., 1.);
+        double energy(30.);
+
+        // The first/best place to look for this is in the TkrFilterParams, so look
+        // up the collection in the TDS
+        Event::TkrFilterParamsCol* tkrFilterParamsCol = 
+            SmartDataPtr<Event::TkrFilterParamsCol>(m_dataSvc,EventModel::TkrRecon::TkrFilterParamsCol);
+
+        // If there is a collection and there is an entry at the head of the list, use this for the event axis
+        if (tkrFilterParamsCol && !tkrFilterParamsCol->empty())
         {
-            TkrVecPointLinksBuilder vecPointLinksBuilder(eventEnergy,
-                                                         m_dataSvc,
-                                                         m_tkrGeom,
-                                                         m_glastDetSvc,
-                                                         m_clusTool,
-                                                         m_reasonsTool);
+            Event::TkrFilterParams* filterParams = tkrFilterParamsCol->front();
 
-            numVecPointsLinks = vecPointLinksBuilder.getNumTkrVecPoints();
+            refPoint = filterParams->getEventPosition();
+            refAxis  = filterParams->getEventAxis();
+            energy   = filterParams->getEventEnergy();
         }
-        else numVecPointsLinks = tkrVecPointsLinkCol->size();
+        // Otherwise default back to the standard TkrEventParams
+        else
+        {
+            // Look up the Cal event information
+            Event::TkrEventParams* tkrEventParams = 
+                SmartDataPtr<Event::TkrEventParams>(m_dataSvc,EventModel::TkrRecon::TkrEventParams);
+
+            refPoint = tkrEventParams->getEventPosition();
+            refAxis  = tkrEventParams->getEventAxis();
+            energy   = tkrEventParams->getEventEnergy();
+
+            // This axis comes from cal so make sure it is pointing into the tracker!
+            if (tkrEventParams->getEventEnergy() > 20.)
+            {
+                refPoint         = tkrEventParams->getEventPosition();
+                double arcLen    = (m_tkrGeom->gettkrZBot() - refPoint.z()) / refAxis.z();
+                Point  tkrBotPos = refPoint + arcLen * refAxis;
+
+                // Are we outside the fiducial area already?
+                if (std::fabs(tkrBotPos.x()) > 0.5 * m_tkrGeom->calXWidth() || tkrBotPos.y() > 0.5 * m_tkrGeom->calYWidth())
+                {
+                    static Point top(0., 0., 1000.);
+                    Vector newAxis = top - refPoint;
+
+                    refAxis = newAxis.unit();
+                }
+            }
+
+            // If the energy is zero then there is no axis so set to point "up"
+            if (tkrEventParams->getEventEnergy() == 0.) refAxis = Vector(0.,0.,1.);
+        }
+
+        Event::TkrVecPointsLinkInfo* tkrVecPointsLinkInfo = m_linkBuilder->getAllLayerLinks(refPoint, refAxis, energy);
+
+        int numVecPointsLinks = tkrVecPointsLinkInfo->getTkrVecPointsLinkCol()->size();
 
         if (m_doTiming) m_chronoSvc->chronoStop(m_toolLinkTag);
 
