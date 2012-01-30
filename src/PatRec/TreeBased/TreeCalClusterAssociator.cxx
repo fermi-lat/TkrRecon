@@ -239,7 +239,7 @@ const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelat
             int rightLastLayer = rightHeadNode->getTreeStartLayer() - rightHeadNode->getDepth() + 1;
             int deltaDepth     = leftHeadNode->getDepth() - rightHeadNode->getDepth();
 
-            if (leftLastLayer <= 4 && rightLastLayer <= 4)
+            if (leftLastLayer <= 4 && rightLastLayer <= 4 && abs(deltaDepth) < 4)
             {
                 double leftRmsTrans  = left->getCluster()->getMomParams().getTransRms();
                 double rightRmsTrans = right->getCluster()->getMomParams().getTransRms();
@@ -249,7 +249,7 @@ const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelat
 
                 // if both are inside the rms trans (taken as a measure of the error) then 
                 // pick the one most aligned with the cal axis
-                if (leftTest < 1. && rightTest < 1. && abs(deltaDepth) < 4)
+                if (leftTest < 1. && rightTest < 1.)
                 {
                     return left->getTreeClusCosAngle() > right->getTreeClusCosAngle();
                 }
@@ -257,8 +257,6 @@ const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelat
                 // Otherwise take the closest to the centroid
                 return leftTest < rightTest;
             }
-            else if (leftLastLayer <= 4)  return true;
-            else if (rightLastLayer <= 4) return false;
         }
     }
 

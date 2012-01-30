@@ -33,14 +33,17 @@
 #include "Event/Recon/CalRecon/CalCluster.h"
 #include "Event/TopLevel/EventModel.h"
 
+#include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
+
 // Utilities, geometry, etc.
 #include "TkrUtil/ITkrGeometrySvc.h"
-#include "src/Utilities/TkrException.h"
 #include "TkrUtil/ITkrQueryClustersTool.h"
+#include "src/Utilities/TkrException.h"
 
 // Creat TkrVecPoints if necessary
 #include "src/PatRec/VectorLinks/TkrVecPointsBuilder.h"
-#include "src/PatRec/VectorLinks/TkrVecPointLinksBuilder.h"
+//#include "src/PatRec/VectorLinks/TkrVecPointLinksBuilder.h"
+#include "../PatRec/VectorLinks/ITkrVecPointLinksBuilder.h"
 
 // Moments Analysis Code
 #include "src/Filter/TkrMomentsAnalysis.h"
@@ -340,13 +343,16 @@ private:
     ClusterPair findNeighbors(AccumulatorBin& bin, Accumulator& allBinsMap, int minSeparation);
 
     /// This runs the moments analysis on the provided list of links
-    Event::TkrFilterParams* doMomentsAnalysis(Event::TkrVecPointsLinkPtrVec& momentsLinkVec, Vector& aveDirVec);
+    Event::TkrFilterParams* doMomentsAnalysis(Event::TkrVecPointsLinkPtrVec& momentsLinkVec, 
+                                              Vector&                        aveDirVec,
+                                              double                         energy = 30.);
 
     /// Just a test for now
     Event::TkrFilterParams* testSVD(Event::TkrVecPointCol* vecPointCol);
 
     /// Pointer to the local Tracker geometry service and IPropagator
     ITkrGeometrySvc*           m_tkrGeom;
+    ITkrQueryClustersTool*     m_clusTool;
 
     /// Services for hit arbitration
     IGlastDetSvc*              m_glastDetSvc;
@@ -354,11 +360,8 @@ private:
     /// Pointer to the Gaudi data provider service
     IDataProviderSvc*          m_dataSvc;
 
-    /// Query Clusters tool
-    ITkrQueryClustersTool*     m_clusTool;
-
-    /// Reasons tool
-    ITkrReasonsTool*           m_reasonsTool;
+    /// Link builder tool
+    ITkrVecPointsLinkBuilder*  m_linkBuilder;
 
     /// Use this to store pointer to filter params collection in TDS
     Event::TkrFilterParamsCol* m_tkrFilterParamsCol;
@@ -428,6 +431,11 @@ StatusCode TkrHoughFilterTool::initialize()
     }
     m_tkrGeom = dynamic_cast<ITkrGeometrySvc*>(iService);
     
+    if ((sc = toolSvc()->retrieveTool("TkrQueryClustersTool", m_clusTool)).isFailure())
+    {
+        throw GaudiException("Tool [TkrQueryClustersTool] not found", name(), sc);
+    }
+    
     if ((sc = serviceLocator()->getService("GlastDetSvc", iService, true)).isFailure())
     {
         throw GaudiException("Service [GlastDetSvc] not found", name(), sc);
@@ -440,15 +448,10 @@ StatusCode TkrHoughFilterTool::initialize()
     {
         throw GaudiException("Service [EventDataSvc] not found", name(), sc);
     }
-      
-    if ((sc = toolSvc()->retrieveTool("TkrQueryClustersTool", m_clusTool)).isFailure())
-    {
-        throw GaudiException("Service [TkrQueryClustersTool] not found", name(), sc);
-    }
 
-    if ((toolSvc()->retrieveTool("TkrReasonsTool", m_reasonsTool)).isFailure())
+    if( (sc = toolSvc()->retrieveTool("TkrVecLinkBuilderTool", "TkrVecLinkBuilderTool", m_linkBuilder)).isFailure() )
     {
-        throw GaudiException("Service [TkrReasonsTool] not found", name(), sc);
+        throw GaudiException("ToolSvc could not find TkrVecLinkBuilderTool", name(), sc);
     }
 
     // Set up some basic geometry that will be useful
@@ -476,7 +479,10 @@ StatusCode TkrHoughFilterTool::doFilterStep()
     // Step #1 is to make sure there are some reasonable default values in the TDS
     Event::TkrEventParams* tkrEventParams = setDefaultValues();
 
-    // In the event we find axes here, set up the collection to store them
+    // We use the position and axes in the event parameters as the default
+    Point  refPoint = tkrEventParams->getEventPosition();
+    Vector refAxis  = tkrEventParams->getEventAxis();
+    double energy   = tkrEventParams->getEventEnergy();
 
     // Set up an output collection of TkrFilterParams
     m_tkrFilterParamsCol = new Event::TkrFilterParamsCol();
@@ -511,27 +517,14 @@ StatusCode TkrHoughFilterTool::doFilterStep()
     // Step #3 As with the above, we want to either recover our vec point links
     // or if they are not there to create them
     // Retrieve the TkrVecPointsLinkCol object from the TDS
-    Event::TkrVecPointsLinkCol* tkrVecPointsLinkCol = 
-        SmartDataPtr<Event::TkrVecPointsLinkCol>(m_dataSvc, EventModel::TkrRecon::TkrVecPointsLinkCol);
 
-    // If there is no TkrVecPointCol in the TDS then we need to create it
-    if (!tkrVecPointsLinkCol)
-    {
-        // Create the TkrVecPoints...
-        TkrVecPointLinksBuilder vecPointLinksBuilder(tkrEventParams->getEventEnergy(),
-                                                     m_dataSvc,
-                                                     m_tkrGeom,
-                                                     m_glastDetSvc,
-                                                     m_clusTool,
-                                                     m_reasonsTool);
-    
-        tkrVecPointsLinkCol = SmartDataPtr<Event::TkrVecPointsLinkCol>(m_dataSvc, EventModel::TkrRecon::TkrVecPointsLinkCol);
-    }
+    Event::TkrVecPointsLinkInfo* vecPointsLinkInfo = m_linkBuilder->getSingleLayerLinks(refPoint, refAxis, energy);
 
-    // The result of all the above should be that our companion TkrVecPointInfo object is 
-    // now available in the TDS
-    Event::TkrVecPointsLinkInfo* vecPointsLinkInfo = 
-        SmartDataPtr<Event::TkrVecPointsLinkInfo>(m_dataSvc, EventModel::TkrRecon::TkrVecPointsLinkInfo);
+    // If no obect returned then return
+    if (!vecPointsLinkInfo) return sc;
+
+    // Recover pointer to the link collection
+    Event::TkrVecPointsLinkCol* tkrVecPointsLinkCol = vecPointsLinkInfo->getTkrVecPointsLinkCol();
 
     // We can key off the log(number TkrVecPoints) as a way to control bin sizing
     double logNVecPoints = std::log10(double(tkrVecPointsLinkCol->size()));
@@ -795,7 +788,7 @@ StatusCode TkrHoughFilterTool::doFilterStep()
             if (momentsLinkVec.size() < 3) continue;
 
             // Get the filter parameters for this collection of links
-            Event::TkrFilterParams* houghParams = doMomentsAnalysis(momentsLinkVec, aveDir);
+            Event::TkrFilterParams* houghParams = doMomentsAnalysis(momentsLinkVec, aveDir, energy);
 
             // Don't exceed the maximum speed limit
             if (int(m_tkrFilterParamsCol->size()) > maxNumFilterParams) break;
@@ -1108,7 +1101,9 @@ Vector TkrHoughFilterTool::convertReps(Event::TkrVecPointsLink* link, Point posi
 }
 
 
-Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPointsLinkPtrVec& momentsLinkVec, Vector& aveDirVec)
+Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPointsLinkPtrVec& momentsLinkVec, 
+                                                              Vector&                        aveDirVec,
+                                                              double                         energy)
 {
     // Make sure we have enough links to do something here
     if (momentsLinkVec.size() < 2) return 0;
@@ -1194,6 +1189,7 @@ Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPoint
     // It will get filled down at the bottom. 
     Event::TkrFilterParams* filterParams = new Event::TkrFilterParams();
 
+    filterParams->setEventEnergy(energy);
     filterParams->setEventPosition(momentsPosition);
     filterParams->setEventAxis(momentsAxis);
     filterParams->setStatusBit(Event::TkrFilterParams::TKRPARAMS);
