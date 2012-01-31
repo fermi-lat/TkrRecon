@@ -109,6 +109,7 @@ private:
     double                        m_toleranceAngle;
 
     // Cut on the normalized projected width vs actual cluster width
+    double                        m_nrmProjDistCutDef;
     double                        m_nrmProjDistCut;
 
     // Keep track of the total number of links
@@ -147,7 +148,6 @@ TkrVecLinkBuilderTool::TkrVecLinkBuilderTool(const std::string& type, const std:
                                                    m_eventPosition(0.,0.,0.),
                                                    m_eventAxis(0.,0.,1.),
                                                    m_evtEnergy(0), 
-                                                   m_nrmProjDistCut(1.3),
                                                    m_numVecLinks(0),
                                                    m_numVecPoints(0),
                                                    m_numAveLinks(0),
@@ -156,7 +156,10 @@ TkrVecLinkBuilderTool::TkrVecLinkBuilderTool(const std::string& type, const std:
     // declare base interface for all consecutive concrete classes
     declareInterface<ITkrVecPointsLinkBuilder>(this);
 
-    declareProperty("DoToolTiming",       m_doTiming            = true);
+    declareProperty("DoToolTiming",   m_doTiming          = true);
+    declareProperty("NrmProjDistCut", m_nrmProjDistCutDef = 1.3);
+                                                   
+    m_nrmProjDistCut = m_nrmProjDistCutDef;
 
     std::string prefix = this->name();
 
@@ -443,6 +446,10 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
     // Set the tolerances for this event
     setTolerances(vecPointInfo);
 
+    // For a test, screw down the tolerance a bit
+    m_nrmProjDistCut *= 0.85;  // should result in 1.1 if lots of links
+
+
     // Set up to loop through the TkrVecPoints by bilayer. The strategy is to have the primary loop
     // variable be an iterator pointing to the vector of "bottom" hits. Internal to that we will then
     // loop over allowed combinations of skipped bilayers, starting with no skipping, to the maximum
@@ -531,6 +538,9 @@ void   TkrVecLinkBuilderTool::setTolerances(Event::TkrVecPointInfo* vecPointInfo
 {
     // Set the default value for the tolerance angle
     m_toleranceAngle = M_PI; // Take all comers!
+
+    // Reset the norm'd projected distance cut
+    m_nrmProjDistCut = m_nrmProjDistCutDef;
 
     // Get the number of TkrVecPoints
     m_numVecPoints = vecPointInfo->getNumTkrVecPoints();
