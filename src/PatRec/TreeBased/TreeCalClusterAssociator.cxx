@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.cxx,v 1.16 2011/10/19 02:47:07 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.cxx,v 1.17 2011/11/19 18:17:33 usher Exp $
  *
 */
 
@@ -225,6 +225,7 @@ const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelat
     // A bit of protection here
     if (!right || !right->getTree()) return true;
     if (!left  || !left->getTree() ) return false;
+    if (left == right)               return false;    // attempt to satisfy f(x,x) = false
 
     // We're going to try to do the simplest possible solution here... if two trees are similar then we'll take the one closest
     // to the cluster, otherwise we are simply keeping the original ordering scheme
@@ -235,11 +236,12 @@ const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelat
             const Event::TkrVecNode* leftHeadNode = left->getTree()->getHeadNode();
             const Event::TkrVecNode* rightHeadNode = right->getTree()->getHeadNode();
 
-            int leftLastLayer  = leftHeadNode->getTreeStartLayer()  - leftHeadNode->getDepth() + 1;
+            int leftLastLayer  = leftHeadNode->getTreeStartLayer()  - leftHeadNode->getDepth()  + 1;
             int rightLastLayer = rightHeadNode->getTreeStartLayer() - rightHeadNode->getDepth() + 1;
             int deltaDepth     = leftHeadNode->getDepth() - rightHeadNode->getDepth();
 
-            if (leftLastLayer <= 4 && rightLastLayer <= 4 && abs(deltaDepth) < 4)
+            if (leftLastLayer <= 4           && rightLastLayer <= 4        &&
+                leftHeadNode->getDepth() > 3 && rightHeadNode->getDepth() > 3)
             {
                 double leftRmsTrans  = left->getCluster()->getMomParams().getTransRms();
                 double rightRmsTrans = right->getCluster()->getMomParams().getTransRms();
@@ -249,7 +251,7 @@ const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelat
 
                 // if both are inside the rms trans (taken as a measure of the error) then 
                 // pick the one most aligned with the cal axis
-                if (leftTest < 1. && rightTest < 1.)
+                if (leftTest < 1. && rightTest < 1. && abs(deltaDepth) < 4)
                 {
                     return left->getTreeClusCosAngle() > right->getTreeClusCosAngle();
                 }
@@ -261,5 +263,6 @@ const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelat
     }
 
     // if neither have cluster then preserve tree ordering
-    return true;
+    return left->getTree()->getHeadNode()->getDepth()  > 
+           right->getTree()->getHeadNode()->getDepth();
 }
