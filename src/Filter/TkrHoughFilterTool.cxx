@@ -19,6 +19,7 @@
 #include "GaudiKernel/GaudiException.h" 
 #include "GaudiKernel/IParticlePropertySvc.h"
 #include "GaudiKernel/ParticleProperty.h"
+#include "GaudiKernel/IChronoStatSvc.h"
 
 // Interface
 #include "ITkrFilterTool.h"
@@ -363,6 +364,18 @@ private:
     /// Link builder tool
     ITkrVecPointsLinkBuilder*  m_linkBuilder;
 
+    /// Let's keep track of event timing
+    IChronoStatSvc*            m_chronoSvc;
+    bool                       m_doTiming;
+    std::string                m_toolTag;
+    IChronoStatSvc::ChronoTime m_toolTime;
+    std::string                m_toolFillTag;
+    IChronoStatSvc::ChronoTime m_fillTime;
+    std::string                m_toolPeakTag;
+    IChronoStatSvc::ChronoTime m_peakTime;
+    std::string                m_toolBuildTag;
+    IChronoStatSvc::ChronoTime m_buildTime;
+
     /// Use this to store pointer to filter params collection in TDS
     Event::TkrFilterParamsCol* m_tkrFilterParamsCol;
 
@@ -393,7 +406,19 @@ TkrHoughFilterTool::TkrHoughFilterTool(const std::string& type,
     declareInterface<ITkrFilterTool>(this);
 
     // Define cut on rmsTrans
-    declareProperty("numLayersToSkip", m_numLyrsToSkip=3);
+    declareProperty("numLayersToSkip", m_numLyrsToSkip = 3);
+    declareProperty("DoToolTiming",    m_doTiming      = true);
+
+    m_toolTag = this->name();
+
+    if (m_toolTag.find(".") < m_toolTag.size())
+    {
+        m_toolTag = m_toolTag.substr(m_toolTag.find(".")+1,m_toolTag.size());
+    }
+
+    m_toolFillTag  = m_toolTag + "_fill";
+    m_toolPeakTag  = m_toolTag + "_peak";
+    m_toolBuildTag = m_toolTag + "_build";
 
     return;
 }
@@ -424,24 +449,25 @@ StatusCode TkrHoughFilterTool::initialize()
     setProperties();
 
     //Locate and store a pointer to the geometry service
-    IService*   iService = 0;
-    if ((sc = serviceLocator()->getService("TkrGeometrySvc", iService, true)).isFailure())
+    if ((sc = service("TkrGeometrySvc", m_tkrGeom, true)).isFailure())
     {
         throw GaudiException("Service [TkrGeometrySvc] not found", name(), sc);
     }
-    m_tkrGeom = dynamic_cast<ITkrGeometrySvc*>(iService);
     
     if ((sc = toolSvc()->retrieveTool("TkrQueryClustersTool", m_clusTool)).isFailure())
     {
         throw GaudiException("Tool [TkrQueryClustersTool] not found", name(), sc);
     }
     
-    if ((sc = serviceLocator()->getService("GlastDetSvc", iService, true)).isFailure())
+    if ((sc = service("GlastDetSvc", m_glastDetSvc, true)).isFailure())
     {
         throw GaudiException("Service [GlastDetSvc] not found", name(), sc);
     }
-    m_glastDetSvc = dynamic_cast<IGlastDetSvc*>(iService);
-
+        
+    if ((sc = service("ChronoStatSvc", m_chronoSvc, true)).isFailure())
+    {
+        throw GaudiException("Service [ChronoSvc] not found", name(), sc);
+    }
 
     //Locate and store a pointer to the data service
     if( (sc = service("EventDataSvc", m_dataSvc)).isFailure() ) 
@@ -474,7 +500,16 @@ StatusCode TkrHoughFilterTool::doFilterStep()
 
     StatusCode sc = StatusCode::SUCCESS;
 
-    // Clean up any remnants fr
+    // If requested, start the tool timing
+    if (m_doTiming) 
+    {
+        m_toolTime  = 0;
+        m_fillTime  = 0;
+        m_peakTime  = 0;
+        m_buildTime = 0;
+
+        m_chronoSvc->chronoStart(m_toolTag);
+    }
 
     // Step #1 is to make sure there are some reasonable default values in the TDS
     Event::TkrEventParams* tkrEventParams = setDefaultValues();
@@ -562,6 +597,9 @@ StatusCode TkrHoughFilterTool::doFilterStep()
 
     // The container of all of our accumulator bins
     Accumulator accumulator;
+    
+    // Activate timing for this stage
+    if (m_doTiming) m_chronoSvc->chronoStart(m_toolFillTag);
 
     // Loop through the TkrVecPointsLinkCol and calculate the doca & doca position
     for (Event::TkrVecPointsLinkCol::iterator linkItr  = tkrVecPointsLinkCol->begin(); 
@@ -585,6 +623,9 @@ StatusCode TkrHoughFilterTool::doFilterStep()
         accumulator[accBin].addBinValue(link);
     }
 
+    // Deactivate timing
+    if (m_doTiming) m_chronoSvc->chronoStop(m_toolFillTag);
+
     // Here is where we would run DBSCAN to return the list of clusters in the above collection
     // Create a container for "clusters"
     ClusterVec clusterVec;
@@ -593,6 +634,9 @@ StatusCode TkrHoughFilterTool::doFilterStep()
     int minSeparation  = 1;
     int minNumPoints   = 3;
     int minNumBiLayers = 2;
+
+    // Activate timing
+    if (m_doTiming) m_chronoSvc->chronoStart(m_toolPeakTag);
 
     // Loop over vector of FilterDocaPoints
     for(Accumulator::iterator binsIter = accumulator.begin(); binsIter != accumulator.end(); binsIter++)
@@ -634,6 +678,13 @@ StatusCode TkrHoughFilterTool::doFilterStep()
             int howbig = clusterVec.back().second.size();
             int stop = 0;
         }
+    }
+
+    // Activate/Deactivate timing
+    if (m_doTiming) 
+    {
+        m_chronoSvc->chronoStop(m_toolPeakTag);
+        m_chronoSvc->chronoStart(m_toolBuildTag);
     }
 
     // Here we would loop through the list of clusters to extract the information and builder candidate track regions
@@ -798,9 +849,35 @@ StatusCode TkrHoughFilterTool::doFilterStep()
     // Complete our SVD test
     if (svdParams) m_tkrFilterParamsCol->push_back(svdParams);
 
-
     // Don't forget to cleanup before leaving!
     clearContainers();
+
+    // Make sure timer is shut down
+    if (m_doTiming)
+    {
+        m_chronoSvc->chronoStop(m_toolTag);
+//        m_chronoSvc->chronoStop(m_toolFillTag);
+//        m_chronoSvc->chronoStop(m_toolPeakTag);
+        m_chronoSvc->chronoStop(m_toolBuildTag);
+    
+        m_toolTime  = m_chronoSvc->chronoDelta(m_toolTag,IChronoStatSvc::USER);
+        m_fillTime  = m_chronoSvc->chronoDelta(m_toolFillTag, IChronoStatSvc::USER);
+        m_peakTime  = m_chronoSvc->chronoDelta(m_toolPeakTag, IChronoStatSvc::USER);
+        m_buildTime = m_chronoSvc->chronoDelta(m_toolBuildTag, IChronoStatSvc::USER);
+
+        float toolDelta  = static_cast<float>(m_toolTime)*0.000001;
+        float fillDelta  = static_cast<float>(m_fillTime)*0.000001;
+        float peakDelta  = static_cast<float>(m_peakTime)*0.000001;
+        float buildDelta = static_cast<float>(m_buildTime)*0.000001;
+
+        MsgStream log(msgSvc(), name());
+
+        log << MSG::DEBUG << " total tool  time: " << toolDelta  << " sec\n" 
+                          << "       fill  time: " << fillDelta  << " sec\n"
+                          << "       peak  time: " << peakDelta  << " sec\n"
+                          << "       build time: " << buildDelta << " sec\n"
+            << endreq ;
+    }
 
     // Done
     return sc;
