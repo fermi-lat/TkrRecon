@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue Jan 31 09:57:20 PST 2012
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+      Tag: GlastReleasev19r4p1
+	TkrVecLinkBuilderTool.cxx 
+Log Message:
+Reset the nrm'd displacement cut which was probably driving the recon time nuts...
+    *
+------------------------------------------------------------
 User: usher  Mon Jan 30 20:54:07 PST 2012
 TkrRecon/src/Filter
 
