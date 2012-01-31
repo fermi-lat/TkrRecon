@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Tue Jan 31 10:20:32 PST 2012
+TkrRecon
+
+Modified Files:
+      Tag: GlastReleasev19r4p1
+	SConscript 
+Log Message:
+Preparing to tag TkrRecon-10-27-02-gr07
+    *
+------------------------------------------------------------
 User: usher  Tue Jan 31 10:18:04 PST 2012
 TkrRecon/src/PatRec/TreeBased
 
