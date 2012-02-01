@@ -21,7 +21,7 @@
  * @author Riccardo Giannitrapani
  * @author Tracy Usher
  *    
- * $Header: /nfs/slac/g/glast/ground/cvs/Event/Event/RelTable/Relation.h,v 1.3 2002/09/13 04:51:23 frailis Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks/StdRelTable/Relation.h,v 1.1 2005/05/26 20:33:06 usher Exp $
  */
 namespace TkrRecon
 {
@@ -119,7 +119,8 @@ template <class T1, class T2> void Relation<T1,T2>::insertInList(RelationList<T1
 template <class T1, class T2> void Relation<T1,T2>::removeFromList(RelationList<T1,T2>* list)
 {
     list->erase(m_listIter);
-    m_listIter = 0;
+    //m_listIter = 0;
+    m_listIter = list->end();
 
     return;
 }     
