@@ -22,7 +22,7 @@
  * @author Marco Frailis 
  * @author Riccardo Giannitrapani
  *    
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/StdRelTable/RelKey.h,v 1.1 2005/05/26 20:33:06 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks/StdRelTable/RelKey.h,v 1.2 2007/04/06 00:18:09 jrb Exp $
  */
 namespace TkrRecon
 {
@@ -91,7 +91,8 @@ template <class T1, class T2, class T3>
 inline void RelKey<T1,T2,T3>::removeFromMap(RelKeyMultiMap<T1,T2,T3>* map)
 {
     map->erase(m_iterator);
-    m_iterator = 0;
+    //m_iterator = 0;
+    m_iterator = map->end();
 }
 
 template <class T1, class T2, class T3>
