@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: heather  Wed Feb  1 11:02:07 PST 2012
+GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks/StdRelTable
+
+Modified Files:
+      Tag: GlastRelease-17-35-24-br01
+	RelKey.h Relation.h 
+Log Message:
+patches
+    *
+------------------------------------------------------------
 User: heather  Wed Feb  1 11:02:06 PST 2012
 GlastRelease-scons/TkrRecon/src/GaudiAlg
 
