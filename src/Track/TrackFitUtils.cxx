@@ -154,7 +154,7 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
             Event::TkrTrackHit* hit = *hitPtr;
             rad_len += hit->getRadLen(); 
 
-            if(plane_count > 4 && !quit_first) {
+            if(plane_count > 6 && !quit_first) { /// NEED TO RAISE THE MIN. from 4 to 6
                 double arc_len  = (z0- hit->getZPlane())*cos_inv; 
                 double theta_ms = 13.6/start_energy * sqrt(rad_len) *
                     (1. + .038*log(rad_len));
@@ -448,7 +448,7 @@ double TrackFitUtils::computeChiSqSegment(const Event::TkrTrack& track, int nhit
         for (int ihit=0; ihit<nhits; ihit++) chi2 += track[ihit]->getChiSquareSmooth();
     }
 
-    chi2 /= (1.*nhits);
+    chi2 /= (1.*nhits - 4.);   //NEW: make this DoFs not just hits
     return chi2;
 }
 
