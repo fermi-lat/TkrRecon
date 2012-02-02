@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Thu Feb  2 11:08:26 PST 2012
+TkrRecon/src/Track
+
+Modified Files:
+      Tag: GlastReleasev19r4p1
+	TrackFitUtils.cxx 
+Log Message:
+Moving Bill's updates to tkrFirstChisquare and combo vertexing to the GR v19r4p1 branch
+    *
+------------------------------------------------------------
 User: atwood  Thu Feb  2 09:58:31 PST 2012
 TkrRecon/src/Vertex/Combo
 
