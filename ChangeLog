@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Thu Feb  2 09:55:46 PST 2012
+TkrRecon/src/Track
+
+Modified Files:
+	TrackFitUtils.cxx 
+Log Message:
+Change def. of first chisq to be min 6 hits and per deg. of freedom
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-17-35-24-gr21, operation: add
 Package: TkrRecon
