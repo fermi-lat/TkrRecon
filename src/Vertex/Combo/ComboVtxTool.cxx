@@ -124,14 +124,43 @@ StatusCode ComboVtxTool::findVtxs()
             idents::TkrId tkr1ID = track1->front()->getTkrId();
             const Event::TkrClusterPtr  tkr1Cls  = track1->front()->getClusterPtr();
             double e1  = track1->getInitialEnergy();
+			double firstChisq1 = std::max(track1->chiSquareSegment(), .1);
 
             // Set up a new vertex - it may only contain this track
             double best_quality = -100.;
+
+			//NEW - scale the covariance matrix for Track 1 by the FirstChisq
+			double cxx = tkr1Params.getxPosxPos();
+			double cxSx = 0.; 
+			double cxy  = tkr1Params.getxPosyPos(); 
+			double cxSy = 0.; 
+
+			double cSxy = 0.; 
+
+			double cyy  = tkr1Params.getyPosyPos();
+			double cySy = 0.; 
+
+			double cSxSx = tkr1Params.getxSlpxSlp()* firstChisq1;
+			double cSySy = tkr1Params.getySlpySlp()* firstChisq1;
+			double cSxSy = tkr1Params.getxSlpySlp()* firstChisq1;
+
+			double x_slope = tkr1Params.getxSlope();
+			double y_slope = tkr1Params.getySlope();
+
+			double x_vtx = tkr1Params.getxPosition();
+			double y_vtx = tkr1Params.getyPosition();
+
+			Event::TkrTrackParams scaled_Tkr1Params(x_vtx, x_slope, y_vtx, y_slope,
+													 cxx,  cxSx,  cxy,  cxSy,
+													 cSxSx, cSxy, cSxSy,
+													 cyy,  cySy,
+													 cSySy);
             newVertex = new Event::TkrVertex(tkr1ID, e1, best_quality, 0.,
-                                                        0., 0., 0., 0., tkr1Pos.z(), tkr1Params); 
+                                                        0., 0., 0., 0., tkr1Pos.z(), scaled_Tkr1Params); 
             newVertex->setStatusBit(Event::TkrVertex::ONETKRVTX);
             newVertex->addTrack(track1);
-			double Tkr1CovDet = tkr1Params.getxSlpxSlp()*tkr1Params.getySlpySlp() - tkr1Params.getxSlpySlp()*tkr1Params.getxSlpySlp();
+			double Tkr1CovDet = scaled_Tkr1Params.getxSlpxSlp()*scaled_Tkr1Params.getySlpySlp() - 
+				                scaled_Tkr1Params.getxSlpySlp()*scaled_Tkr1Params.getxSlpySlp();
 
 
 
@@ -154,6 +183,7 @@ StatusCode ComboVtxTool::findVtxs()
                 idents::TkrId tkr2ID = track2->front()->getTkrId();
                 const Event::TkrClusterPtr tkr2Cls  = track2->front()->getClusterPtr();
 				double e2 = track2->getInitialEnergy();
+				double firstChisq2 = std::max(track2->chiSquareSegment(), .1);
 				double eTot = e1 + e2;
 
                 // Compute DOCA and DOCA location
@@ -213,14 +243,60 @@ StatusCode ComboVtxTool::findVtxs()
                 m_propagatorTool->setStepStart(tkr2Params, tkr2Pos.z(), (sv2 < 0));
                 m_propagatorTool->step(fabs(sv2));
                 Event::TkrTrackParams vtx2Params = m_propagatorTool->getTrackParams(fabs(sv2), e2, (sv2 < 0));
+				
+			//  NEW: Scaled covariance matrix for Track 1 & 2 
+				cxx = vtx1Params.getxPosxPos();
+				cxSx = 0.; 
+				cxy  = vtx1Params.getxPosyPos(); 
+				cxSy = 0.; 
+
+				cSxy = 0.; 
+
+				cyy  = vtx1Params.getyPosyPos();
+				cySy = 0.; 
+
+				cSxSx = vtx1Params.getxSlpxSlp()* firstChisq1;
+				cSySy = vtx1Params.getySlpySlp()* firstChisq1;
+				cSxSy = vtx1Params.getxSlpySlp()* firstChisq1;
+
+				x_slope = vtx1Params.getxSlope();
+				y_slope = vtx1Params.getySlope();
+
+				x_vtx = vtx1Params.getxPosition();
+				y_vtx = vtx1Params.getyPosition();
+
+			     Event::TkrTrackParams scaled_vtx1Params(x_vtx, x_slope, y_vtx, y_slope,
+													 cxx,  cxSx,  cxy,  cxSy,
+													 cSxSx, cSxy, cSxSy,
+													 cyy,  cySy,
+													 cSySy);
+				cxx = vtx2Params.getxPosxPos();
+				cxy = vtx2Params.getxPosyPos(); 
+				cyy = vtx2Params.getyPosyPos();
+
+				cSxSx = vtx2Params.getxSlpxSlp()* firstChisq2;
+				cSySy = vtx2Params.getySlpySlp()* firstChisq2;
+				cSxSy = vtx2Params.getxSlpySlp()* firstChisq2;
+
+				x_slope = vtx2Params.getxSlope();
+				y_slope = vtx2Params.getySlope();
+
+				x_vtx = vtx2Params.getxPosition();
+				y_vtx = vtx2Params.getyPosition();
+
+				Event::TkrTrackParams scaled_vtx2Params(x_vtx, x_slope, y_vtx, y_slope,
+													 cxx,  cxSx,  cxy,  cxSy,
+													 cSxSx, cSxy, cSxSy,
+													 cyy,  cySy,
+													 cSySy);
 
                 // Get the covariance weighted average (Note this method also computes
                 // the chi-square for the association. Results in m_chisq)
-                Event::TkrTrackParams vtxParams = getParamAve(vtx1Params, vtx2Params); 
+                Event::TkrTrackParams vtxParams = getParamAve(scaled_vtx1Params, scaled_vtx2Params); 
 
                 // Calculate quality for this vertex
 				if(m_chisq < 0) continue;
-                double trial_quality = -fabs(s1 - s2) - m_chisq/3.; 
+                double trial_quality = -fabs(s1 - s2) - m_chisq*firstChisq1*firstChisq2/3.; 
 				double VtxCovDet = vtxParams.getxSlpxSlp()*vtxParams.getySlpySlp()- vtxParams.getxSlpySlp()*vtxParams.getxSlpySlp();
 
                 // Deside if to update vertex using this track
@@ -232,7 +308,7 @@ StatusCode ComboVtxTool::findVtxs()
                     newVertex->setParams(vtxParams);
                     newVertex->setPosition(Point(vtxParams(1), vtxParams(3), zVtx));
                     newVertex->setDirection(Vector(-vtxParams(2), -vtxParams(4), -1.).unit());
-                    newVertex->setEnergy(e1 + e2);
+                    newVertex->setEnergy(eTot);
                     newVertex->setChiSquare(m_chisq);
                     newVertex->setQuality(trial_quality);
                     newVertex->setAddedRadLen(extraRadLen);
