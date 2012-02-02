@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: atwood  Thu Feb  2 09:58:31 PST 2012
+TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	ComboVtxTool.cxx 
+Log Message:
+Changed vertexing to use scaled chisq covs.  The Vtx cov will hence be a scaled cov.
+    *
+------------------------------------------------------------
 User: atwood  Thu Feb  2 09:55:46 PST 2012
 TkrRecon/src/Track
 
