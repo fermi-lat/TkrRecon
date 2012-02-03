@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Fri Feb  3 08:29:47 PST 2012
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+      Tag: GlastReleasev19r4p1
+	TreeBasedTool.cxx 
+Log Message:
+Limit number of elements to sort to try to reduce crashes for Johan's jobs
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-27-02-gr08, operation: add
 Package: TkrRecon
