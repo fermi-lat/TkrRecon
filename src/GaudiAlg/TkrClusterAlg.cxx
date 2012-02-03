@@ -10,7 +10,7 @@
 *
 * @author Tracy Usher, Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.26.34.2 2012/01/24 06:08:58 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrClusterAlg.cxx,v 1.26.34.3 2012/01/26 17:08:36 lsrea Exp $
 */
 
 #include "GaudiKernel/Algorithm.h"
@@ -205,17 +205,6 @@ StatusCode TkrClusterAlg::execute()
     unsigned nDigisOrig = m_TkrDigiCol->size();
     if(nDigisOrig==0) return sc;
 
-    if(m_useDiagInfo) {
-        m_truncTool->addEmptyDigis();
-    }
-    // Do the trucation analysis
-    sc = m_truncTool->analyzeDigis();
-    // remove empty digis
-    //std::cout << "orig " << nDigisOrig << ", current " << m_TkrDigiCol->size()<< std::endl;
-    if(nDigisOrig<m_TkrDigiCol->size()) {
-        m_truncTool->removeEmptyDigis();
-        //std::cout << "after deletion " << m_TkrDigiCol->size() << std::endl;
-    }
     
     // Create the TkrIdClusterMMapCol TDS object
     m_TkrIdClusterMap = new TkrIdClusterMap();
