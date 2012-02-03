@@ -844,7 +844,8 @@ Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRel
                     Event::TreeClusterRelationVec* relVec = &clusToRelationItr->second;
 
                     // If more than one tree associated to this cluster then we need to so some reordering
-                    if (relVec && relVec->size() > 1) 
+                    // Temporarily restrict to relation vectors less than 6 elements to prevent crashes in sorting on linux
+                    if (relVec && relVec->size() > 1 && relVec->size() < 6) 
                     { // for debugging
                         std::sort(relVec->begin(), relVec->end(), CompareTreeClusterRelations());
                     }
