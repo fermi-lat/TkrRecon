@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Mon Feb  6 11:18:23 PST 2012
+TkrRecon/src/Dll
+
+Modified Files:
+      Tag: GlastRelease-17-35-24-br02
+	tkrRecon_load.cxx 
+Log Message:
+Mods for truncations
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-27-02-gr10, operation: add
 Package: TkrRecon
