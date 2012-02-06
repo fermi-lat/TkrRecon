@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Mon Feb  6 11:18:24 PST 2012
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+      Tag: GlastRelease-17-35-24-br02
+	TkrFindAlg.cxx 
+Log Message:
+Mods for truncations
+
+    *
+------------------------------------------------------------
 User: lsrea  Mon Feb  6 11:18:23 PST 2012
 TkrRecon/src/Dll
 
