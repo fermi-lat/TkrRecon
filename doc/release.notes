@@ -269,3 +269,4 @@
 @endverbatim
  */
  TkrRecon-10-16-07-tr01 06-Feb-2012  lsrea mods for truncation on branch
+ TkrRecon-10-16-07-tr02 09-Feb-2012  lsrea Removing all traces of TkrHitTruncationTool
