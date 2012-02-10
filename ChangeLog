@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Thu Feb  9 18:26:24 PST 2012
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+      Tag: GlastRelease-17-35-24-br02
+	TkrFindAlg.cxx 
+Log Message:
+One last fix, remove refs to TkrHitTruncationTool
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-16-07-tr02, operation: add
 Package: TkrRecon
