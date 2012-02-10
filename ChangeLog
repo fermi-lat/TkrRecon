@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Thu Feb  9 17:08:17 PST 2012
+TkrRecon/TkrRecon/Track
+
+Removed Files:
+      Tag: GlastRelease-17-35-24-br02
+	ITkrHitTruncationTool.h 
+Log Message:
+These have been moved to TkrUtil on this branch
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-19-04-01-gr08, operation: add
 Package: TkrRecon
