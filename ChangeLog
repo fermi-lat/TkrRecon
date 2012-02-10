@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: lsrea  Thu Feb  9 17:08:17 PST 2012
+TkrRecon/src/Track
+
+Removed Files:
+      Tag: GlastRelease-17-35-24-br02
+	TkrHitTruncationTool.cxx TkrHitTruncationTool.h 
+Log Message:
+These have been moved to TkrUtil on this branch
+
+    *
+------------------------------------------------------------
+User: lsrea  Thu Feb  9 17:08:17 PST 2012
 TkrRecon/TkrRecon/Track
 
 Removed Files:
