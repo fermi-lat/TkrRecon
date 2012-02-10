@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.21 2006/03/21 01:12:35 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.21.684.1 2012/02/06 19:18:24 lsrea Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -24,7 +24,7 @@
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 #include "src/Track/TkrControl.h"
 #include "TkrRecon/PatRec/ITkrFindTrackTool.h"
-#include "TkrRecon/Track/ITkrHitTruncationTool.h"
+//#include "TkrRecon/Track/ITkrHitTruncationTool.h"
 
 //#include "Event/Recon/TkrRecon/TkrTrack.h"
 
@@ -40,7 +40,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.21 2006/03/21 01:12:35 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.21.684.1 2012/02/06 19:18:24 lsrea Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -62,7 +62,7 @@ private:
     /// Always use the right tool for the job
     ITkrFindTrackTool* m_findTool;
     /// truncation tool
-    ITkrHitTruncationTool* m_truncTool;
+//    ITkrHitTruncationTool* m_truncTool;
 };
 
 static const AlgFactory<TkrFindAlg>  Factory;
@@ -135,11 +135,11 @@ StatusCode TkrFindAlg::initialize()
         return sc;
     }
 
-    sc = toolSvc()->retrieveTool("TkrHitTruncationTool", m_truncTool);
-    if (sc.isFailure()) {
-        log << MSG::ERROR << "Cannot initialize hit-truncation tool" << endreq;
-        return sc;
-    }
+    // sc = toolSvc()->retrieveTool("TkrHitTruncationTool", m_truncTool);
+    // if (sc.isFailure()) {
+        // log << MSG::ERROR << "Cannot initialize hit-truncation tool" << endreq;
+        // return sc;
+    // }
 
     return sc;
 }
