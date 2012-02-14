@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon Feb 13 20:25:04 PST 2012
+TkrRecon/src/Filter
+
+Modified Files:
+      Tag: GlastReleasev19r4p1
+	TkrHoughFilterTool.cxx 
+Log Message:
+Experimental version, big improvement to dbscan clustering
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-19-04-01-gr12, operation: add
 Package: TkrRecon
