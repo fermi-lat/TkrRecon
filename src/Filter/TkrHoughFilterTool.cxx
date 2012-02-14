@@ -106,6 +106,18 @@ namespace
         int    m_zBin;
     };
 
+    // Forward declaration here
+    class ClusterVals;
+    class AccumulatorBin;
+    class AccumulatorValues;
+    typedef std::map<AccumulatorBin, AccumulatorValues>  Accumulator;
+    typedef Accumulator::iterator                        AccumulatorIter;
+    typedef std::list<AccumulatorIter>                   AccumulatorIterVec;
+    typedef std::pair<ClusterVals, AccumulatorIterVec >  ClusterPair;
+    typedef std::vector<ClusterPair >                    ClusterVec;
+    typedef std::map<int, ClusterPair >                  ClusterMap;
+    typedef std::map<AccumulatorBin, ClusterPair >       NeighborMap;
+
     class AccumulatorValues : public Event::TkrVecPointsLinkPtrVec
     {
     public:
@@ -120,18 +132,23 @@ namespace
                          BILAYERS_W_LINKS   = 0x0FFFFC00,
                          STATUS_BITS        = 0xF0000000};
 
-        AccumulatorValues() : m_status(LAST_BILAYER_BITS), m_avePos(0.,0.,0.), m_aveDir(0.,0.,0.)
+        AccumulatorValues() : m_status(LAST_BILAYER_BITS), m_clusterId(0), m_avePos(0.,0.,0.), m_aveDir(0.,0.,0.)
         {
             clear();
         }
 
-        void setIsNoise()      {m_status |= NOISE;}
+        void setIsNoise()      {m_status  = (m_status & ~INCLUSTER) | (NOISE | VISITED);}
         void setVisited()      {m_status |= VISITED;}
-        void setInCluster()    {m_status |= INCLUSTER;}
+        void setInCluster()    {m_status  = (m_status & ~NOISE) | (INCLUSTER | VISITED);}
 
         void setTopBiLayer(int layer) {m_status  = m_status & ~FIRST_BILAYER_BITS | layer & FIRST_BILAYER_BITS;}
         void setBotBiLayer(int layer) {m_status  = m_status & ~LAST_BILAYER_BITS | (layer << 5) & LAST_BILAYER_BITS;}
         void setLinkLayer(int layer)  {m_status |= (1 << (10 + layer)) & BILAYERS_W_LINKS;}
+        void setClusterId(int clusterId)
+        {
+            m_clusterId = clusterId;
+            setInCluster();
+        }
 
         void addBinValue(Event::TkrVecPointsLink* link)
         {
@@ -148,14 +165,14 @@ namespace
             push_back(link);
         }
 
-        const bool   isNoise()          const {return (m_status & NOISE    ) != 0;}
-        const bool   wasVisited()       const {return (m_status & VISITED  ) != 0;}
-        const bool   isInCluster()      const {return (m_status & INCLUSTER) != 0;}
+        const bool     isNoise()          const {return (m_status & NOISE    ) != 0;}
+        const bool     wasVisited()       const {return (m_status & VISITED  ) != 0;}
+        const bool     isInCluster()      const {return (m_status & INCLUSTER) != 0;}
 
-        const int    getTopBiLayer()    const {return (m_status & FIRST_BILAYER_BITS);}
-        const int    getBotBiLayer()    const {return (m_status & LAST_BILAYER_BITS) >> 5;}
-        const int    getNumBiLayers()   const {return getTopBiLayer() - getBotBiLayer();}
-        const int    getNumLinkLayers() const 
+        const int      getTopBiLayer()    const {return (m_status & FIRST_BILAYER_BITS);}
+        const int      getBotBiLayer()    const {return (m_status & LAST_BILAYER_BITS) >> 5;}
+        const int      getNumBiLayers()   const {return getTopBiLayer() - getBotBiLayer();}
+        const int      getNumLinkLayers() const 
         {
             int linkLayers   = (m_status & BILAYERS_W_LINKS) >> 10;
             int linkFieldCnt = 18;
@@ -169,8 +186,9 @@ namespace
 
             return numLayers;
         }
+        const unsigned getLayerMask() const {return (m_status & BILAYERS_W_LINKS) >> 10;}
 
-        const Point  getAvePosition()  const
+        const Point    getAvePosition()  const
         {
             if (!empty()) 
             {
@@ -182,16 +200,19 @@ namespace
             else return m_avePos;
         }
 
-        const Vector getAveDirection() const
+        const Vector   getAveDirection() const
         {
             if (!empty()) return m_aveDir / double(size());
             else return m_avePos;
         }
 
+        int            getClusterId() {return m_clusterId;}
+
     private:
-        unsigned m_status;
-        Point    m_avePos;
-        Vector   m_aveDir;
+        unsigned     m_status;
+        int          m_clusterId;
+        Point        m_avePos;
+        Vector       m_aveDir;
     };
 
     class AccumulatorBinCalculator
@@ -245,39 +266,62 @@ namespace
 
     // Define the maps we'll use in this filter
     typedef std::pair<AccumulatorBin, AccumulatorValues> AccumulatorPair;
-    typedef std::map<AccumulatorBin, AccumulatorValues>  Accumulator;
-    typedef std::list<Accumulator::iterator>             AccumulatorIterVec;
+//    typedef std::map<AccumulatorBin, AccumulatorValues>  Accumulator;
+//    typedef std::list<Accumulator::iterator>             AccumulatorIterVec;
 
     class ClusterVals
     {
     public:
         ClusterVals() :
-          m_nLayersWLinks(0), m_topBiLayer(0), m_botBiLayer(20), m_numTotLinks(0)
+          m_linkLayers(0), m_topBiLayer(0), m_botBiLayer(20), m_numTotLinks(0)
           {}
         
         const int getTopBiLayer()                     const {return m_topBiLayer;}
         const int getBotBiLayer()                     const {return m_botBiLayer;}
         const int getNumBiLayers()                    const {return m_topBiLayer - m_botBiLayer;}
-        const int getNumLinkLayers()                  const {return m_nLayersWLinks;}
         const int getNumTotLinks()                    const {return m_numTotLinks;}
+        const int getNumLinkLayers() const 
+        {
+            int linkLayers   = m_linkLayers;
+            int linkFieldCnt = 18;
+            int numLayers    = 0;
+
+            while(linkFieldCnt--)
+            {
+                numLayers   += linkLayers & 0x1;
+                linkLayers >>= 1;
+            }
+
+            return numLayers;
+        }
         const Accumulator::iterator getPeakIterator() const {return m_peakIter;}
 
         void setTopBiLayer(int layer)                         {m_topBiLayer    = layer > m_topBiLayer ? layer : m_topBiLayer;}
         void setBotBiLayer(int layer)                         {m_botBiLayer    = layer < m_botBiLayer ? layer : m_botBiLayer;}
-        void setNumLinkLayers(int nLayers)                    {m_nLayersWLinks = nLayers;}
+        void setLinkLayers(int layers)                        {m_linkLayers   |= layers;}
         void setNumTotLinks(int links)                        {m_numTotLinks   = links;}
         void setPeakIterator(Accumulator::iterator& peakIter) {m_peakIter      = peakIter;}
 
     private:
         Accumulator::iterator m_peakIter;
-        int                   m_nLayersWLinks;
+        unsigned              m_linkLayers;
         int                   m_topBiLayer;
         int                   m_botBiLayer;
         int                   m_numTotLinks;
     };
 
-    typedef std::pair<ClusterVals, AccumulatorIterVec >  ClusterPair;
+//    typedef std::pair<ClusterVals, AccumulatorIterVec >  ClusterPair;
     typedef std::vector<ClusterPair >                    ClusterVec;
+
+    // Try filling a nearest neighbors type of map
+    class OrderAccumIter
+    {
+    public:
+        const bool operator()(const AccumulatorIter& left, const AccumulatorIter& right) const
+        {
+            return left->first < right->first;
+        }
+    };
 
     class CompareClusterSizes
     {
@@ -334,11 +378,19 @@ private:
 
     /// Use this to "expand" clusters given points and neighborhoods
     void expandClusters(Accumulator::iterator& bin, 
-                        Accumulator&           accumulator,
+                        NeighborMap&           neighborMap,
                         ClusterPair&           neighborVec, 
-                        ClusterPair&           cluster, 
+                        ClusterMap&            clusterMap, 
+                        int&                   curClusterId,
                         double                 minSeparation, 
                         int                    minPoints);
+//    void expandClusters(Accumulator::iterator& bin, 
+//                        Accumulator&           accumulator,
+//                        ClusterPair&           neighborVec, 
+//                        ClusterMap&            clusterMap, 
+//                        int&                   curClusterId,
+//                        double                 minSeparation, 
+//                        int                    minPoints);
 
     /// Use this to find neighbors for the dbscan clustering
     ClusterPair findNeighbors(AccumulatorBin& bin, Accumulator& allBinsMap, int minSeparation);
@@ -563,7 +615,7 @@ StatusCode TkrHoughFilterTool::doFilterStep()
 
     // We can key off the log(number TkrVecPoints) as a way to control bin sizing
     double logNVecPoints = std::log10(double(tkrVecPointsLinkCol->size()));
-    int    vecPtsSclFctr = floor(logNVecPoints - 1.);
+    int    vecPtsSclFctr = floor(logNVecPoints + 0.5);
 
     if (vecPtsSclFctr < 1) vecPtsSclFctr = 1;
     if (vecPtsSclFctr > 6) vecPtsSclFctr = 6;
@@ -584,13 +636,35 @@ StatusCode TkrHoughFilterTool::doFilterStep()
 
     // Use the "best" cal cluster centroid as the reference point 
     // (wondering if best to extrapolate into tracker?)
-    double arcLenToMidPlaneTkr = (0.5 * (m_tkrTopZ + m_tkrBotZ) - tkrEventParams->getEventPosition().z()) 
-                               / tkrEventParams->getEventAxis().z();
-    accCenter = tkrEventParams->getEventPosition(); // + arcLenToMidPlaneTkr * tkrEventParams->getEventAxis();
+    Vector eventAxis = tkrEventParams->getEventAxis();
+    Vector centroidOffsetVec(eventAxis.x()*eventAxis.z(), 
+                             eventAxis.y()*eventAxis.z(), 
+                             -(eventAxis.x()*eventAxis.x() + eventAxis.y()*eventAxis.y()));
+    if (centroidOffsetVec.mag2() > 0.) centroidOffsetVec = centroidOffsetVec.unit();
+    else                               centroidOffsetVec = Vector(0.,0.,1.);
+    double offsetArcLen = 400.;
+    accCenter = tkrEventParams->getEventPosition() + offsetArcLen * centroidOffsetVec;
+//    accCenter = Point(accCenter.x(), accCenter.y(), accCenter.z() - 250.);
 
-    // Bin sizing.... this clearly needs some optimization...
-    double binSizeXY = 50.;
-    double binSizeZ  = 50.; //m_tkrGeom->getLayerZ(1) - m_tkrGeom->getLayerZ(0);
+    // Temporary constant arrays determing quantities per bin in link decades
+//    const double binSizes[]          = {5., 5., 5., 5., 10., 20.};
+//    const int    minSeparationVals[] = {25, 20, 15, 12,   4,  2};
+////    const double binSizes[]          = {5., 5., 5., 7.5, 10., 20.};
+////    const int    minSeparationVals[] = {25, 20, 15,   8,   4,  2};
+    const double binSizes[]          = {15., 15., 12., 12., 10., 20.};
+    const int    minSeparationVals[] = {  8,   6,   6,   5,   4,  2};
+    const int    minNumPointsVals[]  = {  2,   3,   5,   8,  10, 10};
+
+    // Choose the bin to use
+    int binIndex = vecPtsSclFctr - 1;
+
+    // Set the variables
+
+    double binSizeXY = binSizes[binIndex];
+    double binSizeZ  = binSizes[binIndex];
+
+    int minSeparation  = minSeparationVals[binIndex];
+    int minNumPoints   = minNumPointsVals[binIndex];
 
     // Set up the accumulator bin calculator 
     AccumulatorBinCalculator binCalculator(accCenter, binSizeXY, binSizeZ);
@@ -600,6 +674,14 @@ StatusCode TkrHoughFilterTool::doFilterStep()
     
     // Activate timing for this stage
     if (m_doTiming) m_chronoSvc->chronoStart(m_toolFillTag);
+
+    // Define the minimum separation and number of points
+    int minNumBiLayers = 2;  // 2;
+
+    NeighborMap neighborMap;
+
+    // Temporary
+    AccumulatorBin zeroBin(0,0,0);
 
     // Loop through the TkrVecPointsLinkCol and calculate the doca & doca position
     for (Event::TkrVecPointsLinkCol::iterator linkItr  = tkrVecPointsLinkCol->begin(); 
@@ -619,21 +701,77 @@ StatusCode TkrHoughFilterTool::doFilterStep()
         // Get the accumulator bin for this point
         AccumulatorBin accBin = binCalculator.getAccumulatorBin(docaPos);
 
-        // Add this link to our collection
-        accumulator[accBin].addBinValue(link);
+        // Temporary
+        int distToZero = zeroBin.getDistanceTo(accBin);
+
+        if (distToZero < 2)
+        {
+            int breakembreakembreakemrawhide = 1;
+        }
+
+        // Check to see if this bin already exists or will be added
+        AccumulatorIter binIter = accumulator.find(accBin);
+
+        // If the bin already exists then simply add the link
+        if (binIter != accumulator.end())
+        {
+            binIter->second.addBinValue(link);
+        }
+        // Otherwise, special action required
+        else
+        {
+            // First, create the new bin and add the link to it
+            accumulator[accBin].addBinValue(link);
+
+            // Recover iterator to the element
+            binIter = accumulator.find(accBin);
+
+            // Now loop through all existing bins and check the separation
+            for (AccumulatorIter prevIter = accumulator.begin(); prevIter != accumulator.end(); prevIter++)
+            {
+                // Skip the self reference
+                if (prevIter == binIter) continue;
+
+                AccumulatorBin prevBin = prevIter->first;
+
+                int binSep = prevBin.getDistanceTo(accBin);
+
+                // If the separation is less than the minimum then we will update the
+                // neighborhood for both bins
+                if (binSep < minSeparation)
+                {
+                    // Make the relation to our new point
+                    ClusterPair& prevClus = neighborMap[prevBin];
+
+                    prevClus.second.push_back(binIter);
+                    prevClus.first.setTopBiLayer(binIter->second.getTopBiLayer());
+                    prevClus.first.setBotBiLayer(binIter->second.getBotBiLayer());
+                    prevClus.first.setLinkLayers(binIter->second.getLayerMask());
+                    prevClus.first.setNumTotLinks(prevClus.first.getNumTotLinks() + binIter->second.size());
+
+                    // Make the relation to our new point
+                    ClusterPair& newClus = neighborMap[accBin];
+
+                    newClus.second.push_back(prevIter);
+                    newClus.first.setTopBiLayer(prevIter->second.getTopBiLayer());
+                    newClus.first.setBotBiLayer(prevIter->second.getBotBiLayer());
+                    newClus.first.setLinkLayers(prevIter->second.getLayerMask());
+                    newClus.first.setNumTotLinks(newClus.first.getNumTotLinks() + prevIter->second.size());
+                }
+            }
+        }
     }
 
     // Deactivate timing
     if (m_doTiming) m_chronoSvc->chronoStop(m_toolFillTag);
 
     // Here is where we would run DBSCAN to return the list of clusters in the above collection
-    // Create a container for "clusters"
-    ClusterVec clusterVec;
 
-    // Define the minimum separation and number of points
-    int minSeparation  = 1;
-    int minNumPoints   = 3;
-    int minNumBiLayers = 2;
+    int numBins = accumulator.size();
+
+    // Create the cluster map and give initial id
+    ClusterMap clusterMap;
+    int        clusterId = 0;
 
     // Activate timing
     if (m_doTiming) m_chronoSvc->chronoStart(m_toolPeakTag);
@@ -654,29 +792,27 @@ StatusCode TkrHoughFilterTool::doFilterStep()
         AccumulatorBin bin = binsIter->first;
 
         // Find points in the neighborhood
-        ClusterPair neighborVec = findNeighbors(bin, accumulator, minSeparation);
+        ClusterPair& neighborVec = neighborMap[bin];
 
-        if (neighborVec.first.getNumLinkLayers() < minNumBiLayers && int(neighborVec.second.size()) < minNumPoints)
+        if (neighborVec.first.getNumTotLinks() < minNumPoints) // || neighborVec.first.getNumBiLayers() < 2)
         {
             binVals.setIsNoise();
         }
         else
         {
-            // Create a new cluster
-            ClusterPair cluster;
-            clusterVec.push_back(cluster);
-
             // "Expand" the cluster
             expandClusters(binsIter, 
-                           accumulator, 
+                           neighborMap, 
                            neighborVec, 
-                           clusterVec.back(), 
+                           clusterMap,
+                           clusterId,
                            minSeparation, 
                            minNumPoints);
 
             // Add the cluster to the collection
-            int howbig = clusterVec.back().second.size();
-            int stop = 0;
+            int clusterSize = clusterMap[clusterId].second.size();
+
+            if (clusterSize > 0) clusterId++;
         }
     }
 
@@ -688,8 +824,19 @@ StatusCode TkrHoughFilterTool::doFilterStep()
     }
 
     // Here we would loop through the list of clusters to extract the information and builder candidate track regions
-    if (!clusterVec.empty())
+    if (!clusterMap.empty())
     {
+        // Create a list to hold the results
+        ClusterVec clusterVec;
+
+        // Extract the ClusterPairs from the map and insert into a list for resorting
+        for(ClusterMap::iterator clusIter = clusterMap.begin(); clusIter != clusterMap.end(); clusIter++)
+        {
+            ClusterPair& clusPair = clusIter->second;
+
+            if (clusPair.first.getNumBiLayers() > 1) clusterVec.push_back(clusIter->second);
+        }
+
         // Sort by number of links in each cluster?
         std::sort(clusterVec.begin(), clusterVec.end(), CompareClusterSizes());
 
@@ -699,15 +846,18 @@ StatusCode TkrHoughFilterTool::doFilterStep()
         // Now loop through and create filter params
         for(ClusterVec::iterator clusIter = clusterVec.begin(); clusIter != clusterVec.end(); clusIter++)
         {
+            // Dereference the interesting info
+            ClusterPair& clusPair = *clusIter;
+
             // Weed out useless clusters
-            if (clusIter->first.getNumBiLayers() < 2) continue;
+            if (clusPair.first.getNumBiLayers() < 2) continue;
 
             // Keep track of results to use for moments analysis
             Event::TkrVecPointsLinkPtrVec momentsLinkVec;
 
             // Ok, first task is to go through the links in the "peak" bin iterator
             // This is defined as the bin which encompasses the most number of bilayers
-            const Accumulator::iterator& peakIter = clusIter->first.getPeakIterator();
+            const Accumulator::iterator& peakIter = clusPair.first.getPeakIterator();
 
             // Want the average position/direction
             Point  peakAvePos = peakIter->second.getAvePosition();
@@ -798,7 +948,7 @@ StatusCode TkrHoughFilterTool::doFilterStep()
             double biggestAngle = 0.9;
 
             // Get list of points for this cluster
-            AccumulatorIterVec& filterVec = clusIter->second;
+            AccumulatorIterVec& filterVec = clusPair.second;
 
             // Loop through the filter vector and recover the pointers to the links
             for(AccumulatorIterVec::iterator vecIter = filterVec.begin(); vecIter != filterVec.end(); vecIter++)
@@ -835,11 +985,26 @@ StatusCode TkrHoughFilterTool::doFilterStep()
                 }
             }
 
-            // Make sure we have enough links to do something
-            if (momentsLinkVec.size() < 3) continue;
+            // Define pointer to the filter parameters
+            Event::TkrFilterParams* houghParams = 0;
 
-            // Get the filter parameters for this collection of links
-            Event::TkrFilterParams* houghParams = doMomentsAnalysis(momentsLinkVec, aveDir, energy);
+            // Make sure we have enough links to do something
+            if (momentsLinkVec.size() >= 3)
+            {
+                // Get the filter parameters for this collection of links
+                houghParams = doMomentsAnalysis(momentsLinkVec, aveDir, energy);
+            }
+
+            // If no filter params then clear the  links status bits
+            if (!houghParams)
+            {
+                for(Event::TkrVecPointsLinkPtrVec::iterator momItr  = momentsLinkVec.begin(); 
+                                                            momItr != momentsLinkVec.end(); 
+                                                            momItr++)
+                {
+                    (*momItr)->clearStatusBits(0x03000000);
+                }
+            }
 
             // Don't exceed the maximum speed limit
             if (int(m_tkrFilterParamsCol->size()) > maxNumFilterParams) break;
@@ -884,18 +1049,22 @@ StatusCode TkrHoughFilterTool::doFilterStep()
 }
 
 void TkrHoughFilterTool::expandClusters(Accumulator::iterator& binIter, 
-                                        Accumulator&           accumulator,
+                                        NeighborMap&           neighborMap,
                                         ClusterPair&           neighborVec, 
-                                        ClusterPair&           cluster, 
+                                        ClusterMap&            clusterMap,
+                                        int&                   curClusterId,
                                         double                 minSeparation, 
                                         int                    minNumPoints)
 {
+    // Dereference the cluster info
+    ClusterPair& cluster = clusterMap[curClusterId];
+
     // Add this point
     cluster.second.push_back(binIter);
 
     cluster.first.setTopBiLayer(binIter->second.getTopBiLayer());
     cluster.first.setBotBiLayer(binIter->second.getBotBiLayer());
-    cluster.first.setNumLinkLayers(binIter->second.getNumLinkLayers());
+    cluster.first.setLinkLayers(binIter->second.getLayerMask());
     cluster.first.setNumTotLinks(binIter->second.size());
     cluster.first.setPeakIterator(binIter);
 
@@ -906,24 +1075,76 @@ void TkrHoughFilterTool::expandClusters(Accumulator::iterator& binIter,
     {
         AccumulatorValues& neighborVals = (*neighborItr)->second;
 
+        // If this point not already in a cluster then add it
+        if (!neighborVals.isInCluster()) 
+        {
+            cluster.second.push_back(*neighborItr);
+            cluster.first.setTopBiLayer(neighborVals.getTopBiLayer());
+            cluster.first.setBotBiLayer(neighborVals.getBotBiLayer());
+            cluster.first.setNumTotLinks(cluster.first.getNumTotLinks() + neighborVals.size());
+            cluster.first.setLinkLayers(neighborVals.getLayerMask());
+
+            if (neighborVals.getNumLinkLayers() >= cluster.first.getPeakIterator()->second.getNumLinkLayers())
+            {
+                if (neighborVals.getNumLinkLayers() > cluster.first.getPeakIterator()->second.getNumLinkLayers())
+                    cluster.first.setPeakIterator(*neighborItr);
+                else if (neighborVals.getTopBiLayer() > cluster.first.getPeakIterator()->second.getTopBiLayer())
+                    cluster.first.setPeakIterator(*neighborItr);
+            }
+
+            neighborVals.setClusterId(curClusterId);
+        }
+        // otherwise we should merge into the larger cluster
+        else
+        {
+            int prvClusterId = neighborVals.getClusterId();
+
+            // merge clusters
+            if (prvClusterId != curClusterId)
+            {
+                ClusterPair& prvCluster = clusterMap[prvClusterId];
+
+                for(AccumulatorIterVec::iterator mergeItr  = prvCluster.second.begin();
+                                                 mergeItr != prvCluster.second.end();
+                                                 mergeItr++)
+                { 
+                    Accumulator::iterator itr  = *mergeItr;
+                    AccumulatorValues&    vals = itr->second;
+
+                    cluster.second.push_back(itr);
+                    cluster.first.setTopBiLayer(vals.getTopBiLayer());
+                    cluster.first.setBotBiLayer(vals.getBotBiLayer());
+                    cluster.first.setNumTotLinks(cluster.first.getNumTotLinks() + vals.size());
+                    cluster.first.setLinkLayers(vals.getLayerMask());
+
+                    if (vals.getNumLinkLayers() >= cluster.first.getPeakIterator()->second.getNumLinkLayers())
+                    {
+                        if (vals.getNumLinkLayers() > cluster.first.getPeakIterator()->second.getNumLinkLayers())
+                            cluster.first.setPeakIterator(itr);
+                        else if (vals.getTopBiLayer() > cluster.first.getPeakIterator()->second.getTopBiLayer())
+                            cluster.first.setPeakIterator(itr);
+                    }
+
+                    vals.setClusterId(curClusterId);
+                }
+
+                clusterMap[prvClusterId].first = ClusterVals();
+                clusterMap[prvClusterId].second.clear();
+            }
+        }
+
         // Skip the self reference
         if (binIter == *neighborItr)   continue;
-
-        // Skip previously visited points
-        if (neighborVals.wasVisited()) continue;
-
-        // Set as visited
-        neighborVals.setVisited();
 
         // Get this bin
         AccumulatorBin neighborBin = (*neighborItr)->first;
 
         // Find the neighbors of the neighbor
-        ClusterPair nextNeighborVec = findNeighbors(neighborBin, accumulator, minSeparation);
+        ClusterPair& nextNeighborVec = neighborMap[neighborBin]; 
 
         // Is this neighborhood above threshold?
-//        if (nextNeighborVec.first.getNumLinkLayers() >= minNumPoints)
-        if (int(nextNeighborVec.second.size()) >= minNumPoints)
+        //if (nextNeighborVec.first.getNumLinkLayers() >= minNumPoints) //int(nextNeighborVec.second.size()) >= minNumPoints)
+        if (nextNeighborVec.first.getNumTotLinks() >= minNumPoints)
         {
             // Merge into the above cluster
             for(AccumulatorIterVec::iterator nextItr  = nextNeighborVec.second.begin(); 
@@ -932,32 +1153,15 @@ void TkrHoughFilterTool::expandClusters(Accumulator::iterator& binIter,
             {
                 AccumulatorValues& next = (*nextItr)->second;
 
-                // If point has been visited no use adding to list
-                if (next.wasVisited()) continue;
+                // If point has been visited no use adding to list unless it was tagged as a noise hit
+                if (next.wasVisited() && !next.isNoise()) continue;
 
                 // Make sure point doesn't already exist in the neihborhood
-                if (std::find(neighborVec.second.begin(), neighborVec.second.end(), *nextItr) == neighborVec.second.end())
+                if (std::find(neighborItr, neighborVec.second.end(), *nextItr) == neighborVec.second.end())
                 {
                     neighborVec.second.push_back(*nextItr);
                 }
             }
-        }
-
-        // If this point not already in a cluster then add it
-        if (!neighborVals.isInCluster()) 
-        {
-            cluster.second.push_back(*neighborItr);
-            cluster.first.setTopBiLayer(neighborVals.getTopBiLayer());
-            cluster.first.setBotBiLayer(neighborVals.getBotBiLayer());
-            cluster.first.setNumTotLinks(cluster.first.getNumTotLinks() + neighborVals.size());
-
-            if (neighborVals.getNumLinkLayers() > cluster.first.getPeakIterator()->second.getNumLinkLayers())
-            {
-                cluster.first.setPeakIterator(*neighborItr);
-                cluster.first.setNumLinkLayers(neighborVals.getNumLinkLayers());
-            }
-
-            neighborVals.setInCluster();
         }
     }
 
@@ -986,7 +1190,9 @@ ClusterPair TkrHoughFilterTool::findNeighbors(AccumulatorBin& bin,
             neighborVec.second.push_back(binsIter);
             neighborVec.first.setTopBiLayer((*binsIter).second.getTopBiLayer());
             neighborVec.first.setBotBiLayer((*binsIter).second.getBotBiLayer());
-            neighborVec.first.setNumLinkLayers((*binsIter).second.getNumLinkLayers());
+            neighborVec.first.setLinkLayers((*binsIter).second.getLayerMask());
+            neighborVec.first.setNumTotLinks(neighborVec.first.getNumTotLinks() + (*binsIter).second.size());
+
         }
     }
 
