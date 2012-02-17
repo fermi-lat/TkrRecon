@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: usher  Fri Feb 17 12:46:11 PST 2012
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+      Tag: GlastReleasev19r4p1
+	ITkrVecPointLinksBuilder.h TkrVecLinkBuilderTool.cxx 
+Log Message:
+Experiment with using cal centroid to constrain single layer links in effort to keep control over timing.
+    *
+------------------------------------------------------------
+User: usher  Fri Feb 17 12:46:11 PST 2012
 TkrRecon/src/Filter
 
 Modified Files:
