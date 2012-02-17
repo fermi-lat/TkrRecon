@@ -8,7 +8,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecLinkBuilderTool.cxx,v 1.22 2011/09/02 22:48:26 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/Attic/TkrVecLinkBuilderTool.cxx,v 1.1.2.2 2012/01/31 17:57:20 usher Exp $
  *
 */
 
@@ -49,10 +49,16 @@ public:
     StatusCode initialize();
 
     /// @brief First Pass method to build trees
-    Event::TkrVecPointsLinkInfo* getSingleLayerLinks(const Point& refPoint, const Vector& refAxis, double energy);
+    Event::TkrVecPointsLinkInfo* getSingleLayerLinks(const Point&  refPoint, 
+                                                     const Vector& refAxis, 
+                                                     double        refError,
+                                                     double        energy);
 
     /// @brief Secon Pass method to extract tracks
-    Event::TkrVecPointsLinkInfo* getAllLayerLinks(const Point& refPoint, const Vector& refAxis, double energy);
+    Event::TkrVecPointsLinkInfo* getAllLayerLinks(const Point&  refPoint, 
+                                                  const Vector& refAxis, 
+                                                  double        refError,
+                                                  double        energy);
 
     /// @brief Finalize method for outputting run statistics
     StatusCode finalize();
@@ -60,9 +66,6 @@ public:
 private:
     typedef Event::TkrVecPointsLinkPtrVec    TkrVecPointsLinkVec;
     typedef std::vector<TkrVecPointsLinkVec> TkrVecPointsLinkVecVec;
-
-    /// Set the tolerances 
-    void   setTolerances(Event::TkrVecPointInfo* vecPointInfo);
 
     /// This will build all links between vectors of points passed in
     int    buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::reverse_iterator& firstPointsItr, 
@@ -81,6 +84,12 @@ private:
 
     /// This checks to see if we are in a truncated region
     bool inTruncatedRegion(const Point& planeHit, double& truncatedDist);
+
+    /// Set the tolerances for angles
+    void   setAngleTolerances(double angleError, Event::TkrVecPointInfo* vecPointInfo);
+
+    /// Set the tolerances for doca
+    void   setDocaTolerances(double docaError, Event::TkrVecPointInfo* vecPointInfo);
 
     /// Make a TkrId given position
     idents::TkrId makeTkrId(const Point& planeHit);
@@ -106,7 +115,8 @@ private:
     // Event axis vector from TkrEventParams
     Point                         m_eventPosition;
     Vector                        m_eventAxis;
-    double                        m_toleranceAngle;
+    double                        m_tolerance;
+    bool                          m_usePosition;
 
     // Cut on the normalized projected width vs actual cluster width
     double                        m_nrmProjDistCutDef;
@@ -225,7 +235,10 @@ StatusCode TkrVecLinkBuilderTool::finalize()
     return StatusCode::SUCCESS;
 }
 
-Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getSingleLayerLinks(const Point& refPoint, const Vector& refAxis, double energy)
+Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getSingleLayerLinks(const Point&  refPoint, 
+                                                                        const Vector& refAxis, 
+                                                                        double        refError,
+                                                                        double        energy)
 {
     // Reset timing parameters
     if (m_doTiming)
@@ -294,6 +307,9 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getSingleLayerLinks(const Po
     m_eventAxis     = refAxis;
     m_evtEnergy     = energy;
 
+    // For single links use the reference point
+    m_usePosition = true;
+
     // Make sure the axis above really points into the tracker
     if (m_evtEnergy > 20.)
     {
@@ -314,7 +330,7 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getSingleLayerLinks(const Po
     if (m_evtEnergy == 0.) m_eventAxis = Vector(0.,0.,1.);
 
     // Set the tolerances for this event
-    setTolerances(vecPointInfo);
+    setDocaTolerances(refError, vecPointInfo);
 
     // Clear the average vector containers
     m_numAveLinks = 0.;
@@ -397,11 +413,14 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getSingleLayerLinks(const Po
     return linkInfo;
 }
 
-Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point& refPoint, const Vector& refAxis, double energy)
+Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point&  refPoint, 
+                                                                     const Vector& refAxis, 
+                                                                     double        refError,
+                                                                     double        energy)
 {
     // The links collection and the relational table should already be in the TDS
     // The simple way to recover, and be sure something is there, is to call the single layer link builder
-    Event::TkrVecPointsLinkInfo* linkInfo = getSingleLayerLinks(refPoint, refAxis, energy);
+    Event::TkrVecPointsLinkInfo* linkInfo = getSingleLayerLinks(refPoint, refAxis, refError, energy);
 
     //****************************************************************************************************
     // Temporarily plop down the following to see if we can make this concept work
@@ -424,6 +443,9 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
     m_eventAxis     = refAxis;
     m_evtEnergy     = energy;
 
+    // use the supplied axis
+    m_usePosition = false;
+
     // Make sure the axis above really points into the tracker
     if (m_evtEnergy > 20.)
     {
@@ -444,7 +466,7 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
     if (m_evtEnergy == 0.) m_eventAxis = Vector(0.,0.,1.);
 
     // Set the tolerances for this event
-    setTolerances(vecPointInfo);
+    setAngleTolerances(refError, vecPointInfo);
 
     // For a test, screw down the tolerance a bit
     m_nrmProjDistCut *= 0.85;  // should result in 1.1 if lots of links
@@ -534,10 +556,10 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
     return linkInfo;
 }
 
-void   TkrVecLinkBuilderTool::setTolerances(Event::TkrVecPointInfo* vecPointInfo)
+void   TkrVecLinkBuilderTool::setAngleTolerances(double angleError, Event::TkrVecPointInfo* vecPointInfo)
 {
     // Set the default value for the tolerance angle
-    m_toleranceAngle = M_PI; // Take all comers!
+    m_tolerance = M_PI /3; // Take all comers!
 
     // Reset the norm'd projected distance cut
     m_nrmProjDistCut = m_nrmProjDistCutDef;
@@ -566,17 +588,68 @@ void   TkrVecLinkBuilderTool::setTolerances(Event::TkrVecPointInfo* vecPointInfo
     if (expVecPoints > 3.0)   
     {
         // Constrain down the angle to be less than 60 degrees
-        m_toleranceAngle = M_PI / 2.; 
+        m_tolerance = M_PI / 4; /// 2.; 
 
         // If we are starting to get extreme them drop the tolerance angle down to 30 degrees
         if (expVecPoints > 3.2) 
         {
-            m_toleranceAngle = M_PI / 3.;
+            m_tolerance = M_PI / 5.; /// 3.;
 
             // If really starting to get up there then go to the well one more time
             if (expVecPoints > 3.4)
             {
-                m_toleranceAngle = M_PI / 6.;
+                m_tolerance = M_PI / 6.; /// 6.;
+            }
+        }
+    }
+
+    return;
+}
+
+void   TkrVecLinkBuilderTool::setDocaTolerances(double docaError, Event::TkrVecPointInfo* vecPointInfo)
+{
+    // Set the default value for the tolerance angle
+    m_tolerance = 5. * docaError;  // Be overly generous?
+
+    // Reset the norm'd projected distance cut
+    m_nrmProjDistCut = m_nrmProjDistCutDef;
+
+    // Get the number of TkrVecPoints
+    m_numVecPoints = vecPointInfo->getNumTkrVecPoints();
+
+    // Develop estimate of links based on number of vec points
+    double expVecPoints = m_numVecPoints > 0. ? log10(double(m_numVecPoints)) : 0.;
+    double ordVecLinks  = 2. * expVecPoints - 1.;
+    double guessNLinks  = vecPointInfo->getMaxNumLinkCombinations();
+    double expGuessNL   = guessNLinks > 0. ? log10(guessNLinks) : 0.;
+
+    // Following is a completely ad hoc scheme to increase efficiency of link production
+    // when there are a few number of hits, likely to happen at low energy
+    if (expVecPoints < 1.5)
+    {
+        double sclFctr = 1.5 - expVecPoints;
+
+        m_nrmProjDistCut += sclFctr;
+        m_tolerance      *= 5.;
+    }
+
+    // Following is a completely ad hoc scheme to constrain links if we think 
+    // combinatorics are about to go out of control. All of this based on a quick
+    // study looking at some histograms of # vec points vs time, etc. 
+    if (expVecPoints > 2.5)   
+    {
+        // Constrain down the angle to be less than 60 degrees
+        m_tolerance = 3. * docaError;
+
+        // If we are starting to get extreme them drop the tolerance angle down to 30 degrees
+        if (expVecPoints > 3.0) 
+        {
+            m_tolerance = 2 * docaError;
+
+            // If really starting to get up there then go to the well one more time
+            if (expVecPoints > 3.4)
+            {
+                m_tolerance = docaError;
             }
         }
     }
@@ -648,13 +721,36 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::re
                 m_linkAveVec += candLinkVec;
             }
 
-            // Check angle link makes with event axis
-            double toleranceAngle = m_toleranceAngle;
-            double cosTestAngle   = m_eventAxis.dot(candLinkVec);
-            double testAngle      = acos(std::max(-1.,std::min(1.,cosTestAngle)));
+            // Set up to cut on angle/position to reference axis/point 
+            // This depends on whether creating single links or multi links and is controlled
+            // by the value of m_usePosition
+            // First define the boolean which tells us the link is "good"
+            bool useLink = true;
+
+            // Now do one or other depending on other or one
+            if (m_usePosition)
+            {    
+                // 3D Doca calculation here
+                Vector startToEvent = m_eventPosition - candLink->getPosition();
+                double arcLen       = candLinkVec.dot(startToEvent);
+                Point  docaPos      = candLink->getPosition() + arcLen * candLinkVec;
+                Vector docaVec      = docaPos - m_eventPosition;
+                double doca         = docaVec.magnitude();
+
+                if (doca > m_tolerance) useLink = false;
+            }
+            else
+            {
+                // Check angle link makes with event axis
+                double cosTestAngle   = m_eventAxis.dot(candLinkVec);
+                double testAngle      = acos(std::max(-1.,std::min(1.,cosTestAngle)));
+
+                // If the test angle exceeds our tolerance then reject
+                if (testAngle > m_tolerance) useLink = false;
+            }
 
             // If the test angle exceeds our tolerance then reject
-            if (testAngle > toleranceAngle) 
+            if (!useLink) 
             {
                 delete candLink;
                 continue;
