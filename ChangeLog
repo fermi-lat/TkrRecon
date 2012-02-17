@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Fri Feb 17 09:02:22 PST 2012
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+      Tag: GlastReleasev19r4p1
+	TkrTreeTrackFinder.cxx 
+Log Message:
+Including Bill's revisions for allowing better hit sharing based on cluster width
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-19-04-01-gr13, operation: add
 Package: TkrRecon
