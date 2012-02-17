@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.6 2011/04/21 18:53:17 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.2.2.6 2012/02/14 04:25:03 usher Exp $
  */
 
 // to turn one debug variables
@@ -570,6 +570,7 @@ StatusCode TkrHoughFilterTool::doFilterStep()
     Point  refPoint = tkrEventParams->getEventPosition();
     Vector refAxis  = tkrEventParams->getEventAxis();
     double energy   = tkrEventParams->getEventEnergy();
+    double refError = tkrEventParams->getTransRms();
 
     // Set up an output collection of TkrFilterParams
     m_tkrFilterParamsCol = new Event::TkrFilterParamsCol();
@@ -605,7 +606,7 @@ StatusCode TkrHoughFilterTool::doFilterStep()
     // or if they are not there to create them
     // Retrieve the TkrVecPointsLinkCol object from the TDS
 
-    Event::TkrVecPointsLinkInfo* vecPointsLinkInfo = m_linkBuilder->getSingleLayerLinks(refPoint, refAxis, energy);
+    Event::TkrVecPointsLinkInfo* vecPointsLinkInfo = m_linkBuilder->getSingleLayerLinks(refPoint, refAxis, refError, energy);
 
     // If no obect returned then return
     if (!vecPointsLinkInfo) return sc;
@@ -1320,6 +1321,7 @@ Event::TkrEventParams* TkrHoughFilterTool::setDefaultValues()
     }
 
     // Recover pointer to Cal Cluster info  
+    Event::CalCluster*        calCluster        = 0;
     Event::CalEventEnergy*    calEventEnergy    = 0;
     Event::CalEventEnergyMap* calEventEnergyMap = 
             SmartDataPtr<Event::CalEventEnergyMap>(m_dataSvc,EventModel::CalRecon::CalEventEnergyMap);
@@ -1334,8 +1336,15 @@ Event::TkrEventParams* TkrHoughFilterTool::setDefaultValues()
         Event::CalEventEnergyMap::iterator calEnergyItr = calEventEnergyMap->find(calClusterCol->front());
 
         if (calEnergyItr != calEventEnergyMap->end())
+        {
+            calCluster     = calEnergyItr->first;
             calEventEnergy = calEnergyItr->second.front();
+        }
     }
+
+    // Preset the rms values in case of no cluster or no moments analysis of crystals
+    tkrEventParams->setTransRms(200.);
+    tkrEventParams->setLongRmsAve(200.);
 
     // If calEventEnergy then fill TkrEventParams
     // Note: TkrEventParams initializes to zero in the event of no CalEventEnergy
@@ -1356,12 +1365,10 @@ Event::TkrEventParams* TkrHoughFilterTool::setDefaultValues()
             // Note that this assumes a one-to-one correspondence between the CalEventEnergy and 
             // CalCluster objects which is not, in general, correct. It is CURRENTLY correct for 
             // the CalValsCorrTool... (10/15/07)
-            Event::CalClusterCol* calClusters = 
-                SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
-            if (!calClusters->empty())
+            if (calCluster->getRmsTrans() > 0.)
             {
-                tkrEventParams->setTransRms(calClusters->front()->getRmsTrans());
-                tkrEventParams->setLongRmsAve(calClusters->front()->getRmsLong());
+                tkrEventParams->setTransRms(calCluster->getRmsTrans());
+                tkrEventParams->setLongRmsAve(calCluster->getRmsLong());
             }
         }
     }

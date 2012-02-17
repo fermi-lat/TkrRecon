@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/ITkrVecPointLinksBuilder.h,v 1.10 2011/08/29 03:30:55 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/Attic/ITkrVecPointLinksBuilder.h,v 1.1.2.1 2012/01/30 18:13:40 usher Exp $
  *
 */
 
@@ -29,12 +29,14 @@ class ITkrVecPointsLinkBuilder : virtual public IAlgTool
   /// @brief Retrieve pointer to links collection which contains only single layer links
   virtual Event::TkrVecPointsLinkInfo* getSingleLayerLinks(const Point&  refPoint, 
                                                            const Vector& refAxis,
-                                                           double        energy = 30.) = 0;
+                                                           double        refError = 1000.,
+                                                           double        energy   = 30.) = 0;
 
   /// @brief Retrieve pointer to links collection for all possible links
   virtual Event::TkrVecPointsLinkInfo* getAllLayerLinks(const Point&  refPoint, 
                                                         const Vector& refAxis,
-                                                        double        energy = 30.)    = 0;
+                                                        double        refError = 1000.,
+                                                        double        energy   = 30.)    = 0;
 };
 
 #endif
