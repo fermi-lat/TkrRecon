@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.2.2.6 2012/02/14 04:25:03 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.2.2.7 2012/02/17 20:46:11 usher Exp $
  */
 
 // to turn one debug variables
@@ -693,6 +693,9 @@ StatusCode TkrHoughFilterTool::doFilterStep()
 
         // We only look at single layer links here 
         if (link->skipsLayers()) continue;
+
+        // Only look at "tight tolerance" links
+        if (!(link->getStatusBits() & 0x04000000)) continue;
     
         // 3D Doca calculation here
         Vector linkToPos = accCenter - link->getPosition();
