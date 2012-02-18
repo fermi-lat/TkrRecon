@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Sat Feb 18 09:55:59 PST 2012
+TkrRecon/src/Filter
+
+Modified Files:
+      Tag: GlastReleasev19r4p1
+	TkrHoughFilterTool.cxx 
+Log Message:
+Small fix to prevent bad cal moments analysis cal trans rms from making cut too small
+    *
+------------------------------------------------------------
 User: usher  Fri Feb 17 19:01:56 PST 2012
 TkrRecon/src/PatRec/TreeBased
 
