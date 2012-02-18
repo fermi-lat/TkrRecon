@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.2.2.7 2012/02/17 20:46:11 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.2.2.8 2012/02/18 02:44:48 usher Exp $
  */
 
 // to turn one debug variables
@@ -1368,7 +1368,7 @@ Event::TkrEventParams* TkrHoughFilterTool::setDefaultValues()
             // Note that this assumes a one-to-one correspondence between the CalEventEnergy and 
             // CalCluster objects which is not, in general, correct. It is CURRENTLY correct for 
             // the CalValsCorrTool... (10/15/07)
-            if (calCluster->getRmsTrans() > 0.)
+            if (calCluster->getRmsTrans() > 0.1) // prevent microscopic values from too few hits
             {
                 tkrEventParams->setTransRms(calCluster->getRmsTrans());
                 tkrEventParams->setLongRmsAve(calCluster->getRmsLong());
