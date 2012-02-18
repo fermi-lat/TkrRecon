@@ -8,7 +8,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/Attic/TkrVecLinkBuilderTool.cxx,v 1.1.2.2 2012/01/31 17:57:20 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/Attic/TkrVecLinkBuilderTool.cxx,v 1.1.2.3 2012/02/17 20:46:11 usher Exp $
  *
 */
 
@@ -116,6 +116,7 @@ private:
     Point                         m_eventPosition;
     Vector                        m_eventAxis;
     double                        m_tolerance;
+    double                        m_tightTolerance;
     bool                          m_usePosition;
 
     // Cut on the normalized projected width vs actual cluster width
@@ -468,6 +469,9 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
     // Set the tolerances for this event
     setAngleTolerances(refError, vecPointInfo);
 
+    // just a test
+    m_tightTolerance = refError;
+
     // For a test, screw down the tolerance a bit
     m_nrmProjDistCut *= 0.85;  // should result in 1.1 if lots of links
 
@@ -559,7 +563,8 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
 void   TkrVecLinkBuilderTool::setAngleTolerances(double angleError, Event::TkrVecPointInfo* vecPointInfo)
 {
     // Set the default value for the tolerance angle
-    m_tolerance = M_PI /3; // Take all comers!
+    m_tolerance      = M_PI /3; // Take all comers!
+    m_tightTolerance = 0.5 * m_tolerance;
 
     // Reset the norm'd projected distance cut
     m_nrmProjDistCut = m_nrmProjDistCutDef;
@@ -609,7 +614,8 @@ void   TkrVecLinkBuilderTool::setAngleTolerances(double angleError, Event::TkrVe
 void   TkrVecLinkBuilderTool::setDocaTolerances(double docaError, Event::TkrVecPointInfo* vecPointInfo)
 {
     // Set the default value for the tolerance angle
-    m_tolerance = 5. * docaError;  // Be overly generous?
+    m_tolerance      = 6. * docaError;  // Be overly generous?
+    m_tightTolerance = 1.5 * docaError;
 
     // Reset the norm'd projected distance cut
     m_nrmProjDistCut = m_nrmProjDistCutDef;
@@ -636,7 +642,7 @@ void   TkrVecLinkBuilderTool::setDocaTolerances(double docaError, Event::TkrVecP
     // Following is a completely ad hoc scheme to constrain links if we think 
     // combinatorics are about to go out of control. All of this based on a quick
     // study looking at some histograms of # vec points vs time, etc. 
-    if (expVecPoints > 2.5)   
+    if (expVecPoints > 2.75)   
     {
         // Constrain down the angle to be less than 60 degrees
         m_tolerance = 3. * docaError;
@@ -737,10 +743,21 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::re
                 Vector docaVec      = docaPos - m_eventPosition;
                 double doca         = docaVec.magnitude();
 
-                if (doca > m_tolerance) useLink = false;
+                if      (doca > m_tolerance)      useLink = false;
+                else if (doca < m_tightTolerance) candLink->updateStatusBits(0x04000000);
             }
             else
             {
+                // Check doca between candidate link and reference axis
+                Vector docaVec      = m_eventAxis.cross(candLinkVec);
+                Vector startToEvent = m_eventPosition - candLink->getPosition();
+                double doca         = docaVec.unit().dot(startToEvent);
+
+                if (fabs(doca) > m_tightTolerance)
+                {
+                    useLink = false;
+                }
+
                 // Check angle link makes with event axis
                 double cosTestAngle   = m_eventAxis.dot(candLinkVec);
                 double testAngle      = acos(std::max(-1.,std::min(1.,cosTestAngle)));
