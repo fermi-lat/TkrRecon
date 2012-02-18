@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Fri Feb 17 18:46:49 PST 2012
+TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+      Tag: GlastReleasev19r4p1
+	TkrVecLinkBuilderTool.cxx 
+Log Message:
+Continuing to experiment with controlling link building time by restricting links
+    *
+------------------------------------------------------------
 User: usher  Fri Feb 17 18:44:48 PST 2012
 TkrRecon/src/Filter
 
