@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Fri Feb 17 19:01:56 PST 2012
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+      Tag: GlastReleasev19r4p1
+	TreeBasedTool.cxx 
+Log Message:
+Continuing to experiment with improving recon timing by limiting links created
+    *
+------------------------------------------------------------
 User: usher  Fri Feb 17 18:46:49 PST 2012
 TkrRecon/src/PatRec/VectorLinks
 
