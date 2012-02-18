@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.24 2011/10/18 23:11:08 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.25.4.3 2012/02/03 16:29:47 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -288,6 +288,7 @@ StatusCode TreeBasedTool::firstPass()
         Point  refPoint(0.,0.,0.);
         Vector refAxis(0., 0., 1.);
         double energy(30.);
+        double refError(100.);
 
         // The first/best place to look for this is in the TkrFilterParams, so look
         // up the collection in the TDS
@@ -302,6 +303,7 @@ StatusCode TreeBasedTool::firstPass()
             refPoint = filterParams->getEventPosition();
             refAxis  = filterParams->getEventAxis();
             energy   = filterParams->getEventEnergy();
+            refError = filterParams->getTransRms();
         }
         // Otherwise default back to the standard TkrEventParams
         else
@@ -335,7 +337,7 @@ StatusCode TreeBasedTool::firstPass()
             if (tkrEventParams->getEventEnergy() == 0.) refAxis = Vector(0.,0.,1.);
         }
 
-        Event::TkrVecPointsLinkInfo* tkrVecPointsLinkInfo = m_linkBuilder->getAllLayerLinks(refPoint, refAxis, energy);
+        Event::TkrVecPointsLinkInfo* tkrVecPointsLinkInfo = m_linkBuilder->getAllLayerLinks(refPoint, refAxis, refError, energy);
 
         int numVecPointsLinks = tkrVecPointsLinkInfo->getTkrVecPointsLinkCol()->size();
 
