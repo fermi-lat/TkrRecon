@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.2.2.8 2012/02/18 02:44:48 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.2.2.9 2012/02/18 17:55:59 usher Exp $
  */
 
 // to turn one debug variables
@@ -905,12 +905,10 @@ StatusCode TkrHoughFilterTool::doFilterStep()
 
             int totNumLinks = peakIter->second.size();
 
+            // Try to get the "top point" for making an axis to cal centroid
+            Point topPoint(0.,0.,-100.);
+
             // Loop through these links first:
-            //for(Event::TkrVecPointsLinkPtrVec::iterator linkItr  = peakIter->second.begin(); 
-            //                                            linkItr != peakIter->second.end(); 
-            //                                            linkItr++)
-            //{
-            //    Event::TkrVecPointsLink* link = *linkItr;
             for(std::map<Event::TkrVecPointsLink*, int>::iterator linkCountMapIter =  linkCountMap.begin();
                                                                   linkCountMapIter != linkCountMap.end();
                                                                   linkCountMapIter++)
@@ -926,6 +924,9 @@ StatusCode TkrHoughFilterTool::doFilterStep()
                     avePos += link->getPosition();
                     aveDir += link->getVector();
                     numPeakLinks++;
+
+                    // Update the top point
+                    if (topPoint.z() < link->getPosition().z()) topPoint = link->getPosition();
             
                     // temporarily usurping a status bit for the display...
                     link->updateStatusBits(0x03000000);
@@ -995,8 +996,15 @@ StatusCode TkrHoughFilterTool::doFilterStep()
             // Make sure we have enough links to do something
             if (momentsLinkVec.size() >= 3)
             {
+                // Axis from "top point" to cal centroid
+                Vector topToCalDir = refPoint - topPoint;
+                topToCalDir = topToCalDir.unit();
+
+                topToCalDir = refPoint;
+
                 // Get the filter parameters for this collection of links
-                houghParams = doMomentsAnalysis(momentsLinkVec, aveDir, energy);
+                //houghParams = doMomentsAnalysis(momentsLinkVec, aveDir, energy);
+                houghParams = doMomentsAnalysis(momentsLinkVec, topToCalDir, energy);
             }
 
             // If no filter params then clear the  links status bits
@@ -1425,7 +1433,13 @@ Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPoint
 
         // Use the average position in the box 
         const Point& avePos = link->getPosition();
-        double       weight = link->getVector().dot(aveDirVec);
+//        double       weight = link->getVector().dot(aveDirVec);
+        Point  aveDirPos(aveDirVec.x(),aveDirVec.y(),aveDirVec.z());
+        Vector linkToPos = aveDirPos - link->getPosition();
+        double arcLen    = link->getVector().dot(linkToPos);
+        Point  docaPos   = link->getPosition() + arcLen * link->getVector();
+        Vector docaVec   = docaPos - aveDirPos;
+        double       weight = 1. / std::max(0.01, docaVec.magnitude());
 
         // Update the centroid if not the highest point
         if (avePos.z() > centroid.z()) centroid = avePos;
