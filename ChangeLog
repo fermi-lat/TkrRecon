@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Tue Apr  3 17:42:45 PDT 2012
+TkrRecon/src/Utilities
+
+Modified Files:
+      Tag: GlastRelease-17-35-24-br02
+	TkrPoints.h 
+Log Message:
+fix bad syntax
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Apr  3 17:42:01 PDT 2012
 TkrRecon/src/Track
 
