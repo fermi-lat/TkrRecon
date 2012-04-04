@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.46 2009/01/22 01:42:11 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.47 2009/05/01 22:49:27 lsrea Exp $
 */
 
 
@@ -131,6 +131,7 @@ private:
     std::string m_stage;
     int m_lastStage;
     int m_firstStage;
+    bool m_checkGhosts;
 
     // Simple event filter
     int m_maxClusters;
@@ -172,6 +173,7 @@ Algorithm(name, pSvcLocator)
     declareProperty("maxAllowedClusters", m_maxClusters=2000);
     // Suppress individual printout of cluster sizes
     declareProperty("suppressClusterSizePrintout", m_suppressClusterSizePrintout = true);
+    declareProperty("checkGhosts" , m_checkGhosts = true);
 }
 
 // Initialization method
@@ -285,12 +287,14 @@ StatusCode TkrReconAlg::initialize()
     m_TkrVertexAlg->setProperty("VertexerType", "DEFAULT");
 
     // Ghost Tool
+    log << MSG::DEBUG << "about to initialize TkrGhostTool" << endreq;
     sc = toolSvc()->retrieveTool("TkrGhostTool", m_ghostTool);
     if(sc.isFailure()) {
         log << MSG::ERROR << "TkrGhostTool not found!" << endreq;
         return StatusCode::FAILURE;
     }
 
+    log << MSG::INFO << "Initialization succeeded" << endreq;
     return StatusCode::SUCCESS;
 }
 
@@ -307,15 +311,21 @@ StatusCode TkrReconAlg::execute()
 
     m_eventCount++;
 
-    log << MSG::DEBUG;
-    if (name() != "Iteration") log << "------- Tkr Recon of new Event --------";
-    else                       log << "-------   Tkr Recon iteration  --------";
-    log << endreq;
-
     m_header = SmartDataPtr<Event::EventHeader>(eventSvc(), EventModel::EventHeader);
     if(!m_header) {
         log << MSG::ERROR << "Event header not found!" << endreq;
     }
+
+    int run = m_header->run();
+    int event = m_header->event();
+
+    log << MSG::DEBUG;
+    if (name() != "Iteration") log << "------- Tkr Recon of new Event  " 
+								   << run << ":" << event << " (" 
+								   << m_eventCount << ") --------";
+    else                       log << "-------   Tkr Recon iteration  --------";
+    log << endreq;
+
 
     if (name() != "Iteration") {
         s_failed = false;
@@ -339,11 +349,12 @@ StatusCode TkrReconAlg::execute()
             return handleError(stageFailed);
         }
 
-        if(name()!="Iteration") {
+        if(name()!="Iteration"&&m_checkGhosts) {
             m_stage = "GhostCheck - clusters";
             if (m_ghostTool) {
-                if ((sc=m_ghostTool->flagSingles()).isFailure() ||
-                    (sc=m_ghostTool->flagEarlyHits()).isFailure())
+			  StatusCode sc1 = m_ghostTool->flagSingles();
+              StatusCode sc2 = sc=m_ghostTool->flagEarlyHits();
+              if(sc1.isFailure() || sc2.isFailure())
                 {
                     return handleError(stageFailed);
                 }
@@ -376,12 +387,14 @@ StatusCode TkrReconAlg::execute()
         
         // Call track filter stage
         m_stage = "TkrFilterAlg";
+        log << MSG::DEBUG << "about to call Tkr filtering" << endreq;
         if(m_TkrFilterAlg && m_lastStage>=FILTERING && m_firstStage<=FILTERING) {
             sc = m_TkrFilterAlg->execute();
         }
 
         // Call track finding if in first pass mode
         m_stage = "TkrFindAlg";
+        log << MSG::DEBUG << "about to call Tkr finding" << endreq;
         if (m_TkrFindAlg && m_lastStage>=PATREC && m_firstStage<=PATREC) sc = m_TkrFindAlg->execute();
         if (sc.isFailure())
         {
@@ -398,7 +411,7 @@ StatusCode TkrReconAlg::execute()
         log << endreq;
 
         // Check for ghosts
-        if(name()!="Iteration") {
+        if(name()!="Iteration"&&m_checkGhosts) {
             m_stage = "GhostCheck - tracks";
             if (m_ghostTool) {
                 sc = m_ghostTool->flagEarlyTracks();
@@ -438,7 +451,7 @@ StatusCode TkrReconAlg::execute()
         int numVtxs = vtxCol->size();
 
         // Check for ghosts
-        if(name()!="Iteration") {
+        if(name()!="Iteration"&&m_checkGhosts) {
             m_stage = "GhostCheck - vertices";
             if (m_ghostTool) {
                 sc = m_ghostTool->flagEarlyVertices();
@@ -486,8 +499,7 @@ StatusCode TkrReconAlg::execute()
     m_lastTime = m_header->time();
 
     log << MSG::DEBUG;
-    if (name() != "Iteration") log << "------- Finish of Tkr Recon of new Event --------";
-    else                       log << "-------   Finish of Tkr Recon iteration  --------";
+    log << "-------   Finish of Tkr Recon stage " << name() << "  --------";
     log << endreq;
 
     return sc;

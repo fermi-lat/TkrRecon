@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.21.684.1 2012/02/06 19:18:24 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.21.684.2 2012/02/10 02:26:24 lsrea Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -40,7 +40,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.21.684.1 2012/02/06 19:18:24 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.21.684.2 2012/02/10 02:26:24 lsrea Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -133,7 +133,10 @@ StatusCode TkrFindAlg::initialize()
     if (sc.isFailure()) {
         log << MSG::ERROR << "Cannot initialize track-finding tool" << endreq;
         return sc;
-    }
+    } 
+
+    log << MSG::DEBUG << "Tool of type " << m_TrackFindType << " successfully initialized" << endreq;
+	
 
     // sc = toolSvc()->retrieveTool("TkrHitTruncationTool", m_truncTool);
     // if (sc.isFailure()) {
@@ -156,9 +159,10 @@ StatusCode TkrFindAlg::execute()
     StatusCode sc = StatusCode::SUCCESS;
     
     MsgStream log(msgSvc(), name());
+    void * pTool = &*m_findTool;
 
     // Message to acknowledge at this stage
-    log << MSG::DEBUG << "------- TkrFindAlg - looking for tracks -------" << endreq;
+    log << MSG::DEBUG << "------- TkrFindAlg - looking for tracks with " << m_TrackFindType << "(" << pTool << ")  -------" << endreq;
 
     // moved to TkrDigiTruncationAlg
     //sc = m_truncTool->analyzeDigis();
