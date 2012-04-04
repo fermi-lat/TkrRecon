@@ -272,3 +272,4 @@
  TkrRecon-10-16-07-tr02 09-Feb-2012  lsrea Removing all traces of TkrHitTruncationTool
  TkrRecon-10-16-07-tr03 09-Feb-2012  lsrea Last TkrHitTruncationTool fix
  TkrRecon-10-16-07-tr04 03-Apr-2012  lsrea TkrGhostTool updates for linux
+ TkrRecon-10-16-07-tr05 03-Apr-2012  lsrea jO for checkGhosts and various minor fixes
