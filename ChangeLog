@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Tue Apr  3 17:42:01 PDT 2012
+TkrRecon/src/Track
+
+Modified Files:
+      Tag: GlastRelease-17-35-24-br02
+	FindTrackHitsTool.cxx 
+Log Message:
+test for null truncInfo pointer
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Apr  3 17:41:18 PDT 2012
 TkrRecon/src/PatRec/Combo
 
