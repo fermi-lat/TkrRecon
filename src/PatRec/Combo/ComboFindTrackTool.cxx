@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.50 2007/12/07 21:39:09 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.51 2008/02/01 02:41:07 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -313,6 +313,9 @@ StatusCode ComboFindTrackTool::findTracks()
 {
     //Always believe in success
     StatusCode sc = StatusCode::SUCCESS;
+    MsgStream log(msgSvc(), name());
+
+    log << MSG::DEBUG << "findTracks() called" << endreq;
 
     // Recover pointer to Cal Cluster info  
     Event::TkrEventParams* tkrEventParams = 
@@ -467,14 +470,14 @@ void ComboFindTrackTool::searchCandidates()
         return;
     }
 
-    msgLog << MSG::DEBUG ;
+    msgLog << MSG::VERBOSE ;
     if (msgLog.isActive()) msgLog << "Begin patrec" ;
     msgLog << endreq;
 
     //Determine what to do based on status of Cal energy and position
     if( m_calPos.mag() == 0.) 
     {   // This path use no calorimeter energy -
-        msgLog << MSG::DEBUG;
+        msgLog << MSG::VERBOSE;
         if (msgLog.isActive()) msgLog << "First blind search" ;
         msgLog << endreq;
         findBlindCandidates();
@@ -482,11 +485,12 @@ void ComboFindTrackTool::searchCandidates()
     else 
     {   // This path first finds the "best" candidate that points to the 
         // Calorimeter cluster - 
-        msgLog << MSG::DEBUG;
-        if (msgLog.isActive()) msgLog << "Cal search" ;
+	  msgLog << MSG::VERBOSE << "starting normal  search: ";
+        msgLog << "Cal search first " ;
         msgLog << endreq;
         findCalCandidates();
         if(m_candidates.empty()) {
+		  msgLog << MSG::VERBOSE << "Now blind search again" << endreq;
             findBlindCandidates();//Is this a good idea?
         }
     }
@@ -518,7 +522,7 @@ void ComboFindTrackTool::searchCandidates()
         // Now with these hits "off the table" lower the energy & find other tracks
         if(m_energyType == DEFAULT) m_energy = .5*m_energy;
 
-        msgLog << MSG::DEBUG;
+        msgLog << MSG::VERBOSE;
         if (msgLog.isActive()) msgLog << "Second pass" ;
         msgLog << endreq;
         // should we reset m_topLayerFound or not?
@@ -654,6 +658,8 @@ void ComboFindTrackTool::findBlindCandidates()
     int lastKLayer        = std::max(0, lastJLayer-1);
     clearTrialCounters();
 
+    msgLog << MSG::VERBOSE << "Starting blind search" << endreq;
+
     for (; ilayer >= lastILayer; --ilayer) { 
         // Termination Criterion
 
@@ -672,6 +678,8 @@ void ComboFindTrackTool::findBlindCandidates()
 
         TkrPoints firstPoints(ilayer, m_clusTool, calPosPred, hit_region_size);
         if(firstPoints.empty()) continue;
+       
+        msgLog << MSG::VERBOSE << "found first points" << endreq;
 
         TkrPointListConItr itFirst = firstPoints.begin();
         for(; itFirst!=firstPoints.end(); ++itFirst) {
@@ -701,6 +709,8 @@ void ComboFindTrackTool::findBlindCandidates()
                 TkrPoints secondPoints(jlayer, m_clusTool);
                 if (secondPoints.empty()) continue;
 
+                msgLog << MSG::VERBOSE << "found second points " << endreq;
+
                 TkrPointListConItr itSecond = secondPoints.begin();
                 for (; itSecond!=secondPoints.end(); ++itSecond) {
                     if(quitOnTrials()) break; 
@@ -723,6 +733,7 @@ void ComboFindTrackTool::findBlindCandidates()
 
                         // If good hit found: make a trial fit & store it away
                         if(sigma < m_sigmaCut && cosKink > m_minCosKink) {
+						  msgLog << "about to call tryCandidates " << endreq;
                             tryCandidate(ilayer, localBestHitCount, testRay);
                             // whatever happens, bail, no other track will be found with this ray
 							// WBA:  I don't think this is true.  Example is a track which in the 3rd layer
@@ -830,7 +841,7 @@ void ComboFindTrackTool::findCalCandidates()
                     TkrPoint* p2 = secondPoints[k_try];
                     Ray testRay = p1->getRayTo(p2);
                     //Do a trial track fit
-                    // for now, need to test all the combos, sigh
+                    // for now, need to test all the combos, sigh+
                     tryCandidate(ilayer, localBestHitCount, testRay);            
                     // This is essentially the old code
                     //if(tryCandidate(ilayer, 
