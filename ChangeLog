@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Tue Apr  3 17:41:18 PDT 2012
+TkrRecon/src/PatRec/Combo
+
+Modified Files:
+      Tag: GlastRelease-17-35-24-br02
+	ComboFindTrackTool.cxx 
+Log Message:
+more debug
+
+    *
+------------------------------------------------------------
 User: lsrea  Tue Apr  3 17:40:12 PDT 2012
 TkrRecon/src/GaudiAlg
 
