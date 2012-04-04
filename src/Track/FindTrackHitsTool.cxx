@@ -6,7 +6,7 @@
 * @author Tracking Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.35 2005/12/20 17:23:16 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.37 2007/12/07 21:39:09 lsrea Exp $
 */
 
 // to turn one debug variables
@@ -607,6 +607,7 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
     // start of attempt to analyze truncated hits... don't bother if not truncated
     // Get the truncation info data object
     SmartDataPtr<TkrTruncationInfo> truncInfo( m_dataSvc, EventModel::TkrRecon::TkrTruncationInfo );
+    if(truncInfo) {
     if (truncInfo->isTruncated()) {
         TkrTruncationInfo::TkrTruncationMap*  truncMap = truncInfo->getTruncationMap();
         SortId id(tower, tray, face, view);
@@ -672,6 +673,7 @@ TkrTrackHit* FindTrackHitsTool::findNextHit(TkrTrackHit* last_hit, bool reverse)
                 }
             }
         }
+    }
     }
 
     // BadCluster next:
