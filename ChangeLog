@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Wed Apr 18 14:19:43 PDT 2012
+TkrRecon/src/Filter
+
+Modified Files:
+      Tag: GlastReleasev19r4p1
+	TkrCalFilterTool.cxx 
+Log Message:
+Various fixes, mostly for truncation
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-19-04-01-gr15, operation: add
 Package: TkrRecon
