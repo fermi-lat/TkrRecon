@@ -11,7 +11,7 @@
 *
 * @authors Bill Atwood
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoints.h,v 1.7 2006/01/21 00:10:34 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoints.h,v 1.8 2006/03/21 01:12:39 usher Exp $
 *
 */
 
@@ -37,7 +37,7 @@ class TkrPoints : public TkrPointList
 public:
 
     /// this makes the old kind of vector of points
-    TkrPoints::TkrPoints(int layer, ITkrQueryClustersTool* clusTool);
+    TkrPoints(int layer, ITkrQueryClustersTool* clusTool);
 
     /// this one will be sorted according to proximity of refPoint);
     TkrPoints(int layer, ITkrQueryClustersTool* clusTool, 

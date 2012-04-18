@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.60 2011/10/05 19:30:59 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.60.4.1 2012/01/23 18:57:17 usher Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -375,6 +375,9 @@ StatusCode ComboFindTrackTool::firstPass()
 
     //Always believe in success
     StatusCode sc = StatusCode::SUCCESS;
+    MsgStream log(msgSvc(), name());
+
+    log << MSG::DEBUG << "findTracks() called" << endreq;
 
     // Recover pointer to Cal Cluster info  
     Event::TkrEventParams* tkrEventParams = 
@@ -529,7 +532,7 @@ void ComboFindTrackTool::searchCandidates()
         return;
     }
 
-    msgLog << MSG::DEBUG ;
+    msgLog << MSG::VERBOSE ;
     if (msgLog.isActive()) msgLog << "Begin patrec" ;
     if(m_patrecMode==COSMICRAY) msgLog << ", Cosmic Ray search only !" ;
     msgLog << endreq;
@@ -538,7 +541,7 @@ void ComboFindTrackTool::searchCandidates()
         //Determine what to do based on status of Cal energy and position
         if( m_calPos.mag() == 0.) 
         {   // This path use no calorimeter energy -
-            msgLog << MSG::DEBUG;
+        msgLog << MSG::VERBOSE;
             if (msgLog.isActive()) msgLog << "First blind search" ;
             msgLog << endreq;
             findBlindCandidates();
@@ -546,11 +549,12 @@ void ComboFindTrackTool::searchCandidates()
         else 
         {   // This path first finds the "best" candidate that points to the 
             // Calorimeter cluster - 
-            msgLog << MSG::DEBUG;
+            msgLog << MSG::VERBOSE;
             if (msgLog.isActive()) msgLog << "Cal search" ;
             msgLog << endreq;
             findCalCandidates();  
             if(m_candidates.empty()) {
+		  msgLog << MSG::VERBOSE << "Now blind search again" << endreq;
                 findBlindCandidates();//Is this a good idea?
             }
         }
@@ -583,7 +587,7 @@ void ComboFindTrackTool::searchCandidates()
             // Now with these hits "off the table" lower the energy & find other tracks
             if(m_energyType == DEFAULT) m_energy = .5*m_energy;
 
-            msgLog << MSG::DEBUG;
+        msgLog << MSG::VERBOSE;
             if (msgLog.isActive()) msgLog << "Second pass" ;
             msgLog << endreq;
             // should we reset m_topLayerFound or not?
@@ -822,6 +826,8 @@ void ComboFindTrackTool::findBlindCandidates()
 
         TkrPoints firstPoints(ilayer, m_clusTool, calPosPred, hit_region_size);
         if(firstPoints.empty()) continue;
+       
+        msgLog << MSG::VERBOSE << "found first points" << endreq;
 
         TkrPointListConItr itFirst = firstPoints.begin();
         for(; itFirst!=firstPoints.end(); ++itFirst) {
@@ -873,6 +879,7 @@ void ComboFindTrackTool::findBlindCandidates()
 
                         // If good hit found: make a trial fit & store it away
                         if(sigma < m_sigmaCut && cosKink > m_minCosKink) {
+						  msgLog << "about to call tryCandidates " << endreq;
                             tryCandidate(ilayer, localBestHitCount, testRay);
                             // whatever happens, bail, no other track will be found with this ray
                             // WBA:  I don't think this is true.  Example is a track which in the 3rd layer

@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.52 2011/02/24 22:07:51 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.54 2011/10/05 19:30:59 usher Exp $
 */
 
 
@@ -131,6 +131,7 @@ private:
     std::string m_stage;
     int m_lastStage;
     int m_firstStage;
+    bool m_checkGhosts;
 
     // Simple event filter
     int m_maxClusters;
@@ -183,6 +184,7 @@ Algorithm(name, pSvcLocator)
     declareProperty("maxAllowedClusters", m_maxClusters=2000);
     // Suppress individual printout of cluster sizes
     declareProperty("suppressClusterSizePrintout", m_suppressClusterSizePrintout = true);
+    declareProperty("checkGhosts" , m_checkGhosts = true);
 }
 
 // Initialization method
@@ -351,6 +353,16 @@ StatusCode TkrReconAlg::execute()
        
         newEvent = (run!=s_run||event!=s_event);
         if(newEvent) {
+            if (doDebug) {
+
+               log << MSG::DEBUG;
+               log << "------- Tkr Recon of new Event  " 
+								   << run << ":" << event << " (" 
+								   << m_eventCount << ") --------";
+               log << endreq;
+            }
+
+
             m_eventCount++;
             s_failed = false;
             s_run   = run;
@@ -361,15 +373,9 @@ StatusCode TkrReconAlg::execute()
         }
     }
 
-    if(doDebug) {
-        if(newEvent) log << MSG::DEBUG << endreq;
-        log << MSG::DEBUG << "------- ";
-        if (name() == "TkrCluster")     log << "TkrCluster "; 
-        else if (name() == "FirstPass") log << "Tkr Recon First Pass ";
-        else                            log << "Tkr Recon iteration ";
+    if(doDebug&&newEvent) {
+        log << MSG::DEBUG << "------- " << name() << "-------" << endreq;
     }
-    if(newEvent) log << "(New Event) " ;
-    if(doDebug) log << "-------" << endreq;
     newEvent = false;
 
     // recon has failed at a previous stage... just return;
@@ -405,7 +411,7 @@ StatusCode TkrReconAlg::execute()
             }
         }
 
-        if(!s_ghostClusterDone&&m_ghostTool) {
+        if(!s_ghostClusterDone&&m_ghostTool&&m_checkGhosts) {
             m_stage = "GhostCheck - clusters";
             s_ghostClusterDone = true;
             if ((sc=m_ghostTool->flagSingles()).isFailure() ||
@@ -437,6 +443,7 @@ StatusCode TkrReconAlg::execute()
         m_stage = "TkrFindAlg";
 //        if (m_TkrFindAlg && m_lastStage>=PATREC && m_firstStage<=PATREC) {
         if (m_TkrFindAlg && m_lastStage>=PATREC && m_firstStage<=FITTING) {
+            log << MSG::DEBUG << "about to call Tkr finding" << endreq;
             sc = m_TkrFindAlg->execute();
             if (sc.isFailure())
             {
@@ -460,16 +467,16 @@ StatusCode TkrReconAlg::execute()
         }
 
         // Check for ghosts
-        //Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
-        //if(m_TkrFindAlg&&!s_ghostTrackDone&&m_ghostTool&&trackCol) {
-        //    m_stage = "GhostCheck - tracks";
-        //    s_ghostTrackDone = true;
-        //    sc = m_ghostTool->flagEarlyTracks(); 
-        //    if (sc.isFailure())
-        //    {
-        //        return handleError(stageFailed);
-        //    }
-        //}
+        Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
+        if(m_TkrFindAlg&&!s_ghostTrackDone&&m_ghostTool&&trackCol&&m_checkGhosts) {
+            m_stage = "GhostCheck - tracks";
+            sc = m_ghostTool->flagEarlyTracks(); 
+            s_ghostTrackDone = true;
+            if (sc.isFailure())
+            {
+                return handleError(stageFailed);
+            }
+        }
 
         // Call track fit
         m_stage = "TkrTrackFitAlg";
@@ -517,10 +524,10 @@ StatusCode TkrReconAlg::execute()
 
         // Check for ghosts
         Event::TkrVertexCol* vtxCol = SmartDataPtr<Event::TkrVertexCol>(eventSvc(),EventModel::TkrRecon::TkrVertexCol);
-        if(m_TkrVertexAlg&&m_ghostTool&&!s_ghostVertexDone&&numVtxs>0&&vtxCol) {
+        if(m_TkrVertexAlg&&m_ghostTool&&!s_ghostVertexDone&&numVtxs>0&&vtxCol&&m_checkGhosts) {
             m_stage = "GhostCheck - vertices";
-            s_ghostVertexDone = true;
             sc = m_ghostTool->flagEarlyVertices();
+            s_ghostVertexDone = true;
             if (sc.isFailure())
             {
                 return handleError(stageFailed);
@@ -557,6 +564,10 @@ StatusCode TkrReconAlg::execute()
     }
 
     m_lastTime = m_header->time();
+
+    log << MSG::DEBUG;
+    log << "-------   Finish of Tkr Recon stage " << name() << "  --------";
+    log << endreq;
 
     return sc;
 }
