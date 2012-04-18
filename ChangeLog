@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: lsrea  Wed Apr 18 14:19:44 PDT 2012
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+      Tag: GlastReleasev19r4p1
+	TkrFindAlg.cxx TkrReconAlg.cxx 
+Log Message:
+Various fixes, mostly for truncation
+
+    *
+------------------------------------------------------------
 User: lsrea  Wed Apr 18 14:19:43 PDT 2012
 TkrRecon/src/Filter
 
