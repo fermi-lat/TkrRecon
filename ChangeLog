@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: heather  Tue Apr 24 21:54:33 PDT 2012
+TkrRecon/src/Filter
+
+Modified Files:
+	TkrCalFilterTool.cxx TkrHoughFilterTool.cxx 
+Log Message:
+P8 merge
+    *
+------------------------------------------------------------
+User: heather  Tue Apr 24 21:54:33 PDT 2012
 TkrRecon/src/Dll
 
 Modified Files:
