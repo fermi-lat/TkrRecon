@@ -8,7 +8,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/Attic/TkrVecLinkBuilderTool.cxx,v 1.1.2.4 2012/02/18 02:46:48 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecLinkBuilderTool.cxx,v 1.2 2012/04/25 04:54:36 heather Exp $
  *
 */
 
@@ -145,8 +145,9 @@ private:
     Event::TkrVecPointToLinksTab* m_pointToLinksTab;
 };
 
-static ToolFactory<TkrVecLinkBuilderTool> s_factory;
-const IToolFactory& TkrVecLinkBuilderToolFactory = s_factory;
+//static ToolFactory<TkrVecLinkBuilderTool> s_factory;
+//const IToolFactory& TkrVecLinkBuilderToolFactory = s_factory;
+DECLARE_TOOL_FACTORY(TkrVecLinkBuilderTool);
 
 
 TkrVecLinkBuilderTool::TkrVecLinkBuilderTool(const std::string& type, const std::string& name, const IInterface* parent)
