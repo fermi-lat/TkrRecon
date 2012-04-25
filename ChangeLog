@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: heather  Wed Apr 25 13:55:59 PDT 2012
+TkrRecon
+
+Modified Files:
+	SConscript 
+Log Message:
+patch merge
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-17-35-24-gr30, operation: add
 Package: TkrRecon
