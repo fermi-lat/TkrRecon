@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: heather  Tue Apr 24 21:54:34 PDT 2012
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrClusterAlg.cxx TkrFindAlg.cxx TkrReconAlg.cxx 
+Log Message:
+P8 merge
+    *
+------------------------------------------------------------
 User: heather  Tue Apr 24 21:54:33 PDT 2012
 TkrRecon/src/Filter
 
