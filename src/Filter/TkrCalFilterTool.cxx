@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrCalFilterTool.cxx,v 1.7 2011/10/05 19:30:58 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrCalFilterTool.cxx,v 1.8 2011/12/12 20:57:08 heather Exp $
  */
 
 // to turn one debug variables
@@ -175,5 +175,6 @@ StatusCode TkrCalFilterTool::doFilterStep()
 
     return sc;
 }
+
 
 
