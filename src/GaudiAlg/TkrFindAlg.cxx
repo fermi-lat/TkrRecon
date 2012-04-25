@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.34 2011/12/12 20:57:09 heather Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.35 2012/01/25 05:18:50 lsrea Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -48,7 +48,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.34 2011/12/12 20:57:09 heather Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.35 2012/01/25 05:18:50 lsrea Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -183,6 +183,8 @@ StatusCode TkrFindAlg::initialize()
         log << MSG::ERROR << "Cannot initialize track-finding tool" << endreq;
         return sc;
     }
+
+    log << MSG::DEBUG << "Tool of type " << m_TrackFindType << " successfully initialized" << endreq;
 
     // Moved to TkrClusterAlg
     //sc = toolSvc()->retrieveTool("TkrHitTruncationTool", m_truncTool);

@@ -5,11 +5,7 @@
  *
  * @authors Tracy Usher
  *
-<<<<<<< TkrVecNodesBuilder.cxx
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.23 2011/10/18 20:24:02 usher Exp $
-=======
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.23 2011/10/18 20:24:02 usher Exp $
->>>>>>> 1.10
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.24 2011/12/05 03:54:27 usher Exp $
  *
 */
 

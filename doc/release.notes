@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-30-00 24-Apr-2012 hmk Merge GlastReleasev19r4p1 branch
  TkrRecon-10-29-02 24-Jan-2012  lsrea More protection for empty events
  TkrRecon-10-29-01 20-Jan-2012  lsrea mods for cable truncation
  TkrRecon-10-29-00 20-Jan-2012  lsrea mods for cable truncation
@@ -11,6 +12,20 @@
    in TkrDislayAlg
  TkrRecon-10-28-01 16-Jan-2012 HMK windows patches
  TkrRecon-10-28-00    Dec-2011 HMK Gaudi upgrade
+ -- End GlastReleasev19r4p1 branch
+ TkrRecon-10-27-02-gr11 18-Apr-2012  lsrea mods for truncation, mainly
+ TkrRecon-10-27-02-gr10 03-Feb-2012  lsrea remove truncation stuff from TkrClusterAlg
+ TkrRecon-10-27-02-gr09  3-Feb-2012 TU Small change to limit relaton/clusters to sort to prevent crashes
+ TkrRecon-10-27-02-gr08  2-Feb-2012 TU Bill's updates to vertexing and 1st chi-square calculation
+ TkrRecon-10-27-02-gr07 31-Jan-2012 TU Real fix to strict weak ordering now included!
+ TkrRecon-10-27-02-gr06 31-Jan-2012 TU Including updates to fix strict weak ordering, move link building to tool and provide more timing info
+ TkrRecon-10-27-02-gr05 26-Jan-2012  lsrea another attempt to fix the null-pointer bug
+ TkrRecon-10-27-02-gr04 24-Jan-2012  lsrea More protection for empty events
+ TkrRecon-10-27-02-gr03 24-Jan-2012 TU Remove SVD from Hough Filter for now, update Tree/Cluster sort comparator
+ TkrRecon-10-27-02-gr02 23-Jan-2012  lsrea Fix for no clusterCol bug
+ TkrRecon-10-27-02-gr01 20-Jan-2012  lsrea cc cable truncation code on v19r4p1 branch
+ TkrRecon-10-27-02 16-Jan-2012  TU Resurrect Combo in new recon scheme, fix strict weak ordering in tree/cluster sort
+ -- Start GlastReleasev19r4p1 branch
  TkrRecon-10-27-01 18-Nov-2011  TU Make memory resident ntuple default for the track energy splitter
  TkrRecon-10-27-00 17-Nov-2011  TU New recon flow implemented, based on Tree/Cluster associations
  TkrRecon-10-26-04 26-Sep-2011  TU Another current state tag, this with improved cal cluster association and tree sorting

@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinder.cxx,v 1.1 2011/06/28 14:40:06 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinder.cxx,v 1.3.4.1 2012/02/17 17:02:22 usher Exp $
  *
 */
 
@@ -181,13 +181,23 @@ int TkrTreeTrackFinder::findTracks(Event::TkrTree* tree, double trackEnergy)
         
                         while(leaf->getParentNode())
                         {
-                            //bool xClusUsed = leaf->getAssociatedLink()->getSecondVecPoint()->getXCluster()->hitFlagged() ? true : false;
-                            //bool yClusUsed = leaf->getAssociatedLink()->getSecondVecPoint()->getYCluster()->hitFlagged() ? true : false;
+                            // Are the clusters associated to the bottom of this link already in use?
                             bool xClusUsed = leaf->getAssociatedLink()->getSecondVecPoint()->getXCluster()->isSet(usedCluster) ? true : false;
                             bool yClusUsed = leaf->getAssociatedLink()->getSecondVecPoint()->getYCluster()->isSet(usedCluster) ? true : false;
 
+                            // Also check cluster widths, wider than anticipated clusters can be shared
+                            const Vector&            linkDir  = leaf->getAssociatedLink()->getVector();
+                            const Event::TkrCluster* xCluster = leaf->getAssociatedLink()->getSecondVecPoint()->getXCluster();
+                            const Event::TkrCluster* yCluster = leaf->getAssociatedLink()->getSecondVecPoint()->getYCluster();
+
+                            double xSlope     = linkDir.x() / linkDir.z();
+                            double ySlope     = linkDir.y() / linkDir.z();
+                            int    xCalcWidth = fabs(xSlope) * m_tkrGeom->siThickness() / m_tkrGeom->siStripPitch() + 2.;
+                            int    yCalcWidth = fabs(ySlope) * m_tkrGeom->siThickness() / m_tkrGeom->siStripPitch() + 2.;
+
                             // Kick out immediately if shared hits after number of allowed leading
-                            if (leaf->getDepth() <= depthCheck && (xClusUsed || yClusUsed))
+                            if (leaf->getDepth() <= depthCheck && 
+                                ((xClusUsed && xCluster->size() <= xCalcWidth) || (yClusUsed && yCluster->size() <= yCalcWidth)))
                             {
                                 numSharedPairs = 100;
                                 break;
@@ -1265,12 +1275,36 @@ BuildTkrTrack::CandTrackHitVec TkrTreeTrackFinder::getCandTrackHitVecFromLeaf(Ev
     // Traverse up the branch starting at the leaf
     while(leaf->getParentNode())
     {
+        // Recover pointer to the link so we can check sharing conditions (if any)
+        const Event::TkrVecPointsLink* vecLink = leaf->getAssociatedLink();
+
+        // Are the clusters associated to the bottom of this link already in use?
+        bool xClusUsed = vecLink->getSecondVecPoint()->getXCluster()->hitFlagged();
+        bool yClusUsed = vecLink->getSecondVecPoint()->getYCluster()->hitFlagged();
+
+        // Also check cluster widths, wider than anticipated clusters can be shared
+        const Vector&            linkDir  = vecLink->getVector();
+        const Event::TkrCluster* xCluster = vecLink->getSecondVecPoint()->getXCluster();
+        const Event::TkrCluster* yCluster = vecLink->getSecondVecPoint()->getYCluster();
+
+        double xSlope     = linkDir.x() / linkDir.z();
+        double ySlope     = linkDir.y() / linkDir.z();
+        int    xCalcWidth = fabs(xSlope) * m_tkrGeom->siThickness() / m_tkrGeom->siStripPitch() + 2.;
+        int    yCalcWidth = fabs(ySlope) * m_tkrGeom->siThickness() / m_tkrGeom->siStripPitch() + 2.;
+
+        // Kick out immediately if shared hits after number of allowed leading
+        if (leaf->getDepth() <= maxSharedDepth && 
+            ((xClusUsed && xCluster->size() <= xCalcWidth) || (yClusUsed && yCluster->size() <= yCalcWidth)))
+        {
+            clusVec.clear();
+            break;
+        }
+
         // If this node is skipping layers then we have some special handling
         // Put the code for this inline since we are going "up" the branch and it can
         // be confusing to separate out
         if (leaf->getAssociatedLink()->skipsLayers())
         {
-            const Event::TkrVecPointsLink* vecLink = leaf->getAssociatedLink();
 
             // Loop through missing bilayers adding hit info, start at the bottom...
             int nextPlane = 2 * vecLink->getSecondVecPoint()->getLayer() + 1;
@@ -1309,15 +1343,6 @@ BuildTkrTrack::CandTrackHitVec TkrTreeTrackFinder::getCandTrackHitVecFromLeaf(Ev
 
                 clusVec.insert(clusVec.begin(),BuildTkrTrack::CandTrackHitPair(nextTkrId, cluster));
             }
-        }
-
-        // Not allowed to use already flagged clusters! 
-        if (leaf->getDepth() <= maxSharedDepth && 
-            (leaf->getAssociatedLink()->getSecondVecPoint()->getXCluster()->hitFlagged() || 
-             leaf->getAssociatedLink()->getSecondVecPoint()->getYCluster()->hitFlagged())  ) 
-        {
-            clusVec.clear();
-            break;
         }
 
         // Add the first clusters to the vector

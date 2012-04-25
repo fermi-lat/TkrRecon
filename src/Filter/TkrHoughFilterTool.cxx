@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.1 2011/12/05 03:12:46 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.2.2.10 2012/02/29 16:12:27 usher Exp $
  */
 
 // to turn one debug variables
@@ -19,6 +19,7 @@
 #include "GaudiKernel/GaudiException.h" 
 #include "GaudiKernel/IParticlePropertySvc.h"
 #include "GaudiKernel/ParticleProperty.h"
+#include "GaudiKernel/IChronoStatSvc.h"
 
 // Interface
 #include "ITkrFilterTool.h"
@@ -33,113 +34,321 @@
 #include "Event/Recon/CalRecon/CalCluster.h"
 #include "Event/TopLevel/EventModel.h"
 
+#include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
+
 // Utilities, geometry, etc.
 #include "TkrUtil/ITkrGeometrySvc.h"
-#include "src/Utilities/TkrException.h"
 #include "TkrUtil/ITkrQueryClustersTool.h"
+#include "src/Utilities/TkrException.h"
 
 // Creat TkrVecPoints if necessary
 #include "src/PatRec/VectorLinks/TkrVecPointsBuilder.h"
-#include "src/PatRec/VectorLinks/TkrVecPointLinksBuilder.h"
+//#include "src/PatRec/VectorLinks/TkrVecPointLinksBuilder.h"
+#include "../PatRec/VectorLinks/ITkrVecPointLinksBuilder.h"
 
 // Moments Analysis Code
 #include "src/Filter/TkrMomentsAnalysis.h"
 
-// Local class definitions for our MST algorithm used below
+// Some testing to see what we might do with a PCA 
+//#include "TDecompSVD.h"
+
+#include <list>
+
+// Local class definition for our "points"
 namespace
 {
     class AccumulatorBin
     {
     public:
         AccumulatorBin() 
-                        : m_radiusBin(0), m_thetaBin(0), m_phiBin(0) 
+                        : m_xBin(0), m_yBin(0), m_zBin(0)
                         {}
-        AccumulatorBin(int radiusBin, int thetaBin, int phiBin)
-                        : m_radiusBin(radiusBin), m_thetaBin(thetaBin), m_phiBin(phiBin)
+        AccumulatorBin(int xBin, int yBin, int zBin)
+                        : m_xBin(xBin), m_yBin(yBin), m_zBin(zBin)
                         {}
        ~AccumulatorBin() {}
 
-        const int getRadiusBin() const {return m_radiusBin;}
-        const int getThetaBin()  const {return m_thetaBin;}
-        const int getPhiBin()    const {return m_phiBin;}
+        const int getXBin() const {return m_xBin;}
+        const int getYBin() const {return m_yBin;}
+        const int getZBin() const {return m_zBin;}
+
+        const int getDistanceTo(const AccumulatorBin& bin) const
+        {
+            int binSep = abs(m_xBin - bin.getXBin());
+
+            binSep = std::max(binSep, abs(m_yBin - bin.getYBin()));
+            binSep = std::max(binSep, abs(m_zBin - bin.getZBin()));
+
+            return binSep;
+        }
 
         const bool operator<(const AccumulatorBin& right) const
         {
-            // Obey a heirarchy here, theta, phi, radius
-            if (m_radiusBin != right.m_radiusBin) return m_radiusBin < right.m_radiusBin;
-            if (m_phiBin    != right.m_phiBin)    return m_phiBin    < right.m_phiBin;
-            return m_thetaBin < right.m_thetaBin;
+            if (m_zBin < right.m_zBin) return true;
+            if (m_zBin > right.m_zBin) return false;
+            if (m_yBin < right.m_yBin) return true;
+            if (m_yBin > right.m_yBin) return false;
+            if (m_xBin < right.m_xBin) return true;
+            return false;
         }
 
         const bool operator==(const AccumulatorBin& right) const
         {
             // Obey a heirarchy here, theta, phi, radius
-            return m_radiusBin == right.m_radiusBin && 
-                   m_phiBin    == right.m_phiBin    && 
-                   m_thetaBin  == right.m_thetaBin;
+            return m_xBin == right.m_xBin && 
+                   m_yBin == right.m_yBin && 
+                   m_zBin == right.m_zBin;
         }
 
     private:
-        int m_radiusBin;
-        int m_thetaBin;
-        int m_phiBin;
+        int    m_xBin;
+        int    m_yBin;
+        int    m_zBin;
+    };
+
+    // Forward declaration here
+    class ClusterVals;
+    class AccumulatorBin;
+    class AccumulatorValues;
+    typedef std::map<AccumulatorBin, AccumulatorValues>  Accumulator;
+    typedef Accumulator::iterator                        AccumulatorIter;
+    typedef std::list<AccumulatorIter>                   AccumulatorIterVec;
+    typedef std::pair<ClusterVals, AccumulatorIterVec >  ClusterPair;
+    typedef std::vector<ClusterPair >                    ClusterVec;
+    typedef std::map<int, ClusterPair >                  ClusterMap;
+    typedef std::map<AccumulatorBin, ClusterPair >       NeighborMap;
+
+    class AccumulatorValues : public Event::TkrVecPointsLinkPtrVec
+    {
+    public:
+        enum StatusBits {
+                         NOISE     = 0x10000000,
+                         VISITED   = 0x20000000,
+                         INCLUSTER = 0x40000000,
+                         DONOTUSE  = 0x80000000
+        };
+        enum StatusMask {FIRST_BILAYER_BITS = 0x0000001F,
+                         LAST_BILAYER_BITS  = 0x000003E0,
+                         BILAYERS_W_LINKS   = 0x0FFFFC00,
+                         STATUS_BITS        = 0xF0000000};
+
+        AccumulatorValues() : m_status(LAST_BILAYER_BITS), m_clusterId(0), m_avePos(0.,0.,0.), m_aveDir(0.,0.,0.)
+        {
+            clear();
+        }
+
+        void setIsNoise()      {m_status  = (m_status & ~INCLUSTER) | (NOISE | VISITED);}
+        void setVisited()      {m_status |= VISITED;}
+        void setInCluster()    {m_status  = (m_status & ~NOISE) | (INCLUSTER | VISITED);}
+
+        void setTopBiLayer(int layer) {m_status  = m_status & ~FIRST_BILAYER_BITS | layer & FIRST_BILAYER_BITS;}
+        void setBotBiLayer(int layer) {m_status  = m_status & ~LAST_BILAYER_BITS | (layer << 5) & LAST_BILAYER_BITS;}
+        void setLinkLayer(int layer)  {m_status |= (1 << (10 + layer)) & BILAYERS_W_LINKS;}
+        void setClusterId(int clusterId)
+        {
+            m_clusterId = clusterId;
+            setInCluster();
+        }
+
+        void addBinValue(Event::TkrVecPointsLink* link)
+        {
+            int topLayer = link->getFirstVecPoint()->getLayer();
+            int botLayer = link->getSecondVecPoint()->getLayer();
+
+            if (topLayer > getTopBiLayer()) setTopBiLayer(topLayer);
+            if (botLayer < getBotBiLayer()) setBotBiLayer(botLayer);
+
+            setLinkLayer(topLayer);
+
+            m_avePos += link->getPosition();
+            m_aveDir += link->getVector();
+            push_back(link);
+        }
+
+        const bool     isNoise()          const {return (m_status & NOISE    ) != 0;}
+        const bool     wasVisited()       const {return (m_status & VISITED  ) != 0;}
+        const bool     isInCluster()      const {return (m_status & INCLUSTER) != 0;}
+
+        const int      getTopBiLayer()    const {return (m_status & FIRST_BILAYER_BITS);}
+        const int      getBotBiLayer()    const {return (m_status & LAST_BILAYER_BITS) >> 5;}
+        const int      getNumBiLayers()   const {return getTopBiLayer() - getBotBiLayer();}
+        const int      getNumLinkLayers() const 
+        {
+            int linkLayers   = (m_status & BILAYERS_W_LINKS) >> 10;
+            int linkFieldCnt = 18;
+            int numLayers    = 0;
+
+            while(linkFieldCnt--)
+            {
+                numLayers   += linkLayers & 0x1;
+                linkLayers >>= 1;
+            }
+
+            return numLayers;
+        }
+        const unsigned getLayerMask() const {return (m_status & BILAYERS_W_LINKS) >> 10;}
+
+        const Point    getAvePosition()  const
+        {
+            if (!empty()) 
+            {
+                Vector avePosVec = m_avePos / double(size());
+                Point  avePos(avePosVec.x(), avePosVec.y(), avePosVec.z());
+
+                return avePos;
+            }
+            else return m_avePos;
+        }
+
+        const Vector   getAveDirection() const
+        {
+            if (!empty()) return m_aveDir / double(size());
+            else return m_avePos;
+        }
+
+        int            getClusterId() {return m_clusterId;}
+
+    private:
+        unsigned     m_status;
+        int          m_clusterId;
+        Point        m_avePos;
+        Vector       m_aveDir;
     };
 
     class AccumulatorBinCalculator
     {
     public:
         AccumulatorBinCalculator()
-            : m_maxRangeR(0.), m_binSizeR(1.), m_binSizeTheta(1.), m_binSizePhi(1.) 
+            : m_binSizeXY(0.), m_binSizeZ(0.)
             {}
-        AccumulatorBinCalculator(double maxRangeR, int nBinsR, int nBinsTheta, int nBinsPhi)
-        {
-            m_maxRangeR    = maxRangeR;
-            m_nBinsR       = nBinsR;
-            m_binSizeR     = maxRangeR / double(nBinsR);
-            m_nBinsTheta   = nBinsTheta;
-            m_binSizeTheta = M_PI / double(nBinsTheta);
-            m_nBinsPhi     = nBinsPhi;
-            m_binSizePhi   = 2. * M_PI / double(nBinsPhi);
-        }
+        AccumulatorBinCalculator(const Point& center, double binSizeXY, double binSizeZ) 
+            : m_centerX(center.x() - 0.5 * binSizeXY), 
+              m_centerY(center.y() - 0.5 * binSizeXY), 
+              m_centerZ(center.z() - 0.5 * binSizeZ), 
+              m_binSizeXY(binSizeXY), m_binSizeZ(binSizeZ)
+            {}
        ~AccumulatorBinCalculator() {}
 
-        AccumulatorBin getAccumulatorBin(double radius, double theta, double phi)
+        AccumulatorBin getAccumulatorBin(double x, double y, double z)
         {
-            int lowBinEdgeR     = floor(radius / m_binSizeR);
-            int binR            = lowBinEdgeR < m_nBinsR ? lowBinEdgeR : m_nBinsR;
-            int lowBinEdgeTheta = floor(theta / m_binSizeTheta);
-            int binTheta        = lowBinEdgeTheta < m_nBinsTheta ? lowBinEdgeTheta : m_nBinsTheta;
-            int lowBinEdgePhi   = floor(phi / m_binSizePhi);
-            int binPhi          = lowBinEdgePhi < m_nBinsPhi ? lowBinEdgePhi : m_nBinsPhi;
+            int lowBinEdgeX = floor((x - m_centerX) / m_binSizeXY);
+            int lowBinEdgeY = floor((y - m_centerY) / m_binSizeXY);
+            int lowBinEdgeZ = floor((z - m_centerZ) / m_binSizeZ);
 
-            return AccumulatorBin(binR, binTheta, binPhi);
+            return AccumulatorBin(lowBinEdgeX, lowBinEdgeY, lowBinEdgeZ);
+        }
+
+        AccumulatorBin getAccumulatorBin(const Point& position)
+        {
+            int lowBinEdgeX = floor((position.x() - m_centerX) / m_binSizeXY);
+            int lowBinEdgeY = floor((position.y() - m_centerY) / m_binSizeXY);
+            int lowBinEdgeZ = floor((position.z() - m_centerZ) / m_binSizeZ);
+
+            return AccumulatorBin(lowBinEdgeX, lowBinEdgeY, lowBinEdgeZ);
         }
 
         Vector getBinValues(const AccumulatorBin& accBin)
         {
-            double radBinCntr   = (double(accBin.getRadiusBin()) + 0.5) * m_binSizeR;
-            double thetaBinCntr = (double(accBin.getThetaBin())  + 0.5) * m_binSizeTheta;
-            double phiBinCntr   = (double(accBin.getPhiBin())    + 0.5) * m_binSizePhi;
+            double binCenterX = (double(accBin.getXBin()) + 0.5) * m_binSizeXY + m_centerX;
+            double binCenterY = (double(accBin.getYBin()) + 0.5) * m_binSizeXY + m_centerY;
+            double binCenterZ = (double(accBin.getZBin()) + 0.5) * m_binSizeZ  + m_centerZ;
 
-            return Vector(radBinCntr * sin(thetaBinCntr) * cos(phiBinCntr), 
-                          radBinCntr * sin(thetaBinCntr) * sin(phiBinCntr),
-                          radBinCntr * cos(thetaBinCntr));
+            return Vector(binCenterX, binCenterY, binCenterZ);
         }
 
     private:
-        double m_maxRangeR;
-        int    m_nBinsR;
-        double m_binSizeR;
-        int    m_nBinsTheta;
-        double m_binSizeTheta;
-        int    m_nBinsPhi;
-        double m_binSizePhi;
+        double m_centerX;
+        double m_centerY;
+        double m_centerZ;
+        double m_binSizeXY;
+        double m_binSizeZ;
     };
 
     // Define the maps we'll use in this filter
-    typedef std::pair<AccumulatorBin, Event::TkrVecPointsLinkPtrVec> AccumulatorPair;
-    typedef std::map<AccumulatorBin, Event::TkrVecPointsLinkPtrVec>  Accumulator;
-    typedef std::map<int, std::vector<Accumulator::iterator> >       IntToAccumulatorVecMap;
+    typedef std::pair<AccumulatorBin, AccumulatorValues> AccumulatorPair;
+//    typedef std::map<AccumulatorBin, AccumulatorValues>  Accumulator;
+//    typedef std::list<Accumulator::iterator>             AccumulatorIterVec;
+
+    class ClusterVals
+    {
+    public:
+        ClusterVals() :
+          m_linkLayers(0), m_topBiLayer(0), m_botBiLayer(20), m_numTotLinks(0)
+          {}
+        
+        const int getTopBiLayer()                     const {return m_topBiLayer;}
+        const int getBotBiLayer()                     const {return m_botBiLayer;}
+        const int getNumBiLayers()                    const {return m_topBiLayer - m_botBiLayer;}
+        const int getNumTotLinks()                    const {return m_numTotLinks;}
+        const int getNumLinkLayers() const 
+        {
+            int linkLayers   = m_linkLayers;
+            int linkFieldCnt = 18;
+            int numLayers    = 0;
+
+            while(linkFieldCnt--)
+            {
+                numLayers   += linkLayers & 0x1;
+                linkLayers >>= 1;
+            }
+
+            return numLayers;
+        }
+        const Accumulator::iterator getPeakIterator() const {return m_peakIter;}
+
+        void setTopBiLayer(int layer)                         {m_topBiLayer    = layer > m_topBiLayer ? layer : m_topBiLayer;}
+        void setBotBiLayer(int layer)                         {m_botBiLayer    = layer < m_botBiLayer ? layer : m_botBiLayer;}
+        void setLinkLayers(int layers)                        {m_linkLayers   |= layers;}
+        void setNumTotLinks(int links)                        {m_numTotLinks   = links;}
+        void setPeakIterator(Accumulator::iterator& peakIter) {m_peakIter      = peakIter;}
+
+    private:
+        Accumulator::iterator m_peakIter;
+        unsigned              m_linkLayers;
+        int                   m_topBiLayer;
+        int                   m_botBiLayer;
+        int                   m_numTotLinks;
+    };
+
+//    typedef std::pair<ClusterVals, AccumulatorIterVec >  ClusterPair;
+    typedef std::vector<ClusterPair >                    ClusterVec;
+
+    // Try filling a nearest neighbors type of map
+    class OrderAccumIter
+    {
+    public:
+        const bool operator()(const AccumulatorIter& left, const AccumulatorIter& right) const
+        {
+            return left->first < right->first;
+        }
+    };
+
+    class CompareClusterSizes
+    {
+    public:
+        CompareClusterSizes() : m_zeroBin(0,0,0) {}
+
+        const bool operator()(const ClusterPair& left, const ClusterPair& right) const
+        {
+            if (left.first.getPeakIterator()->second.getNumLinkLayers() == 
+                right.first.getPeakIterator()->second.getNumLinkLayers())
+            {
+                if (left.first.getNumBiLayers() == right.first.getNumBiLayers())
+                {
+                    int leftDistToZero  = left.first.getPeakIterator()->first.getDistanceTo(m_zeroBin);
+                    int rightDistToZero = right.first.getPeakIterator()->first.getDistanceTo(m_zeroBin);
+
+                    return leftDistToZero < rightDistToZero;
+                }
+                else return left.first.getNumBiLayers() > right.first.getNumBiLayers();
+            }
+
+            return left.first.getPeakIterator()->second.getNumLinkLayers() > 
+                right.first.getPeakIterator()->second.getNumLinkLayers();
+        }
+    private:
+        AccumulatorBin m_zeroBin;
+    };
 };
 
 class TkrHoughFilterTool : public AlgTool, virtual public ITkrFilterTool
@@ -167,11 +376,36 @@ private:
     Vector convertReps(Event::TkrVecPointsLink* link, Point position);
 //    Vector convertReps(Event::TkrVecPointsLink* link, const Event::TkrVecPointsLink* refLink);
 
+    /// Use this to "expand" clusters given points and neighborhoods
+    void expandClusters(Accumulator::iterator& bin, 
+                        NeighborMap&           neighborMap,
+                        ClusterPair&           neighborVec, 
+                        ClusterMap&            clusterMap, 
+                        int&                   curClusterId,
+                        double                 minSeparation, 
+                        int                    minPoints);
+//    void expandClusters(Accumulator::iterator& bin, 
+//                        Accumulator&           accumulator,
+//                        ClusterPair&           neighborVec, 
+//                        ClusterMap&            clusterMap, 
+//                        int&                   curClusterId,
+//                        double                 minSeparation, 
+//                        int                    minPoints);
+
+    /// Use this to find neighbors for the dbscan clustering
+    ClusterPair findNeighbors(AccumulatorBin& bin, Accumulator& allBinsMap, int minSeparation);
+
     /// This runs the moments analysis on the provided list of links
-    Event::TkrFilterParams* doMomentsAnalysis(Event::TkrVecPointsLinkPtrVec& momentsLinkVec, Vector& aveDirVec);
+    Event::TkrFilterParams* doMomentsAnalysis(Event::TkrVecPointsLinkPtrVec& momentsLinkVec, 
+                                              Vector&                        aveDirVec,
+                                              double                         energy = 30.);
+
+    /// Just a test for now
+    Event::TkrFilterParams* testSVD(Event::TkrVecPointCol* vecPointCol);
 
     /// Pointer to the local Tracker geometry service and IPropagator
     ITkrGeometrySvc*           m_tkrGeom;
+    ITkrQueryClustersTool*     m_clusTool;
 
     /// Services for hit arbitration
     IGlastDetSvc*              m_glastDetSvc;
@@ -179,11 +413,20 @@ private:
     /// Pointer to the Gaudi data provider service
     IDataProviderSvc*          m_dataSvc;
 
-    /// Query Clusters tool
-    ITkrQueryClustersTool*     m_clusTool;
+    /// Link builder tool
+    ITkrVecPointsLinkBuilder*  m_linkBuilder;
 
-    /// Reasons tool
-    ITkrReasonsTool*           m_reasonsTool;
+    /// Let's keep track of event timing
+    IChronoStatSvc*            m_chronoSvc;
+    bool                       m_doTiming;
+    std::string                m_toolTag;
+    IChronoStatSvc::ChronoTime m_toolTime;
+    std::string                m_toolFillTag;
+    IChronoStatSvc::ChronoTime m_fillTime;
+    std::string                m_toolPeakTag;
+    IChronoStatSvc::ChronoTime m_peakTime;
+    std::string                m_toolBuildTag;
+    IChronoStatSvc::ChronoTime m_buildTime;
 
     /// Use this to store pointer to filter params collection in TDS
     Event::TkrFilterParamsCol* m_tkrFilterParamsCol;
@@ -199,9 +442,8 @@ private:
     double                     m_tkrHighXY;
 };
 
-//static ToolFactory<TkrHoughFilterTool> s_factory;
-//const IToolFactory& TkrHoughFilterToolFactory = s_factory;
-DECLARE_TOOL_FACTORY(TkrHoughFilterTool);
+static ToolFactory<TkrHoughFilterTool> s_factory;
+const IToolFactory& TkrHoughFilterToolFactory = s_factory;
 
 //
 // Feeds Combo pattern recognition tracks to Kalman Filter
@@ -216,7 +458,19 @@ TkrHoughFilterTool::TkrHoughFilterTool(const std::string& type,
     declareInterface<ITkrFilterTool>(this);
 
     // Define cut on rmsTrans
-    declareProperty("numLayersToSkip", m_numLyrsToSkip=3);
+    declareProperty("numLayersToSkip", m_numLyrsToSkip = 3);
+    declareProperty("DoToolTiming",    m_doTiming      = true);
+
+    m_toolTag = this->name();
+
+    if (m_toolTag.find(".") < m_toolTag.size())
+    {
+        m_toolTag = m_toolTag.substr(m_toolTag.find(".")+1,m_toolTag.size());
+    }
+
+    m_toolFillTag  = m_toolTag + "_fill";
+    m_toolPeakTag  = m_toolTag + "_peak";
+    m_toolBuildTag = m_toolTag + "_build";
 
     return;
 }
@@ -247,34 +501,35 @@ StatusCode TkrHoughFilterTool::initialize()
     setProperties();
 
     //Locate and store a pointer to the geometry service
-    IService*   iService = 0;
-    if ((sc = serviceLocator()->getService("TkrGeometrySvc", iService, true)).isFailure())
+    if ((sc = service("TkrGeometrySvc", m_tkrGeom, true)).isFailure())
     {
         throw GaudiException("Service [TkrGeometrySvc] not found", name(), sc);
     }
-    m_tkrGeom = dynamic_cast<ITkrGeometrySvc*>(iService);
     
-    if ((sc = serviceLocator()->getService("GlastDetSvc", iService, true)).isFailure())
+    if ((sc = toolSvc()->retrieveTool("TkrQueryClustersTool", m_clusTool)).isFailure())
+    {
+        throw GaudiException("Tool [TkrQueryClustersTool] not found", name(), sc);
+    }
+    
+    if ((sc = service("GlastDetSvc", m_glastDetSvc, true)).isFailure())
     {
         throw GaudiException("Service [GlastDetSvc] not found", name(), sc);
     }
-    m_glastDetSvc = dynamic_cast<IGlastDetSvc*>(iService);
-
+        
+    if ((sc = service("ChronoStatSvc", m_chronoSvc, true)).isFailure())
+    {
+        throw GaudiException("Service [ChronoSvc] not found", name(), sc);
+    }
 
     //Locate and store a pointer to the data service
     if( (sc = service("EventDataSvc", m_dataSvc)).isFailure() ) 
     {
         throw GaudiException("Service [EventDataSvc] not found", name(), sc);
     }
-      
-    if ((sc = toolSvc()->retrieveTool("TkrQueryClustersTool", m_clusTool)).isFailure())
-    {
-        throw GaudiException("Service [TkrQueryClustersTool] not found", name(), sc);
-    }
 
-    if ((toolSvc()->retrieveTool("TkrReasonsTool", m_reasonsTool)).isFailure())
+    if( (sc = toolSvc()->retrieveTool("TkrVecLinkBuilderTool", "TkrVecLinkBuilderTool", m_linkBuilder)).isFailure() )
     {
-        throw GaudiException("Service [TkrReasonsTool] not found", name(), sc);
+        throw GaudiException("ToolSvc could not find TkrVecLinkBuilderTool", name(), sc);
     }
 
     // Set up some basic geometry that will be useful
@@ -297,12 +552,25 @@ StatusCode TkrHoughFilterTool::doFilterStep()
 
     StatusCode sc = StatusCode::SUCCESS;
 
-    // Clean up any remnants fr
+    // If requested, start the tool timing
+    if (m_doTiming) 
+    {
+        m_toolTime  = 0;
+        m_fillTime  = 0;
+        m_peakTime  = 0;
+        m_buildTime = 0;
+
+        m_chronoSvc->chronoStart(m_toolTag);
+    }
 
     // Step #1 is to make sure there are some reasonable default values in the TDS
     Event::TkrEventParams* tkrEventParams = setDefaultValues();
 
-    // In the event we find axes here, set up the collection to store them
+    // We use the position and axes in the event parameters as the default
+    Point  refPoint = tkrEventParams->getEventPosition();
+    Vector refAxis  = tkrEventParams->getEventAxis();
+    double energy   = tkrEventParams->getEventEnergy();
+    double refError = tkrEventParams->getTransRms();
 
     // Set up an output collection of TkrFilterParams
     m_tkrFilterParamsCol = new Event::TkrFilterParamsCol();
@@ -325,6 +593,10 @@ StatusCode TkrHoughFilterTool::doFilterStep()
         tkrVecPointCol = SmartDataPtr<Event::TkrVecPointCol>(m_dataSvc, EventModel::TkrRecon::TkrVecPointCol);
     }
 
+    // Try a test
+    Event::TkrFilterParams* svdParams = 0;
+//    if (tkrVecPointCol->size() > 3) svdParams = testSVD(tkrVecPointCol); turn off for now
+
     // The result of all the above should be that our companion TkrVecPointInfo object is 
     // now available in the TDS
     Event::TkrVecPointInfo* vecPointInfo = 
@@ -333,46 +605,21 @@ StatusCode TkrHoughFilterTool::doFilterStep()
     // Step #3 As with the above, we want to either recover our vec point links
     // or if they are not there to create them
     // Retrieve the TkrVecPointsLinkCol object from the TDS
-    Event::TkrVecPointsLinkCol* tkrVecPointsLinkCol = 
-        SmartDataPtr<Event::TkrVecPointsLinkCol>(m_dataSvc, EventModel::TkrRecon::TkrVecPointsLinkCol);
 
-    // If there is no TkrVecPointCol in the TDS then we need to create it
-    if (!tkrVecPointsLinkCol)
-    {
-        // Create the TkrVecPoints...
-        TkrVecPointLinksBuilder vecPointLinksBuilder(tkrEventParams->getEventEnergy(),
-                                                     m_dataSvc,
-                                                     m_tkrGeom,
-                                                     m_glastDetSvc,
-                                                     m_clusTool,
-                                                     m_reasonsTool);
-    
-        tkrVecPointsLinkCol = SmartDataPtr<Event::TkrVecPointsLinkCol>(m_dataSvc, EventModel::TkrRecon::TkrVecPointsLinkCol);
-    }
+    Event::TkrVecPointsLinkInfo* vecPointsLinkInfo = m_linkBuilder->getSingleLayerLinks(refPoint, refAxis, refError, energy);
 
-    // The result of all the above should be that our companion TkrVecPointInfo object is 
-    // now available in the TDS
-    Event::TkrVecPointsLinkInfo* vecPointsLinkInfo = 
-        SmartDataPtr<Event::TkrVecPointsLinkInfo>(m_dataSvc, EventModel::TkrRecon::TkrVecPointsLinkInfo);
+    // If no obect returned then return
+    if (!vecPointsLinkInfo) return sc;
+
+    // Recover pointer to the link collection
+    Event::TkrVecPointsLinkCol* tkrVecPointsLinkCol = vecPointsLinkInfo->getTkrVecPointsLinkCol();
 
     // We can key off the log(number TkrVecPoints) as a way to control bin sizing
     double logNVecPoints = std::log10(double(tkrVecPointsLinkCol->size()));
-    int    vecPtsSclFctr = floor(logNVecPoints - 1.);
+    int    vecPtsSclFctr = floor(logNVecPoints + 0.5);
 
     if (vecPtsSclFctr < 1) vecPtsSclFctr = 1;
     if (vecPtsSclFctr > 6) vecPtsSclFctr = 6;
-    
-    // For now, hardwire these values
-    double maxRangeR  = m_tkrHighXY - m_tkrLowXY;
-    int    nBinsR     = vecPtsSclFctr * 50;
-    int    nBinsTheta = vecPtsSclFctr * 30;
-    int    nBinsPhi   = vecPtsSclFctr * 60;
-
-    // Create the object for determining which bin we are in
-    AccumulatorBinCalculator binCalculator(maxRangeR, nBinsR, nBinsTheta, nBinsPhi);
-
-    // Create the accumulator map for storing our basic information
-    Accumulator accumulator;
 
     // For now take the middle of the tracker as the center
     Point  accCenter(m_tkrHighXY, m_tkrHighXY, 0.5* (m_tkrTopZ + m_tkrBotZ));
@@ -382,10 +629,62 @@ StatusCode TkrHoughFilterTool::doFilterStep()
     if (eventPos.x() < 0.) accCenter.setX(m_tkrLowXY);
     if (eventPos.y() < 0.) accCenter.setY(m_tkrLowXY);
 
-    // Use the first link as the reference link
-    Event::TkrVecPointsLink* refLink = *tkrVecPointsLinkCol->begin();
+    // Try this
+    if (svdParams)
+    {
+        accCenter = svdParams->getEventPosition();
+    }
 
-    // Loop through the TkrVecPointsLinkCol and fill the accumulator
+    // Use the "best" cal cluster centroid as the reference point 
+    // (wondering if best to extrapolate into tracker?)
+    Vector eventAxis = tkrEventParams->getEventAxis();
+    Vector centroidOffsetVec(eventAxis.x()*eventAxis.z(), 
+                             eventAxis.y()*eventAxis.z(), 
+                             -(eventAxis.x()*eventAxis.x() + eventAxis.y()*eventAxis.y()));
+    if (centroidOffsetVec.mag2() > 0.) centroidOffsetVec = centroidOffsetVec.unit();
+    else                               centroidOffsetVec = Vector(0.,0.,1.);
+    double offsetArcLen = 400.;
+    accCenter = tkrEventParams->getEventPosition() + offsetArcLen * centroidOffsetVec;
+//    accCenter = Point(accCenter.x(), accCenter.y(), accCenter.z() - 250.);
+
+    // Temporary constant arrays determing quantities per bin in link decades
+//    const double binSizes[]          = {5., 5., 5., 5., 10., 20.};
+//    const int    minSeparationVals[] = {25, 20, 15, 12,   4,  2};
+////    const double binSizes[]          = {5., 5., 5., 7.5, 10., 20.};
+////    const int    minSeparationVals[] = {25, 20, 15,   8,   4,  2};
+    const double binSizes[]          = {15., 15., 12., 12., 10., 20.};
+    const int    minSeparationVals[] = {  8,   6,   6,   5,   4,  2};
+    const int    minNumPointsVals[]  = {  2,   3,   5,   8,  10, 10};
+
+    // Choose the bin to use
+    int binIndex = vecPtsSclFctr - 1;
+
+    // Set the variables
+
+    double binSizeXY = binSizes[binIndex];
+    double binSizeZ  = binSizes[binIndex];
+
+    int minSeparation  = minSeparationVals[binIndex];
+    int minNumPoints   = minNumPointsVals[binIndex];
+
+    // Set up the accumulator bin calculator 
+    AccumulatorBinCalculator binCalculator(accCenter, binSizeXY, binSizeZ);
+
+    // The container of all of our accumulator bins
+    Accumulator accumulator;
+    
+    // Activate timing for this stage
+    if (m_doTiming) m_chronoSvc->chronoStart(m_toolFillTag);
+
+    // Define the minimum separation and number of points
+    int minNumBiLayers = 2;  // 2;
+
+    NeighborMap neighborMap;
+
+    // Temporary
+    AccumulatorBin zeroBin(0,0,0);
+
+    // Loop through the TkrVecPointsLinkCol and calculate the doca & doca position
     for (Event::TkrVecPointsLinkCol::iterator linkItr  = tkrVecPointsLinkCol->begin(); 
                                               linkItr != tkrVecPointsLinkCol->end();
                                               linkItr++)
@@ -395,347 +694,626 @@ StatusCode TkrHoughFilterTool::doFilterStep()
         // We only look at single layer links here 
         if (link->skipsLayers()) continue;
 
-        // Convert link position and direction into radius, theta, phi for accumulator
-        Vector docaVec = convertReps(link, accCenter);
-//        Vector docaVec = convertReps(link, refLink);
-        double radius  = docaVec.magnitude();
-        double theta   = docaVec.theta();
-        double phi     = docaVec.phi();
+        // Only look at "tight tolerance" links
+        if (!(link->getStatusBits() & 0x04000000)) continue;
+    
+        // 3D Doca calculation here
+        Vector linkToPos = accCenter - link->getPosition();
+        double arcLen    = link->getVector().dot(linkToPos);
+        Point  docaPos   = link->getPosition() + arcLen * link->getVector();
 
-        // just a check to see if this can happen
-        if (radius > maxRangeR)
+        // Get the accumulator bin for this point
+        AccumulatorBin accBin = binCalculator.getAccumulatorBin(docaPos);
+
+        // Temporary
+        int distToZero = zeroBin.getDistanceTo(accBin);
+
+        if (distToZero < 2)
         {
-            int stopemstopemstopem = 1;
+            int breakembreakembreakemrawhide = 1;
         }
 
-        // Get the accumlator bin from this
-        AccumulatorBin accBin = binCalculator.getAccumulatorBin(radius, theta, phi);
+        // Check to see if this bin already exists or will be added
+        AccumulatorIter binIter = accumulator.find(accBin);
 
-        // Store pointer to link in this bin
-        accumulator[accBin].push_back(link);
+        // If the bin already exists then simply add the link
+        if (binIter != accumulator.end())
+        {
+            binIter->second.addBinValue(link);
+        }
+        // Otherwise, special action required
+        else
+        {
+            // First, create the new bin and add the link to it
+            accumulator[accBin].addBinValue(link);
+
+            // Recover iterator to the element
+            binIter = accumulator.find(accBin);
+
+            // Now loop through all existing bins and check the separation
+            for (AccumulatorIter prevIter = accumulator.begin(); prevIter != accumulator.end(); prevIter++)
+            {
+                // Skip the self reference
+                if (prevIter == binIter) continue;
+
+                AccumulatorBin prevBin = prevIter->first;
+
+                int binSep = prevBin.getDistanceTo(accBin);
+
+                // If the separation is less than the minimum then we will update the
+                // neighborhood for both bins
+                if (binSep < minSeparation)
+                {
+                    // Make the relation to our new point
+                    ClusterPair& prevClus = neighborMap[prevBin];
+
+                    prevClus.second.push_back(binIter);
+                    prevClus.first.setTopBiLayer(binIter->second.getTopBiLayer());
+                    prevClus.first.setBotBiLayer(binIter->second.getBotBiLayer());
+                    prevClus.first.setLinkLayers(binIter->second.getLayerMask());
+                    prevClus.first.setNumTotLinks(prevClus.first.getNumTotLinks() + binIter->second.size());
+
+                    // Make the relation to our new point
+                    ClusterPair& newClus = neighborMap[accBin];
+
+                    newClus.second.push_back(prevIter);
+                    newClus.first.setTopBiLayer(prevIter->second.getTopBiLayer());
+                    newClus.first.setBotBiLayer(prevIter->second.getBotBiLayer());
+                    newClus.first.setLinkLayers(prevIter->second.getLayerMask());
+                    newClus.first.setNumTotLinks(newClus.first.getNumTotLinks() + prevIter->second.size());
+                }
+            }
+        }
     }
 
-    // Now we go through the accumulator and set up to extract the information
-    // Two tasks here: build a mapping of number links in a bin to bins and
-    //                 find the bin with the most number of bilayers traversed
-    int sizeOfMap = accumulator.size();
-    int maxLinks  = 0;
+    // Deactivate timing
+    if (m_doTiming) m_chronoSvc->chronoStop(m_toolFillTag);
 
-    IntToAccumulatorVecMap intToAccumMap;
+    // Here is where we would run DBSCAN to return the list of clusters in the above collection
 
-    // Try to find the "longest" set of links
-    Accumulator::iterator  longestBinItr = accumulator.end();
-    int                    mostBiLayers  = 0;
-    int                    mostTopLayer  = 0;
-    Point                  mostAvePos(0.,0.,0.);
-    Vector                 mostAveDir(0.,0.,0.);
+    int numBins = accumulator.size();
 
-    // We should also keep track of number of bilayers for the "peak" bin
-    int                    peakBiLayers  = 0;
-    Point                  peakAvePos(0.,0.,0.);
-    Vector                 peakAveDir(0.,0.,0.);
+    // Create the cluster map and give initial id
+    ClusterMap clusterMap;
+    int        clusterId = 0;
 
-    for (Accumulator::iterator accItr = accumulator.begin(); accItr != accumulator.end(); accItr++)
+    // Activate timing
+    if (m_doTiming) m_chronoSvc->chronoStart(m_toolPeakTag);
+
+    // Loop over vector of FilterDocaPoints
+    for(Accumulator::iterator binsIter = accumulator.begin(); binsIter != accumulator.end(); binsIter++)
     {
-        AccumulatorBin bin         = accItr->first;
-        int            numLinks    = accItr->second.size();
-        int            numBiLayers = 1;
-        Point          avePos(0.,0.,0.);
-        Vector         aveDir(0.,0.,0.);
+        // Recover the "values" for this bin
+        AccumulatorValues& binVals = binsIter->second;
 
-        // If we have more than one link then its a potential track candiate
-        if (numLinks > 0) 
+        // Only looking at points which have not already been visited
+        if (binVals.wasVisited()) continue;
+
+        // Set as visited
+        binVals.setVisited();
+
+        // Recover the bin info
+        AccumulatorBin bin = binsIter->first;
+
+        // Find points in the neighborhood
+        ClusterPair& neighborVec = neighborMap[bin];
+
+        if (neighborVec.first.getNumTotLinks() < minNumPoints) // || neighborVec.first.getNumBiLayers() < 2)
         {
-            // Before getting too excited, let's make sure this bin contains links from
-            // more than one pair of bilayers (which can happen in very dense events!)
-            // To do that we're going to need to loop over the links when there are more than
-            // one
-            int    topBiLayer = -1;
-            int    botBiLayer = 20;
-            int    layerBits  = 0;
-            int    aveCnt     = 0;
+            binVals.setIsNoise();
+        }
+        else
+        {
+            // "Expand" the cluster
+            expandClusters(binsIter, 
+                           neighborMap, 
+                           neighborVec, 
+                           clusterMap,
+                           clusterId,
+                           minSeparation, 
+                           minNumPoints);
 
-            if (numLinks > 1)
+            // Add the cluster to the collection
+            int clusterSize = clusterMap[clusterId].second.size();
+
+            if (clusterSize > 0) clusterId++;
+        }
+    }
+
+    // Activate/Deactivate timing
+    if (m_doTiming) 
+    {
+        m_chronoSvc->chronoStop(m_toolPeakTag);
+        m_chronoSvc->chronoStart(m_toolBuildTag);
+    }
+
+    // Here we would loop through the list of clusters to extract the information and builder candidate track regions
+    if (!clusterMap.empty())
+    {
+        // Create a list to hold the results
+        ClusterVec clusterVec;
+
+        // Extract the ClusterPairs from the map and insert into a list for resorting
+        for(ClusterMap::iterator clusIter = clusterMap.begin(); clusIter != clusterMap.end(); clusIter++)
+        {
+            ClusterPair& clusPair = clusIter->second;
+
+            if (clusPair.first.getNumBiLayers() > 1) clusterVec.push_back(clusIter->second);
+        }
+
+        // Sort by number of links in each cluster?
+        std::sort(clusterVec.begin(), clusterVec.end(), CompareClusterSizes());
+
+        // Take the first few...
+        int maxNumFilterParams = 5;
+
+        // Now loop through and create filter params
+        for(ClusterVec::iterator clusIter = clusterVec.begin(); clusIter != clusterVec.end(); clusIter++)
+        {
+            // Dereference the interesting info
+            ClusterPair& clusPair = *clusIter;
+
+            // Weed out useless clusters
+            if (clusPair.first.getNumBiLayers() < 2) continue;
+
+            // Keep track of results to use for moments analysis
+            Event::TkrVecPointsLinkPtrVec momentsLinkVec;
+
+            // Ok, first task is to go through the links in the "peak" bin iterator
+            // This is defined as the bin which encompasses the most number of bilayers
+            const Accumulator::iterator& peakIter = clusPair.first.getPeakIterator();
+
+            // Want the average position/direction
+            Point  peakAvePos = peakIter->second.getAvePosition();
+            Vector peakAveDir = peakIter->second.getAveDirection();
+
+            // Calculate new average link direction of peak bin without outliers
+            Point  avePos(0.,0.,0.);
+            Vector aveDir(0.,0.,0.);
+            int    numPeakLinks = 0;
+
+            // For the peak bin we want to try to get an accurate read on the direction of the links
+            // so we can toss out the outliers. To do this we really need to find the links that agree
+            // in direction with the most other links... 
+            // Try this approach...
+            // So, first define a map between links and a count of agreement with other links
+            std::map<Event::TkrVecPointsLink*, int> linkCountMap;
+
+            for(Event::TkrVecPointsLinkPtrVec::iterator outLinkItr  = peakIter->second.begin(); 
+                                                        outLinkItr != peakIter->second.end(); 
+                                                        outLinkItr++)
             {
-                for(Event::TkrVecPointsLinkPtrVec::iterator vecItr  = accItr->second.begin();
-                                                            vecItr != accItr->second.end();
-                                                            vecItr++)
+                Event::TkrVecPointsLink* outLink = *outLinkItr;
+
+                linkCountMap[outLink]++;
+            
+                for(Event::TkrVecPointsLinkPtrVec::iterator inLinkItr  = outLinkItr + 1; 
+                                                            inLinkItr != peakIter->second.end(); 
+                                                            inLinkItr++)
                 {
-                    Event::TkrVecPointsLink* link = *vecItr;
+                    Event::TkrVecPointsLink* inLink = *inLinkItr;
 
-                    if (link->getFirstVecPoint()->getLayer()  > topBiLayer) topBiLayer = link->getFirstVecPoint()->getLayer();
-                    if (link->getSecondVecPoint()->getLayer() < botBiLayer) botBiLayer = link->getSecondVecPoint()->getLayer();
-                    
-                    layerBits |= 1 << link->getFirstVecPoint()->getLayer();
-                    layerBits |= 1 << link->getSecondVecPoint()->getLayer();
+                    double cosAngle = outLink->getVector().dot(inLink->getVector());
 
-                    // Update the average position and direction
+                    if (cosAngle > 0.866)
+                    {
+                        linkCountMap[outLink]++;
+                        linkCountMap[inLink]++;
+                    }
+                }
+            }
+
+            int totNumLinks = peakIter->second.size();
+
+            // Try to get the "top point" for making an axis to cal centroid
+            Point topPoint(0.,0.,-100.);
+
+            // Loop through these links first:
+            for(std::map<Event::TkrVecPointsLink*, int>::iterator linkCountMapIter =  linkCountMap.begin();
+                                                                  linkCountMapIter != linkCountMap.end();
+                                                                  linkCountMapIter++)
+            {
+                int linkCount = linkCountMapIter->second;
+
+                float linkCountFrac = float(linkCount) / float(totNumLinks);
+
+                if (linkCountFrac > 0.5)
+                {
+                    Event::TkrVecPointsLink* link = linkCountMapIter->first;
+            
                     avePos += link->getPosition();
                     aveDir += link->getVector();
-                    aveCnt++;
-                }
+                    numPeakLinks++;
 
-                // Get average position/direction
-                avePos /= double(aveCnt);
-                aveDir /= double(aveCnt);
-                aveDir = aveDir.unit();
-
-                // Count total number of biLayers with links between them
-                while(layerBits)
-                {
-                    if (layerBits & 0x1) numBiLayers++;
-                    layerBits >>= 1;
-                }
-
-                // If only one bilayer then reset the number of links
-                if (numBiLayers < 2) numLinks = 1;
-
-                // Is this one the longest?
-                if ((numBiLayers > mostBiLayers) ||
-                    (numBiLayers == mostBiLayers && topBiLayer > mostTopLayer))
-                {
-                    mostBiLayers  = numBiLayers;
-                    mostTopLayer  = topBiLayer;
-                    mostAvePos    = avePos;
-                    mostAveDir    = aveDir;
-                    longestBinItr = accItr;
-                }
-            }
-
-            intToAccumMap[numLinks].push_back(accItr);
-        }
-
-        if (numLinks > maxLinks) 
-        {
-            maxLinks     = numLinks;
-            peakBiLayers = numBiLayers;
-            peakAvePos   = avePos;
-            peakAveDir   = aveDir;
-        }
-    }
-
-    // Reset the longestBinItr if the peak bi layers is the same as the longest
-    // since we might have "other" bins with the same value
-    if (peakBiLayers == mostBiLayers) longestBinItr = accumulator.end();
-
-    // Go through the results
-    if (maxLinks > 1)
-    {
-        // Keep track of results to use for moments analysis
-        Event::TkrVecPointsLinkPtrVec momentsLinkVec;
-        Point                         avePos = mostAvePos;
-        Vector                        aveDir = mostAveDir;
-
-        // Just checking the size of the input accumulator
-        int intToAccumMapSize = intToAccumMap.size();
-
-        // Assume that we have found the "peak bin" in the loop above
-        Accumulator::iterator peakBinItr = longestBinItr;
-        
-        // If not then take the first one that has the most links associated to i
-        if (peakBinItr == accumulator.end()) 
-        {
-            avePos     = peakAvePos;
-            aveDir     = peakAveDir;
-            peakBinItr = intToAccumMap[maxLinks].front();
-        }
-
-        AccumulatorBin           peakBin    = peakBinItr->first;
-        Event::TkrVecPointsLink* firstLink  = peakBinItr->second.front();
-        Point                    linkPos    = firstLink->getPosition();
-        Vector                   linkDir    = firstLink->getVector();
-
-        Vector peakBinVec = binCalculator.getBinValues(peakBin);
-
-        // for checking debugger
-        double biggestAngle = 1.;
-        double cutAngle     = 0.975;
-
-        // Loop through the links in the peak bin and mark them as the core of the 
-        // direction through the event
-        for(Event::TkrVecPointsLinkPtrVec::iterator vecItr  = peakBinItr->second.begin();
-                                                    vecItr != peakBinItr->second.end();
-                                                    vecItr++)
-        {
-            Event::TkrVecPointsLink* link = *vecItr;
-
-            // temporarily usurping a status bit for the display...
-            link->updateStatusBits(0x03000000);
-
-            // Check colinearity
-            double cosAngle = aveDir.dot(link->getVector());
-
-            if (cosAngle < biggestAngle) biggestAngle = cosAngle;
-
-            // Store this link in our moments accumulator
-            momentsLinkVec.push_back(link);
-        }
-
-        if (biggestAngle < cutAngle)
-        {
-            int stopping = 1;
-        }
-
-        // Assuming the "peak" bin is the correct one, add in the neighboring bins
-        // We will do this by taking nearest neighbors in r, and next nearest neighbors in theta, phi
-        // where we use "peakBin" as the center
-        // Outer loop is over r
-        double docaCut = maxRangeR / double(nBinsR);
-
-        for(int idxR = -1; idxR < 2; idxR++)
-        {
-            // r bin index for this loop
-            int binIdxR = peakBin.getRadiusBin() + idxR;
+                    // Update the top point
+                    if (topPoint.z() < link->getPosition().z()) topPoint = link->getPosition();
             
-            // bounds checking
-            if (binIdxR < 0 || binIdxR >= nBinsR) continue;
+                    // temporarily usurping a status bit for the display...
+                    link->updateStatusBits(0x03000000);
+            
+                    // Store this link in our moments accumulator
+                    momentsLinkVec.push_back(link);
+                }
+            }
 
-            // Next loop over theta
-            for(int idxTheta = -vecPtsSclFctr; idxTheta <= vecPtsSclFctr; idxTheta++)
+            // Can this happen?
+            if (numPeakLinks < 1)
             {
-                // theta bin index for this loop
-                int binIdxTheta = peakBin.getThetaBin() + idxTheta;
-
-                // bounds checking
-                if (binIdxTheta < 0 || binIdxTheta >= nBinsTheta) continue;
-
-                // Final loop over phi
-                for(int idxPhi = -vecPtsSclFctr; idxPhi <= vecPtsSclFctr; idxPhi++)
-                {
-                    // phi bin index for this loop
-                    int binIdxPhi = peakBin.getPhiBin() + idxPhi;
-
-                    // bounds checkiing, a bit more involved for phi
-                    if (binIdxPhi < -nBinsPhi/2 || binIdxPhi >= nBinsPhi/2) continue;
-
-                    // Create new accumulator bin
-                    AccumulatorBin neighborBin(binIdxR, binIdxTheta, binIdxPhi);
-
-                    // Skip if we have created the peak bin over again
-                    if (neighborBin == peakBin) continue;
-
-                    // Look for this bin in the accumulator map
-                    Accumulator::iterator neighborItr = accumulator.find(neighborBin);
-
-                    // If it exists then update our collection
-                    if (neighborItr != accumulator.end())
-                    {
-                        // To break the degenerecy we need to get the average vector in a first pass...
-                        Point  planeAvePos(0.,0.,0.);
-                        Vector planeAveDir(0.,0.,0.);
-
-                        for(Event::TkrVecPointsLinkPtrVec::iterator vecItr  = neighborItr->second.begin();
-                                                                    vecItr != neighborItr->second.end();
-                                                                    vecItr++)
-                        {
-                            Event::TkrVecPointsLink* link = *vecItr;
-
-                            planeAvePos += link->getPosition();
-                            planeAveDir += link->getVector();
-                        }
-
-                        // average them
-                        planeAvePos /= double(neighborItr->second.size());
-                        planeAveDir /= double(neighborItr->second.size());
-                        planeAveDir  = planeAveDir.unit();
-
-                        // Angle to core vector?
-                        double cosAngleToCore = planeAveDir.dot(aveDir);
-                        double cosAngLargest  = 1.;
-
-                        for(Event::TkrVecPointsLinkPtrVec::iterator vecItr  = neighborItr->second.begin();
-                                                                    vecItr != neighborItr->second.end();
-                                                                    vecItr++)
-                        {
-                            Event::TkrVecPointsLink* link = *vecItr;
-
-                            // Try to eliminate links which are clearly outliers
-                            Vector avePosToLink = avePos - link->getPosition();
-                            double arcLen       = aveDir.dot(avePosToLink);
-                            Vector aveDoca      = avePosToLink - arcLen * aveDir;
-                            double aveDocaVal   = aveDoca.magnitude();
-
-                            // Angle to average in this plane
-                            double cosAngleToPlane = planeAveDir.dot(link->getVector());
-
-                            if (cosAngleToPlane < cosAngLargest) cosAngLargest = cosAngleToPlane;
-
-                            // skip if clearly out there
-                            if (aveDocaVal > docaCut || cosAngleToPlane < 0.9) 
-                            {
-                                continue;
-                            }
-
-                            // temporarily usurping a status bit for the display...
-                            link->updateStatusBits(0x01000000);
-
-                            // And add to our collection
-                            momentsLinkVec.push_back(link);
-                        }
-
-                        if (cosAngLargest < 0.9)
-                        { 
-                            int anotherstoppoint = 0;
-                        }
-                    }
-                }
+                continue;
             }
-        }
 
-        // Perform the moments analysis to get the axis
-        Event::TkrFilterParams* houghParams = doMomentsAnalysis(momentsLinkVec, aveDir);
+            avePos /= double(numPeakLinks);
+            aveDir /= double(numPeakLinks);
 
-        int stophere = 0;
+            // What value should we set for docaCut?
+            double docaCut = 50.;
 
-//***********************
-/*
-        // Just picking a value right now
-        double distThres = 50.;
+            // Don't include links with large angles to the average
+            // but be generous at this stage
+            double biggestAngle = 0.9;
 
-        // The largest peak will be at the end, best to do a reverse iterator here
-        for(IntToAccumulatorVecMap::reverse_iterator intToAccItr  = intToAccumMap.rbegin();
-                                                     intToAccItr != intToAccumMap.rend();
-                                                     intToAccItr++)
-        {
-            int                                 numLinks = intToAccItr->first;
-            std::vector<Accumulator::iterator>& accumVec = intToAccItr->second;
-            int                                 vecSize  = accumVec.size();
+            // Get list of points for this cluster
+            AccumulatorIterVec& filterVec = clusPair.second;
 
-            for(std::vector<Accumulator::iterator>::iterator accumVecItr  = accumVec.begin();
-                                                             accumVecItr != accumVec.end();
-                                                             accumVecItr++)
-            {  
-                Accumulator::iterator accumItr    = *accumVecItr;
-                AccumulatorBin        accumBin    = accumItr->first;
-                Vector                accumBinVec = binCalculator.getBinValues(accumBin);
-                Vector                toPeakVec   = accumBinVec - peakBinVec;
-                double                distToPeak  = toPeakVec.magnitude();
+            // Loop through the filter vector and recover the pointers to the links
+            for(AccumulatorIterVec::iterator vecIter = filterVec.begin(); vecIter != filterVec.end(); vecIter++)
+            {
+                // Skip the peak iterator (done above)
+                if (*vecIter == peakIter) continue;
 
-                if (distToPeak < distThres)
+                // Deference bin values...
+                AccumulatorValues& binVals = (*vecIter)->second;
+
+                for(Event::TkrVecPointsLinkPtrVec::iterator linkItr = binVals.begin(); linkItr != binVals.end(); linkItr++)
                 {
-                    for(Event::TkrVecPointsLinkPtrVec::iterator vecItr  = accumItr->second.begin();
-                                                                vecItr != accumItr->second.end();
-                                                                vecItr++)
-                    {
-                        Event::TkrVecPointsLink* link = *vecItr;
+                    Event::TkrVecPointsLink* link = *linkItr;
 
-                        // temporarily usurping a status bit for the display...
-                        link->updateStatusBits(0x01000000);
+                    // Try to eliminate links which are clearly outliers
+                    Vector avePosToLink = avePos - link->getPosition();
+                    double arcLen       = aveDir.dot(avePosToLink);
+                    Vector aveDoca      = avePosToLink - arcLen * aveDir;
+                    double aveDocaVal   = aveDoca.magnitude();
+
+                    // Angle to average in this plane
+                    double cosAngleToPlane = aveDir.dot(link->getVector());
+
+                    // skip if clearly out there
+                    if (aveDocaVal > docaCut || cosAngleToPlane < biggestAngle) 
+                    {
+                        continue;
                     }
+
+                    // temporarily usurping a status bit for the display...
+                    link->updateStatusBits(0x01000000);
+
+                    momentsLinkVec.push_back(link);
                 }
             }
 
-            int j = 0;
+            // Define pointer to the filter parameters
+            Event::TkrFilterParams* houghParams = 0;
+
+            // Make sure we have enough links to do something
+            if (momentsLinkVec.size() >= 3)
+            {
+                // Axis from "top point" to cal centroid
+                Vector topToCalDir = refPoint - topPoint;
+                topToCalDir = topToCalDir.unit();
+
+                topToCalDir = refPoint;
+
+                // Get the filter parameters for this collection of links
+                //houghParams = doMomentsAnalysis(momentsLinkVec, aveDir, energy);
+                houghParams = doMomentsAnalysis(momentsLinkVec, topToCalDir, energy);
+            }
+
+            // If no filter params then clear the  links status bits
+            if (!houghParams)
+            {
+                for(Event::TkrVecPointsLinkPtrVec::iterator momItr  = momentsLinkVec.begin(); 
+                                                            momItr != momentsLinkVec.end(); 
+                                                            momItr++)
+                {
+                    (*momItr)->clearStatusBits(0x03000000);
+                }
+            }
+
+            // Don't exceed the maximum speed limit
+            if (int(m_tkrFilterParamsCol->size()) > maxNumFilterParams) break;
         }
-*/
-//************************
     }
+
+    // Complete our SVD test
+    if (svdParams) m_tkrFilterParamsCol->push_back(svdParams);
 
     // Don't forget to cleanup before leaving!
     clearContainers();
 
+    // Make sure timer is shut down
+    if (m_doTiming)
+    {
+        m_chronoSvc->chronoStop(m_toolTag);
+//        m_chronoSvc->chronoStop(m_toolFillTag);
+//        m_chronoSvc->chronoStop(m_toolPeakTag);
+        m_chronoSvc->chronoStop(m_toolBuildTag);
+    
+        m_toolTime  = m_chronoSvc->chronoDelta(m_toolTag,IChronoStatSvc::USER);
+        m_fillTime  = m_chronoSvc->chronoDelta(m_toolFillTag, IChronoStatSvc::USER);
+        m_peakTime  = m_chronoSvc->chronoDelta(m_toolPeakTag, IChronoStatSvc::USER);
+        m_buildTime = m_chronoSvc->chronoDelta(m_toolBuildTag, IChronoStatSvc::USER);
+
+        float toolDelta  = static_cast<float>(m_toolTime)*0.000001;
+        float fillDelta  = static_cast<float>(m_fillTime)*0.000001;
+        float peakDelta  = static_cast<float>(m_peakTime)*0.000001;
+        float buildDelta = static_cast<float>(m_buildTime)*0.000001;
+
+        MsgStream log(msgSvc(), name());
+
+        log << MSG::DEBUG << " total tool  time: " << toolDelta  << " sec\n" 
+                          << "       fill  time: " << fillDelta  << " sec\n"
+                          << "       peak  time: " << peakDelta  << " sec\n"
+                          << "       build time: " << buildDelta << " sec\n"
+            << endreq ;
+    }
+
     // Done
     return sc;
+}
+
+void TkrHoughFilterTool::expandClusters(Accumulator::iterator& binIter, 
+                                        NeighborMap&           neighborMap,
+                                        ClusterPair&           neighborVec, 
+                                        ClusterMap&            clusterMap,
+                                        int&                   curClusterId,
+                                        double                 minSeparation, 
+                                        int                    minNumPoints)
+{
+    // Dereference the cluster info
+    ClusterPair& cluster = clusterMap[curClusterId];
+
+    // Add this point
+    cluster.second.push_back(binIter);
+
+    cluster.first.setTopBiLayer(binIter->second.getTopBiLayer());
+    cluster.first.setBotBiLayer(binIter->second.getBotBiLayer());
+    cluster.first.setLinkLayers(binIter->second.getLayerMask());
+    cluster.first.setNumTotLinks(binIter->second.size());
+    cluster.first.setPeakIterator(binIter);
+
+    // Loop through the neighborhood to check the neigbors
+    for(AccumulatorIterVec::iterator neighborItr  = neighborVec.second.begin(); 
+                                     neighborItr != neighborVec.second.end(); 
+                                     neighborItr++)
+    {
+        AccumulatorValues& neighborVals = (*neighborItr)->second;
+
+        // If this point not already in a cluster then add it
+        if (!neighborVals.isInCluster()) 
+        {
+            cluster.second.push_back(*neighborItr);
+            cluster.first.setTopBiLayer(neighborVals.getTopBiLayer());
+            cluster.first.setBotBiLayer(neighborVals.getBotBiLayer());
+            cluster.first.setNumTotLinks(cluster.first.getNumTotLinks() + neighborVals.size());
+            cluster.first.setLinkLayers(neighborVals.getLayerMask());
+
+            if (neighborVals.getNumLinkLayers() >= cluster.first.getPeakIterator()->second.getNumLinkLayers())
+            {
+                if (neighborVals.getNumLinkLayers() > cluster.first.getPeakIterator()->second.getNumLinkLayers())
+                    cluster.first.setPeakIterator(*neighborItr);
+                else if (neighborVals.getTopBiLayer() > cluster.first.getPeakIterator()->second.getTopBiLayer())
+                    cluster.first.setPeakIterator(*neighborItr);
+            }
+
+            neighborVals.setClusterId(curClusterId);
+        }
+        // otherwise we should merge into the larger cluster
+        else
+        {
+            int prvClusterId = neighborVals.getClusterId();
+
+            // merge clusters
+            if (prvClusterId != curClusterId)
+            {
+                ClusterPair& prvCluster = clusterMap[prvClusterId];
+
+                for(AccumulatorIterVec::iterator mergeItr  = prvCluster.second.begin();
+                                                 mergeItr != prvCluster.second.end();
+                                                 mergeItr++)
+                { 
+                    Accumulator::iterator itr  = *mergeItr;
+                    AccumulatorValues&    vals = itr->second;
+
+                    cluster.second.push_back(itr);
+                    cluster.first.setTopBiLayer(vals.getTopBiLayer());
+                    cluster.first.setBotBiLayer(vals.getBotBiLayer());
+                    cluster.first.setNumTotLinks(cluster.first.getNumTotLinks() + vals.size());
+                    cluster.first.setLinkLayers(vals.getLayerMask());
+
+                    if (vals.getNumLinkLayers() >= cluster.first.getPeakIterator()->second.getNumLinkLayers())
+                    {
+                        if (vals.getNumLinkLayers() > cluster.first.getPeakIterator()->second.getNumLinkLayers())
+                            cluster.first.setPeakIterator(itr);
+                        else if (vals.getTopBiLayer() > cluster.first.getPeakIterator()->second.getTopBiLayer())
+                            cluster.first.setPeakIterator(itr);
+                    }
+
+                    vals.setClusterId(curClusterId);
+                }
+
+                clusterMap[prvClusterId].first = ClusterVals();
+                clusterMap[prvClusterId].second.clear();
+            }
+        }
+
+        // Skip the self reference
+        if (binIter == *neighborItr)   continue;
+
+        // Get this bin
+        AccumulatorBin neighborBin = (*neighborItr)->first;
+
+        // Find the neighbors of the neighbor
+        ClusterPair& nextNeighborVec = neighborMap[neighborBin]; 
+
+        // Is this neighborhood above threshold?
+        //if (nextNeighborVec.first.getNumLinkLayers() >= minNumPoints) //int(nextNeighborVec.second.size()) >= minNumPoints)
+        if (nextNeighborVec.first.getNumTotLinks() >= minNumPoints)
+        {
+            // Merge into the above cluster
+            for(AccumulatorIterVec::iterator nextItr  = nextNeighborVec.second.begin(); 
+                                             nextItr != nextNeighborVec.second.end(); 
+                                             nextItr++)
+            {
+                AccumulatorValues& next = (*nextItr)->second;
+
+                // If point has been visited no use adding to list unless it was tagged as a noise hit
+                if (next.wasVisited() && !next.isNoise()) continue;
+
+                // Make sure point doesn't already exist in the neihborhood
+                if (std::find(neighborItr, neighborVec.second.end(), *nextItr) == neighborVec.second.end())
+                {
+                    neighborVec.second.push_back(*nextItr);
+                }
+            }
+        }
+    }
+
+    return;
+}
+
+
+ClusterPair TkrHoughFilterTool::findNeighbors(AccumulatorBin& bin, 
+                                              Accumulator&    accumulator, 
+                                              int             minSeparation)
+{
+    ClusterPair neighborVec;
+
+    // There is no easy way to do this...
+    for(Accumulator::iterator binsIter = accumulator.begin(); binsIter != accumulator.end(); binsIter++)
+    {
+        AccumulatorBin neighborBin = binsIter->first;
+
+        // Skip the self reference
+        //if (neighborBin == bin) continue;
+
+        int binSep = bin.getDistanceTo(neighborBin);
+
+        if (binSep <= minSeparation)
+        {
+            neighborVec.second.push_back(binsIter);
+            neighborVec.first.setTopBiLayer((*binsIter).second.getTopBiLayer());
+            neighborVec.first.setBotBiLayer((*binsIter).second.getBotBiLayer());
+            neighborVec.first.setLinkLayers((*binsIter).second.getLayerMask());
+            neighborVec.first.setNumTotLinks(neighborVec.first.getNumTotLinks() + (*binsIter).second.size());
+
+        }
+    }
+
+    return neighborVec;
+}
+
+
+Event::TkrFilterParams* TkrHoughFilterTool::testSVD(Event::TkrVecPointCol* vecPointCol)
+{
+    // We want to run a PCA on the input TkrVecPoints... 
+    // The steps are:
+    // 1) do a mean normalization of the input vec points
+    // 2) compute the covariance matrix
+    // 3) run the SVD 
+    // 4) extract the eigen vectors and values
+    // see what happens
+    // Assume failure
+    Event::TkrFilterParams* svdParams = 0;
+/***************************************************************************************************
+    // First loop through the vec points to do the mean normalizaton
+    Point meanPos(0.,0.,0.);
+
+    for(Event::TkrVecPointCol::iterator vecItr = vecPointCol->begin(); vecItr != vecPointCol->end(); vecItr++)
+    {
+        meanPos += (*vecItr)->getPosition();
+    }
+
+    meanPos /= double(vecPointCol->size());
+
+    // Second loop through to build the covariance matrix. 
+    // Use local variables to accumulate first
+    double xi2  = 0.;
+    double xiyi = 0.;
+    double xizi = 0.;
+    double yi2  = 0.;
+    double yizi = 0.;
+    double zi2  = 0.;
+
+    for(Event::TkrVecPointCol::iterator vecItr = vecPointCol->begin(); vecItr != vecPointCol->end(); vecItr++)
+    {
+        Vector nrmlPos = (*vecItr)->getPosition() - meanPos;
+
+        xi2  += nrmlPos.x() * nrmlPos.x();
+        xiyi += nrmlPos.x() * nrmlPos.y();
+        xizi += nrmlPos.x() * nrmlPos.z();
+        yi2  += nrmlPos.y() * nrmlPos.y();
+        yizi += nrmlPos.y() * nrmlPos.z();
+        zi2  += nrmlPos.z() * nrmlPos.z();
+    }
+
+    // Create the actual matrix
+    TMatrixD sigma(3, 3);
+
+    sigma(0,0) = xi2;
+    sigma(0,1) = sigma(1,0) = xiyi;
+    sigma(0,2) = sigma(2,0) = xizi;
+    sigma(1,1) = yi2;
+    sigma(1,2) = sigma(2,1) = yizi;
+    sigma(2,2) = zi2;
+
+    // Set up the SVD
+    TDecompSVD rootSVD(sigma);
+
+    // run the decomposition
+    bool svdOk = rootSVD.Decompose();
+
+    if (svdOk)
+    {
+        // Create a new TkrFilterParams object here so we can build relational tables
+        // It will get filled down at the bottom. 
+        svdParams = new Event::TkrFilterParams();
+
+        // Extract results
+        TVectorD eigenVals = rootSVD.GetSig();
+        double   prin1     = eigenVals(0);
+        double   prin2     = eigenVals(1);
+        double   prin3     = eigenVals(2);
+
+        rootSVD.Print();
+        eigenVals.Print();
+
+        TMatrixD eigenVecs = rootSVD.GetU();
+
+        Vector   prinAxis(eigenVecs(0,0),eigenVecs(1,0),eigenVecs(2,0));
+        Vector   axis2(eigenVecs(0,1),eigenVecs(1,1),eigenVecs(2,1));
+        Vector   axis3(eigenVecs(0,2),eigenVecs(1,2),eigenVecs(2,2));
+
+        svdParams->setEventPosition(meanPos);
+        svdParams->setEventAxis(prinAxis);
+        svdParams->setStatusBit(Event::TkrFilterParams::TKRPARAMS);
+        svdParams->setNumBiLayers(18);
+        svdParams->setNumIterations(1);
+        svdParams->setNumHitsTotal(int(vecPointCol->size()));
+        svdParams->setNumDropped(0);
+
+//        double aveDist     = momentsAnalysis.getAverageDistance();
+//        double rmsTrans    = momentsAnalysis.getTransverseRms();
+//        double rmsLong     = momentsAnalysis.getLongitudinalRms();
+//        double rmsLongAsym = momentsAnalysis.getLongAsymmetry();
+//        double weightSum   = momentsAnalysis.getWeightSum();
+        
+        svdParams->setChiSquare(0.);
+        svdParams->setAverageDistance(prin1);
+        svdParams->setTransRms(prin2);
+        svdParams->setLongRms(prin3);
+        svdParams->setLongRmsAsym(0.);
+    }
+**********************************************************************************/
+    return svdParams;
 }
 
 Event::TkrEventParams* TkrHoughFilterTool::setDefaultValues()
@@ -754,6 +1332,7 @@ Event::TkrEventParams* TkrHoughFilterTool::setDefaultValues()
     }
 
     // Recover pointer to Cal Cluster info  
+    Event::CalCluster*        calCluster        = 0;
     Event::CalEventEnergy*    calEventEnergy    = 0;
     Event::CalEventEnergyMap* calEventEnergyMap = 
             SmartDataPtr<Event::CalEventEnergyMap>(m_dataSvc,EventModel::CalRecon::CalEventEnergyMap);
@@ -768,8 +1347,15 @@ Event::TkrEventParams* TkrHoughFilterTool::setDefaultValues()
         Event::CalEventEnergyMap::iterator calEnergyItr = calEventEnergyMap->find(calClusterCol->front());
 
         if (calEnergyItr != calEventEnergyMap->end())
+        {
+            calCluster     = calEnergyItr->first;
             calEventEnergy = calEnergyItr->second.front();
+        }
     }
+
+    // Preset the rms values in case of no cluster or no moments analysis of crystals
+    tkrEventParams->setTransRms(200.);
+    tkrEventParams->setLongRmsAve(200.);
 
     // If calEventEnergy then fill TkrEventParams
     // Note: TkrEventParams initializes to zero in the event of no CalEventEnergy
@@ -790,57 +1376,18 @@ Event::TkrEventParams* TkrHoughFilterTool::setDefaultValues()
             // Note that this assumes a one-to-one correspondence between the CalEventEnergy and 
             // CalCluster objects which is not, in general, correct. It is CURRENTLY correct for 
             // the CalValsCorrTool... (10/15/07)
-            Event::CalClusterCol* calClusters = 
-                SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
-            if (!calClusters->empty())
+            if (calCluster->getRmsTrans() > 0.1) // prevent microscopic values from too few hits
             {
-                tkrEventParams->setTransRms(calClusters->front()->getRmsTrans());
-                tkrEventParams->setLongRmsAve(calClusters->front()->getRmsLong());
+                tkrEventParams->setTransRms(calCluster->getRmsTrans());
+                tkrEventParams->setLongRmsAve(calCluster->getRmsLong());
             }
         }
     }
-//
-//    // Recover pointer to Cal Cluster info  
-//    Event::CalEventEnergyCol * calEventEnergyCol = 
-//        SmartDataPtr<Event::CalEventEnergyCol>(m_dataSvc,EventModel::CalRecon::CalEventEnergyCol) ;
-//    Event::CalEventEnergy * calEventEnergy = 0 ;
-//    if ((calEventEnergyCol!=0)&&(!calEventEnergyCol->empty()))
-//        calEventEnergy = calEventEnergyCol->front() ;
-//
-//    // If calEventEnergy then fill TkrEventParams
-//    // Note: TkrEventParams initializes to zero in the event of no CalEventEnergy
-//    if (calEventEnergy != 0)
-//    {
-//        // Set the values obtained from the CalEventEnergy class
-//        Event::CalParams calParams = calEventEnergy->getParams();
-//
-//        tkrEventParams->setEventEnergy(calParams.getEnergy());
-//
-//        if (!(tkrEventParams->getStatusBits() & Event::TkrEventParams::TKRPARAMS))
-//        {
-//            tkrEventParams->setEventPosition(calParams.getCentroid());
-//            tkrEventParams->setEventAxis(calParams.getAxis());
-//            tkrEventParams->setStatusBit(Event::TkrEventParams::CALPARAMS);
-//
-//            // We need a bit of extra information from the Cal Cluster so look that up too
-//            // Note that this assumes a one-to-one correspondence between the CalEventEnergy and 
-//            // CalCluster objects which is not, in general, correct. It is CURRENTLY correct for 
-//            // the CalValsCorrTool... (10/15/07)
-//            Event::CalClusterCol* calClusters = 
-//                SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
-//            if (!calClusters->empty())
-//            {
-//                tkrEventParams->setTransRms(calClusters->front()->getRmsTrans());
-//                tkrEventParams->setLongRmsAve(calClusters->front()->getRmsLong());
-//            }
-//        }
-//    }
 
     return tkrEventParams;
 }
 
 Vector TkrHoughFilterTool::convertReps(Event::TkrVecPointsLink* link, Point position)
-//Vector TkrHoughFilterTool::convertReps(Event::TkrVecPointsLink* link, const Event::TkrVecPointsLink* refLink)
 {
     // Our goal is to find the vector of closest approach from the Point position
     // to the vector defined by the link. The steps are to form the vector from the 
@@ -852,54 +1399,12 @@ Vector TkrHoughFilterTool::convertReps(Event::TkrVecPointsLink* link, Point posi
     Vector docaVec   = linkToPos - arcLen * link->getVector();
 
     return docaVec;
-//
-//    // We determine the doca between the two input links
-//    // The approach is that used by RayDoca.cxx in the vertexing code
-//    // The explanation for this can be found, e.g. at 
-//    // http://homepage.univie.ac.at/franz.vesely/notes/hard_sticks/hst/hst.html
-//    // Step 1 is to get vector from reference link to input link
-//    Vector w     = link->getPosition() - refLink->getPosition();
-//
-//    // determine the unit vector projections of the above onto each link
-//    double d     = link->getVector().dot(w);
-//    double e     = refLink->getVector().dot(w);
-//
-//    // dot product between two links to look for special case of parallel links
-//    double b     = link->getVector().dot(refLink->getVector());
-//    double denom = 1. - b*b;
-//    double doca  = 0.;
-//
-//    //Lines are not parallel
-//    if (fabs(b) < 1.)
-//    {
-//        double s = (b*e - d  ) / denom;
-//        double t = (e   - b*d) / denom;
-//
-//        w    = w + s * link->getVector() - t * refLink->getVector();
-//        doca = w.magnitude();
-//    }
-//    //Lines are parallel
-//    else
-//    {
-//        double s = 0;
-//        double t = d / b;
-//
-//        w    = w - t * refLink->getVector();
-//        doca = w.magnitude();
-//    }
-//
-//    // Prevent zero doca
-//    doca = std::max(doca, 0.001);
-//    
-//    // What we return is a vector in the direction of the input link 
-//    // but with magnitude equal to the doca
-//    Vector newRep = doca * link->getVector();
-//
-//    return newRep;
 }
 
 
-Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPointsLinkPtrVec& momentsLinkVec, Vector& aveDirVec)
+Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPointsLinkPtrVec& momentsLinkVec, 
+                                                              Vector&                        aveDirVec,
+                                                              double                         energy)
 {
     // Make sure we have enough links to do something here
     if (momentsLinkVec.size() < 2) return 0;
@@ -908,15 +1413,11 @@ Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPoint
     TkrMomentsDataVec dataVec;
     dataVec.clear();
 
-    // Create a new TkrFilterParams object here so we can build relational tables
-    // It will get filled down at the bottom. 
-    Event::TkrFilterParams* filterParams = new Event::TkrFilterParams();
-
     // We will use a grand average position as starting point to moments analysis
     Point  tkrAvePosition = Point(0.,0.,0.);
     double sumWeights     = 0.;
-    int    lastBiLayer    = -1;
-    int    numBiLayers    = 0;
+    int    topBiLayer     = -1;
+    int    botBiLayer     = 20;
 
     // Set a centroid position at the first hit
     Point centroid = momentsLinkVec.front()->getPosition();
@@ -932,10 +1433,20 @@ Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPoint
 
         // Use the average position in the box 
         const Point& avePos = link->getPosition();
-        double       weight = link->getVector().dot(aveDirVec);
+//        double       weight = link->getVector().dot(aveDirVec);
+        Point  aveDirPos(aveDirVec.x(),aveDirVec.y(),aveDirVec.z());
+        Vector linkToPos = aveDirPos - link->getPosition();
+        double arcLen    = link->getVector().dot(linkToPos);
+        Point  docaPos   = link->getPosition() + arcLen * link->getVector();
+        Vector docaVec   = docaPos - aveDirPos;
+        double       weight = 1. / std::max(0.01, docaVec.magnitude());
 
         // Update the centroid if not the highest point
         if (avePos.z() > centroid.z()) centroid = avePos;
+
+        // Check bilayers
+        if (link->getFirstVecPoint()->getLayer()  > topBiLayer) topBiLayer = link->getFirstVecPoint()->getLayer();
+        if (link->getSecondVecPoint()->getLayer() < botBiLayer) botBiLayer = link->getSecondVecPoint()->getLayer();
 
         // Update the grand average
         tkrAvePosition += weight * avePos;
@@ -965,7 +1476,12 @@ Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPoint
     int numIterations = 1;
     int numTotal      = momentsLinkVec.size();
     int numDropped    = 0;
+    int numBiLayers   = topBiLayer - botBiLayer + 1;
 
+    // Last chance to stop... 
+    if (numBiLayers < 3) return 0;
+
+    // Ok, set and run the moments analysis
     TkrMomentsAnalysis momentsAnalysis;
 
     // fingers crossed! 
@@ -976,6 +1492,11 @@ Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPoint
     Point  momentsPosition = centroid; //momentsAnalysis.getMomentsCentroid();
     Vector momentsAxis     = momentsAnalysis.getMomentsAxis();
 
+    // Create a new TkrFilterParams object here so we can build relational tables
+    // It will get filled down at the bottom. 
+    Event::TkrFilterParams* filterParams = new Event::TkrFilterParams();
+
+    filterParams->setEventEnergy(energy);
     filterParams->setEventPosition(momentsPosition);
     filterParams->setEventAxis(momentsAxis);
     filterParams->setStatusBit(Event::TkrFilterParams::TKRPARAMS);

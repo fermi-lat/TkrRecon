@@ -38,6 +38,7 @@ DECLARE_FACTORY_ENTRIES(TkrRecon)
     DECLARE_TOOL(      TkrEnergySplitTool      );
     DECLARE_TOOL(      TkrAlignHitsTool        );
     DECLARE_TOOL(      FindTrackHitsTool       );
+    DECLARE_TOOL(      TkrVecLinkBuilderTool   );
     DECLARE_TOOL(      TkrCalFilterTool        );
     DECLARE_TOOL(      TkrFilterTool           );
     DECLARE_TOOL(      TkrVecPointsFilterTool  );
