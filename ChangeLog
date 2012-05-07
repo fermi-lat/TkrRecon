@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Mon May  7 16:04:43 PDT 2012
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeBuilder.cxx TkrTreeBuilder.h TkrTreeTrackFinder.cxx 
+	TkrVecNodesBuilder.cxx TkrVecNodesBuilder.h 
+Log Message:
+Also modify test_TkrRecon so it does not fail when attempting to look for non-existent vertices
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-30-01, operation: add
 Package: TkrRecon
