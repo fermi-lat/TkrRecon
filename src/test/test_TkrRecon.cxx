@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.7.662.1 2011/04/21 03:39:20 heather Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.8 2011/12/12 20:57:16 heather Exp $
 // Include files
 // Gaudi system includes
 #include "GaudiKernel/MsgStream.h"
@@ -29,7 +29,7 @@
 *
 * @author Leon Rochester
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.7.662.1 2011/04/21 03:39:20 heather Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/test/test_TkrRecon.cxx,v 1.8 2011/12/12 20:57:16 heather Exp $
 */
 
 class test_TkrRecon : public Algorithm {
@@ -128,10 +128,12 @@ StatusCode test_TkrRecon::execute()
     SmartDataPtr<Event::TkrVertexCol> vertexData(eventSvc(), 
         EventModel::TkrRecon::TkrVertexCol);
     
+    // Note that with the way the test program is set up there will be NO vertices in the TDS
     if (vertexData==0) {
         log << MSG::INFO << "no TkrVertexCol found" << endreq;
-        sc = StatusCode::FAILURE;        
-        return sc;}
+//        sc = StatusCode::FAILURE;        
+//        return sc;
+    }
     else {
         log << MSG::INFO  << vertexData->size() << " Vertex/Vertices found" 
             << endreq;
