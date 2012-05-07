@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.25 2011/09/02 22:48:26 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.27 2011/10/18 20:24:02 usher Exp $
  *
 */
 
@@ -21,6 +21,29 @@
 #include "src/Filter/TkrMomentsAnalysis.h"
 
 #include <iterator>
+
+#include <hash_map>
+#include <stack>
+
+template <typename T> struct hashPointer
+{
+    static const size_t bucket_size = 4;
+    static const size_t min_buckets = 8;
+
+    size_t operator()(const T& key)                   const 
+    {
+        stdext::hash_compare<size_t> hash;
+
+        size_t keyToInt = reinterpret_cast<size_t>(key);
+
+        return hash(keyToInt);
+    }
+
+    bool   operator()(const T& left, const T& right) const
+    {
+        return true;
+    }
+};
 
 TkrTreeBuilder::TkrTreeBuilder(TkrVecNodesBuilder&    vecNodesBldr,
                                IDataProviderSvc*      dataSvc, 
@@ -51,23 +74,25 @@ TkrTreeBuilder::~TkrTreeBuilder()
 //
 Event::TkrTreeCol* TkrTreeBuilder::buildTrees()
 {
-    // Recover a pointer to the "head node" collection in the TDS
-    const Event::TkrVecNodeCol* tkrVecNodeCol = m_vecNodesBldr.getVecNodeCol(); 
+    // Make sure there is some work to do
+    if (!m_vecNodesBldr.getVecNodeCol()) return 0;
 
-    if (!tkrVecNodeCol) return 0;
+    // Create a queue from the node collection
+    Event::TkrVecNodeQueue* tkrVecNodeCol = new Event::TkrVecNodeQueue(*m_vecNodesBldr.getVecNodeCol());
 
+    // Proceed if there is something to do...
     if (!tkrVecNodeCol->empty())
     {
         // Set the tree ID upon successful finding of tree
         int treeID = 0;
 
-        // Loop through the input collection of head nodes and build the naked trees (no tracks yet)
-        for(Event::TkrVecNodeColConPtr nodeItr = tkrVecNodeCol->begin(); nodeItr != tkrVecNodeCol->end(); nodeItr++)
+        // Process nodes in the queue until its empty, build the "naked" trees (no tracks yet)
+        while(!tkrVecNodeCol->empty())
         {
             try
             {
                 // Recover pointer to the head node
-                Event::TkrVecNode* headNode = *nodeItr;
+                Event::TkrVecNode* headNode = tkrVecNodeCol->top();
 
                 // No proceeding if not enough hits to make a real track
                 if (headNode->getDepth() < 2) continue;
@@ -92,9 +117,14 @@ Event::TkrTreeCol* TkrTreeBuilder::buildTrees()
             }
 
             // Arbitrary limit on the number of trees = 10
-            if (m_treeCol->size() >= m_maxTrees) break;
+            if (int(m_treeCol->size()) >= m_maxTrees) break;
+
+            // Pop off the top of the queue
+            tkrVecNodeCol->pop();
         }
     }
+
+    if (tkrVecNodeCol) delete tkrVecNodeCol;
 
     return m_treeCol;
 }
@@ -109,33 +139,19 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode)
     // to extract tracks
     Event::TkrNodeSiblingMap* siblingMap   = new Event::TkrNodeSiblingMap();
     Event::TkrFilterParams*   axisParams   = 0;
-    int                       toMainBranch = 0;
-    int                       numBiLayers  = makeSiblingMap(headNode, toMainBranch, siblingMap);
+    int                       numBiLayers  = makeSiblingMap(headNode, siblingMap);
 
     // Need to have at least 2 bilayers to be able to do anything
     if (numBiLayers > 1)
     { 
-        // The first task is to get the axis of the tree using the moments analysis
-        TkrBoundBoxList bboxList;
-        PointVector     centroidVec;
+        // Use the sibling map to find the tree axis
+        axisParams = findTreeAxis(siblingMap);
 
-        // Create the bounding box list
-        findTreeAxis(siblingMap, bboxList, centroidVec);
-
-        // Run the moments analysis to get the tree axis
-        axisParams = doMomentsAnalysis(bboxList, centroidVec);
-
-        // This will not fail, but have it anyway?
+        // In theory we can't fail but test just in case
         if (axisParams)
         {
             // Finally, make the new TkrTree
             tree = new Event::TkrTree(headNode, 0, 0, siblingMap, axisParams, 0);
-        }
-
-        // Need to clean up our bbox list
-        for(TkrBoundBoxList::iterator boxItr = bboxList.begin(); boxItr != bboxList.end(); boxItr++)
-        {
-            delete *boxItr;
         }
     }
 
@@ -146,48 +162,68 @@ Event::TkrTree* TkrTreeBuilder::makeTkrTree(Event::TkrVecNode* headNode)
 }
 
 int TkrTreeBuilder::makeSiblingMap(Event::TkrVecNode*        curNode, 
-                                   int                       toMainBranch,
                                    Event::TkrNodeSiblingMap* siblingMap)
 {
     // This method aims to set the "distance to the main branch" for each node in the tree
-    // while it also finds all the leaves of the tree and adds them to our leafSet. 
+    // while it also builds out the "sibling map" which provides a list of all nodes at a given layer.
     // The "distance to the main branch" is the number of nodes from the nearest main branch.
     // A main branch is defined as the "first" branch, meaning that if you start with the head
     // node, then a "main" branch will be the first daughter in the list of nodes below the
     // current node. 
 
-    // Set the current distance to the main branch for this node
-    curNode->setBiLyrs2MainBrch(toMainBranch);
+    // This is the non-recursive version
 
-    // While we are here, set the link to "associated" 
-    if (curNode->getAssociatedLink()) const_cast<Event::TkrVecPointsLink*>(curNode->getAssociatedLink())->setAssociated();
+    // Set up a stack to handle the nodes that we will encounter
+    // The idea is that we will visit each node first, the order
+    // will be along the main branch first, then various branches 
+    // off that as we proceed to process nodes in the stack.
+    std::stack<Event::TkrVecNode*> nodeStack;
 
-    // Increment the branch counter
-    toMainBranch++;
+    // Seed it with the input node
+    nodeStack.push(curNode);
 
-    // If we have daughters then our work is not finished
-    if (!curNode->empty())
+    // Keep track of the number of links to the main branch
+    int toMainBranch = 0;
+
+    // Loop over stack until empty
+    while(!nodeStack.empty())
     {
-        // We loop through daughters but remember that first node is "special"
-        for(Event::TkrVecNodeSet::iterator nodeItr = curNode->begin(); nodeItr != curNode->end(); nodeItr++)
+        // Recover pointer to node at the top of the stack
+        Event::TkrVecNode* node = nodeStack.top();
+
+        // Pop the top of the stack since we're done with this element
+        nodeStack.pop();
+
+        // Add this nodes daughters to the stack, provided we are not a leaf... 
+        if (!node->empty())
         {
-            Event::TkrVecNode* nextNode = *nodeItr;
-            
-            const Event::TkrVecPoint* bottomPoint = nextNode->getAssociatedLink()->getSecondVecPoint();
+            // Add the daughters of this node to the stack
+            // Note: need to add in reverse order so main branch will be accessed first
+            for(Event::TkrVecNodeSet::reverse_iterator nodeItr = node->rbegin(); nodeItr != node->rend(); nodeItr++)
+            {
+                Event::TkrVecNode* nextNode = *nodeItr;
 
-            makeSiblingMap(nextNode, toMainBranch, siblingMap);
+                nodeStack.push(nextNode);
+            }
+        }
 
-            toMainBranch = 1;
-        }  
-    }
+        // If we are the head node then skip the rest
+        if (!node->getAssociatedLink()) continue;
 
-    // Store this node in our sibling map but only if it has a parent
-    // (no parent means the top node which will not have an associated link, etc.)
-    if (curNode->getParentNode())
-    {
-        int topBiLayer = curNode->getCurrentBiLayer();
+        // Find parent's distance from the main branch
+        int parentDistance = node->getParentNode()->getBiLyrs2MainBrch();
 
-        (*siblingMap)[topBiLayer].push_back(curNode);
+        // Set the distance to the main branch
+        node->setBiLyrs2MainBrch(parentDistance + toMainBranch);
+
+        // While we are here, set the link to "associated" 
+        const_cast<Event::TkrVecPointsLink*>(node->getAssociatedLink())->setAssociated();
+    
+        // Store this node in our sibling map 
+        (*siblingMap)[node->getCurrentBiLayer()].push_back(node);
+
+        // Otherwise we are at a leaf so we need to set the offset to get nonzero distances from the main branch
+        if (node->empty()) toMainBranch = 1; // Note we set to one
     }
 
     return siblingMap->size();
@@ -211,284 +247,122 @@ void TkrTreeBuilder::setBranchBits(Event::TkrVecNode* node, bool isMainBranch)
     return;
 }
 
-    
-void TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBoundBoxList& bboxList, PointVector& centroidVec)
+Event::TkrFilterParams* TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* siblingMap)
 {
-    // Need the strip pitch
-    static const double siStripPitch = m_tkrGeom->siStripPitch();
-    static const double minBoxArea   = 16. * siStripPitch * siStripPitch;
+    // Find the tree axis by using the information contained in the Tree sibling map
+    // Start with a null pointer...
+    Event::TkrFilterParams* filterParams = 0;
 
-    // Set up a reverse iterator to go through the sibling map from "top" to "bottom" 
-    Event::TkrNodeSiblingMap::reverse_iterator sibItr = siblingMap->rbegin();
-
-    // From this, recover the vector of nodes at this bilayer. Since
-    // this is supposed to be the first bilayer, there will only be one 
-    // node.
-    std::vector<const Event::TkrVecNode*>& firstNodesVec = sibItr->second;
-
-    // Follow through the chain to get at the top hit for this first node
-    const Event::TkrVecNode*       firstNode  = firstNodesVec[0];
-    const Event::TkrVecPointsLink* pointsLink = firstNode->getAssociatedLink();
-    const Event::TkrVecPoint*      firstHit   = pointsLink->getFirstVecPoint();
-
-    // Position of this first point (corrected for angle)
-    const Point& linkPos = pointsLink->getPosition();
-
-    // Calculate position for moments analysis as in silicon layer just above this point
-    const Event::TkrCluster* xCluster = firstHit->getXCluster();
-    const Event::TkrCluster* yCluster = firstHit->getYCluster();
-
-    double zAtFirstPlane = std::max(xCluster->position().z(), yCluster->position().z());
-
-    Point  centroid      = pointsLink->getPosition(zAtFirstPlane);
-
-    // Add this to the vector
-    centroidVec.push_back(centroid);
-
-    // Recover the width of this first point
-    double clusSigX = xCluster->size() * siStripPitch;
-    double clusSigY = yCluster->size() * siStripPitch;
-
-    // Set edges
-    Point lowEdge  = Point(linkPos.x()-clusSigX, linkPos.y()-clusSigY, linkPos.z());
-    Point highEdge = Point(linkPos.x()+clusSigX, linkPos.y()+clusSigY, linkPos.z());
-
-    // Retrieve the "best" angular deviation along this branch to use as the weight
-    double angWght = firstNode->getBestRmsAngle()   > 0. ? firstNode->getBestRmsAngle()   : 1.;
-    double nInSum  = firstNode->getNumAnglesInSum() > 0  ? firstNode->getNumAnglesInSum() : 1.;
-
-    double posWght = nInSum * nInSum / (angWght * angWght);
-
-    // Create a bounding box for this point
-    Event::TkrBoundBox* box = new Event::TkrBoundBox();
-
-    // Start filling in the details
-    box->push_back(firstHit);
-    box->setBiLayer(firstHit->getLayer());
-    box->setLowCorner(lowEdge);
-    box->setHighCorner(highEdge);
-    box->setAveragePosition(linkPos);
-    box->setHitDensity(posWght);
-    box->setMeanDist(0.);
-    box->setRmsDist(0.);
-
-    bboxList.push_back(box);
-
-    // Loop through the sibling map extracting the nodes at each bilayer 
-    // which will be used to create a bounding box for that bilayer
-    for(; sibItr != siblingMap->rend(); sibItr++)
+    // Proceed only if we have more than two bilayers with of information in the sibling map
+    if (siblingMap->size() > 1)
     {
-        std::vector<const Event::TkrVecNode*>& nodeVec = sibItr->second;
+        // The sibling map is an stl map with the bilayer being the key. This means it appears
+        // to us in inverted order of bilayers from the bottom of the tracker, not the top. 
+        // The LAST element of the sibling map will contain the head of the tree
+        // For a given key, the sibling map contains a list of all TkrVecNodes at that bilayer. 
+        // Within that list the first TkrVecNode will be contained on the main branch. 
+        // We want the main branch so we can get the head of the tree, and then weight that 
+        // branch as we do the axis finding
+        // To recover this define the reverse iterator which we'll need below anyway
+        Event::TkrNodeSiblingMap::reverse_iterator sibMapItr = siblingMap->rbegin();
 
-        int firstBiLayer = sibItr->first;
-        int nodeVecSize  = nodeVec.size();
+        // So, recover the very first TkrVecNode
+        const Event::TkrVecNode* topDawg = sibMapItr->second.front();
 
-        // Reset the centroid for this layer
-        centroid = Point(0.,0.,0.);
+        // Recover the tree start position, this is given by the top position of the first link
+        Point startPos = topDawg->getAssociatedLink()->getPosition();
 
-        // Weight sum for centroid calculation
-        double weightSum = 0.;
+        // Set up to accumulate for the moments analysis
+        TkrMomentsDataVec dataVec;
+        dataVec.clear();
 
-        // Initialize before looping through all the links
-        lowEdge  = Point( 5000.,  5000., nodeVec.front()->getAssociatedLink()->getBotPosition().z());
-        highEdge = Point(-5000., -5000., nodeVec.front()->getAssociatedLink()->getBotPosition().z());
+        // To get a proper accounting of bilayers we need to keep track...
+        int topBiLayer = sibMapItr->first;
+        int botBiLayer = 0;
 
-        // Loop through the nodes at this bilayer 
-        for(std::vector<const Event::TkrVecNode*>::const_iterator nodeItr = nodeVec.begin(); 
-                nodeItr != nodeVec.end(); nodeItr++)
+        // Add the start position as the first position to consider in the moments analysis
+        dataVec.push_back(TkrMomentsData(startPos, 1.));
+
+        // Loop over all the nodes in the tree
+        for( ; sibMapItr != siblingMap->rend(); sibMapItr++)
         {
-            // Same sort of action as above but now aimed at recovering the 
-            // bottom point for this node
-            const Event::TkrVecNode*       node = *nodeItr;
-            const Event::TkrVecPointsLink* link = node->getAssociatedLink();
-            const Event::TkrVecPoint*      hit  = link->getSecondVecPoint();
+            // Recover the list of nodes at this level
+            std::vector<const Event::TkrVecNode*>& nodeVec = sibMapItr->second;
 
-            // Recover the angle corrected position at the bottom of the link
-            Point linkPosAtBot = link->getBotPosition();
+            // Keep track of the "bottom" bilayer 
+            botBiLayer = sibMapItr->first;
 
-            // Recover the width of this first point
-            clusSigX = hit->getXCluster()->size() * siStripPitch;
-            clusSigY = hit->getYCluster()->size() * siStripPitch;
-
-            // Retrieve the "best" angular deviation along this branch to use as the weight
-            angWght = node->getBestRmsAngle()   > 0. ? node->getBestRmsAngle()   : 1.;
-            nInSum  = node->getNumAnglesInSum() > 0  ? node->getNumAnglesInSum() : 1.;
-
-            posWght = nInSum * nInSum / (angWght * angWght);
-
-            lowEdge.setX(linkPosAtBot.x() - clusSigX);
-            lowEdge.setY(linkPosAtBot.y() - clusSigY);
-            highEdge.setX(linkPosAtBot.x() + clusSigX);
-            highEdge.setY(linkPosAtBot.y() + clusSigY);
-
-            // Accumulate centroid and weight sum
-            centroid  += posWght * linkPosAtBot;
-            weightSum += posWght;
-
-            // Create a new bounding box and add to list
-            box = new Event::TkrBoundBox();
-
-            bboxList.push_back(box);
-            
-            box->push_back(hit);
-
-            // Finish filling the box info
-            box->setBiLayer(hit->getLayer());
-            box->setLowCorner(lowEdge);
-            box->setHighCorner(highEdge);
-            box->setAveragePosition(linkPosAtBot);
-            box->setHitDensity(posWght);
-            box->setMeanDist(0.);
-            box->setRmsDist(0.);
-
-            // This to handle special case of links which skip layers
-            if (link->skipsLayers())
+            // Loop through the nodes at this bilayer 
+            for(std::vector<const Event::TkrVecNode*>::const_iterator nodeItr = nodeVec.begin(); 
+                    nodeItr != nodeVec.end(); nodeItr++)
             {
-                int breakpoint = 0;
+                // Recover the pointer to the associated node
+                const Event::TkrVecNode*       node = *nodeItr;
+                const Event::TkrVecPointsLink* link = node->getAssociatedLink();
 
-                // Reset box dimensions to average of top and bottom links
-                clusSigX = 0.5 * (hit->getXCluster()->size() + link->getFirstVecPoint()->getXCluster()->size()) * siStripPitch;
-                clusSigY = 0.5 * (hit->getYCluster()->size() + link->getFirstVecPoint()->getYCluster()->size()) * siStripPitch;
+                // Get the bottom point associated to this node
+                const Point& nodePos = link->getBotPosition();
 
-                // Loop over intervening bilayers
-                for(int lyrIdx = hit->getLayer() + 1; lyrIdx < link->getFirstVecPoint()->getLayer(); lyrIdx++)
-                {
-                    double biLayerZ   = m_tkrGeom->getLayerZ(lyrIdx);
-                    Point  biLayerPos = link->getPosition(biLayerZ);
+                // We want to weight this point by the associated links doca to the tree head position
+                // Compute the doca here
+                Vector linkToPos = startPos - nodePos;
+                double arcLen    = link->getVector().dot(linkToPos);
+                Point  docaPos   = nodePos + arcLen * link->getVector();
+                Vector docaVec   = docaPos - startPos;
+                double docaDist  = docaVec.magnitude();
+                double weight    = 1. / std::max(0.01, docaDist*docaDist);
 
-                    lowEdge.setX(linkPosAtBot.x() - clusSigX);
-                    lowEdge.setY(linkPosAtBot.y() - clusSigY);
-                    highEdge.setX(linkPosAtBot.x() + clusSigX);
-                    highEdge.setY(linkPosAtBot.y() + clusSigY);
+                // Main branch gets some respect
+//                if (node->getBiLyrs2MainBrch() < 1) weight *= 10.;
+                double dist2MainBranch = node->getBiLyrs2MainBrch() + 1;
+                
+                weight /= dist2MainBranch * dist2MainBranch;
 
-                    // Create a new bounding box and add to list
-                    box = new Event::TkrBoundBox();
-
-                    bboxList.push_back(box);
-            
-                    box->push_back(hit);
-
-                    // Finish filling the box info
-                    box->setBiLayer(lyrIdx);
-                    box->setLowCorner(lowEdge);
-                    box->setHighCorner(highEdge);
-                    box->setAveragePosition(biLayerPos);
-                    box->setHitDensity(posWght);
-                    box->setMeanDist(0.);
-                    box->setRmsDist(0.);
-                }
+                // Accumulate this information in our moments vector
+                dataVec.push_back(TkrMomentsData(nodePos, weight));
             }
         }
 
-        // Keep track of weight average position at this layer
-        if (weightSum > 0.) centroid /= weightSum;
+        // Ok, now do the moments analysis
+        TkrMomentsAnalysis momentsAnalysis;
 
-        centroidVec.push_back(centroid);
+        // Some variables we'll need
+        int numBiLayers   = topBiLayer - botBiLayer + 1;
+        int numIterations = 0;
+        int numTotal      = dataVec.size();
+        int numDropped    = 0;
+
+        // fingers crossed! 
+        double chiSq = momentsAnalysis.doMomentsAnalysis(dataVec, startPos);
+
+        // Retrieve the goodies
+        Point  momentsPosition = startPos; //momentsAnalysis.getMomentsCentroid();
+        Vector momentsAxis     = momentsAnalysis.getMomentsAxis();
+
+        // Create a new TkrFilterParams object here so we can build relational tables
+        filterParams = new Event::TkrFilterParams();
+
+        // Fill the TkrFilterParams object
+        filterParams->setEventPosition(momentsPosition);
+        filterParams->setEventAxis(momentsAxis);
+        filterParams->setStatusBit(Event::TkrFilterParams::TKRPARAMS);
+        filterParams->setNumBiLayers(numBiLayers);
+        filterParams->setNumIterations(numIterations);
+        filterParams->setNumHitsTotal(numTotal);
+        filterParams->setNumDropped(numDropped);
+
+        double aveDist     = momentsAnalysis.getAverageDistance();
+        double rmsTrans    = momentsAnalysis.getTransverseRms();
+        double rmsLong     = momentsAnalysis.getLongitudinalRms();
+        double rmsLongAsym = momentsAnalysis.getLongAsymmetry();
+        double weightSum   = momentsAnalysis.getWeightSum();
+        
+        filterParams->setChiSquare(chiSq);
+        filterParams->setAverageDistance(aveDist);
+        filterParams->setTransRms(rmsTrans);
+        filterParams->setLongRms(rmsLong);
+        filterParams->setLongRmsAsym(rmsLongAsym);
     }
-
-    return;
-}
-
-Event::TkrFilterParams* TkrTreeBuilder::doMomentsAnalysis(TkrBoundBoxList& bboxList, PointVector& centroidVec)
-{
-    // Set up to return a null pointer if nothing done
-    Event::TkrFilterParams* filterParams = 0;
-    
-    // Make sure we have enough links to do something here
-    if (bboxList.size() < 2) return filterParams;
-
-    // Begin by building a Moments Data vector
-    TkrMomentsDataVec dataVec;
-    dataVec.clear();
-
-    // We will use a grand average position as starting point to moments analysis
-    Point  tkrAvePosition = Point(0.,0.,0.);
-    double sumWeights     = 0.;
-    int    lastBiLayer    = -1;
-    int    numBiLayers    = 0;
-
-    // Scale the weights by the value of the first box in the list to try to 
-    // limit potential issues with lots of big numbers 
-    double weightSclFctr = bboxList.front()->getHitDensity();
-
-    // Now go through and build the data list for the moments analysis
-    // First loop over "bilayers"
-    // Loop through the list of links
-    for(TkrBoundBoxList::iterator boxItr = bboxList.begin(); boxItr != bboxList.end(); boxItr++)
-    {
-        Event::TkrBoundBox* box = *boxItr;
-
-        // Use the average position in the box 
-        const Point& avePos = box->getAveragePosition();
-        double       weight = box->getHitDensity() / weightSclFctr;
-
-        // Update the grand average
-        tkrAvePosition += weight * avePos;
-        sumWeights     += weight;
-
-        // Add new point to collection
-        dataVec.push_back(TkrMomentsData(avePos, weight));
-
-        // Some accounting
-        if (lastBiLayer != box->getBiLayer())
-        {
-            numBiLayers++;
-            lastBiLayer = box->getBiLayer();
-        }
-    }
-
-    // Do the average
-    tkrAvePosition /= sumWeights;
-
-    // Some statistics
-    int numIterations = 1;
-    int numTotal      = bboxList.size();
-    int numDropped    = 0;
-
-    // Recover the first point centroid
-    Point& centroid = centroidVec.front();
-
-    TkrMomentsAnalysis momentsAnalysis;
-
-    // fingers crossed! 
-    double chiSq = momentsAnalysis.doMomentsAnalysis(dataVec, centroid);
-
-    // Retrieve the goodies
-    Point  momentsPosition = centroid;
-    Vector momentsAxis     = momentsAnalysis.getMomentsAxis();
-
-    // If the moments analysis "failed" (negative chiSq) then we need to do something to 
-    // estimate the direction. So, build an axis from the first point to the mean of 
-    // the last hits, which will be the last element of the input centroidVec
-    if (chiSq < 0.)
-    {
-        Vector axisVec = centroid - centroidVec.back();
-
-        momentsAxis = axisVec.unit();
-    }
-
-    // Create a new TkrFilterParams object here so we can build relational tables
-    filterParams = new Event::TkrFilterParams();
-
-    filterParams->setEventPosition(momentsPosition);
-    filterParams->setEventAxis(momentsAxis);
-    filterParams->setStatusBit(Event::TkrFilterParams::TKRPARAMS);
-    filterParams->setNumBiLayers(numBiLayers);
-    filterParams->setNumIterations(numIterations);
-    filterParams->setNumHitsTotal(numTotal);
-    filterParams->setNumDropped(numDropped);
-    
-    double aveDist     = momentsAnalysis.getAverageDistance();
-    double rmsTrans    = momentsAnalysis.getTransverseRms();
-    double rmsLong     = momentsAnalysis.getLongitudinalRms();
-    double rmsLongAsym = momentsAnalysis.getLongAsymmetry();
-    double weightSum   = momentsAnalysis.getWeightSum();
-    
-    filterParams->setChiSquare(chiSq);
-    filterParams->setAverageDistance(aveDist);
-    filterParams->setTransRms(rmsTrans);
-    filterParams->setLongRms(rmsLong);
-    filterParams->setLongRmsAsym(rmsLongAsym);
 
     return filterParams;
 }

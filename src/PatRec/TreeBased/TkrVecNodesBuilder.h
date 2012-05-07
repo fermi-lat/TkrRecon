@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.h,v 1.9 2011/09/15 23:10:59 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.h,v 1.9.6.1 2012/01/23 18:57:17 usher Exp $
  *
 */
 
@@ -35,7 +35,8 @@ public:
     int    buildTrackElements();
 
     /// Access to the nodes collection
-    const Event::TkrVecNodeCol*         getVecNodeCol()         const {return m_headNodes;}
+//    const Event::TkrVecNodeCol*         getVecNodeCol()         const {return m_headNodes;}
+    const Event::TkrVecNodeQueue*       getVecNodeCol()         const {return m_headNodes;}
 
     /// Access to relations between points and nodes
     const Event::TkrVecPointToNodesTab* getPointsToNodesTab()   const {return m_pointsToNodesTab;}
@@ -121,7 +122,8 @@ private:
     Event::TkrVecPointsLinkInfo*     m_tkrVecPointsLinkInfo;
 
     /// Define a container for the "head" nodes
-    Event::TkrVecNodeCol*            m_headNodes;
+//    Event::TkrVecNodeCol*            m_headNodes;
+    Event::TkrVecNodeQueue*           m_headNodes;
 
     /// Define a relational table to relate nodes to points
     Event::TkrVecPointToNodesTab*    m_pointsToNodesTab;

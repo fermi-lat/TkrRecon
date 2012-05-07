@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.h,v 1.12 2011/09/02 22:48:26 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.h,v 1.13 2011/10/18 20:24:02 usher Exp $
  *
 */
 
@@ -43,9 +43,8 @@ private:
     /// Make the TkrTree given a head node
     Event::TkrTree* makeTkrTree(Event::TkrVecNode* headNode);
 
-    /// Recursive traversal of the node tree to build the "sibling map"
+    /// Non recursive traversal of the node tree to build the "sibling map"
     int makeSiblingMap(Event::TkrVecNode*        headNode, 
-                       int                       toMainBranch,
                        Event::TkrNodeSiblingMap* siblingMap);
 
     /// Used to set the best and next best branch bits after leaf finding
@@ -55,9 +54,7 @@ private:
     typedef std::list<Event::TkrBoundBox*> TkrBoundBoxList;
     typedef std::vector<Point>             PointVector;
 
-    void findTreeAxis(Event::TkrNodeSiblingMap* siblingMap, TkrBoundBoxList& bboxList, PointVector& centroidVec);
-
-    Event::TkrFilterParams* doMomentsAnalysis(TkrBoundBoxList& bboxList, PointVector& centroidVec);
+    Event::TkrFilterParams* findTreeAxis(Event::TkrNodeSiblingMap* siblingMap);
 
     /// TkrVecNodesBuilder
     TkrVecNodesBuilder&    m_vecNodesBldr;

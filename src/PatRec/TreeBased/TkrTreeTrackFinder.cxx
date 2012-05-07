@@ -293,8 +293,10 @@ public:
     const bool operator()(const Event::TkrVecNode* left, const Event::TkrVecNode* right) const
     {
         // Most number of bilayers wins (longest)
-        if      (left->getBiLyrs2MainBrch() > right->getBiLyrs2MainBrch()) return true;
-        else if (left->getBiLyrs2MainBrch() < right->getBiLyrs2MainBrch()) return false;
+//        if      (left->getBiLyrs2MainBrch() > right->getBiLyrs2MainBrch()) return true;
+//        else if (left->getBiLyrs2MainBrch() < right->getBiLyrs2MainBrch()) return false;
+        if      (left->getBiLyrs2MainBrch() < right->getBiLyrs2MainBrch()) return true;
+        else if (left->getBiLyrs2MainBrch() > right->getBiLyrs2MainBrch()) return false;
 
         // Nothing else left but straightest
         // Use the scaled rms angle to determine straightest...

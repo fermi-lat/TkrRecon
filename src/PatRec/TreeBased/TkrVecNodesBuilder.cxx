@@ -5,7 +5,11 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.24 2011/12/05 03:54:27 usher Exp $
+<<<<<<< TkrVecNodesBuilder.cxx
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.23.4.1 2012/01/23 18:57:17 usher Exp $
+=======
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.23.4.1 2012/01/23 18:57:17 usher Exp $
+>>>>>>> 1.10
  *
 */
 
@@ -15,9 +19,9 @@
 
 #include <iterator>
 
-TkrVecNodesBuilder::TkrVecNodesBuilder(IDataProviderSvc*        dataSvc, 
-                                       ITkrGeometrySvc*         geoSvc)
-                        : m_tkrGeom(geoSvc)
+TkrVecNodesBuilder::TkrVecNodesBuilder(IDataProviderSvc* dataSvc, 
+                                       ITkrGeometrySvc*  geoSvc)
+                                       : m_tkrGeom(geoSvc)
 {
     // Retrieve the TkrVecPointInfo and TkrVecPointsLinkInfo objects from the TDS
     // They are assumed be gauranteed to exist
@@ -28,8 +32,9 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(IDataProviderSvc*        dataSvc,
     static std::string tkrVecNodeCol = "/Event/TkrRecon/TkrVecNodeCol";
 
     // Get a new head node collection for the TDS
-    m_headNodes = new Event::TkrVecNodeCol();
-    m_headNodes->clear();
+//    m_headNodes = new Event::TkrVecNodeCol();
+    m_headNodes = new Event::TkrVecNodeQueue();
+//    m_headNodes->clear();
 
     // And store in the TDS
     StatusCode sc = dataSvc->registerObject(tkrVecNodeCol, m_headNodes);
@@ -172,6 +177,10 @@ int TkrVecNodesBuilder::buildTrackElements()
             // Get the TkrVecPoint
             const Event::TkrVecPoint* firstPoint = *tkrVecPointItr;
 
+            // Don't consider points from which we can't reasonably imagine starting...
+            if (!firstPoint->isAssociated()) continue;
+//            if (firstPoint->isPrntLinkBotHit()) continue;
+
             // Associate links from this point to trees
             associateLinksToTrees(headNodes, firstPoint);
         }
@@ -199,9 +208,22 @@ int TkrVecNodesBuilder::buildTrackElements()
             keepNode = true;
         }
         
+        // Test priority queue
+        if (keepNode) m_headNodes->push(headNode);
+
         // Is this a keeper?
-        if (keepNode) m_headNodes->push_back(headNode);
+//        if (keepNode) m_headNodes->push_back(headNode);
         else          deleteNode(headNode);
+
+        // quick test to be discarded
+        if (keepNode)
+        {
+            int nNodesInTree   = headNode->getNumNodesInTree();
+            int nThinClusters  = headNode->getNumThinNodesInTree();
+            int nThickClusters = headNode->getNumThickNodesInTree();
+            int nBlankClusters = headNode->getNumBlankNodesInTree();
+            int rawhide = 0;
+        }
 
         headVecItr++;
     }
@@ -209,7 +231,7 @@ int TkrVecNodesBuilder::buildTrackElements()
     headNodes.clear();
 
     // Sort the final list
-    std::sort(m_headNodes->begin(), m_headNodes->end(), Event::TkrVecNodesComparator());
+//    std::sort(m_headNodes->begin(), m_headNodes->end(), Event::TkrVecNodesComparator());
 
     return 1;
 }
@@ -262,8 +284,6 @@ private:
 void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, const Event::TkrVecPoint* point)
 {
     // First step is to retrieve all relations between this point and links starting at it
-//    std::vector<Event::TkrVecPointToLinksRel*> pointToLinkVec = 
-//               m_vecPointLinksBldr.getPointToLinksTab()->getRelByFirst(point);
     std::vector<Event::TkrVecPointToLinksRel*> pointToLinkVec = 
                m_tkrVecPointsLinkInfo->getTkrVecPointToLinksTab()->getRelByFirst(point);
 
@@ -599,7 +619,8 @@ double TkrVecNodesBuilder::checkNodeLinkAssociation(Event::TkrVecNode* curNode, 
         double angleToNode = curLink->angleToNextLink(*curNode->getAssociatedLink());
 
         // Check the special case of a potential kink at the head of a tree
-        if (curNode->getTreeStartLayer() == curNode->getCurrentBiLayer())
+//        if (curNode->getTreeStartLayer() == curNode->getCurrentBiLayer())
+        if (!curNode->getAssociatedLink()->getFirstVecPoint()->isPrntLinkBotHit())
         {
             // Change this to the angle cut above
             double cosLinkAng = curNode->getAssociatedLink()->getVector().dot(curLink->getVector());
@@ -802,6 +823,14 @@ bool TkrVecNodesBuilder::betterClusterMatch(Event::TkrVecNode*                  
 bool TkrVecNodesBuilder::goodStartPoint(const Event::TkrVecPoint* point)
 {
     bool goodPoint = true;
+
+    // Check that this point either is not a "bottom point" or, if it is, 
+    // if the associated "top point" is not a bottom point
+    if (point->isPrntLinkBotHit())
+    {
+        goodPoint = false;
+        return goodPoint;
+    }
 
     // We check for shared clusters on the proposed point and only allow a new head node
     // if no sharing or the "other" node is of about the same length
