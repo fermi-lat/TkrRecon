@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Mon May  7 16:04:43 PDT 2012
+TkrRecon/src/test
+
+Modified Files:
+	test_TkrRecon.cxx 
+Log Message:
+Also modify test_TkrRecon so it does not fail when attempting to look for non-existent vertices
+    *
+------------------------------------------------------------
+User: usher  Mon May  7 16:04:43 PDT 2012
 TkrRecon/src/PatRec/TreeBased
 
 Modified Files:
