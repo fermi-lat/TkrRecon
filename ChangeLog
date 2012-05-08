@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue May  8 15:10:09 PDT 2012
+TkrRecon
+
+Modified Files:
+	SConscript 
+Log Message:
+Preparing to tag TkrRecon-10-30-02
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-17-35-24-gr31, operation: add
 Package: TkrRecon
