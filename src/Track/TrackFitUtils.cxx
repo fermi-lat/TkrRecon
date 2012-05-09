@@ -391,7 +391,7 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
     //        - use last cluster size as indicator of range-out
     // If it's too wide, the particle has straggled
 
-    double range_limit = 100000.;  // 100 GeV max...
+    double range_limit;
     if(m_control->getTestWideClusters()) {
         double aspectRatio = m_tkrGeom->siStripPitch()/m_tkrGeom->siThickness();
         double prj_size_x = (fabs(sX)/aspectRatio) + 1.;
@@ -403,7 +403,7 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
         }
     }
 
-    double kalEnergy  = track.getInitialEnergy();
+    double kalEnergy  = 0.;
     double kalEneErr  = 10000.;
     double thetaMS    = 0.;
     double rawThetaMS = 0.;
@@ -415,8 +415,8 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
         // convert back to kinetic energy
         // do something about log(radLen) later?
         kalEnergy  = m_hitEnergy->pBetaToKinE(13.6 / e_inv);
-        kalEnergy  = std::max(kalEnergy, m_control->getMinEnergy()/3.); 
-        kalEnergy  = std::min(kalEnergy, range_limit);
+        //kalEnergy  = std::max(kalEnergy, m_control->getMinEnergy()/3.); 
+        //kalEnergy  = std::min(kalEnergy, range_limit);
         kalEneErr  = kalEnergy/sqrt(eSumCount);
         thetaMS    = sqrt(thetaSum/tSumCount);
         rawThetaMS = sqrt(rawThetaSum/tSumCount);
@@ -425,6 +425,7 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
     track.setKalThetaMS(rawThetaMS);
     track.setKalEnergy(kalEnergy); //Units MeV
     track.setKalEnergyError(kalEneErr);
+    track.setRangeEnergy(range_limit);
 }
 
 double TrackFitUtils::computeChiSqSegment(const Event::TkrTrack& track, int nhits, Event::TkrTrackHit::ParamType typ)
