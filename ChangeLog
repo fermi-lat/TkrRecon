@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed May  9 09:02:44 PDT 2012
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeBuilder.cxx 
+Log Message:
+Fix linux compile time error
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-31-00, operation: add
 Package: TkrRecon
