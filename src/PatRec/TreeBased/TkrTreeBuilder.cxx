@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.27 2011/10/18 20:24:02 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.28 2012/05/07 23:04:43 usher Exp $
  *
 */
 
@@ -22,28 +22,7 @@
 
 #include <iterator>
 
-#include <hash_map>
 #include <stack>
-
-template <typename T> struct hashPointer
-{
-    static const size_t bucket_size = 4;
-    static const size_t min_buckets = 8;
-
-    size_t operator()(const T& key)                   const 
-    {
-        stdext::hash_compare<size_t> hash;
-
-        size_t keyToInt = reinterpret_cast<size_t>(key);
-
-        return hash(keyToInt);
-    }
-
-    bool   operator()(const T& left, const T& right) const
-    {
-        return true;
-    }
-};
 
 TkrTreeBuilder::TkrTreeBuilder(TkrVecNodesBuilder&    vecNodesBldr,
                                IDataProviderSvc*      dataSvc, 
