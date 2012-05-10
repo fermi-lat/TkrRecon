@@ -9,7 +9,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrMomentsAnalysis.h,v 1.3 2009/09/09 19:34:32 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrMomentsAnalysis.h,v 1.4 2011/04/21 18:53:17 usher Exp $
  */
 
 #include "geometry/Ray.h"
@@ -24,13 +24,14 @@ public:
     //       attempts to make the class independent of the actual Tkr data objects used
     //       Minimum constructor requires position and weight for the data point
     TkrMomentsData(const Point& point, const double weight, const double distToAxis=0.) :
-                   m_useFlag(true), m_point(point), m_weight(weight), m_distToAxis(distToAxis) {};
+                   m_useFlag(true), m_point(point), m_weight(weight), m_distToAxis(distToAxis), m_chiSquare(0.) {};
     ~TkrMomentsData() {}
 
     //@brief Provides access to data
     const Point&  getPoint()      const {return m_point;}
     const double  getWeight()     const {return m_weight;}
     const double  getDistToAxis() const {return m_distToAxis;}
+    const double  getChiSquare()  const {return m_chiSquare;}
     bool          useIt()               {return m_useFlag;}
 
     //@brief Provides "set" functions
@@ -53,6 +54,8 @@ private:
     double m_weight;
     // The distance from the "axis" of this point
     double m_distToAxis;
+    // Store the "chisquare" contribution here
+    double m_chiSquare;
 };
 
 typedef std::vector<TkrMomentsData> TkrMomentsDataVec;
