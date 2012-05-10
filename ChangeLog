@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu May 10 16:30:18 PDT 2012
+TkrRecon/src/Filter
+
+Modified Files:
+	TkrMomentsAnalysis.cxx TkrMomentsAnalysis.h 
+Log Message:
+Further improvement to tree axis calculation, also turn on iterative moments analysis for tree axis.
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-31-01, operation: add
 Package: TkrRecon
