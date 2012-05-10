@@ -1,7 +1,7 @@
 /**
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrMomentsAnalysis.cxx,v 1.2 2006/03/21 01:12:34 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrMomentsAnalysis.cxx,v 1.3 2011/04/21 18:53:17 usher Exp $
  */
 
 #include "src/Filter/TkrMomentsAnalysis.h"
@@ -134,21 +134,24 @@ double TkrMomentsAnalysis::doMomentsAnalysis(TkrMomentsDataVec& dataVec, const P
 
         // "Chi-squared" = weighted sum of residuals about principal axis, through centroid, using input weight
         double aveDist = 0.;
+        double invDist = 0.;
 
         chisq = 0.;
         for(TkrMomentsDataVec::iterator vecIter = dataVec.begin(); vecIter != dataVec.end(); vecIter++)
         {
             TkrMomentsData& dataPoint = *vecIter;
 
-            double distToAxis = dataPoint.calcDistToAxis(m_centroid,m_axis[1]);
+            double distToAxis = dataPoint.calcDistToAxis(iniCentroid, m_axis[1]);
             double weight     = dataPoint.getWeight();
 
+            invDist += distToAxis / weight;
             aveDist += distToAxis;
-            chisq   += weight * distToAxis * distToAxis;
+            chisq   += dataPoint.getChiSquare();
         }
 
         // STkre by number of data points
-        aveDist /= m_weightSum;
+        invDist *= m_weightSum;
+        aveDist /= int(dataVec.size());
         chisq   /= m_weightSum * dataVec.size();
 
         // Final Tkrculations to return moment of principal axis and average of other two
@@ -177,6 +180,9 @@ double TkrMomentsAnalysis::doIterativeMomentsAnalysis(TkrMomentsDataVec dataVec,
     // Set the data centroid
     Point centroid = inputCentroid;
 
+    // Internal scale factor for dropping points
+    double cFactor = 1.;  // First loop through "always" drop the last point
+
     // Iterate until either failure (chiSq < 0) or all remaining data points 
     // are within "range" of axis
     while(iterate)
@@ -193,18 +199,19 @@ double TkrMomentsAnalysis::doIterativeMomentsAnalysis(TkrMomentsDataVec dataVec,
         // Update global chi-square to pick up this iteration's value
         chiSq = loTkrChiSq;
 
-        // Update the centroid for subsequent passes
-        centroid = getMomentsCentroid();
+        // if under 10 points remaining then halt the iterations
+        if (dataVec.size() < 10) break;
 
         // Get the transverse moment
-        double rmsTrans = getTransverseRms();
-
-        // Convert to distance by sTkring with the sum of the weights 
-        // and taking the square root
-        rmsTrans = sqrt(rmsTrans / m_weightSum);
+        double aveDist = getAverageDistance();
 
         // Sort the data points by their distance from the principal axis
         std::sort(dataVec.begin(), dataVec.end());
+
+        // Find the 68% point
+        int    nPoints = dataVec.size();
+        int    idx68   = std::floor(0.68 * nPoints);
+        double dist68  = dataVec[idx68].getDistToAxis();
 
         // Assume all data within range
         iterate = false;
@@ -218,10 +225,16 @@ double TkrMomentsAnalysis::doIterativeMomentsAnalysis(TkrMomentsDataVec dataVec,
             TkrMomentsData& momentsData = dataVec.back();
 
             // If out of range drop this point and loop back to check again
-            if (momentsData.getDistToAxis() > sTkreFactor * rmsTrans)
+//            if (momentsData.getDistToAxis() > sTkreFactor * aveDist)
+
+            // Compare back element to 68% point
+            double backDist = momentsData.getDistToAxis();
+
+            if (backDist / dist68 > cFactor)
             {
                 dataVec.pop_back();
                 iterate = true;
+                cFactor = sTkreFactor;
                 m_numDroppedPoints++;
             }
             else break;
@@ -242,12 +255,8 @@ double TkrMomentsData::calcDistToAxis(const Point& centroid, const Vector& axis)
     Vector diffVec   = centroid - m_point;
     Vector crossProd = axis.cross(diffVec);
 
-    return m_distToAxis = crossProd.mag();
-//
-//    double testLen = crossProd.mag();
-//
-//    double arcLen = (m_point.z() - centroid.z()) / axis.z();
-//    Vector delta  = centroid - m_point + arcLen * axis;
-//
-//    return m_distToAxis = delta.mag();
+    m_distToAxis = crossProd.mag();
+    m_chiSquare  = m_weight * m_distToAxis * m_distToAxis;
+
+    return m_distToAxis;
 }
