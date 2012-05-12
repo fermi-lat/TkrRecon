@@ -154,7 +154,7 @@ void TrackFitUtils::finish(Event::TkrTrack& track)
             Event::TkrTrackHit* hit = *hitPtr;
             rad_len += hit->getRadLen(); 
 
-            if(plane_count > 6 && !quit_first) { /// NEED TO RAISE THE MIN. from 4 to 6
+            if(plane_count >= 6 && !quit_first) { /// NEED TO RAISE THE MIN. from 4 to 6
                 double arc_len  = (z0- hit->getZPlane())*cos_inv; 
                 double theta_ms = 13.6/start_energy * sqrt(rad_len) *
                     (1. + .038*log(rad_len));
@@ -288,6 +288,8 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
     Event::TkrTrackHitVecItr hitIter = track.begin();
     HitStuffVecIter layerIter = layerVec.begin();
 
+    int lastPlane = -1;
+
     idents::TkrId hitId   = (*hitIter)->getTkrId();
     double initialPBeta = m_hitEnergy->kinETopBeta((*hitIter)->getEnergy());
     double sX = 0.0, sY = 0.0;
@@ -297,8 +299,10 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
         const Event::TkrTrackHit& hit   = **hitIter;
         bool hitOnFit = ((hit.getStatusBits() & Event::TkrTrackHit::HITONFIT)!=0);
         totalRadLen += hit.getRadLen();
-        if (!(hitOnFit && hit.validSmoothedHit())) continue;
+        //if (!(hitOnFit && hit.validSmoothedHit())) continue;
         //if(!hit.getClusterPtr()) continue;
+        
+        lastPlane = m_tkrGeom->getPlane(hitId);
 
         idents::TkrId newHitId   = hit.getTkrId();
         if(m_tkrGeom->getLayer(hitId)!=m_tkrGeom->getLayer(newHitId)) layerIter++;
@@ -306,21 +310,24 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
         HitStuff& thisLayer = *layerIter;
         thisLayer.m_sX     += hit.getTrackParams(hitType).getxSlope();
         thisLayer.m_sY     += hit.getTrackParams(hitType).getySlope();
+        thisLayer.m_hasKink = (hit.getStatusBits()&(Event::TkrTrackHit::HITHASKINKANG))>0;
         thisLayer.m_radLen += hit.getRadLen();
         thisLayer.m_z       = m_tkrGeom->getLayerZ(newHitId);
         thisLayer.m_count  += 1;
 
         int size = 0;
         if (hit.getClusterPtr()) size = (int) (hit.getClusterPtr())->size();
-        //double zHit = hit.getZPlane();
-        if (newHitId.getView()==idents::TkrId::eMeasureX) {
-            thisLayer.m_hasXHit = true;
-            xClustSize = size;
-            sX = thisLayer.m_sX;
-        } else {
-            thisLayer.m_hasYHit = true;
-            yClustSize = size; 
-            sY = thisLayer.m_sY;
+        if(size>0) {
+            //double zHit = hit.getZPlane();
+            if (newHitId.getView()==idents::TkrId::eMeasureX) {
+                thisLayer.m_hasXHit = true;
+                xClustSize = size;
+                sX = thisLayer.m_sX;
+            } else {
+                thisLayer.m_hasYHit = true;
+                yClustSize = size; 
+                sY = thisLayer.m_sY;
+            }
         }
         hitId = newHitId;
         thisLayer.m_pBeta = m_hitEnergy->kinETopBeta(hit.getEnergy());
@@ -335,6 +342,7 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
     double eneSum      = 0.;
     double thetaSum    = 0.;
     double rawThetaSum = 0.;
+    double minThetaSum = 0;
     double eSumCount   = 0.;
     double tSumCount   = 0.;
 
@@ -343,6 +351,9 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
         HitStuff thisLayer = *layerIter;
         HitStuff prevLayer = *(layerIter-1);
         HitStuff nextLayer = *(layerIter+1);
+        //if(thisLayer.m_hasKink) {
+        //    break;
+        //}
 
         // this is probably way too complicated
         // no measurement unless adjacent layers have hits of the same flavor
@@ -350,40 +361,47 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
         double weight = 0.0;
         bool doX = (thisLayer.m_hasXHit && prevLayer.m_hasXHit && nextLayer.m_hasXHit);
         bool doY = (thisLayer.m_hasYHit && prevLayer.m_hasYHit && nextLayer.m_hasYHit);
-        if(doX && doY) {
+        if((doX || doY)&&thisLayer.m_radLen>0.001) {
             // take a measurement at this point
             // weight by number of measurable kinks (no kink if no hit!)
             if (thisLayer.m_hasXHit) weight += 1.0;
             if (thisLayer.m_hasYHit) weight += 1.0;
+            //if (doX) weight += 1.0;  // is this better?
+            //if (doY) weight += 1.0;
         }
         if(weight==0.0) continue;
 
         Vector t0 = prevLayer.getDir();
         Vector t1 = thisLayer.getDir();
-        double rawTheta = acos(t0*t1);
+        double rawTheta = acos(std::min(1.0,t0*t1));
         double d1Inv    = 1./fabs(thisLayer.m_z - prevLayer.m_z);
         double d2Inv    = 1./fabs(nextLayer.m_z - thisLayer.m_z);
         double dInv     = d1Inv + d2Inv;
         double minTheta = 0.5*measError*sqrt(d1Inv*d1Inv + d2Inv*d2Inv + dInv*dInv);
 
-        // we can't measure any kink less than minTheta
+        // we can't measure any kink less than a fraction of minTheta
         double theta = std::max(minTheta, rawTheta);
+        double theta2 = theta*theta;
 
         radLen = thisLayer.m_radLen;
-        totalRadLen += radLen;
+        //totalRadLen += radLen;
 
         // this looks like it depends on the energy, but not really
         //  for electrons, it's just exp(-radlen)
         //  for muons and hadrons, energy loss is usually small compared to energy
         //    so energy comes in weakly
         double e_factor = thisLayer.m_pBeta/initialPBeta;   
+        double e_factor2 = e_factor*e_factor;
         double rl_factor = radLen;  //*(1 + 0.038*log(radLen));
+        double rawTheta2 = rawTheta*rawTheta;
+        double minTheta2 = minTheta*minTheta;
         if(weight>0.) {
             eSumCount   += weight; 
             tSumCount   += weight/rl_factor; 
-            eneSum      += weight*(theta * e_factor)*(theta * e_factor)/rl_factor; 
-            thetaSum    += weight * theta * theta /rl_factor; 
-            rawThetaSum += weight * rawTheta * rawTheta / rl_factor;
+            eneSum      += weight * theta2 * e_factor2 /rl_factor; 
+            thetaSum    += weight * theta2 /rl_factor; 
+            rawThetaSum += weight * rawTheta2 / rl_factor;
+            minThetaSum += minTheta2 * e_factor2 / rl_factor;
         }
     }
 
@@ -391,8 +409,8 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
     //        - use last cluster size as indicator of range-out
     // If it's too wide, the particle has straggled
 
-    double range_limit;
-    if(m_control->getTestWideClusters()) {
+    double range_limit = 0.0;
+    if(m_control->getTestWideClusters() && lastPlane>0) {
         double aspectRatio = m_tkrGeom->siStripPitch()/m_tkrGeom->siThickness();
         double prj_size_x = (fabs(sX)/aspectRatio) + 1.;
         double prj_size_y = (fabs(sY)/aspectRatio) + 1.;
@@ -410,7 +428,9 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
 
     if (eSumCount > 0)
     {
-        double e_inv = sqrt(eneSum/eSumCount);
+        double e_minInv = sqrt(minThetaSum)/eSumCount;
+        double minEne = m_hitEnergy->pBetaToKinE(13.6/e_minInv);
+        double e_inv = std::max(0.02*e_minInv, sqrt(eneSum/eSumCount));
 
         // convert back to kinetic energy
         // do something about log(radLen) later?
@@ -449,7 +469,8 @@ double TrackFitUtils::computeChiSqSegment(const Event::TkrTrack& track, int nhit
         for (int ihit=0; ihit<nhits; ihit++) chi2 += track[ihit]->getChiSquareSmooth();
     }
 
-    chi2 /= (1.*nhits - 4.);   //NEW: make this DoFs not just hits
+    //chi2 /= (1.*nhits);  
+    chi2 /= std::max(1.,(1.*nhits - 4.));   //NEW: make this DoFs not just hits
     return chi2;
 }
 
@@ -632,7 +653,7 @@ double TrackFitUtils::firstKinkNorm(Event::TkrTrack& track)
         rad_len += hit->getRadLen();
         hitPtr++;
     }
-    double kink_angle = acos(t0*t1);
+    double kink_angle = acos(std::max(1.,t0*t1));
     double mscat_angle = 13.6 * sqrt(rad_len) * ( 1 + .038*log(rad_len))*
         1.414 /energy; 
     return kink_angle/mscat_angle;

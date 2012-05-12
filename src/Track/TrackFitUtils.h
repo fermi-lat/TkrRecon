@@ -13,7 +13,7 @@
   *
   * @author Tracy Usher (as editor instead of author)
   *
-  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TrackFitUtils.h,v 1.11 2005/02/06 23:16:10 lsrea Exp $
+  * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TrackFitUtils.h,v 1.12 2005/05/11 04:14:34 lsrea Exp $
 */
 
 #ifndef __TrackFitUtils_H
@@ -74,7 +74,7 @@ public:
     class HitStuff {
     public:
         HitStuff() : m_sX(0.0), m_sY(0.0), m_radLen(0.0), m_count(0), 
-            m_hasXHit(false), m_hasYHit(false), m_z(0.0), m_pBeta(0.0) {}
+            m_hasXHit(false), m_hasYHit(false), m_hasKink(false), m_z(0.0), m_pBeta(0.0) {}
 
         double m_sX;
         double m_sY;
@@ -82,6 +82,7 @@ public:
         int    m_count;
         bool   m_hasXHit;
         bool   m_hasYHit;
+        bool   m_hasKink;
         double m_z;
         double m_pBeta;
 
