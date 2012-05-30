@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Wed May 30 08:35:57 PDT 2012
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeBasedTool.cxx 
+Added Files:
+	ITkrTreeTrackFinder.h TkrTreeTrackFinderTool.cxx 
+Log Message:
+"Toolify" the track extraction from trees and rework to provide option to either return tracks from best branches -or- use tree axis to seed the hit finder. So... a bit experimental at the moment...
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-17-35-24-lp28, operation: add
 Package: TkrRecon
