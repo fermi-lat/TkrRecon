@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.27 2011/12/12 20:57:12 heather Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.28 2012/04/25 04:54:35 heather Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -39,7 +39,7 @@
 #include "../VectorLinks/ITkrVecPointLinksBuilder.h"
 #include "TkrVecNodesBuilder.h"
 #include "TkrTreeBuilder.h"
-#include "TkrTreeTrackFinder.h"
+#include "ITkrTreeTrackFinder.h"
 #include "TreeCalClusterAssociator.h"
 
 //Exception handler
@@ -98,6 +98,9 @@ private:
 
     /// Link builder tool
     ITkrVecPointsLinkBuilder*  m_linkBuilder;
+
+    /// For extracting tracks from trees
+    ITkrTreeTrackFinder*       m_tkrTrackFinder;
 
     /// Minimum energy
     double                     m_minEnergy;
@@ -201,6 +204,11 @@ StatusCode TreeBasedTool::initialize()
         throw GaudiException("ToolSvc could not find TkrVecLinkBuilderTool", name(), sc);
     }
   
+    if( (sc = toolSvc()->retrieveTool("TkrTreeTrackFinderTool", "TkrTreeTrackFinderTool", m_tkrTrackFinder)).isFailure() )
+    {
+        throw GaudiException("ToolSvc could not find TkrTreeTrackFinderTool", name(), sc);
+    }
+
     // Get the Glast Det Service
     if( serviceLocator() ) 
     {   
@@ -368,14 +376,6 @@ StatusCode TreeBasedTool::firstPass()
                 if (Event::TkrTreeCol* treeCol = tkrTreeBldr.buildTrees())
                 {
                     // STEP FIVE: Extract tracks from the trees - the complicated step!
-                    // Set up to find the tracks in each of the trees
-                    TkrTreeTrackFinder tkrTreeFinder(m_dataSvc, 
-                                                     m_tkrGeom, 
-                                                     m_clusTool, 
-                                                     m_trackFitTool, 
-                                                     m_findHitsTool, 
-                                                     m_clusterCol);
-
                     // If associating clusters to tracks, do it here
                     if (m_associateClusters)
                     {
@@ -521,14 +521,6 @@ StatusCode TreeBasedTool::secondPass()
     Event::CalClusterCol*     calClusterCol = SmartDataPtr<Event::CalClusterCol>(m_dataSvc,    EventModel::CalRecon::CalClusterCol);
     Event::CalEventEnergyMap* calEnergyMap  = SmartDataPtr<Event::CalEventEnergyMap>(m_dataSvc,EventModel::CalRecon::CalEventEnergyMap);
 
-    // Now get an instance of the object which will be used to extract the tracks from a given tree
-    TkrTreeTrackFinder tkrTreeFinder(m_dataSvc, 
-                                     m_tkrGeom, 
-                                     m_clusTool, 
-                                     m_trackFitTool, 
-                                     m_findHitsTool, 
-                                     m_clusterCol);
-
     // Also retrieve a pointer to the tree to cluster association map (if there)
     Event::ClusterToRelationMap* clusterToRelationMap = SmartDataPtr<Event::ClusterToRelationMap>(m_dataSvc, EventModel::Recon::ClusterToRelationMap);
 
@@ -578,7 +570,7 @@ StatusCode TreeBasedTool::secondPass()
                     // the energy assigned to it
                     //if (treeClusItr != treeClusVec.begin()) energy = m_minEnergy;
             
-                    int numTracks = tkrTreeFinder.findTracks(tree, energy);
+                    int numTracks = m_tkrTrackFinder->findTracks(tree, energy);
             
                     // We should abandon any trees with no tracks
                     if (numTracks > 0)
@@ -615,7 +607,7 @@ StatusCode TreeBasedTool::secondPass()
                 Event::TkrTree* tree   = relation->getTree();
                 double          energy = relation->getClusEnergy();
             
-                int numTracks = tkrTreeFinder.findTracks(tree, energy);
+                int numTracks = m_tkrTrackFinder->findTracks(tree, energy);
             
                 // We should abandon any trees with no tracks
                 if (numTracks > 0)
@@ -649,7 +641,7 @@ StatusCode TreeBasedTool::secondPass()
         {
             Event::TkrTree* tree = *treeItr;
 
-            int numTracks = tkrTreeFinder.findTracks(tree, energy);
+            int numTracks = m_tkrTrackFinder->findTracks(tree, energy);
 
             // We should abandon any trees with no tracks
             if (numTracks > 0)
