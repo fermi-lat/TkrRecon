@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed May 30 08:37:07 PDT 2012
+TkrRecon/src/PatRec/TreeBased
+
+Removed Files:
+	TkrTreeTrackFinder.cxx TkrTreeTrackFinder.h 
+Log Message:
+Track extraction has been "toolified", removing obsolete versions
+    *
+------------------------------------------------------------
 User: usher  Wed May 30 08:35:57 PDT 2012
 TkrRecon/src/PatRec/TreeBased
 
