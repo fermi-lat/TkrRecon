@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinder.cxx,v 1.5 2012/05/07 23:04:43 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.1 2012/05/30 15:35:57 usher Exp $
  *
 */
 #include "ITkrTreeTrackFinder.h"
@@ -39,9 +39,13 @@ public:
     {
         bool order = false;
 
+        // Recover distances to main branch (remembering that if 0 it IS the main branch)
+        int leftDistToMain  = left->getBiLyrs2MainBrch()  > 0 ? left->getBiLyrs2MainBrch()  : 100000;
+        int rightDistToMain = right->getBiLyrs2MainBrch() > 0 ? right->getBiLyrs2MainBrch() : 100000;
+
         // Most number of bilayers wins (longest)
-        if      (left->getBiLyrs2MainBrch() < right->getBiLyrs2MainBrch()) order = true;
-        else if (left->getBiLyrs2MainBrch() > right->getBiLyrs2MainBrch()) order = false;
+        if      (leftDistToMain > rightDistToMain) order = true;
+        else if (leftDistToMain < rightDistToMain) order = false;
         else
         {
             // Nothing else left but straightest
@@ -90,7 +94,7 @@ private:
                     const Event::TkrNodeSiblingMap* siblingMap);
 
     /// This will return a pointer to the "next" leaf which will make a unique track
-    Event::TkrVecNode* findBestLeaf(TkrVecNodeLeafQueue& leafQueue);
+    Event::TkrVecNode* findBestLeaf(TkrVecNodeLeafQueue& leafQueue, bool firstBranch = true);
 
     /// Used to set the best and next best branch bits after leaf finding
     void setBranchBits(Event::TkrVecNode* node, bool isMainBranch);
@@ -117,7 +121,7 @@ private:
     TkrInitParams getInitialParams(BuildTkrTrack::CandTrackHitVec& clusVec);
 
     /// Use this to flag the used clusters as they get used by found tracks
-    void flagUsedClusters(UsedClusterList& usedClusters);
+    void flagUsedClusters(Event::TkrTrack* track);
 
     /// Use this to flag all clusters in a given tree (as the last step)
     void flagAllUsedClusters(const Event::TkrTree* tree);
@@ -161,6 +165,9 @@ private:
     /// Parameter used in track hit finding determing maximum consecutive gaps
     int                    m_maxConsecutiveGaps;
 
+    /// Parameter used for determining the fraction of unique hits on second tracks
+    double                 m_fracUniqueHits;
+
     /// Parameter used to control fraction of energy given to the first track
     double                 m_frstTrackEnergyScaleFctr;
 
@@ -188,6 +195,7 @@ TkrTreeTrackFinderTool::TkrTreeTrackFinderTool(const std::string& type, const st
     declareProperty("MaxConsecutiveGaps",       m_maxConsecutiveGaps       = 1);
     declareProperty("FirstTrackEnergyFrac",     m_frstTrackEnergyScaleFctr = 0.75);
     declareProperty("SecondTrackEnergyFrac",    m_scndTrackEnergyScaleFctr = 0.25);
+    declareProperty("FractionUniqueHits",       m_fracUniqueHits           = 0.49);
 
     return;
 }
@@ -273,17 +281,19 @@ int TkrTreeTrackFinderTool::findTracksFromBranches(Event::TkrTree* tree, double 
             UsedClusterList usedClusters;
 
             // The "best" track ends at the first leaf in our leaf set
-            Event::TkrVecNode* firstLeafNode = leafQueue.top();
+            Event::TkrVecNode* firstLeafNode = findBestLeaf(leafQueue); //leafQueue.top();
             Event::TkrVecNode* nextLeafNode  = 0;
+            Event::TkrTrack*   trackBest     = 0;
 
             // Testing testing testing 1, 2, 3 ...
-            Event::TkrTrack* trackBest = getTkrTrackFromLeaf(firstLeafNode, m_frstTrackEnergyScaleFctr * trackEnergy, usedClusters);
+            if (firstLeafNode) 
+                trackBest = getTkrTrackFromLeaf(firstLeafNode, m_frstTrackEnergyScaleFctr * trackEnergy, usedClusters);
 
             // At this point we need to see if we have a track, if not no sense in proceeding
             if (trackBest)
             {
                 // Flag the used clusters
-                flagUsedClusters(usedClusters);
+                flagUsedClusters(trackBest);
         
                 // If the "best" track is the better track then we need to look for a 
                 // second track. This will be signalled by our track not having the
@@ -297,7 +307,7 @@ int TkrTreeTrackFinderTool::findTracksFromBranches(Event::TkrTree* tree, double 
 
                     // Composite track was not better, now look for the possibility 
                     // of a second track in the tree
-                    nextLeafNode = findBestLeaf(leafQueue);
+                    nextLeafNode = findBestLeaf(leafQueue, false);
         
                     // List of clusters we used
                     UsedClusterList nextUsedClusters;
@@ -319,7 +329,7 @@ int TkrTreeTrackFinderTool::findTracksFromBranches(Event::TkrTree* tree, double 
                         }
                         else
                         {
-                            flagUsedClusters(nextUsedClusters);
+                            flagUsedClusters(trackNextBest);
                             setBranchBits(nextLeafNode, false);
                         }
                     }
@@ -385,7 +395,7 @@ int TkrTreeTrackFinderTool::findTracksFromHits(Event::TkrTree* tree, double trac
         if (track)
         {
             // Flag the used clusters
-            flagUsedClusters(usedClusters);
+            flagUsedClusters(track);
 
             // Clear the list so we can use it again
             usedClusters.clear();
@@ -407,7 +417,7 @@ int TkrTreeTrackFinderTool::findTracksFromHits(Event::TkrTree* tree, double trac
                 }
                 else
                 {
-                    flagUsedClusters(usedClusters);
+                    flagUsedClusters(trackNext);
                 }
             }
         
@@ -473,15 +483,14 @@ int TkrTreeTrackFinderTool::makeLeafSet(TkrVecNodeLeafQueue&            leafQueu
     return leafQueue.size();
 }
 
-Event::TkrVecNode* TkrTreeTrackFinderTool::findBestLeaf(TkrVecNodeLeafQueue& leafQueue)
+Event::TkrVecNode* TkrTreeTrackFinderTool::findBestLeaf(TkrVecNodeLeafQueue& leafQueue, bool firstBranch)
 {
     Event::TkrVecNode* bestLeaf = 0;
                     
     //  Put this here to see what will happen
-    int maxSharedDepth  = m_maxSharedLeadingHits / 2;
-    int mostSharedTotal = 3;
-    int mostUniqueHits  = 3;
-    int mostDist2Main   = 0;
+    int mostTotalHits   = 0;
+    int mostSharedTotal = 2 * m_maxSharedLeadingHits;
+    int minDist2Main    = leafQueue.top()->getBiLyrs2MainBrch() - 3;
 
     // We do not allow hits to be shared on tracks or between trees unless "leading" hits
     // Define the mask to check for this
@@ -491,11 +500,17 @@ Event::TkrVecNode* TkrTreeTrackFinderTool::findBestLeaf(TkrVecNodeLeafQueue& lea
     {
         Event::TkrVecNode* leaf           = leafQueue.top();
         int                dist2MainBrnch = leaf->getBiLyrs2MainBrch();
-        int                depthCheck     = leaf->getNumBiLayers() - 2 * maxSharedDepth;
+        int                numBiLayers    = leaf->getNumBiLayers();
+        int                depthCheck     = numBiLayers - m_maxSharedLeadingHits / 2;
 
         // Layer counter and mask for shared hits
-        unsigned int sharedHitMask = 0;
-        int          nBiLayers     = 1;   // Note we skip first (top) pair of hits
+        unsigned int sharedHitMask  = 0; 
+        unsigned int notAllowedMask = 0;
+        int          nBiLayers      = 0;   
+
+        // Keep track of total number of unique hits
+        int nUniqueXHits = 0;
+        int nUniqueYHits = 0;
     
         while(leaf->getParentNode())
         {
@@ -510,111 +525,147 @@ Event::TkrVecNode* TkrTreeTrackFinderTool::findBestLeaf(TkrVecNodeLeafQueue& lea
             bool xClusUsed = xCluster->isSet(usedCluster) ? true : false;
             bool yClusUsed = yCluster->isSet(usedCluster) ? true : false;
 
-            // Also check cluster widths, wider than anticipated clusters can be shared
-            const Vector& linkDir    = link->getVector();
-            double        xSlope     = linkDir.x() / linkDir.z();
-            double        ySlope     = linkDir.y() / linkDir.z();
-            int           xCalcWidth = fabs(xSlope) * m_tkrGeom->siThickness() / m_tkrGeom->siStripPitch() + 0.75; //1.;
-            int           yCalcWidth = fabs(ySlope) * m_tkrGeom->siThickness() / m_tkrGeom->siStripPitch() + 0.75; //1.;
+            // Keep track of all shared clusters
+            if (xClusUsed) sharedHitMask |= 0x01;
+            if (yClusUsed) sharedHitMask |= 0x02;
 
-            // Kick out immediately if shared hits after number of allowed leading
-            if (leaf->getDepth() <= depthCheck && 
-//                ((xClusUsed && xCluster->size() <= xCalcWidth) || (yClusUsed && yCluster->size() <= yCalcWidth)))
-                ((xClusUsed && xCluster->size() <= xCalcWidth) && (yClusUsed && yCluster->size() <= yCalcWidth)))
+            // Check on whether we are allowed to share clusters
+            if (xClusUsed || yClusUsed)
             {
-                sharedHitMask  = 0;
-                break;
-            }
+                // Also check cluster widths, wider than anticipated clusters can be shared
+                const Vector& linkDir    = link->getVector();
+                double        xSlope     = linkDir.x() / linkDir.z();
+                double        ySlope     = linkDir.y() / linkDir.z();
+                int           xCalcWidth = fabs(xSlope) * m_tkrGeom->siThickness() / m_tkrGeom->siStripPitch() + 2.;
+                int           yCalcWidth = fabs(ySlope) * m_tkrGeom->siThickness() / m_tkrGeom->siStripPitch() + 2.;
 
-            // If the cluster is used but does NOT satisfy the sharing condition
-            // then mark it here for counting in the end
-            if (xClusUsed && xCluster->size() <= xCalcWidth) sharedHitMask |= 0x01;
-            if (yClusUsed && yCluster->size() <= yCalcWidth) sharedHitMask |= 0x02;
+                // If the cluster is used but does NOT satisfy the sharing condition
+                // then mark it here for counting in the end
+                if (xClusUsed && xCluster->size() <= xCalcWidth) notAllowedMask |= 0x01;
+                else                                             nUniqueXHits++;
+                if (yClusUsed && yCluster->size() <= yCalcWidth) notAllowedMask |= 0x02;
+                else                                             nUniqueYHits++;
+            }
+            else
+            {
+                nUniqueXHits++;
+                nUniqueYHits++;
+            }
 
             nBiLayers++;
 
-            sharedHitMask <<= 2;
+            notAllowedMask <<= 2;
+            sharedHitMask  <<= 2;
 
             if (link->skipsLayers())
             {
-                if      (link->skip1Layer()) {nBiLayers++;    sharedHitMask <<= 2;}
-                else if (link->skip2Layer()) {nBiLayers += 2; sharedHitMask <<= 4;}
-                else if (link->skip3Layer()) {nBiLayers += 3; sharedHitMask <<= 6;}
-                else                         {nBiLayers += 4; sharedHitMask <<= 8;}
+                if      (link->skip1Layer()) {nBiLayers++;    sharedHitMask <<= 2; notAllowedMask <<=2;}
+                else if (link->skip2Layer()) {nBiLayers += 2; sharedHitMask <<= 4; notAllowedMask <<=4;}
+                else if (link->skip3Layer()) {nBiLayers += 3; sharedHitMask <<= 6; notAllowedMask <<=6;}
+                else                         {nBiLayers += 4; sharedHitMask <<= 8; notAllowedMask <<=8;}
+
             }
     
             leaf = const_cast<Event::TkrVecNode*>(leaf->getParentNode());
         }
 
-        // Count number shared leading hits and total number of shared hits
-        int nSharedLeading = 0;
-        int nSharedTotal   = 0;
-        int nSharedPairs   = 0;
-        int nUniqueHits    = 0;
+        // First pair of hits always shared
+        sharedHitMask  |=  0x03;
+        notAllowedMask &= ~0x03;
 
-        bool contHitsInX = true;
-        bool contHitsInY = true;
-        int  nContHitsX  = 0;
-        int  nContHitsY  = 0;
-
-        if (sharedHitMask)
+        // Special handling for the first branch, first call
+        if (firstBranch)
         {
-            int biLayerCnt = nBiLayers - 1;
+            bestLeaf = leafQueue.top();
+            leafQueue.pop();
 
-            // Drop the first two hits which are allowed to be shared no matter what
-            sharedHitMask >>= 2;
+            // If shared hits they are from another tree so reject this tree outright
+            if (sharedHitMask & ~0x3) bestLeaf = 0;
 
-            while(biLayerCnt--)
-            {
-                // Check on continuous hits in x and y
-                if (sharedHitMask & 0x1)
-                {
-                    if (contHitsInX) nContHitsX++;
-                    else 
-                    {
-                        nSharedTotal++;
-                        contHitsInX = false;
-                    }
-                }
-                else 
-                {
-                    contHitsInX = false;
-                    nUniqueHits++;
-                }
-   
-                if (sharedHitMask & 0x2)
-                {
-                    if (contHitsInY && sharedHitMask & 0x2) nContHitsY++;
-                    else
-                    {
-                        nSharedTotal++;
-                        contHitsInY = false;
-                    }
-                }
-                else 
-                {
-                    contHitsInY = false;
-                    nUniqueHits++;
-                }
-   
-                if (!contHitsInX && !contHitsInY && (sharedHitMask & 0x3) == 0x3) nSharedPairs++;
-   
-                sharedHitMask >>= 2;
-            }
+            break;
         }
 
-        int nNonLeadingPairs = leaf->getNumBiLayers() - std::max(nContHitsX, nContHitsY);
-    
-        if (   (nContHitsX + nContHitsY) < m_maxSharedLeadingHits
-            &&  nSharedTotal < mostSharedTotal 
-            &&  dist2MainBrnch >= mostDist2Main
-            &&  nUniqueHits > mostUniqueHits
-            )
+        // Calculate the unique hit ratio
+        double uniqueFrac = double(nUniqueXHits + nUniqueYHits) / double(2 * numBiLayers);
+
+        // Rest if a good calculation of the shared hit mask and also
+        // that there are unique hits in both X and Y (which could be allowed sharing)
+        if (nUniqueXHits && nUniqueYHits && uniqueFrac > m_fracUniqueHits)
         {
-            mostUniqueHits  = nUniqueHits;
-            mostSharedTotal = nSharedTotal;
-            mostDist2Main   = dist2MainBrnch;
-            bestLeaf        = leafQueue.top();
+            // Count number shared leading hits and total number of shared hits
+            int nTotalHits     = 2 * nBiLayers;
+
+            bool contHitsInX = true;
+            bool contHitsInY = true;
+            int  nContHitsX  = 0;
+            int  nContHitsY  = 0;
+
+      //          // Kick out immediately if shared hits after number of allowed leading
+      //          if (leaf->getDepth() <= depthCheck && 
+      //              ((xClusUsed && xCluster->size() <= xCalcWidth) || (yClusUsed && yCluster->size() <= yCalcWidth)))
+      //          {
+      //              sharedHitMask = 0xffffffff;
+      //              break;
+      //          }
+
+            if (sharedHitMask)
+            {
+                int      biLayerCnt  = nBiLayers;
+                unsigned allowedMask = sharedHitMask & ~notAllowedMask;
+
+                while(biLayerCnt--)
+                {
+                    // Count the continuously shared leading hits in X
+                    if (contHitsInX && sharedHitMask & 0x1)
+                    {
+                        nContHitsX++;
+                    }
+                    // If we are past the continuous leading hits then from now on the
+                    // hits must be "allowed" to be shared. If not break out of loop, we are done
+                    else if (sharedHitMask & 0x1)
+                    {
+                        if (notAllowedMask & 0x1) 
+                        {
+                            nContHitsX = nBiLayers;
+                            break;
+                        }
+                    }
+                    // Termination of shared leading hits in X, set condition false 
+                    else contHitsInX = false;
+      
+                    // And now count the continuously shared leading hits in Y
+                    if (contHitsInY && sharedHitMask & 0x2)
+                    {
+                        nContHitsY++;
+                    }
+                    // If we are past the continuous leading hits then from now on the
+                    // hits must be "allowed" to be shared. If not break out of loop, we are done
+                    else if (sharedHitMask & 0x2)
+                    {
+                        if (notAllowedMask & 0x2) 
+                        {
+                            nContHitsY = nBiLayers;
+                            break;
+                        }
+                    }
+                    else contHitsInY = false;
+      
+                    sharedHitMask  >>= 2;
+                    allowedMask    >>= 2;
+                    notAllowedMask >>= 2;
+                }
+            }
+
+            int nNonLeadingPairs = leaf->getNumBiLayers() - std::max(nContHitsX, nContHitsY);
+        
+            if (   (nContHitsX + nContHitsY) < m_maxSharedLeadingHits
+                &&  dist2MainBrnch >= minDist2Main
+                &&  nTotalHits >= mostTotalHits
+                )
+            {
+                mostTotalHits = nTotalHits;
+                bestLeaf      = leafQueue.top();
+            }
         }
 
         leafQueue.pop();
@@ -780,7 +831,7 @@ BuildTkrTrack::CandTrackHitVec TkrTreeTrackFinderTool::getCandTrackHitVecFromLea
     {
         // Recover pointer to the link so we can check sharing conditions (if any)
         const Event::TkrVecPointsLink* vecLink = leaf->getAssociatedLink();
-
+/*
         // Are the clusters associated to the bottom of this link already in use?
         bool xClusUsed = vecLink->getSecondVecPoint()->getXCluster()->hitFlagged();
         bool yClusUsed = vecLink->getSecondVecPoint()->getYCluster()->hitFlagged();
@@ -802,11 +853,11 @@ BuildTkrTrack::CandTrackHitVec TkrTreeTrackFinderTool::getCandTrackHitVecFromLea
             clusVec.clear();
             break;
         }
-
+*/
         // If this node is skipping layers then we have some special handling
         // Put the code for this inline since we are going "up" the branch and it can
         // be confusing to separate out
-        if (leaf->getAssociatedLink()->skipsLayers())
+        if (vecLink->skipsLayers())
         {
 
             // Loop through missing bilayers adding hit info, start at the bottom...
@@ -1016,13 +1067,14 @@ idents::TkrId TkrTreeTrackFinderTool::makeTkrId(Point& planeHit, int planeId)
     return tkrId;
 }
 
-void TkrTreeTrackFinderTool::flagUsedClusters(UsedClusterList& usedClusters)
+void TkrTreeTrackFinderTool::flagUsedClusters(Event::TkrTrack* track)
 {
-    for(UsedClusterList::iterator clusItr = usedClusters.begin(); clusItr != usedClusters.end(); clusItr++)
+    for(Event::TkrTrackHitVec::const_iterator hitIter = track->begin(); hitIter != track->end(); hitIter++)
     {
-        const Event::TkrCluster* cluster = *clusItr;
+        const Event::TkrTrackHit* hit = *hitIter;
+        const Event::TkrCluster*  cluster = hit->getClusterPtr();
     
-        const_cast<Event::TkrCluster*>(cluster)->flag();
+        if (cluster) const_cast<Event::TkrCluster*>(cluster)->flag();
     }
     return;
 }
