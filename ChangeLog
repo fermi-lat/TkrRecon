@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Fri Jun  1 15:00:04 PDT 2012
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeTrackFinderTool.cxx 
+Log Message:
+Attempting to sort out the extraction of the second track, round II attempt here...
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-17-35-24-tr06, operation: add
 Package: TkrRecon
