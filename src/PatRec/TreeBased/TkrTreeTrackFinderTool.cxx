@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.1 2012/05/30 15:35:57 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.2 2012/06/01 22:00:04 usher Exp $
  *
 */
 #include "ITkrTreeTrackFinder.h"
@@ -190,7 +190,7 @@ TkrTreeTrackFinderTool::TkrTreeTrackFinderTool(const std::string& type, const st
     declareProperty("UseTreeBranchesForTracks", m_useTreeBranchesForTracks = true);
     declareProperty("MaxChiSqSeg4Composite",    m_maxChiSqSeg4Composite    = 1.1);
     declareProperty("MaxFilterChiSqFctr",       m_maxFilterChiSqFctr       = 100.);
-    declareProperty("MaxSharedLeadingHits",     m_maxSharedLeadingHits     = 4);
+    declareProperty("MaxSharedLeadingHits",     m_maxSharedLeadingHits     = 5);
     declareProperty("MaxGaps",                  m_maxGaps                  = 2);
     declareProperty("MaxConsecutiveGaps",       m_maxConsecutiveGaps       = 1);
     declareProperty("FirstTrackEnergyFrac",     m_frstTrackEnergyScaleFctr = 0.75);
@@ -559,11 +559,18 @@ Event::TkrVecNode* TkrTreeTrackFinderTool::findBestLeaf(TkrVecNodeLeafQueue& lea
 
             if (link->skipsLayers())
             {
-                if      (link->skip1Layer()) {nBiLayers++;    sharedHitMask <<= 2; notAllowedMask <<=2;}
-                else if (link->skip2Layer()) {nBiLayers += 2; sharedHitMask <<= 4; notAllowedMask <<=4;}
-                else if (link->skip3Layer()) {nBiLayers += 3; sharedHitMask <<= 6; notAllowedMask <<=6;}
-                else                         {nBiLayers += 4; sharedHitMask <<= 8; notAllowedMask <<=8;}
+                int nSkipLayers = 0;
 
+                if      (link->skip1Layer()) nSkipLayers = 1;
+                else if (link->skip2Layer()) nSkipLayers = 2;
+                else if (link->skip3Layer()) nSkipLayers = 3;
+                else                         nSkipLayers = 4;
+
+                nBiLayers       += nSkipLayers;
+                nUniqueXHits    += nSkipLayers;
+                nUniqueYHits    += nSkipLayers;
+                sharedHitMask  <<= 2 * nSkipLayers;
+                notAllowedMask <<= 2 * nSkipLayers;
             }
     
             leaf = const_cast<Event::TkrVecNode*>(leaf->getParentNode());
@@ -599,14 +606,6 @@ Event::TkrVecNode* TkrTreeTrackFinderTool::findBestLeaf(TkrVecNodeLeafQueue& lea
             bool contHitsInY = true;
             int  nContHitsX  = 0;
             int  nContHitsY  = 0;
-
-      //          // Kick out immediately if shared hits after number of allowed leading
-      //          if (leaf->getDepth() <= depthCheck && 
-      //              ((xClusUsed && xCluster->size() <= xCalcWidth) || (yClusUsed && yCluster->size() <= yCalcWidth)))
-      //          {
-      //              sharedHitMask = 0xffffffff;
-      //              break;
-      //          }
 
             if (sharedHitMask)
             {
@@ -658,7 +657,8 @@ Event::TkrVecNode* TkrTreeTrackFinderTool::findBestLeaf(TkrVecNodeLeafQueue& lea
 
             int nNonLeadingPairs = leaf->getNumBiLayers() - std::max(nContHitsX, nContHitsY);
         
-            if (   (nContHitsX + nContHitsY) < m_maxSharedLeadingHits
+            if (    nContHitsX < m_maxSharedLeadingHits 
+                &&  nContHitsY < m_maxSharedLeadingHits
                 &&  dist2MainBrnch >= minDist2Main
                 &&  nTotalHits >= mostTotalHits
                 )
