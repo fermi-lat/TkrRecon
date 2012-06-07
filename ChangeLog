@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Jun  7 11:31:17 PDT 2012
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeTrackFinderTool.cxx 
+Log Message:
+2nd track extraction method II, looks for longest 2nd track which shares the least number of hits
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-20-03-02, operation: add
 Package: TkrRecon
