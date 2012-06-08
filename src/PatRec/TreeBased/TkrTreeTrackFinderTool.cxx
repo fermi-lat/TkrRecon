@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.2 2012/06/01 22:00:04 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.3 2012/06/07 18:31:17 usher Exp $
  *
 */
 #include "ITkrTreeTrackFinder.h"
@@ -490,7 +490,11 @@ Event::TkrVecNode* TkrTreeTrackFinderTool::findBestLeaf(TkrVecNodeLeafQueue& lea
     //  Put this here to see what will happen
     int mostTotalHits   = 0;
     int mostSharedTotal = 2 * m_maxSharedLeadingHits;
-    int minDist2Main    = leafQueue.top()->getBiLyrs2MainBrch() - 3;
+    int minDist2Main    = 1; //leafQueue.top()->getBiLyrs2MainBrch() - 3;
+
+    // These for keeping track of the best track
+    double bestRmsAngle    = 100000.;
+    int    bestNumBiLayers = 0;
 
     // We do not allow hits to be shared on tracks or between trees unless "leading" hits
     // Define the mask to check for this
@@ -656,15 +660,19 @@ Event::TkrVecNode* TkrTreeTrackFinderTool::findBestLeaf(TkrVecNodeLeafQueue& lea
             }
 
             int nNonLeadingPairs = leaf->getNumBiLayers() - std::max(nContHitsX, nContHitsY);
+            Event::TkrVecNode* curLeaf = leafQueue.top();
         
-            if (    nContHitsX < m_maxSharedLeadingHits 
-                &&  nContHitsY < m_maxSharedLeadingHits
-                &&  dist2MainBrnch >= minDist2Main
-                &&  nTotalHits >= mostTotalHits
+            if (    nContHitsX < m_maxSharedLeadingHits   // Conditions to be "allowed" track
+                &&  nContHitsY < m_maxSharedLeadingHits   // |
+                &&  dist2MainBrnch >= minDist2Main        // ********************************
+                &&  ((nBiLayers >  bestNumBiLayers + 2 && curLeaf->getBestRmsAngle() < 3.*bestRmsAngle) || 
+                     (nBiLayers >= bestNumBiLayers     && curLeaf->getBestRmsAngle() < bestRmsAngle   ))
                 )
             {
-                mostTotalHits = nTotalHits;
-                bestLeaf      = leafQueue.top();
+                mostTotalHits   = nTotalHits;
+                bestNumBiLayers = nBiLayers;
+                bestRmsAngle    = curLeaf->getBestRmsAngle();
+                bestLeaf        = curLeaf;
             }
         }
 
