@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.35 2011/11/22 18:16:33 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.36 2011/12/12 20:57:14 heather Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -61,6 +61,9 @@ private:
 
     /// Pointer to the Gaudi data provider service
     DataSvc*               m_dataSvc;
+
+    /// Turn on diagnostic mode where energies are not set
+    bool                   m_doNotChangeEnergy;
 };
 
 //static ToolFactory<TkrTrackEnergyTool> s_factory;
@@ -88,6 +91,8 @@ TkrTrackEnergyTool::TkrTrackEnergyTool(const std::string& type, const std::strin
 {
     //Declare the additional interface
     declareInterface<ITkrTrackEnergyTool>(this);
+
+    declareProperty("DoNotChangeEnergy", m_doNotChangeEnergy = false);
 
     return;
 }
@@ -138,6 +143,9 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
 
     //Always believe in success
     StatusCode sc = StatusCode::SUCCESS;
+
+    // Check for diagnostic mode
+    if (m_doNotChangeEnergy) return sc;
 
     // Find the collection of candidate tracks
     Event::TkrTreeCol* treeCol = SmartDataPtr<Event::TkrTreeCol>(m_dataSvc,EventModel::TkrRecon::TkrTreeCol);
