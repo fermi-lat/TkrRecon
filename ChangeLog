@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sat Jun  9 07:59:47 PDT 2012
+TkrRecon/src/Track
+
+Modified Files:
+	TkrTrackEnergyTool.cxx 
+Log Message:
+Diagnostic option included to not update energies (track keeps original energy from first pass)
+    *
+------------------------------------------------------------
 User: usher  Fri Jun  8 09:44:49 PDT 2012
 TkrRecon/src/PatRec/TreeBased
 
