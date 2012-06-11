@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.3 2012/06/07 18:31:17 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.4 2012/06/08 16:44:49 usher Exp $
  *
 */
 #include "ITkrTreeTrackFinder.h"
@@ -150,6 +150,9 @@ private:
     /// Parameter to determine which track extraction method to employ
     bool                   m_useTreeBranchesForTracks;
 
+    /// Look for a second track
+    bool                   m_findSecondTrack;
+
     /// Parameter to determine whether to try a composite track
     double                 m_maxChiSqSeg4Composite;
 
@@ -188,6 +191,7 @@ TkrTreeTrackFinderTool::TkrTreeTrackFinderTool(const std::string& type, const st
     declareInterface<ITkrTreeTrackFinder>(this);
 
     declareProperty("UseTreeBranchesForTracks", m_useTreeBranchesForTracks = true);
+    declareProperty("FindSecondTrack",          m_findSecondTrack          = true);
     declareProperty("MaxChiSqSeg4Composite",    m_maxChiSqSeg4Composite    = 1.1);
     declareProperty("MaxFilterChiSqFctr",       m_maxFilterChiSqFctr       = 100.);
     declareProperty("MaxSharedLeadingHits",     m_maxSharedLeadingHits     = 5);
@@ -300,7 +304,7 @@ int TkrTreeTrackFinderTool::findTracksFromBranches(Event::TkrTree* tree, double 
                 // composite bit set
                 Event::TkrTrack* trackNextBest = 0;
         
-                if (!(trackBest->getStatusBits() & Event::TkrTrack::COMPOSITE))
+                if (m_findSecondTrack)
                 {
                     // First thing is to set the "best branch" bits for the first track
                     setBranchBits(firstLeafNode, true);
@@ -403,7 +407,9 @@ int TkrTreeTrackFinderTool::findTracksFromHits(Event::TkrTree* tree, double trac
             // If the "best" track is the better track then we need to look for a 
             // second track. This will be signalled by our track not having the
             // composite bit set
-            Event::TkrTrack* trackNext = 
+            Event::TkrTrack* trackNext = 0;
+                
+            if (m_findSecondTrack) 
                 getTkrTrackFromHits(startPos, startDir, m_scndTrackEnergyScaleFctr * trackEnergy, usedClusters);
       
             // no joy on second track
