@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Mon Jun 11 08:36:13 PDT 2012
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeTrackFinderTool.cxx 
+Log Message:
+Add flag (default true) to search for a second track for both methods (composite or best branch)
+    *
+------------------------------------------------------------
 User: usher  Sat Jun  9 07:59:47 PDT 2012
 TkrRecon/src/Track
 
