@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.4 2012/06/08 16:44:49 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.5 2012/06/11 15:36:13 usher Exp $
  *
 */
 #include "ITkrTreeTrackFinder.h"
@@ -322,21 +322,26 @@ int TkrTreeTrackFinderTool::findTracksFromBranches(Event::TkrTree* tree, double 
                         trackNextBest = getTkrTrackFromLeaf(nextLeafNode, m_scndTrackEnergyScaleFctr * trackEnergy, nextUsedClusters);
                     }
       
-                    // no joy on second track
+                    // Check that second track is ok
+                    if (trackNextBest && trackNextBest->getNumFitHits() < 5)
+                    {
+                        // clean up
+                        delete trackNextBest;
+                        trackNextBest = 0;
+                    }
+
+                    // If success then mark it
                     if (trackNextBest)
                     {
-                        if (trackNextBest->getNumFitHits() < 5)
-                        {
-                            // clean up
-                            delete trackNextBest;
-                            trackNextBest = 0;
-                        }
-                        else
-                        {
-                            flagUsedClusters(trackNextBest);
-                            setBranchBits(nextLeafNode, false);
-                        }
+                        flagUsedClusters(trackNextBest);
+                        setBranchBits(nextLeafNode, false);
                     }
+                }
+
+                // If no second track then reset in the first track initial energy
+                if (!trackNextBest)
+                {
+                    trackBest->setInitialEnergy(trackEnergy);
                 }
         
                 // Given the track we like, attempt to add leading hits
@@ -393,7 +398,7 @@ int TkrTreeTrackFinderTool::findTracksFromHits(Event::TkrTree* tree, double trac
         // Keep track of clusters used by the track we are finding
         UsedClusterList usedClusters;
 
-        Event::TkrTrack* track = getTkrTrackFromHits(startPos, startDir, trackEnergy, usedClusters);
+        Event::TkrTrack* track = getTkrTrackFromHits(startPos, startDir, m_frstTrackEnergyScaleFctr * trackEnergy, usedClusters);
 
         // At this point we need to see if we have a track, if not no sense in proceeding
         if (track)
@@ -412,19 +417,23 @@ int TkrTreeTrackFinderTool::findTracksFromHits(Event::TkrTree* tree, double trac
             if (m_findSecondTrack) 
                 getTkrTrackFromHits(startPos, startDir, m_scndTrackEnergyScaleFctr * trackEnergy, usedClusters);
       
-            // no joy on second track
+            // Check that second track found is in range
+            if (trackNext && trackNext->getNumFitHits() < 5)
+            {
+                // clean up
+                delete trackNext;
+                trackNext = 0;
+            }
+
+            // If success then mark it
             if (trackNext)
             {
-                if (trackNext->getNumFitHits() < 5)
-                {
-                    // clean up
-                    delete trackNext;
-                    trackNext = 0;
-                }
-                else
-                {
-                    flagUsedClusters(trackNext);
-                }
+                flagUsedClusters(trackNext);
+            }
+            else
+            // Otherwise, reset initial energy
+            {
+                track->setInitialEnergy(trackEnergy);
             }
         
             // Given the track we like, attempt to add leading hits
