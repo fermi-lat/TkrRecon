@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.7 2012/06/18 19:14:30 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.8 2012/06/18 20:17:55 usher Exp $
  *
 */
 #include "ITkrTreeTrackFinder.h"
@@ -197,8 +197,8 @@ TkrTreeTrackFinderTool::TkrTreeTrackFinderTool(const std::string& type, const st
     declareProperty("FindSecondTrack",          m_findSecondTrack          = true);
     declareProperty("Tkr2ChiSquareSelection",   m_tkr2ChiSquareSelection   = 25.);
     declareProperty("Tkr2AxisAngSelection",     m_tkr2AxisAngSelection     = 1.);
-    declareProperty("TkrTreeAngRatioSelection", m_tkrTreeAngRatioSelection = 1.05);
-    declareProperty("TkrChiSqDiffSelection",    m_chiSqDiffSelection       = 1.25);
+    declareProperty("TkrTreeAngRatioSelection", m_tkrTreeAngRatioSelection = 1.1);
+    declareProperty("TkrChiSqDiffSelection",    m_chiSqDiffSelection       = 0.);
     declareProperty("MaxSharedLeadingHits",     m_maxSharedLeadingHits     = 5);
     declareProperty("MaxGaps",                  m_maxGaps                  = 2);
     declareProperty("MaxConsecutiveGaps",       m_maxConsecutiveGaps       = 1);
