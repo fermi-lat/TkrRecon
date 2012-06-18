@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Mon Jun 18 15:24:18 PDT 2012
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeTrackFinderTool.cxx 
+Log Message:
+Updating track arbitration parameters
+    *
+------------------------------------------------------------
 User: usher  Mon Jun 18 13:17:55 PDT 2012
 TkrRecon/src/PatRec/TreeBased
 
