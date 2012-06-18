@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Mon Jun 18 13:17:55 PDT 2012
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeTrackFinderTool.cxx 
+Log Message:
+Adjust the default values of the variables arbitrating between track solutions
+    *
+------------------------------------------------------------
 User: usher  Mon Jun 18 12:14:30 PDT 2012
 TkrRecon/src/PatRec/TreeBased
 
