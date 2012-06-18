@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.5 2012/06/11 15:36:13 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.6 2012/06/12 02:52:01 usher Exp $
  *
 */
 #include "ITkrTreeTrackFinder.h"
@@ -84,12 +84,6 @@ private:
     // Define here a local queue where, unlike for TkrVecNodeQueue, we will sort by distance/angle from the head
     typedef std::priority_queue<Event::TkrVecNode*, std::vector<Event::TkrVecNode*>, TkrVecNodeLeafOrder> TkrVecNodeLeafQueue;
 
-    /// Method to extract tracks directly from the branches
-    int findTracksFromBranches(Event::TkrTree* tree, double eventEnergy);
-
-    /// Method to extract tracks from hits in tree
-    int findTracksFromHits(Event::TkrTree* tree, double eventEnergy);
-
     int makeLeafSet(TkrVecNodeLeafQueue&            leafQueue,
                     const Event::TkrNodeSiblingMap* siblingMap);
 
@@ -99,22 +93,21 @@ private:
     /// Used to set the best and next best branch bits after leaf finding
     void setBranchBits(Event::TkrVecNode* node, bool isMainBranch);
 
-    /// Use this to define a look up object for used clusters
-    typedef std::set<const Event::TkrCluster*> UsedClusterList;
-
     /// This makes a TkrTrack from the nodes given it in a TkrNodeSiblingMap
-    Event::TkrTrack* getTkrTrackFromLeaf(Event::TkrVecNode* leaf, double energy, UsedClusterList& usedClusters);
+    Event::TkrTrack* getTkrTrackFromLeaf(Event::TkrVecNode* leaf, double energy);
 
     /// This makes a TkrTrack, given a start point and direction, by using the kalman hit finder
-    Event::TkrTrack* getTkrTrackFromHits(Point  startPoint, Vector startDir, double energy, UsedClusterList& usedClusters);
+    Event::TkrTrack* getTkrTrackFromHits(Point  startPoint, Vector startDir, double energy);
+
+    /// Arbitrate between two candidate best tracks
+    Event::TkrTrack* selectBestTrack(Event::TkrTree* tree, Event::TkrTrack* track1, Event::TkrTrack* track2);
 
     /// Build the candidate track hit vector which is used to make TkrTracks
-    BuildTkrTrack::CandTrackHitVec getCandTrackHitVecFromLeaf(Event::TkrVecNode* leaf, UsedClusterList& usedClusters);
+    BuildTkrTrack::CandTrackHitVec getCandTrackHitVecFromLeaf(Event::TkrVecNode* leaf);
 
     /// Attempt to not repeat code... 
     void insertVecPointIntoClusterVec(const Event::TkrVecPoint*       vecPoint, 
-                                      BuildTkrTrack::CandTrackHitVec& clusVec,
-                                      UsedClusterList&                usedClusters);
+                                      BuildTkrTrack::CandTrackHitVec& clusVec);
 
     /// For calculating the initial position and direction to give to the track
     typedef std::pair<Point, Vector> TkrInitParams;
@@ -147,17 +140,26 @@ private:
     /// Pointer to the local cluster collection that we manage
     Event::TkrClusterCol*  m_clusterCol;
 
-    /// Parameter to determine which track extraction method to employ
-    bool                   m_useTreeBranchesForTracks;
+    /// Parameter to control finding best branch tracks
+    bool                   m_findBestBranchTrack;
 
-    /// Look for a second track
+    /// Parameter to control finding tree axis seeded track
+    bool                   m_findAxisSeededTrack;
+
+    /// Look for a second track?
     bool                   m_findSecondTrack;
 
-    /// Parameter to determine whether to try a composite track
-    double                 m_maxChiSqSeg4Composite;
+    /// Axis seeded track arbitration: select on chiSquare
+    double                 m_tkr2ChiSquareSelection;
 
-    /// Parameter to control when to allow hit finder to add hits
-    double                 m_maxFilterChiSqFctr;
+    /// Axis seeded track arbitration: select on angle to tree axis
+    double                 m_tkr2AxisAngSelection;
+
+    /// Axis seeded track arbitration: select on ratio to best branch angle
+    double                 m_tkrTreeAngRatioSelection;
+
+    /// Track arbitration: select on track chi-square difference
+    double                 m_chiSqDiffSelection;
 
     /// Parameter to control number of shared leading hits
     int                    m_maxSharedLeadingHits;
@@ -190,10 +192,13 @@ TkrTreeTrackFinderTool::TkrTreeTrackFinderTool(const std::string& type, const st
     // declare base interface for all consecutive concrete classes
     declareInterface<ITkrTreeTrackFinder>(this);
 
-    declareProperty("UseTreeBranchesForTracks", m_useTreeBranchesForTracks = true);
+    declareProperty("FindBestBranchTrack",      m_findBestBranchTrack      = true);
+    declareProperty("FindTreeAxisSeededTrack",  m_findAxisSeededTrack      = true);
     declareProperty("FindSecondTrack",          m_findSecondTrack          = true);
-    declareProperty("MaxChiSqSeg4Composite",    m_maxChiSqSeg4Composite    = 1.1);
-    declareProperty("MaxFilterChiSqFctr",       m_maxFilterChiSqFctr       = 100.);
+    declareProperty("Tkr2ChiSquareSelection",   m_tkr2ChiSquareSelection   = 25.);
+    declareProperty("Tkr2AxisAngSelection",     m_tkr2AxisAngSelection     = 1.);
+    declareProperty("TkrTreeAngRatioSelection", m_tkrTreeAngRatioSelection = 1.05);
+    declareProperty("TkrChiSqDiffSelection",    m_chiSqDiffSelection       = 1.25);
     declareProperty("MaxSharedLeadingHits",     m_maxSharedLeadingHits     = 5);
     declareProperty("MaxGaps",                  m_maxGaps                  = 2);
     declareProperty("MaxConsecutiveGaps",       m_maxConsecutiveGaps       = 1);
@@ -252,58 +257,80 @@ StatusCode TkrTreeTrackFinderTool::initialize()
 
 int TkrTreeTrackFinderTool::findTracks(Event::TkrTree* tree, double trackEnergy)
 {
-    // Split here depending on which method we use as the primary track extraction technique
-    if (m_useTreeBranchesForTracks) findTracksFromBranches(tree, trackEnergy);
-    else                            findTracksFromHits(tree, trackEnergy);
-
-    return tree->size();
-}
-
-int TkrTreeTrackFinderTool::findTracksFromBranches(Event::TkrTree* tree, double trackEnergy)
-{
     // Embed the following in a try-catch block in case of problems
     // Hopefully once things are stabe we can remove this
     try
     {
+        // There are two methods for finding primary tracks in the trees:
+        // 1) Use the "best" branch (the longest-straightest branch)
+        // 2) Use the tree axis to seed the hit finder and turn it loose
+        // Most of the time the best branch is best, but sometimes the tree axis seeded
+        // search is better... so run both and divine which will be better
+        // Set up to run them
+        Event::TkrTrack* bestBranchTrack = 0;
+        Event::TkrTrack* treeAxisTrack   = 0;
+
+        // First we will find the track from the best branch, some work needed first
         // Recover pointer to the head node
-        Event::TkrVecNode* headNode = const_cast<Event::TkrVecNode*>(tree->getHeadNode());
-
-        // The first task is to build the set of all leaves. Doing this will also 
-        // set the "distance to the main branch" for each leaf which will be used
-        // to extract tracks
         TkrVecNodeLeafQueue             leafQueue;
-        const Event::TkrNodeSiblingMap* siblingMap   = tree->getSiblingMap();
-        const Event::TkrFilterParams*   axisParams   = tree->getAxisParams();
-        int                             numLeaves    = makeLeafSet(leafQueue, siblingMap);
+        Event::TkrVecNode*              headNode      = const_cast<Event::TkrVecNode*>(tree->getHeadNode());
+        const Event::TkrNodeSiblingMap* siblingMap    = tree->getSiblingMap();
+        const Event::TkrFilterParams*   axisParams    = tree->getAxisParams();
+        Event::TkrVecNode*              firstLeafNode = 0;
+        Event::TkrVecNode*              nextLeafNode  = 0;
 
-        // If no leaves then no point in doing anything
-        if (numLeaves > 0)
-        { 
-            // Next, find and fit the "best" track 
-            // Now we proceed to extract the "best" track from the tree and fit it
-            // Keep track of used clusters
-            UsedClusterList usedClusters;
+        // Finding the best branch track is an option...
+        if (m_findBestBranchTrack)
+        {
+            // We need to create the queue of best leaves
+            int numLeaves  = makeLeafSet(leafQueue, siblingMap);
 
-            // The "best" track ends at the first leaf in our leaf set
-            Event::TkrVecNode* firstLeafNode = findBestLeaf(leafQueue); //leafQueue.top();
-            Event::TkrVecNode* nextLeafNode  = 0;
-            Event::TkrTrack*   trackBest     = 0;
+            // If no leaves then no point in doing anything
+            if (numLeaves > 0)
+            { 
+                // Next, find and fit the "best" track 
+                // Now we proceed to extract the "best" track from the tree and fit it
 
-            // Testing testing testing 1, 2, 3 ...
-            if (firstLeafNode) 
-                trackBest = getTkrTrackFromLeaf(firstLeafNode, m_frstTrackEnergyScaleFctr * trackEnergy, usedClusters);
+                // The "best" track ends at the first leaf in our leaf set
+                firstLeafNode = findBestLeaf(leafQueue); //leafQueue.top();
 
-            // At this point we need to see if we have a track, if not no sense in proceeding
-            if (trackBest)
+                // Testing testing testing 1, 2, 3 ...
+                if (firstLeafNode) 
+                    bestBranchTrack = getTkrTrackFromLeaf(firstLeafNode, m_frstTrackEnergyScaleFctr * trackEnergy);
+            }
+        }
+
+        // Ok, now go back and do the axis seeded search 
+        // (again, an option)
+        if (m_findAxisSeededTrack)
+        {
+            // Recover tree axis direction and position
+            // (with tree axis now in same direction as tracks)
+            Vector startDir = -axisParams->getEventAxis();
+            Point  startPos = axisParams->getEventPosition();
+
+            treeAxisTrack = getTkrTrackFromHits(startPos, startDir, m_frstTrackEnergyScaleFctr * trackEnergy);
+        }
+
+        // If neither method found a track then there is nothing left to do
+        if (bestBranchTrack || treeAxisTrack)
+        {
+            // Choose the best one
+            // Note that this method will delete the loser
+            Event::TkrTrack* bestTrack = selectBestTrack(tree, bestBranchTrack, treeAxisTrack);
+
+            // Flag the clusters used by this track
+            flagUsedClusters(bestTrack);
+
+            // Now attempt to find the next best track
+            // The method used depends on the method used to find the first track
+            // So start with a pointer to the eventual second track
+            Event::TkrTrack* nextBestTrack = 0;
+
+            // If not "composite" (poor naming convention), then its a best branch track
+            if (!(bestTrack->getStatusBits() & Event::TkrTrack::COMPOSITE))
             {
-                // Flag the used clusters
-                flagUsedClusters(trackBest);
-        
-                // If the "best" track is the better track then we need to look for a 
-                // second track. This will be signalled by our track not having the
-                // composite bit set
-                Event::TkrTrack* trackNextBest = 0;
-        
+                // Make sure we are asking to find a second track
                 if (m_findSecondTrack)
                 {
                     // First thing is to set the "best branch" bits for the first track
@@ -313,145 +340,82 @@ int TkrTreeTrackFinderTool::findTracksFromBranches(Event::TkrTree* tree, double 
                     // of a second track in the tree
                     nextLeafNode = findBestLeaf(leafQueue, false);
         
-                    // List of clusters we used
-                    UsedClusterList nextUsedClusters;
-        
                     // Use this to create a new TkrTrack
                     if (nextLeafNode)
                     {
-                        trackNextBest = getTkrTrackFromLeaf(nextLeafNode, m_scndTrackEnergyScaleFctr * trackEnergy, nextUsedClusters);
+                        nextBestTrack = getTkrTrackFromLeaf(nextLeafNode, m_scndTrackEnergyScaleFctr * trackEnergy);
                     }
       
                     // Check that second track is ok
-                    if (trackNextBest && trackNextBest->getNumFitHits() < 5)
+                    if (nextBestTrack && nextBestTrack->getNumFitHits() < 5)
                     {
                         // clean up
-                        delete trackNextBest;
-                        trackNextBest = 0;
+                        delete nextBestTrack;
+                        nextBestTrack = 0;
                     }
 
                     // If success then mark it
-                    if (trackNextBest)
+                    if (nextBestTrack)
                     {
-                        flagUsedClusters(trackNextBest);
+                        flagUsedClusters(nextBestTrack);
                         setBranchBits(nextLeafNode, false);
                     }
                 }
-
-                // If no second track then reset in the first track initial energy
-                if (!trackNextBest)
-                {
-                    trackBest->setInitialEnergy(trackEnergy);
-                }
-        
-                // Given the track we like, attempt to add leading hits
-                if (int nHitsAdded = m_findHitsTool->addLeadingHits(trackBest))
-                {
-                    // Must do the full refit of the track one last time
-                    if (StatusCode sc = m_trackFitTool->doTrackFit(trackBest) != StatusCode::SUCCESS)
-                    {
-                        throw(TkrException("Exception encountered when doing final full fit after leading hit addition "));  
-                    }
-                }
-        
-                // Finally, make the new TkrTree
-                tree->setBestLeaf(firstLeafNode);
-                tree->setSecondLeaf(nextLeafNode);
-                tree->push_back(trackBest);
-        
-                if (trackNextBest) tree->push_back(trackNextBest);
-
-                // Make sure to flag all the clusters used by this tree
-                flagAllUsedClusters(tree);
             }
-        }
-    }
-    catch( TkrException& e )
-    {
-        throw e;
-    } 
-    catch(...)
-    {
-        throw(TkrException("Exception encountered in TkrTreeTrackFinder "));  
-    }
-
-    return tree->size();
-}
-
-int TkrTreeTrackFinderTool::findTracksFromHits(Event::TkrTree* tree, double trackEnergy)
-{
-    // Embed the following in a try-catch block in case of problems
-    // Hopefully once things are stabe we can remove this
-    try
-    {
-        // Recover pointer to the head node
-        Event::TkrVecNode* headNode = const_cast<Event::TkrVecNode*>(tree->getHeadNode());
-
-        // Perhaps we can do better by using the kalman filter hit finding? 
-        // Try to "find" a track from the hits in the tree (I hope) using hit finding method
-        // For the direction we use the event axis direction, but remember that it points "opposite" our tracks
-        const Event::TkrFilterParams* axisParams = tree->getAxisParams();
-
-        Vector startDir = -axisParams->getEventAxis();
-        Point  startPos = axisParams->getEventPosition();
-
-        // Keep track of clusters used by the track we are finding
-        UsedClusterList usedClusters;
-
-        Event::TkrTrack* track = getTkrTrackFromHits(startPos, startDir, m_frstTrackEnergyScaleFctr * trackEnergy, usedClusters);
-
-        // At this point we need to see if we have a track, if not no sense in proceeding
-        if (track)
-        {
-            // Flag the used clusters
-            flagUsedClusters(track);
-
-            // Clear the list so we can use it again
-            usedClusters.clear();
-        
-            // If the "best" track is the better track then we need to look for a 
-            // second track. This will be signalled by our track not having the
-            // composite bit set
-            Event::TkrTrack* trackNext = 0;
-                
-            if (m_findSecondTrack) 
-                getTkrTrackFromHits(startPos, startDir, m_scndTrackEnergyScaleFctr * trackEnergy, usedClusters);
-      
-            // Check that second track found is in range
-            if (trackNext && trackNext->getNumFitHits() < 5)
-            {
-                // clean up
-                delete trackNext;
-                trackNext = 0;
-            }
-
-            // If success then mark it
-            if (trackNext)
-            {
-                flagUsedClusters(trackNext);
-            }
+            // Otherwise, it is an axis seeded track
             else
-            // Otherwise, reset initial energy
+            { 
+                // Recover tree axis direction and position
+                // (with tree axis now in same direction as tracks)
+                Vector startDir = -axisParams->getEventAxis();
+                Point  startPos = axisParams->getEventPosition();
+
+                if (m_findSecondTrack) 
+                    nextBestTrack = getTkrTrackFromHits(startPos, startDir, m_scndTrackEnergyScaleFctr * trackEnergy);
+      
+                // Check that second track found is in range
+                if (nextBestTrack && nextBestTrack->getNumFitHits() < 5)
+                {
+                    // clean up
+                    delete nextBestTrack;
+                    nextBestTrack = 0;
+                }
+
+                // If success then mark it
+                if (nextBestTrack)
+                {
+                    flagUsedClusters(nextBestTrack);
+                }
+                else
+                // Otherwise, reset initial energy
+                {
+                    bestTrack->setInitialEnergy(trackEnergy);
+                }
+            }
+
+
+            // If no second track then reset in the first track initial energy
+            if (!nextBestTrack)
             {
-                track->setInitialEnergy(trackEnergy);
+                bestTrack->setInitialEnergy(trackEnergy);
             }
         
             // Given the track we like, attempt to add leading hits
-            if (int nHitsAdded = m_findHitsTool->addLeadingHits(track))
+            if (int nHitsAdded = m_findHitsTool->addLeadingHits(bestTrack))
             {
                 // Must do the full refit of the track one last time
-                if (StatusCode sc = m_trackFitTool->doTrackFit(track) != StatusCode::SUCCESS)
+                if (StatusCode sc = m_trackFitTool->doTrackFit(bestTrack) != StatusCode::SUCCESS)
                 {
                     throw(TkrException("Exception encountered when doing final full fit after leading hit addition "));  
                 }
             }
         
             // Finally, make the new TkrTree
-            tree->setBestLeaf(0);
-            tree->setSecondLeaf(0);
-            tree->push_back(track);
+            tree->setBestLeaf(firstLeafNode);
+            tree->setSecondLeaf(nextLeafNode);
+            tree->push_back(bestTrack);
         
-            if (trackNext) tree->push_back(trackNext);
+            if (nextBestTrack) tree->push_back(nextBestTrack);
 
             // Make sure to flag all the clusters used by this tree
             flagAllUsedClusters(tree);
@@ -467,6 +431,61 @@ int TkrTreeTrackFinderTool::findTracksFromHits(Event::TkrTree* tree, double trac
     }
 
     return tree->size();
+}
+
+Event::TkrTrack* TkrTreeTrackFinderTool::selectBestTrack(Event::TkrTree*  tree, 
+                                                         Event::TkrTrack* track1, 
+                                                         Event::TkrTrack* track2)
+{
+    // The track to return
+    Event::TkrTrack* track = 0;
+
+    // Check that we have both tracks
+    if (track1 && track2)
+    {
+        // Start by recovering the tree axis, in the direction of the tracks
+        Vector startDir = -tree->getAxisParams()->getEventAxis();
+
+        // Angle of track1 with tree axis
+        double cosTkrTreeAng1  = startDir.dot(track1->getInitialDirection());
+        double tkrTreeAng1     = acos(std::min(1., std::max(-1., cosTkrTreeAng1)));
+        double cosTkrTreeAng2  = startDir.dot(track2->getInitialDirection());
+        double tkrTreeAng2     = acos(std::min(1., std::max(-1., cosTkrTreeAng2)));
+        double tkrTreeAngRatio = tkrTreeAng2 > 0. ? tkrTreeAng1 / tkrTreeAng1 : 1.;
+
+        // Set the angles these two methods make with the tree axis
+        tree->setBestBranchAngleToAxis(tkrTreeAng1);
+        tree->setAxisSeededAngleToAxis(tkrTreeAng2);
+
+        // Track chi-square difference
+        double chiSqDiff       = track1->getChiSquareSmooth() - track2->getChiSquareSmooth();
+
+        // Number hits on the track
+        int    nHitsDiff       = track1->getNumHits() - track2->getNumHits();
+
+        // Grand comparison
+        // If the conditions below are satisfied then the axis seeded track is better
+        if (track2->getChiSquareSmooth() < m_tkr2ChiSquareSelection   &&
+            tkrTreeAng2                  < m_tkr2AxisAngSelection     &&
+            tkrTreeAngRatio              > m_tkrTreeAngRatioSelection &&
+            chiSqDiff                    > m_chiSqDiffSelection
+           )
+        {
+            track = track2;
+            delete track1;
+            track1 = 0;
+        }
+        else
+        {
+            track = track1;
+            delete track2;
+            track2 = 0;
+        }
+    }
+    // if only one track then return it 
+    else track = track1 ? track1 : track2;
+
+    return track;
 }
 
 //int TkrTreeTrackFinderTool::makeLeafSet(Event::TkrVecNodeSet&           leafSet,
@@ -739,7 +758,7 @@ private:
     double                   m_weight;
 };
 
-Event::TkrTrack* TkrTreeTrackFinderTool::getTkrTrackFromLeaf(Event::TkrVecNode* leaf, double energy, UsedClusterList& usedClusters)
+Event::TkrTrack* TkrTreeTrackFinderTool::getTkrTrackFromLeaf(Event::TkrVecNode* leaf, double energy)
 {
     // You never know if you might not be able to make a track...
     Event::TkrTrack* track = 0;
@@ -748,7 +767,7 @@ Event::TkrTrack* TkrTreeTrackFinderTool::getTkrTrackFromLeaf(Event::TkrVecNode* 
     BuildTkrTrack trackBuilder(m_tkrGeom);
     
     // The next step is to use the above map to return the candidate track hit vector
-    BuildTkrTrack::CandTrackHitVec clusVec = getCandTrackHitVecFromLeaf(leaf, usedClusters);
+    BuildTkrTrack::CandTrackHitVec clusVec = getCandTrackHitVecFromLeaf(leaf);
 
     // Need minimum hits to proceed
     if (clusVec.size() > 4)
@@ -792,8 +811,7 @@ Event::TkrTrack* TkrTreeTrackFinderTool::getTkrTrackFromLeaf(Event::TkrVecNode* 
 
 Event::TkrTrack* TkrTreeTrackFinderTool::getTkrTrackFromHits(Point            startPoint, 
                                                              Vector           startDir, 
-                                                             double           energy,
-                                                             UsedClusterList& usedClusters)
+                                                             double           energy)
 {
     // The aim of this routine is to determine a good starting point and direction and 
     // then use the kalman filter hit finding to find the associated hits, similarly to
@@ -816,12 +834,6 @@ Event::TkrTrack* TkrTreeTrackFinderTool::getTkrTrackFromHits(Point            st
         {
             throw(TkrException("Exception encountered when fitting track in tree TkrTreeTrackFinderTool::getTkrTrackFromHits "));  
         }
-
-        // Loop through and remember the clusters
-        for(Event::TkrTrackHitVec::iterator hitItr = track->begin(); hitItr != track->end(); hitItr++)
-        {
-            if (const Event::TkrCluster* cluster = (*hitItr)->getClusterPtr()) usedClusters.insert(cluster);
-        }
     }
     else
     {
@@ -833,7 +845,7 @@ Event::TkrTrack* TkrTreeTrackFinderTool::getTkrTrackFromHits(Point            st
     return track;
 }
 
-BuildTkrTrack::CandTrackHitVec TkrTreeTrackFinderTool::getCandTrackHitVecFromLeaf(Event::TkrVecNode* leaf, UsedClusterList& usedClusters)
+BuildTkrTrack::CandTrackHitVec TkrTreeTrackFinderTool::getCandTrackHitVecFromLeaf(Event::TkrVecNode* leaf)
 {
     // Given the map of cluster/positions by plane id, go through and create the "CandTrackHitVec" vector
     // which can be used to create TkrTrackHits at each plane
@@ -847,7 +859,7 @@ BuildTkrTrack::CandTrackHitVec TkrTreeTrackFinderTool::getCandTrackHitVecFromLea
     // Handle the special case of the bottom hits first
     const Event::TkrVecPointsLink* pointsLink = leaf->getAssociatedLink();
 
-    insertVecPointIntoClusterVec(leaf->getAssociatedLink()->getSecondVecPoint(), clusVec, usedClusters);
+    insertVecPointIntoClusterVec(leaf->getAssociatedLink()->getSecondVecPoint(), clusVec);
 
     // Traverse up the branch starting at the leaf
     while(leaf->getParentNode())
@@ -923,7 +935,7 @@ BuildTkrTrack::CandTrackHitVec TkrTreeTrackFinderTool::getCandTrackHitVecFromLea
         }
 
         // Add the first clusters to the vector
-        insertVecPointIntoClusterVec(leaf->getAssociatedLink()->getFirstVecPoint(), clusVec, usedClusters);
+        insertVecPointIntoClusterVec(leaf->getAssociatedLink()->getFirstVecPoint(), clusVec);
 
         // Move to next node
         leaf = const_cast<Event::TkrVecNode*>(leaf->getParentNode());
@@ -933,8 +945,7 @@ BuildTkrTrack::CandTrackHitVec TkrTreeTrackFinderTool::getCandTrackHitVecFromLea
 }
 
 void TkrTreeTrackFinderTool::insertVecPointIntoClusterVec(const Event::TkrVecPoint*       vecPoint, 
-                                                  BuildTkrTrack::CandTrackHitVec& clusVec,
-                                                  UsedClusterList&                usedClusters)
+                                                  BuildTkrTrack::CandTrackHitVec& clusVec)
 {
     // Set up the first hit
     const Event::TkrCluster* clusterX  = vecPoint->getXCluster();
@@ -951,10 +962,6 @@ void TkrTreeTrackFinderTool::insertVecPointIntoClusterVec(const Event::TkrVecPoi
         clusVec.insert(clusVec.begin(),BuildTkrTrack::CandTrackHitPair(clusterY->getTkrId(), clusterY));
         clusVec.insert(clusVec.begin(),BuildTkrTrack::CandTrackHitPair(clusterX->getTkrId(), clusterX));
     }
-
-    // Keep track of clusters in our cluster list
-    usedClusters.insert(clusterX);
-    usedClusters.insert(clusterY);
 
     return;
 }
