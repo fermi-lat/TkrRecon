@@ -1,4 +1,12 @@
 ------------------------------------------------------------
+User: usher  Mon Jun 18 12:14:30 PDT 2012
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeTrackFinderTool.cxx 
+Log Message:
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-17-35-24-lp31, operation: add
 Package: TkrRecon
