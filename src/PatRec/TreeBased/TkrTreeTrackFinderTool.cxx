@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.8 2012/06/18 20:17:55 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.9 2012/06/18 22:24:18 usher Exp $
  *
 */
 #include "ITkrTreeTrackFinder.h"
@@ -834,6 +834,9 @@ Event::TkrTrack* TkrTreeTrackFinderTool::getTkrTrackFromHits(Point            st
         {
             throw(TkrException("Exception encountered when fitting track in tree TkrTreeTrackFinderTool::getTkrTrackFromHits "));  
         }
+
+        // Make sure the composite bit is set
+        track->setStatusBit(Event::TkrTrack::COMPOSITE);
     }
     else
     {
