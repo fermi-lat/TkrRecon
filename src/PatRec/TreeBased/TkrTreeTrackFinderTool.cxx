@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.6 2012/06/12 02:52:01 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.7 2012/06/18 19:14:30 usher Exp $
  *
 */
 #include "ITkrTreeTrackFinder.h"
@@ -451,7 +451,7 @@ Event::TkrTrack* TkrTreeTrackFinderTool::selectBestTrack(Event::TkrTree*  tree,
         double tkrTreeAng1     = acos(std::min(1., std::max(-1., cosTkrTreeAng1)));
         double cosTkrTreeAng2  = startDir.dot(track2->getInitialDirection());
         double tkrTreeAng2     = acos(std::min(1., std::max(-1., cosTkrTreeAng2)));
-        double tkrTreeAngRatio = tkrTreeAng2 > 0. ? tkrTreeAng1 / tkrTreeAng1 : 1.;
+        double tkrTreeAngRatio = tkrTreeAng2 > 0. ? tkrTreeAng1 / tkrTreeAng2 : 1.;
 
         // Set the angles these two methods make with the tree axis
         tree->setBestBranchAngleToAxis(tkrTreeAng1);
