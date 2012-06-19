@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Jun 19 09:11:06 PDT 2012
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeCalClusterAssociator.cxx 
+Log Message:
+Philippe's prescription for avoiding the uber2 cluster
+    *
+------------------------------------------------------------
 User: usher  Mon Jun 18 15:43:14 PDT 2012
 TkrRecon/src/PatRec/TreeBased
 
