@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.cxx,v 1.17 2011/11/19 18:17:33 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.cxx,v 1.18 2012/04/25 04:54:35 heather Exp $
  *
 */
 
@@ -118,8 +118,9 @@ int TreeCalClusterAssociator::associateTreeToClusters(Event::TkrTree* tree)
                 // Initialize loop end point
                 Event::CalClusterCol::iterator lastItr = m_calClusterCol->end();
 
-                // When more than one cluster the last is the "uber" and is to be ignored
-                if (m_calClusterCol->size() > 1) lastItr = m_calClusterCol->end() - 1;
+                // When more than one cluster the last is the "uber", the second to last is
+                // the "uber2" and they are to be ignored
+                if (m_calClusterCol->size() > 1) lastItr = m_calClusterCol->end() - 2;
 
                 // Loop through the list of clusters
                 for(Event::CalClusterCol::iterator clusItr = m_calClusterCol->begin(); clusItr != lastItr; clusItr++)
