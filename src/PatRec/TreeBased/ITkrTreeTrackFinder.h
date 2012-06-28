@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinder.h,v 1.1 2011/06/28 14:40:06 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/ITkrTreeTrackFinder.h,v 1.1 2012/05/30 15:35:57 usher Exp $
  *
 */
 
@@ -16,6 +16,7 @@
 #include "GaudiKernel/IProperty.h"
 
 #include "Event/Recon/TkrRecon/TkrTree.h"
+#include "Event/Recon/CalRecon/CalCluster.h"
 
 static const InterfaceID IID_ITkrTreeTrackFinder("ITkrTreeTrackFinder", 7111 , 0);
 
@@ -26,7 +27,7 @@ public:
     static const InterfaceID& interfaceID() { return IID_ITkrTreeTrackFinder; }
 
     /// Method called to find the tracks for a given tree
-    virtual int findTracks(Event::TkrTree* tree, double eventEnergy) = 0;
+    virtual int findTracks(Event::TkrTree* tree, double eventEnergy, Event::CalCluster* cluster = 0) = 0;
 };
 
 #endif
