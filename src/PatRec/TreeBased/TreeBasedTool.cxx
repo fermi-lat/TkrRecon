@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.28 2012/04/25 04:54:35 heather Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.29 2012/05/30 15:35:57 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -570,7 +570,7 @@ StatusCode TreeBasedTool::secondPass()
                     // the energy assigned to it
                     //if (treeClusItr != treeClusVec.begin()) energy = m_minEnergy;
             
-                    int numTracks = m_tkrTrackFinder->findTracks(tree, energy);
+                    int numTracks = m_tkrTrackFinder->findTracks(tree, energy, cluster);
             
                     // We should abandon any trees with no tracks
                     if (numTracks > 0)

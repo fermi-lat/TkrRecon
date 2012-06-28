@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.9 2012/06/18 22:24:18 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.10 2012/06/18 22:43:14 usher Exp $
  *
 */
 #include "ITkrTreeTrackFinder.h"
@@ -75,7 +75,7 @@ public:
     virtual ~TkrTreeTrackFinderTool();
 
     /// Method to build the tree objects
-    virtual int findTracks(Event::TkrTree* tree, double eventEnergy);
+    virtual int findTracks(Event::TkrTree* tree, double eventEnergy, Event::CalCluster* cluster);
 
     /// @brief Finalize method for outputting run statistics
     StatusCode finalize() {return StatusCode::SUCCESS;}
@@ -100,7 +100,11 @@ private:
     Event::TkrTrack* getTkrTrackFromHits(Point  startPoint, Vector startDir, double energy);
 
     /// Arbitrate between two candidate best tracks
-    Event::TkrTrack* selectBestTrack(Event::TkrTree* tree, Event::TkrTrack* track1, Event::TkrTrack* track2);
+    Event::TkrTrack* selectBestTrack(Event::TkrTree*    tree,
+                                     Event::CalCluster* cluster,
+                                     double             energy,
+                                     Event::TkrTrack*   track1, 
+                                     Event::TkrTrack*   track2);
 
     /// Build the candidate track hit vector which is used to make TkrTracks
     BuildTkrTrack::CandTrackHitVec getCandTrackHitVecFromLeaf(Event::TkrVecNode* leaf);
@@ -196,8 +200,8 @@ TkrTreeTrackFinderTool::TkrTreeTrackFinderTool(const std::string& type, const st
     declareProperty("FindTreeAxisSeededTrack",  m_findAxisSeededTrack      = true);
     declareProperty("FindSecondTrack",          m_findSecondTrack          = true);
     declareProperty("Tkr2ChiSquareSelection",   m_tkr2ChiSquareSelection   = 25.);
-    declareProperty("Tkr2AxisAngSelection",     m_tkr2AxisAngSelection     = 1.);
-    declareProperty("TkrTreeAngRatioSelection", m_tkrTreeAngRatioSelection = 1.1);
+    declareProperty("Tkr2AxisAngSelection",     m_tkr2AxisAngSelection     = 2.   ); //1.);
+    declareProperty("TkrTreeAngRatioSelection", m_tkrTreeAngRatioSelection = 1.025); //1);
     declareProperty("TkrChiSqDiffSelection",    m_chiSqDiffSelection       = 0.);
     declareProperty("MaxSharedLeadingHits",     m_maxSharedLeadingHits     = 5);
     declareProperty("MaxGaps",                  m_maxGaps                  = 2);
@@ -255,7 +259,7 @@ StatusCode TkrTreeTrackFinderTool::initialize()
 // This associates the VecPointsLinks into candidate tracks
 //
 
-int TkrTreeTrackFinderTool::findTracks(Event::TkrTree* tree, double trackEnergy)
+int TkrTreeTrackFinderTool::findTracks(Event::TkrTree* tree, double trackEnergy, Event::CalCluster* cluster)
 {
     // Embed the following in a try-catch block in case of problems
     // Hopefully once things are stabe we can remove this
@@ -317,7 +321,7 @@ int TkrTreeTrackFinderTool::findTracks(Event::TkrTree* tree, double trackEnergy)
         {
             // Choose the best one
             // Note that this method will delete the loser
-            Event::TkrTrack* bestTrack = selectBestTrack(tree, bestBranchTrack, treeAxisTrack);
+            Event::TkrTrack* bestTrack = selectBestTrack(tree, cluster, trackEnergy, bestBranchTrack, treeAxisTrack);
 
             // Flag the clusters used by this track
             flagUsedClusters(bestTrack);
@@ -433,9 +437,11 @@ int TkrTreeTrackFinderTool::findTracks(Event::TkrTree* tree, double trackEnergy)
     return tree->size();
 }
 
-Event::TkrTrack* TkrTreeTrackFinderTool::selectBestTrack(Event::TkrTree*  tree, 
-                                                         Event::TkrTrack* track1, 
-                                                         Event::TkrTrack* track2)
+Event::TkrTrack* TkrTreeTrackFinderTool::selectBestTrack(Event::TkrTree*    tree, 
+                                                         Event::CalCluster* cluster,
+                                                         double             clusEnergy,
+                                                         Event::TkrTrack*   track1, 
+                                                         Event::TkrTrack*   track2)
 {
     // The track to return
     Event::TkrTrack* track = 0;
@@ -451,7 +457,33 @@ Event::TkrTrack* TkrTreeTrackFinderTool::selectBestTrack(Event::TkrTree*  tree,
         double tkrTreeAng1     = acos(std::min(1., std::max(-1., cosTkrTreeAng1)));
         double cosTkrTreeAng2  = startDir.dot(track2->getInitialDirection());
         double tkrTreeAng2     = acos(std::min(1., std::max(-1., cosTkrTreeAng2)));
-        double tkrTreeAngRatio = tkrTreeAng2 > 0. ? tkrTreeAng1 / tkrTreeAng2 : 1.;
+
+        // If we have an associated cluster try looking at the neutral axis
+        if (cluster && clusEnergy > 250.)
+        {
+            // Determine the "neutral" axis
+            Point  clusCentroid   = cluster->getMomParams().getCentroid();
+            Point  treeHeadPos    = tree->getAxisParams()->getEventPosition();
+            Vector neutralAxis    = clusCentroid - treeHeadPos;
+
+            neutralAxis = neutralAxis.unit();
+
+            // Get angle to tree axis
+            double cosTreeNeutAng = neutralAxis.dot(startDir);
+            double treeNeutAng    = acos(std::min(1., std::max(-1., cosTreeNeutAng))) * 57.29577951;
+
+            // For events where the two are reasonably close go ahead and look at tracks to neutral axis
+            if (treeNeutAng < 4.)
+            {
+                // Get angles tracks make with neutral axis
+                double cosTkrNeutAng1 = neutralAxis.dot(track1->getInitialDirection());
+                double cosTkrNeutAng2 = neutralAxis.dot(track2->getInitialDirection());
+
+                // Replace the track to axis angles calculated originally
+                tkrTreeAng1 = acos(std::min(1., std::max(-1., cosTkrNeutAng1)));
+                tkrTreeAng2 = acos(std::min(1., std::max(-1., cosTkrNeutAng2)));
+            }
+        }
 
         // Set the angles these two methods make with the tree axis
         tree->setBestBranchAngleToAxis(tkrTreeAng1);
@@ -459,16 +491,19 @@ Event::TkrTrack* TkrTreeTrackFinderTool::selectBestTrack(Event::TkrTree*  tree,
 
         // Track chi-square difference
         double chiSqDiff       = track1->getChiSquareSmooth() - track2->getChiSquareSmooth();
+        double tkrTreeAngRatio = tkrTreeAng2 > 0. ? tkrTreeAng1 / tkrTreeAng2 : 1.;
 
         // Number hits on the track
         int    nHitsDiff       = track1->getNumHits() - track2->getNumHits();
 
         // Grand comparison
         // If the conditions below are satisfied then the axis seeded track is better
-        if (track2->getChiSquareSmooth() < m_tkr2ChiSquareSelection   &&
-            tkrTreeAng2                  < m_tkr2AxisAngSelection     &&
-            tkrTreeAngRatio              > m_tkrTreeAngRatioSelection &&
-            chiSqDiff                    > m_chiSqDiffSelection
+//        if (track2->getChiSquareSmooth() < m_tkr2ChiSquareSelection   &&
+//            tkrTreeAng2                  < m_tkr2AxisAngSelection     &&
+//            tkrTreeAngRatio              > m_tkrTreeAngRatioSelection &&
+//            chiSqDiff                    > m_chiSqDiffSelection
+        if (tkrTreeAng2     < m_tkr2AxisAngSelection     &&
+            tkrTreeAngRatio > m_tkrTreeAngRatioSelection
            )
         {
             track = track2;
