@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.10 2012/06/18 22:43:14 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.11 2012/06/28 20:19:10 usher Exp $
  *
 */
 #include "ITkrTreeTrackFinder.h"
@@ -44,8 +44,8 @@ public:
         int rightDistToMain = right->getBiLyrs2MainBrch() > 0 ? right->getBiLyrs2MainBrch() : 100000;
 
         // Most number of bilayers wins (longest)
-        if      (leftDistToMain > rightDistToMain) order = true;
-        else if (leftDistToMain < rightDistToMain) order = false;
+        if      (leftDistToMain > rightDistToMain) order = false;
+        else if (leftDistToMain < rightDistToMain) order = true;
         else
         {
             // Nothing else left but straightest
@@ -54,10 +54,10 @@ public:
             double rightRmsAngle = right->getBestRmsAngle() * double(right->getNumBiLayers()) / double(right->getDepth());
         
             //if (left->getBestRmsAngle() < right->getBestRmsAngle()) return true;
-            if (leftRmsAngle < rightRmsAngle) order = true;
+            if (leftRmsAngle > rightRmsAngle) order = true;
         }
 
-        return !order;
+        return order;
     }
 };
 
@@ -545,7 +545,8 @@ int TkrTreeTrackFinderTool::makeLeafSet(TkrVecNodeLeafQueue&            leafQueu
 
             // If node has no daughters its a leaf, but we only want leaves on branches
             // long enough to actually make tracks
-            if (node->empty() && node->getNumBiLayers() > 1) leafQueue.push(node);
+//            if (node->empty() && node->getNumBiLayers() > 1) leafQueue.push(node);
+            if (node->empty() && node->getNumAnglesInSum() > 0) leafQueue.push(node);
         }  
     }
 
