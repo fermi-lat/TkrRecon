@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: usher  Wed Aug  1 15:27:20 PDT 2012
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	ITkrTreeTrackFinder.h TkrTreeBuilder.cxx 
+	TkrTreeTrackFinderTool.cxx TkrVecNodesBuilder.cxx 
+	TreeBasedTool.cxx TreeCalClusterAssociator.cxx 
+	TreeCalClusterAssociator.h 
+Log Message:
+Modifications to make vc90 compliant and to fix some small bugs discovered in visual studio 2010
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-20-04-01, operation: add
 Package: TkrRecon
