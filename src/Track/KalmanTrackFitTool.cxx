@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.50 2011/05/31 20:01:29 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.51 2011/12/12 20:57:14 heather Exp $
  */
 
 // to turn one debug variables
@@ -1201,10 +1201,11 @@ double KalmanTrackFitTool::doSmoother(Event::TkrTrack& track)
     KFmatrix prvCovMat(fitCov);
 
     // Loop through the track hits and run the smoother
-    for( ; prevIter != track.begin(); smoothIter--, prevIter--) 
+//    for( ; prevIter != track.begin(); smoothIter--, prevIter--) 
+    while(prevIter != track.begin()) 
     {
-        Event::TkrTrackHit& prevPlane    = **prevIter;
-        Event::TkrTrackHit& currentPlane = **smoothIter;
+        Event::TkrTrackHit& prevPlane    = **prevIter--;
+        Event::TkrTrackHit& currentPlane = **prevIter; //**smoothIter;
 
 		double chiSqKF = doSmoothStep(prevPlane, currentPlane);
 

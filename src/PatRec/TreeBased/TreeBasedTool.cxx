@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.29 2012/05/30 15:35:57 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.30 2012/06/28 20:19:10 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -661,30 +661,28 @@ StatusCode TreeBasedTool::secondPass()
     // The final task is to go through the tree collection and weed out any trees which didn't produce tracks
     if (!treeCol->empty())
     {
-        int                         numTrees    = treeCol->size();
-        Event::TkrTreeCol::iterator lastElemItr = treeCol->end() - 1;
+		// Loop through the tree collection to look for those trees which did not produce tracks
+		int treeIdx = 0;
+	    
+		while(treeIdx < treeCol->size())
+		{
+			Event::TkrTree* treeToCheck = (*treeCol)[treeIdx];
 
-        // Loop over the number of trees in the collection
-        while(numTrees--)
-        {
-            // This is meant to give us valid iterators to the current element
-            // and to the previous element in the event we remove the current one
-            Event::TkrTreeCol::iterator curElemItr = lastElemItr--;
-
-            // If there are no tracks associated with this tree...
-            if ((*curElemItr)->empty() || numTrees > m_maxTrees - 1)
-            {
-                // If pruning out useless trees then don't forget to delete the tracks
-                for(Event::TkrTree::iterator treeTrkItr = (*curElemItr)->begin(); treeTrkItr != (*curElemItr)->end(); treeTrkItr++)
+			// Bad Tree, or too many trees?
+			if (treeToCheck->empty()  || treeIdx >= m_maxTrees)
+			{
+				// In the case that we are exceeding the maximum number of trees then we have to delete
+				// any tracks those trees may have produced (this can't happen otherwise)
+                for(Event::TkrTrackVec::iterator treeTrkItr = treeToCheck->begin(); treeTrkItr != treeToCheck->end(); treeTrkItr++)
                 {
                     delete *treeTrkItr;
                 }
 
-                // then remove it from the Tree Collection 
-                // (noting that this operation also deletes the tree)
-                treeCol->erase(curElemItr);
-            }
-        }
+				// Now delete the tree (which should automatically remove it from the Tree Collection
+				delete treeToCheck;
+			}
+			else treeIdx++;
+		}
     }
 
     return sc;
