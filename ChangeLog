@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sat Aug  4 18:45:18 PDT 2012
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeBuilder.cxx 
+Log Message:
+Manually clear the local node queue before deleing (in case it still has entries)
+    *
+------------------------------------------------------------
 User: usher  Wed Aug  1 15:27:21 PDT 2012
 TkrRecon/src/Track
 
