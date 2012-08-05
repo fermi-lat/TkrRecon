@@ -104,7 +104,15 @@ Event::TkrTreeCol* TkrTreeBuilder::buildTrees()
         }
     }
 
-    if (tkrVecNodeCol) delete tkrVecNodeCol;
+    if (tkrVecNodeCol)
+	{
+		// Remember that tkrVecNodeCol does not "own" the objects it references
+		// So let's clear it out in case anything was left over
+		while(!tkrVecNodeCol->empty()) tkrVecNodeCol->pop();
+
+		// Now safe to delete
+		delete tkrVecNodeCol;
+	}
 
     return m_treeCol;
 }
