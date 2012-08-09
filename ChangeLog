@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Aug  9 13:29:54 PDT 2012
+GlastRelease-scons/TkrRecon/src/Vertex/Combo
+
+Modified Files:
+	ComboVtxTool.cxx ComboVtxTool.h 
+Log Message:
+Set up so neutral vertex determination will use the tree axis corrected cal cluster centroid. Also, fix a small memory leak
+    *
+------------------------------------------------------------
 User: usher  Wed Aug  8 20:25:11 PDT 2012
 TkrRecon/src/PatRec/TreeBased
 
