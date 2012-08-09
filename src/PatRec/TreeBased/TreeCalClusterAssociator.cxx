@@ -264,6 +264,5 @@ const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelat
     }
 
     // if neither have cluster then preserve tree ordering
-    return left->getTree()->getHeadNode()->getDepth()  > 
-           right->getTree()->getHeadNode()->getDepth();
+	return Event::TkrVecNodesComparator()(left->getTree()->getHeadNode(), right->getTree()->getHeadNode());
 }
