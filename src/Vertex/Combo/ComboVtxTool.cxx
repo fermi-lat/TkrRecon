@@ -1,5 +1,6 @@
 
-#include "ComboVtxTool.h"
+#include "GaudiKernel/AlgTool.h"
+#include "GaudiKernel/DataSvc.h"
 #include "GaudiKernel/ToolFactory.h"
 #include "GaudiKernel/SmartDataPtr.h"
 #include "GaudiKernel/MsgStream.h"
@@ -10,13 +11,59 @@
 #include "Event/Recon/TkrRecon/TkrTree.h"
 #include "Event/Recon/TkrRecon/TkrVertex.h"
 #include "Event/Recon/TkrRecon/TkrEventParams.h"
+#include "Event/Recon/CalRecon/CalCluster.h"
+#include "Event/Recon/TreeClusterRelation.h"
 
+#include "TkrRecon/Track/ITkrFitTool.h"
+#include "TkrUtil/ITkrGeometrySvc.h"
 #include "src/TrackFit/KalmanFilterUtils/KalmanFilterDefs.h"
 #include "src/Vertex/Combo/TkrComboVtxRecon.h"
 #include "src/Vertex/Combo/RayDoca.h"
+#include "src/Vertex/IVtxBaseTool.h"
 
-//static ToolFactory<ComboVtxTool> s_factory;
-//const IToolFactory& ComboVtxToolFactory = s_factory;
+
+class ComboVtxTool : public AlgTool, virtual public IVtxBaseTool 
+{
+public:
+	// Constructor
+	ComboVtxTool( const std::string& type, const std::string& name, const IInterface* parent);
+
+	// Standard Destructor
+	virtual ~ComboVtxTool() {;}
+
+	///Implementation of the method provided by the base class AlgTool.
+	virtual StatusCode initialize();
+
+	StatusCode retrieveVtxCol(Event::TkrVertexCol& VtxList);
+
+	///@brief Implement the pure virtual method of IVtxBaseTool
+	StatusCode findVtxs();
+
+	///Provide a finalize routine to keep from geting errors at end of job
+	virtual StatusCode finalize();
+
+private:
+
+	///@brief Method to compute the vtx solution including tne neutral energy direction
+	StatusCode neutralEnergyVtx(Event::TkrTree* tree, Event::TkrVertexCol* vertexCol);
+
+    Event::TkrTrackParams getParamAve(Event::TkrTrackParams& params1, 
+                                      Event::TkrTrackParams& params2);
+
+    /// @brief Keep pointers to the geometry service and the data 
+    /// data provider service. These are both needed by the combo
+    /// vertexing routine
+    ITkrGeometrySvc*  m_tkrGeom;
+    IDataProviderSvc* m_dataSvc;
+    /// Pointer to the G4 propagator
+    IPropagator*      m_propagatorTool;
+
+	double            m_maxDOCA;   /// Max. accepted DOCA separation for which to make vertex
+    double            m_minQuality;/// Min. accepted VTX quality
+
+    double            m_chisq;     /// Internal transport for Chi-Square
+};
+
 DECLARE_TOOL_FACTORY(ComboVtxTool);
 
 ComboVtxTool::ComboVtxTool( const std::string& type, const std::string& name, const IInterface* parent)
@@ -237,7 +284,7 @@ StatusCode ComboVtxTool::findVtxs()
                 // Propagate the TkrParams to the vertex location
                 m_propagatorTool->setStepStart(tkr1Params, tkr1Pos.z(), (sv1 < 0));
                 m_propagatorTool->step(fabs(sv1));
-                Event::TkrTrackParams vtx1Params = m_propagatorTool->getTrackParams(fabs(sv1), e1, (sv1 < 0));
+                Event::TkrTrackParams vertexParams = m_propagatorTool->getTrackParams(fabs(sv1), e1, (sv1 < 0));
                 double extraRadLen = m_propagatorTool->getRadLength();
 
                 m_propagatorTool->setStepStart(tkr2Params, tkr2Pos.z(), (sv2 < 0));
@@ -245,27 +292,27 @@ StatusCode ComboVtxTool::findVtxs()
                 Event::TkrTrackParams vtx2Params = m_propagatorTool->getTrackParams(fabs(sv2), e2, (sv2 < 0));
 				
 			//  NEW: Scaled covariance matrix for Track 1 & 2 
-				cxx = vtx1Params.getxPosxPos();
+				cxx = vertexParams.getxPosxPos();
 				cxSx = 0.; 
-				cxy  = vtx1Params.getxPosyPos(); 
+				cxy  = vertexParams.getxPosyPos(); 
 				cxSy = 0.; 
 
 				cSxy = 0.; 
 
-				cyy  = vtx1Params.getyPosyPos();
+				cyy  = vertexParams.getyPosyPos();
 				cySy = 0.; 
 
-				cSxSx = vtx1Params.getxSlpxSlp()* firstChisq1;
-				cSySy = vtx1Params.getySlpySlp()* firstChisq1;
-				cSxSy = vtx1Params.getxSlpySlp()* firstChisq1;
+				cSxSx = vertexParams.getxSlpxSlp()* firstChisq1;
+				cSySy = vertexParams.getySlpySlp()* firstChisq1;
+				cSxSy = vertexParams.getxSlpySlp()* firstChisq1;
 
-				x_slope = vtx1Params.getxSlope();
-				y_slope = vtx1Params.getySlope();
+				x_slope = vertexParams.getxSlope();
+				y_slope = vertexParams.getySlope();
 
-				x_vtx = vtx1Params.getxPosition();
-				y_vtx = vtx1Params.getyPosition();
+				x_vtx = vertexParams.getxPosition();
+				y_vtx = vertexParams.getyPosition();
 
-			     Event::TkrTrackParams scaled_vtx1Params(x_vtx, x_slope, y_vtx, y_slope,
+			     Event::TkrTrackParams scaled_vertexParams(x_vtx, x_slope, y_vtx, y_slope,
 													 cxx,  cxSx,  cxy,  cxSy,
 													 cSxSx, cSxy, cSxSy,
 													 cyy,  cySy,
@@ -292,7 +339,7 @@ StatusCode ComboVtxTool::findVtxs()
 
                 // Get the covariance weighted average (Note this method also computes
                 // the chi-square for the association. Results in m_chisq)
-                Event::TkrTrackParams vtxParams = getParamAve(scaled_vtx1Params, scaled_vtx2Params); 
+                Event::TkrTrackParams vtxParams = getParamAve(scaled_vertexParams, scaled_vtx2Params); 
 
                 // Calculate quality for this vertex
 				if(m_chisq < 0) continue;
@@ -332,51 +379,86 @@ StatusCode ComboVtxTool::findVtxs()
         }      // Close loop over 1st track
     }
 
-	if (!vertexCol->empty()) sc = neutralEnergyVtx(); // RJ LSR
+	// If we found at least one vertex then attempt to make a neutral vertex
+	// Doing here makes sure it is added to the end of the list 
+	if (!vertexCol->empty())
+	{
+		sc = neutralEnergyVtx(treeCol->front(), vertexCol); // RJ LSR
+	}
     
     return sc;
 }
 
-StatusCode ComboVtxTool::neutralEnergyVtx()
+StatusCode ComboVtxTool::neutralEnergyVtx(Event::TkrTree* tree, Event::TkrVertexCol* vertexCol)
 {
-	// Computes a new vertex solution incorporating the neutral energy vector.  The 
-	// neutral energy vector is the direction from the head of Vtx1 to the Cal centroid.
+	// In case of failure, return success
+	StatusCode sc = StatusCode::SUCCESS;
 
-    //Always believe in success
-    StatusCode sc = StatusCode::SUCCESS;
-	Event::TkrVertexCol*  pVerts = SmartDataPtr<Event::TkrVertexCol>(m_dataSvc,EventModel::TkrRecon::TkrVertexCol);
-    if(!pVerts) return sc;
+	// Computes a new vertex solution incorporating the neutral energy vector.  The 
+	// neutral energy vector is the direction from the head of vertex to the Cal centroid.
 
 	// Recover pointer to Cal Cluster info  
-    Event::TkrEventParams* tkrEventParams = 
-        SmartDataPtr<Event::TkrEventParams>(
-        m_dataSvc,EventModel::TkrRecon::TkrEventParams);
+    Event::TkrEventParams* tkrEventParams = SmartDataPtr<Event::TkrEventParams>(m_dataSvc,EventModel::TkrRecon::TkrEventParams);
 
     //If Cal information available, then retrieve estimate for the energy & centroid
     if (tkrEventParams == 0 || !(tkrEventParams->getStatusBits() & Event::TkrEventParams::CALPARAMS))
 		return sc;
 
-	// Setup the Neutral Vertex
-    Event::TkrVertex *vtx1 = *pVerts->begin();    
-	Point vtx_pos = vtx1->getPosition();
-    Event::TkrVertex *neutralVertex = new Event::TkrVertex(
-			      vtx1->getTkrId(), vtx1->getEnergy(), 0, 0.,
-                  0., 0., 0., 0., vtx_pos.z(), vtx1->getVertexParams()); 
-	neutralVertex->setStatusBit(Event::TkrVertex::NEUTRALVTX);
-	SmartRefVector<Event::TkrTrack>::const_iterator pTrack1 = vtx1->getTrackIterBegin(); 
-	const Event::TkrTrack* tkr1 = *pTrack1;
-    neutralVertex->addTrack(tkr1);
-
+	// Now set up the calorimeter stuff we need for the vertexing...
+	// Always take the energy from TkrEventParams because it is using the recon second 
+	// pass corrected energy
     double CalEnergy = tkrEventParams->getEventEnergy(); 
-	//double CalTransRms = tkrEventParams->getTransRms();
+
+	// If no CalEnergy then return.
 	if(CalEnergy < 10) return sc;
 
-    Point m_calPos  = tkrEventParams->getEventPosition();
-    Vector m_calDir  = tkrEventParams->getEventAxis();
+    // If we made it this far then recover the mapping between clusters and trees from the TDS
+    Event::TreeToRelationMap* treeToRelationMap = 
+        SmartDataPtr<Event::TreeToRelationMap>(m_dataSvc, EventModel::Recon::TreeToRelationMap);
 
+    // Recover the pointer to the TkrTree, if there is one available
+    Event::TreeClusterRelation* treeClusRel = 0;
+
+    if (treeToRelationMap)
+    {
+        // Recover the tree associated to this cluster, if there is one
+        Event::TreeToRelationMap::iterator clusTreeItr = treeToRelationMap->find(tree);
+
+        if (clusTreeItr != treeToRelationMap->end()) treeClusRel = clusTreeItr->second.front();
+    }
+
+    Event::CalCluster* cluster = treeClusRel ? treeClusRel->getCluster() : 0;
+	Vector             calDir  = tkrEventParams->getEventAxis();
+	Point              calPos(0.,0.,0.);
+
+	// if we have a cluster then we are going to use that since we can get the 
+	// corrected centroid position
+	if (cluster)
+	{
+		calPos = cluster->getCorPosition(tree->getAxisParams()->getEventAxis());
+	}
+	// Otherwise, fall back to the TkrEventParams
+	else
+	{
+		calPos = tkrEventParams->getEventPosition();
+	}
+
+	// Recover the first vertex
+	Event::TkrVertex* vertex = vertexCol->front();
+
+	// Setup the Neutral Vertex
+	Point vtx_pos = vertex->getPosition();
+
+	Event::TkrVertex* neutralVertex = new Event::TkrVertex(vertex->getTkrId(), vertex->getEnergy(), 0, 0.,
+                                                           0., 0., 0., 0., vtx_pos.z(), vertex->getVertexParams()); 
+	neutralVertex->setStatusBit(Event::TkrVertex::NEUTRALVTX);
+	SmartRefVector<Event::TkrTrack>::const_iterator pTrack1 = vertex->getTrackIterBegin(); 
+	const Event::TkrTrack* tkr1 = *pTrack1;
+    neutralVertex->addTrack(tkr1);
+	vertexCol->push_back(neutralVertex);
 
 	// Compute neutral energy direction
-	Vector neutral_dir = (m_calPos - vtx_pos).unit();
+	Vector neutral_dir = (calPos - vtx_pos).unit();
 	double x_slope = neutral_dir.x()/neutral_dir.z();
 	double y_slope = neutral_dir.y()/neutral_dir.z();
 
@@ -388,7 +470,7 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
 
 	// this introduces an additional 1/cos(theta) 
     // into both axes, to account for the projection
-    double path_length = vtx_pos.z()-m_calPos.z();
+    double path_length = vtx_pos.z()-calPos.z();
 	double path_length_corr    = 1.; //(1. + (path_length-100.)/700./sqrt(CalEnergy/100.));
 
 	double minor_axis = shower_radial_error*path_length_corr / path_length; 
@@ -415,7 +497,7 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
 	double cSxSy = -cxy_inv/detC; 
 
 	// Setup the weights for the neutral solution - charge to follow
-	Vector charged_dir = vtx1->getDirection();
+	Vector charged_dir = vertex->getDirection();
 	double open_angle = acos(neutral_dir * charged_dir);
 	double rad_lens = tkr1->getTkrCalRadlen();
 	double theta_0  = 13.8*sqrt(rad_lens)*(1.+.038*log(rad_lens))/(.7*CalEnergy);
@@ -431,16 +513,16 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
 	cSxSy *= neutral_wgt;
 
 	// Make a neutral energy param object
-	Event::TkrTrackParams vtx1_params = vtx1->getVertexParams();
-	double cxx = vtx1_params.getxPosxPos();
-	double cxSx = 0.; //vtx1_params.getxPosxSlp()/x_slope*vtx1_params.getxSlope();
-	double cxy  = vtx1_params.getxPosyPos(); 
-	double cxSy = 0.; //vtx1_params.getxPosySlp()/y_slope*vtx1_params.getySlope();
+	Event::TkrTrackParams vertex_params = vertex->getVertexParams();
+	double cxx = vertex_params.getxPosxPos();
+	double cxSx = 0.; //vertex_params.getxPosxSlp()/x_slope*vertex_params.getxSlope();
+	double cxy  = vertex_params.getxPosyPos(); 
+	double cxSy = 0.; //vertex_params.getxPosySlp()/y_slope*vertex_params.getySlope();
 
-	double cSxy = 0.; //vtx1_params.getxSlpyPos()/x_slope*vtx1_params.getxSlope();
+	double cSxy = 0.; //vertex_params.getxSlpyPos()/x_slope*vertex_params.getxSlope();
 
-	double cyy  = vtx1_params.getyPosyPos();
-	double cySy = 0.; //vtx1_params.getyPosySlp()/y_slope*vtx1_params.getySlope();
+	double cyy  = vertex_params.getyPosyPos();
+	double cySy = 0.; //vertex_params.getyPosySlp()/y_slope*vertex_params.getySlope();
 
 
 	Event::TkrTrackParams neutral_params(vtx_pos.x(), x_slope, vtx_pos.y(), y_slope,
@@ -455,12 +537,12 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
 	double indep_var = open_angle* std::min(10000., CalEnergy)/20.; // equals 1 for OA = .05 & CalE = 400
     double charged_wgt = std::max(1., (15.*indep_var - 5)/2.); //33 + 34
 
-    cSxSx = vtx1_params.getxSlpxSlp()*charged_wgt;
-	cSySy = vtx1_params.getySlpySlp()*charged_wgt;
-    cSxSy = vtx1_params.getxSlpySlp()*charged_wgt;
+    cSxSx = vertex_params.getxSlpxSlp()*charged_wgt;
+	cSySy = vertex_params.getySlpySlp()*charged_wgt;
+    cSxSy = vertex_params.getxSlpySlp()*charged_wgt;
 
-	x_slope = vtx1_params.getxSlope();
-	y_slope = vtx1_params.getySlope();
+	x_slope = vertex_params.getxSlope();
+	y_slope = vertex_params.getySlope();
 
 	Event::TkrTrackParams charged_params(vtx_pos.x(), x_slope, vtx_pos.y(), y_slope,
                    cxx,  cxSx,  cxy,  cxSy,
@@ -481,15 +563,12 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
 
 	 neutralVertex->addTrack(tkr1);
 
-    // Add track to TkrVertexCol
-     pVerts->push_back(neutralVertex);
-
     // Add a  2nd neutral vertex in the case that the first had more then one track
-    if(!(vtx1->getStatusBits() & Event::TkrVertex::ONETKRVTX)) {
+    if(!(vertex->getStatusBits() & Event::TkrVertex::ONETKRVTX)) {
 		// Make a second Neutral vertex and finish the first one
 		Event::TkrVertex *neutralVertex1 = new Event::TkrVertex(
-			      vtx1->getTkrId(), vtx1->getEnergy(), 0, 0.,
-                  0., 0., 0., 0., vtx_pos.z(), vtx1->getVertexParams()); 
+			      vertex->getTkrId(), vertex->getEnergy(), 0, 0.,
+                  0., 0., 0., 0., vtx_pos.z(), vertex->getVertexParams()); 
 		neutralVertex1->setStatusBit(Event::TkrVertex::NEUTRALVTX);
 		neutralVertex1->setStatusBit(Event::TkrVertex::ONETKRVTX);
 	    neutralVertex1->addTrack(tkr1);
@@ -497,12 +576,12 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
 		neutralVertex->addTrack(tkr2);
 
 		Point tkr1_pos = tkr1->getInitialPosition();
-	    Vector neutral1_dir = (m_calPos - tkr1_pos).unit();
+	    Vector neutral1_dir = (calPos - tkr1_pos).unit();
 	    x_slope = neutral1_dir.x()/neutral1_dir.z();
 	    y_slope = neutral1_dir.y()/neutral1_dir.z();
 
 		// again, use the projected distance
-        double path_length1 = m_calPos.z() - tkr1_pos.z();
+        double path_length1 = calPos.z() - tkr1_pos.z();
 	    minor_axis = shower_radial_error*path_length_corr / path_length1; 
 		major_axis = minor_axis / fabs(neutral_dir.z());  
 
@@ -534,14 +613,14 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
 		// Make a neutral energy param object
 		const Event::TkrTrackParams& tkr1_params = tkr1->front()->getTrackParams(Event::TkrTrackHit::SMOOTHED);
 	    cxx  = tkr1_params.getxPosxPos();
-	    cxSx = 0.; //vtx1_params.getxPosxSlp()/x_slope*vtx1_params.getxSlope();
+	    cxSx = 0.; //vertex_params.getxPosxSlp()/x_slope*vertex_params.getxSlope();
 	    cxy  = tkr1_params.getxPosyPos(); 
-	    cxSy = 0.; //vtx1_params.getxPosySlp()/y_slope*vtx1_params.getySlope();
+	    cxSy = 0.; //vertex_params.getxPosySlp()/y_slope*vertex_params.getySlope();
 
-	    cSxy = 0.; //vtx1_params.getxSlpyPos()/x_slope*vtx1_params.getxSlope();
+	    cSxy = 0.; //vertex_params.getxSlpyPos()/x_slope*vertex_params.getxSlope();
 
 	    cyy  = tkr1_params.getyPosyPos();
-	    cySy = 0.; //vtx1_params.getyPosySlp()/y_slope*vtx1_params.getySlope();
+	    cySy = 0.; //vertex_params.getyPosySlp()/y_slope*vertex_params.getySlope();
 	    Event::TkrTrackParams neutral1_params(tkr1_pos.x(), x_slope, tkr1_pos.y(), y_slope,
                    cxx,  cxSx,  cxy,  cxSy,
 				         cSxSx, cSxy, cSxSy,
@@ -578,7 +657,7 @@ StatusCode ComboVtxTool::neutralEnergyVtx()
 		neutralVertex1->addTrack(tkr1);
 
 		// Add track to TkrVertexCol
-		pVerts->push_back(neutralVertex1);
+		vertexCol->push_back(neutralVertex1);
 	}
 
 	 return sc;
