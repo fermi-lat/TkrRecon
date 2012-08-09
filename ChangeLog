@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Aug  9 13:49:20 PDT 2012
+TkrRecon
+
+Modified Files:
+	SConscript 
+Log Message:
+Preparing to tag TkrRecon-10-33-01
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-33-01, operation: add
 Package: TkrRecon
