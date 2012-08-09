@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-33-01 09-Aug-2012 TU Mainly mods to work with VS2008 but also fix queue sort comparators to obey strict weak ordering
  TkrRecon-10-33-00 02-Jul-2012 TU "Final" version of updates to track extraction from trees
  TkrRecon-10-32-00 12-May-2012  lsrea iteration on Kalman and range energies
  TkrRecon-10-31-01 09-May-2012 TU patch for linux
