@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Aug  8 20:25:11 PDT 2012
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TreeCalClusterAssociator.cxx 
+Log Message:
+Make sure the default ordering is truly preserved in the comparator for tree-cluster association
+    *
+------------------------------------------------------------
 User: usher  Sat Aug  4 18:45:18 PDT 2012
 TkrRecon/src/PatRec/TreeBased
 
