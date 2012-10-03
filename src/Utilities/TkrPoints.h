@@ -11,7 +11,7 @@
 *
 * @authors Bill Atwood
 *
-* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoints.h,v 1.8.740.1 2012/04/18 21:19:45 lsrea Exp $
+* $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Utilities/TkrPoints.h,v 1.9 2012/04/25 04:54:37 heather Exp $
 *
 */
 
@@ -72,8 +72,8 @@ private:
     public:
         sortByClosest(const Point& theRef) : myRef(theRef) {}
         bool operator() (const TkrPoint* left, const TkrPoint* right) const {
-	//std::cout << "dists: " << left->getDistanceSquaredTo(myRef) << " " <<
-	  //right->getDistanceSquaredTo(myRef) << std::endl;
+        //std::cout << "dists: " << left->getDistanceSquaredTo(myRef) << " " <<
+          //right->getDistanceSquaredTo(myRef) << std::endl;
             return left->getDistanceSquaredTo(myRef)<right->getDistanceSquaredTo(myRef);
         } 
     };        

@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/VectorLinksTool.cxx,v 1.11 2011/10/05 19:31:01 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/VectorLinksTool.cxx,v 1.12 2011/12/12 20:57:13 heather Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -48,7 +48,7 @@ public:
     /// Standard Gaudi Tool interface constructor
     VectorLinksTool(const std::string& type, const std::string& name, const IInterface* parent);
     virtual ~VectorLinksTool() {}
-	
+        
     /// @brief Intialization of the tool
     StatusCode initialize();
 
@@ -127,14 +127,14 @@ VectorLinksTool::VectorLinksTool(const std::string& type, const std::string& nam
     declareProperty("maxCombThrottle",   m_maxLinksForThrottle = 100);
     declareProperty("maxRelTableSize",   m_maxRelTableSize     = 300000);
 
-	return;
+        return;
 }
 
 //
 // Initialization of the tool here
 //
 StatusCode VectorLinksTool::initialize()
-{	
+{        
     PatRecBaseTool::initialize();
     StatusCode sc   = StatusCode::SUCCESS;
 

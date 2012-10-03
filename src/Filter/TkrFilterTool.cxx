@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrFilterTool.cxx,v 1.8 2011/10/05 19:30:58 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrFilterTool.cxx,v 1.9 2011/12/12 20:57:08 heather Exp $
  */
 
 // to turn one debug variables
@@ -311,7 +311,7 @@ StatusCode TkrFilterTool::doFilterStep()
             // then by the stored hits in the bilayer
             for(VecPointVec::iterator vecIter = vecVecIter->begin(); vecIter != vecVecIter->end(); vecIter++)
             {
-		        const Event::TkrVecPoint& vecPoint = *vecIter;
+                        const Event::TkrVecPoint& vecPoint = *vecIter;
 
                 TkrMomentsData momentsData(vecPoint.getPosition(), 1., 0.);
 

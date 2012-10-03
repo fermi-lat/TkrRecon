@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.36 2011/12/12 20:57:14 heather Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrTrackEnergyTool.cxx,v 1.37 2012/06/09 14:59:46 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -208,7 +208,7 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
                 if (tree->size() > 1) 
                 {
                     secndCandTrk = tree->back();
-				    if (secndCandTrk->getStatusBits() & Event::TkrTrack::COSMICRAY) 
+                                    if (secndCandTrk->getStatusBits() & Event::TkrTrack::COSMICRAY) 
                         secndCandTrk = 0;  //RJ: Avoid cosmic-ray tracks
                 }
                 // Recover TkrEventParams from which we get the event energy  
@@ -231,7 +231,7 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
                 {
                     // no cal info... set track energies to MS energies if possible.
                     double minEnergy = m_control->getMinEnergy();
-					if (secndCandTrk) minEnergy *=0.5;    // RJ
+                                        if (secndCandTrk) minEnergy *=0.5;    // RJ
     
                     if (firstCandTrk->getNumFitHits() > 7) 
                     {
@@ -271,7 +271,7 @@ StatusCode TkrTrackEnergyTool::SetTrackEnergies()
     
                     // Now constrain the energies of the first 2 tracks. 
                     //    This isn't valid for non-gamma conversions
-					if (!secndCandTrk)  // RJ
+                                        if (!secndCandTrk)  // RJ
                     {
                         setTrackEnergy(firstCandTrk, totEnergy);
                     } 

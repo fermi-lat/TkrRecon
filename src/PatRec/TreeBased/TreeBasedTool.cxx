@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.30 2012/06/28 20:19:10 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.31 2012/08/01 22:27:19 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -527,10 +527,9 @@ StatusCode TreeBasedTool::secondPass()
     // If the map exists then we follow the new-school approach
     if (calClusterCol && clusterToRelationMap && calEnergyMap && !clusterToRelationMap->empty())
     {
-        // Want to loop over CalClusters but need to watch out for the end condition
+        // Want to loop over CalClusters but need to watch out for the end condition AND uber2 !!
         Event::CalClusterCol::iterator stopItr = calClusterCol->end();
-
-        if (calClusterCol->size() > 1) stopItr--;
+        if (calClusterCol->size() > 1) stopItr = calClusterCol->end() - 2;
 
         // Loop over cal clusters and use tree 
         for (Event::CalClusterCol::iterator clusItr = calClusterCol->begin(); clusItr != stopItr; clusItr++)
@@ -661,28 +660,28 @@ StatusCode TreeBasedTool::secondPass()
     // The final task is to go through the tree collection and weed out any trees which didn't produce tracks
     if (!treeCol->empty())
     {
-		// Loop through the tree collection to look for those trees which did not produce tracks
-		int treeIdx = 0;
-	    
-		while(treeIdx < treeCol->size())
-		{
-			Event::TkrTree* treeToCheck = (*treeCol)[treeIdx];
+                // Loop through the tree collection to look for those trees which did not produce tracks
+                int treeIdx = 0;
+            
+                while(treeIdx < treeCol->size())
+                {
+                        Event::TkrTree* treeToCheck = (*treeCol)[treeIdx];
 
-			// Bad Tree, or too many trees?
-			if (treeToCheck->empty()  || treeIdx >= m_maxTrees)
-			{
-				// In the case that we are exceeding the maximum number of trees then we have to delete
-				// any tracks those trees may have produced (this can't happen otherwise)
+                        // Bad Tree, or too many trees?
+                        if (treeToCheck->empty()  || treeIdx >= m_maxTrees)
+                        {
+                                // In the case that we are exceeding the maximum number of trees then we have to delete
+                                // any tracks those trees may have produced (this can't happen otherwise)
                 for(Event::TkrTrackVec::iterator treeTrkItr = treeToCheck->begin(); treeTrkItr != treeToCheck->end(); treeTrkItr++)
                 {
                     delete *treeTrkItr;
                 }
 
-				// Now delete the tree (which should automatically remove it from the Tree Collection
-				delete treeToCheck;
-			}
-			else treeIdx++;
-		}
+                                // Now delete the tree (which should automatically remove it from the Tree Collection
+                                delete treeToCheck;
+                        }
+                        else treeIdx++;
+                }
     }
 
     return sc;
@@ -819,8 +818,8 @@ Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRel
             // We first need to set the end condition...
             Event::CalClusterCol::iterator clusColEnd = calClusterCol->end();
 
-            // If more than one cluster then the last is the "uber" and to be avoided
-            if (calClusterCol->size() > 1) clusColEnd = calClusterCol->end() - 1;
+            // If more than one cluster then the last is the "uber" and to be avoided AND uber2!!
+            if (calClusterCol->size() > 1) clusColEnd = calClusterCol->end() - 2;
 
             // Now loop over clusters
             for(Event::CalClusterCol::iterator clusItr = calClusterCol->begin(); clusItr != clusColEnd; clusItr++)
