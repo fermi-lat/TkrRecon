@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.54.4.1 2012/04/18 21:19:44 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.56 2012/04/25 04:54:34 heather Exp $
 */
 
 
@@ -358,8 +358,8 @@ StatusCode TkrReconAlg::execute()
 
                log << MSG::DEBUG;
                log << "------- Tkr Recon of new Event  " 
-								   << run << ":" << event << " (" 
-								   << m_eventCount << ") --------";
+                                                                   << run << ":" << event << " (" 
+                                                                   << m_eventCount << ") --------";
                log << endreq;
             }
 

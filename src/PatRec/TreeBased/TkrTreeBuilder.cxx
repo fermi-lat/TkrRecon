@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.30 2012/05/10 23:30:19 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.32 2012/08/05 01:45:18 usher Exp $
  *
 */
 
@@ -75,20 +75,20 @@ Event::TkrTreeCol* TkrTreeBuilder::buildTrees()
 
                 // No proceeding if not enough hits to make a real track
                 if (headNode->getDepth() > 1)
-				{
-					// Make the TkrTree with the best track
-					Event::TkrTree* tree = makeTkrTree(headNode);
+                                {
+                                        // Make the TkrTree with the best track
+                                        Event::TkrTree* tree = makeTkrTree(headNode);
 
-					// If a positive result then store in the TDS collection
-					if (tree) 
-					{
-						m_treeCol->push_back(tree);
-						headNode->setTreeId(++treeID);
-					}
-				}
+                                        // If a positive result then store in the TDS collection
+                                        if (tree) 
+                                        {
+                                                m_treeCol->push_back(tree);
+                                                headNode->setTreeId(++treeID);
+                                        }
+                                }
 
-				// Pop off the top of the queue
-				tkrVecNodeCol->pop();
+                                // Pop off the top of the queue
+                                tkrVecNodeCol->pop();
             } 
             catch( TkrException& e )
             {
@@ -99,20 +99,20 @@ Event::TkrTreeCol* TkrTreeBuilder::buildTrees()
                 throw(TkrException("Exception encountered in TkrTreeBuilder "));  
             }
 
-			// Arbitrary limit on the number of trees = 10
-			if (int(m_treeCol->size()) >= m_maxTrees) break;
+                        // Arbitrary limit on the number of trees = 10
+                        if (int(m_treeCol->size()) >= m_maxTrees) break;
         }
     }
 
     if (tkrVecNodeCol)
-	{
-		// Remember that tkrVecNodeCol does not "own" the objects it references
-		// So let's clear it out in case anything was left over
-		while(!tkrVecNodeCol->empty()) tkrVecNodeCol->pop();
+        {
+                // Remember that tkrVecNodeCol does not "own" the objects it references
+                // So let's clear it out in case anything was left over
+                while(!tkrVecNodeCol->empty()) tkrVecNodeCol->pop();
 
-		// Now safe to delete
-		delete tkrVecNodeCol;
-	}
+                // Now safe to delete
+                delete tkrVecNodeCol;
+        }
 
     return m_treeCol;
 }

@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.62 2011/12/12 20:57:10 heather Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.63 2012/04/25 04:54:35 heather Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -556,7 +556,7 @@ void ComboFindTrackTool::searchCandidates()
             msgLog << endreq;
             findCalCandidates();  
             if(m_candidates.empty()) {
-		  msgLog << MSG::VERBOSE << "Now blind search again" << endreq;
+                  msgLog << MSG::VERBOSE << "Now blind search again" << endreq;
                 findBlindCandidates();//Is this a good idea?
             }
         }
@@ -881,7 +881,7 @@ void ComboFindTrackTool::findBlindCandidates()
 
                         // If good hit found: make a trial fit & store it away
                         if(sigma < m_sigmaCut && cosKink > m_minCosKink) {
-						  msgLog << "about to call tryCandidates " << endreq;
+                                                  msgLog << "about to call tryCandidates " << endreq;
                             tryCandidate(ilayer, localBestHitCount, testRay);
                             // whatever happens, bail, no other track will be found with this ray
                             // WBA:  I don't think this is true.  Example is a track which in the 3rd layer

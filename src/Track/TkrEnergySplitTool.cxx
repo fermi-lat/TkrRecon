@@ -7,7 +7,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrEnergySplitTool.cxx,v 1.8 2011/11/18 17:38:55 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrEnergySplitTool.cxx,v 1.9 2011/12/12 20:57:14 heather Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -380,7 +380,7 @@ StatusCode TkrEnergySplitTool::SetTrackEnergies()
                 // no cal info... set track energies to MS energies if possible.
                 double minEnergy = m_control->getMinEnergy();
  //               if (trackCol->size() > 1) minEnergy *= 0.5;
-				if (secndCandTrk) minEnergy *=0.5;    // RJ
+                                if (secndCandTrk) minEnergy *=0.5;    // RJ
 
                 if (firstCandTrk->getNumFitHits() > 7) 
                 {
@@ -406,7 +406,7 @@ StatusCode TkrEnergySplitTool::SetTrackEnergies()
 
                 // Now constrain the energies of the first 2 tracks. 
                 //    This isn't valid for non-gamma conversions
-				if (!secndCandTrk)  // RJ
+                                if (!secndCandTrk)  // RJ
                 {
                     setTrackEnergy(firstCandTrk, ene_total);
                 } 

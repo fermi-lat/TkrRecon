@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.51 2011/12/12 20:57:14 heather Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.52 2012/08/01 22:27:21 usher Exp $
  */
 
 // to turn one debug variables
@@ -1207,7 +1207,7 @@ double KalmanTrackFitTool::doSmoother(Event::TkrTrack& track)
         Event::TkrTrackHit& prevPlane    = **prevIter--;
         Event::TkrTrackHit& currentPlane = **prevIter; //**smoothIter;
 
-		double chiSqKF = doSmoothStep(prevPlane, currentPlane);
+                double chiSqKF = doSmoothStep(prevPlane, currentPlane);
 
         chiSqSmooth += chiSqKF;
     }

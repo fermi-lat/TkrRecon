@@ -6,7 +6,7 @@
 * @author Tracking Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.42 2011/06/01 21:03:14 usher Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/FindTrackHitsTool.cxx,v 1.43 2011/12/12 20:57:14 heather Exp $
 */
 
 // to turn one debug variables
@@ -1042,8 +1042,8 @@ int FindTrackHitsTool::addLeadingHits(TkrTrack* track)
         // Add this to the head of the track
         added_hits++;
         track->insert(track->begin(), trackHit);
-		// WBA: Increment the X or Y hit counters for this track
-		if(trackHit->hitUsedOnFit()) {
+                // WBA: Increment the X or Y hit counters for this track
+                if(trackHit->hitUsedOnFit()) {
             if(trackHit->getStatusBits() & TkrTrackHit::MEASURESX) {
                 int numX = track->getNumXHits() + 1;
                 track->setNumXHits(numX);

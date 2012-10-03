@@ -1,7 +1,7 @@
 /**
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrMomentsAnalysis.cxx,v 1.3 2011/04/21 18:53:17 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrMomentsAnalysis.cxx,v 1.4 2012/05/10 23:30:18 usher Exp $
  */
 
 #include "src/Filter/TkrMomentsAnalysis.h"
@@ -156,13 +156,13 @@ double TkrMomentsAnalysis::doMomentsAnalysis(TkrMomentsDataVec& dataVec, const P
 
         // Final Tkrculations to return moment of principal axis and average of other two
         double longMag1 = fabs(m_moment[0]);
-	    double longMag2 = fabs(m_moment[2]); 
+            double longMag2 = fabs(m_moment[2]); 
         double transMag = fabs(m_moment[1]);
-	
+        
         m_aveDist     = aveDist;
         m_rmsLong     = sqrt((longMag1 + longMag2) / (2. * m_weightSum));
-	    m_rmsTrans    = sqrt(transMag / m_weightSum);
-	    m_rmsLongAsym = (longMag1 - longMag2)/(longMag1 + longMag2); 
+            m_rmsTrans    = sqrt(transMag / m_weightSum);
+            m_rmsLongAsym = (longMag1 - longMag2)/(longMag1 + longMag2); 
     }
     else chisq = -1.;
 

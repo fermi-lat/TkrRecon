@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.32 2011/12/12 20:57:09 heather Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.33 2012/01/25 05:18:50 lsrea Exp $
  */
 
 #include <vector>
@@ -189,8 +189,8 @@ StatusCode TkrTrackFitAlg::doTrackFit()
     {
         Event::TkrTrack* track = *trackIter;
 
-		// RJ: don't refit the Cosmic Ray tracks
-		if (!(track->getStatusBits() & Event::TkrTrack::COSMICRAY)) m_FitTool->doTrackFit(track);
+                // RJ: don't refit the Cosmic Ray tracks
+                if (!(track->getStatusBits() & Event::TkrTrack::COSMICRAY)) m_FitTool->doTrackFit(track);
     }
 
     return sc;
@@ -227,10 +227,10 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
     for(Event::TkrTrackColPtr trackIter = trackCol->begin(); trackIter != trackCol->end(); trackIter++)
     {
          Event::TkrTrack* track = *trackIter;
-		 if (!(track->getStatusBits() & Event::TkrTrack::COSMICRAY)) {   // RJ: don't refit cosmic-ray candidates
-			m_AlignTool->alignHits(track);
-			m_FitTool->doTrackReFit(track);
-		 }
+                 if (!(track->getStatusBits() & Event::TkrTrack::COSMICRAY)) {   // RJ: don't refit cosmic-ray candidates
+                        m_AlignTool->alignHits(track);
+                        m_FitTool->doTrackReFit(track);
+                 }
     }
 
     return sc;

@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.cxx,v 1.19 2012/06/19 16:11:06 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.cxx,v 1.21 2012/08/09 03:25:11 usher Exp $
  *
 */
 
@@ -264,5 +264,5 @@ const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelat
     }
 
     // if neither have cluster then preserve tree ordering
-	return Event::TkrVecNodesComparator()(left->getTree()->getHeadNode(), right->getTree()->getHeadNode());
+        return Event::TkrVecNodesComparator()(left->getTree()->getHeadNode(), right->getTree()->getHeadNode());
 }
