@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: bruel  Wed Oct  3 07:12:59 PDT 2012
+TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrReconAlg.cxx TkrTrackFitAlg.cxx 
+Log Message:
+Luca and Philippe: cleaning and using new class container of clusters CalClusterMap. Philippe: fixing CalLikelihoodEnergy. Carmelo: new unbiasing of EvtEnergyCorr.
+    *
+------------------------------------------------------------
+User: bruel  Wed Oct  3 07:12:59 PDT 2012
 TkrRecon/src/Filter
 
 Modified Files:
