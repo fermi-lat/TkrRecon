@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: bruel  Wed Oct  3 07:13:03 PDT 2012
+TkrRecon/src/Utilities
+
+Modified Files:
+	TkrPoints.h 
+Log Message:
+Luca and Philippe: cleaning and using new class container of clusters CalClusterMap. Philippe: fixing CalLikelihoodEnergy. Carmelo: new unbiasing of EvtEnergyCorr.
+    *
+------------------------------------------------------------
 User: bruel  Wed Oct  3 07:13:02 PDT 2012
 TkrRecon/src/Track
 
