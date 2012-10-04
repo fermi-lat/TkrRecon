@@ -1,5 +1,59 @@
 ------------------------------------------------------------
 TAG
+Tag name: TkrRecon-10-35-00, operation: add
+Package: TkrRecon
+User: heather  Thu Oct  4 10:02:45 2012
+Files:
+  TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/IFitHitEnergy.h  1.5
+  TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/RadLossHitEnergy.cxx  1.5
+  TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/MonteCarloHitEnergy.cxx  1.8
+  TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/MonteCarloHitEnergy.h  1.5
+  TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/BetheBlockHitEnergy.h  1.5
+  TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/RadLossHitEnergy.h  1.5
+  TkrRecon/src/TrackFit/KalmanFilterFit/TrackEnergy/BetheBlockHitEnergy.cxx  1.5
+  TkrRecon/src/TrackFit/KalmanFilterUtils/KalmanFilterUtils.cxx  1.4
+  TkrRecon/src/TrackFit/KalmanFilterUtils/KalmanFilterDefs.h  1.3
+  TkrRecon/src/TrackFit/KalmanFilterUtils/IKalmanFilterMatrix.h  1.4
+  TkrRecon/src/TrackFit/KalmanFilterUtils/KalmanFilterUtils.h  1.5
+  TkrRecon/src/TrackFit/LineFit2D/LineFit2D.h  1.2
+  TkrRecon/src/TrackFit/LineFit2D/LineFit2D.cxx  1.4
+  TkrRecon/src/Utilities/TkrPoints.cxx  1.14
+  TkrRecon/src/Utilities/TkrPoint.h  1.7
+  TkrRecon/src/Utilities/TkrPoints.h  1.10
+  TkrRecon/src/Utilities/TkrBase.h  1.2
+  TkrRecon/src/Utilities/TkrBase.cxx  1.2
+  TkrRecon/src/Utilities/TkrPoint.cxx  1.9
+  TkrRecon/src/Utilities/TkrException.h  1.3
+  TkrRecon/src/Vertex/VtxSingleTrkTool.cxx  1.10
+  TkrRecon/src/Vertex/VtxKalFitTool.h  1.13
+  TkrRecon/src/Vertex/VtxBaseTool.h  1.7
+  TkrRecon/src/Vertex/TkrGammaRep.h  1.2
+  TkrRecon/src/Vertex/VtxKalFitTool.cxx  1.28
+  TkrRecon/src/Vertex/VtxBaseTool.cxx  1.8
+  TkrRecon/src/Vertex/VtxSingleTrkTool.h  1.8
+  TkrRecon/src/Vertex/IVtxBaseTool.h  1.4
+  TkrRecon/src/Vertex/TkrGammaRep.cxx  1.2
+  TkrRecon/src/Vertex/Combo/TkrComboVtxRep.cxx  1.13
+  TkrRecon/src/Vertex/Combo/RayDoca.cxx  1.2
+  TkrRecon/src/Vertex/Combo/TkrComboVtxRecon.h  1.15
+  TkrRecon/src/Vertex/Combo/ComboVtxTool.h  1.9
+  TkrRecon/src/Vertex/Combo/ComboVtxTool.cxx  1.34
+  TkrRecon/src/Vertex/Combo/TkrComboVtxRep.h  1.7
+  TkrRecon/src/Vertex/Combo/TkrComboVtxRecon.cxx  1.33
+  TkrRecon/src/Vertex/Combo/RayDoca.h  1.2
+  TkrRecon/src/test/ParticleTable.txt  1.1
+  TkrRecon/src/test/test_TkrRecon.cxx  1.9
+  TkrRecon/src/test/jobOptions.txt  1.20
+  TkrRecon/src/test/test_sources.xml  1.2
+  TkrRecon/src/test/gsfc_02-Jul-2001_v2.txt  1.1
+  TkrRecon/xml/EnergySplitter.xml  1.1
+  TkrRecon/xml/Tkr_TestBeam.xml  1.5
+  TkrRecon/xml/Tkr_Balloon.xml  1.7
+  TkrRecon/xml/Tkr_Flight.xml  1.10
+
+    *
+------------------------------------------------------------
+TAG
 Tag name: TkrRecon-10-36-00, operation: add
 Package: TkrRecon
 User: usher  Wed Oct  3 21:57:50 2012
