@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.h,v 1.9.6.1 2012/01/23 18:57:17 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.h,v 1.11 2012/05/07 23:04:43 usher Exp $
  *
 */
 
@@ -35,7 +35,6 @@ public:
     int    buildTrackElements();
 
     /// Access to the nodes collection
-//    const Event::TkrVecNodeCol*         getVecNodeCol()         const {return m_headNodes;}
     const Event::TkrVecNodeQueue*       getVecNodeCol()         const {return m_headNodes;}
 
     /// Access to relations between points and nodes
