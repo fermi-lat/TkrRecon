@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Wed Oct  3 21:44:32 PDT 2012
+GlastRelease-scons/TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeTrackFinderTool.cxx TkrVecNodesBuilder.cxx 
+	TkrVecNodesBuilder.h 
+Log Message:
+    *
+------------------------------------------------------------
 User: usher  Wed Oct  3 21:44:31 PDT 2012
 GlastRelease-scons/TkrRecon/src/GaudiAlg
 
