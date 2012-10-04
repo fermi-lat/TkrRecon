@@ -1,4 +1,12 @@
 ------------------------------------------------------------
+User: usher  Wed Oct  3 21:44:31 PDT 2012
+GlastRelease-scons/TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrFilterAlg.cxx 
+Log Message:
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-35-00, operation: add
 Package: TkrRecon
