@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.11 2012/06/28 20:19:10 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.12 2012/08/01 22:27:19 usher Exp $
  *
 */
 #include "ITkrTreeTrackFinder.h"
@@ -558,7 +558,7 @@ Event::TkrVecNode* TkrTreeTrackFinderTool::findBestLeaf(TkrVecNodeLeafQueue& lea
     Event::TkrVecNode* bestLeaf = 0;
                     
     //  Put this here to see what will happen
-    int mostTotalHits   = 0;
+    int mostUniqueHits  = 2;
     int mostSharedTotal = 2 * m_maxSharedLeadingHits;
     int minDist2Main    = 1; //leafQueue.top()->getBiLyrs2MainBrch() - 3;
 
@@ -585,6 +585,12 @@ Event::TkrVecNode* TkrTreeTrackFinderTool::findBestLeaf(TkrVecNodeLeafQueue& lea
         // Keep track of total number of unique hits
         int nUniqueXHits = 0;
         int nUniqueYHits = 0;
+
+		// Keep track of leading shared hits
+		int nLeadingSharedHits = 0;
+
+		// Keep track of total number shared hits
+		int nSharedHits = 0;
     
         while(leaf->getParentNode())
         {
@@ -615,10 +621,26 @@ Event::TkrVecNode* TkrTreeTrackFinderTool::findBestLeaf(TkrVecNodeLeafQueue& lea
 
                 // If the cluster is used but does NOT satisfy the sharing condition
                 // then mark it here for counting in the end
-                if (xClusUsed && xCluster->size() <= xCalcWidth) notAllowedMask |= 0x01;
-                else                                             nUniqueXHits++;
-                if (yClusUsed && yCluster->size() <= yCalcWidth) notAllowedMask |= 0x02;
-                else                                             nUniqueYHits++;
+                if (xClusUsed) 
+				{
+					nSharedHits++;
+					if (xCluster->size() <= xCalcWidth) 
+					{
+						notAllowedMask |= 0x01;
+						if (leaf->getDepth() <= depthCheck) nLeadingSharedHits++;
+					}
+				}
+                else nUniqueXHits++;
+                if (yClusUsed) 
+				{
+					nSharedHits++;
+					if (yCluster->size() <= yCalcWidth) 
+					{
+						notAllowedMask |= 0x02;
+						if (leaf->getDepth() <= depthCheck) nLeadingSharedHits++;
+					}
+				}
+                else nUniqueYHits++;
             }
             else
             {
@@ -666,84 +688,22 @@ Event::TkrVecNode* TkrTreeTrackFinderTool::findBestLeaf(TkrVecNodeLeafQueue& lea
             break;
         }
 
-        // Calculate the unique hit ratio
-        double uniqueFrac = double(nUniqueXHits + nUniqueYHits) / double(2 * numBiLayers);
+        Event::TkrVecNode* curLeaf = leafQueue.top();
 
-        // Rest if a good calculation of the shared hit mask and also
-        // that there are unique hits in both X and Y (which could be allowed sharing)
-        if (nUniqueXHits && nUniqueYHits && uniqueFrac > m_fracUniqueHits)
-        {
-            // Count number shared leading hits and total number of shared hits
-            int nTotalHits     = 2 * nBiLayers;
-
-            bool contHitsInX = true;
-            bool contHitsInY = true;
-            int  nContHitsX  = 0;
-            int  nContHitsY  = 0;
-
-            if (sharedHitMask)
-            {
-                int      biLayerCnt  = nBiLayers;
-                unsigned allowedMask = sharedHitMask & ~notAllowedMask;
-
-                while(biLayerCnt--)
-                {
-                    // Count the continuously shared leading hits in X
-                    if (contHitsInX && sharedHitMask & 0x1)
-                    {
-                        nContHitsX++;
-                    }
-                    // If we are past the continuous leading hits then from now on the
-                    // hits must be "allowed" to be shared. If not break out of loop, we are done
-                    else if (sharedHitMask & 0x1)
-                    {
-                        if (notAllowedMask & 0x1) 
-                        {
-                            nContHitsX = nBiLayers;
-                            break;
-                        }
-                    }
-                    // Termination of shared leading hits in X, set condition false 
-                    else contHitsInX = false;
-      
-                    // And now count the continuously shared leading hits in Y
-                    if (contHitsInY && sharedHitMask & 0x2)
-                    {
-                        nContHitsY++;
-                    }
-                    // If we are past the continuous leading hits then from now on the
-                    // hits must be "allowed" to be shared. If not break out of loop, we are done
-                    else if (sharedHitMask & 0x2)
-                    {
-                        if (notAllowedMask & 0x2) 
-                        {
-                            nContHitsY = nBiLayers;
-                            break;
-                        }
-                    }
-                    else contHitsInY = false;
-      
-                    sharedHitMask  >>= 2;
-                    allowedMask    >>= 2;
-                    notAllowedMask >>= 2;
-                }
-            }
-
-            int nNonLeadingPairs = leaf->getNumBiLayers() - std::max(nContHitsX, nContHitsY);
-            Event::TkrVecNode* curLeaf = leafQueue.top();
+		int nUniqueHits = nUniqueXHits + nUniqueYHits;
         
-            if (    nContHitsX < m_maxSharedLeadingHits   // Conditions to be "allowed" track
-                &&  nContHitsY < m_maxSharedLeadingHits   // |
-                &&  dist2MainBrnch >= minDist2Main        // ********************************
-                &&  ((nBiLayers >  bestNumBiLayers + 2 && curLeaf->getBestRmsAngle() < 3.*bestRmsAngle) || 
-                     (nBiLayers >= bestNumBiLayers     && curLeaf->getBestRmsAngle() < bestRmsAngle   ))
-                )
-            {
-                mostTotalHits   = nTotalHits;
-                bestNumBiLayers = nBiLayers;
-                bestRmsAngle    = curLeaf->getBestRmsAngle();
-                bestLeaf        = curLeaf;
-            }
+        if (    nLeadingSharedHits  < m_maxSharedLeadingHits   // Conditions to be "allowed" track
+			&&  nSharedHits         < nBiLayers                // | cannot share more than half the hits on the track
+            &&  nBiLayers          >= bestNumBiLayers          // |
+			&&  nUniqueHits        >= mostUniqueHits           // |
+            &&  dist2MainBrnch     >= minDist2Main             // ********************************
+            && (nBiLayers          >= bestNumBiLayers && curLeaf->getBestRmsAngle() < bestRmsAngle)
+            )
+        {
+            mostUniqueHits  = nUniqueHits;
+            bestNumBiLayers = nBiLayers;
+            bestRmsAngle    = curLeaf->getBestRmsAngle();
+            bestLeaf        = curLeaf;
         }
 
         leafQueue.pop();

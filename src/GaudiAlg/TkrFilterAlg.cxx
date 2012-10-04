@@ -12,7 +12,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFilterAlg.cxx,v 1.1.660.1 2011/04/21 03:39:16 heather Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/GaudiAlg/TkrFilterAlg.cxx,v 1.2 2011/12/12 20:57:09 heather Exp $
  */
 
 #include <vector>
@@ -64,7 +64,7 @@ Algorithm(name, pSvcLocator)
     // Is this the first pass? 
     if (name == "TkrFilterFirst")
     {
-        toolName = "TkrFilterTool";
+        toolName = "TkrHoughFilterTool";
     }
 
     // Controls which fit to use
