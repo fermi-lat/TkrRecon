@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Wed Oct  3 21:57:16 PDT 2012
+GlastRelease-scons/TkrRecon/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+Preparing to tag TkrRecon-10-36-00
+    *
+------------------------------------------------------------
+User: usher  Wed Oct  3 21:57:16 PDT 2012
 GlastRelease-scons/TkrRecon/cmt
 
 Modified Files:
