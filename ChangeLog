@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Nov  1 21:22:08 PDT 2012
+GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecLinkBuilderTool.cxx TkrVecPointsBuilder.cxx 
+Log Message:
+Small bug fixes and some tuning aimed at improving low energy performance of both the filter and the tree building
+    *
+------------------------------------------------------------
 User: usher  Thu Nov  1 21:22:07 PDT 2012
 GlastRelease-scons/TkrRecon/src/PatRec/TreeBased
 
