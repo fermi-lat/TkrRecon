@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Thu Nov  1 21:22:06 PDT 2012
+GlastRelease-scons/TkrRecon/src/Filter
+
+Modified Files:
+	TkrHoughFilterTool.cxx 
+Log Message:
+Small bug fixes and some tuning aimed at improving low energy performance of both the filter and the tree building
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-20-06-04, operation: add
 Package: TkrRecon
