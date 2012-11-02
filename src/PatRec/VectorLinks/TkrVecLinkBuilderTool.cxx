@@ -8,7 +8,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecLinkBuilderTool.cxx,v 1.2 2012/04/25 04:54:36 heather Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks/TkrVecLinkBuilderTool.cxx,v 1.3 2012/04/25 20:56:02 heather Exp $
  *
 */
 
@@ -327,9 +327,8 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getSingleLayerLinks(const Po
             m_eventAxis = newAxis.unit();
         }
     }
-
     // If the energy is zero then there is no axis so set to point "up"
-    if (m_evtEnergy == 0.) m_eventAxis = Vector(0.,0.,1.);
+	else m_eventAxis = Vector(0.,0.,1.);
 
     // Set the tolerances for this event
     setDocaTolerances(refError, vecPointInfo);
@@ -470,9 +469,6 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
     // Set the tolerances for this event
     setAngleTolerances(refError, vecPointInfo);
 
-    // just a test
-    m_tightTolerance = refError;
-
     // For a test, screw down the tolerance a bit
     m_nrmProjDistCut *= 0.85;  // should result in 1.1 if lots of links
 
@@ -517,7 +513,8 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
                 // Get the number of intervening bilayers
                 int nSkippedBiLayers = intBiLyrItr->first - botBiLyrItr->first - 1;
                     
-                if (intBiLyrItr->second.first != intBiLyrItr->second.second)
+//                if (intBiLyrItr->second.first != intBiLyrItr->second.second)
+				if (std::distance(intBiLyrItr->second.first,intBiLyrItr->second.second) > 0)
                         m_numVecLinks += buildLinksGivenVecs(intBiLyrItr, botBiLyrItr);
             }
 
@@ -561,11 +558,11 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
     return linkInfo;
 }
 
-void   TkrVecLinkBuilderTool::setAngleTolerances(double angleError, Event::TkrVecPointInfo* vecPointInfo)
+void   TkrVecLinkBuilderTool::setAngleTolerances(double refError, Event::TkrVecPointInfo* vecPointInfo)
 {
     // Set the default value for the tolerance angle
     m_tolerance      = M_PI /3; // Take all comers!
-    m_tightTolerance = 0.5 * m_tolerance;
+    m_tightTolerance = 2. * refError;
 
     // Reset the norm'd projected distance cut
     m_nrmProjDistCut = m_nrmProjDistCutDef;
@@ -581,11 +578,15 @@ void   TkrVecLinkBuilderTool::setAngleTolerances(double angleError, Event::TkrVe
 
     // Following is a completely ad hoc scheme to increase efficiency of link production
     // when there are a few number of hits, likely to happen at low energy
-    if (expVecPoints < 1.5)
+    if (expVecPoints < 1.7)
     {
         double sclFctr = 1.5 - expVecPoints;
 
         m_nrmProjDistCut += sclFctr;
+		m_tolerance      *= 2.;
+		m_tightTolerance *= 2.;
+
+		if (m_evtEnergy < 100.) m_tolerance = M_PI;
     }
 
     // Following is a completely ad hoc scheme to constrain links if we think 
@@ -615,8 +616,8 @@ void   TkrVecLinkBuilderTool::setAngleTolerances(double angleError, Event::TkrVe
 void   TkrVecLinkBuilderTool::setDocaTolerances(double docaError, Event::TkrVecPointInfo* vecPointInfo)
 {
     // Set the default value for the tolerance angle
-    m_tolerance      = 6. * docaError;  // Be overly generous?
-    m_tightTolerance = 1.5 * docaError;
+    m_tolerance      = 6.0 * docaError;  // Be overly generous?
+    m_tightTolerance = 2.0 * docaError;  // was 1.5 * docaError;
 
     // Reset the norm'd projected distance cut
     m_nrmProjDistCut = m_nrmProjDistCutDef;
@@ -632,12 +633,18 @@ void   TkrVecLinkBuilderTool::setDocaTolerances(double docaError, Event::TkrVecP
 
     // Following is a completely ad hoc scheme to increase efficiency of link production
     // when there are a few number of hits, likely to happen at low energy
-    if (expVecPoints < 1.5)
+    if (expVecPoints < 1.7)
     {
         double sclFctr = 1.5 - expVecPoints;
 
         m_nrmProjDistCut += sclFctr;
-        m_tolerance      *= 5.;
+        m_tolerance      *= 6.;
+		m_tightTolerance  = 0.5 * m_tolerance;
+
+		if (m_evtEnergy < 100.)
+		{
+			m_tolerance = 2. * m_tkrGeom->calXWidth();
+		}
     }
 
     // Following is a completely ad hoc scheme to constrain links if we think 

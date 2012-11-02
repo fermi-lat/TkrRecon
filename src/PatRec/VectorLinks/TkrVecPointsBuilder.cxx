@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecPointsBuilder.cxx,v 1.7 2010/12/17 21:23:57 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks/TkrVecPointsBuilder.cxx,v 1.8 2010/12/19 18:35:16 usher Exp $
  *
 */
 
@@ -29,6 +29,9 @@ TkrVecPointsBuilder::TkrVecPointsBuilder(int                    numSkippedLayers
     // And register it in the TDS
     StatusCode sc = dataSvc->registerObject(EventModel::TkrRecon::TkrVecPointCol, tkrVecPointCol);
 
+	// This should be unnecessary
+	tkrVecPointCol->clear();
+
     if (sc.isFailure()) return;
 
     // Get a new bilayer to iterator map and initialize it
@@ -40,7 +43,7 @@ TkrVecPointsBuilder::TkrVecPointsBuilder(int                    numSkippedLayers
     // First initialize it so we have all the layers
     for(int biLayer = 0; biLayer < m_geoSvc->numLayers() + numSkippedLayers + 1; biLayer++)
     {
-        (*m_lyrToVecPointsMap)[biLayer] = TkrVecPointItrPair(tkrVecPointCol->begin(), tkrVecPointCol->begin());
+        (*m_lyrToVecPointsMap)[biLayer] = TkrVecPointItrPair(tkrVecPointCol->end(), tkrVecPointCol->end());
         biLayerVecCountVec[biLayer]     = 0;
     }
 

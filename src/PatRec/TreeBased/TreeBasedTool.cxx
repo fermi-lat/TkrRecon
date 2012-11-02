@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.31 2012/08/01 22:27:19 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.32 2012/10/03 14:13:01 bruel Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -296,7 +296,7 @@ StatusCode TreeBasedTool::firstPass()
         Point  refPoint(0.,0.,0.);
         Vector refAxis(0., 0., 1.);
         double energy(30.);
-        double refError(100.);
+        double refError(5000.);
 
         // The first/best place to look for this is in the TkrFilterParams, so look
         // up the collection in the TDS
