@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.3 2012/04/25 04:54:33 heather Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.4 2012/04/25 20:56:01 heather Exp $
  */
 
 // to turn one debug variables
@@ -799,7 +799,7 @@ StatusCode TkrHoughFilterTool::doFilterStep()
         // Find points in the neighborhood
         ClusterPair& neighborVec = neighborMap[bin];
 
-        if (neighborVec.first.getNumTotLinks() < minNumPoints) // || neighborVec.first.getNumBiLayers() < 2)
+        if (neighborVec.first.getNumTotLinks() < minNumPoints && binVals.getNumBiLayers() < 2)
         {
             binVals.setIsNoise();
         }
@@ -1355,8 +1355,9 @@ Event::TkrEventParams* TkrHoughFilterTool::setDefaultValues()
     }
 
     // Preset the rms values in case of no cluster or no moments analysis of crystals
-    tkrEventParams->setTransRms(200.);
-    tkrEventParams->setLongRmsAve(200.);
+	// These values meant to be large enough to insure all links considered?
+    tkrEventParams->setTransRms(5000.);
+    tkrEventParams->setLongRmsAve(5000.);
 
     // If calEventEnergy then fill TkrEventParams
     // Note: TkrEventParams initializes to zero in the event of no CalEventEnergy
