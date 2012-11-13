@@ -269,14 +269,14 @@ PatRecBaseTool(type, name, parent)
     declareProperty("PatrecMode",             m_patrecModeStr="Normal");
 
     // for the CR finder
-    declareProperty("CREdgeCut",        m_CREdgeCut=560.);
+    declareProperty("CREdgeCut",        m_CREdgeCut=540.);
     declareProperty("CRLowestLayer",    m_CRLowestLayer=15);
-    declareProperty("CREnergy",         m_CREnergy = 800.0);
-    declareProperty("CRMinCosKink",     m_CRMinCosKink = 0.95);
+    declareProperty("CREnergy",         m_CREnergy = 3000.0);
+    declareProperty("CRMinCosKink",     m_CRMinCosKink = 0.98);
     declareProperty("CRMaxTripRes",     m_CRMaxTripRes = 10. );
-    declareProperty("CR<axFirstGaps",   m_CRMaxFirstGaps = 2 );
+    declareProperty("CRMaxFirstGaps",   m_CRMaxFirstGaps = 2 );
     declareProperty("CRMaxTotalGaps",   m_CRMaxTotalGaps = 4 );
-    declareProperty("CRMaxCandidatest", m_CRMaxCandidates = 10 );
+    declareProperty("CRMaxCandidates",  m_CRMaxCandidates = 10 );
     //declareProperty("CREnergyType",     m_CREnergyType = USER ); // doesn't work
 
     m_fitUtils = 0;
@@ -556,7 +556,7 @@ void ComboFindTrackTool::searchCandidates()
             msgLog << endreq;
             findCalCandidates();  
             if(m_candidates.empty()) {
-                  msgLog << MSG::VERBOSE << "Now blind search again" << endreq;
+		  msgLog << MSG::VERBOSE << "Now blind search again" << endreq;
                 findBlindCandidates();//Is this a good idea?
             }
         }
@@ -881,7 +881,7 @@ void ComboFindTrackTool::findBlindCandidates()
 
                         // If good hit found: make a trial fit & store it away
                         if(sigma < m_sigmaCut && cosKink > m_minCosKink) {
-                                                  msgLog << "about to call tryCandidates " << endreq;
+						  msgLog << "about to call tryCandidates " << endreq;
                             tryCandidate(ilayer, localBestHitCount, testRay);
                             // whatever happens, bail, no other track will be found with this ray
                             // WBA:  I don't think this is true.  Example is a track which in the 3rd layer
