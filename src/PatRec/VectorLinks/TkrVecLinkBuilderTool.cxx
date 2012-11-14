@@ -8,7 +8,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks/TkrVecLinkBuilderTool.cxx,v 1.3 2012/04/25 20:56:02 heather Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks/TkrVecLinkBuilderTool.cxx,v 1.4 2012/11/02 04:22:08 usher Exp $
  *
 */
 
@@ -580,7 +580,7 @@ void   TkrVecLinkBuilderTool::setAngleTolerances(double refError, Event::TkrVecP
     // when there are a few number of hits, likely to happen at low energy
     if (expVecPoints < 1.7)
     {
-        double sclFctr = 1.5 - expVecPoints;
+        double sclFctr = 1.7 - expVecPoints;
 
         m_nrmProjDistCut += sclFctr;
 		m_tolerance      *= 2.;
@@ -635,7 +635,7 @@ void   TkrVecLinkBuilderTool::setDocaTolerances(double docaError, Event::TkrVecP
     // when there are a few number of hits, likely to happen at low energy
     if (expVecPoints < 1.7)
     {
-        double sclFctr = 1.5 - expVecPoints;
+        double sclFctr = 1.7 - expVecPoints;
 
         m_nrmProjDistCut += sclFctr;
         m_tolerance      *= 6.;
