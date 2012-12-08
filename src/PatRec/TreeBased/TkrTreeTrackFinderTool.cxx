@@ -452,14 +452,11 @@ Event::TkrTrack* TkrTreeTrackFinderTool::selectBestTrack(Event::TkrTree*    tree
         // Start by recovering the tree axis, in the direction of the tracks
         Vector startDir = -tree->getAxisParams()->getEventAxis();
 
-        // Angle of track1 and track2 with tree axis
+        // Angle of track1 with tree axis
         double cosTkrTreeAng1  = startDir.dot(track1->getInitialDirection());
         double tkrTreeAng1     = acos(std::min(1., std::max(-1., cosTkrTreeAng1)));
         double cosTkrTreeAng2  = startDir.dot(track2->getInitialDirection());
         double tkrTreeAng2     = acos(std::min(1., std::max(-1., cosTkrTreeAng2)));
-
-		// dereference the angle to tree ratio cut value
-		double tkrTreeAngRatioSelection = m_tkrTreeAngRatioSelection;
 
         // If we have an associated cluster try looking at the neutral axis
         if (cluster && clusEnergy > 250.)
@@ -487,8 +484,6 @@ Event::TkrTrack* TkrTreeTrackFinderTool::selectBestTrack(Event::TkrTree*    tree
                 tkrTreeAng2 = acos(std::min(1., std::max(-1., cosTkrNeutAng2)));
             }
         }
-		// At low energy make it more difficult to use the axis seeded track
-		else tkrTreeAngRatioSelection *= 2.;
 
         // Set the angles these two methods make with the tree axis
         tree->setBestBranchAngleToAxis(tkrTreeAng1);
@@ -508,7 +503,7 @@ Event::TkrTrack* TkrTreeTrackFinderTool::selectBestTrack(Event::TkrTree*    tree
 //            tkrTreeAngRatio              > m_tkrTreeAngRatioSelection &&
 //            chiSqDiff                    > m_chiSqDiffSelection
         if (tkrTreeAng2     < m_tkr2AxisAngSelection     &&
-            tkrTreeAngRatio > tkrTreeAngRatioSelection
+            tkrTreeAngRatio > m_tkrTreeAngRatioSelection
            )
         {
             track = track2;
@@ -823,6 +818,7 @@ Event::TkrTrack* TkrTreeTrackFinderTool::getTkrTrackFromHits(Point            st
     track->setInitialPosition(startPoint);
     track->setInitialDirection(startDir);
     track->setInitialEnergy(energy);
+    track->setStatusBit(Event::TkrTrack::LATENERGY);
 
     // Do the hit finding
     m_findHitsTool->findTrackHits(track);

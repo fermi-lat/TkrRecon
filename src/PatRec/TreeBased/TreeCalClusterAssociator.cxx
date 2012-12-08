@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.cxx,v 1.21 2012/08/09 03:25:11 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.cxx,v 1.22 2012/10/03 14:13:01 bruel Exp $
  *
 */
 
@@ -189,6 +189,85 @@ int TreeCalClusterAssociator::associateTreeToClusters(Event::TkrTree* tree)
     }
 
     return numClusters;
+}
+
+int TreeCalClusterAssociator::associateTreeToUbers(Event::TkrTree* tree)
+{
+	// Will return 2 if successful!
+	int numClusters = 0;
+
+	// We are here to relate the input tree to the two uber clusters
+	// obviously, there is nothing to do if one or less cal clusters
+	if (m_calClusterCol && m_calClusterCol->size() > 1)
+	{
+        // Recover the tree parameters and get the variables we'll need
+        const Event::TkrFilterParams* axisParams   = tree->getAxisParams();
+        
+        // Use the event axis direction, but remember that it points "opposite" our tracks
+        Vector startDir = -axisParams->getEventAxis();
+        Point  startPos =  axisParams->getEventPosition();
+
+        // First of all, make sure the tree has not "ranged out" before getting to the calorimeter
+        double calZTop     = m_tkrGeom->calZTop();
+        double tkrZBot     = m_tkrGeom->gettkrZBot();
+        double arcToCalTop = (calZTop - startPos.z()) / startDir.z();
+        Point  posAtCalTop = startPos + arcToCalTop * startDir;
+
+        // Check X and Y coordinates
+        double calXMax     = 0.5 * m_tkrGeom->calXWidth();
+        double calYMax     = 0.5 * m_tkrGeom->calYWidth();
+
+        // Only consider if axis projection is within region of calorimeter
+        if (abs(posAtCalTop.x()) < calXMax + 500. && abs(posAtCalTop.y()) < calYMax + 500.) 
+        {
+            // Initialize loop start point
+            Event::CalClusterCol::iterator clusItr = m_calClusterCol->end() - 2;
+
+            // Loop through the last two clusters, first is uber2, last is uber
+            while(clusItr != m_calClusterCol->end())
+            {
+                Event::CalCluster* cluster = *clusItr++;
+
+                // Not interested in single crystals...
+//              if (cluster->getMomParams().getNumXtals() < 2) continue;
+
+                const Point& clusCentroid = cluster->getMomParams().getCentroid();
+                
+                // Get the vector from the tree start to the cal cluster centroid
+                Vector treeToClusPoint    = clusCentroid - startPos;
+
+                // Take the cross product with the tree direction
+                Vector treeToClusVec      = startDir.cross(treeToClusPoint);
+
+                // The magnitude is the distance of closest approach
+                double treeToClusterDoca  = treeToClusVec.magnitude();
+                double arcLen             = (clusCentroid.z() - startPos.z()) / startDir.z();
+                Point  axisAtThisZ        = startPos + arcLen * startDir;
+                Vector deltaPosVec        = axisAtThisZ - clusCentroid;
+                double deltaPos           = deltaPosVec.magnitude();
+                double cosAngle           = startDir.dot(-cluster->getMomParams().getAxis());
+				double energy             = cluster->getMomParams().getEnergy();
+
+				Event::TreeClusterRelation* rel = new Event::TreeClusterRelation(tree, 
+                                                                                 cluster, 
+                                                                                 treeToClusterDoca, 
+                                                                                 cosAngle, 
+                                                                                 deltaPos, 
+                                                                                 energy); 
+
+				// Give ownership of this object to the TDS
+				m_treeClusterRelationCol->push_back(rel);
+
+				// Set the mapping (which are not owners!)
+				(*m_treeToRelationMap)[tree].push_back(rel);
+				(*m_clusterToRelationMap)[cluster].push_back(rel);
+
+				numClusters++;
+			}
+		}
+	}
+
+	return numClusters;
 }
 
 Event::TreeClusterRelationVec* TreeCalClusterAssociator::getTreeToRelationVec(Event::TkrTree* tree)
