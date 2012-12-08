@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: usher  Sat Dec  8 09:32:18 PST 2012
+TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeTrackFinderTool.cxx TkrVecNodesBuilder.cxx 
+	TkrVecNodesBuilder.h TreeBasedTool.cxx 
+	TreeCalClusterAssociator.cxx TreeCalClusterAssociator.h 
+Log Message:
+These updates are mostly aimed at fixing issues with setting the track energy. Also included are some small updates to link building code to fix a few small items. Finally, also now associate the best/first Tree after tree building with the uber and uber2 clusters.
+    *
+------------------------------------------------------------
 User: usher  Sat Dec  8 09:30:09 PST 2012
 TkrRecon/src/Track
 
