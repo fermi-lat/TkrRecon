@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.h,v 1.5 2011/10/18 23:11:08 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.h,v 1.6 2012/08/01 22:27:19 usher Exp $
  *
 */
 
@@ -33,6 +33,9 @@ public:
 
     /// Method to build the tree objects
     int                            associateTreeToClusters(Event::TkrTree* tree);
+
+	/// Method to associate a given Tree to the uber and uber2 clusters (if they exist)
+	int                            associateTreeToUbers(Event::TkrTree* tree);
 
     /// Return the Track to relation map
     Event::TreeClusterRelationVec* getTreeToRelationVec(Event::TkrTree* tree);

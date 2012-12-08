@@ -47,6 +47,9 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(IDataProviderSvc* dataSvc,
     // Initialize control variables (done here to make easier to read)
     m_cosKinkCut         = cos(M_PI / 8.); // cos(theta) to determine a kink for first link attachments
     m_qSumDispAttachCut  = 1.25;           // quad displacement sum cut for attaching a link
+    m_rmsAngleAttachCut  = 0.1;            // rms angle cut for attaching a link
+    m_rmsAngleMinValue   = 0.05;           // minimum allowed value for rms angle cut
+    m_bestRmsAngleValue  = M_PI/2.;        // Initial value for rms angle cut when finding "best" link
     m_bestqSumDispCut    = 1.25;           // quad displacement sum cut for finding "best" link
     m_bestAngleToNodeCut = M_PI / 4.;      // best angle to node cut for finding "best" link
 
@@ -54,7 +57,7 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(IDataProviderSvc* dataSvc,
     double numVecPoints = m_tkrVecPointsLinkInfo->getTkrVecPointsLinkCol()->size(); 
     double expVecPoints = numVecPoints > 0. ? log10(numVecPoints) : 0.;
 
-    if (expVecPoints < 0.) //1.6)
+    if (expVecPoints < 1.6)
     {
         double quadSclFctr = 6. - 3.75 * expVecPoints;
 
@@ -66,22 +69,12 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(IDataProviderSvc* dataSvc,
         m_bestAngleToNodeCut += angSclFctr;
     }
 
-	// EXPERIMENTAL
-	// Try scaling by number of points
-	numVecPoints = m_tkrVecPointInfo->getNumTkrVecPoints();
-	double scaleFactor = 1.+(40./numVecPoints)*(40./numVecPoints);
-
-	m_qSumDispAttachCut *= scaleFactor;
-	m_bestqSumDispCut   *= scaleFactor;
-
-	scaleFactor = std::min(4., scaleFactor);
-
-	m_bestAngleToNodeCut *= scaleFactor;
-
     // Apply a different scaling for the rms cut
     if (expVecPoints < 2.2)
     {
         double rmsSclFctr = 0.275 - 0.125 * expVecPoints;
+
+        m_rmsAngleAttachCut += rmsSclFctr;
     }
 
     // And apply another scaling for the kink cut
@@ -98,6 +91,10 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(IDataProviderSvc* dataSvc,
     //    m_bestqSumDispCut    *= 4.;
     //    m_bestAngleToNodeCut  = M_PI / 2.;
     //}
+
+    // Value for the link displacement cut
+    m_linkNrmDispCutMin = 0.25;  // This actually needs to somehow depend on energy...
+    m_linkNrmDispCut    = 0.25;
 
     return;
 }
@@ -214,6 +211,11 @@ int TkrVecNodesBuilder::buildTrackElements()
         else          deleteNode(headNode);
 
     }
+
+//    headNodes.clear();
+
+    // Sort the final list
+//    std::sort(m_headNodes->begin(), m_headNodes->end(), Event::TkrVecNodesComparator());
 
     return 1;
 }
@@ -426,25 +428,6 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(Event::T
         // Can only sort if not a head node
         if (node->getAssociatedLink()) 
             std::sort(pointToLinkVec.begin(), pointToLinkVec.end(), ComparePointToNodeRels(node->getAssociatedLink(), this));
-
-		// EXPERIMENTAL CODE HERE
-		// Delete the other nodes associated with this point - if they have enough depth
-//		if (node->getNumAnglesInSum() > 1)
-//		{
-//            // Now loop through and delete the other nodes
-//            for(std::vector<Event::TkrVecPointToNodesRel*>::iterator ptToNodesItr = pointToNodesVec.begin(); 
-//                ptToNodesItr != pointToNodesVec.end(); ptToNodesItr++)
-//            {
-//                // Don't delete our best node! 
-//                if (bestNodeRel == *ptToNodesItr) continue;
-//
-//                // "Other" node associated with this point
-//                Event::TkrVecNode* curNode = (*ptToNodesItr)->getSecond();
-//
-//                deleteNode(curNode);
-//            }
-//		}
-		// EXPERIMENTAL CODE HERE
     }
     // Otherwise we evaluate whether we should create the head of a new tree
     else
@@ -518,7 +501,7 @@ void TkrVecNodesBuilder::attachLinksToNode(Event::TkrVecPointToNodesRel*        
     // We only allow attaching links to the "best" node 
     // The corollary is that we zap any nodes that terminate on this point since
     // they can't be "right"... 
-    if (!nodeRel->getSecond()->empty() && pointToNodesVec.size() > 1) // && 0) // EXPERIMENTAL turn this off
+    if (!nodeRel->getSecond()->empty() && pointToNodesVec.size() > 1)
     {
         // Now we go through and delete the "other" nodes
         for(std::vector<Event::TkrVecPointToNodesRel*>::iterator nodeItr  = pointToNodesVec.begin();

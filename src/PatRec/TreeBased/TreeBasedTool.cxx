@@ -296,7 +296,7 @@ StatusCode TreeBasedTool::firstPass()
         Point  refPoint(0.,0.,0.);
         Vector refAxis(0., 0., 1.);
         double energy(30.);
-        double refError(5000.);
+        double refError(100.);
 
         // The first/best place to look for this is in the TkrFilterParams, so look
         // up the collection in the TDS
@@ -413,6 +413,10 @@ StatusCode TreeBasedTool::firstPass()
                                                                                        associator.getTreeToRelationMap(), 
                                                                                        treeCol, 
                                                                                        calClusterCol);
+
+						// The final step in the process of creating relations is to make relations of the best/first Tree
+						// to the uber and uber2 clusters. This is done in a special method of the associator
+						if (!treeCol->empty()) associator.associateTreeToUbers(*treeCol->begin());
                     }
                 }
 
