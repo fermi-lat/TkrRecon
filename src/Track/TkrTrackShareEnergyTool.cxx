@@ -7,7 +7,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/TkrTrackShareEnergyTool.cxx,v 1.10 2012/10/03 14:13:02 bruel Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/TkrTrackShareEnergyTool.cxx,v 1.1 2012/12/08 17:30:09 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -220,7 +220,7 @@ StatusCode TkrTrackShareEnergyTool::SetTrackEnergies()
                 double cal_Energy = std::max(tkrEventParams->getEventEnergy(), 0.5*m_control->getMinEnergy());
 
                 // Augment Cal energy with tracker energy loss
-                double ene_total = m_tkrEnergyTool->getTotalEnergy(firstCandTrk, cal_Energy);
+				double ene_total = m_tkrEnergyTool->getEvtEnergyEstimation(firstCandTrk);
 
                 // Now constrain the energies of the first 2 tracks. 
                 //    This isn't valid for non-gamma conversions
