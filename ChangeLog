@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Sat Dec  8 18:50:58 PST 2012
+GlastRelease-scons/TkrRecon/src/Track
+
+Modified Files:
+	TkrEnergySplitTool.cxx TkrTrackShareEnergyTool.cxx 
+Log Message:
+Updating energy sharing tools to new call to TkrTrackEnergy for total event energy
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-37-00, operation: add
 Package: TkrRecon
