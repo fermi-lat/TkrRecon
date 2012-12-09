@@ -1,13 +1,4 @@
 ------------------------------------------------------------
-User: usher  Sun Dec  9 07:24:48 PST 2012
-TkrRecon
-
-Modified Files:
-	SConscript 
-Log Message:
-Preparing to tag TkrRecon-10-37-01
-    *
-------------------------------------------------------------
 User: usher  Sat Dec  8 18:50:58 PST 2012
 GlastRelease-scons/TkrRecon/src/Track
 
