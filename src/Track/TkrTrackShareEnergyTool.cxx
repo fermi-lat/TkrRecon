@@ -7,7 +7,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/TkrTrackShareEnergyTool.cxx,v 1.1 2012/12/08 17:30:09 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/TkrTrackShareEnergyTool.cxx,v 1.2 2012/12/09 02:50:58 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -193,12 +193,13 @@ StatusCode TkrTrackShareEnergyTool::SetTrackEnergies()
 
             // If no Cal energy then use the MS energy from the track itself
             if ((tkrEventParams->getStatusBits() & Event::TkrEventParams::CALPARAMS) != 
-                Event::TkrEventParams::CALPARAMS || tkrEventParams->getEventEnergy() <= 0.) 
+                    Event::TkrEventParams::CALPARAMS) 
             {
-                // no cal info... set track energies to MS energies if possible.
+                // We are here because Track is requesting to not be fit using Cal information
+				// In this case, if in this routine, it is assumed we are using Kalman energy
                 double minEnergy = m_control->getMinEnergy();
                                 
-				if (secndCandTrk) minEnergy *=0.5;    // RJ
+				if (secndCandTrk) minEnergy *=0.5;
 
                 if (firstCandTrk->getNumFitHits() > 7) 
                 {
@@ -223,12 +224,13 @@ StatusCode TkrTrackShareEnergyTool::SetTrackEnergies()
 				double ene_total = m_tkrEnergyTool->getEvtEnergyEstimation(firstCandTrk);
 
                 // Now constrain the energies of the first 2 tracks. 
-                //    This isn't valid for non-gamma conversions
-                if (!secndCandTrk)  // RJ
+				// If only one track then give it the predetermined fraction of total event energy
+                if (!secndCandTrk)
                 {
                     setTrackEnergy(firstCandTrk, m_oneTrackEnergyFraction*ene_total);
                 } 
-                else                       // Divide up the energy between the first two tracks
+				// If two tracks then split the energy between the two
+                else
                 {
                     setTrackEnergies(firstCandTrk, secndCandTrk, ene_total);
                 }
@@ -241,7 +243,17 @@ StatusCode TkrTrackShareEnergyTool::SetTrackEnergies()
 	// Now reset the energy of the remaining tracks
     while(treeItr != treeCol->end())
 	{
-		treeItr++;
+		Event::TkrTree* tree = *treeItr++;
+
+		if (!tree->empty())
+		{
+			for (Event::TkrTrackCol::iterator trackItr = tree->begin(); trackItr != tree->end(); trackItr++)
+			{
+				Event::TkrTrack* track = *trackItr;
+
+				setTrackEnergy(track, m_control->getMinEnergy());
+			}
+		}
 	}
 
     return sc;
