@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Mon Dec 10 10:44:08 PST 2012
+GlastRelease-scons/TkrRecon/src/Track
+
+Modified Files:
+	TkrEnergySplitTool.cxx TkrTrackShareEnergyTool.cxx 
+Log Message:
+"final" updates to the energy sharing tools, clean up front end access and deal with the remaining tracks after assigning energy to the first and second tracks.
+    *
+------------------------------------------------------------
 User: usher  Mon Dec 10 09:19:05 PST 2012
 GlastRelease-scons/TkrRecon/src/Track
 
