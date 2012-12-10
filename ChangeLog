@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Mon Dec 10 09:19:05 PST 2012
+GlastRelease-scons/TkrRecon/src/Track
+
+Modified Files:
+	TkrTrackShareEnergyTool.cxx 
+Log Message:
+Modify to always use event energy estimation if track is asking to be fit with "cal" information. Also set the remaining tracks in the event to the minimum energy (open to suggestions here!)
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-37-01, operation: add
 Package: TkrRecon
