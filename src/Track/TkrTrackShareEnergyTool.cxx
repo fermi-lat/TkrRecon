@@ -7,7 +7,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/TkrTrackShareEnergyTool.cxx,v 1.2 2012/12/09 02:50:58 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/TkrTrackShareEnergyTool.cxx,v 1.3 2012/12/10 17:19:05 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -160,7 +160,7 @@ StatusCode TkrTrackShareEnergyTool::SetTrackEnergies()
     Event::TkrTreeCol* treeCol = SmartDataPtr<Event::TkrTreeCol>(m_dataSvc,"/Event/TkrRecon/TkrTreeCol");
 
     // No forest, no work
-    if (treeCol && treeCol->empty()) return sc;
+    if (!treeCol || treeCol->empty()) return sc;
 
 	// Set an iterator to the first Tree in the list (iterator will soon be useful)
 	Event::TkrTreeCol::iterator treeItr = treeCol->begin();
@@ -169,7 +169,7 @@ StatusCode TkrTrackShareEnergyTool::SetTrackEnergies()
 	Event::TkrTree* tree = *treeItr++;
 
     //If candidates, then proceed
-    if (tree->size() > 0)
+	if (!tree->empty())
     {
         Event::TkrTrackCol::iterator trackItr = tree->begin();
 
