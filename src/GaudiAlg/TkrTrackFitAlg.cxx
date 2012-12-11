@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.33 2012/01/25 05:18:50 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.34 2012/10/03 14:12:59 bruel Exp $
  */
 
 #include <vector>
@@ -85,7 +85,7 @@ Algorithm(name, pSvcLocator)
     // Controls which fit to use
     declareProperty("TrackFitType",   m_TrackFitType="Combo");
     declareProperty("UseGenericFit",  m_GenericFit=true);
-    declareProperty("EnergyToolName", m_energyToolName = "TkrEnergySplitTool");
+    declareProperty("EnergyToolName", m_energyToolName = "TkrTrackShareEnergyTool");
 }
 
 StatusCode TkrTrackFitAlg::initialize()
