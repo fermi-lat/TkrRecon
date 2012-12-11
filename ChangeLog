@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Dec 11 09:26:14 PST 2012
+GlastRelease-scons/TkrRecon/src/Track
+
+Modified Files:
+	TkrTrackShareEnergyTool.cxx 
+Log Message:
+Changing default energy fraction for single track case
+    *
+------------------------------------------------------------
 User: usher  Mon Dec 10 10:44:08 PST 2012
 GlastRelease-scons/TkrRecon/src/Track
 
