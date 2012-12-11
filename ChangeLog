@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: usher  Tue Dec 11 09:27:25 PST 2012
+GlastRelease-scons/TkrRecon/src/GaudiAlg
+
+Modified Files:
+	TkrTrackFitAlg.cxx 
+Log Message:
+Swap the default track energy assignment tool to the new "shared" tool (and note that this tool will NOT work for pat recs other than Tree Based)
+    *
+------------------------------------------------------------
 User: usher  Tue Dec 11 09:26:14 PST 2012
 GlastRelease-scons/TkrRecon/src/Track
 
