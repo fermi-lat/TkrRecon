@@ -8,7 +8,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks/TkrVecLinkBuilderTool.cxx,v 1.4 2012/11/02 04:22:08 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks/TkrVecLinkBuilderTool.cxx,v 1.5 2012/11/14 18:34:14 usher Exp $
  *
 */
 
@@ -327,7 +327,7 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getSingleLayerLinks(const Po
             m_eventAxis = newAxis.unit();
         }
     }
-    // If the energy is zero then there is no axis so set to point "up"
+    // If the energy is below threshold then there is no axis so set to point "up"
 	else m_eventAxis = Vector(0.,0.,1.);
 
     // Set the tolerances for this event
@@ -463,15 +463,14 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
         }
     }
 
-    // If the energy is zero then there is no axis so set to point "up"
-    if (m_evtEnergy == 0.) m_eventAxis = Vector(0.,0.,1.);
+    // If the energy is below threshold then there is no axis so set to point "up"
+    else m_eventAxis = Vector(0.,0.,1.);
 
     // Set the tolerances for this event
     setAngleTolerances(refError, vecPointInfo);
 
     // For a test, screw down the tolerance a bit
     m_nrmProjDistCut *= 0.85;  // should result in 1.1 if lots of links
-
 
     // Set up to loop through the TkrVecPoints by bilayer. The strategy is to have the primary loop
     // variable be an iterator pointing to the vector of "bottom" hits. Internal to that we will then
@@ -513,13 +512,9 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
                 // Get the number of intervening bilayers
                 int nSkippedBiLayers = intBiLyrItr->first - botBiLyrItr->first - 1;
                     
-//                if (intBiLyrItr->second.first != intBiLyrItr->second.second)
 				if (std::distance(intBiLyrItr->second.first,intBiLyrItr->second.second) > 0)
                         m_numVecLinks += buildLinksGivenVecs(intBiLyrItr, botBiLyrItr);
             }
-
-            // Once the bottom iterator has moved sufficiently, we start updating the top
-//            if (topBiLyrItr->first - botBiLyrItr->first == maxNumSkippedLayers + 1) topBiLyrItr++;
         }
     }
     catch( TkrException& e )
