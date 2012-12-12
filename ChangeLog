@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: usher  Tue Dec 11 18:22:54 PST 2012
+GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks
+
+Modified Files:
+	TkrVecLinkBuilderTool.cxx 
+Log Message:
+Small updates to do some small tweaks on Tree Based pat rec, in particular a better approach to handling the kink cut at low energy
+    *
+------------------------------------------------------------
+User: usher  Tue Dec 11 18:22:54 PST 2012
 GlastRelease-scons/TkrRecon/src/PatRec/TreeBased
 
 Modified Files:
