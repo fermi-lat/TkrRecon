@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-37-02 11-Dec-2012 TU Energy sharing tool is default, sets 50% event energy, small tweaks to Tree Based Tracking
  TkrRecon-10-37-01 09-Dec-2012 TU Change function call to TkrTrackEnergy to get correct event energy (in track energy assignment tools)
  TkrRecon-10-37-00 08-Dec-2012 TU Modifications to handle track energy assignement, assign trees to uber, uber2
  TkrRecon-10-36-00 03-Oct-2012 TU Modifications to two track solutions, make Hough Filter default
