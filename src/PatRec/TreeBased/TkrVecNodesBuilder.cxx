@@ -6,9 +6,9 @@
  * @authors Tracy Usher
  *
 <<<<<<< TkrVecNodesBuilder.cxx
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.30 2012/12/08 17:32:18 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.31 2012/12/12 02:22:51 usher Exp $
 =======
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.30 2012/12/08 17:32:18 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.31 2012/12/12 02:22:51 usher Exp $
 >>>>>>> 1.10
  *
 */
@@ -81,7 +81,7 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(IDataProviderSvc* dataSvc,
 
 		kinkFctr = std::max(4.,kinkFctr);
 
-        m_cosKinkCut *= kinkFctr;
+        m_cosKinkCut = cos(kinkFctr * M_PI / 8.);
     }
 
     //if (m_vecPointLinksBldr.getNumTkrVecPointsLinks() < 100)
