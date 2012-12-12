@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.h,v 1.12 2012/10/04 04:44:32 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.h,v 1.14 2012/12/08 17:32:18 usher Exp $
  *
 */
 
@@ -26,7 +26,8 @@ class TkrVecNodesBuilder
 {
 public:
     TkrVecNodesBuilder(IDataProviderSvc* dataSvc, 
-                       ITkrGeometrySvc*  geoSvc);
+                       ITkrGeometrySvc*  geoSvc,
+					   double            energy = 401.);
 
     ~TkrVecNodesBuilder();
 
@@ -133,14 +134,9 @@ private:
     /// Control variables
     double m_cosKinkCut;             // cos(theta) to determine a kink for first link attachments
     double m_qSumDispAttachCut;      // quad displacement sum cut for attaching a link
-    double m_rmsAngleAttachCut;      // rms angle cut for attaching a link
-    double m_rmsAngleMinValue;       // minimum allowed value for rms angle cut
-    double m_bestRmsAngleValue;      // Initial value for rms angle cut when finding "best" link
     double m_bestqSumDispCut;        // quad displacement sum cut for finding "best" link
     double m_bestAngleToNodeCut;     // best angle to node cut for finding "best" link
 
-    double m_linkNrmDispCut;         // Normalized link displacement cut value actually used
-    double m_linkNrmDispCutMin;      // The value to "reset" to each event
 };
 
 #endif

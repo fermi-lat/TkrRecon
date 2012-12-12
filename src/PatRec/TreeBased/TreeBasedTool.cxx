@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.32 2012/10/03 14:13:01 bruel Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.34 2012/12/08 17:32:18 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -358,7 +358,7 @@ StatusCode TreeBasedTool::firstPass()
             {
                 if (m_doTiming) m_chronoSvc->chronoStart(m_toolNodeTag);
 
-                TkrVecNodesBuilder tkrNodesBldr(m_dataSvc, m_tkrGeom);
+                TkrVecNodesBuilder tkrNodesBldr(m_dataSvc, m_tkrGeom, energy);
 
                 tkrNodesBldr.buildTrackElements();
 
