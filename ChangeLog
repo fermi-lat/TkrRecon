@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: usher  Wed Dec 12 19:13:21 PST 2012
+GlastRelease-scons/TkrRecon/src/PatRec/TreeBased
+
+Modified Files:
+	TkrTreeTrackFinderTool.cxx TkrVecNodesBuilder.cxx 
+	TkrVecNodesBuilder.h 
+Log Message:
+Fixing some low energy issues in the link attachment by scaling some of the cuts, small change to track finding
+    *
+------------------------------------------------------------
 TAG
 Tag name: TkrRecon-10-37-03, operation: add
 Package: TkrRecon
