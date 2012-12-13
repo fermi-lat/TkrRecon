@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-37-05 13-Dec-2012 TU Fix a small bug in track extraction tool 
  TkrRecon-10-37-04 12-Dec-2012 TU Modify slightly two track criteria, some better link attachment tuning at low energy
  TkrRecon-10-37-03 11-Dec-2012 TU Fix bug in kink factor calculation for link attachment
  TkrRecon-10-37-02 11-Dec-2012 TU Energy sharing tool is default, sets 50% event energy, small tweaks to Tree Based Tracking
