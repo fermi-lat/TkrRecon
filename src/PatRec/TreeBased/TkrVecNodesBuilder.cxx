@@ -6,9 +6,9 @@
  * @authors Tracy Usher
  *
 <<<<<<< TkrVecNodesBuilder.cxx
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.31 2012/12/12 02:22:51 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.32 2012/12/12 03:02:09 usher Exp $
 =======
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.31 2012/12/12 02:22:51 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.32 2012/12/12 03:02:09 usher Exp $
 >>>>>>> 1.10
  *
 */
@@ -47,7 +47,6 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(IDataProviderSvc* dataSvc,
 
     // Initialize control variables (done here to make easier to read)
     m_cosKinkCut         = cos(M_PI / 8.); // cos(theta) to determine a kink for first link attachments
-    m_qSumDispAttachCut  = 1.25;           // quad displacement sum cut for attaching a link
     m_bestqSumDispCut    = 1.25;           // quad displacement sum cut for finding "best" link
     m_bestAngleToNodeCut = M_PI / 4.;      // best angle to node cut for finding "best" link
 
@@ -55,14 +54,13 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(IDataProviderSvc* dataSvc,
     double numVecPoints = m_tkrVecPointsLinkInfo->getTkrVecPointsLinkCol()->size(); 
     double expVecPoints = numVecPoints > 0. ? log10(numVecPoints) : 0.;
 
-    if (expVecPoints < 1.6)
+    if (expVecPoints < 2.5)
     {
-        double quadSclFctr = 6. - 3.75 * expVecPoints;
+        double quadSclFctr = 1.69 * (2.5 - expVecPoints) * (2.5 - expVecPoints);
 
-        m_qSumDispAttachCut += quadSclFctr;
         m_bestqSumDispCut   += quadSclFctr;
 
-        double angSclFctr = M_PI / 2. - M_PI * expVecPoints / 3.2;
+        double angSclFctr = M_PI / 4. - M_PI * expVecPoints /10.;
 
         m_bestAngleToNodeCut += angSclFctr;
     }
@@ -79,19 +77,10 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(IDataProviderSvc* dataSvc,
 //        double kinkFctr = 0.1825 - 0.0625 * expVecPoints;
         double kinkFctr = 4. - energy / 100.;
 
-		kinkFctr = std::max(4.,kinkFctr);
+		kinkFctr = std::max(2.,kinkFctr/2.);
 
         m_cosKinkCut = cos(kinkFctr * M_PI / 8.);
     }
-
-    //if (m_vecPointLinksBldr.getNumTkrVecPointsLinks() < 100)
-    //{
-    //    m_qSumDispAttachCut  *= 4.;
-    //    m_bestqSumDispCut    *= 4.;
-    //    m_bestAngleToNodeCut  = M_PI / 2.;
-    //}
-
-    // Value for the link displacement cut
 
     return;
 }
