@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.h,v 1.14 2012/12/08 17:32:18 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.h,v 1.15 2012/12/12 02:22:51 usher Exp $
  *
 */
 
@@ -133,7 +133,6 @@ private:
 
     /// Control variables
     double m_cosKinkCut;             // cos(theta) to determine a kink for first link attachments
-    double m_qSumDispAttachCut;      // quad displacement sum cut for attaching a link
     double m_bestqSumDispCut;        // quad displacement sum cut for finding "best" link
     double m_bestAngleToNodeCut;     // best angle to node cut for finding "best" link
 
