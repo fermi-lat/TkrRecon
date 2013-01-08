@@ -7,7 +7,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/TkrTrackShareEnergyTool.cxx,v 1.4 2012/12/10 18:44:08 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/TkrTrackShareEnergyTool.cxx,v 1.5 2012/12/11 17:26:13 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -180,64 +180,25 @@ StatusCode TkrTrackShareEnergyTool::SetTrackEnergies()
             
         if (trackItr != tree->end()) secndCandTrk = *trackItr;
 
-        // Check the status of the first track in the list 
-        // Should be NO cosmic ray tracks in this list (they are stored separately in the TDS)
+        // Insure that we are meant to be fitting with the "LAT" energy 
+		// as opposed to, for example, using the MC energy in a diagnostic mode
         if(firstCandTrk->getStatusBits() & Event::TkrTrack::LATENERGY) 
         {
-            // Recover TkrEventParams from which we get the event energy  
-            Event::TkrEventParams* tkrEventParams = 
-                       SmartDataPtr<Event::TkrEventParams>(m_dataSvc,EventModel::TkrRecon::TkrEventParams);
+            // Recover the energy to fit the track(s) with from the track energy tool
+			double ene_total = m_tkrEnergyTool->getEvtEnergyEstimation(firstCandTrk);
 
-            // At this stage, TkrEventParams MUST exist
-            if (tkrEventParams == 0) throw GaudiException("No TkrEventParams found", name(), StatusCode::FAILURE);
-
-            // If no Cal energy then use the MS energy from the track itself
-            if ((tkrEventParams->getStatusBits() & Event::TkrEventParams::CALPARAMS) != 
-                    Event::TkrEventParams::CALPARAMS) 
+            // Now constrain the energies of the first 2 tracks. 
+			// If only one track then give it the predetermined fraction of total event energy
+            if (!secndCandTrk)
             {
-                // We are here because Track is requesting to not be fit using Cal information
-				// In this case, if in this routine, it is assumed we are using Kalman energy
-                double minEnergy = m_control->getMinEnergy();
-                                
-				if (secndCandTrk) minEnergy *=0.5;
-
-                if (firstCandTrk->getNumFitHits() > 7) 
-                {
-                    double msEnergy = std::max(firstCandTrk->getKalEnergy(),minEnergy);
-
-                    setTrackEnergy(firstCandTrk, msEnergy);
-                }
-                if (secndCandTrk && secndCandTrk->getNumFitHits() > 7) 
-                {
-                    double msEnergy = std::max(secndCandTrk->getKalEnergy(),minEnergy);
-
-                    setTrackEnergy(secndCandTrk, msEnergy);
-                }
-            }
-            // Otherwise, we have valid cal energy so proceed to give it to the tracks
+                setTrackEnergy(firstCandTrk, m_oneTrackEnergyFraction*ene_total);
+            } 
+			// If two tracks then split the energy between the two
             else
             {
-                // Note that this is the second pass energy from the energy algorithms, not the raw energy
-                double cal_Energy = std::max(tkrEventParams->getEventEnergy(), m_control->getMinEnergy());
-
-                // Augment Cal energy with tracker energy loss
-				double ene_total = m_tkrEnergyTool->getEvtEnergyEstimation(firstCandTrk);
-
-                // Now constrain the energies of the first 2 tracks. 
-				// If only one track then give it the predetermined fraction of total event energy
-                if (!secndCandTrk)
-                {
-                    setTrackEnergy(firstCandTrk, m_oneTrackEnergyFraction*ene_total);
-                } 
-				// If two tracks then split the energy between the two
-                else
-                {
-                    setTrackEnergies(firstCandTrk, secndCandTrk, ene_total);
-                }
+                setTrackEnergies(firstCandTrk, secndCandTrk, ene_total);
             }
         }
-
-        // Done!
     }
 
 	// Now reset the energy of the remaining tracks
