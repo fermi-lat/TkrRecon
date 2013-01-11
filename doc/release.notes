@@ -1,2 +1,344 @@
-/** @file release.notes@brief Package TkrRecon@verbatim  Managers: Tracy Usher, Leon Rochester   * EOH *
- TkrRecon-10-37-06 11-Jan-2012 TU 2nd Pass track fits ALWAYS use energy from TkrEnergyTool TkrRecon-10-37-05 13-Dec-2012 TU Fix a small bug in track extraction tool  TkrRecon-10-37-04 12-Dec-2012 TU Modify slightly two track criteria, some better link attachment tuning at low energy TkrRecon-10-37-03 11-Dec-2012 TU Fix bug in kink factor calculation for link attachment TkrRecon-10-37-02 11-Dec-2012 TU Energy sharing tool is default, sets 50% event energy, small tweaks to Tree Based Tracking TkrRecon-10-37-01 09-Dec-2012 TU Change function call to TkrTrackEnergy to get correct event energy (in track energy assignment tools) TkrRecon-10-37-00 08-Dec-2012 TU Modifications to handle track energy assignement, assign trees to uber, uber2 TkrRecon-10-36-00 03-Oct-2012 TU Modifications to two track solutions, make Hough Filter default TkrRecon-10-35-00 03-Oct-2012 heather In TreeBasedTool.cxx avoid looping on uber2 cluster TkrRecon-10-34-00 20-Aug-2012    jrb for Windows no-install-headers TkrRecon-10-33-01 09-Aug-2012 TU Mainly mods to work with VS2008 but also fix queue sort comparators to obey strict weak ordering TkrRecon-10-33-00 02-Jul-2012 TU "Final" version of updates to track extraction from trees TkrRecon-10-32-00 12-May-2012  lsrea iteration on Kalman and range energies TkrRecon-10-31-01 09-May-2012 TU patch for linux TkrRecon-10-31-00 08-May-2012  lsrea Calculate separate range Energy TkrRecon-10-30-02  8-May-2012 TU First updates and merge with new gaudi TkrRecon-10-30-01 25-Apr-2012 hmk Patch merge TkrRecon-10-30-00 24-Apr-2012 hmk Merge GlastReleasev19r4p1 branch TkrRecon-10-29-02 24-Jan-2012  lsrea More protection for empty events TkrRecon-10-29-01 20-Jan-2012  lsrea mods for cable truncation TkrRecon-10-29-00 20-Jan-2012  lsrea mods for cable truncation TkrRecon-10-28-02 20-Jan-2012 HMK patch to avoid automatically loading GuiSvc   in TkrDislayAlg TkrRecon-10-28-01 16-Jan-2012 HMK windows patches TkrRecon-10-28-00    Dec-2011 HMK Gaudi upgrade -- End GlastReleasev19r4p1 branch TkrRecon-10-27-02-gr11 18-Apr-2012  lsrea mods for truncation, mainly TkrRecon-10-27-02-gr10 03-Feb-2012  lsrea remove truncation stuff from TkrClusterAlg TkrRecon-10-27-02-gr09  3-Feb-2012 TU Small change to limit relaton/clusters to sort to prevent crashes TkrRecon-10-27-02-gr08  2-Feb-2012 TU Bill's updates to vertexing and 1st chi-square calculation TkrRecon-10-27-02-gr07 31-Jan-2012 TU Real fix to strict weak ordering now included! TkrRecon-10-27-02-gr06 31-Jan-2012 TU Including updates to fix strict weak ordering, move link building to tool and provide more timing info TkrRecon-10-27-02-gr05 26-Jan-2012  lsrea another attempt to fix the null-pointer bug TkrRecon-10-27-02-gr04 24-Jan-2012  lsrea More protection for empty events TkrRecon-10-27-02-gr03 24-Jan-2012 TU Remove SVD from Hough Filter for now, update Tree/Cluster sort comparator TkrRecon-10-27-02-gr02 23-Jan-2012  lsrea Fix for no clusterCol bug TkrRecon-10-27-02-gr01 20-Jan-2012  lsrea cc cable truncation code on v19r4p1 branch TkrRecon-10-27-02 16-Jan-2012  TU Resurrect Combo in new recon scheme, fix strict weak ordering in tree/cluster sort -- Start GlastReleasev19r4p1 branch TkrRecon-10-27-01 18-Nov-2011  TU Make memory resident ntuple default for the track energy splitter TkrRecon-10-27-00 17-Nov-2011  TU New recon flow implemented, based on Tree/Cluster associations TkrRecon-10-26-04 26-Sep-2011  TU Another current state tag, this with improved cal cluster association and tree sorting TkrRecon-10-26-04 12-Sep-2011  TU Tag the current state to preserve before completely dismantling the link attachment code TkrRecon-10-26-03 09-Sep-2011  TU Tagging current state of Tree Based Tracking (though it still needs work!) TkrRecon-10-26-02 31-Aug-2011 HMK Patch for SCons to set up xml files  TkrRecon-10-26-01 21-Aug-2011 TU Patch energy split tool to prevent crash if using with Combo pat rec (not sure why you would...) TkrRecon-10-26-00 19-Aug-2011 TU Add ability to use classification to split energy between tracks & store tree/cluster relations in TDS TkrRecon-10-25-04 25-Jul-2011 TU relatively minor changes to "tune" the tree based pat rec a bit more TkrRecon-10-25-03 04-Jun-2011 kadrlica Added call to ghost-CalCluster association in TkrFindAlg TkrRecon-10-25-02 26-May-2011  lsrea use renamed status bit WIDEFIRSTCLUSTER TkrRecon-10-25-01 20-May-2011 hmk    CLHEP 2.1.0.1 plus some Tracy updates TkrRecon-10-25-00 26-Mar-2011  lsrea Move TkrHitTruncationTool to TkrUtil; Start using TkrReasonsTool TkrRecon-10-24-04 18-Mar-2011  lsrea Updates to CR finding TkrRecon-10-24-03 21-Feb-2011 TU Include hard cut on # vec points to stop tree pat rec, temp I hope TkrRecon-10-24-02  1-Feb-2011 hmk Make GlastSvc use generic TkrRecon-10-24-01  1-Feb-2011 TU Move CR tracks into their own TDS collection: TkrCRTrackCol TkrRecon-10-24-00 18-Jan-2011  lsrea Move truncation-testing to TkrHitTruncationTool TkrRecon-10-23-00 13-Jan-2011  lsrea fix up TreeBased/CR conflict TkrRecon-10-22-03 11-Jan-2011  lsrea fix to CR finding; set USEDCR bit TkrRecon-10-22-02 11-Jan-2011 TU Fix default pat rec, set combo for CR, updates to filter TkrRecon-10-22-01 06-Jan-2011  lsrea fixes for SCons TkrRecon-10-22-00  4-Jan-2011  TU    New MST/cluster filter, new scheme for accessing Cal params TkrRecon-10-21-03 14-Dec-2010  lsrea update SConscript for TreeBased code TkrRecon-10-21-02 09-Dec-2010  lsrea include status bits in TkrTrack TkrRecon-10-21-01 07-Dec-2010  lsrea Remove debug printout TkrRecon-10-21-00 06-Dec-2010  lsrea Updates to kink calculation, truncation code TkrRecon-10-20-02 24-Nov-2010 TU  Version 0.5 of Tree Based tracking, introduce kink angle into filter fit TkrRecon-10-20-01 05-Nov-2010 TU  Version 0 of Tree Based tracking ready for use (now default) TkrRecon-10-20-00 04-Nov-2010  lsrea Turn on cosmic-ray finding by default TkrRecon-10-18-00 27-Sep-2010  lsrea Redo logic to make more robust TkrRecon-10-17-00 23-Sep-2010  lsrea Tag TkrRecon to synchronize with latest Gleam TkrRecon-10-16-11-gr01 21-Apr-2011 hmk upgrade for Gaudi v21r7 TkrRecon-10-16-11 12-Jun-2010    jrb upgrades for SCons builds TkrRecon-10-16-10 25-Feb-2010  lsrea modify 'MC' energy option to just use MC-energy in patrec TkrRecon-10-16-09 12-Nov-2009    jrb Updates for SCons TkrRecon-10-16-09 05-Nov-2009 HMK add use of RootConvert for unit test TkrRecon-10-16-08 09-Sep-2009  lsrea more unix warnings  v10r16p7  01-May-2009 LSR  Improve error message handling  v10r16p6  31-Jan-2009 LSR  Implement call to TkrMakeClustersTool::recalculateToTs()  v10r16p5  21-Jan-2009 LSR  Set Vertex Ghost bit in TkrReconAlg  v10r16p4  11-Nov-2008 LSR  remove TkrGhostTool from TkrRecon  v10r16p3  07-Nov-2008 LSR  switch to TkrGhostTool in TkrUtil  v10r16p2  06-Oct-2008 LSR  Clean up ghost flagging, add track flag  v10r16p1  13-Sep-2008 LSR  New TkrGhostFilter, gets applied in FirstPass  v10r15    05-Aug-2008 HMK  Add GleamEventFlags  v10r14    29-Jul-2008 LSR  Navid's SCONS mods  v10r13p6  11-Jul-2008 LSR  Remove tracks and vertices in case of exception  v10r13p5  17-Apr-2008 LSR  Bug fix from Robert in ComboVtxTool: use projected distance  v10r13p4  19-Feb-2008 LSR  Further refinement of neutral vertex weighting; from v13r9 branch  v10r13p3  31-Jan-2008 LSR  Leave cluster USED flag set only for hits actually on tracks  v10r13p2  07-Dec-2007 LSR  KalmanTrackFitTool: replace size() with numFitHits()                             FindTrackHitsTool: increment counters when adding leading hits                             ComboFindTrackTool: fix behavior in presence of gaps;                                Filter before Smooth when adding leading hits  v10r13p1  30-Nov-2007 LSR  Better de-weighting scheme for neutral-energy vertices  v10r13    16-Nov-2007 LSR  Fix the abs(double) problem in ComboVtxTool  v10r12    30-Oct-2007 THB  Update ComboVtxTool with new Atwood neutral energy code  v10r11    30-Oct-2007 HMK  use gr_app  v10r10p10 15-Oct-2007 LSR  Tracy's fix to TkrCalFilterTool to load CalTrans stuff                              into TkrEvtParams  v10r10p9  18-Sep-2007 HMK  Patch to move intVector and floatVector into                             Event namespace  v10r10p8  09-Sep-2007 LSR  Calculate neutral vector in ComboVtxTool  v10r10p7  12-Apr-2007 LSR  Tag Tracy's changes for the gcc34 compiler  v10r10p6  01-Dec-2006 LSR  Fix the bug that tagged all tracks as found with CalSearch  v10r10p5  04-Nov-2006 LSR  Add a jO parameter to control whether tests for wide clusters are done                                TkrInitSvc.TkrTestWideClusters -- default is true                                For now, set false for heavy-ions runs  v10r10p4  26-Jun-2006  TU  Fix "Finalize" problem in ComboVtxTool  v10r10p3  13-Jun-2006 LSR  Remove obsolete Properties from TkrControl/TkrInitSvc (only 3 left!)                             Add firstStage Property to TkrReconAlg, to go with the lastStage                                Seems to work, but the jOptions need a bit of tuning  v10r10p2   3-Apr-2006  TU  Import new ParticleTable.txt file so test program will run  v10r10p1  28-Mar-2006 JTC  Johann needs to put a comment here  v10r10    23-Mar-2006  TU  Tagging for new externals (CLHEP, Gaudi, etc.)  v10r9p4   13-Mar-2006 LSR  Add a stage to TkrReconAlg for Filtering  v10r9p3   09-Feb-2006 LSR  ComboVtxTool: fix the status bits for certain 2-track vertices  v10r9p2   20-Jan-2006 LSR  Stab at fixing the sort problem in TkrPoints (let the map do the sorting)  v10r9p1   20-Dec-2005 LSR  Clean up warnings  v10r9     19-Dec-2005 LSR  Convert from 1/sqrt(12) to geom->siResolution()                                 for strip measurement errors (not trays or gaps)  v10r8p2   25-Nov-2005  DC  Update for Event v11r9 (changes in CalRecon)  v10r8p1   19-Sep-2005  TU  Update default cluster cut from 500 to 2000  v10r8     02-Sep-2005 LSR  new code for truncated hits  v10r7p3   19-Aug-2005 jrb  Changes for compatibility with modified IGeometry interface  v10r7p2   17-Aug-2005  TU  Add protection in Combo Pat Rec against "bad" cal axes  v10r7p1   05-Jul-2005 LSR  Add alignment correction to recon  v10r7p0   23-Jun-2005  TU  Tag to go with new CalRecon output  v10r6p3   26-May-2005 LSR  Check for narrow clusters at wafer edges  v10r6p2   15-May-2005 LSR  ComboFindTrackTool: implement MC energy and pointing option                                cancel hit-limiting for poorly measured Cal tracks                                new method to provide limit and position prediction  v10r6p1   10-May-2005 LSR  Remove tabs (I meant to do this earlier!)  v10r6     10-May-2005 LSR  FindTrackHitsTool: fix minor radlen bug                             Utilities: implement TkrPoints wrt a reference point                             ComboFindTrackTool: use new TkrPoints                                Limit CAL finding to cone around CAL-track                                Fix minor radlen and layer-numbering bug                             Clean up Tags in ChangeLog  v10r5p8   02-May-2005 LSR  FindTrackHitsTool: set maxGap defaults to (2,1)                             TkrTrackEnergyTool: correctly set first-hit energy for 1-track events.  v10r5p7   07-Apr-2005 TU   TkrReconAlg will abort processing if too many clusters                             (this will appear in the error log at end of job)  v10r5p6  30-Mar-2005  LSR  fix the fix...  v10r5p5  29-Mar-2005  LSR  handle case of no CAL; requires mod to TkrTrackEnergyTool                             Set track energies to KalEnergy if possible  v10r5p4  06-Mar-2005  LSR  and again... also hooks for maxGaps  v10r5p3  04-Mar-2005  LSR  try again  v10r5p2  03-Mar-2005  LSR  fix problem in "Fedora Core 1"  v10r5p0  01-Mar-2005  TU   Relatively major modifications intended to speed up code  v10r4p0  01-Mar-2005  LSR  fix unix warnings/semi-bugs; remove root data files  v10r4    28-Feb-2005  LSR  FindTrackHitsTool -- many changes, mostly to handle no-cluster case                             ClusterAlg -- uses TkrMakeClustersSvc                             Remove TkrMakeClusters                             + cleanup                             KalmanTrackFitTool -- add (remove-hit-and-fit method  v10r3p11 28-Feb-2005  LSR  Tag tracy's latest fitter option  v10r3p10 20-Feb-2005  TU   Another day, another memory leak fix  v10r3p9  19-Feb-2005  TU   fix a memory leak in pat rec  v10r3p8  15-Feb-2005  TU   fix small problem in slope corrected errors, "improve" MC Pat Rec  v10r3p7  10-Feb-2005  LSR  fix many unix warnings + some other cleanup  v10r3p6  07-Feb-2005  LSR  TkrCluster; put tracks back into old event display  v10r3p5  06-Feb-2005  LSR  Redo eneDetermination, now called computeMSEnergy                             Bug fixes to ComboFindTrackTool                             Start filling in TkrTrackHit status bits                             Tracy's good stuff  v10r3p4  31-Jan-2005  LSR  Full TkrId for non-cluster hits  v10r3p3  29-Jan-2005  LSR  Straighten out TkrTrackEnergyTool  v10r3p2  28-Jan-2005  LSR  Improve error handling output in TkrReconAlg                                Suppress per-event reporting, as requested by Toby  v10r3p1  26-Jan-2005  TU   Fix energy on iterative recon  v10r3    25-Jan-2005  TU   TkrCluster stuff + unix warnings  v10r2p2  19-Jan-2005  TU   Bug fix for release mode crashes (ComboFindTrackTool)  v10r2p1  19-Jan-2005  LSR  Install bullet-proof error-handling in TkrReconAlg  v10r2    17-Jan-2005  LSR  Lots of changes:                               Refactor ComboFindTrackTool,                                 especially, remove reverse layers                               FitUtils: new numUniqueHits()                               ComboVtxTool: uses new TkrGeom methods   v10r1p3  04-Jan-2005  TU   Fixes to hit finding and combo pat rec  v10r1p2  03-Jan-2005  LSR  remove 'use xml *' from req. file  v10r1p1  01-Jan-2005  LSR  Lots of stuff; remove more reverseLayer() calls                                fix some bugs, some cleanup on ComboFindTrackTool  v10r1    26-Dec-2004  LSR  Changes to TkrCluster, add gap and bad-cluster calls                                 to FindTrackHitsTool  v10r0p5  20-Dec-2004  TU   This brings TkrRecon current with latest Bill mods  v10r0p4  17-Dec-2004  TU   "Last" mods to get to build on linux (FLW)  v10r0p3       ?        ?    ?  v10r0p2  16-Dec-2004  TU   This should get TkrRecon to build...  v10r0p1  16-Dec-2004  TU   Update requirements to get the correct TkrUtil!  v10r0p0  16-Dec-2004  TU   First tag with new TDS and recon code!           12-Oct-2004  LSR  change to m_tkrGeom throughout  v9r0p2   09-Sep-2004  LSR  Move energy loss out of TkrFitPlane                             Add BetheBlock muon option                             Change error default to slope-dependent errors  v9r0     07-Sep-2004  LSR  changes for alignment, and new alignment service interface  v8r12p26 31-Aug-2004  LSR  Got it right this time  v8r12p25 31-Aug-2004  LSR  Remove assumption that bottom tray is Y-measuring                             correct use of new numPlanes/numLayers distinction  v8r12p24 25-Aug-2004  LSR  Fix jobOptions for test program  v8r12p23 21-Jul-2004  LSR  Fix req. file according to Traudl's suggestion  v8r12p22 15-Jul-2004  LSR  make radlen accounting a bit more robust (for EM2)                             fiddle slope-dependent errors a bit  v8r12p21 18-Jun-2004  HMK   Pick up latest RootPolicy version  v8r12p20 17-Jun-2004  LSR  Fix a bunch of unix warnings  v8r12p19 14-Jun-2004  TU   Ok, "last" bug fix and get Line2DFit tagged too  v8r12p18 14-Jun-2004  TU   "Improvements" to MC pattern recognition  v8r12p17 01-Jun-2004  LSR  Add code to break tracks at tower boundaries                             using flag in TkrInitSvc... defaults off, of course!  v8r12p16 13-May-2004  LSR  Fix uninitialized pointer in KalmanTrackFitTool  v8r12p15 10-May-2004  LSR  Fix first-hit-view bug  v8r12p14 10-May-2004  LSR  Tag before fixing first-hit-view bug  v8r12p13 20-Apr-2004  TU   This fixes bug introduced by Johann during previous linux compile fixes  v8r12p12 20-Apr-2004  TU   This does fix the linux errors  v8r12p11 20-Apr-2004  TU   Updates to fix linux errors/warnings in the updates to the generic fit  v8r12p10 19-Apr-2004  TU   Updates to generic fit   v8r12p9  13-Apr-2004  LSR  First go at slope-dependent errors; default is "good old errors"\  ...                  JCT   Fix unix errors and warnings  v8r12p3 17-Feb-2004  TU    Tag to get "fixed" iterative recon stuff  v8r12p1 15-jan-2004  THB   "Fix" the MC stuff  v8r11p8 06-jan-2004  LSR   Fix the MC stuff  v8r11p7 09-jan-2004  TU    Shuffle MC stuff around  v8r11p6 06-jan-2004  LSR   Fix the odd-even effect, and add QED constraint and reciprocal energies                             to the SetEnergies() method  v8r11p5 04-oct-2003  THB   Fix the fix  v8r11p4 03-oct-2003  THB   Fix energy setting bug  v8r11p3 27-Sep-2003  THB   Use new TkrException to project against bad energy  v8r11p2 18-Aug-2003  TU    "Improvements" to Recon/MC stuff  v8r11p1  v8r11  v8r10p2 07-Aug-2003  LSR   Mostly Tracy's new MC-patrec  v8r10p2 23-Jul-2003  LSR   Retag... I messed up the last tag.  v8r10p1 22-Jul-2003  LSR   Fixes to requirements file  v8r10   17-Jul-2003  LSR   Kalman uses new TkrGeometry methods; cleanup of patrec tools  v8r9p9  16-Jun-2003  TU    Numerous bug fixes on alternate pat recs  v8r9p8  10-May-2003  LSR   Beef up error reporting  v8r9p7  29-Apr-2003  LSR   replace hard-wired rad. lengths with calls to TkrGeometrySvc  v8r9p6  24-Apr-2003  LSR/TU  fixes for unix and mainpage.h  v8r9p5  11-Apr-2003  LSR   don't move cluster; wait for fitting to do alignment, for real this time  v8r9p4  08-Apr-2003  LSR   don't move cluster; wait for fitting to do alignment  v8r9p3  25-Mar-2003  LSR   fix requirements for RootIo  v8r9p2  21-Mar-2003  LSR   Generalize tests for EM silicon  v8r9p1  20-Mar-2003  TU    Modifications to fit classes for new TkrFitPlane constructors  v8r9    13-mar-2003  LSR   Use new TkrUtil; FailureModeSvc->recon; prepare for iterative recon  v8r8p3  10-mar-2003  LSR   Use GlastPropagatorSvc  v8r8p2  28-feb-2003  LSR   Cleanup of unix errors  v8r8p1  05-feb-2003  TU    fix bug in exit test for loop on planes in KalFitTrack  v8r8    03-feb-2003  LSR   First pass at adding alignment service  v8r7    16-Jan-2003  LSR   Move TkrQueryClusters, TkrMeritTool to TkrUtil  v8r6p1  10-Jan-2003  LSR   Move TkrGeometrySvc to TkrUtil  v8r6    10-Jan-2003  LSR   GlastRelease version, including new TDS stuff, and TkrBadStripsSvc to TkrUtil  v8r5p1  21-Nov-2002  TU    Patches for "final" Gleam release  v8r5    30-Oct-2002  LSR   fix bug in TkrComboPatRec, and new code from Bill for TkrComboVtxRecon  v8r4p4  16-oct-2002  LSR   fix overrunning loop in TkrMakeClusters  v8r4p3  11-Oct-2002  LSR   first iteration on TkrComboPatRec  v8r4p2  11-Oct-2002  LSR   get the documentation right  v8r4p1  10-Oct-2002  LSR   new TkrComboPatRec from Bill, getReconLayerZ  v8r4    10-Oct-2002  LSR   fix bug in TkrMakeClusterTable  v8r4    10-Oct-2002  LSR   ....  v8r3    09-oct-2002  LSR   RelTables, new TkrPatCand.h  v8r2    30-sep-2002  LSR   add TkrMeritTool   v8r1     8-sep-2002  LSR   Update requirements file  v8r0     7-sep-2002  LSR   Rationalize geometry... new version so as not to confuse Gleam, etc.  v7r0     ???               Lost track of when this happened  v6r5p3   2-Sep-2002  TU    Tag again for testing documentations  v6r5p2  29-Aug-2002  TU    Tag in order to fix current round of documentation  v6r5p1  22-Aug-2002  TU    Fix the first round of obvious bugs  v6r5    20-Aug-2002  TU    New revision - use Gaudi Tools to drive the reconstruction  v6r4p4  07-Aug-2002  LSR   Improvements and bug fixes from Bill  v6r4p3  23-Jul-2002  TU    Picks up upgrades and bug fixes to Combo PR/Fit from Bill Atwood  v6r4p2   3-Jul-2002  TU    This does fix the crashes on linux  v6r4p1   3-Jul-2002  TU    Various bug fixes to code by Bill Atwood (should not crash on linux now)  v6r4    27-Jun-2002  TU    New Combo Recon code included, make this the default recon  v6r3p5  13-Jun-2002  TU    TkrReconAlg and TkrFindAlg can again obtain Cal Energy   v6r3p4  11-Jun-2002  TU    Fix TkrGeometrySvc so that cluster positions are (again) correct  v6r3p3    v6r3p2  v6r3p1   3-Jun-2002  TU    Modifications made necessary by new TkrFitTrack and TkrVertex defs (grr...)  v6r3    13-May-2002  THB   New TkrVertex(Col), put display buttons on a separate menu  v6r2    13-May-2002  TU    Final DSTF rec changes, prepend "get" to methods, consistent iters  v6r1    13-May-2002  TU    Cleanup from TDS move, TDS path names changed to string versions  v6r0    10-May-2002  THB   Now consistent with new Event  v5r7    08-May-2002  TU    Tagged just after movement of TDS output classes to GlastEvent  v5r6    01-May-2002  LSR   Tagged changes for DSTF meeting  v5r5    24-Apr-2002  LSR   Tagged the latest changes  v5r4    19-Apr-2002  LSR   Fixed for recon mode of geometry  v5r3    18-Apr-2002  LSR   Uses new TkrDigi -- mods to GlastEvent, GlastDigi  v5r2    13-Apr-2002  LSR   Switchable propagator -- mods to G4Generator, GlastSvc, etc.  v5r1p2  10-Apr-2002  LSR   put -y kludge back dependent on jobOptions property   v5r1p1  09-Apr-2002  LSR   remove "-y" kludge  v5r1    01-Apr-2002  LSR   Run TkrGeometrySvc entirely from detModel, get fitter running                             Neural Net patrec in cvs  v5r0    26-Mar-2002  TU    Cleanup and tkrApp requirements file that works  v4r4p8  09-Mar-2002  LSR   Remove GFxxxxx and SiRecObjs, no longer used  v4r4p7  07-Mar-2002  TU    Mainly, add a combo vertexing to the TkrRecon sequence  v4r4p6  26-Feb-2002  LSR   same as previous, but with more documentation  v4r4p5  22-Feb-2002  LSR   Works on unix after many little fixes from Alex and Toby  v4r4p4  13-Feb-2002  LSR   First version that works with tkrApp (but not yet on Linux)  v4r4p3  11-Feb-2002  TU    Remove TkrReconData;                        LSR   mgr/ -> cmt/; .cpp -> .cxx  v4r4p2  07-Feb-2002  TU    Add energy estimate to ComboPatRec  v4r4p1  06-Feb-2002  TU    ??  v4r4    06-Feb-2002  TU    TkrInitSvc; update display routines  v4r3    27-Jan-2002  TU    Connect patrec and fitter; draw 3D candidates and fitted tracks  v4r2    11-Jan-2002  TU    Add TkrComboPR  v4r1    26-Nov-2001  TU    Implement new patrec, fitting  v4      07-Nov-2002  TU    Back on main branch; TDS classes for new tracker   v3r3p1  31-Oct-2002  LSR   ??  v3r3    31-Oct-2002  LSR   Same as v3r2... branch for bug fixes to pdrApp   v3r2    31-Oct-2001  LSR   Version that goes with pdrApp v7r2  v3r1    10-Oct-2001  TU    Finish improvements to patrec, fitting  v3      06-Oct-2001  TU    Improvements to patrec, fitting  v2r8p1  03-Oct-2001  LSR     v2r8    21-Sep-2001  LSR   Bug fixes  v2r7    25-Aug-2001  LSR   Add bad-channel lists for balloon data  v2r6    06-Aug-2001  LSR   Add initial gamma to display  v2r5    20-Jul-2001  LSR   Add bac-channel lists for test beam data; bug fixes  v2r4    16-Jul-2001  LSR   change vector to array in TkrBadStripsSvc, to help with Linux compile  v2r3    06-Jul-2001  LSR   Geometry fix;  tried to fix Linux compile problem in TkrBadStripsSvc  v2r2    02-Jul-2001  LSR   Implement TkrBadStripsSvc; update ntuple variables  v2r1    22-Jun-2001  TU    Add abstract iterface ISiRecObs  v2      21-Jun-2001  TU    Improvements to fitter, display  v171    16-Jun-2001  THB   Update requirements file; add ntuple variables  v1r6p2  11-Jun-2001  THB, IG  Structural fixes  v1r6p1  08-Jun-2001  IG,TU Fix bugs in ntuple variables  v1r6    07-Jun-2001  TU    Big push to get ntuple variables calculated  v1r5    26-Apr-2001  IG    Move to Gaudi v7  v1r4    11-Apr-2001  LSR, TU, TL                       Un-hardwire geometry; re-introduce towers; fixes for Linux                       General re-organization, cleanup  v1r3    03-Mar-2001  IG,TL Finish move to Gaudi; create TkrReconData  v1r2    13-Feb-2001  IG,TL Move to Gaudi; Fix access to TDS  v1r1    24-Jan-2001  IG,TL,THB  Still moving to Gaudi  v1      19-Dec-2000  IG,TL,THB  Start move to Gaudi@endverbatim */
+/** @file release.notes
+@brief Package TkrRecon
+@verbatim
+  Managers: Tracy Usher, Leon Rochester 
+  * EOH *
+
+ TkrRecon-10-37-06 11-Jan-2012 TU 2nd Pass track fits ALWAYS use energy from TkrEnergyTool
+ TkrRecon-10-37-05 13-Dec-2012 TU Fix a small bug in track extraction tool 
+ TkrRecon-10-37-04 12-Dec-2012 TU Modify slightly two track criteria, some better link attachment tuning at low energy
+ TkrRecon-10-37-03 11-Dec-2012 TU Fix bug in kink factor calculation for link attachment
+ TkrRecon-10-37-02 11-Dec-2012 TU Energy sharing tool is default, sets 50% event energy, small tweaks to Tree Based Tracking
+ TkrRecon-10-37-01 09-Dec-2012 TU Change function call to TkrTrackEnergy to get correct event energy (in track energy assignment tools)
+ TkrRecon-10-37-00 08-Dec-2012 TU Modifications to handle track energy assignement, assign trees to uber, uber2
+ TkrRecon-10-36-00 03-Oct-2012 TU Modifications to two track solutions, make Hough Filter default
+ TkrRecon-10-35-00 03-Oct-2012 heather In TreeBasedTool.cxx avoid looping on uber2 cluster
+ TkrRecon-10-34-00 20-Aug-2012    jrb for Windows no-install-headers
+ TkrRecon-10-33-01 09-Aug-2012 TU Mainly mods to work with VS2008 but also fix queue sort comparators to obey strict weak ordering
+ TkrRecon-10-33-00 02-Jul-2012 TU "Final" version of updates to track extraction from trees
+ TkrRecon-10-32-00 12-May-2012  lsrea iteration on Kalman and range energies
+ TkrRecon-10-31-01 09-May-2012 TU patch for linux
+ TkrRecon-10-31-00 08-May-2012  lsrea Calculate separate range Energy
+ TkrRecon-10-30-02  8-May-2012 TU First updates and merge with new gaudi
+ TkrRecon-10-30-01 25-Apr-2012 hmk Patch merge
+ TkrRecon-10-30-00 24-Apr-2012 hmk Merge GlastReleasev19r4p1 branch
+ TkrRecon-10-29-02 24-Jan-2012  lsrea More protection for empty events
+ TkrRecon-10-29-01 20-Jan-2012  lsrea mods for cable truncation
+ TkrRecon-10-29-00 20-Jan-2012  lsrea mods for cable truncation
+ TkrRecon-10-28-02 20-Jan-2012 HMK patch to avoid automatically loading GuiSvc
+   in TkrDislayAlg
+ TkrRecon-10-28-01 16-Jan-2012 HMK windows patches
+ TkrRecon-10-28-00    Dec-2011 HMK Gaudi upgrade
+ -- End GlastReleasev19r4p1 branch
+ TkrRecon-10-27-02-gr11 18-Apr-2012  lsrea mods for truncation, mainly
+ TkrRecon-10-27-02-gr10 03-Feb-2012  lsrea remove truncation stuff from TkrClusterAlg
+ TkrRecon-10-27-02-gr09  3-Feb-2012 TU Small change to limit relaton/clusters to sort to prevent crashes
+ TkrRecon-10-27-02-gr08  2-Feb-2012 TU Bill's updates to vertexing and 1st chi-square calculation
+ TkrRecon-10-27-02-gr07 31-Jan-2012 TU Real fix to strict weak ordering now included!
+ TkrRecon-10-27-02-gr06 31-Jan-2012 TU Including updates to fix strict weak ordering, move link building to tool and provide more timing info
+ TkrRecon-10-27-02-gr05 26-Jan-2012  lsrea another attempt to fix the null-pointer bug
+ TkrRecon-10-27-02-gr04 24-Jan-2012  lsrea More protection for empty events
+ TkrRecon-10-27-02-gr03 24-Jan-2012 TU Remove SVD from Hough Filter for now, update Tree/Cluster sort comparator
+ TkrRecon-10-27-02-gr02 23-Jan-2012  lsrea Fix for no clusterCol bug
+ TkrRecon-10-27-02-gr01 20-Jan-2012  lsrea cc cable truncation code on v19r4p1 branch
+ TkrRecon-10-27-02 16-Jan-2012  TU Resurrect Combo in new recon scheme, fix strict weak ordering in tree/cluster sort
+ -- Start GlastReleasev19r4p1 branch
+ TkrRecon-10-27-01 18-Nov-2011  TU Make memory resident ntuple default for the track energy splitter
+ TkrRecon-10-27-00 17-Nov-2011  TU New recon flow implemented, based on Tree/Cluster associations
+ TkrRecon-10-26-04 26-Sep-2011  TU Another current state tag, this with improved cal cluster association and tree sorting
+ TkrRecon-10-26-04 12-Sep-2011  TU Tag the current state to preserve before completely dismantling the link attachment code
+ TkrRecon-10-26-03 09-Sep-2011  TU Tagging current state of Tree Based Tracking (though it still needs work!)
+ TkrRecon-10-26-02 31-Aug-2011 HMK Patch for SCons to set up xml files 
+ TkrRecon-10-26-01 21-Aug-2011 TU Patch energy split tool to prevent crash if using with Combo pat rec (not sure why you would...)
+ TkrRecon-10-26-00 19-Aug-2011 TU Add ability to use classification to split energy between tracks & store tree/cluster relations in TDS
+ TkrRecon-10-25-04 25-Jul-2011 TU relatively minor changes to "tune" the tree based pat rec a bit more
+ TkrRecon-10-25-03 04-Jun-2011 kadrlica Added call to ghost-CalCluster association in TkrFindAlg
+ TkrRecon-10-25-02 26-May-2011  lsrea use renamed status bit WIDEFIRSTCLUSTER
+ TkrRecon-10-25-01 20-May-2011 hmk    CLHEP 2.1.0.1 plus some Tracy updates
+ TkrRecon-10-25-00 26-Mar-2011  lsrea Move TkrHitTruncationTool to TkrUtil; Start using TkrReasonsTool
+ TkrRecon-10-24-04 18-Mar-2011  lsrea Updates to CR finding
+ TkrRecon-10-24-03 21-Feb-2011 TU Include hard cut on # vec points to stop tree pat rec, temp I hope
+ TkrRecon-10-24-02  1-Feb-2011 hmk Make GlastSvc use generic
+ TkrRecon-10-24-01  1-Feb-2011 TU Move CR tracks into their own TDS collection: TkrCRTrackCol
+ TkrRecon-10-24-00 18-Jan-2011  lsrea Move truncation-testing to TkrHitTruncationTool
+ TkrRecon-10-23-00 13-Jan-2011  lsrea fix up TreeBased/CR conflict
+ TkrRecon-10-22-03 11-Jan-2011  lsrea fix to CR finding; set USEDCR bit
+ TkrRecon-10-22-02 11-Jan-2011 TU Fix default pat rec, set combo for CR, updates to filter
+ TkrRecon-10-22-01 06-Jan-2011  lsrea fixes for SCons
+ TkrRecon-10-22-00  4-Jan-2011  TU    New MST/cluster filter, new scheme for accessing Cal params
+ TkrRecon-10-21-03 14-Dec-2010  lsrea update SConscript for TreeBased code
+ TkrRecon-10-21-02 09-Dec-2010  lsrea include status bits in TkrTrack
+ TkrRecon-10-21-01 07-Dec-2010  lsrea Remove debug printout
+ TkrRecon-10-21-00 06-Dec-2010  lsrea Updates to kink calculation, truncation code
+ TkrRecon-10-20-02 24-Nov-2010 TU  Version 0.5 of Tree Based tracking, introduce kink angle into filter fit
+ TkrRecon-10-20-01 05-Nov-2010 TU  Version 0 of Tree Based tracking ready for use (now default)
+ TkrRecon-10-20-00 04-Nov-2010  lsrea Turn on cosmic-ray finding by default
+ TkrRecon-10-18-00 27-Sep-2010  lsrea Redo logic to make more robust
+ TkrRecon-10-17-00 23-Sep-2010  lsrea Tag TkrRecon to synchronize with latest Gleam
+ TkrRecon-10-16-11-gr01 21-Apr-2011 hmk upgrade for Gaudi v21r7
+ TkrRecon-10-16-11 12-Jun-2010    jrb upgrades for SCons builds
+ TkrRecon-10-16-10 25-Feb-2010  lsrea modify 'MC' energy option to just use MC-energy in patrec
+ TkrRecon-10-16-09 12-Nov-2009    jrb Updates for SCons
+ TkrRecon-10-16-09 05-Nov-2009 HMK add use of RootConvert for unit test
+ TkrRecon-10-16-08 09-Sep-2009  lsrea more unix warnings
+  v10r16p7  01-May-2009 LSR  Improve error message handling
+  v10r16p6  31-Jan-2009 LSR  Implement call to TkrMakeClustersTool::recalculateToTs()
+  v10r16p5  21-Jan-2009 LSR  Set Vertex Ghost bit in TkrReconAlg
+  v10r16p4  11-Nov-2008 LSR  remove TkrGhostTool from TkrRecon
+  v10r16p3  07-Nov-2008 LSR  switch to TkrGhostTool in TkrUtil
+  v10r16p2  06-Oct-2008 LSR  Clean up ghost flagging, add track flag
+  v10r16p1  13-Sep-2008 LSR  New TkrGhostFilter, gets applied in FirstPass
+  v10r15    05-Aug-2008 HMK  Add GleamEventFlags
+  v10r14    29-Jul-2008 LSR  Navid's SCONS mods
+  v10r13p6  11-Jul-2008 LSR  Remove tracks and vertices in case of exception
+  v10r13p5  17-Apr-2008 LSR  Bug fix from Robert in ComboVtxTool: use projected distance
+  v10r13p4  19-Feb-2008 LSR  Further refinement of neutral vertex weighting; from v13r9 branch
+  v10r13p3  31-Jan-2008 LSR  Leave cluster USED flag set only for hits actually on tracks
+  v10r13p2  07-Dec-2007 LSR  KalmanTrackFitTool: replace size() with numFitHits()
+                             FindTrackHitsTool: increment counters when adding leading hits
+                             ComboFindTrackTool: fix behavior in presence of gaps;
+                                Filter before Smooth when adding leading hits
+  v10r13p1  30-Nov-2007 LSR  Better de-weighting scheme for neutral-energy vertices
+  v10r13    16-Nov-2007 LSR  Fix the abs(double) problem in ComboVtxTool
+  v10r12    30-Oct-2007 THB  Update ComboVtxTool with new Atwood neutral energy code
+  v10r11    30-Oct-2007 HMK  use gr_app
+  v10r10p10 15-Oct-2007 LSR  Tracy's fix to TkrCalFilterTool to load CalTrans stuff 
+                             into TkrEvtParams
+  v10r10p9  18-Sep-2007 HMK  Patch to move intVector and floatVector into
+                             Event namespace
+  v10r10p8  09-Sep-2007 LSR  Calculate neutral vector in ComboVtxTool
+  v10r10p7  12-Apr-2007 LSR  Tag Tracy's changes for the gcc34 compiler
+  v10r10p6  01-Dec-2006 LSR  Fix the bug that tagged all tracks as found with CalSearch
+  v10r10p5  04-Nov-2006 LSR  Add a jO parameter to control whether tests for wide clusters are done
+                                TkrInitSvc.TkrTestWideClusters -- default is true
+                                For now, set false for heavy-ions runs
+  v10r10p4  26-Jun-2006  TU  Fix "Finalize" problem in ComboVtxTool
+  v10r10p3  13-Jun-2006 LSR  Remove obsolete Properties from TkrControl/TkrInitSvc (only 3 left!)
+                             Add firstStage Property to TkrReconAlg, to go with the lastStage
+                                Seems to work, but the jOptions need a bit of tuning
+  v10r10p2   3-Apr-2006  TU  Import new ParticleTable.txt file so test program will run
+  v10r10p1  28-Mar-2006 JTC  Johann needs to put a comment here
+  v10r10    23-Mar-2006  TU  Tagging for new externals (CLHEP, Gaudi, etc.)
+  v10r9p4   13-Mar-2006 LSR  Add a stage to TkrReconAlg for Filtering
+  v10r9p3   09-Feb-2006 LSR  ComboVtxTool: fix the status bits for certain 2-track vertices
+  v10r9p2   20-Jan-2006 LSR  Stab at fixing the sort problem in TkrPoints (let the map do the sorting)
+  v10r9p1   20-Dec-2005 LSR  Clean up warnings
+  v10r9     19-Dec-2005 LSR  Convert from 1/sqrt(12) to geom->siResolution()
+                                 for strip measurement errors (not trays or gaps)
+  v10r8p2   25-Nov-2005  DC  Update for Event v11r9 (changes in CalRecon)
+  v10r8p1   19-Sep-2005  TU  Update default cluster cut from 500 to 2000
+  v10r8     02-Sep-2005 LSR  new code for truncated hits
+  v10r7p3   19-Aug-2005 jrb  Changes for compatibility with modified IGeometry interface
+  v10r7p2   17-Aug-2005  TU  Add protection in Combo Pat Rec against "bad" cal axes
+  v10r7p1   05-Jul-2005 LSR  Add alignment correction to recon
+  v10r7p0   23-Jun-2005  TU  Tag to go with new CalRecon output
+  v10r6p3   26-May-2005 LSR  Check for narrow clusters at wafer edges
+  v10r6p2   15-May-2005 LSR  ComboFindTrackTool: implement MC energy and pointing option
+                                cancel hit-limiting for poorly measured Cal tracks
+                                new method to provide limit and position prediction
+  v10r6p1   10-May-2005 LSR  Remove tabs (I meant to do this earlier!)
+  v10r6     10-May-2005 LSR  FindTrackHitsTool: fix minor radlen bug
+                             Utilities: implement TkrPoints wrt a reference point
+                             ComboFindTrackTool: use new TkrPoints
+                                Limit CAL finding to cone around CAL-track
+                                Fix minor radlen and layer-numbering bug
+                             Clean up Tags in ChangeLog
+  v10r5p8   02-May-2005 LSR  FindTrackHitsTool: set maxGap defaults to (2,1)
+                             TkrTrackEnergyTool: correctly set first-hit energy for 1-track events.
+  v10r5p7   07-Apr-2005 TU   TkrReconAlg will abort processing if too many clusters
+                             (this will appear in the error log at end of job)
+  v10r5p6  30-Mar-2005  LSR  fix the fix...
+  v10r5p5  29-Mar-2005  LSR  handle case of no CAL; requires mod to TkrTrackEnergyTool
+                             Set track energies to KalEnergy if possible
+  v10r5p4  06-Mar-2005  LSR  and again... also hooks for maxGaps
+  v10r5p3  04-Mar-2005  LSR  try again
+  v10r5p2  03-Mar-2005  LSR  fix problem in "Fedora Core 1"
+  v10r5p0  01-Mar-2005  TU   Relatively major modifications intended to speed up code
+  v10r4p0  01-Mar-2005  LSR  fix unix warnings/semi-bugs; remove root data files
+  v10r4    28-Feb-2005  LSR  FindTrackHitsTool -- many changes, mostly to handle no-cluster case
+                             ClusterAlg -- uses TkrMakeClustersSvc
+                             Remove TkrMakeClusters
+                             + cleanup
+                             KalmanTrackFitTool -- add (remove-hit-and-fit method
+  v10r3p11 28-Feb-2005  LSR  Tag tracy's latest fitter option
+  v10r3p10 20-Feb-2005  TU   Another day, another memory leak fix
+  v10r3p9  19-Feb-2005  TU   fix a memory leak in pat rec
+  v10r3p8  15-Feb-2005  TU   fix small problem in slope corrected errors, "improve" MC Pat Rec
+  v10r3p7  10-Feb-2005  LSR  fix many unix warnings + some other cleanup
+  v10r3p6  07-Feb-2005  LSR  TkrCluster; put tracks back into old event display
+  v10r3p5  06-Feb-2005  LSR  Redo eneDetermination, now called computeMSEnergy
+                             Bug fixes to ComboFindTrackTool
+                             Start filling in TkrTrackHit status bits
+                             Tracy's good stuff
+  v10r3p4  31-Jan-2005  LSR  Full TkrId for non-cluster hits
+  v10r3p3  29-Jan-2005  LSR  Straighten out TkrTrackEnergyTool
+  v10r3p2  28-Jan-2005  LSR  Improve error handling output in TkrReconAlg
+                                Suppress per-event reporting, as requested by Toby
+  v10r3p1  26-Jan-2005  TU   Fix energy on iterative recon
+  v10r3    25-Jan-2005  TU   TkrCluster stuff + unix warnings
+  v10r2p2  19-Jan-2005  TU   Bug fix for release mode crashes (ComboFindTrackTool)
+  v10r2p1  19-Jan-2005  LSR  Install bullet-proof error-handling in TkrReconAlg
+  v10r2    17-Jan-2005  LSR  Lots of changes:
+                               Refactor ComboFindTrackTool,
+                                 especially, remove reverse layers
+                               FitUtils: new numUniqueHits()
+                               ComboVtxTool: uses new TkrGeom methods 
+  v10r1p3  04-Jan-2005  TU   Fixes to hit finding and combo pat rec
+  v10r1p2  03-Jan-2005  LSR  remove 'use xml *' from req. file
+  v10r1p1  01-Jan-2005  LSR  Lots of stuff; remove more reverseLayer() calls
+                                fix some bugs, some cleanup on ComboFindTrackTool
+  v10r1    26-Dec-2004  LSR  Changes to TkrCluster, add gap and bad-cluster calls
+                                 to FindTrackHitsTool
+  v10r0p5  20-Dec-2004  TU   This brings TkrRecon current with latest Bill mods
+  v10r0p4  17-Dec-2004  TU   "Last" mods to get to build on linux (FLW)
+  v10r0p3       ?        ?    ?
+  v10r0p2  16-Dec-2004  TU   This should get TkrRecon to build...
+  v10r0p1  16-Dec-2004  TU   Update requirements to get the correct TkrUtil!
+  v10r0p0  16-Dec-2004  TU   First tag with new TDS and recon code!
+           12-Oct-2004  LSR  change to m_tkrGeom throughout
+  v9r0p2   09-Sep-2004  LSR  Move energy loss out of TkrFitPlane
+                             Add BetheBlock muon option
+                             Change error default to slope-dependent errors
+  v9r0     07-Sep-2004  LSR  changes for alignment, and new alignment service interface
+  v8r12p26 31-Aug-2004  LSR  Got it right this time
+  v8r12p25 31-Aug-2004  LSR  Remove assumption that bottom tray is Y-measuring
+                             correct use of new numPlanes/numLayers distinction
+  v8r12p24 25-Aug-2004  LSR  Fix jobOptions for test program
+  v8r12p23 21-Jul-2004  LSR  Fix req. file according to Traudl's suggestion
+  v8r12p22 15-Jul-2004  LSR  make radlen accounting a bit more robust (for EM2)
+                             fiddle slope-dependent errors a bit
+  v8r12p21 18-Jun-2004  HMK   Pick up latest RootPolicy version
+  v8r12p20 17-Jun-2004  LSR  Fix a bunch of unix warnings
+  v8r12p19 14-Jun-2004  TU   Ok, "last" bug fix and get Line2DFit tagged too
+  v8r12p18 14-Jun-2004  TU   "Improvements" to MC pattern recognition
+  v8r12p17 01-Jun-2004  LSR  Add code to break tracks at tower boundaries
+                             using flag in TkrInitSvc... defaults off, of course!
+  v8r12p16 13-May-2004  LSR  Fix uninitialized pointer in KalmanTrackFitTool
+  v8r12p15 10-May-2004  LSR  Fix first-hit-view bug
+  v8r12p14 10-May-2004  LSR  Tag before fixing first-hit-view bug
+  v8r12p13 20-Apr-2004  TU   This fixes bug introduced by Johann during previous linux compile fixes
+  v8r12p12 20-Apr-2004  TU   This does fix the linux errors
+  v8r12p11 20-Apr-2004  TU   Updates to fix linux errors/warnings in the updates to the generic fit
+  v8r12p10 19-Apr-2004  TU   Updates to generic fit 
+  v8r12p9  13-Apr-2004  LSR  First go at slope-dependent errors; default is "good old errors"\
+  ...                  JCT   Fix unix errors and warnings
+  v8r12p3 17-Feb-2004  TU    Tag to get "fixed" iterative recon stuff
+  v8r12p1 15-jan-2004  THB   "Fix" the MC stuff
+  v8r11p8 06-jan-2004  LSR   Fix the MC stuff
+  v8r11p7 09-jan-2004  TU    Shuffle MC stuff around
+  v8r11p6 06-jan-2004  LSR   Fix the odd-even effect, and add QED constraint and reciprocal energies
+                             to the SetEnergies() method
+  v8r11p5 04-oct-2003  THB   Fix the fix
+  v8r11p4 03-oct-2003  THB   Fix energy setting bug
+  v8r11p3 27-Sep-2003  THB   Use new TkrException to project against bad energy
+  v8r11p2 18-Aug-2003  TU    "Improvements" to Recon/MC stuff
+  v8r11p1
+  v8r11
+  v8r10p2 07-Aug-2003  LSR   Mostly Tracy's new MC-patrec
+  v8r10p2 23-Jul-2003  LSR   Retag... I messed up the last tag.
+  v8r10p1 22-Jul-2003  LSR   Fixes to requirements file
+  v8r10   17-Jul-2003  LSR   Kalman uses new TkrGeometry methods; cleanup of patrec tools
+  v8r9p9  16-Jun-2003  TU    Numerous bug fixes on alternate pat recs
+  v8r9p8  10-May-2003  LSR   Beef up error reporting
+  v8r9p7  29-Apr-2003  LSR   replace hard-wired rad. lengths with calls to TkrGeometrySvc
+  v8r9p6  24-Apr-2003  LSR/TU  fixes for unix and mainpage.h
+  v8r9p5  11-Apr-2003  LSR   don't move cluster; wait for fitting to do alignment, for real this time
+  v8r9p4  08-Apr-2003  LSR   don't move cluster; wait for fitting to do alignment
+  v8r9p3  25-Mar-2003  LSR   fix requirements for RootIo
+  v8r9p2  21-Mar-2003  LSR   Generalize tests for EM silicon
+  v8r9p1  20-Mar-2003  TU    Modifications to fit classes for new TkrFitPlane constructors
+  v8r9    13-mar-2003  LSR   Use new TkrUtil; FailureModeSvc->recon; prepare for iterative recon
+  v8r8p3  10-mar-2003  LSR   Use GlastPropagatorSvc
+  v8r8p2  28-feb-2003  LSR   Cleanup of unix errors
+  v8r8p1  05-feb-2003  TU    fix bug in exit test for loop on planes in KalFitTrack
+  v8r8    03-feb-2003  LSR   First pass at adding alignment service
+  v8r7    16-Jan-2003  LSR   Move TkrQueryClusters, TkrMeritTool to TkrUtil
+  v8r6p1  10-Jan-2003  LSR   Move TkrGeometrySvc to TkrUtil
+  v8r6    10-Jan-2003  LSR   GlastRelease version, including new TDS stuff, and TkrBadStripsSvc to TkrUtil
+  v8r5p1  21-Nov-2002  TU    Patches for "final" Gleam release
+  v8r5    30-Oct-2002  LSR   fix bug in TkrComboPatRec, and new code from Bill for TkrComboVtxRecon
+  v8r4p4  16-oct-2002  LSR   fix overrunning loop in TkrMakeClusters
+  v8r4p3  11-Oct-2002  LSR   first iteration on TkrComboPatRec
+  v8r4p2  11-Oct-2002  LSR   get the documentation right
+  v8r4p1  10-Oct-2002  LSR   new TkrComboPatRec from Bill, getReconLayerZ
+  v8r4    10-Oct-2002  LSR   fix bug in TkrMakeClusterTable
+  v8r4    10-Oct-2002  LSR   ....
+  v8r3    09-oct-2002  LSR   RelTables, new TkrPatCand.h
+  v8r2    30-sep-2002  LSR   add TkrMeritTool 
+  v8r1     8-sep-2002  LSR   Update requirements file
+  v8r0     7-sep-2002  LSR   Rationalize geometry... new version so as not to confuse Gleam, etc.
+  v7r0     ???               Lost track of when this happened
+  v6r5p3   2-Sep-2002  TU    Tag again for testing documentations
+  v6r5p2  29-Aug-2002  TU    Tag in order to fix current round of documentation
+  v6r5p1  22-Aug-2002  TU    Fix the first round of obvious bugs
+  v6r5    20-Aug-2002  TU    New revision - use Gaudi Tools to drive the reconstruction
+  v6r4p4  07-Aug-2002  LSR   Improvements and bug fixes from Bill
+  v6r4p3  23-Jul-2002  TU    Picks up upgrades and bug fixes to Combo PR/Fit from Bill Atwood
+  v6r4p2   3-Jul-2002  TU    This does fix the crashes on linux
+  v6r4p1   3-Jul-2002  TU    Various bug fixes to code by Bill Atwood (should not crash on linux now)
+  v6r4    27-Jun-2002  TU    New Combo Recon code included, make this the default recon
+  v6r3p5  13-Jun-2002  TU    TkrReconAlg and TkrFindAlg can again obtain Cal Energy 
+  v6r3p4  11-Jun-2002  TU    Fix TkrGeometrySvc so that cluster positions are (again) correct
+  v6r3p3  
+  v6r3p2
+  v6r3p1   3-Jun-2002  TU    Modifications made necessary by new TkrFitTrack and TkrVertex defs (grr...)
+  v6r3    13-May-2002  THB   New TkrVertex(Col), put display buttons on a separate menu
+  v6r2    13-May-2002  TU    Final DSTF rec changes, prepend "get" to methods, consistent iters
+  v6r1    13-May-2002  TU    Cleanup from TDS move, TDS path names changed to string versions
+  v6r0    10-May-2002  THB   Now consistent with new Event
+  v5r7    08-May-2002  TU    Tagged just after movement of TDS output classes to GlastEvent
+  v5r6    01-May-2002  LSR   Tagged changes for DSTF meeting
+  v5r5    24-Apr-2002  LSR   Tagged the latest changes
+  v5r4    19-Apr-2002  LSR   Fixed for recon mode of geometry
+  v5r3    18-Apr-2002  LSR   Uses new TkrDigi -- mods to GlastEvent, GlastDigi
+  v5r2    13-Apr-2002  LSR   Switchable propagator -- mods to G4Generator, GlastSvc, etc.
+  v5r1p2  10-Apr-2002  LSR   put -y kludge back dependent on jobOptions property 
+  v5r1p1  09-Apr-2002  LSR   remove "-y" kludge
+  v5r1    01-Apr-2002  LSR   Run TkrGeometrySvc entirely from detModel, get fitter running
+                             Neural Net patrec in cvs
+  v5r0    26-Mar-2002  TU    Cleanup and tkrApp requirements file that works
+  v4r4p8  09-Mar-2002  LSR   Remove GFxxxxx and SiRecObjs, no longer used
+  v4r4p7  07-Mar-2002  TU    Mainly, add a combo vertexing to the TkrRecon sequence
+  v4r4p6  26-Feb-2002  LSR   same as previous, but with more documentation
+  v4r4p5  22-Feb-2002  LSR   Works on unix after many little fixes from Alex and Toby
+  v4r4p4  13-Feb-2002  LSR   First version that works with tkrApp (but not yet on Linux)
+  v4r4p3  11-Feb-2002  TU    Remove TkrReconData; 
+                       LSR   mgr/ -> cmt/; .cpp -> .cxx
+  v4r4p2  07-Feb-2002  TU    Add energy estimate to ComboPatRec
+  v4r4p1  06-Feb-2002  TU    ??
+  v4r4    06-Feb-2002  TU    TkrInitSvc; update display routines
+  v4r3    27-Jan-2002  TU    Connect patrec and fitter; draw 3D candidates and fitted tracks
+  v4r2    11-Jan-2002  TU    Add TkrComboPR
+  v4r1    26-Nov-2001  TU    Implement new patrec, fitting
+  v4      07-Nov-2002  TU    Back on main branch; TDS classes for new tracker
+ 
+  v3r3p1  31-Oct-2002  LSR   ??
+  v3r3    31-Oct-2002  LSR   Same as v3r2... branch for bug fixes to pdrApp
+ 
+  v3r2    31-Oct-2001  LSR   Version that goes with pdrApp v7r2
+  v3r1    10-Oct-2001  TU    Finish improvements to patrec, fitting
+  v3      06-Oct-2001  TU    Improvements to patrec, fitting
+  v2r8p1  03-Oct-2001  LSR   
+  v2r8    21-Sep-2001  LSR   Bug fixes
+  v2r7    25-Aug-2001  LSR   Add bad-channel lists for balloon data
+  v2r6    06-Aug-2001  LSR   Add initial gamma to display
+  v2r5    20-Jul-2001  LSR   Add bac-channel lists for test beam data; bug fixes
+  v2r4    16-Jul-2001  LSR   change vector to array in TkrBadStripsSvc, to help with Linux compile
+  v2r3    06-Jul-2001  LSR   Geometry fix;  tried to fix Linux compile problem in TkrBadStripsSvc
+  v2r2    02-Jul-2001  LSR   Implement TkrBadStripsSvc; update ntuple variables
+  v2r1    22-Jun-2001  TU    Add abstract iterface ISiRecObs
+  v2      21-Jun-2001  TU    Improvements to fitter, display
+  v171    16-Jun-2001  THB   Update requirements file; add ntuple variables
+  v1r6p2  11-Jun-2001  THB, IG  Structural fixes
+  v1r6p1  08-Jun-2001  IG,TU Fix bugs in ntuple variables
+  v1r6    07-Jun-2001  TU    Big push to get ntuple variables calculated
+  v1r5    26-Apr-2001  IG    Move to Gaudi v7
+  v1r4    11-Apr-2001  LSR, TU, TL
+                       Un-hardwire geometry; re-introduce towers; fixes for Linux
+                       General re-organization, cleanup
+  v1r3    03-Mar-2001  IG,TL Finish move to Gaudi; create TkrReconData
+  v1r2    13-Feb-2001  IG,TL Move to Gaudi; Fix access to TDS
+  v1r1    24-Jan-2001  IG,TL,THB  Still moving to Gaudi
+  v1      19-Dec-2000  IG,TL,THB  Start move to Gaudi
+@endverbatim
+ */
