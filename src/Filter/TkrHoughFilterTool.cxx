@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.4 2012/04/25 20:56:01 heather Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.5 2012/11/02 04:22:06 usher Exp $
  */
 
 // to turn one debug variables
@@ -1441,7 +1441,7 @@ Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPoint
         double arcLen    = link->getVector().dot(linkToPos);
         Point  docaPos   = link->getPosition() + arcLen * link->getVector();
         Vector docaVec   = docaPos - aveDirPos;
-        double       weight = 1. / std::max(0.01, docaVec.magnitude());
+		double       weight = 1. / std::min(100000., std::max(0.1, docaVec.magnitude()));
 
         // Update the centroid if not the highest point
         if (avePos.z() > centroid.z()) centroid = avePos;
