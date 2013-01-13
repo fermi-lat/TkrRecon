@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.32 2012/08/05 01:45:18 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.33 2012/10/03 14:13:01 bruel Exp $
  *
 */
 
@@ -298,7 +298,7 @@ Event::TkrFilterParams* TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* s
                 Point  docaPos   = nodePos + arcLen * link->getVector();
                 Vector docaVec   = docaPos - startPos;
                 double docaDist  = docaVec.magnitude();
-                double weight    = 1. / std::max(0.01, docaDist*docaDist);
+				double weight    = 1. / std::min(100000., std::max(0.1, docaDist*docaDist));
 
                 // Main branch gets some respect
 //                if (node->getBiLyrs2MainBrch() < 1) weight *= 10.;
