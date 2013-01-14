@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.5 2012/11/02 04:22:06 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.6 2013/01/13 03:21:54 usher Exp $
  */
 
 // to turn one debug variables
@@ -397,7 +397,7 @@ private:
 
     /// This runs the moments analysis on the provided list of links
     Event::TkrFilterParams* doMomentsAnalysis(Event::TkrVecPointsLinkPtrVec& momentsLinkVec, 
-                                              Vector&                        aveDirVec,
+                                              Point&                         refPoint,
                                               double                         energy = 30.);
 
     /// Just a test for now
@@ -997,15 +997,17 @@ StatusCode TkrHoughFilterTool::doFilterStep()
             // Make sure we have enough links to do something
             if (momentsLinkVec.size() >= 3)
             {
-                // Axis from "top point" to cal centroid
-                Vector topToCalDir = refPoint - topPoint;
-                topToCalDir = topToCalDir.unit();
+				// In certain cases it seems the results of the moments analysis can depend on ordering. The above
+				// map will introduce a "randomization" of the ordering (since the key is a memory address which may 
+				// or may not be allocated in increasing order). 
+				// Try to remove that with a quick sort on z position
+				std::sort(momentsLinkVec.begin(), momentsLinkVec.end(), CompareMomentsLinks());
 
-                topToCalDir = refPoint;
+				// With this sorted, we can use the top point as the reference
+				Point topPoint = momentsLinkVec.front()->getPosition();
 
                 // Get the filter parameters for this collection of links
-                //houghParams = doMomentsAnalysis(momentsLinkVec, aveDir, energy);
-                houghParams = doMomentsAnalysis(momentsLinkVec, topToCalDir, energy);
+                houghParams = doMomentsAnalysis(momentsLinkVec, topPoint, energy);
             }
 
             // If no filter params then clear the  links status bits
@@ -1405,7 +1407,7 @@ Vector TkrHoughFilterTool::convertReps(Event::TkrVecPointsLink* link, Point posi
 
 
 Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPointsLinkPtrVec& momentsLinkVec, 
-                                                              Vector&                        aveDirVec,
+                                                              Point&                         refPoint,
                                                               double                         energy)
 {
     // Make sure we have enough links to do something here
@@ -1416,13 +1418,15 @@ Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPoint
     dataVec.clear();
 
     // We will use a grand average position as starting point to moments analysis
-    Point  tkrAvePosition = Point(0.,0.,0.);
-    double sumWeights     = 0.;
     int    topBiLayer     = -1;
     int    botBiLayer     = 20;
 
     // Set a centroid position at the first hit
     Point centroid = momentsLinkVec.front()->getPosition();
+
+	// Keep track of an iterator to the bottom link and its weight
+	Event::TkrVecPointsLink* botLink   = *momentsLinkVec.begin();
+	double                   botWeight = -1.;
 
     // Now go through and build the data list for the moments analysis
     // First loop over "bilayers"
@@ -1436,23 +1440,32 @@ Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPoint
         // Use the average position in the box 
         const Point& avePos = link->getPosition();
 //        double       weight = link->getVector().dot(aveDirVec);
-        Point  aveDirPos(aveDirVec.x(),aveDirVec.y(),aveDirVec.z());
-        Vector linkToPos = aveDirPos - link->getPosition();
+        Vector linkToPos = refPoint - avePos;
         double arcLen    = link->getVector().dot(linkToPos);
-        Point  docaPos   = link->getPosition() + arcLen * link->getVector();
-        Vector docaVec   = docaPos - aveDirPos;
+        Point  docaPos   = avePos + arcLen * link->getVector();
+        Vector docaVec   = docaPos - refPoint;
 		double       weight = 1. / std::min(100000., std::max(0.1, docaVec.magnitude()));
 
         // Update the centroid if not the highest point
         if (avePos.z() > centroid.z()) centroid = avePos;
+
+		// Make sure botWeight is not guard value
+		// (if first link is at the bottom then conditional expression below will fail
+		// and we could end up with an unset weight)
+		if (botWeight < 0.) botWeight = weight;
+
+		// Update the bottom link iterator if we are "lower"
+		if (avePos.z() < botLink->getPosition().z()) 
+		{
+			botLink   = link;
+			botWeight = weight;
+		}
 
         // Check bilayers
         if (link->getFirstVecPoint()->getLayer()  > topBiLayer) topBiLayer = link->getFirstVecPoint()->getLayer();
         if (link->getSecondVecPoint()->getLayer() < botBiLayer) botBiLayer = link->getSecondVecPoint()->getLayer();
 
         // Update the grand average
-        tkrAvePosition += weight * avePos;
-        sumWeights     += weight;
 
         // Add new point to collection
         dataVec.push_back(TkrMomentsData(avePos, weight));
@@ -1461,18 +1474,11 @@ Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPoint
         // in events with fewer bilayers
         // Note this will also double count points that are shared by links but this
         // can help de-weight the effect of outliers
-        const Point& botPos = link->getBotPosition();
-
-        // Update the grand average
-        tkrAvePosition += weight * avePos;
-        sumWeights     += weight;
-
-        // Add new point to collection
-        dataVec.push_back(TkrMomentsData(botPos, weight));
     }
 
-    // Do the average
-    tkrAvePosition /= sumWeights;
+    // Add in the bottom position as well to help make sure the axis doesn't flip
+    // in events with fewer bilayers
+	dataVec.push_back(TkrMomentsData(botLink->getPosition(), 1.));
 
     // Some statistics
     int numIterations = 1;
