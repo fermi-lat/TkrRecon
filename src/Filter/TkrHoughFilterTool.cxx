@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.6 2013/01/13 03:21:54 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.7 2013/01/14 04:59:52 usher Exp $
  */
 
 // to turn one debug variables
@@ -348,6 +348,17 @@ namespace
         }
     private:
         AccumulatorBin m_zeroBin;
+    };
+
+    class CompareMomentsLinks
+    {
+    public:
+        CompareMomentsLinks() {}
+
+		const bool operator()(const Event::TkrVecPointsLink* left, const Event::TkrVecPointsLink* right) const
+        {
+			return left->getPosition().z() > right->getPosition().z();
+		}
     };
 };
 
