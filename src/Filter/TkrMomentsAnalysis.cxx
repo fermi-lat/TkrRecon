@@ -1,7 +1,7 @@
 /**
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrMomentsAnalysis.cxx,v 1.4 2012/05/10 23:30:18 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrMomentsAnalysis.cxx,v 1.5 2012/10/03 14:12:59 bruel Exp $
  */
 
 #include "src/Filter/TkrMomentsAnalysis.h"
@@ -87,6 +87,14 @@ double TkrMomentsAnalysis::doMomentsAnalysis(TkrMomentsDataVec& dataVec, const P
     double b = (2.*p*p*p - 9.*p*q + 27.*r)/27.;
 
     double rad_test = b*b/4. + a*a*a/27.;
+
+	// See if we can save rad_test in the event it is > 0
+	if (rad_test > 0.)
+	{
+		// recompute b by factoring the p out
+		b        = (p*(2.*p*p - 9.*q) + 27.*r)/27.;
+		rad_test = b*b/4. + a*a*a/27.;
+	}
 
     if ((rad_test < 0.) && (Ixy != 0.) && (Ixz != 0.) && (Iyz != 0.))
     {
