@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.36 2013/01/18 04:49:50 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.37 2013/01/18 18:50:56 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -154,7 +154,7 @@ TreeBasedTool::TreeBasedTool(const std::string& type, const std::string& name, c
 {
     declareProperty("MinEnergy",          m_minEnergy           = 30.);
     declareProperty("FracEneFirstTrack",  m_fracEneFirstTrack   = 0.80);
-	declareProperty("MinimumRefError",    m_minRefError         = 30.);
+	declareProperty("MinimumRefError",    m_minRefError         = 50.);
     declareProperty("MergeClusters",      m_mergeClusters       = false);
     declareProperty("NumClustersToMerge", m_nClusToMerge        = 3);
     declareProperty("MergeStripGap",      m_stripGap            = 8);
@@ -316,7 +316,7 @@ StatusCode TreeBasedTool::firstPass()
             refPoint = filterParams->getEventPosition();
             refAxis  = filterParams->getEventAxis();
             energy   = filterParams->getEventEnergy();
-            refError = filterParams->getTransRms();
+            refError = 3. * filterParams->getTransRms();
         }
         // Otherwise default back to the standard TkrEventParams
         else
@@ -328,7 +328,7 @@ StatusCode TreeBasedTool::firstPass()
             refPoint = tkrEventParams->getEventPosition();
             refAxis  = tkrEventParams->getEventAxis();
             energy   = tkrEventParams->getEventEnergy();
-			refError = tkrEventParams->getTransRms();
+			refError = 2. * tkrEventParams->getTransRms();
 
             // This axis comes from cal so make sure it is pointing into the tracker!
             if (tkrEventParams->getEventEnergy() > 20.)
@@ -348,11 +348,21 @@ StatusCode TreeBasedTool::firstPass()
             }
 
             // If the energy is zero then there is no axis so set to point "up"
-            if (tkrEventParams->getEventEnergy() == 0.) refAxis = Vector(0.,0.,1.);
+            if (tkrEventParams->getEventEnergy() < 20.) refAxis = Vector(0.,0.,1.);
         }
 
 		// Make sure the refError is not too small
 		refError = std::max(m_minRefError, refError);
+
+		// Having said the above regarding refError, it is observed that once the number of vector 
+		// points gets above 2000 that the number of links can "explode". Add in a bit of a safety factor 
+		// here to improve performance for these high occupancy events
+		if (tkrVecPointCol->size() > 2000.)
+		{
+			double sclFctrInc = 0.001 * double(tkrVecPointCol->size()) - 2.;
+
+			refError *= 1. / (1. + sclFctrInc);
+		}
 
         Event::TkrVecPointsLinkInfo* tkrVecPointsLinkInfo = m_linkBuilder->getAllLayerLinks(refPoint, refAxis, refError, energy);
 
@@ -676,7 +686,7 @@ StatusCode TreeBasedTool::secondPass()
                 // Loop through the tree collection to look for those trees which did not produce tracks
                 int treeIdx = 0;
             
-                while(treeIdx < treeCol->size())
+                while(treeIdx < int(treeCol->size()))
                 {
                         Event::TkrTree* treeToCheck = (*treeCol)[treeIdx];
 
