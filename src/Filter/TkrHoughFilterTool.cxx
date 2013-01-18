@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.7 2013/01/14 04:59:52 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.8 2013/01/14 19:16:05 usher Exp $
  */
 
 // to turn one debug variables
@@ -1369,8 +1369,8 @@ Event::TkrEventParams* TkrHoughFilterTool::setDefaultValues()
 
     // Preset the rms values in case of no cluster or no moments analysis of crystals
 	// These values meant to be large enough to insure all links considered?
-    tkrEventParams->setTransRms(5000.);
-    tkrEventParams->setLongRmsAve(5000.);
+    tkrEventParams->setTransRms(500.);
+    tkrEventParams->setLongRmsAve(1000.);
 
     // If calEventEnergy then fill TkrEventParams
     // Note: TkrEventParams initializes to zero in the event of no CalEventEnergy
