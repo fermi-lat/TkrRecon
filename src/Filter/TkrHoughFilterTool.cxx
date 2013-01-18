@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.8 2013/01/14 19:16:05 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.9 2013/01/18 04:49:50 usher Exp $
  */
 
 // to turn one debug variables
@@ -445,6 +445,9 @@ private:
     /// number of layers we are allowed to skip
     int                        m_numLyrsToSkip;
 
+	/// Minimum value for "refError" (doca from refpoint to projected link)
+	double                     m_minRefError;
+
     /// Basic geometry for tracker
     int                        m_numPlanes;
     double                     m_tkrBotZ;
@@ -472,6 +475,7 @@ TkrHoughFilterTool::TkrHoughFilterTool(const std::string& type,
     // Define cut on rmsTrans
     declareProperty("numLayersToSkip", m_numLyrsToSkip = 3);
     declareProperty("DoToolTiming",    m_doTiming      = true);
+	declareProperty("MinimumRefError", m_minRefError   = 50.);
 
     m_toolTag = this->name();
 
@@ -583,6 +587,9 @@ StatusCode TkrHoughFilterTool::doFilterStep()
     Vector refAxis  = tkrEventParams->getEventAxis();
     double energy   = tkrEventParams->getEventEnergy();
     double refError = tkrEventParams->getTransRms();
+
+	// refError is a critical quantity and if too small can lead to a resolution issue! 
+	refError = std::max(m_minRefError, refError);
 
     // Set up an output collection of TkrFilterParams
     m_tkrFilterParamsCol = new Event::TkrFilterParamsCol();
