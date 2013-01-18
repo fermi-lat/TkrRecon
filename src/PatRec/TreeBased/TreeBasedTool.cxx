@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.34 2012/12/08 17:32:18 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.35 2012/12/12 02:22:51 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -106,6 +106,9 @@ private:
     double                     m_minEnergy;
     double                     m_fracEneFirstTrack;
 
+	/// Set a scale factor for the "refError" if getting from the tracker filter
+	double                     m_refErrorSclFctr;
+
     /// Control for merging clusters
     bool                       m_mergeClusters;
     int                        m_nClusToMerge;
@@ -150,6 +153,7 @@ TreeBasedTool::TreeBasedTool(const std::string& type, const std::string& name, c
 {
     declareProperty("MinEnergy",          m_minEnergy           = 30.);
     declareProperty("FracEneFirstTrack",  m_fracEneFirstTrack   = 0.80);
+	declareProperty("FilterRefErrorScl",  m_refErrorSclFctr     = 10.);
     declareProperty("MergeClusters",      m_mergeClusters       = false);
     declareProperty("NumClustersToMerge", m_nClusToMerge        = 3);
     declareProperty("MergeStripGap",      m_stripGap            = 8);
@@ -311,7 +315,7 @@ StatusCode TreeBasedTool::firstPass()
             refPoint = filterParams->getEventPosition();
             refAxis  = filterParams->getEventAxis();
             energy   = filterParams->getEventEnergy();
-            refError = filterParams->getTransRms();
+            refError = filterParams->getTransRms() * m_refErrorSclFctr;
         }
         // Otherwise default back to the standard TkrEventParams
         else
@@ -323,6 +327,7 @@ StatusCode TreeBasedTool::firstPass()
             refPoint = tkrEventParams->getEventPosition();
             refAxis  = tkrEventParams->getEventAxis();
             energy   = tkrEventParams->getEventEnergy();
+			refError = tkrEventParams->getTransRms();
 
             // This axis comes from cal so make sure it is pointing into the tracker!
             if (tkrEventParams->getEventEnergy() > 20.)
