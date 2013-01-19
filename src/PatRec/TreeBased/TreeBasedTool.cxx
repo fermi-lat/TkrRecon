@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.37 2013/01/18 18:50:56 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.38 2013/01/18 22:41:54 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -154,7 +154,7 @@ TreeBasedTool::TreeBasedTool(const std::string& type, const std::string& name, c
 {
     declareProperty("MinEnergy",          m_minEnergy           = 30.);
     declareProperty("FracEneFirstTrack",  m_fracEneFirstTrack   = 0.80);
-	declareProperty("MinimumRefError",    m_minRefError         = 50.);
+	declareProperty("MinimumRefError",    m_minRefError         = 100.);
     declareProperty("MergeClusters",      m_mergeClusters       = false);
     declareProperty("NumClustersToMerge", m_nClusToMerge        = 3);
     declareProperty("MergeStripGap",      m_stripGap            = 8);
@@ -309,7 +309,7 @@ StatusCode TreeBasedTool::firstPass()
             SmartDataPtr<Event::TkrFilterParamsCol>(m_dataSvc,EventModel::TkrRecon::TkrFilterParamsCol);
 
         // If there is a collection and there is an entry at the head of the list, use this for the event axis
-        if (tkrFilterParamsCol && !tkrFilterParamsCol->empty())
+		if (tkrFilterParamsCol && !tkrFilterParamsCol->empty() && tkrFilterParamsCol->front()->getChiSquare() > 0.)
         {
             Event::TkrFilterParams* filterParams = tkrFilterParamsCol->front();
 
@@ -328,7 +328,7 @@ StatusCode TreeBasedTool::firstPass()
             refPoint = tkrEventParams->getEventPosition();
             refAxis  = tkrEventParams->getEventAxis();
             energy   = tkrEventParams->getEventEnergy();
-			refError = 2. * tkrEventParams->getTransRms();
+			refError = tkrEventParams->getTransRms();
 
             // This axis comes from cal so make sure it is pointing into the tracker!
             if (tkrEventParams->getEventEnergy() > 20.)
@@ -348,7 +348,7 @@ StatusCode TreeBasedTool::firstPass()
             }
 
             // If the energy is zero then there is no axis so set to point "up"
-            if (tkrEventParams->getEventEnergy() < 20.) refAxis = Vector(0.,0.,1.);
+			else refAxis = Vector(0.,0.,1.);
         }
 
 		// Make sure the refError is not too small
