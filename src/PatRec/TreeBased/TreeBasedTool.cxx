@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.38 2013/01/18 22:41:54 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.39 2013/01/19 03:35:12 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -154,7 +154,7 @@ TreeBasedTool::TreeBasedTool(const std::string& type, const std::string& name, c
 {
     declareProperty("MinEnergy",          m_minEnergy           = 30.);
     declareProperty("FracEneFirstTrack",  m_fracEneFirstTrack   = 0.80);
-	declareProperty("MinimumRefError",    m_minRefError         = 100.);
+    declareProperty("MinimumRefError",    m_minRefError         = 50.);
     declareProperty("MergeClusters",      m_mergeClusters       = false);
     declareProperty("NumClustersToMerge", m_nClusToMerge        = 3);
     declareProperty("MergeStripGap",      m_stripGap            = 8);

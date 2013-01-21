@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.11 2013/01/18 22:41:53 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.12 2013/01/19 03:35:11 usher Exp $
  */
 
 // to turn one debug variables
@@ -475,7 +475,7 @@ TkrHoughFilterTool::TkrHoughFilterTool(const std::string& type,
     // Define cut on rmsTrans
     declareProperty("numLayersToSkip", m_numLyrsToSkip = 3);
     declareProperty("DoToolTiming",    m_doTiming      = true);
-	declareProperty("MinimumRefError", m_minRefError   = 75.);
+    declareProperty("MinimumRefError", m_minRefError   = 50.);
 
     m_toolTag = this->name();
 
