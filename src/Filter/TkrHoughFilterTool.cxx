@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.12 2013/01/19 03:35:11 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.13 2013/01/21 13:50:57 usher Exp $
  */
 
 // to turn one debug variables
@@ -1473,7 +1473,8 @@ Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPoint
         double arcLen    = link->getVector().dot(linkToPos);
         Point  docaPos   = avePos + arcLen * link->getVector();
         Vector docaVec   = docaPos - refPoint;
-		double       weight = 1. / std::min(100000., std::max(0.1, docaVec.magnitude()));
+        double docaDist  = docaVec.magnitude();
+        double       weight = 1. / std::min(100000., std::max(0.01, docaDist*docaDist));
 
 		// Scale by distance from top
 		double lyrSclFctr = (link->getFirstVecPoint()->getLayer() - botBiLayer + 1) / deltaBiLayer;
