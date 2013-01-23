@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.40 2013/01/21 13:50:58 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.41 2013/01/23 15:29:13 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -790,7 +790,21 @@ public:
                           const Event::TreeClusterRelation* right) const
     {
         // Try sorting simply by closest DOCA or angle
-        if (left->getTreeClusDoca() > right->getTreeClusDoca() || left->getTreeClusCosAngle() < right->getTreeClusCosAngle())
+        int leftNumBiLayers  = left->getTree()->getHeadNode()->getBestNumBiLayers();
+        int rightNumBiLayers = right->getTree()->getHeadNode()->getBestNumBiLayers();
+
+        if (abs(leftNumBiLayers-rightNumBiLayers) > 5)
+        {
+            if (leftNumBiLayers > rightNumBiLayers) return true;
+            else                                    return false;
+        }
+
+        // Otherwise, form a "blended" doca/angle to cluster
+        double leftDocaByAngle  = left->getTreeClusDoca()  / std::min(0.0001,left->getTreeClusCosAngle());
+        double rightDocaByAngle = right->getTreeClusDoca() / std::min(0.0001,right->getTreeClusCosAngle());
+
+        // Try sorting simply by closest DOCA or angle
+        if (leftDocaByAngle > rightDocaByAngle)
         {
             return false;
         }
