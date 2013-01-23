@@ -4,7 +4,10 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
- TkrRecon-10-37-06 11-Jan-2012 TU 2nd Pass track fits ALWAYS use energy from TkrEnergyTool
+ TkrRecon-10-38-00 23-Jan-2013 TU Includes optional hit measurement error 
+  routine for a test for Bill, restored expected order of tracks in TDS, and
+  Fix the unguarded sort error.
+ TkrRecon-10-37-06 11-Jan-2013 TU 2nd Pass track fits ALWAYS use energy from TkrEnergyTool
  TkrRecon-10-37-05 13-Dec-2012 TU Fix a small bug in track extraction tool 
  TkrRecon-10-37-04 12-Dec-2012 TU Modify slightly two track criteria, some better link attachment tuning at low energy
  TkrRecon-10-37-03 11-Dec-2012 TU Fix bug in kink factor calculation for link attachment
