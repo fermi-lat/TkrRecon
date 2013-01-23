@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.39 2013/01/19 03:35:12 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.40 2013/01/21 13:50:58 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -595,18 +595,9 @@ StatusCode TreeBasedTool::secondPass()
                     int numTracks = m_tkrTrackFinder->findTracks(tree, energy, cluster);
             
                     // We should abandon any trees with no tracks
-                    if (numTracks > 0)
+                    if (numTracks < 1)
                     {
                         // And turn ownership of the best track over to the TDS
-                        tdsTracks->push_back(const_cast<Event::TkrTrack*>(tree->getBestTrack()));
-            
-                        // If a second track, add that to the TDS collection too! 
-                        if (tree->size() > 1) tdsTracks->push_back(tree->back());
-                    } 
-                    // No tracks means a useless tree? 
-                    // Delete to prevent memory leak
-                    else
-                    {
                         relation->setTree(0);
                     }
                 }
@@ -632,18 +623,9 @@ StatusCode TreeBasedTool::secondPass()
                 int numTracks = m_tkrTrackFinder->findTracks(tree, energy);
             
                 // We should abandon any trees with no tracks
-                if (numTracks > 0)
+                if (numTracks < 1)
                 {
                     // And turn ownership of the best track over to the TDS
-                    tdsTracks->push_back(const_cast<Event::TkrTrack*>(tree->getBestTrack()));
-            
-                    // If a second track, add that to the TDS collection too! 
-                    if (tree->size() > 1) tdsTracks->push_back(tree->back());
-                } 
-                // No tracks means a useless tree? 
-                // Delete to prevent memory leak
-                else
-                {
                     relation->setTree(0);
                 }
             }
@@ -666,14 +648,6 @@ StatusCode TreeBasedTool::secondPass()
             int numTracks = m_tkrTrackFinder->findTracks(tree, energy);
 
             // We should abandon any trees with no tracks
-            if (numTracks > 0)
-            {
-                // And turn ownership of the best track over to the TDS
-                tdsTracks->push_back(const_cast<Event::TkrTrack*>(tree->getBestTrack()));
-
-                // If a second track, add that to the TDS collection too! 
-                if (tree->size() > 1) tdsTracks->push_back(tree->back());
-            }
 
             // After first tree, set energy to minimum
             energy = m_minEnergy;
@@ -683,16 +657,26 @@ StatusCode TreeBasedTool::secondPass()
     // The final task is to go through the tree collection and weed out any trees which didn't produce tracks
     if (!treeCol->empty())
     {
-                // Loop through the tree collection to look for those trees which did not produce tracks
-                int treeIdx = 0;
+        // Loop through the tree collection to look for those trees which did not produce tracks
+        int treeIdx = 0;
             
-                while(treeIdx < int(treeCol->size()))
-                {
-                        Event::TkrTree* treeToCheck = (*treeCol)[treeIdx];
+        while(treeIdx < int(treeCol->size()))
+        {
+            Event::TkrTree* treeToCheck = (*treeCol)[treeIdx];
 
-                        // Bad Tree, or too many trees?
-                        if (treeToCheck->empty()  || treeIdx >= m_maxTrees)
-                        {
+            // Bad Tree, or too many trees?
+            if (!treeToCheck->empty()  && treeIdx < m_maxTrees)
+            {
+                // Loop over the tracks and give ownership to the TDS
+                for(Event::TkrTrackVec::iterator treeTrkItr = treeToCheck->begin(); treeTrkItr != treeToCheck->end(); treeTrkItr++)
+                {
+                    tdsTracks->push_back(*treeTrkItr);
+                }
+                treeIdx++;
+            }
+            // Otherwise, we have a bad Tree or are over the limit and need to dump it
+            else
+            {
                                 // In the case that we are exceeding the maximum number of trees then we have to delete
                                 // any tracks those trees may have produced (this can't happen otherwise)
                 for(Event::TkrTrackVec::iterator treeTrkItr = treeToCheck->begin(); treeTrkItr != treeToCheck->end(); treeTrkItr++)
@@ -700,11 +684,10 @@ StatusCode TreeBasedTool::secondPass()
                     delete *treeTrkItr;
                 }
 
-                                // Now delete the tree (which should automatically remove it from the Tree Collection
-                                delete treeToCheck;
-                        }
-                        else treeIdx++;
-                }
+                // Now delete the tree (which should automatically remove it from the Tree Collection
+                delete treeToCheck;
+            }
+        }
     }
 
     return sc;
