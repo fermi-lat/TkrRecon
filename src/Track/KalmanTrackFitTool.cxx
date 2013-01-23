@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.53 2012/10/03 14:13:02 bruel Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.54 2013/01/10 03:58:48 usher Exp $
  */
 
 // to turn one debug variables
@@ -50,6 +50,7 @@
 #include "src/TrackFit/KalmanFilterFit/TrackEnergy/RadLossHitEnergy.h"
 #include "src/TrackFit/KalmanFilterFit/TrackEnergy/MonteCarloHitEnergy.h"
 #include "src/TrackFit/KalmanFilterUtils/KalmanFilterUtils.h"
+#include "src/TrackFit/KalmanFilterFit/HitErrors/ElectronMeasErrs.h"
 #include "src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.h"
 #include "src/TrackFit/KalmanFilterFit/HitErrors/ClusWidMeasErrs.h"
 #include "src/TrackFit/KalmanFilterFit/HitErrors/StandardMeasErrs.h"
@@ -372,6 +373,10 @@ void KalmanTrackFitTool::setClusErrCompType(const std::string& clusErrorType)
         if (m_HitErrorType == "SlopeCorrected")
         {
             m_fitErrs   = new SlopeCorrectedMeasErrs(m_tkrGeom);
+        }
+        else if (m_HitErrorType == "Electron")
+        {
+            m_fitErrs   = new ElectronMeasErrs(m_tkrGeom);
         }
         else if (m_HitErrorType == "ClusterWidth")
         {
