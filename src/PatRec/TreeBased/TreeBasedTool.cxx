@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.41 2013/01/23 15:29:13 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.42 2013/01/23 17:13:11 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -800,8 +800,8 @@ public:
         }
 
         // Otherwise, form a "blended" doca/angle to cluster
-        double leftDocaByAngle  = left->getTreeClusDoca()  / std::min(0.0001,left->getTreeClusCosAngle());
-        double rightDocaByAngle = right->getTreeClusDoca() / std::min(0.0001,right->getTreeClusCosAngle());
+        double leftDocaByAngle  = left->getTreeClusDoca()  / std::max(0.0001,left->getTreeClusCosAngle());
+        double rightDocaByAngle = right->getTreeClusDoca() / std::max(0.0001,right->getTreeClusCosAngle());
 
         // Try sorting simply by closest DOCA or angle
         if (leftDocaByAngle > rightDocaByAngle)
