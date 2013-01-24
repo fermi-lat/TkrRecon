@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-38-01 24-Jan-2013 TU Fix bug in unguarded sort error fix... sigh...
  TkrRecon-10-38-00 23-Jan-2013 TU Includes optional hit measurement error 
   routine for a test for Bill, restored expected order of tracks in TDS, and
   Fix the unguarded sort error.
