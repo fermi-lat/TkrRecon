@@ -8,7 +8,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks/TkrVecLinkBuilderTool.cxx,v 1.5 2012/11/14 18:34:14 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecLinkBuilderTool.cxx,v 1.6 2012/12/12 02:22:54 usher Exp $
  *
 */
 
@@ -423,6 +423,9 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
     // The simple way to recover, and be sure something is there, is to call the single layer link builder
     Event::TkrVecPointsLinkInfo* linkInfo = getSingleLayerLinks(refPoint, refAxis, refError, energy);
 
+    // If there are no links at this point then we stop now
+    if (!linkInfo || linkInfo->getTkrVecPointsLinkCol()->empty()) return linkInfo;
+
     //****************************************************************************************************
     // Temporarily plop down the following to see if we can make this concept work
 
@@ -556,7 +559,7 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
 void   TkrVecLinkBuilderTool::setAngleTolerances(double refError, Event::TkrVecPointInfo* vecPointInfo)
 {
     // Set the default value for the tolerance angle
-    m_tolerance      = M_PI /3; // Take all comers!
+    m_tolerance      = M_PI/3.; // Take all comers!
     m_tightTolerance = 2. * refError;
 
     // Reset the norm'd projected distance cut
@@ -571,6 +574,10 @@ void   TkrVecLinkBuilderTool::setAngleTolerances(double refError, Event::TkrVecP
     double guessNLinks  = vecPointInfo->getMaxNumLinkCombinations();
     double expGuessNL   = guessNLinks > 0. ? log10(guessNLinks) : 0.;
 
+    // Recalculate the tight tolerance based on the number of vec points
+    m_tolerance = 0.05 * M_PI * (27. - 7. * expVecPoints);
+    m_tolerance = std::max(M_PI/8., m_tolerance);
+
     // Following is a completely ad hoc scheme to increase efficiency of link production
     // when there are a few number of hits, likely to happen at low energy
     if (expVecPoints < 1.7)
@@ -578,7 +585,6 @@ void   TkrVecLinkBuilderTool::setAngleTolerances(double refError, Event::TkrVecP
         double sclFctr = 1.7 - expVecPoints;
 
         m_nrmProjDistCut += sclFctr;
-		m_tolerance      *= 2.;
 		m_tightTolerance *= 2.;
 
 		if (m_evtEnergy < 100.) m_tolerance = M_PI;
@@ -587,23 +593,6 @@ void   TkrVecLinkBuilderTool::setAngleTolerances(double refError, Event::TkrVecP
     // Following is a completely ad hoc scheme to constrain links if we think 
     // combinatorics are about to go out of control. All of this based on a quick
     // study looking at some histograms of # vec points vs time, etc. 
-    if (expVecPoints > 3.0)   
-    {
-        // Constrain down the angle to be less than 60 degrees
-        m_tolerance = M_PI / 4; /// 2.; 
-
-        // If we are starting to get extreme them drop the tolerance angle down to 30 degrees
-        if (expVecPoints > 3.2) 
-        {
-            m_tolerance = M_PI / 5.; /// 3.;
-
-            // If really starting to get up there then go to the well one more time
-            if (expVecPoints > 3.4)
-            {
-                m_tolerance = M_PI / 6.; /// 6.;
-            }
-        }
-    }
 
     return;
 }
@@ -611,8 +600,8 @@ void   TkrVecLinkBuilderTool::setAngleTolerances(double refError, Event::TkrVecP
 void   TkrVecLinkBuilderTool::setDocaTolerances(double docaError, Event::TkrVecPointInfo* vecPointInfo)
 {
     // Set the default value for the tolerance angle
-    m_tolerance      = 6.0 * docaError;  // Be overly generous?
-    m_tightTolerance = 2.0 * docaError;  // was 1.5 * docaError;
+    m_tolerance      = 3.0 * docaError;    // Be overly generous?
+    m_tightTolerance = 0.5 * m_tolerance;  // was 1.5 * docaError;
 
     // Reset the norm'd projected distance cut
     m_nrmProjDistCut = m_nrmProjDistCutDef;
@@ -628,9 +617,13 @@ void   TkrVecLinkBuilderTool::setDocaTolerances(double docaError, Event::TkrVecP
 
     // Following is a completely ad hoc scheme to increase efficiency of link production
     // when there are a few number of hits, likely to happen at low energy
-    if (expVecPoints < 1.7)
+//    if (expVecPoints < 1.7)
+//    {
+//        double sclFctr = 1.7 - expVecPoints;
+
+    if (m_numVecPoints < 120)
     {
-        double sclFctr = 1.7 - expVecPoints;
+        double sclFctr = double(120 - m_numVecPoints) / 50.;
 
         m_nrmProjDistCut += sclFctr;
         m_tolerance      *= 6.;
@@ -645,22 +638,11 @@ void   TkrVecLinkBuilderTool::setDocaTolerances(double docaError, Event::TkrVecP
     // Following is a completely ad hoc scheme to constrain links if we think 
     // combinatorics are about to go out of control. All of this based on a quick
     // study looking at some histograms of # vec points vs time, etc. 
-    if (expVecPoints > 2.75)   
-    {
-        // Constrain down the angle to be less than 60 degrees
-        m_tolerance = 3. * docaError;
-
-        // If we are starting to get extreme them drop the tolerance angle down to 30 degrees
-        if (expVecPoints > 3.0) 
-        {
-            m_tolerance = 2 * docaError;
-
-            // If really starting to get up there then go to the well one more time
-            if (expVecPoints > 3.4)
+    if (m_numVecPoints > 2000.)
             {
-                m_tolerance = docaError;
-            }
-        }
+        double sclFctrInc = 0.001 * double(m_numVecPoints) - 2.;
+
+        m_tolerance *= 1. / (1. + sclFctrInc);
     }
 
     return;

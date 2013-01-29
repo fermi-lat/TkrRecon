@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.h,v 1.6 2012/08/01 22:27:19 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.h,v 1.7 2012/12/08 17:32:18 usher Exp $
  *
 */
 
@@ -27,7 +27,7 @@ public:
     TreeCalClusterAssociator(Event::CalClusterCol* calClusterCol,
                              IDataProviderSvc*     dataSvc, 
                              ITkrGeometrySvc*      geoSvc,
-                             double                minTreeToClusterDoca = 200.);
+                             double                minTreeToClusterDoca = 2000.);
 
     ~TreeCalClusterAssociator();
 
@@ -44,6 +44,8 @@ public:
     Event::TreeClusterRelationVec* getClusterToRelationVec(Event::CalCluster* cluster);
     Event::ClusterToRelationMap*   getClusterToRelationMap()                           {return m_clusterToRelationMap;}
 
+	/// Given an input Tree, remove all existing relations to Cluster(s)
+	void                           removeTreeClusterRelations(Event::TkrTree* tree);
 private:
 
     /// Pointer to the Cal Cluster collection in the TDS

@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.cxx,v 1.22 2012/10/03 14:13:01 bruel Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.cxx,v 1.23 2012/12/08 17:32:18 usher Exp $
  *
 */
 
@@ -112,8 +112,8 @@ int TreeCalClusterAssociator::associateTreeToClusters(Event::TkrTree* tree)
             double calYMax     = 0.5 * m_tkrGeom->calYWidth();
 
             // Only consider if axis projection is within region of calorimeter
-//            if (abs(posAtCalTop.x()) < calXMax + 50. && abs(posAtCalTop.y()) < calYMax + 50.) 
-            if (abs(posAtCalTop.x()) < calXMax + 500. && abs(posAtCalTop.y()) < calYMax + 500.) 
+            // Ok, we are being quite generous here!
+            if (fabs(posAtCalTop.x()) < calXMax + 500. && fabs(posAtCalTop.y()) < calYMax + 500.) 
             {
                 // Initialize loop end point
                 Event::CalClusterCol::iterator lastItr = m_calClusterCol->end();
@@ -122,13 +122,25 @@ int TreeCalClusterAssociator::associateTreeToClusters(Event::TkrTree* tree)
                 // the "uber2" and they are to be ignored
                 if (m_calClusterCol->size() > 1) lastItr = m_calClusterCol->end() - 2;
 
+                // If more than one cal cluster then we only consider those that have "significant" energy
+                // which we loosely define as within 10% of the main cluster
+                double minClusEnergy = 0.1 * m_calClusterCol->front()->getXtalsParams().getXtalRawEneSum();
+
+                // Of course, there are always complications...
+                if (m_calClusterCol->size() > 1)
+                {
+                    // Need to make sure our cut is not too small... but is big enough...
+                    // Solution is to make above cut very close to primary cluster energy
+                    minClusEnergy *= 0.95 / 0.1;  // So, divide by 0.1 resets to full value, scale to 95%
+                }
+
                 // Loop through the list of clusters
                 for(Event::CalClusterCol::iterator clusItr = m_calClusterCol->begin(); clusItr != lastItr; clusItr++)
                 {
                     Event::CalCluster* cluster = *clusItr;
 
-                    // Not interested in single crystals...
-//                  if (cluster->getMomParams().getNumXtals() < 2) continue;
+                    // Make sure crystal has "enough" energy
+                    if (cluster->getXtalsParams().getXtalRawEneSum() < minClusEnergy) continue;
 
                     const Point& clusCentroid = cluster->getMomParams().getCentroid();
                     
@@ -193,13 +205,13 @@ int TreeCalClusterAssociator::associateTreeToClusters(Event::TkrTree* tree)
 
 int TreeCalClusterAssociator::associateTreeToUbers(Event::TkrTree* tree)
 {
-	// Will return 2 if successful!
-	int numClusters = 0;
+    // Will return 2 if successful!
+    int numClusters = 0;
 
-	// We are here to relate the input tree to the two uber clusters
-	// obviously, there is nothing to do if one or less cal clusters
-	if (m_calClusterCol && m_calClusterCol->size() > 1)
-	{
+    // We are here to relate the input tree to the two uber clusters
+    // obviously, there is nothing to do if one or less cal clusters
+    if (m_calClusterCol && m_calClusterCol->size() > 1)
+    {
         // Recover the tree parameters and get the variables we'll need
         const Event::TkrFilterParams* axisParams   = tree->getAxisParams();
         
@@ -246,28 +258,28 @@ int TreeCalClusterAssociator::associateTreeToUbers(Event::TkrTree* tree)
                 Vector deltaPosVec        = axisAtThisZ - clusCentroid;
                 double deltaPos           = deltaPosVec.magnitude();
                 double cosAngle           = startDir.dot(-cluster->getMomParams().getAxis());
-				double energy             = cluster->getMomParams().getEnergy();
+                double energy             = cluster->getMomParams().getEnergy();
 
-				Event::TreeClusterRelation* rel = new Event::TreeClusterRelation(tree, 
+                Event::TreeClusterRelation* rel = new Event::TreeClusterRelation(tree, 
                                                                                  cluster, 
                                                                                  treeToClusterDoca, 
                                                                                  cosAngle, 
                                                                                  deltaPos, 
                                                                                  energy); 
 
-				// Give ownership of this object to the TDS
-				m_treeClusterRelationCol->push_back(rel);
+                // Give ownership of this object to the TDS
+                m_treeClusterRelationCol->push_back(rel);
 
-				// Set the mapping (which are not owners!)
-				(*m_treeToRelationMap)[tree].push_back(rel);
-				(*m_clusterToRelationMap)[cluster].push_back(rel);
+                // Set the mapping (which are not owners!)
+                (*m_treeToRelationMap)[tree].push_back(rel);
+                (*m_clusterToRelationMap)[cluster].push_back(rel);
 
-				numClusters++;
-			}
-		}
-	}
+                numClusters++;
+            }
+        }
+    }
 
-	return numClusters;
+    return numClusters;
 }
 
 Event::TreeClusterRelationVec* TreeCalClusterAssociator::getTreeToRelationVec(Event::TkrTree* tree)
@@ -297,6 +309,61 @@ Event::TreeClusterRelationVec* TreeCalClusterAssociator::getClusterToRelationVec
 
     return relVec;
 }
+
+void TreeCalClusterAssociator::removeTreeClusterRelations(Event::TkrTree* tree)
+{
+    // The object of this method is to remove all existing Tree/Cluster relations that exist
+    // for the input Tree. 
+    // Remember that the convention is that a Tree can only be associated to one Cluster,
+    // but a Cal Cluster may have several Trees associated to it. So, care needs to be taken!
+
+    // Step one is to recover the relation for this tree
+    Event::TreeToRelationMap::iterator treeMapItr = m_treeToRelationMap->find(tree);
+
+    if (treeMapItr != m_treeToRelationMap->end())
+    {
+        Event::TreeClusterRelation* treeClusRel = treeMapItr->second.front();
+
+        // The tricky part is to now find this relation in the ClusterToRelationMap!
+        Event::CalCluster* cluster = treeClusRel->getCluster();
+
+        // Is there an associated cluster?
+        if (cluster)
+        {
+            // Recover this tree/cluster association from the cluster map
+            Event::ClusterToRelationMap::iterator calMapItr = m_clusterToRelationMap->find(cluster);
+
+            // If it exists (it should), proceed...
+            if (calMapItr != m_clusterToRelationMap->end())
+            {
+                // Recover the vector of Trees associated to this cluster and then find this Tree's relation
+                Event::TreeClusterRelationVec&          calTreeVec    = calMapItr->second;
+                Event::TreeClusterRelationVec::iterator calTreeVecItr = std::find(calTreeVec.begin(), calTreeVec.end(), treeClusRel);
+
+                // If we found it, remove it
+                if (calTreeVecItr != calTreeVec.end()) 
+                {
+                    // Remove the relation from the CalTreeVec but don't delete it
+                    // The deletion will occur below
+                    calTreeVec.erase(calTreeVecItr);
+                }
+
+                // If the result is an empty vector the we should also remove the entry in the map
+                if (calTreeVec.empty()) m_clusterToRelationMap->erase(calMapItr);
+            }
+        }
+
+        // Remove from the TreeToRelationMap
+        m_treeToRelationMap->erase(treeMapItr);
+
+        // Final step: find the relation in the TDS collecton and zap it
+        m_treeClusterRelationCol->remove(treeClusRel);
+        delete treeClusRel;
+    }
+
+    return;
+}
+
 
 //const bool TreeCalClusterAssociator::CompareTreeClusterRelations::operator()(const TreeClusterRelation* left, const TreeClusterRelation* right) const
 const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelation* left, 
@@ -343,5 +410,5 @@ const bool CompareTreeClusterRelations::operator()(const Event::TreeClusterRelat
     }
 
     // if neither have cluster then preserve tree ordering
-        return Event::TkrVecNodesComparator()(left->getTree()->getHeadNode(), right->getTree()->getHeadNode());
+    return Event::TkrVecNodesComparator()(left->getTree()->getHeadNode(), right->getTree()->getHeadNode());
 }
