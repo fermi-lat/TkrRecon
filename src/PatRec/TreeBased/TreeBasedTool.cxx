@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.45 2013/01/30 04:46:00 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.46 2013/01/30 17:58:58 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -720,10 +720,19 @@ public:
                           const Event::TreeClusterRelation* right) const
     {
         // Try sorting simply by closest DOCA or angle
-        int leftNumBiLayers  = left->getTree()->getHeadNode()->getBestNumBiLayers();
-        int rightNumBiLayers = right->getTree()->getHeadNode()->getBestNumBiLayers();
+        //int leftNumBiLayers  = left->getTree()->getHeadNode()->getBestNumBiLayers();
+        //int rightNumBiLayers = right->getTree()->getHeadNode()->getBestNumBiLayers();
 
-        if (leftNumBiLayers > rightNumBiLayers) return true;
+        //if (leftNumBiLayers > rightNumBiLayers) return true;
+
+        const Event::TkrVecNode* leftNode  = left->getTree()->getHeadNode();
+        const Event::TkrVecNode* rightNode = right->getTree()->getHeadNode();
+
+        double sclFactor     = double(rightNode->getBestNumBiLayers()) / double(leftNode->getBestNumBiLayers());
+        double leftRmsAngle  = leftNode->getBestRmsAngle()  *  sclFactor * sclFactor;
+        double rightRmsAngle = rightNode->getBestRmsAngle() / (sclFactor * sclFactor);
+
+        if (leftRmsAngle < rightRmsAngle) return true;
 
         return false;
     }
@@ -815,10 +824,14 @@ Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRel
                             // Go through the list of relations looking for the point at which the length changes
                             while(lastItr != relVec->end())
                             {
-                                int treeLength = (*lastItr)->getTree()->getHeadNode()->getBestNumBiLayers();
+                                Event::TreeClusterRelation* rel = *lastItr;
+
+                                double calTransRms = rel->getCluster()->getMomParams().getTransRms();
+                                double treeCalDoca = rel->getTreeClusDoca() / std::max(0.0001, rel->getTreeClusCosAngle());
+                                int    treeLength = rel->getTree()->getHeadNode()->getBestNumBiLayers();
                                 int deltaLen   = bestTreeLength - treeLength;
 
-                                if (deltaLen > 3) break;
+                                if (deltaLen > 7 || (deltaLen > 3 && treeCalDoca > calTransRms)) break;
 
                                 lastItr++;
                             }
