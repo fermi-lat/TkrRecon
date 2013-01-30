@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.43 2013/01/24 09:08:38 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.45 2013/01/30 04:46:00 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -804,11 +804,14 @@ Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRel
                         int bestTreeLength = relVec->front()->getTree()->getHeadNode()->getBestNumBiLayers();
 
                         // Set the iterator to the "last" element to sort
-                        Event::TreeClusterRelationVec::iterator lastItr = relVec->begin() + 1;
+                        Event::TreeClusterRelationVec::iterator lastItr = relVec->end();
 
                         // Ok, this search only makes sense if the best Tree length is more than 5 bilayers
                         if (bestTreeLength > 5)
                         {
+                            // Reset the lastItr
+                            lastItr = relVec->begin() + 1;
+
                             // Go through the list of relations looking for the point at which the length changes
                             while(lastItr != relVec->end())
                             {
@@ -822,7 +825,7 @@ Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRel
                         }
 
                         // Ok, now sort this mini list by proximity to the Cal Cluster
-                        std::sort(relVec->begin(), lastItr, SortTreeClusterRelationsByLength());
+                        std::sort(relVec->begin(), lastItr, SortTreeClusterRelationsByDist());
                     }
 
                     // Now keep track of the results

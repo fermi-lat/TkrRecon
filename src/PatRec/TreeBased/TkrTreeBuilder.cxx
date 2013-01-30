@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.33 2012/10/03 14:13:01 bruel Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeBuilder.cxx,v 1.34 2013/01/13 03:21:55 usher Exp $
  *
 */
 
@@ -320,6 +320,10 @@ Event::TkrFilterParams* TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* s
         // fingers crossed! 
         double sclFctr = 2.5;
         double chiSq   = momentsAnalysis.doIterativeMomentsAnalysis(dataVec, startPos, sclFctr);
+
+        // Make sure we did not have an axis failure!
+        if (chiSq >= 0.)
+        {
 //        double chiSq = momentsAnalysis.doMomentsAnalysis(dataVec, startPos);
 
         // Retrieve the goodies
@@ -352,6 +356,7 @@ Event::TkrFilterParams* TkrTreeBuilder::findTreeAxis(Event::TkrNodeSiblingMap* s
         filterParams->setTransRms(rmsTrans);
         filterParams->setLongRms(rmsLong);
         filterParams->setLongRmsAsym(rmsLongAsym);
+        }
     }
 
     return filterParams;
