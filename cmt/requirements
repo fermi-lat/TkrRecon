@@ -46,8 +46,8 @@ macro TkrRecon_headers   "" WIN32 "\
    ../TkrRecon/Track/*.h \ 
 # ../TkrRecon/TrackFit/*.h \  
    ../TkrRecon/Vertex/*.h  \  
-   ../TkrRecon/GaudiAlg/*.h 
-   ../TkrRecon/Display/*.h 
+   ../TkrRecon/GaudiAlg/*.h \
+   ../TkrRecon/Display/*.h \
    ../TkrRecon/Services/*.h"  
 
 macro source "*.cxx" WIN32 "*.h *.cxx"  
