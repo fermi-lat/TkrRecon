@@ -1,1 +1,94 @@
-package TkrRecon version v10r38p2  author Tracy Usher    <usher@slac.stanford.edu> author Leon Rochester <lsrea@slac.stanford.edu>  branches src mgr doc  use GlastPolicy v*  apply_pattern packageShr  apply_pattern package_include  use Event      v* use GlastSvc   v* use GuiSvc use geometry #use xml use TkrUtil    v3r*  use G4Propagator v* use LdfEvent     v*   private  #----------------------- # everything below here is private use astro * use RootConvert v* -no_auto_imports use RootIo v* -no_auto_imports #use RootPolicy v2r* -no_auto_imports use RootmapPolicy * GlastPolicy use gr_app v*   #the following prepend makes the includes folder available locally: avoid the package_include macro_prepend includes "-I ../src " WIN32 " /I ..\src  "  macro TkrRecon_stamps       apply_pattern package_Cshlibflags    macro TkrRecon_headers   "" WIN32 "\  ../TkrRecon/Cluster/*.h\  ../TkrRecon/PatRec/*.h\  ../TkrRecon/Track/*.h \ # ../TkrRecon/TrackFit/*.h \  ../TkrRecon/Vertex/*.h  \  ../TkrRecon/GaudiAlg/*.h ../TkrRecon/Display/*.h ../TkrRecon/Services/*.h"  macro source "*.cxx" WIN32 "*.h *.cxx"  library TkrRecon  $(TkrRecon_headers)  \   -s=GaudiAlg $(source)\   -s=Display $(source)\   -s=Services $(source)\   -s=Cluster $(source)\   -s=Filter $(source)\   -s=PatRec $(source)\   -s=PatRec/LinkAndTree $(source)\   -s=PatRec/Combo $(source)\   -s=PatRec/NeuralNet $(source)\   -s=PatRec/VectorLinks $(source)\   -s=PatRec/TreeBased $(source)\   -s=PatRec/MonteCarlo $(source)\   -s=PatRec/KalFitTrack $(source)\	    -s=PatRec/Utilities $(source)\   -s=Track $(source)\   -s=TrackFit $(source)\   -s=TrackFit/KalmanFilter $(source)\   -s=TrackFit/KalmanFilterUtils $(source)\   -s=TrackFit/KalmanFilterFit $(source)\   -s=TrackFit/KalmanFilterFit/FitMatrices $(source)\   -s=TrackFit/KalmanFilterFit/HitErrors $(source)\   -s=TrackFit/KalmanFilterFit/TrackEnergy $(source)\   -s=TrackFit/KalFitTrack $(source)\   -s=TrackFit/LineFit2D $(source)\   -s=TrackFit/LineFit3D $(source)\   -s=Utilities $(source)\   -s=Vertex  $(source)\   -s=Vertex/Combo $(source)\   -s=Vertex/DocaVtx $(source)     apply_pattern generate_rootmap library=TkrRecon   # build this for testing  public  set JOBOPTIONS ${TKRRECONROOT}/src/test/jobOptions.txt set PARAMFILESROOT "${EXTFILESSYS}/gaudi"  private application test_TkrRecon ${GuiMain} test/*.cxx ${Win32Resource} ${WinMain}   
+package TkrRecon
+version v10r38p3
+
+author Tracy Usher <usher@slac.stanford.edu> 
+author Leon Rochester <lsrea@slac.stanford.edu>  
+
+branches src mgr doc  
+
+use GlastPolicy v*  
+
+apply_pattern packageShr  
+
+apply_pattern package_include  
+
+use Event      v* 
+use GlastSvc   v* 
+use GuiSvc 
+use geometry 
+#use xml 
+use TkrUtil    v3r*  
+
+use G4Propagator v* 
+use LdfEvent     v*   
+
+private  
+#----------------------- 
+# everything below here is private 
+use astro * 
+use RootConvert v* -no_auto_imports 
+use RootIo v* -no_auto_imports 
+#use RootPolicy v2r* -no_auto_imports 
+#use RootmapPolicy * GlastPolicy 
+use gr_app v*   
+
+#the following prepend makes the includes folder available locally: avoid the package_include 
+
+macro_prepend includes "-I ../src " WIN32 " /I ..\src  "  
+
+macro TkrRecon_stamps       
+
+apply_pattern package_Cshlibflags    
+
+macro TkrRecon_headers   "" WIN32 "\  
+   ../TkrRecon/Cluster/*.h\  
+   ../TkrRecon/PatRec/*.h\  
+   ../TkrRecon/Track/*.h \ 
+# ../TkrRecon/TrackFit/*.h \  
+   ../TkrRecon/Vertex/*.h  \  
+   ../TkrRecon/GaudiAlg/*.h 
+   ../TkrRecon/Display/*.h 
+   ../TkrRecon/Services/*.h"  
+
+macro source "*.cxx" WIN32 "*.h *.cxx"  
+
+library TkrRecon  $(TkrRecon_headers)  \   
+  -s=GaudiAlg $(source)\   
+  -s=Display $(source)\  
+  -s=Services $(source)\   
+  -s=Cluster $(source)\   
+  -s=Filter $(source)\   
+  -s=PatRec $(source)\   
+  -s=PatRec/LinkAndTree $(source)\   
+  -s=PatRec/Combo $(source)\   
+  -s=PatRec/NeuralNet $(source)\   
+  -s=PatRec/VectorLinks $(source)\   
+  -s=PatRec/TreeBased $(source)\   
+  -s=PatRec/MonteCarlo $(source)\   
+  -s=PatRec/KalFitTrack $(source)\	   
+  -s=PatRec/Utilities $(source)\   
+  -s=Track $(source)\   
+  -s=TrackFit $(source)\   
+  -s=TrackFit/KalmanFilter $(source)\   
+  -s=TrackFit/KalmanFilterUtils $(source)\   
+  -s=TrackFit/KalmanFilterFit $(source)\   
+  -s=TrackFit/KalmanFilterFit/FitMatrices $(source)\   
+  -s=TrackFit/KalmanFilterFit/HitErrors $(source)\   
+  -s=TrackFit/KalmanFilterFit/TrackEnergy $(source)\   
+  -s=TrackFit/KalFitTrack $(source)\   
+  -s=TrackFit/LineFit2D $(source)\   
+  -s=TrackFit/LineFit3D $(source)\   
+  -s=Utilities $(source)\   
+  -s=Vertex  $(source)\   
+  -s=Vertex/Combo $(source)\   
+  -s=Vertex/DocaVtx $(source)    
+
+#apply_pattern generate_rootmap library=TkrRecon   
+
+# build this for testing  
+public  
+set JOBOPTIONS ${TKRRECONROOT}/src/test/jobOptions.txt 
+set PARAMFILESROOT "${EXTFILESSYS}/gaudi"  
+
+private 
+application test_TkrRecon ${GuiMain} test/*.cxx ${Win32Resource} ${WinMain}   
