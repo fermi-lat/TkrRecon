@@ -187,9 +187,9 @@ StatusCode ComboVtxTool::findVtxs()
                         double cyy  = tkr1Params.getyPosyPos();
                         double cySy = 0.; 
 
-                        double cSxSx = tkr1Params.getxSlpxSlp()* firstChisq1;
-                        double cSySy = tkr1Params.getySlpySlp()* firstChisq1;
-                        double cSxSy = tkr1Params.getxSlpySlp()* firstChisq1;
+                        double cSxSx = tkr1Params.getxSlpxSlp();
+                        double cSySy = tkr1Params.getySlpySlp();
+                        double cSxSy = tkr1Params.getxSlpySlp();
 
                         double x_slope = tkr1Params.getxSlope();
                         double y_slope = tkr1Params.getySlope();
@@ -257,12 +257,14 @@ StatusCode ComboVtxTool::findVtxs()
                 if(fabs(tkr1Pos.z() - tkr2Pos.z()) > .5*m_tkrGeom->trayHeight()  && tkr1Cls != tkr2Cls)
                      status |= Event::TkrVertex::STAGVTX;
 
+				int plane = m_tkrGeom->getPlane(tkr1ID);
+                int layer = m_tkrGeom->getLayer(plane);
+
                 double clsSize = tkr1Cls->size();
                                 if(tkr1Cls == tkr2Cls) {
                                         if(clsSize * fabs(tkr1Dir.z()) < 3.01 ) {
                 // Put vertex 1/2 way into preceeding radiator if first hit is in upper plane
-                                                int plane = m_tkrGeom->getPlane(tkr1ID);
-                                                int layer = m_tkrGeom->getLayer(plane);
+   
                                                 bool isTopPlane = m_tkrGeom->isTopPlaneInLayer(plane);
                                                 if (isTopPlane) zVtx = m_tkrGeom->getConvZ(layer);
                                                 else // Leave zVtx in middle of first-hit-SSD
@@ -280,6 +282,10 @@ StatusCode ComboVtxTool::findVtxs()
                                 if(fabs(zVtx - tkr1Pos.z()) > 37. || fabs(zVtx - tkr2Pos.z()) > 37.) continue;
                 double sv1 = (zVtx - tkr1Pos.z())/tkr1Dir.z();
                 double sv2 = (zVtx - tkr2Pos.z())/tkr2Dir.z();
+				if(layer < 6) sv1 += .3/tkr1Dir.z();
+		        else          sv1 += .05/tkr1Dir.z();
+				if(layer < 6) sv2 += .3/tkr2Dir.z();
+		        else          sv2 += .05/tkr2Dir.z();
                 
                 // Propagate the TkrParams to the vertex location
                 m_propagatorTool->setStepStart(tkr1Params, tkr1Pos.z(), (sv1 < 0));
@@ -291,55 +297,9 @@ StatusCode ComboVtxTool::findVtxs()
                 m_propagatorTool->step(fabs(sv2));
                 Event::TkrTrackParams vtx2Params = m_propagatorTool->getTrackParams(fabs(sv2), e2, (sv2 < 0));
                                 
-                        //  NEW: Scaled covariance matrix for Track 1 & 2 
-                                cxx = vertexParams.getxPosxPos();
-                                cxSx = 0.; 
-                                cxy  = vertexParams.getxPosyPos(); 
-                                cxSy = 0.; 
-
-                                cSxy = 0.; 
-
-                                cyy  = vertexParams.getyPosyPos();
-                                cySy = 0.; 
-
-                                cSxSx = vertexParams.getxSlpxSlp()* firstChisq1;
-                                cSySy = vertexParams.getySlpySlp()* firstChisq1;
-                                cSxSy = vertexParams.getxSlpySlp()* firstChisq1;
-
-                                x_slope = vertexParams.getxSlope();
-                                y_slope = vertexParams.getySlope();
-
-                                x_vtx = vertexParams.getxPosition();
-                                y_vtx = vertexParams.getyPosition();
-
-                             Event::TkrTrackParams scaled_vertexParams(x_vtx, x_slope, y_vtx, y_slope,
-                                                                                                         cxx,  cxSx,  cxy,  cxSy,
-                                                                                                         cSxSx, cSxy, cSxSy,
-                                                                                                         cyy,  cySy,
-                                                                                                         cSySy);
-                                cxx = vtx2Params.getxPosxPos();
-                                cxy = vtx2Params.getxPosyPos(); 
-                                cyy = vtx2Params.getyPosyPos();
-
-                                cSxSx = vtx2Params.getxSlpxSlp()* firstChisq2;
-                                cSySy = vtx2Params.getySlpySlp()* firstChisq2;
-                                cSxSy = vtx2Params.getxSlpySlp()* firstChisq2;
-
-                                x_slope = vtx2Params.getxSlope();
-                                y_slope = vtx2Params.getySlope();
-
-                                x_vtx = vtx2Params.getxPosition();
-                                y_vtx = vtx2Params.getyPosition();
-
-                                Event::TkrTrackParams scaled_vtx2Params(x_vtx, x_slope, y_vtx, y_slope,
-                                                                                                         cxx,  cxSx,  cxy,  cxSy,
-                                                                                                         cSxSx, cSxy, cSxSy,
-                                                                                                         cyy,  cySy,
-                                                                                                         cSySy);
-
                 // Get the covariance weighted average (Note this method also computes
                 // the chi-square for the association. Results in m_chisq)
-                Event::TkrTrackParams vtxParams = getParamAve(scaled_vertexParams, scaled_vtx2Params); 
+                Event::TkrTrackParams vtxParams = getParamAve(vertexParams, vtx2Params); 
 
                 // Calculate quality for this vertex
                                 if(m_chisq < 0) continue;
