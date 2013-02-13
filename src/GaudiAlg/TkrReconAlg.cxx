@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.56 2012/04/25 04:54:34 heather Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.57 2012/10/03 14:12:59 bruel Exp $
 */
 
 
@@ -23,7 +23,7 @@
 #include "Event/TopLevel/Event.h"
 #include "Event/TopLevel/EventModel.h"
 #include "Event/Recon/TkrRecon/TkrCluster.h"
-#include "Event/Recon/TkrRecon/TkrTrack.h"
+#include "Event/Recon/TkrRecon/TkrTree.h"
 #include "Event/Recon/TkrRecon/TkrVertex.h"
 #include "LdfEvent/EventSummaryData.h"
 #include "TkrRecon/Services/TkrInitSvc.h"
@@ -615,8 +615,15 @@ StatusCode TkrReconAlg::handleError(std::string errorString)
 
     if(m_stage!="ClusterSize"||!m_suppressClusterSizePrintout ) m_errorArray.push_back(errorRec);
 
-    // Clean out tracks and vertices in the TDS so we don't confuse downstream algorithms
-    // Start with the tracks
+    // Clean out Trees, tracks and vertices in the TDS so we don't confuse downstream algorithms
+    // Start with the Trees
+    SmartDataPtr<Event::TkrTreeCol> treeCol(eventSvc(),EventModel::TkrRecon::TkrTreeCol);
+    if (treeCol) 
+    {
+        while(treeCol->size()) treeCol->pop_back();
+    }
+
+    // Now the tracks
     SmartDataPtr<Event::TkrTrackCol> 
         trackCol(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
     if (trackCol) 
