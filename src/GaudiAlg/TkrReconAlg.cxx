@@ -14,7 +14,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.57 2012/10/03 14:12:59 bruel Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/GaudiAlg/TkrReconAlg.cxx,v 1.58 2013/02/13 22:13:51 usher Exp $
 */
 
 
@@ -461,7 +461,7 @@ StatusCode TkrReconAlg::execute()
                     EventModel::TkrRecon::TkrCRTrackCol);
                 int numCRTracks = 0;
                 if(trackCol) numCRTracks = trackCol->size();
-                // Check number of clusters returned
+                // output number of tracks on debug
                 log << MSG::DEBUG << numTracks << " Normal, " 
                     << numCRTracks << " CR TkrTracks found" << endreq ;
             }
@@ -626,6 +626,13 @@ StatusCode TkrReconAlg::handleError(std::string errorString)
     // Now the tracks
     SmartDataPtr<Event::TkrTrackCol> 
         trackCol(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
+    if (trackCol) 
+    {
+        while(trackCol->size()) trackCol->pop_back();
+    }
+    
+    // and the CR tracks!
+    trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrCRTrackCol);
     if (trackCol) 
     {
         while(trackCol->size()) trackCol->pop_back();
