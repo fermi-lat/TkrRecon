@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/users/TkrGroup/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/IComputeMeasErrors.h,v 1.2 2004/09/08 15:32:46 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/IComputeMeasErrors.h,v 1.3 2004/10/01 21:02:05 usher Exp $
  */
 
 #ifndef IComputeMeasErrors_h
@@ -21,7 +21,8 @@ public:
 
     virtual TkrCovMatrix computeMeasErrs(const Event::TkrTrackParams& newPars, 
                                          const TkrCovMatrix&          oldCovMat, 
-                                         const Event::TkrCluster&     cluster) = 0;
+                                         const Event::TkrCluster&     cluster,
+										 const double                 sclFctr = 1.) = 0;
 };
 
 

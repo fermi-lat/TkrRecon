@@ -7,7 +7,7 @@
  *
  * @author Tracy Usher (editor) 
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/ClusWidMeasErrs.cxx,v 1.6 2005/02/15 20:34:25 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/ClusWidMeasErrs.cxx,v 1.7 2005/12/20 05:35:18 lsrea Exp $
  */
 
 #include "ClusWidMeasErrs.h"
@@ -20,7 +20,8 @@ ClusWidMeasErrs::ClusWidMeasErrs(ITkrGeometrySvc* tkrGeom) :
 
 TkrCovMatrix ClusWidMeasErrs::computeMeasErrs(const Event::TkrTrackParams& /*newPars*/, 
                                               const TkrCovMatrix&          oldCovMat, 
-                                              const Event::TkrCluster&     cluster)
+                                              const Event::TkrCluster&     cluster,
+                                              const double                 sclFctr)
 {
     // Determines the measured position error as the cluster width times the strip resolution
 
@@ -33,7 +34,7 @@ TkrCovMatrix ClusWidMeasErrs::computeMeasErrs(const Event::TkrTrackParams& /*new
 
     if(cluster.getTkrId().getView() == idents::TkrId::eMeasureY) std::swap(measured, other);
 
-    double error = clusWid * m_tkrGeom->siResolution();
+    double error = sclFctr * clusWid * m_tkrGeom->siResolution();
     
     newCov(measured, measured) = error*error;
     newCov(other, other)       = oldCovMat(other,other);

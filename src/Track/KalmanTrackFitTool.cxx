@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.54 2013/01/10 03:58:48 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.55 2013/01/23 11:43:08 usher Exp $
  */
 
 // to turn one debug variables
@@ -160,6 +160,9 @@ private:
     double               m_minNrmResForKink;
     double               m_maxKinkAngle;
 
+    /// Allow a scale factor for the hit errors 
+    double               m_hitErrorScaleFactor;
+
     /// The matrices which define the Kalman Filter
     IFitHitEnergy*       m_HitEnergy;
     IProcNoiseMatrix*    m_Qmat;
@@ -222,6 +225,9 @@ m_KalmanFit(0), m_nMeasPerPlane(0), m_nParams(0), m_fitErrs(0)
     declareProperty("minNrmResForKink",   m_minNrmResForKink  = 25.);
     /// Don't allow crazy kink angles, constrain to 45 degrees maximum
     declareProperty("maxKinkAngle",       m_maxKinkAngle      = M_PI_4);
+
+    /// Declare the scale factor for the hit errors
+    declareProperty("hitErrorScaleFactor", m_hitErrorScaleFactor = 1.);
 
     return;
 }
@@ -839,7 +845,7 @@ double KalmanTrackFitTool::doFilter(Event::TkrTrack& track)
     const Event::TkrCluster* cluster = firstHit.getClusterPtr();
         
     // Calulate the new measured error at this hit
-    measCov = m_fitErrs->computeMeasErrs(params, measCov, *cluster );
+    measCov = m_fitErrs->computeMeasErrs(params, measCov, *cluster, m_hitErrorScaleFactor);
 
     // Save this
     firstHit.setTrackParams(measCov, Event::TkrTrackHit::MEASURED);
@@ -895,7 +901,7 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
     const Event::TkrCluster* cluster = firstHit.getClusterPtr();
         
     // Calulate the new measured error at this hit
-    measCov = m_fitErrs->computeMeasErrs(params, measCov, *cluster );
+    measCov = m_fitErrs->computeMeasErrs(params, measCov, *cluster, m_hitErrorScaleFactor);
 
     // Save this
     firstHit.setTrackParams(measCov, Event::TkrTrackHit::MEASURED);

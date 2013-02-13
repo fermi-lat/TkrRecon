@@ -8,7 +8,7 @@
  *
  * @author Tracy Usher (editor) from version implemented by Leon Rochester (due to Bill Atwood)
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/ElectronMeasErrs.cxx,v 1.11 2005/12/20 05:35:18 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/ElectronMeasErrs.cxx,v 1.1 2013/01/23 11:16:40 usher Exp $
  */
 
 #include "ElectronMeasErrs.h"
@@ -45,7 +45,8 @@ ElectronMeasErrs::ElectronMeasErrs(ITkrGeometrySvc* tkrGeom) :
 
 TkrCovMatrix ElectronMeasErrs::computeMeasErrs(const Event::TkrTrackParams& newPars, 
                                                      const TkrCovMatrix&          oldCovMat, 
-                                                     const Event::TkrCluster&     cluster)
+                                                     const Event::TkrCluster&     cluster,
+                                                     const double                 sclFctr)
 {
  
     // Compute the Measurement covariance taking into account the 
@@ -69,7 +70,7 @@ TkrCovMatrix ElectronMeasErrs::computeMeasErrs(const Event::TkrTrackParams& newP
         slope = newPars.getySlope();
     }
 
-    double error = m_tkrGeom->siResolution() * m_measErrParams[clusterWidth-1].computeError(clusWid, slope);
+    double error = sclFctr * m_tkrGeom->siResolution() * m_measErrParams[clusterWidth-1].computeError(clusWid, slope);
     
     newCov(measured, measured) = error*error;
     newCov(other, other)       = oldCovMat(other,other);

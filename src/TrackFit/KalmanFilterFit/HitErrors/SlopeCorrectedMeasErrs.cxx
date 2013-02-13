@@ -8,7 +8,7 @@
  *
  * @author Tracy Usher (editor) from version implemented by Leon Rochester (due to Bill Atwood)
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.10 2005/03/02 00:25:21 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.cxx,v 1.11 2005/12/20 05:35:18 lsrea Exp $
  */
 
 #include "SlopeCorrectedMeasErrs.h"
@@ -21,7 +21,8 @@ SlopeCorrectedMeasErrs::SlopeCorrectedMeasErrs(ITkrGeometrySvc* tkrGeom) :
 
 TkrCovMatrix SlopeCorrectedMeasErrs::computeMeasErrs(const Event::TkrTrackParams& newPars, 
                                                      const TkrCovMatrix&          oldCovMat, 
-                                                     const Event::TkrCluster&     cluster)
+                                                     const Event::TkrCluster&     cluster,
+                                                     const double                 sclFctr)
 {
  
     // Compute the Measurement covariance taking into account the 
@@ -42,7 +43,7 @@ TkrCovMatrix SlopeCorrectedMeasErrs::computeMeasErrs(const Event::TkrTrackParams
         slope = newPars.getySlope();
     }
 
-    double error = getError(clusWid, slope);
+    double error = sclFctr * getError(clusWid, slope);
     
     newCov(measured, measured) = error*error;
     newCov(other, other)       = oldCovMat(other,other);
