@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.46 2013/01/30 17:58:58 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.47 2013/01/30 21:36:10 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -594,7 +594,35 @@ StatusCode TreeBasedTool::secondPass()
         }
 
         // Ok, all of that nonsense is out of the way, now find the tracks!
-        int numTracks = m_tkrTrackFinder->findTracks(tree, energy, cluster);
+        // To account for exceptions being thrown we need to make sure to catch them here
+        int numTracks = 0;
+
+        // Encase in a try-catch block
+        try 
+        {
+            // Ok, all of that nonsense is out of the way, now find the tracks!
+            numTracks = m_tkrTrackFinder->findTracks(tree, energy, cluster);
+        }
+        // If an exception occurred in handling then make sure to catch here
+        catch(TkrException&)
+        {
+            // In this case we have a failure in track fitting, most likely, which we will deem to be non-fatal
+            // Set the number of tracks returned to the size of the Tree
+            numTracks = int(tree->size());
+        }
+        // Otherwise
+        catch(...)
+        {
+            // This is an unknown failure... we should zap the Tree Col from this Tree forward
+            while(treeIdx < int(treeCol->size()))
+            {
+                tree = (*treeCol)[treeIdx];
+                delete tree;
+            }
+
+            // And then pass the exception up to a higher authority
+            throw(TkrException("Exception encountered in the Second Pass of Tree Building "));
+        }
 
         // If we found tracks then add them to the TDS collection
         if (numTracks > 0)
