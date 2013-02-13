@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-38-06 13-Feb-2013 TU At Leon's request, clear TkrTreeCol in HandleError along with TkrTrackCol
  TkrRecon-10-38-05 13-Feb-2013 TU Trap exception in Tree Track extraction to prevent Trees with no Tracks, add option to scale hit errors to KalmanFitTrackTool
  TkrRecon-10-38-04 09-Feb-2013 TU Bill's update to vertexing to get vertex in middle of converter
  TkrRecon-10-38-03 06-Feb-2013 heather fixing eol for requirements file
