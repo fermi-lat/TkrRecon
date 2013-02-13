@@ -8,7 +8,7 @@
  *
  * @author Tracy Usher (editor) from version implemented by Leon Rochester (due to Bill Atwood)
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/ElectronMeasErrs.h,v 1.4 2004/10/12 19:03:39 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/ElectronMeasErrs.h,v 1.1 2013/01/23 11:16:40 usher Exp $
  */
 
 #ifndef ElectronMeasErrs_h
@@ -29,7 +29,8 @@ public:
 
     TkrCovMatrix computeMeasErrs(const Event::TkrTrackParams& newPars, 
                                  const TkrCovMatrix&          oldCovMat, 
-                                 const Event::TkrCluster&     cluster);
+                                 const Event::TkrCluster&     cluster,
+								 const double                 sclFctr);
 
 private:
     // Define a private class which is used to compute the measured error

@@ -7,7 +7,7 @@
  *
  * @author Tracy Usher (editor) taken from code authored by Bill Atwood
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/StandardMeasErrs.cxx,v 1.3 2004/10/12 19:03:39 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/StandardMeasErrs.cxx,v 1.4 2005/12/20 05:35:18 lsrea Exp $
  */
 
 #include "StandardMeasErrs.h"
@@ -20,7 +20,8 @@ StandardMeasErrs::StandardMeasErrs(ITkrGeometrySvc* tkrGeom) :
 
 TkrCovMatrix StandardMeasErrs::computeMeasErrs(const Event::TkrTrackParams& newPars, 
                                                const TkrCovMatrix&          oldCovMat, 
-                                               const Event::TkrCluster&     cluster)
+                                               const Event::TkrCluster&     cluster,
+                                               const double                 sclFctr)
 {
     enum paramIndex {XPOS=1, XSLOPE=2, YPOS=3, YSLOPE=4};
 
