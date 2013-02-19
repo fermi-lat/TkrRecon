@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.14 2013/01/22 13:24:44 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.15 2013/02/19 04:16:17 usher Exp $
  */
 
 // to turn one debug variables
@@ -355,10 +355,10 @@ namespace
     public:
         CompareMomentsLinks() {}
 
-		const bool operator()(const Event::TkrVecPointsLink* left, const Event::TkrVecPointsLink* right) const
+        const bool operator()(const Event::TkrVecPointsLink* left, const Event::TkrVecPointsLink* right) const
         {
-			return left->getPosition().z() > right->getPosition().z();
-		}
+            return left->getPosition().z() > right->getPosition().z();
+        }
     };
 };
 
@@ -445,8 +445,8 @@ private:
     /// number of layers we are allowed to skip
     int                        m_numLyrsToSkip;
 
-	/// Minimum value for "refError" (doca from refpoint to projected link)
-	double                     m_minRefError;
+    /// Minimum value for "refError" (doca from refpoint to projected link)
+    double                     m_minRefError;
 
     /// Basic geometry for tracker
     int                        m_numPlanes;
@@ -588,8 +588,8 @@ StatusCode TkrHoughFilterTool::doFilterStep()
     double energy   = tkrEventParams->getEventEnergy();
     double refError = tkrEventParams->getTransRms();
 
-	// refError is a critical quantity and if too small can lead to a resolution issue! 
-	refError = std::max(m_minRefError, refError);
+    // refError is a critical quantity and if too small can lead to a resolution issue! 
+    refError = std::max(m_minRefError, refError);
 
     // Set up an output collection of TkrFilterParams
     m_tkrFilterParamsCol = new Event::TkrFilterParamsCol();
@@ -621,15 +621,15 @@ StatusCode TkrHoughFilterTool::doFilterStep()
     Event::TkrVecPointInfo* vecPointInfo = 
         SmartDataPtr<Event::TkrVecPointInfo>(m_dataSvc, EventModel::TkrRecon::TkrVecPointInfo);
 
-	// Having said the above regarding refError, it is observed that once the number of vector 
-	// points gets above 2000 that the number of links can "explode". Add in a bit of a safety factor 
-	// here to improve performance for these high occupancy events
-	if (vecPointInfo->getNumTkrVecPoints() > 2000.)
-	{
-		double sclFctrInc = 0.001 * double(vecPointInfo->getNumTkrVecPoints()) - 2.;
+    // Having said the above regarding refError, it is observed that once the number of vector 
+    // points gets above 2000 that the number of links can "explode". Add in a bit of a safety factor 
+    // here to improve performance for these high occupancy events
+    if (vecPointInfo->getNumTkrVecPoints() > 2000.)
+    {
+        double sclFctrInc = 0.001 * double(vecPointInfo->getNumTkrVecPoints()) - 2.;
 
-		refError *= 1. / (1. + sclFctrInc);
-	}
+        refError *= 1. / (1. + sclFctrInc);
+    }
 
     // Step #3 As with the above, we want to either recover our vec point links
     // or if they are not there to create them
@@ -1025,14 +1025,14 @@ StatusCode TkrHoughFilterTool::doFilterStep()
             // Make sure we have enough links to do something
             if (momentsLinkVec.size() >= 3)
             {
-				// In certain cases it seems the results of the moments analysis can depend on ordering. The above
-				// map will introduce a "randomization" of the ordering (since the key is a memory address which may 
-				// or may not be allocated in increasing order). 
-				// Try to remove that with a quick sort on z position
-				std::sort(momentsLinkVec.begin(), momentsLinkVec.end(), CompareMomentsLinks());
+                // In certain cases it seems the results of the moments analysis can depend on ordering. The above
+                // map will introduce a "randomization" of the ordering (since the key is a memory address which may 
+                // or may not be allocated in increasing order). 
+                // Try to remove that with a quick sort on z position
+                std::sort(momentsLinkVec.begin(), momentsLinkVec.end(), CompareMomentsLinks());
 
-				// With this sorted, we can use the top point as the reference
-				Point topPoint = momentsLinkVec.front()->getPosition();
+                // With this sorted, we can use the top point as the reference
+                Point topPoint = momentsLinkVec.front()->getPosition();
 
                 // Get the filter parameters for this collection of links
                 houghParams = doMomentsAnalysis(momentsLinkVec, topPoint, energy);
@@ -1368,7 +1368,7 @@ Event::TkrEventParams* TkrHoughFilterTool::setDefaultValues()
     Event::CalEventEnergyMap* calEventEnergyMap = 
             SmartDataPtr<Event::CalEventEnergyMap>(m_dataSvc,EventModel::CalRecon::CalEventEnergyMap);
 
-    if (calEventEnergyMap && !calEventEnergyMap->empty())
+    if (calEventEnergyMap != 0 && !calEventEnergyMap->empty())
     {
         // Recover the collection of Cal Clusters in the TDS
         Event::CalClusterMap* calClusterMap = 
@@ -1386,7 +1386,7 @@ Event::TkrEventParams* TkrHoughFilterTool::setDefaultValues()
     }
 
     // Preset the rms values in case of no cluster or no moments analysis of crystals
-	// These values meant to be large enough to insure all links considered?
+    // These values meant to be large enough to insure all links considered?
     tkrEventParams->setTransRms(500.);
     tkrEventParams->setLongRmsAve(1000.);
 
@@ -1449,14 +1449,14 @@ Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPoint
     // We will use a grand average position as starting point to moments analysis
     int    topBiLayer     = momentsLinkVec.front()->getFirstVecPoint()->getLayer();
     int    botBiLayer     = momentsLinkVec.back()->getFirstVecPoint()->getLayer();
-	double deltaBiLayer   = topBiLayer - botBiLayer + 1;
+    double deltaBiLayer   = topBiLayer - botBiLayer + 1;
 
     // Set a centroid position at the first hit
     Point centroid = momentsLinkVec.front()->getPosition();
 
-	// Keep track of an iterator to the bottom link and its weight
-	Event::TkrVecPointsLink* botLink   = momentsLinkVec.front();
-	double                   botWeight = -1.;
+    // Keep track of an iterator to the bottom link and its weight
+    Event::TkrVecPointsLink* botLink   = momentsLinkVec.front();
+    double                   botWeight = -1.;
 
     // Now go through and build the data list for the moments analysis
     // First loop over "bilayers"
@@ -1477,25 +1477,25 @@ Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPoint
         double docaDist  = docaVec.magnitude();
         double       weight = 1. / std::min(100000., std::max(0.01, docaDist*docaDist));
 
-		// Scale by distance from top
-		double lyrSclFctr = (link->getFirstVecPoint()->getLayer() - botBiLayer + 1) / deltaBiLayer;
+        // Scale by distance from top
+        double lyrSclFctr = (link->getFirstVecPoint()->getLayer() - botBiLayer + 1) / deltaBiLayer;
 
-		weight *= lyrSclFctr;
+        weight *= lyrSclFctr;
 
         // Update the centroid if not the highest point
         if (avePos.z() > centroid.z()) centroid = avePos;
 
-		// Make sure botWeight is not guard value
-		// (if first link is at the bottom then conditional expression below will fail
-		// and we could end up with an unset weight)
-		if (botWeight < 0.) botWeight = weight;
+        // Make sure botWeight is not guard value
+        // (if first link is at the bottom then conditional expression below will fail
+        // and we could end up with an unset weight)
+        if (botWeight < 0.) botWeight = weight;
 
-		// Update the bottom link iterator if we are "lower"
-		if (avePos.z() < botLink->getPosition().z()) 
-		{
-			botLink   = link;
-			botWeight = weight;
-		}
+        // Update the bottom link iterator if we are "lower"
+        if (avePos.z() < botLink->getPosition().z()) 
+        {
+            botLink   = link;
+            botWeight = weight;
+        }
 
         // Check bilayers
         if (link->getFirstVecPoint()->getLayer()  > topBiLayer) topBiLayer = link->getFirstVecPoint()->getLayer();
@@ -1514,7 +1514,7 @@ Event::TkrFilterParams* TkrHoughFilterTool::doMomentsAnalysis(Event::TkrVecPoint
 
     // Add in the bottom position as well to help make sure the axis doesn't flip
     // in events with fewer bilayers
-	dataVec.push_back(TkrMomentsData(botLink->getPosition(), 1.));
+    dataVec.push_back(TkrMomentsData(botLink->getPosition(), 1.));
 
     // Some statistics
     int numIterations = 1;
