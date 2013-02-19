@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.13 2013/01/21 13:50:57 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Filter/TkrHoughFilterTool.cxx,v 1.14 2013/01/22 13:24:44 usher Exp $
  */
 
 // to turn one debug variables
@@ -31,7 +31,7 @@
 #include "Event/Recon/TkrRecon/TkrVecPointInfo.h"
 #include "Event/Recon/TkrRecon/TkrVecPointsLinkInfo.h"
 #include "Event/Recon/CalRecon/CalEventEnergy.h"
-#include "Event/Recon/CalRecon/CalCluster.h"
+#include "Event/Recon/CalRecon/CalClusterMap.h"
 #include "Event/TopLevel/EventModel.h"
 
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
@@ -1371,11 +1371,12 @@ Event::TkrEventParams* TkrHoughFilterTool::setDefaultValues()
     if (calEventEnergyMap && !calEventEnergyMap->empty())
     {
         // Recover the collection of Cal Clusters in the TDS
-        Event::CalClusterCol* calClusterCol = 
-            SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
+        Event::CalClusterMap* calClusterMap = 
+            SmartDataPtr<Event::CalClusterMap>(m_dataSvc,EventModel::CalRecon::CalClusterMap);
 
         // Using the first Cluster as the key, recover the "correct" energy relations
-        Event::CalEventEnergyMap::iterator calEnergyItr = calEventEnergyMap->find(calClusterCol->front());
+        Event::CalEventEnergyMap::iterator calEnergyItr 
+            = calEventEnergyMap->find(calClusterMap->getRawClusterVec().front());
 
         if (calEnergyItr != calEventEnergyMap->end())
         {

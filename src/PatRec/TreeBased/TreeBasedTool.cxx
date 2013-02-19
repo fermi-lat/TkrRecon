@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.47 2013/01/30 21:36:10 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.48 2013/02/13 17:47:22 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -29,6 +29,7 @@
 #include "Event/Recon/TkrRecon/TkrTrack.h"
 #include "Event/Recon/TkrRecon/TkrEventParams.h"
 #include "Event/Recon/CalRecon/CalEventEnergy.h"
+#include "Event/Recon/CalRecon/CalClusterMap.h"
 
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 #include "TkrRecon/Track/ITkrFitTool.h"
@@ -78,7 +79,7 @@ private:
     Event::TreeClusterRelationVec buildTreeRelVec(Event::ClusterToRelationMap* clusToRelationMap, 
                                                   Event::TreeToRelationMap*    treeToRelationMap,
                                                   Event::TkrTreeCol*           treeCol,
-                                                  Event::CalClusterCol*        calClusters);
+                                                  Event::CalClusterVec*        calClusters);
 
     /// Assign track energy and run first fit
     void   setTrackEnergy(double eventEnergy, Event::TkrTrackCol* tdsTracks);
@@ -411,10 +412,10 @@ StatusCode TreeBasedTool::firstPass()
                     if (m_associateClusters)
                     {
                         // Recover the cal cluster collection from the TDS
-                        SmartDataPtr<Event::CalClusterCol> calClusterCol(m_dataSvc, EventModel::CalRecon::CalClusterCol);
+                        SmartDataPtr<Event::CalClusterMap> calClusterMap(m_dataSvc, EventModel::CalRecon::CalClusterMap);
 
                         // Now set up the track - cluster associator
-                        m_treeClusterAssociator = new TreeCalClusterAssociator(calClusterCol, m_dataSvc, m_tkrGeom);
+                        m_treeClusterAssociator = new TreeCalClusterAssociator(calClusterMap, m_dataSvc, m_tkrGeom);
 
                         // Make a pass through the trees to do the association
                         // This pass should result in an association map between trees and relation objects which is in the
@@ -440,10 +441,15 @@ StatusCode TreeBasedTool::firstPass()
                         // Ok, for right now our last step is going to be to go through and reorder the trees, which we do through the 
                         // back door using this method... 
                         if (m_reorderTrees)
+                        {
+                            // Recover the Cal Cluster Vec
+                            Event::CalClusterVec& calClusterVec = calClusterMap->getRawClusterVec();
+
                             Event::TreeClusterRelationVec treeRelVec = buildTreeRelVec(m_treeClusterAssociator->getClusterToRelationMap(), 
                                                                                        m_treeClusterAssociator->getTreeToRelationMap(), 
                                                                                        treeCol, 
-                                                                                       calClusterCol);
+                                                                                       &calClusterVec);
+                        }
 
                         // The final step in the process of creating relations is to make relations of the best/first Tree
                         // to the uber and uber2 clusters. This is done in a special method of the associator
@@ -793,7 +799,7 @@ public:
 Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRelationMap* clusToRelationMap,
                                                              Event::TreeToRelationMap*    treeToRelationMap,
                                                              Event::TkrTreeCol*           treeCol,
-                                                             Event::CalClusterCol*        calClusterCol)
+                                                             Event::CalClusterVec*        calClusterVec)
 {
     // The goal of this method is to return a vector of Tree to Cluster relations. The general order of this
     // vector is going to be by Cal Cluster and, for trees sharing clusters, sorted by proximity to cluster parameters. 
@@ -806,19 +812,13 @@ Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRel
     // in the TDS colletion!
     try
     {
-        if (m_reorderTrees && calClusterCol)
+        if (m_reorderTrees && calClusterVec)
         {
             // The Cal cluster ordering should reflect the output of the classification tree where the first
             // cluster is thought to be "the" gamma cluster. Loop through clusters in order and do the 
             // tree ordering
             // We first need to set the end condition...
-            Event::CalClusterCol::iterator clusColEnd = calClusterCol->end();
-
-            // If more than one cluster then the last is the "uber" and to be avoided AND uber2!!
-            if (calClusterCol->size() > 1) clusColEnd = calClusterCol->end() - 2;
-
-            // Now loop over clusters
-            for(Event::CalClusterCol::iterator clusItr = calClusterCol->begin(); clusItr != clusColEnd; clusItr++)
+            for(Event::CalClusterVec::iterator clusItr = calClusterVec->begin(); clusItr != calClusterVec->end(); clusItr++)
             {
                 // Cluster pointer
                 Event::CalCluster* cluster = *clusItr;

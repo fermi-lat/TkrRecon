@@ -7,7 +7,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/TkrEnergySplitTool.cxx,v 1.11 2012/12/09 02:50:58 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/TkrEnergySplitTool.cxx,v 1.12 2012/12/10 18:44:08 usher Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -20,7 +20,7 @@
 #include "Event/Recon/TreeClusterRelation.h"
 #include "Event/Recon/TkrRecon/TkrTree.h"
 #include "Event/Recon/TkrRecon/TkrTrack.h"
-#include "Event/Recon/CalRecon/CalCluster.h"
+#include "Event/Recon/CalRecon/CalClusterMap.h"
 #include "Event/Recon/TkrRecon/TkrEventParams.h"
 
 #include "GlastSvc/GlastClassify/ITupleInterface.h"
@@ -123,8 +123,8 @@ private:
     void   setTrackEnergies(Event::TkrTrack* first, Event::TkrTrack* second, double energy);
 
     void   setTupleValues(Event::TkrTreeCol*        trees, 
-		                  Event::TkrTrackCol*       tracks,
-                          Event::CalClusterCol*     calClusters,
+                          Event::TkrTrackCol*       tracks,
+                          Event::CalClusterVec*     calClusters,
                           Event::TreeToRelationMap* treeToRelationMap);
 
     /// Pointer to the local Tracker Energy tool (for total event energy)
@@ -337,14 +337,14 @@ StatusCode TkrEnergySplitTool::SetTrackEnergies()
     // No forest, no work
     if (!treeCol || treeCol->empty()) return sc;
 
-	// Set an iterator to the first Tree in the list (iterator will soon be useful)
-	Event::TkrTreeCol::iterator treeItr = treeCol->begin();
+    // Set an iterator to the first Tree in the list (iterator will soon be useful)
+    Event::TkrTreeCol::iterator treeItr = treeCol->begin();
 
-	// Recover the associated tree here
-	Event::TkrTree* tree = *treeItr++;
+    // Recover the associated tree here
+    Event::TkrTree* tree = *treeItr++;
 
     //If candidates, then proceed
-	if (!tree->empty())
+    if (!tree->empty())
     {
         Event::TkrTrackCol::iterator trackItr = tree->begin();
 
@@ -357,16 +357,22 @@ StatusCode TkrEnergySplitTool::SetTrackEnergies()
 
         // ALWAYS fill the ntuple so one can study offline...
         // To do that we need to find the collection of cal clusters to get the raw energy
-        Event::CalClusterCol* clusterCol = SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
+        Event::CalClusterMap* clusterMap = SmartDataPtr<Event::CalClusterMap>(m_dataSvc,EventModel::CalRecon::CalClusterMap);
+
+        // Recover the raw cluster vec
+        Event::CalClusterVec clusterVec;
+        
+        // But only if cal clusters... 
+        if (clusterMap) clusterVec = clusterMap->getRawClusterVec();
 
         // Also retrieve a pointer to the tree to cluster association map (if there)
         Event::TreeToRelationMap* treeToRelationMap = SmartDataPtr<Event::TreeToRelationMap>(m_dataSvc, EventModel::Recon::TreeToRelationMap);
 
-		// To use the classification we actually need the full track collection too
-		Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol);
+        // To use the classification we actually need the full track collection too
+        Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc,EventModel::TkrRecon::TkrTrackCol);
 
         // Use these to "set" the tuple variables for the classification
-        setTupleValues(treeCol, trackCol, clusterCol, treeToRelationMap);
+        setTupleValues(treeCol, trackCol, &clusterVec, treeToRelationMap);
 
         // Check the status of the first track in the list 
         // Should be NO cosmic ray tracks in this list (they are stored separately in the TDS)
@@ -386,7 +392,7 @@ StatusCode TkrEnergySplitTool::SetTrackEnergies()
                 // no cal info... set track energies to MS energies if possible.
                 double minEnergy = m_control->getMinEnergy();
                                 
-				if (secndCandTrk) minEnergy *=0.5;    // RJ
+                if (secndCandTrk) minEnergy *=0.5;    // RJ
 
                 if (firstCandTrk->getNumFitHits() > 7) 
                 {
@@ -408,15 +414,15 @@ StatusCode TkrEnergySplitTool::SetTrackEnergies()
                 double cal_Energy = std::max(tkrEventParams->getEventEnergy(), 0.5*m_control->getMinEnergy());
 
                 // Augment Cal energy with tracker energy loss
-				double ene_total = m_tkrEnergyTool->getEvtEnergyEstimation(firstCandTrk);
+                double ene_total = m_tkrEnergyTool->getEvtEnergyEstimation(firstCandTrk);
 
                 // Now constrain the energies of the first 2 tracks. 
-				// If only one track then give it the predetermined fraction of total event energy
+                // If only one track then give it the predetermined fraction of total event energy
                 if (!secndCandTrk)
                 {
                     setTrackEnergy(firstCandTrk, ene_total);
                 } 
-				// Divide up the energy between the first two tracks
+                // Divide up the energy between the first two tracks
                 else                       
                 {
                     setTrackEnergies(firstCandTrk, secndCandTrk, ene_total);
@@ -425,22 +431,22 @@ StatusCode TkrEnergySplitTool::SetTrackEnergies()
         }
     }
 
-	// Now reset the energy of the remaining tracks
+    // Now reset the energy of the remaining tracks
     while(treeItr != treeCol->end())
-	{
-		Event::TkrTree* tree = *treeItr++;
+    {
+        Event::TkrTree* tree = *treeItr++;
 
-		if (!tree->empty())
-		{
-			for (Event::TkrTrackCol::iterator trackItr = tree->begin(); trackItr != tree->end(); trackItr++)
-			{
-				Event::TkrTrack* track = *trackItr;
+        if (!tree->empty())
+        {
+            for (Event::TkrTrackCol::iterator trackItr = tree->begin(); trackItr != tree->end(); trackItr++)
+            {
+                Event::TkrTrack* track = *trackItr;
 
-				setTrackEnergy(track, m_control->getMinEnergy());
-			}
-		}
-	}
-	
+                setTrackEnergy(track, m_control->getMinEnergy());
+            }
+        }
+    }
+    
     return sc;
 }
 
@@ -486,8 +492,8 @@ void TkrEnergySplitTool::setTrackEnergies(Event::TkrTrack* first, Event::TkrTrac
 }
     
 void TkrEnergySplitTool::setTupleValues(Event::TkrTreeCol*        trees, 
-										Event::TkrTrackCol*       tracks,
-                                        Event::CalClusterCol*     calClusters,
+                                        Event::TkrTrackCol*       tracks,
+                                        Event::CalClusterVec*     calClusters,
                                         Event::TreeToRelationMap* treeToRelationMap)
 {
     // Set the "tuple" values that are used in this objects classification tree here
