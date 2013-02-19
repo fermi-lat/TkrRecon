@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.48 2013/02/13 17:47:22 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.49 2013/02/19 04:16:18 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -443,7 +443,9 @@ StatusCode TreeBasedTool::firstPass()
                         if (m_reorderTrees)
                         {
                             // Recover the Cal Cluster Vec
-                            Event::CalClusterVec& calClusterVec = calClusterMap->getRawClusterVec();
+                            Event::CalClusterVec calClusterVec;
+                            
+                            if (calClusterMap) calClusterVec = calClusterMap->getRawClusterVec();
 
                             Event::TreeClusterRelationVec treeRelVec = buildTreeRelVec(m_treeClusterAssociator->getClusterToRelationMap(), 
                                                                                        m_treeClusterAssociator->getTreeToRelationMap(), 

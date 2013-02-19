@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Filter/TkrCalFilterTool.cxx,v 1.9 2012/04/25 04:54:33 heather Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrCalFilterTool.cxx,v 1.10 2013/02/19 04:16:17 usher Exp $
  */
 
 // to turn one debug variables
@@ -129,7 +129,7 @@ StatusCode TkrCalFilterTool::doFilterStep()
     Event::CalEventEnergyMap* calEventEnergyMap = 
             SmartDataPtr<Event::CalEventEnergyMap>(m_dataSvc,EventModel::CalRecon::CalEventEnergyMap);
 
-    if (calEventEnergyMap && !calEventEnergyMap->empty())
+    if (calEventEnergyMap != 0 && !calEventEnergyMap->empty())
     {
         // Recover the collection of Cal Clusters in the TDS
         Event::CalClusterMap* calClusterMap = 
