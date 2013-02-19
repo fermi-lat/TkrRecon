@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.55 2013/01/23 11:43:08 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.56 2013/02/13 18:24:30 usher Exp $
  */
 
 // to turn one debug variables
@@ -1110,7 +1110,7 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
 
         // Update this TDS cov mat for fit track angles
         const Event::TkrCluster* cluster = filterHit.getClusterPtr();
-        measCov = m_fitErrs->computeMeasErrs(refHitFilteredParams, measCov, *cluster );
+        measCov = m_fitErrs->computeMeasErrs(refHitFilteredParams, measCov, *cluster, m_hitErrorScaleFactor );
 
         // Extract the measured state vector from the TDS version
         // There must be a better way to do this...

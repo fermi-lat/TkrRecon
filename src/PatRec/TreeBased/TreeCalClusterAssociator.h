@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.h,v 1.7 2012/12/08 17:32:18 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.h,v 1.8 2013/01/29 20:43:19 usher Exp $
  *
 */
 
@@ -18,13 +18,13 @@
 #include <vector>
 
 #include "Event/Recon/TkrRecon/TkrTree.h"
-#include "Event/Recon/CalRecon/CalCluster.h"
+#include "Event/Recon/CalRecon/CalClusterMap.h"
 #include "Event/Recon/TreeClusterRelation.h"
 
 class TreeCalClusterAssociator 
 {
 public:
-    TreeCalClusterAssociator(Event::CalClusterCol* calClusterCol,
+    TreeCalClusterAssociator(Event::CalClusterMap* calClusterMap,
                              IDataProviderSvc*     dataSvc, 
                              ITkrGeometrySvc*      geoSvc,
                              double                minTreeToClusterDoca = 2000.);
@@ -34,8 +34,8 @@ public:
     /// Method to build the tree objects
     int                            associateTreeToClusters(Event::TkrTree* tree);
 
-	/// Method to associate a given Tree to the uber and uber2 clusters (if they exist)
-	int                            associateTreeToUbers(Event::TkrTree* tree);
+    /// Method to associate a given Tree to the uber and uber2 clusters (if they exist)
+    int                            associateTreeToUbers(Event::TkrTree* tree);
 
     /// Return the Track to relation map
     Event::TreeClusterRelationVec* getTreeToRelationVec(Event::TkrTree* tree);
@@ -44,12 +44,12 @@ public:
     Event::TreeClusterRelationVec* getClusterToRelationVec(Event::CalCluster* cluster);
     Event::ClusterToRelationMap*   getClusterToRelationMap()                           {return m_clusterToRelationMap;}
 
-	/// Given an input Tree, remove all existing relations to Cluster(s)
-	void                           removeTreeClusterRelations(Event::TkrTree* tree);
+    /// Given an input Tree, remove all existing relations to Cluster(s)
+    void                           removeTreeClusterRelations(Event::TkrTree* tree);
 private:
 
     /// Pointer to the Cal Cluster collection in the TDS
-    Event::CalClusterCol*          m_calClusterCol;
+    Event::CalClusterMap*          m_calClusterMap;
 
     /// Data provider service
     IDataProviderSvc*              m_dataSvc;

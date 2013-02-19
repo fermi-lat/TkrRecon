@@ -6,7 +6,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Filter/TkrVecPointsFilterTool.cxx,v 1.6 2011/04/21 18:53:17 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Filter/TkrVecPointsFilterTool.cxx,v 1.7 2011/12/12 20:57:08 heather Exp $
  */
 
 // to turn one debug variables
@@ -32,7 +32,7 @@
 #include "Event/Recon/TkrRecon/TkrBoundBoxPoints.h"
 #include "Event/Recon/TkrRecon/TkrBoundBoxLinks.h"
 #include "Event/Recon/CalRecon/CalEventEnergy.h"
-#include "Event/Recon/CalRecon/CalCluster.h"
+#include "Event/Recon/CalRecon/CalClusterMap.h"
 #include "Event/TopLevel/EventModel.h"
 
 // Utilities, geometry, etc.
@@ -369,12 +369,12 @@ Event::TkrEventParams* TkrVecPointsFilterTool::setDefaultValues()
             // Note that this assumes a one-to-one correspondence between the CalEventEnergy and 
             // CalCluster objects which is not, in general, correct. It is CURRENTLY correct for 
             // the CalValsCorrTool... (10/15/07)
-            Event::CalClusterCol* calClusters = 
-                SmartDataPtr<Event::CalClusterCol>(m_dataSvc,EventModel::CalRecon::CalClusterCol);
-            if (!calClusters->empty())
+            Event::CalClusterMap* calClusterMap = 
+                SmartDataPtr<Event::CalClusterMap>(m_dataSvc,EventModel::CalRecon::CalClusterMap);
+            if (!calClusterMap->empty())
             {
-                tkrEventParams->setTransRms(calClusters->front()->getRmsTrans());
-                tkrEventParams->setLongRmsAve(calClusters->front()->getRmsLong());
+                tkrEventParams->setTransRms(calClusterMap->getRawClusterVec().front()->getRmsTrans());
+                tkrEventParams->setLongRmsAve(calClusterMap->getRawClusterVec().front()->getRmsLong());
             }
         }
     }

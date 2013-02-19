@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.cxx,v 1.23 2012/12/08 17:32:18 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.cxx,v 1.24 2013/01/29 20:43:19 usher Exp $
  *
 */
 
@@ -19,11 +19,11 @@
 
 #include <iterator>
 
-TreeCalClusterAssociator::TreeCalClusterAssociator(Event::CalClusterCol* calClusterCol,
+TreeCalClusterAssociator::TreeCalClusterAssociator(Event::CalClusterMap* calClusterMap,
                                                    IDataProviderSvc*     dataSvc, 
                                                    ITkrGeometrySvc*      geoSvc,
                                                    double                minTreeToClusterDoca)
-                              : m_calClusterCol(calClusterCol),
+                              : m_calClusterMap(calClusterMap),
                                 m_dataSvc(dataSvc), 
                                 m_tkrGeom(geoSvc),
                                 m_minTreeToClusterDoca(minTreeToClusterDoca),
@@ -86,7 +86,7 @@ int TreeCalClusterAssociator::associateTreeToClusters(Event::TkrTree* tree)
 
     // It can happen that we are doing tracking with no cal cluster collection available
     // Check to make sure we have valid clusters, otherwise skip this step
-    if (m_calClusterCol)
+    if (m_calClusterMap != 0 && !m_calClusterMap->getRawClusterVec().empty())
     {
         int lastLayer = tree->getHeadNode()->getTreeStartLayer() - tree->getHeadNode()->getDepth();
 
@@ -115,19 +115,15 @@ int TreeCalClusterAssociator::associateTreeToClusters(Event::TkrTree* tree)
             // Ok, we are being quite generous here!
             if (fabs(posAtCalTop.x()) < calXMax + 500. && fabs(posAtCalTop.y()) < calYMax + 500.) 
             {
-                // Initialize loop end point
-                Event::CalClusterCol::iterator lastItr = m_calClusterCol->end();
-
-                // When more than one cluster the last is the "uber", the second to last is
-                // the "uber2" and they are to be ignored
-                if (m_calClusterCol->size() > 1) lastItr = m_calClusterCol->end() - 2;
+                // Get a copy of the raw cluster vec
+                Event::CalClusterVec& clusterVec = m_calClusterMap->getRawClusterVec();
 
                 // If more than one cal cluster then we only consider those that have "significant" energy
                 // which we loosely define as within 10% of the main cluster
-                double minClusEnergy = 0.1 * m_calClusterCol->front()->getXtalsParams().getXtalRawEneSum();
+                double minClusEnergy = 0.1 * clusterVec.front()->getXtalsParams().getXtalRawEneSum();
 
                 // Of course, there are always complications...
-                if (m_calClusterCol->size() > 1)
+                if (clusterVec.size() > 1)
                 {
                     // Need to make sure our cut is not too small... but is big enough...
                     // Solution is to make above cut very close to primary cluster energy
@@ -135,7 +131,7 @@ int TreeCalClusterAssociator::associateTreeToClusters(Event::TkrTree* tree)
                 }
 
                 // Loop through the list of clusters
-                for(Event::CalClusterCol::iterator clusItr = m_calClusterCol->begin(); clusItr != lastItr; clusItr++)
+                for(Event::CalClusterVec::iterator clusItr = clusterVec.begin(); clusItr != clusterVec.end(); clusItr++)
                 {
                     Event::CalCluster* cluster = *clusItr;
 
@@ -210,7 +206,7 @@ int TreeCalClusterAssociator::associateTreeToUbers(Event::TkrTree* tree)
 
     // We are here to relate the input tree to the two uber clusters
     // obviously, there is nothing to do if one or less cal clusters
-    if (m_calClusterCol && m_calClusterCol->size() > 1)
+    if (m_calClusterMap != 0 && !m_calClusterMap->getUberCluster())
     {
         // Recover the tree parameters and get the variables we'll need
         const Event::TkrFilterParams* axisParams   = tree->getAxisParams();
@@ -232,13 +228,16 @@ int TreeCalClusterAssociator::associateTreeToUbers(Event::TkrTree* tree)
         // Only consider if axis projection is within region of calorimeter
         if (abs(posAtCalTop.x()) < calXMax + 500. && abs(posAtCalTop.y()) < calYMax + 500.) 
         {
-            // Initialize loop start point
-            Event::CalClusterCol::iterator clusItr = m_calClusterCol->end() - 2;
-
-            // Loop through the last two clusters, first is uber2, last is uber
-            while(clusItr != m_calClusterCol->end())
+            // We want to iterate over the clusters that are NOT raw clusters
+            for(Event::CalClusterMap::iterator clusterMapItr  = m_calClusterMap->begin();
+                                               clusterMapItr != m_calClusterMap->end();
+                                               clusterMapItr++)
             {
-                Event::CalCluster* cluster = *clusItr++;
+                // If the key is for the raw cluster we move on 
+                if (clusterMapItr->first == EventModel::CalRecon::CalRawClusterVec) continue;
+
+                // We are dealing with the uber clusters now, so grab the cluster off the front
+                Event::CalCluster* cluster = clusterMapItr->second.front();
 
                 // Not interested in single crystals...
 //              if (cluster->getMomParams().getNumXtals() < 2) continue;
