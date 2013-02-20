@@ -6,9 +6,9 @@
  * @authors Tracy Usher
  *
 <<<<<<< TkrVecNodesBuilder.cxx
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.32 2012/12/12 03:02:09 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.33 2012/12/13 03:13:21 usher Exp $
 =======
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.32 2012/12/12 03:02:09 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.33 2012/12/13 03:13:21 usher Exp $
 >>>>>>> 1.10
  *
 */
@@ -21,7 +21,7 @@
 
 TkrVecNodesBuilder::TkrVecNodesBuilder(IDataProviderSvc* dataSvc, 
                                        ITkrGeometrySvc*  geoSvc,
-									   double            energy)
+                                       double            energy)
                                        : m_tkrGeom(geoSvc)
 {
     // Retrieve the TkrVecPointInfo and TkrVecPointsLinkInfo objects from the TDS
@@ -77,7 +77,7 @@ TkrVecNodesBuilder::TkrVecNodesBuilder(IDataProviderSvc* dataSvc,
 //        double kinkFctr = 0.1825 - 0.0625 * expVecPoints;
         double kinkFctr = 4. - energy / 100.;
 
-		kinkFctr = std::max(2.,kinkFctr/2.);
+        kinkFctr = std::max(2.,kinkFctr/2.);
 
         m_cosKinkCut = cos(kinkFctr * M_PI / 8.);
     }
@@ -231,18 +231,32 @@ public:
         }
         else
         {
+            // If one link does not skip and the other does, then the one that doesn't is "better"
             if      (!left->getSecond()->skipsLayers() &&  right->getSecond()->skipsLayers()) return true;
             else if ( left->getSecond()->skipsLayers() && !right->getSecond()->skipsLayers()) return false;
-            else if ( left->getSecond()->skip1Layer()  &&  right->getSecond()->skip2Layer() ) return true;
-            else if ( left->getSecond()->skip2Layer()  &&  right->getSecond()->skip1Layer() ) return false;
-            else if ( left->getSecond()->skip1Layer()  &&  right->getSecond()->skip3Layer() ) return true;
-            else if ( left->getSecond()->skip3Layer()  &&  right->getSecond()->skip1Layer() ) return false;
-            else if ( left->getSecond()->skip2Layer()  &&  right->getSecond()->skip3Layer() ) return true;
-            else if ( left->getSecond()->skip3Layer()  &&  right->getSecond()->skip2Layer() ) return false;
+
+            // Both links skip at least one layer
+            // Check the next level, if one link skips one layer and the other skips more then the 
+            // one skipping one layer is "better"
+            else if ( left->getSecond()->skip1Layer()  && !right->getSecond()->skip1Layer() ) return true;
+            else if (!left->getSecond()->skip1Layer()  &&  right->getSecond()->skip1Layer() ) return false;
+
+            // Both links skip at least two layers 
+            // Check the next level with same logic
+            else if ( left->getSecond()->skip2Layer()  && !right->getSecond()->skip2Layer() ) return true;
+            else if (!left->getSecond()->skip2Layer()  &&  right->getSecond()->skip2Layer() ) return false;
+
+            // Both links skip at least three layers
+            // Note that we have covered the case where both skip 3 layers, so the only possibility
+            // here, really, is that one skips 3 layers, the other skips N layers
+            else if ( left->getSecond()->skip3Layer()  && !right->getSecond()->skip3Layer() ) return true;
+            else if (!left->getSecond()->skip3Layer()  &&  right->getSecond()->skip3Layer() ) return false;
+
+            // That should exhaust the possibilities, so we should never end up here
             else
             {
                 int cantbehere = 0;
-                return true;
+                return false; // obey strict weak ordering
             }
         }
     }
