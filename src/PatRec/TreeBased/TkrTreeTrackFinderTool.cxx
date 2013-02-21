@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.17 2012/12/13 03:13:21 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.18 2012/12/13 21:36:25 usher Exp $
  *
 */
 #include "ITkrTreeTrackFinder.h"
@@ -167,7 +167,7 @@ private:
 
     /// Parameter to control number of shared leading hits
     int                    m_maxSharedLeadingHits;
-	int                    m_numHitsToBeLeading;
+    int                    m_numHitsToBeLeading;
 
     /// Parameter used in track hit finding determining maximum gaps between hits
     int                    m_maxGaps;
@@ -205,7 +205,7 @@ TkrTreeTrackFinderTool::TkrTreeTrackFinderTool(const std::string& type, const st
     declareProperty("TkrTreeAngRatioSelection", m_tkrTreeAngRatioSelection = 2.); //1.025); //1);
     declareProperty("TkrChiSqDiffSelection",    m_chiSqDiffSelection       = 0.);
     declareProperty("MaxSharedLeadingHits",     m_maxSharedLeadingHits     = 2); // 5);
-	declareProperty("NumHitsToBeLeading",       m_numHitsToBeLeading       = 6);
+    declareProperty("NumHitsToBeLeading",       m_numHitsToBeLeading       = 6);
     declareProperty("MaxGaps",                  m_maxGaps                  = 2);
     declareProperty("MaxConsecutiveGaps",       m_maxConsecutiveGaps       = 1);
     declareProperty("FirstTrackEnergyFrac",     m_frstTrackEnergyScaleFctr = 0.75);
@@ -588,11 +588,11 @@ Event::TkrVecNode* TkrTreeTrackFinderTool::findBestLeaf(TkrVecNodeLeafQueue& lea
         int nUniqueXHits = 0;
         int nUniqueYHits = 0;
 
-		// Keep track of leading shared hits
-		int nLeadingSharedHits = 0;
+        // Keep track of leading shared hits
+        int nLeadingSharedHits = 0;
 
-		// Keep track of total number shared hits
-		int nSharedHits = 0;
+        // Keep track of total number shared hits
+        int nSharedHits = 0;
     
         while(leaf->getParentNode())
         {
@@ -624,24 +624,24 @@ Event::TkrVecNode* TkrTreeTrackFinderTool::findBestLeaf(TkrVecNodeLeafQueue& lea
                 // If the cluster is used but does NOT satisfy the sharing condition
                 // then mark it here for counting in the end
                 if (xClusUsed) 
-				{
-					nSharedHits++;
-					if (xCluster->size() <= xCalcWidth) 
-					{
-						notAllowedMask |= 0x01;
-						if (leaf->getDepth() <= depthCheck) nLeadingSharedHits++;
-					}
-				}
+                {
+                    nSharedHits++;
+                    if (xCluster->size() <= xCalcWidth) 
+                    {
+                        notAllowedMask |= 0x01;
+                        if (leaf->getDepth() <= depthCheck) nLeadingSharedHits++;
+                    }
+                }
                 else nUniqueXHits++;
                 if (yClusUsed) 
-				{
-					nSharedHits++;
-					if (yCluster->size() <= yCalcWidth) 
-					{
-						notAllowedMask |= 0x02;
-						if (leaf->getDepth() <= depthCheck) nLeadingSharedHits++;
-					}
-				}
+                {
+                    nSharedHits++;
+                    if (yCluster->size() <= yCalcWidth) 
+                    {
+                        notAllowedMask |= 0x02;
+                        if (leaf->getDepth() <= depthCheck) nLeadingSharedHits++;
+                    }
+                }
                 else nUniqueYHits++;
             }
             else
@@ -692,12 +692,12 @@ Event::TkrVecNode* TkrTreeTrackFinderTool::findBestLeaf(TkrVecNodeLeafQueue& lea
 
         Event::TkrVecNode* curLeaf = leafQueue.top();
 
-		int nUniqueHits = nUniqueXHits + nUniqueYHits;
+        int nUniqueHits = nUniqueXHits + nUniqueYHits;
         
         if (    nLeadingSharedHits  < m_maxSharedLeadingHits   // Conditions to be "allowed" track
-			&&  nSharedHits         < nBiLayers                // | cannot share more than half the hits on the track
+            &&  nSharedHits         < nBiLayers                // | cannot share more than half the hits on the track
             &&  nBiLayers          >= bestNumBiLayers          // |
-			&&  nUniqueHits        >= mostUniqueHits           // |
+            &&  nUniqueHits        >= mostUniqueHits           // |
             &&  dist2MainBrnch     >= minDist2Main             // ********************************
             && (nBiLayers          >= bestNumBiLayers && curLeaf->getBestRmsAngle() < bestRmsAngle)
             )
@@ -834,8 +834,9 @@ Event::TkrTrack* TkrTreeTrackFinderTool::getTkrTrackFromHits(Point            st
             throw(TkrException("Exception encountered when fitting track in tree TkrTreeTrackFinderTool::getTkrTrackFromHits "));  
         }
 
-        // Make sure the composite bit is set
+        // Make sure the composite bit is set, as well that its from Tree Based Tracking
         track->setStatusBit(Event::TkrTrack::COMPOSITE);
+        track->setStatusBit(Event::TkrTrack::TREEBASED);
     }
     else
     {
