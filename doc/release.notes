@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-38-09 21-Feb-2013 TU Fix two errors: TKRTREE bit set for composite tracks, compile error in associator
  TkrRecon-10-38-08 20-Feb-2013 TU Bug fixes: Unguarded sort error in link sort, left out hitErrorScaleFactor in one call now fixed
  TkrRecon-10-38-07 13-Feb-2013  lsrea clear TkrCRTRackCol in case of error in TkrReconAlg
  TkrRecon-10-38-06 13-Feb-2013 TU At Leon's request, clear TkrTreeCol in HandleError along with TkrTrackCol
