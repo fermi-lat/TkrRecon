@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.cxx,v 1.24 2013/01/29 20:43:19 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeCalClusterAssociator.cxx,v 1.25 2013/02/19 04:16:18 usher Exp $
  *
 */
 
@@ -116,7 +116,7 @@ int TreeCalClusterAssociator::associateTreeToClusters(Event::TkrTree* tree)
             if (fabs(posAtCalTop.x()) < calXMax + 500. && fabs(posAtCalTop.y()) < calYMax + 500.) 
             {
                 // Get a copy of the raw cluster vec
-                Event::CalClusterVec& clusterVec = m_calClusterMap->getRawClusterVec();
+                Event::CalClusterVec clusterVec = m_calClusterMap->getRawClusterVec();
 
                 // If more than one cal cluster then we only consider those that have "significant" energy
                 // which we loosely define as within 10% of the main cluster
