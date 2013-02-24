@@ -6,9 +6,9 @@
  * @authors Tracy Usher
  *
 <<<<<<< TkrVecNodesBuilder.cxx
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.33 2012/12/13 03:13:21 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.34 2013/02/20 19:05:36 usher Exp $
 =======
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.33 2012/12/13 03:13:21 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.34 2013/02/20 19:05:36 usher Exp $
 >>>>>>> 1.10
  *
 */
@@ -218,6 +218,25 @@ public:
 
     const bool operator()(const Event::TkrVecPointToLinksRel* left, const Event::TkrVecPointToLinksRel* right) const
     {
+        // Our plan is to sort by the shortest link and for those of the same length (number
+        // of skipped layers) we sort by the closest in direction to the reference link. 
+        // First step is to get the number of skipped layers
+        unsigned int nSkippedLeft  = ( left->getSecond()->getStatusBits() & Event::TkrVecPointsLink::SKIPSLAYERS) >> 4;
+        unsigned int nSkippedRight = (right->getSecond()->getStatusBits() & Event::TkrVecPointsLink::SKIPSLAYERS) >> 4;
+
+        // Ok, if they skip the same number of layers then we have to check angles
+        if (nSkippedLeft == nSkippedRight)
+        {
+            double quadSumLeft  = m_builder->getLinkAssociation(m_baseLink, left->getSecond());
+            double quadSumRight = m_builder->getLinkAssociation(m_baseLink, right->getSecond());
+
+            return quadSumLeft < quadSumRight;
+        }
+
+        // Otherwise we are simply asking which skips the fewer number of layers
+        return nSkippedLeft < nSkippedRight;
+
+/*
         // Idea is to sort by link which is closest in direction to the reference link. 
         // This translates to taking the link whose dot product is largest (closest to 1)
         // But we want links that skip layers at the end
@@ -259,6 +278,7 @@ public:
                 return false; // obey strict weak ordering
             }
         }
+*/
     }
 private:
     const Event::TkrVecPointsLink* m_baseLink;
