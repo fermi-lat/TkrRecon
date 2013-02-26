@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.49 2013/02/19 04:16:18 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.50 2013/02/19 18:54:08 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -784,8 +784,8 @@ public:
                           const Event::TreeClusterRelation* right) const
     {
         // Form a "blended" doca/angle to cluster
-        double leftDocaByAngle  = left->getTreeClusDoca()  / std::max(0.0001,left->getTreeClusCosAngle());
-        double rightDocaByAngle = right->getTreeClusDoca() / std::max(0.0001,right->getTreeClusCosAngle());
+        double leftDocaByAngle  = left->getTreeClusDoca()  / std::max(0.0001,std::fabs(left->getTreeClusCosAngle()));
+        double rightDocaByAngle = right->getTreeClusDoca() / std::max(0.0001,std::fabs(right->getTreeClusCosAngle()));
 
         // Try sorting simply by closest DOCA or angle
         if (leftDocaByAngle < rightDocaByAngle)
@@ -861,7 +861,7 @@ Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRel
                                 int    treeLength = rel->getTree()->getHeadNode()->getBestNumBiLayers();
                                 int deltaLen   = bestTreeLength - treeLength;
 
-                                if (deltaLen > 7 || (deltaLen > 3 && treeCalDoca > calTransRms)) break;
+                                if (deltaLen > 6 || (deltaLen > 2 && treeCalDoca > 3. * calTransRms)) break;
 
                                 lastItr++;
                             }
