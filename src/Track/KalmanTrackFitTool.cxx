@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.56 2013/02/13 18:24:30 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.57 2013/02/19 04:16:19 usher Exp $
  */
 
 // to turn one debug variables
@@ -637,6 +637,9 @@ void KalmanTrackFitTool::doResidualsCalc(Event::TkrTrack& track)
             Event::TkrTrackParams& revParams = hit->getTrackParams(Event::TkrTrackHit::REVFIT);
             revParams = Event::TkrTrackParams();
         }
+
+        // Set the bit indicating the residuals are here
+        hit->setStatusBit(Event::TkrTrackHit::REVFIT);
     }
 
     return;
