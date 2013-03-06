@@ -5,11 +5,7 @@
  *
  * @authors Tracy Usher
  *
-<<<<<<< TkrVecNodesBuilder.cxx
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.34 2013/02/20 19:05:36 usher Exp $
-=======
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.34 2013/02/20 19:05:36 usher Exp $
->>>>>>> 1.10
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.35 2013/02/24 16:38:44 usher Exp $
  *
 */
 
@@ -213,8 +209,8 @@ int TkrVecNodesBuilder::buildTrackElements()
 class ComparePointToNodeRels
 {
 public:
-    ComparePointToNodeRels(const Event::TkrVecPointsLink* inLink, const TkrVecNodesBuilder* builder) : 
-      m_baseLink(inLink), m_builder(builder) {}
+    ComparePointToNodeRels(const Event::TkrVecPointsLink* inLink, const TkrVecNodesBuilder* builder, const bool verbose=false) : 
+      m_baseLink(inLink), m_builder(builder), m_verbose(verbose) {}
 
     const bool operator()(const Event::TkrVecPointToLinksRel* left, const Event::TkrVecPointToLinksRel* right) const
     {
@@ -224,65 +220,27 @@ public:
         unsigned int nSkippedLeft  = ( left->getSecond()->getStatusBits() & Event::TkrVecPointsLink::SKIPSLAYERS) >> 4;
         unsigned int nSkippedRight = (right->getSecond()->getStatusBits() & Event::TkrVecPointsLink::SKIPSLAYERS) >> 4;
 
+        if (m_verbose) std::cout << "nSkippedLeft, nSkippedRight = " << nSkippedLeft << ", " << nSkippedRight << std::endl;
+
         // Ok, if they skip the same number of layers then we have to check angles
         if (nSkippedLeft == nSkippedRight)
         {
             double quadSumLeft  = m_builder->getLinkAssociation(m_baseLink, left->getSecond());
             double quadSumRight = m_builder->getLinkAssociation(m_baseLink, right->getSecond());
+  
+            if (m_verbose) std::cout << "quadSumLeft, quadSumRight = " << quadSumLeft << ", " << quadSumRight << std::endl;
 
             return quadSumLeft < quadSumRight;
         }
 
         // Otherwise we are simply asking which skips the fewer number of layers
         return nSkippedLeft < nSkippedRight;
+   }
 
-/*
-        // Idea is to sort by link which is closest in direction to the reference link. 
-        // This translates to taking the link whose dot product is largest (closest to 1)
-        // But we want links that skip layers at the end
-        if (( left->getSecond()->getStatusBits() & Event::TkrVecPointsLink::SKIPSLAYERS) ==
-            (right->getSecond()->getStatusBits() & Event::TkrVecPointsLink::SKIPSLAYERS) )
-        {
-            double quadSumLeft  = m_builder->getLinkAssociation(m_baseLink, left->getSecond());
-            double quadSumRight = m_builder->getLinkAssociation(m_baseLink, right->getSecond());
-
-            return quadSumLeft < quadSumRight;
-        }
-        else
-        {
-            // If one link does not skip and the other does, then the one that doesn't is "better"
-            if      (!left->getSecond()->skipsLayers() &&  right->getSecond()->skipsLayers()) return true;
-            else if ( left->getSecond()->skipsLayers() && !right->getSecond()->skipsLayers()) return false;
-
-            // Both links skip at least one layer
-            // Check the next level, if one link skips one layer and the other skips more then the 
-            // one skipping one layer is "better"
-            else if ( left->getSecond()->skip1Layer()  && !right->getSecond()->skip1Layer() ) return true;
-            else if (!left->getSecond()->skip1Layer()  &&  right->getSecond()->skip1Layer() ) return false;
-
-            // Both links skip at least two layers 
-            // Check the next level with same logic
-            else if ( left->getSecond()->skip2Layer()  && !right->getSecond()->skip2Layer() ) return true;
-            else if (!left->getSecond()->skip2Layer()  &&  right->getSecond()->skip2Layer() ) return false;
-
-            // Both links skip at least three layers
-            // Note that we have covered the case where both skip 3 layers, so the only possibility
-            // here, really, is that one skips 3 layers, the other skips N layers
-            else if ( left->getSecond()->skip3Layer()  && !right->getSecond()->skip3Layer() ) return true;
-            else if (!left->getSecond()->skip3Layer()  &&  right->getSecond()->skip3Layer() ) return false;
-
-            // That should exhaust the possibilities, so we should never end up here
-            else
-            {
-                int cantbehere = 0;
-                return false; // obey strict weak ordering
-            }
-        }
-*/
-    }
 private:
     const Event::TkrVecPointsLink* m_baseLink;
     const TkrVecNodesBuilder*      m_builder;
+    const bool                     m_verbose;
 };
 
 void TkrVecNodesBuilder::associateLinksToTrees(Event::TkrVecNodeSet& headNodes, const Event::TkrVecPoint* point)
@@ -446,8 +404,10 @@ Event::TkrVecPointToNodesRel* TkrVecNodesBuilder::findBestNodeLinkMatch(Event::T
         Event::TkrVecNode* node = bestNodeRel->getSecond();
 
         // Can only sort if not a head node
-        if (node->getAssociatedLink()) 
+        if (node->getAssociatedLink() != 0 && pointToLinkVec.size() > 0)
+	{ 
             std::sort(pointToLinkVec.begin(), pointToLinkVec.end(), ComparePointToNodeRels(node->getAssociatedLink(), this));
+        }
     }
     // Otherwise we evaluate whether we should create the head of a new tree
     else
