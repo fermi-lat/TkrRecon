@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.57 2013/02/19 04:16:19 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.58 2013/03/06 22:55:48 usher Exp $
  */
 
 // to turn one debug variables
@@ -630,6 +630,9 @@ void KalmanTrackFitTool::doResidualsCalc(Event::TkrTrack& track)
 
             // Restore the hit on fit status bit
             hit->setStatusBit(hitOnFitStatusBit);
+
+            // Set the bit indicating the residuals are here
+            hit->setStatusBit(Event::TkrTrackHit::HASREVFIT);
         }
         // Otherwise we make sure the reverse filter params are zero
         else
@@ -639,7 +642,6 @@ void KalmanTrackFitTool::doResidualsCalc(Event::TkrTrack& track)
         }
 
         // Set the bit indicating the residuals are here
-        hit->setStatusBit(Event::TkrTrackHit::REVFIT);
     }
 
     return;
