@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.33 2011/10/05 19:31:00 usher Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.34 2011/12/12 20:57:11 heather Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -77,7 +77,6 @@ private:
 
     /// Keep pointers to the TDS containers
     Event::TkrTrackCol*    m_tdsTracks;
-    Event::TkrTrackHitCol* m_tdsTrackHits;
 
     /// Internal lists of tracks for ordering
     TrackVec               m_firstTracks;
@@ -107,7 +106,7 @@ DECLARE_TOOL_FACTORY(MonteCarloFindTrackTool);
 //
 
 MonteCarloFindTrackTool::MonteCarloFindTrackTool(const std::string& type, const std::string& name, const IInterface* parent) :
-                    PatRecBaseTool(type, name, parent), m_mcBuildInfo(0), m_tdsTracks(0), m_tdsTrackHits(0)
+                    PatRecBaseTool(type, name, parent), m_mcBuildInfo(0), m_tdsTracks(0)
 {
     declareProperty("MaxGapSize",          m_maxGapSize     = 4);
     declareProperty("MaxNumGaps",          m_maxNumGaps     = 3);
@@ -200,12 +199,10 @@ StatusCode MonteCarloFindTrackTool::firstPass()
     }
 
     // Register a new TkrTrack collection and a new TkrTrackHit collection in the TDS
-    m_tdsTracks = new Event::TkrTrackCol();
-    m_tdsTrackHits  = new Event::TkrTrackHitCol();
+    SmartDataPtr<Event::TkrTrackMap> tdsTrackMap(m_dataSvc, EventModel::TkrRecon::TkrTrackMap);
 
-    //Register these objects in the TDS
-    sc = m_dataSvc->registerObject(EventModel::TkrRecon::TkrTrackCol,    m_tdsTracks);
-    sc = m_dataSvc->registerObject(EventModel::TkrRecon::TkrTrackHitCol, m_tdsTrackHits);
+    // We are not meant to be able to get here without a track collection in the TDS
+    m_tdsTracks = (*tdsTrackMap)[EventModel::TkrRecon::TkrTrackCol];
 
     // Clear the local track vectors
     m_firstTracks.clear();
@@ -535,9 +532,6 @@ Event::TkrTrack* MonteCarloFindTrackTool::createNewTrack(ClusMcPosHitRelVec&    
 
         // Add the hit to the track
         track->push_back(hit);
-                
-        // And register the hit in the TDS
-        m_tdsTrackHits->push_back(hit);
 
         // Keep count of X and Y hits
         if (hit->getTkrId().getView() == idents::TkrId::eMeasureX) 
