@@ -8,7 +8,7 @@
  *
  * @author Tracy Usher (editor) from version implemented by Leon Rochester (due to Bill Atwood)
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/ElectronMeasErrs.h,v 1.1 2013/01/23 11:16:40 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/ElectronMeasErrs.h,v 1.2 2013/02/13 18:24:30 usher Exp $
  */
 
 #ifndef ElectronMeasErrs_h
@@ -30,7 +30,7 @@ public:
     TkrCovMatrix computeMeasErrs(const Event::TkrTrackParams& newPars, 
                                  const TkrCovMatrix&          oldCovMat, 
                                  const Event::TkrCluster&     cluster,
-								 const double                 sclFctr);
+                                 const double                 sclFctr);
 
 private:
     // Define a private class which is used to compute the measured error
@@ -38,50 +38,65 @@ private:
     {
     public:
         MeasErrParams( int    clusterWidth
+                     , double stripPitch
                      , double stripAspect
-                     , double baseOffset
-                     , double edgeWidth
-                     , double edgeAmp
-                     , double edgeOffset
-                     , double edgePeriod
-                     , double bodyAmp
-                     , double bodyFctr
-                     , double bodyOffset
-                     , double tooBigAmp
-                     , double tooBigFctr
-                     , double tooBigOffset
-                     , double fudgeFactor) :
+                     , double xmax_1
+                     , double p0_1
+                     , double p1_1
+                     , double p2_1
+                     , double p3_1
+                     , double p4_1
+                     , double p5_1
+                     , double xmax_2
+                     , double p0_2
+                     , double p1_2
+                     , double p2_2
+                     , double p3_2
+                     , double p4_2
+                     , double p5_2
+                     , double p6_2
+                     , double p7_2) :
                        m_clusterWidth(clusterWidth)
+                     , m_stripPitch(stripPitch)
                      , m_stripAspect(stripAspect)
-                     , m_baseOffset(baseOffset)
-                     , m_edgeWidth(edgeWidth)
-                     , m_edgeAmp(edgeAmp)
-                     , m_edgeOffset(edgeOffset)
-                     , m_edgePeriod(edgePeriod)
-                     , m_bodyAmp(bodyAmp)
-                     , m_bodyFctr(bodyFctr)
-                     , m_bodyOffset(bodyOffset)
-                     , m_tooBigAmp(tooBigAmp)
-                     , m_tooBigFctr(tooBigFctr)
-                     , m_tooBigOffset(tooBigOffset)
-                     , m_fudgeFactor(fudgeFactor) {}
+                     , m_xmax_1(xmax_1)
+                     , m_p0_1(p0_1)
+                     , m_p1_1(p1_1)
+                     , m_p2_1(p2_1)
+                     , m_p3_1(p3_1)
+                     , m_p4_1(p4_1)
+                     , m_p5_1(p5_1)
+                     , m_xmax_2(xmax_2)
+                     , m_p0_2(p0_2)
+                     , m_p1_2(p1_2)
+                     , m_p2_2(p2_2)
+                     , m_p3_2(p3_2)
+                     , m_p4_2(p4_2)
+                     , m_p5_2(p5_2)
+                     , m_p6_2(p6_2)
+                     , m_p7_2(p7_2) {}
      
         double computeError(double clusterWidth, double slope);
     private:
         int    m_clusterWidth;
+        double m_stripPitch;
         double m_stripAspect;
-        double m_baseOffset;  //
-        double m_edgeWidth;
-        double m_edgeAmp;
-        double m_edgeOffset;
-        double m_edgePeriod;
-        double m_bodyAmp;
-        double m_bodyFctr;
-        double m_bodyOffset;
-        double m_tooBigAmp;
-        double m_tooBigFctr;
-        double m_tooBigOffset;
-        double m_fudgeFactor;
+        double m_xmax_1;
+        double m_p0_1;
+        double m_p1_1;
+        double m_p2_1;
+        double m_p3_1;
+        double m_p4_1;
+        double m_p5_1;
+        double m_xmax_2;
+        double m_p0_2;
+        double m_p1_2;
+        double m_p2_2;
+        double m_p3_2;
+        double m_p4_2;
+        double m_p5_2;
+        double m_p6_2;
+        double m_p7_2;
     };
 
     double getError(double strips, double slope) const;
