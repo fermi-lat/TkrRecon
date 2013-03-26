@@ -8,7 +8,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecLinkBuilderTool.cxx,v 1.6 2012/12/12 02:22:54 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks/TkrVecLinkBuilderTool.cxx,v 1.7 2013/01/29 20:43:20 usher Exp $
  *
 */
 
@@ -328,7 +328,7 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getSingleLayerLinks(const Po
         }
     }
     // If the energy is below threshold then there is no axis so set to point "up"
-	else m_eventAxis = Vector(0.,0.,1.);
+    else m_eventAxis = Vector(0.,0.,1.);
 
     // Set the tolerances for this event
     setDocaTolerances(refError, vecPointInfo);
@@ -515,7 +515,7 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
                 // Get the number of intervening bilayers
                 int nSkippedBiLayers = intBiLyrItr->first - botBiLyrItr->first - 1;
                     
-				if (std::distance(intBiLyrItr->second.first,intBiLyrItr->second.second) > 0)
+                if (std::distance(intBiLyrItr->second.first,intBiLyrItr->second.second) > 0)
                         m_numVecLinks += buildLinksGivenVecs(intBiLyrItr, botBiLyrItr);
             }
         }
@@ -560,7 +560,8 @@ void   TkrVecLinkBuilderTool::setAngleTolerances(double refError, Event::TkrVecP
 {
     // Set the default value for the tolerance angle
     m_tolerance      = M_PI/3.; // Take all comers!
-    m_tightTolerance = 2. * refError;
+//    m_tightTolerance = 2. * refError;
+    m_tightTolerance = refError;
 
     // Reset the norm'd projected distance cut
     m_nrmProjDistCut = m_nrmProjDistCutDef;
@@ -576,7 +577,8 @@ void   TkrVecLinkBuilderTool::setAngleTolerances(double refError, Event::TkrVecP
 
     // Recalculate the tight tolerance based on the number of vec points
     m_tolerance = 0.05 * M_PI * (27. - 7. * expVecPoints);
-    m_tolerance = std::max(M_PI/8., m_tolerance);
+//    m_tolerance = std::max(M_PI/8., m_tolerance);
+    m_tolerance = std::max(M_PI/16., m_tolerance);
 
     // Following is a completely ad hoc scheme to increase efficiency of link production
     // when there are a few number of hits, likely to happen at low energy
@@ -585,9 +587,9 @@ void   TkrVecLinkBuilderTool::setAngleTolerances(double refError, Event::TkrVecP
         double sclFctr = 1.7 - expVecPoints;
 
         m_nrmProjDistCut += sclFctr;
-		m_tightTolerance *= 2.;
+        m_tightTolerance *= 2.;
 
-		if (m_evtEnergy < 100.) m_tolerance = M_PI;
+        if (m_evtEnergy < 100.) m_tolerance = M_PI;
     }
 
     // Following is a completely ad hoc scheme to constrain links if we think 
@@ -627,12 +629,12 @@ void   TkrVecLinkBuilderTool::setDocaTolerances(double docaError, Event::TkrVecP
 
         m_nrmProjDistCut += sclFctr;
         m_tolerance      *= 6.;
-		m_tightTolerance  = 0.5 * m_tolerance;
+        m_tightTolerance  = 0.5 * m_tolerance;
 
-		if (m_evtEnergy < 100.)
-		{
-			m_tolerance = 2. * m_tkrGeom->calXWidth();
-		}
+        if (m_evtEnergy < 100.)
+        {
+            m_tolerance = 2. * m_tkrGeom->calXWidth();
+        }
     }
 
     // Following is a completely ad hoc scheme to constrain links if we think 
@@ -721,7 +723,7 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::re
             // Now do one or other depending on other or one
             if (m_usePosition)
             {    
-                // 3D Doca calculation here
+                // 3D Doca to event position calculation here
                 Vector startToEvent = m_eventPosition - candLink->getPosition();
                 double arcLen       = candLinkVec.dot(startToEvent);
                 Point  docaPos      = candLink->getPosition() + arcLen * candLinkVec;
@@ -733,22 +735,108 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::re
             }
             else
             {
-                // Check doca between candidate link and reference axis
-                Vector docaVec      = m_eventAxis.cross(candLinkVec);
+                // Check 3D doca between candidate link direction and reference axis
+                Vector docaDirVec   = m_eventAxis.cross(candLinkVec);
                 Vector startToEvent = m_eventPosition - candLink->getPosition();
-                double doca         = docaVec.unit().dot(startToEvent);
+                double docaBtwnAxes = docaDirVec.unit().dot(startToEvent);
 
-                if (fabs(doca) > m_tightTolerance)
+                // Get arclen to doca of event vec to cand link position
+                // Note signing here, if negative then canLink position is "above" the 
+                // "event" position (either Filter axis or Cal axis)
+                double arcLEvt2Cand = m_eventAxis.dot(startToEvent);
+
+                // Use this to get the doca of the cand link start point to the event axis
+                Point  eventDocaPos = m_eventPosition - arcLEvt2Cand * m_eventAxis;
+                Vector eventDocaVec = eventDocaPos - candLink->getPosition();
+                double docaEvt2Cand = eventDocaVec.magnitude();
+
+                // Get arclen to doca of candLink vector and event position
+                // Same signing convention of above
+                double arcLCand2Evt = candLinkVec.dot(startToEvent);
+
+                // Use this to get the doca of the event position and the candLink vector
+                Point  candDocaPos  = candLink->getPosition() - arcLCand2Evt * candLinkVec;
+                Vector candDocaVec  = candDocaPos - m_eventPosition;
+                double docaCand2Evt = candDocaVec.magnitude();
+
+                // Can we quickly eliminate skipping layer links that are simply out of range
+                if (fabs(docaBtwnAxes) > 15. && docaEvt2Cand > 50. && docaCand2Evt > 50.)
                 {
                     useLink = false;
                 }
 
-                // Check angle link makes with event axis
-                double cosTestAngle   = m_eventAxis.dot(candLinkVec);
-                double testAngle      = acos(std::max(-1.,std::min(1.,cosTestAngle)));
+                // Keep going?
+                if (useLink)
+                {
+                    // Compute distance from the start positions of both the event axis and
+                    // the candidate link so that we can get arc length along both lines
+                    double a     = m_eventAxis.dot(m_eventAxis);
+                    double b     = m_eventAxis.dot(candLinkVec);
+                    double c     = candLinkVec.dot(candLinkVec);
+                    double d     = m_eventAxis.dot(startToEvent);
+                    double e     = candLinkVec.dot(startToEvent);
+                    double denom = a*c - b*b;
 
-                // If the test angle exceeds our tolerance then reject
-                if (testAngle > m_tolerance) useLink = false;
+                    // We want the arc lengths along each line to their point of closest approach
+                    // Note signing here: if positive then the doca is "above" the position of the
+                    // respective position, if negative its "below"
+                    double arcLenEventPos = 0.;
+                    double arcLenCandLink = 0.;
+            
+                    // Standard case, lines are skew so we can calculate the arc lengths
+                    // If parallel then the doca is constant so there is no arc length to compute
+                    if (denom > 0)
+                    {
+                        arcLenEventPos = (b*e - c*d) / denom;
+                        arcLenCandLink = (a*e - b*d) / denom;
+            
+                        Vector eventDocaPos = m_eventPosition +  arcLenEventPos * m_eventAxis;
+                        Vector linkDocaPos  = candLink->getPosition() + arcLenCandLink * candLinkVec;
+            
+                        Vector docaCheckVec = eventDocaPos - linkDocaPos;
+                        double docaCheck    = docaCheckVec.mag();
+                        double docaDiff     = fabs(docaBtwnAxes) - docaCheck;
+
+                        // We're just cross checking here
+                        if (fabs(docaDiff) > 1.)
+                        {
+                            int somethingwrong = 1;
+                        }
+                    }
+            
+                    // If our candidate link position is "below" the event position then follow this path
+                    if (arcLEvt2Cand > 0.)
+                    {
+                        double sclFctr    = 1. + 0.5 * std::max(startToEvent.z() / 32. - 3., 0.);
+                        double arcLenFctr = 1.;
+            
+                        if (docaEvt2Cand > 25.) arcLenFctr = 0.5;
+            
+                        if (fabs(docaBtwnAxes) > sclFctr * m_tightTolerance || arcLenEventPos < -arcLenFctr*(arcLEvt2Cand+5.))
+                        {
+                            useLink = false;
+                        }
+                    }
+                    // Otherwise, the point is above and we proceed slightly differently
+                    else
+                    {
+                        if (fabs(docaBtwnAxes) > 2. * m_tightTolerance || arcLenEventPos < 1.5 * arcLEvt2Cand)
+                        {
+                            useLink = false;
+                        }
+                    }
+            
+                    // If haven't rejected link, keep looking for a reason to not like it
+                    if (useLink)
+                    {
+                        // Check angle link makes with event axis
+                        double cosTestAngle   = m_eventAxis.dot(candLinkVec);
+                        double testAngle      = acos(std::max(-1.,std::min(1.,cosTestAngle)));
+            
+                        // If the test angle exceeds our tolerance then reject
+                        if (testAngle > m_tolerance) useLink = false;
+                    }
+                }
             }
 
             // If the test angle exceeds our tolerance then reject
