@@ -8,7 +8,7 @@
  *
  * @author Tracy Usher (editor) from version implemented by Leon Rochester (due to Bill Atwood)
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/ElectronMeasErrs.cxx,v 1.2 2013/02/13 18:24:30 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/TrackFit/KalmanFilterFit/HitErrors/ElectronMeasErrs.cxx,v 1.2 2013/02/13 18:24:30 usher Exp $
  */
 
 #include "ElectronMeasErrs.h"
@@ -24,32 +24,27 @@ ElectronMeasErrs::ElectronMeasErrs(ITkrGeometrySvc* tkrGeom) :
 
     m_measErrParams.clear();
 
-//    m_measErrParams.push_back(MeasErrParams(1, stripAspect, 0.575, 2.0, 0.225, -1.80,  3.0, 0.0, 0.0, 0.0, 5., 1.5, 0.65, 1.20)); //1.2)); // Cluster Width 1
-//    m_measErrParams.push_back(MeasErrParams(2, stripAspect, 0.575, 2.0, 0.200, -1.00,  2.0, 0.0, 0.0, 0.0, 5., 1.5, 0.75, 1.30)); //1.3)); // Cluster Width 2
-//    m_measErrParams.push_back(MeasErrParams(3, stripAspect, 0.575, 2.0, 0.190, -0.875, 2.0, 3.0, 1.5, 0.9, 5., 1.5, 0.75, 1.35)); //1.4)); // Cluster Width 3
-//    m_measErrParams.push_back(MeasErrParams(4, stripAspect, 0.575, 2.0, 0.190, -0.75,  2.0, 4.0, 1.5, 1.0, 5., 1.5, 0.75, 1.45)); //1.4)); // Cluster Width 4
-//    m_measErrParams.push_back(MeasErrParams(5, stripAspect, 0.575, 2.0, 0.190, -0.65,  2.0, 5.0, 1.5, 1.1, 5., 1.5, 1.00, 1.70)); //1.4)); // Cluster Width 5
-//    m_measErrParams.push_back(MeasErrParams(6, stripAspect, 0.575, 2.0, 0.190, -0.65,  2.0, 6.0, 1.5, 1.2, 5., 1.5, 1.00, 1.80)); //1.4)); // Cluster Width 6
-//    m_measErrParams.push_back(MeasErrParams(7, stripAspect, 0.575, 2.0, 0.190, -0.65,  2.0, 7.0, 1.5, 1.3, 5., 1.5, 1.00, 1.9)); //1.5)); // Cluster Width 7
-//    m_measErrParams.push_back(MeasErrParams(8, stripAspect, 0.575, 2.0, 0.190, -0.65,  2.0, 8.0, 1.5, 1.4, 5., 1.5, 1.00, 1.9)); //1.5)); // Cluster Width 8 or more
-    m_measErrParams.push_back(MeasErrParams(1, stripPitch, stripAspect, 1.00, 1.54735,  1.05949,    1.11099,  5.41309,   0.102764,  1.53899, 
-                                                                        1.98, 0.21198,  1.98227,   17.3209,   6.3155,  -16.3182,   -0.840106, 1.08077,  -1.02006)); // Cluster Width 1
-    m_measErrParams.push_back(MeasErrParams(2, stripPitch, stripAspect, 1.00, 1.62526,  0.347269, 107.399,    7.78437,   0.613528,  0.717925, 
-                                                                        1.70, 0.530507, 1.99298,   13.6804,   7.42514, -15.3243,    5.46019,  6.48554, -13.0896)); // Cluster Width 1
-    m_measErrParams.push_back(MeasErrParams(3, stripPitch, stripAspect, 1.00, 2.38711, -0.196587,  24.1066,   7.89668,   0.791478,  0.93296, 
-                                                                        1.46, 0.298892, 3.14011,   15.3541,   7.44208, -16.5576,    7.03234,  8.6789,  -17.0312)); // Cluster Width 1
-    m_measErrParams.push_back(MeasErrParams(4, stripPitch, stripAspect, 1.00, 3.02675,  0.181641,   1.89729,  8.47247,   2.4048,   -0.666616, 
-                                                                        1.34, 0.187279, 2.82247,   16.2661,   7.66283, -16.409,     7.52434,  8.42646, -16.8348)); // Cluster Width 1
-    m_measErrParams.push_back(MeasErrParams(5, stripPitch, stripAspect, 1.00, 4.48618,  0.556879,   1.9723,  11.6667,    2.96303,  -3.38858, 
-                                                                        1.26, 0.310621, 3.0849,     9.77114, 11.749,   -16.2714,    2.32398, 12.2961,  -16.1421)); // Cluster Width 1
-    m_measErrParams.push_back(MeasErrParams(6, stripPitch, stripAspect, 1.00, 9.01927,  1.7309,     2.73476, 11.5532,    2.77314,  -3.59178, 
-                                                                        1.22, 0.430847, 1.75717,    1.52156, 17.8888,  -18.4338,   -3.14746, 16.9661,  -17.143)); // Cluster Width 1
-    m_measErrParams.push_back(MeasErrParams(7, stripPitch, stripAspect, 1.00, 110.747, 23.7532,    22.0481,  11.1314,    2.62108,  -2.96144, 
-                                                                        1.14, 0.416971, 1.71876,    2.03932, 18.0074,  -18.1265,   -3.41175, 17.6687,  -16.9529)); // Cluster Width 1
-    m_measErrParams.push_back(MeasErrParams(8, stripPitch, stripAspect, 1.00, 113.138, 23.6934,    11.9725,   7.84489,   2.36917,   2.86399, 
-                                                                        1.06, 0.440883, 1.78452,    2.24505, 18.2045,  -17.9251,   -2.62924, 17.6755,  -16.9452)); // Cluster Width 1
-    m_measErrParams.push_back(MeasErrParams(9, stripPitch, stripAspect, 0.70, 114.176, 23.6857,    17.3287,   6.89977,   1.63371,   5.50934, 
-                                                                        0.94, 0.596931, 1.92953,    1.17621, 14.0237,  -18.9014,   -2.08569, 15.9912,  -17.4622)); // Cluster Width 1
+    // Parameters for First order model (March 27, 2013)
+    m_measErrParams.push_back(MeasErrParams(1,  stripPitch, stripAspect, 1.00, 1.310e-01,  1.331e+00,  4.818e-01, 5.254e+00, -2.462e-01,  1.040e+00, 
+                                                                         1.98, 7.655e-02, 3.978e-01, -2.682e+00, -2.570e+00,  1.099e+01, 1.443e+00,  3.921e-01, -1.208e+00)); // Cluster Width 1
+    m_measErrParams.push_back(MeasErrParams(2,  stripPitch, stripAspect, 1.00, 1.160e-01,  1.645e-01, -2.393e+01, 1.811e+00, -8.239e-01, -1.152e+00, 
+                                                                         1.70, 9.260e-02, 2.649e-01, -2.639e+00, -2.311e+00,  1.128e+01, 1.463e+00,  4.136e-01, -1.195e+00)); // Cluster Width 2
+    m_measErrParams.push_back(MeasErrParams(3,  stripPitch, stripAspect, 1.00, 2.583e-01, -1.065e+00, -5.383e+00, 1.458e+00, -8.836e-01, -1.470e+00, 
+                                                                         1.46, 1.226e-01, 8.986e-02, -1.208e+00, -3.062e+00,  1.167e+01, 2.392e+00, -1.766e-01, -1.232e+00)); // Cluster Width 3
+    m_measErrParams.push_back(MeasErrParams(4,  stripPitch, stripAspect, 1.00, 2.258e-01, -1.943e-01, -8.310e+00, 1.581e+00, -8.502e-01, -1.332e+00, 
+                                                                         1.34, 1.208e-01, 4.827e-01, -2.909e+00, -1.466e+00,  1.117e+01, 1.069e+00, -7.648e-01, -5.130e-01)); // Cluster Width 4
+    m_measErrParams.push_back(MeasErrParams(5,  stripPitch, stripAspect, 1.00, 3.264e-01,  6.573e-01, -1.194e+00, 5.172e+00, -7.557e-01, -2.071e+00, 
+                                                                         1.26, 4.423e-02, 1.600e+00, -1.521e+00, -2.189e+00,  1.175e+01, 4.066e-01, -9.512e-01, -7.508e-01)); // Cluster Width 5
+    m_measErrParams.push_back(MeasErrParams(6,  stripPitch, stripAspect, 1.00, 1.120e+00,  3.154e+00, -4.048e+00, 8.309e+00, -2.811e+00, -3.389e+00, 
+                                                                         1.22, 2.619e-02, 1.169e+00, -1.307e+00, -2.093e+00,  1.190e+01, 1.573e+00, -1.169e+00, -6.441e-01)); // Cluster Width 6
+    m_measErrParams.push_back(MeasErrParams(7,  stripPitch, stripAspect, 1.00, 1.211e+00,  2.827e+00, -2.796e+00, 3.991e+00, -2.914e+00,  3.581e+00, 
+                                                                         1.14, 1.150e-03, 4.959e+00, -1.346e+01,  1.813e+01,  2.056e+00, 6.352e+00, -5.448e+00, -6.301e-01)); // Cluster Width 7
+    m_measErrParams.push_back(MeasErrParams(8,  stripPitch, stripAspect, 1.00, 1.258e+00,  2.625e+00, -2.516e+00, 4.333e+00, -2.867e+00,  3.155e+00, 
+                                                                         1.06, 1.652e-03, 5.756e+00, -1.343e+01,  1.794e+01,  1.970e+00, 6.058e+00, -5.763e+00, -9.349e-01)); // Cluster Width 8
+    m_measErrParams.push_back(MeasErrParams(9,  stripPitch, stripAspect, 0.70, 1.209e+00,  2.011e+00, -4.387e+00, 4.165e+00, -2.407e+00,  3.444e+00, 
+                                                                         0.94, 8.004e-04, 5.689e+00,  7.883e+00,  6.454e+01, -6.364e+01, 5.246e+01,  4.911e+01, -1.002e+02)); // Cluster Width 9
+    m_measErrParams.push_back(MeasErrParams(10, stripPitch, stripAspect, 0.70, 1.086e+00,  1.121e+00, -1.141e+01, 4.513e+00, -1.715e+00,  2.130e+00, 
+                                                                         0.94, 4.371e-04, 5.655e+00, -1.205e+01,  9.851e+00,  4.708e+00, 8.486e+01,  9.317e+01, -1.766e+02)); // Cluster Width 10
 
     return;
 }
@@ -108,7 +103,6 @@ double ElectronMeasErrs::MeasErrParams::computeError(double clusterWidth, double
 
         measErr = m_p0_1 / denom;
     }
-    // Or if inside the edge region, then add in the middle of the strip contribution
     else if (projRatio < m_xmax_2)
     {
         double arg1 = TMath::Power(TMath::Cos((m_p5_2+(m_p6_2*TMath::Power(projRatio,2)))+(m_p7_2*projRatio)),2);
