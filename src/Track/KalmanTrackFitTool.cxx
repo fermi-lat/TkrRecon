@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.58 2013/03/06 22:55:48 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.57 2013/02/19 04:16:19 usher Exp $
  */
 
 // to turn one debug variables
@@ -51,6 +51,7 @@
 #include "src/TrackFit/KalmanFilterFit/TrackEnergy/MonteCarloHitEnergy.h"
 #include "src/TrackFit/KalmanFilterUtils/KalmanFilterUtils.h"
 #include "src/TrackFit/KalmanFilterFit/HitErrors/ElectronMeasErrs.h"
+#include "src/TrackFit/KalmanFilterFit/HitErrors/StaticModelMeasErrs.h"
 #include "src/TrackFit/KalmanFilterFit/HitErrors/SlopeCorrectedMeasErrs.h"
 #include "src/TrackFit/KalmanFilterFit/HitErrors/ClusWidMeasErrs.h"
 #include "src/TrackFit/KalmanFilterFit/HitErrors/StandardMeasErrs.h"
@@ -384,6 +385,10 @@ void KalmanTrackFitTool::setClusErrCompType(const std::string& clusErrorType)
         {
             m_fitErrs   = new ElectronMeasErrs(m_tkrGeom);
         }
+        else if (m_HitErrorType == "StaticModel")
+        {
+            m_fitErrs   = new StaticModelMeasErrs(m_tkrGeom);
+        }
         else if (m_HitErrorType == "ClusterWidth")
         {
             m_fitErrs   = new ClusWidMeasErrs(m_tkrGeom);
@@ -640,8 +645,6 @@ void KalmanTrackFitTool::doResidualsCalc(Event::TkrTrack& track)
             Event::TkrTrackParams& revParams = hit->getTrackParams(Event::TkrTrackHit::REVFIT);
             revParams = Event::TkrTrackParams();
         }
-
-        // Set the bit indicating the residuals are here
     }
 
     return;

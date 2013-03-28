@@ -76,9 +76,7 @@ TkrCovMatrix ElectronMeasErrs::computeMeasErrs(const Event::TkrTrackParams& newP
         slope = newPars.getySlope();
     }
 
-    double error = sclFctr * m_tkrGeom->siResolution() * m_measErrParams[clusterWidth-1].computeError(clusWid, slope);
-
-    double tryit = TMath::ASinH(error);
+    double error = sclFctr * m_measErrParams[clusterWidth-1].computeError(clusWid, slope);
     
     newCov(measured, measured) = error*error;
     newCov(other, other)       = oldCovMat(other,other);
