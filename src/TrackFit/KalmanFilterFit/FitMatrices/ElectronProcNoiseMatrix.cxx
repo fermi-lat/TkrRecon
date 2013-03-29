@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/ElectronProcNoiseMatrix.cxx,v 1.5 2005/03/02 04:37:18 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/ElectronProcNoiseMatrix.cxx,v 1.1 2013/03/29 18:45:49 usher Exp $
  */
 
 #include "ElectronProcNoiseMatrix.h"
@@ -71,7 +71,7 @@ KFmatrix& ElectronProcNoiseMatrix::operator()(const Event::TkrTrackHit& referenc
     // cluster and we should be able to accommodate that in an empirical way
     // by looking at the projected and measured cluster widths. 
     // Of course, we require that there is a cluster at this point...
-    if (filterHit.getClusterPtr() != 0)
+    if (filterHit.getClusterPtr() != 0 && !(referenceHit.getStatusBits() & Event::TkrTrackHit::HITHASKINKANG))
     {
         // Begin by setting up to see if we want to do anything
         int    measSlpIdx   = filterHit.getParamIndex(Event::TkrTrackHit::SSDMEASURED, Event::TkrTrackParams::Slope);
