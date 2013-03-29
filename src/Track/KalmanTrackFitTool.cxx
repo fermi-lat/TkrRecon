@@ -45,6 +45,7 @@
 #include "src/TrackFit/KalmanFilterFit/FitMatrices/StdProjectionMatrix.h"
 #include "src/TrackFit/KalmanFilterFit/FitMatrices/ThreeDProjectionMatrix.h"
 #include "src/TrackFit/KalmanFilterFit/FitMatrices/StdProcNoiseMatrix.h"
+#include "src/TrackFit/KalmanFilterFit/FitMatrices/ElectronProcNoiseMatrix.h"
 #include "src/TrackFit/KalmanFilterFit/FitMatrices/NoProcNoiseMatrix.h"
 #include "src/TrackFit/KalmanFilterFit/TrackEnergy/BetheBlockHitEnergy.h"
 #include "src/TrackFit/KalmanFilterFit/TrackEnergy/RadLossHitEnergy.h"
@@ -90,7 +91,7 @@ public:
     /// @brief Method to set method for determing cluster errors in fit 
     void       setClusErrCompType(const std::string& clusErrorType);
     /// @brief Method to set multiple scattering matrix computation
-    void       setMultipleScatter(const bool doMultScatComp);
+    void       setMultipleScatter(const bool doMultScatComp, const std::string& procNoiseType);
     /// @brief Method to set Kalman Filter projection matrix type
     void       setProjectionMatrix(const bool measOnly);
 
@@ -141,6 +142,7 @@ private:
     std::string          m_HitEnergyType;
     std::string          m_ParticleName;
     std::string          m_HitErrorType;
+    std::string          m_ProcNoiseType;
 
     /// Diagnostic running
     bool                 m_RunSmootherMemory;
@@ -202,6 +204,7 @@ m_KalmanFit(0), m_nMeasPerPlane(0), m_nParams(0), m_fitErrs(0)
     declareProperty("HitEnergyType",     m_HitEnergyType="eRadLoss");
     declareProperty("ParticleName",      m_ParticleName="e-");
     declareProperty("DoMultScatMat",     m_MultScatMat=true);
+    declareProperty("ProcessNoiseType",  m_ProcNoiseType="Standard");
     declareProperty("FitMeasHitOnly",    m_FitMeasOnly=true);
     declareProperty("MeasHitErrorType",  m_HitErrorType="SlopeCorrected");
     declareProperty("RunSmootherMemory", m_RunSmootherMemory=false);
@@ -299,7 +302,7 @@ StatusCode KalmanTrackFitTool::initialize()
     setClusErrCompType(m_HitErrorType);
 
     // Set up for multiple scattering
-    setMultipleScatter(m_MultScatMat);
+    setMultipleScatter(m_MultScatMat, m_ProcNoiseType);
 
     // Projection matrix
     setProjectionMatrix(m_FitMeasOnly);
@@ -406,9 +409,13 @@ void KalmanTrackFitTool::setClusErrCompType(const std::string& clusErrorType)
 }
 
 /// @brief Method to set multiple scattering matrix computation
-void KalmanTrackFitTool::setMultipleScatter(const bool doMultScatComp)
+void KalmanTrackFitTool::setMultipleScatter(const bool doMultScatComp, const std::string& procNoiseType)
 {
-    if (doMultScatComp) m_Qmat = new StdProcNoiseMatrix(m_propagator);
+    if (doMultScatComp)
+    {
+        if (procNoiseType == "Standard") m_Qmat = new StdProcNoiseMatrix(m_propagator);
+        else                             m_Qmat = new ElectronProcNoiseMatrix(m_tkrGeom); 
+    }
     else                m_Qmat = new NoProcNoiseMatrix(m_propagator);
 
     return;
@@ -1065,7 +1072,7 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
     // Now get the updated covariance matrix
     KFmatrix curCovMat(refHitFilteredParams);
 
-    KFmatrix& Q = (*m_Qmat)(curStateVec, referenceZ, m_HitEnergy->kinETopBeta(referenceHit.getEnergy()), filterZ);
+    KFmatrix& Q = (*m_Qmat)(referenceHit, filterHit, m_HitEnergy->kinETopBeta(referenceHit.getEnergy()));
 
     // Round II of does this hit have a kink?
     if (referenceHit.getStatusBits() & Event::TkrTrackHit::HITHASKINKANG)
@@ -1084,29 +1091,36 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
 
         // Extract maxtrix params we need to alter here
         double arcLen2    = deltaZ * deltaZ * (1. + measSlope*measSlope);
-        double scat_disp2 = arcLen2 * sin(kinkAngle) * sin(kinkAngle) * norm_term;
+        double scat_disp2 = arcLen2 * sin(kinkAngle) * sin(kinkAngle) / norm_term;
         double qAngle     = Q(measSlpIdx, measSlpIdx) / p33;
         double scat_angle = qAngle + kinkAngle * kinkAngle;  
         double scat_dist  = Q(measSlpIdx-1, measSlpIdx-1) / p33 + scat_disp2;
-        double scat_covr  = sqrt(scat_dist * scat_angle) / sqrt(norm_term);
+        double scat_covr  = sqrt(scat_dist * scat_angle);    // Has already been scaled by cos(theta) / sqrt(norm_term);
 
         // update scattering matrix
         Q(measSlpIdx,   measSlpIdx)   = scat_angle * p33;
         Q(measSlpIdx,   measSlpIdx-1) = Q(measSlpIdx-1, measSlpIdx) = -scat_covr * p34;
         Q(measSlpIdx-1, measSlpIdx-1) = scat_dist * p33;
-        //Q(nonMeasIdx,   nonMeasIdx)   = 0.25 * scat_angle * p44;
-        //Q(nonMeasIdx,   nonMeasIdx-1) = Q(nonMeasIdx-1, nonMeasIdx) = -0.25 * scat_covr * p34;
-        //Q(nonMeasIdx-1, nonMeasIdx-1) = 0.25 * scat_dist * p44;
+
+        // Set up to do the cross terms
+        double nonMeasDisp2 = Q(nonMeasIdx-1, nonMeasIdx-1) / p44;
+        double nonMeasAng2  = Q(nonMeasIdx,   nonMeasIdx  ) / p44;
+
+        // Now fill them in
+        Q(measSlpIdx-1, nonMeasIdx-1) = Q(nonMeasIdx-1, measSlpIdx-1) 
+                                      =  sqrt(nonMeasDisp2 * scat_dist)  * p34;
+        Q(measSlpIdx-1, nonMeasIdx  ) = Q(nonMeasIdx,   measSlpIdx-1) 
+                                      = -sqrt(nonMeasAng2  * scat_dist)  * p34;
+        Q(measSlpIdx,   nonMeasIdx-1) = Q(nonMeasIdx-1, measSlpIdx  ) 
+                                      = -sqrt(nonMeasDisp2 * scat_angle) * p34;
+        Q(measSlpIdx,   nonMeasIdx  ) =Q(nonMeasIdx,   measSlpIdx  ) 
+                                      =  sqrt(nonMeasAng2  * scat_angle) * p34;
 
         // cross terms zeroed?
-        Q(1,3) = Q(3,1) = 0.;
-        Q(1,4) = Q(4,1) = 0.;
-        Q(2,3) = Q(3,2) = 0.;
-        Q(2,4) = Q(4,2) = 0.;
-        //Q(measSlpIdx-1, nonMeasIdx-1) = Q(nonMeasIdx-1, measSlpIdx-1) =  scat_dist  * p34;
-        //Q(measSlpIdx-1, nonMeasIdx  ) = Q(nonMeasIdx,   measSlpIdx-1) = 
-        //Q(measSlpIdx,   nonMeasIdx-1) = Q(nonMeasIdx-1, measSlpIdx  ) = -scat_covr  * p34;
-        //Q(measSlpIdx,   nonMeasIdx  ) = Q(nonMeasIdx,   measSlpIdx  ) =  scat_angle * p34;
+        //Q(1,3) = Q(3,1) = 0.;
+        //Q(1,4) = Q(4,1) = 0.;
+        //Q(2,3) = Q(3,2) = 0.;
+        //Q(2,4) = Q(4,2) = 0.;
     }
 
     // Do we have a measurement at this hit?

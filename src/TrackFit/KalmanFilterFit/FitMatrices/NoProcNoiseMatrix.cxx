@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/NoProcNoiseMatrix.cxx,v 1.5 2005/02/11 07:14:53 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/NoProcNoiseMatrix.cxx,v 1.6 2005/03/02 04:37:18 usher Exp $
  */
 
 #include "NoProcNoiseMatrix.h"
@@ -18,20 +18,22 @@ NoProcNoiseMatrix::NoProcNoiseMatrix(IPropagator* propagator) :
     return;
 }
 
-KFmatrix& NoProcNoiseMatrix::operator()(const KFvector& stateVec, 
-                                         const double&   zStart, 
-                                         const double&   /* eStart */, 
-                                         const double&   zStop, 
-                                         bool            forward)
+KFmatrix& NoProcNoiseMatrix::operator()(const Event::TkrTrackHit& referenceHit, 
+                                              const Event::TkrTrackHit& filterHit,
+                                              const double&             /*eStart*/, 
+                                              bool                      forward)
 {
+    // Start by recovering the track parameters
+    const Event::TkrTrackParams& trackParams = referenceHit.getTrackParams(Event::TkrTrackHit::FILTERED);
+
     // Propagator will need initial position
-    Point x0(stateVec(1), stateVec(3), zStart);
+    Point x0(trackParams(1), trackParams(3), referenceHit.getZPlane());
 
     // And, most importantly, will need initial direction
-    double mx     = stateVec(2);
-    double my     = stateVec(4);
+    double mx     = trackParams(2);
+    double my     = trackParams(4);
     double zDir   = 1.;   // up in Glast coordinates
-    double deltaZ = zStop - zStart;
+    double deltaZ = filterHit.getZPlane() - referenceHit.getZPlane();
 
     // Ok, which way are we going?
     if (forward)  // Propagating in the direction of the track
