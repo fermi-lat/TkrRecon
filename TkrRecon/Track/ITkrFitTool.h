@@ -46,7 +46,7 @@ class ITkrFitTool : virtual public IAlgTool
     virtual void       setClusErrCompType(const std::string& clusErrorType) = 0; 
 
     /// @brief Method to set multiple scattering matrix computation
-    virtual void       setMultipleScatter(const bool doMultScatComp) = 0; 
+    virtual void       setMultipleScatter(const bool doMultScatComp, const std::string& procNoiseType) = 0; 
 
     /// @brief Method to set Kalman Filter projection matrix type
     virtual void       setProjectionMatrix(const bool measOnly) = 0; 

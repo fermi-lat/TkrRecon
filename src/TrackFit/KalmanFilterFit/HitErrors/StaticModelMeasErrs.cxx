@@ -59,9 +59,7 @@ TkrCovMatrix StaticModelMeasErrs::computeMeasErrs(const Event::TkrTrackParams& n
 
 double StaticModelMeasErrs::computeError(double clusterWidth, double slope)
 {
-    static const double sqrt12 = sqrt(12.);
-
-    double measErr   = clusterWidth * m_stripPitch / sqrt12;
+    double measErr   = clusterWidth * m_tkrGeom->siResolution();
     double projected = fabs(slope * m_stripAspect);
     double projRatio = projected / clusterWidth;
 
