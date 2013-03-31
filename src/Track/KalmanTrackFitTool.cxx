@@ -1099,7 +1099,7 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
 
         // update scattering matrix
         Q(measSlpIdx,   measSlpIdx)   = scat_angle * p33;
-        Q(measSlpIdx,   measSlpIdx-1) = Q(measSlpIdx-1, measSlpIdx) = -scat_covr * p34;
+        Q(measSlpIdx,   measSlpIdx-1) = Q(measSlpIdx-1, measSlpIdx) = -scat_covr * p33;
         Q(measSlpIdx-1, measSlpIdx-1) = scat_dist * p33;
 
         // Set up to do the cross terms
