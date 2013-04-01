@@ -48,6 +48,7 @@ private:
     double           m_siStripPitch;
     double           m_siStripDepth;
     double           m_siStripAspect;
+    double           m_biLayerDeltaZ;
 
     double           m_LastStepRadLen;
     KFmatrix         m_LastStepQ;
