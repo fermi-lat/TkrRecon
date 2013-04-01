@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/ElectronProcNoiseMatrix.cxx,v 1.1 2013/03/29 18:45:49 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/TrackFit/KalmanFilterFit/FitMatrices/ElectronProcNoiseMatrix.cxx,v 1.5 2005/03/02 04:37:18 usher Exp $
  */
 
 #include "ElectronProcNoiseMatrix.h"
@@ -18,6 +18,7 @@ ElectronProcNoiseMatrix::ElectronProcNoiseMatrix(ITkrGeometrySvc* tkrGeom) :
     m_siStripPitch  = m_tkrGeom->siStripPitch();
     m_siStripDepth  = m_tkrGeom->siThickness();
     m_siStripAspect = m_siStripDepth / m_siStripPitch;
+    m_biLayerDeltaZ = m_tkrGeom->getLayerZ(1) - m_tkrGeom->getLayerZ(0);
 
     return;
 }
@@ -71,12 +72,14 @@ KFmatrix& ElectronProcNoiseMatrix::operator()(const Event::TkrTrackHit& referenc
     // cluster and we should be able to accommodate that in an empirical way
     // by looking at the projected and measured cluster widths. 
     // Of course, we require that there is a cluster at this point...
-    if (filterHit.getClusterPtr() != 0 && !(referenceHit.getStatusBits() & Event::TkrTrackHit::HITHASKINKANG))
+    if ( filterHit.getClusterPtr() != 0 && 
+         filterHit.getClusterPtr()->size() > 2 &&
+        !(referenceHit.getStatusBits() & Event::TkrTrackHit::HITHASKINKANG))
     {
         // Begin by setting up to see if we want to do anything
         int    measSlpIdx   = filterHit.getParamIndex(Event::TkrTrackHit::SSDMEASURED, Event::TkrTrackParams::Slope);
         double measSlope    = trackParams(measSlpIdx);
-        double clusterWidth = (double(filterHit.getClusterPtr()->size()) - 0.75) * m_tkrGeom->siStripPitch();
+        double clusterWidth = double(filterHit.getClusterPtr()->size()) - 1.0;
         double projected    = fabs(measSlope * m_siStripAspect);
         double projRatio    = projected / clusterWidth;
 
@@ -85,20 +88,25 @@ KFmatrix& ElectronProcNoiseMatrix::operator()(const Event::TkrTrackHit& referenc
         {
             // All of the below to calculate an effective angle and displacement
             double cosTheta       = sqrt(1. / (1. + measSlope*measSlope));
-            double clusterWidthPr = clusterWidth * cosTheta;
-            double projectedPr    = projected * cosTheta;
-            double distFromPrev   = fabs(deltaZ) / cosTheta;
-            double clusWidAngle   = atan(0.5 * clusterWidthPr / distFromPrev);
-            double projWidAngle   = atan(0.5 * projectedPr / distFromPrev);
-            double effectiveAngle = clusWidAngle - projWidAngle > 0. ? 0.5 * (clusWidAngle - projWidAngle) / 1.7320508 : 0.;
+            double clusterWidthPr = clusterWidth * m_siStripPitch * cosTheta;
+            double projectedPr    = projected * m_siStripPitch * cosTheta;
+            double distFromPrev   = fabs(m_biLayerDeltaZ) / cosTheta;
+            double effectiveDisp  = 0.14434 * (clusterWidthPr - projectedPr);
+            double effectiveAngle = atan(effectiveDisp / distFromPrev);
+//            double clusWidAngle   = atan(0.5 * clusterWidthPr / distFromPrev);
+//            double projWidAngle   = atan(0.5 * projectedPr / distFromPrev);
+//            double effectiveAngle = clusWidAngle - projWidAngle > 0. ? clusWidAngle - projWidAngle : 0.;
+//            double effectiveAngle = clusWidAngle - projWidAngle > 0. ? 0.5 * (clusWidAngle - projWidAngle) / 1.7320508 : 0.;
+//            double effectiveDisp  = 0.14434 * (clusterWidthPr - projectedPr);   // * 0.5 / sqrt(12)
+//            double effectiveDisp  = distFromPrev * sin(effectiveAngle);
             double effectiveAng2  = effectiveAngle * effectiveAngle;
-            double effectiveDisp  = 0.14434 * (clusterWidth - projected);   // * 0.5 / sqrt(12)
             double effectiveDisp2 = effectiveDisp * effectiveDisp;
-            double effectiveCovr  = effectiveDisp * effectiveAngle;
 
             // If no angle then not worth continuing
             if (effectiveAngle > 0.)
             {
+//                effectiveAngle = 0.;
+//                effectiveAng2  = 0.;
                 // Armed with this information, build a scattering matrix...
                 // Start by getting the geometric terms
                 int    nonMeasIdx = filterHit.getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Slope);
@@ -108,14 +116,16 @@ KFmatrix& ElectronProcNoiseMatrix::operator()(const Event::TkrTrackHit& referenc
                 double p34        = measSlope*nonMeasSlp*norm_term;
                 double p44        = (1.+ nonMeasSlp*nonMeasSlp)*norm_term; 
         
-                double qAngle     = m_LastStepQ(measSlpIdx, measSlpIdx) / p33;
-                double scat_angle = qAngle + effectiveAng2;  
-                double scat_dist  = m_LastStepQ(measSlpIdx-1, measSlpIdx-1) / p33 + effectiveDisp2 / norm_term;
+                // We working in the measured plane here...
+                double qAngle2    = m_LastStepQ(measSlpIdx  , measSlpIdx  ) / p33;
+                double qDist2     = m_LastStepQ(measSlpIdx-1, measSlpIdx-1) / p33;
+                double scat_angle = qAngle2 + effectiveAng2;  
+                double scat_dist  = qDist2  + effectiveDisp2 / norm_term;
                 double scat_covr  = sqrt(scat_dist * scat_angle);
 
                 // update scattering matrix
                 m_LastStepQ(measSlpIdx,   measSlpIdx)   = scat_angle * p33;
-                m_LastStepQ(measSlpIdx,   measSlpIdx-1) = m_LastStepQ(measSlpIdx-1, measSlpIdx) = -scat_covr * p34;
+                m_LastStepQ(measSlpIdx,   measSlpIdx-1) = m_LastStepQ(measSlpIdx-1, measSlpIdx) = -scat_covr * p33;
                 m_LastStepQ(measSlpIdx-1, measSlpIdx-1) = scat_dist * p33;
 
                 // Set up to do the cross terms
@@ -130,39 +140,6 @@ KFmatrix& ElectronProcNoiseMatrix::operator()(const Event::TkrTrackHit& referenc
                                                         = -sqrt(nonMeasDisp2 * scat_angle) * p34;
                 m_LastStepQ(measSlpIdx,   nonMeasIdx  ) = m_LastStepQ(nonMeasIdx,   measSlpIdx  ) 
                                                         =  sqrt(nonMeasAng2  * scat_angle) * p34;
-
-                // Leave all of thise for now until we understand what was going on
-                KFmatrix cov(4,4,0);
-                cov(1,1) = effectiveDisp2*p33;
-                cov(2,2) = effectiveAng2*p33; 
-                cov(3,3) = effectiveDisp2*p44;
-                cov(4,4) = effectiveAng2*p44;
-                cov(1,2) = cov(2,1) = -effectiveCovr*p33;
-                cov(1,3) = cov(3,1) = effectiveDisp2*p34;
-                cov(1,4) = cov(2,3) = cov(3,2) = cov(4,1) = -effectiveCovr*p34;
-                cov(2,4) = cov(4,2) = effectiveAng2*p34;
-                cov(3,4) = cov(4,3) = -effectiveCovr*p44; 
-
-                KFmatrix covInv = cov;
-                int               matInvErr = 0;
-
-                covInv.invert(matInvErr);
-
-                if (!matInvErr)
-                {
-                    KFmatrix ident = covInv * cov;
-                    int checkit = 0;
-                }
-
-                KFmatrix qInv = m_LastStepQ;
-
-                qInv.invert(matInvErr);
-
-                if (!matInvErr)
-                {
-                    KFmatrix ident = qInv * m_LastStepQ;
-                    int checkit = 0;
-                }
             }
         }
     }
