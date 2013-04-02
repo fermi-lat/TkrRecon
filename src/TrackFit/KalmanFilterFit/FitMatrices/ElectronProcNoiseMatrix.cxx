@@ -10,6 +10,7 @@
 
 #include "ElectronProcNoiseMatrix.h"
 #include "src/TrackFit/KalmanFilterFit/KalmanFilterInit.h"
+#include "src/Utilities/TkrException.h"
 
 ElectronProcNoiseMatrix::ElectronProcNoiseMatrix(ITkrGeometrySvc* tkrGeom) : 
                      m_tkrGeom(tkrGeom), m_propagator(tkrGeom->getG4PropagationTool()), 
@@ -86,12 +87,16 @@ KFmatrix& ElectronProcNoiseMatrix::operator()(const Event::TkrTrackHit& referenc
         // Proceed if the ratio indicates projected well contained in cluster
         if (projRatio < 1.)
         {
+            // Recover the measured hit error
+            double measHitErr = filterHit.getTrackParams(Event::TkrTrackHit::MEASURED)(measSlpIdx-1,measSlpIdx-1);
+
             // All of the below to calculate an effective angle and displacement
             double cosTheta       = sqrt(1. / (1. + measSlope*measSlope));
             double clusterWidthPr = clusterWidth * m_siStripPitch * cosTheta;
             double projectedPr    = projected * m_siStripPitch * cosTheta;
             double distFromPrev   = fabs(m_biLayerDeltaZ) / cosTheta;
-            double effectiveDisp  = 0.14434 * (clusterWidthPr - projectedPr);
+//            double effectiveDisp  = 0.14434 * (clusterWidthPr - projectedPr);
+            double effectiveDisp  = std::min(0.5 * (clusterWidthPr - projectedPr), measHitErr);
             double effectiveAngle = atan(effectiveDisp / distFromPrev);
 //            double clusWidAngle   = atan(0.5 * clusterWidthPr / distFromPrev);
 //            double projWidAngle   = atan(0.5 * projectedPr / distFromPrev);
@@ -119,9 +124,33 @@ KFmatrix& ElectronProcNoiseMatrix::operator()(const Event::TkrTrackHit& referenc
                 // We working in the measured plane here...
                 double qAngle2    = m_LastStepQ(measSlpIdx  , measSlpIdx  ) / p33;
                 double qDist2     = m_LastStepQ(measSlpIdx-1, measSlpIdx-1) / p33;
-                double scat_angle = qAngle2 + effectiveAng2;  
-                double scat_dist  = qDist2  + effectiveDisp2 / norm_term;
-                double scat_covr  = sqrt(scat_dist * scat_angle);
+//                double scat_angle = qAngle2 + effectiveAng2;  
+//                double scat_dist  = qDist2  + effectiveDisp2 / norm_term;
+                double scat_angle = effectiveAng2;  
+                double scat_dist  = effectiveDisp2 / (cosTheta*cosTheta); // from arcLen to delta Z
+                double scat_covr  = 0.5*sqrt(scat_dist * scat_angle);
+
+                // Create a new matrix and fill it
+                KFmatrix cov(4,4,0);
+                cov(1,1) = scat_dist*p33;
+                cov(2,2) = scat_angle*p33; 
+                cov(3,3) = scat_dist*p44;
+                cov(4,4) = scat_angle*p44;
+                cov(1,2) = cov(2,1) = -scat_covr*p33;
+                cov(1,3) = cov(3,1) = scat_dist*p34;
+                cov(1,4) = cov(2,3) = cov(3,2) = cov(4,1) = -scat_covr*p34;
+                cov(2,4) = cov(4,2) = scat_angle*p34;
+                cov(3,4) = cov(4,3) = -scat_covr*p44; 
+/*
+                // Still in test phase here
+                scat_angle += qAngle2;
+                scat_dist  += qDist2;
+                scat_covr   = 0.5*sqrt(scat_dist * scat_angle);
+
+                // checking...
+                CLHEP::HepMatrix qBefore = m_LastStepQ;
+                qBefore.invert(matError);
+                CLHEP::HepMatrix qBeforeIdent = qBefore * m_LastStepQ;
 
                 // update scattering matrix
                 m_LastStepQ(measSlpIdx,   measSlpIdx)   = scat_angle * p33;
@@ -140,6 +169,51 @@ KFmatrix& ElectronProcNoiseMatrix::operator()(const Event::TkrTrackHit& referenc
                                                         = -sqrt(nonMeasDisp2 * scat_angle) * p34;
                 m_LastStepQ(measSlpIdx,   nonMeasIdx  ) = m_LastStepQ(nonMeasIdx,   measSlpIdx  ) 
                                                         =  sqrt(nonMeasAng2  * scat_angle) * p34;
+*/
+                // Check that our current MS covariance matrix is non-zero
+                double qTrace = m_LastStepQ(1,1) + m_LastStepQ(2,2) + m_LastStepQ(3,3) + m_LastStepQ(4,4);
+
+                // If the trace is non-zero then we (presumably) have a valid matrix
+                if (qTrace > 0.)
+                {
+                    // Ok, we need to get some inverse matrices here...
+                    KFmatrix covInv = cov;
+
+                    int matError = 0;
+                    covInv.invert(matError);
+
+                    // Make sure something bad didn't happen
+                    if (matError != 0) 
+                    {
+                        throw(TkrException("Failed to invert electron proc noise covariance matrix in ElectronProcNoiseMatrix "));
+                    }
+
+                    // Now get the inverse of the current MS based matrix
+                    KFmatrix qMat = m_LastStepQ.inverse(matError);
+
+                    // Make sure something bad didn't happen
+                    if (matError != 0) 
+                    {
+                        throw(TkrException("Failed to invert Q covariance matrix in ElectronProcNoiseMatrix "));
+                    }
+
+                    // Combine the two together
+                    KFmatrix qMatComb  = qMat + covInv;
+
+                    // Now invert one last time to get back to where we started
+                    m_LastStepQ = qMat.inverse(matError);
+
+                    // Make sure something bad didn't happen
+                    if (matError != 0) 
+                    {
+                        throw(TkrException("Failed to invert new combined Q covariance matrix in ElectronProcNoiseMatrix "));
+                    }
+                }
+                // Otherwise, we can simply set the current MS matrix to the new cov matrix
+                else 
+                {
+                    m_LastStepQ = cov;
+                }
             }
         }
     }
