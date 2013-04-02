@@ -1081,46 +1081,66 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
         double measSlope  = curStateVec(measSlpIdx);
         double kinkAngle  = referenceHit.getKinkAngle() / sqrt(3.);
 
-        // Slope parameters
-        int    nonMeasIdx = referenceHit.getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Slope);
-        double nonMeasSlp = refHitFilteredParams(nonMeasIdx);
-        double norm_term  = 1. + measSlope*measSlope + nonMeasSlp* nonMeasSlp; // this is (1/cosTheta)**2
-        double p33        = (1. + measSlope*measSlope) * norm_term;
-        double p34        = measSlope * nonMeasSlp * norm_term;
-        double p44        = (1. + nonMeasSlp*nonMeasSlp) * norm_term;
+        if (fabs(kinkAngle) > 0.)
+        {
+            // Slope parameters
+            int    nonMeasIdx = referenceHit.getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Slope);
+            double nonMeasSlp = refHitFilteredParams(nonMeasIdx);
+            double norm_term  = 1. + measSlope*measSlope + nonMeasSlp* nonMeasSlp; // this is (1/cosTheta)**2
+            double p33        = (1. + measSlope*measSlope) * norm_term;
+            double p34        = measSlope * nonMeasSlp * norm_term;
+            double p44        = (1. + nonMeasSlp*nonMeasSlp) * norm_term;
 
-        // Extract maxtrix params we need to alter here
-        double arcLen2    = deltaZ * deltaZ * (1. + measSlope*measSlope);
-        double scat_disp2 = arcLen2 * sin(kinkAngle) * sin(kinkAngle) / norm_term;
-        double qAngle     = Q(measSlpIdx, measSlpIdx) / p33;
-        double scat_angle = qAngle + kinkAngle * kinkAngle;  
-        double scat_dist  = Q(measSlpIdx-1, measSlpIdx-1) / p33 + scat_disp2;
-        double scat_covr  = sqrt(scat_dist * scat_angle);    // Has already been scaled by cos(theta) / sqrt(norm_term);
+            // Extract maxtrix params we need to alter here
+            // Note that the scattering here is contained within the plane
+            double arcLen2    = deltaZ * deltaZ * (1. + measSlope*measSlope);
+            double scat_disp2 = arcLen2 * sin(kinkAngle) * sin(kinkAngle) / (1. + measSlope*measSlope);
+            double scat_angle = kinkAngle * kinkAngle;  
+            double scat_dist  = scat_disp2;
+            double scat_covr  = 0.5 * sqrt(scat_dist * scat_angle);    // Has already been scaled by cos(theta) / sqrt(norm_term);
 
-        // update scattering matrix
-        Q(measSlpIdx,   measSlpIdx)   = scat_angle * p33;
-        Q(measSlpIdx,   measSlpIdx-1) = Q(measSlpIdx-1, measSlpIdx) = -scat_covr * p33;
-        Q(measSlpIdx-1, measSlpIdx-1) = scat_dist * p33;
+            // Create 2x2 matrix to hold values
+            KFmatrix kinkMat(2,2,0);
+            int      matInvError = 0;
 
-        // Set up to do the cross terms
-        double nonMeasDisp2 = Q(nonMeasIdx-1, nonMeasIdx-1) / p44;
-        double nonMeasAng2  = Q(nonMeasIdx,   nonMeasIdx  ) / p44;
+            kinkMat(1,1) = scat_dist * p33;
+            kinkMat(2,2) = scat_angle * p33;
+            kinkMat(1,2) = kinkMat(2,1) = -scat_covr * p33;
 
-        // Now fill them in
-        Q(measSlpIdx-1, nonMeasIdx-1) = Q(nonMeasIdx-1, measSlpIdx-1) 
-                                      =  sqrt(nonMeasDisp2 * scat_dist)  * p34;
-        Q(measSlpIdx-1, nonMeasIdx  ) = Q(nonMeasIdx,   measSlpIdx-1) 
-                                      = -sqrt(nonMeasAng2  * scat_dist)  * p34;
-        Q(measSlpIdx,   nonMeasIdx-1) = Q(nonMeasIdx-1, measSlpIdx  ) 
-                                      = -sqrt(nonMeasDisp2 * scat_angle) * p34;
-        Q(measSlpIdx,   nonMeasIdx  ) =Q(nonMeasIdx,   measSlpIdx  ) 
-                                      =  sqrt(nonMeasAng2  * scat_angle) * p34;
+            kinkMat.invert(matInvError);
 
-        // cross terms zeroed?
-        //Q(1,3) = Q(3,1) = 0.;
-        //Q(1,4) = Q(4,1) = 0.;
-        //Q(2,3) = Q(3,2) = 0.;
-        //Q(2,4) = Q(4,2) = 0.;
+            if (matInvError != 0) 
+            {
+                throw(TkrException("Failed to invert kink angle covariance matrix in KalmanTrackFitTool::doFilterStep "));
+            }
+
+            // Now make 4x4 matrix to augment current Q matrix
+            KFmatrix kinkMatInv(4,4,0);
+
+            kinkMatInv(measSlpIdx-1, measSlpIdx-1) = kinkMat(1,1);
+            kinkMatInv(measSlpIdx  , measSlpIdx  ) = kinkMat(2,2);
+            kinkMatInv(measSlpIdx-1, measSlpIdx  ) = kinkMat(1,2);
+            kinkMatInv(measSlpIdx  , measSlpIdx-1) = kinkMat(2,1);
+
+            // Get inverse of current Q matrix
+            KFmatrix Qinv = Q.inverse(matInvError);
+
+            if (matInvError != 0) 
+            {
+                throw(TkrException("Failed to invert original MS covariance matrix in KalmanTrackFitTool::doFilterStep "));
+            }
+
+            // Update Qinv with kink angle matrix
+            Qinv += kinkMatInv;
+
+            // Invert again
+            Q = Qinv.inverse(matInvError);
+
+            if (matInvError != 0) 
+            {
+                throw(TkrException("Failed to invert combined MS + kink angle covariance matrix in KalmanTrackFitTool::doFilterStep "));
+            }
+        }
     }
 
     // Do we have a measurement at this hit?
