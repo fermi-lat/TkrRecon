@@ -96,7 +96,8 @@ KFmatrix& ElectronProcNoiseMatrix::operator()(const Event::TkrTrackHit& referenc
             double projectedPr    = projected * m_siStripPitch * cosTheta;
             double distFromPrev   = fabs(m_biLayerDeltaZ) / cosTheta;
 //            double effectiveDisp  = 0.14434 * (clusterWidthPr - projectedPr);
-            double effectiveDisp  = std::min(0.5 * (clusterWidthPr - projectedPr), measHitErr);
+            double eneScaleFactor = 1. / (2. * log10(std::max(10., eStart)));
+            double effectiveDisp  = std::min(eneScaleFactor * (clusterWidthPr - projectedPr), measHitErr);
             double effectiveAngle = atan(effectiveDisp / distFromPrev);
 //            double clusWidAngle   = atan(0.5 * clusterWidthPr / distFromPrev);
 //            double projWidAngle   = atan(0.5 * projectedPr / distFromPrev);
