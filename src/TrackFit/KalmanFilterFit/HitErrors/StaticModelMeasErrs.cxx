@@ -69,7 +69,7 @@ double StaticModelMeasErrs::computeError(double clusterWidth, double slope)
     double scaleFactor = 0.;
 
     // Start with the piece that is simply a decreasing uniform distribution
-    if (projRatio < 1.2) scaleFactor += 0.909 * (1.1 - projRatio);
+    if (projRatio < 1.2) scaleFactor += 0.833333 * (1.2 - projRatio);
 
     // Add the piece for feeling edge effects
     if (projRatio > 0.7 && projRatio <= 0.9) scaleFactor += 1.25 * (projRatio - 0.7);
@@ -80,7 +80,9 @@ double StaticModelMeasErrs::computeError(double clusterWidth, double slope)
     // Check if we are outside the cluster
     if (projRatio > 1.2) scaleFactor += 4. * (projRatio - 1.2);
 
-    if (scaleFactor > 0.) measErr *= scaleFactor;
+    // Now hit the standard uniform measurement with the scaleFactor
+    // Note that the extra 0.6 is to match "observed"
+    measErr *= 0.6*scaleFactor;
 
     return measErr;
 }
