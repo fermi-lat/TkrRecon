@@ -1094,7 +1094,7 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
             // Extract maxtrix params we need to alter here
             // Note that the scattering here is contained within the plane
             double arcLen2    = deltaZ * deltaZ * (1. + measSlope*measSlope);
-            double scat_disp2 = arcLen2 * sin(kinkAngle) * sin(kinkAngle) / (1. + measSlope*measSlope);
+            double scat_disp2 = 0.25 * arcLen2 * sin(kinkAngle) * sin(kinkAngle) / (1. + measSlope*measSlope);
             double scat_angle = kinkAngle * kinkAngle;  
             double scat_dist  = scat_disp2;
             double scat_covr  = 0.5 * sqrt(scat_dist * scat_angle);    // Has already been scaled by cos(theta) / sqrt(norm_term);
@@ -1113,49 +1113,10 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
 
             if (qTrace > 0.)
             {
-                // Get the inverse of our 2x2 in plane scattering matrix
-                kinkMat.invert(matInvError);
-
-                if (matInvError != 0) 
-                {
-                    throw(TkrException("Failed to invert kink angle covariance matrix in KalmanTrackFitTool::doFilterStep "));
-                }
-
-                // Now make 4x4 matrix to augment current Q matrix
-                KFmatrix kinkMatInv(4,4,0);
-
-                kinkMatInv(measSlpIdx-1, measSlpIdx-1) = kinkMat(1,1);
-                kinkMatInv(measSlpIdx  , measSlpIdx  ) = kinkMat(2,2);
-                kinkMatInv(measSlpIdx-1, measSlpIdx  ) = kinkMat(1,2);
-                kinkMatInv(measSlpIdx  , measSlpIdx-1) = kinkMat(2,1);
-
-                //.We need to get an inverse of the current MS matrix
-                KFmatrix Qinv = Q.inverse(matInvError);
-
-                if (matInvError != 0) 
-                {
-                    throw(TkrException("Failed to invert original MS covariance matrix in KalmanTrackFitTool::doFilterStep "));
-                }
-
-                // Update Qinv with kink angle matrix
-                Qinv += kinkMatInv;
-
-                // Invert again
-                Q = Qinv.inverse(matInvError);
-
-                if (matInvError != 0) 
-                {
-                    throw(TkrException("Failed to invert combined MS + kink angle covariance matrix in KalmanTrackFitTool::doFilterStep "));
-                }
-            }
-            // Otherwise, the current MS matrix is all zeroes so we simply overwrite the appropriate
-            // elements with our in plane scattering values
-            else
-            {
-                Q(measSlpIdx-1, measSlpIdx-1) = kinkMat(1,1);
-                Q(measSlpIdx  , measSlpIdx  ) = kinkMat(2,2);
-                Q(measSlpIdx-1, measSlpIdx  ) = kinkMat(1,2);
-                Q(measSlpIdx  , measSlpIdx-1) = kinkMat(2,1);
+                Q(measSlpIdx-1, measSlpIdx-1) += kinkMat(1,1);
+                Q(measSlpIdx  , measSlpIdx  ) += kinkMat(2,2);
+                Q(measSlpIdx-1, measSlpIdx  ) += kinkMat(1,2);
+                Q(measSlpIdx  , measSlpIdx-1) += kinkMat(2,1);
             }
         }
     }

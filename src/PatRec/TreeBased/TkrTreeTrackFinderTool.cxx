@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.18 2012/12/13 21:36:25 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.19 2013/02/21 00:30:16 usher Exp $
  *
 */
 #include "ITkrTreeTrackFinder.h"
@@ -22,7 +22,6 @@
 #include "TkrUtil/ITkrReasonsTool.h"
 #include "TkrRecon/Track/ITkrFitTool.h"
 #include "TkrRecon/Track/IFindTrackHitsTool.h"
-#include "src/PatRec/BuildTkrTrack.h"
 
 //Exception handler
 #include "Utilities/TkrException.h"
@@ -81,6 +80,9 @@ public:
     StatusCode finalize() {return StatusCode::SUCCESS;}
 
 private:
+    // Define here a TkrVecPointsLink pointer vector
+    typedef std::vector<const Event::TkrVecPointsLink*> TkrLinkPtrVec; 
+
     // Define here a local queue where, unlike for TkrVecNodeQueue, we will sort by distance/angle from the head
     typedef std::priority_queue<Event::TkrVecNode*, std::vector<Event::TkrVecNode*>, TkrVecNodeLeafOrder> TkrVecNodeLeafQueue;
 
@@ -106,22 +108,17 @@ private:
                                      Event::TkrTrack*   track1, 
                                      Event::TkrTrack*   track2);
 
-    /// Build the candidate track hit vector which is used to make TkrTracks
-    BuildTkrTrack::CandTrackHitVec getCandTrackHitVecFromLeaf(Event::TkrVecNode* leaf);
-
-    /// Attempt to not repeat code... 
-    void insertVecPointIntoClusterVec(const Event::TkrVecPoint*       vecPoint, 
-                                      BuildTkrTrack::CandTrackHitVec& clusVec);
-
-    /// For calculating the initial position and direction to give to the track
-    typedef std::pair<Point, Vector> TkrInitParams;
-    TkrInitParams getInitialParams(BuildTkrTrack::CandTrackHitVec& clusVec);
-
     /// Use this to flag the used clusters as they get used by found tracks
     void flagUsedClusters(Event::TkrTrack* track);
 
     /// Use this to flag all clusters in a given tree (as the last step)
     void flagAllUsedClusters(const Event::TkrTree* tree);
+
+    /// Creates a track hit
+    Event::TkrTrackHit* makeTkrTrackHit(const Event::TkrCluster* cluster);
+
+    /// Sets the first track hits track parameters
+    void setFirstHitParams(Event::TkrTrack* track, TkrLinkPtrVec& linkVec);
 
     /// Makes a TkrId
     idents::TkrId makeTkrId(Point& planeHit, int planeId);
@@ -761,25 +758,172 @@ Event::TkrTrack* TkrTreeTrackFinderTool::getTkrTrackFromLeaf(Event::TkrVecNode* 
     // You never know if you might not be able to make a track...
     Event::TkrTrack* track = 0;
 
-    // Handy tool for building TkrTracks
-    BuildTkrTrack trackBuilder(m_tkrGeom);
-    
-    // The next step is to use the above map to return the candidate track hit vector
-    BuildTkrTrack::CandTrackHitVec clusVec = getCandTrackHitVecFromLeaf(leaf);
+    // Traverse up from the leaf to get a vector of links
+    // Note that we want the order to be top/first link at beginning, last/bottom link at end
+    TkrLinkPtrVec linkVec;
+    Event::TkrVecNode*                          leafLocal = leaf;
+
+    // Basically, walk back up the list of nodes until we hit the top...
+    while(leafLocal->getParentNode())
+    {
+        // Recover the link associated with this node
+        const Event::TkrVecPointsLink* link = leafLocal->getAssociatedLink();
+
+        // place at front of vectr
+        if (link) linkVec.insert(linkVec.begin(), link);
+
+        // Move to next node
+        leafLocal = const_cast<Event::TkrVecNode*>(leafLocal->getParentNode());
+    }
 
     // Need minimum hits to proceed
-    if (clusVec.size() > 4)
+    if (linkVec.size() > 1)
     {
-        // Get the initial parameters of the candidate track
-        TkrInitParams initParams = getInitialParams(clusVec);
+        // Get the initial parameters of the candidate track from the first link
+        const Event::TkrVecPointsLink* firstLink    = linkVec.front();
+        const Event::TkrVecPoint*      topVecPoint  = firstLink->getFirstVecPoint();
+        const Event::TkrCluster*       firstCluster = topVecPoint->getXCluster();
+        const Event::TkrCluster*       scndCluster  = topVecPoint->getYCluster();
 
-        // Set up our track hit counting variables
-        int nHits            = 0;
-        int nGaps            = 0;
-        int nConsecutiveGaps = 0;
+        // Swap them if the second is really the first
+        if (scndCluster->position().z() > firstCluster->position().z())
+        {
+            firstCluster = topVecPoint->getYCluster();
+            scndCluster  = topVecPoint->getXCluster();
+        }
 
-        // Now build the candidate track
-        track = trackBuilder.makeNewTkrTrack(initParams.first, initParams.second, energy, clusVec);
+        // Now get initial position and direction
+        Point  initialPos = firstLink->getPosition(firstCluster->position().z());
+        Vector initialDir = firstLink->getVector();
+
+        // Armed with the initial position and direction, create an instance of a new track
+        track = new Event::TkrTrack();
+
+        // And now set the top level parameters
+        track->setInitialPosition(initialPos);
+        track->setInitialDirection(initialDir);
+        track->setInitialEnergy(energy);
+        track->setStatusBit(Event::TkrTrack::LATENERGY);
+
+        // Some things we'll be keeping track of 
+        int nHitsTotal       = 2;       // We always start with at least two hits
+        int nHitsX           = 1;       // By definition, one of the first hits will be an X
+        int nHitsY           = 1;       // and one will be a Y
+        int nGaps            = 0;       // I don't always have a gap in my tracks...
+        int nConsecutiveGaps = 0;       // but when I do I don't let them be too consecutive
+
+        // The first two clusters to add to the track are special and handled separately
+        Event::TkrTrackHit* trackHit = makeTkrTrackHit(firstCluster);
+
+        track->push_back(trackHit);
+
+        trackHit = makeTkrTrackHit(scndCluster);
+
+        track->push_back(trackHit);
+
+        // With the first hits in place can set the first track hit's track parameters
+        setFirstHitParams(track, linkVec);
+
+        // For the remaining hits we need to loop through the links in our link vector
+        for(std::vector<const Event::TkrVecPointsLink*>::iterator linkVecItr  = linkVec.begin();
+                                                                  linkVecItr != linkVec.end();
+                                                                  linkVecItr++)
+        {
+            const Event::TkrVecPointsLink* link = *linkVecItr;
+
+            // Check if this links skips layers, if so we need to insert some blank hits
+            // and increment our gap counters
+            if (link->skipsLayers())
+            {
+                // Determine the first missing plane to begin adding information
+                int missingPlane   = 2 * link->getFirstVecPoint()->getLayer() - 1;
+                int firstGoodPlane = 2 * link->getSecondVecPoint()->getLayer() + 1;
+                int curGapSize     = 0;
+
+                // Starting with this plane, loop down until we reach the good plane
+                while(missingPlane > firstGoodPlane)
+                {
+                    // Recover the position of the plane we need to deal with
+                    double missingPlaneZ = m_tkrGeom->getPlaneZ(missingPlane);
+                    Point  missingPoint  = link->getPosition(missingPlaneZ);
+            
+                    idents::TkrId missingTkrId = makeTkrId(missingPoint, missingPlane);
+            
+                    // Search for a nearby cluster -
+                    // The assumption is that one plane is missing so no TkrVecPoint but perhaps the cluster is nearby
+                    int view  = missingTkrId.getView();
+                    int layer = missingPlane/2;
+            
+                    Event::TkrCluster* cluster = m_clusTool->nearestClusterOutside(view, layer, 0., missingPoint);
+            
+                    // If a cluster in this plane, check that it is nearby
+                    if (cluster)
+                    {
+                        // we are not allowed to use already flagged clusters, if not flagged checked proximity to track
+                        if (!cluster->hitFlagged())
+                        {
+                            double deltaPos = view == idents::TkrId::eMeasureX
+                                            ? missingPoint.x() - cluster->position().x()
+                                            : missingPoint.y() - cluster->position().y();
+            
+                            // For now take anything "close"
+                            if (fabs(deltaPos) > 2.5 * m_tkrGeom->siStripPitch()) cluster = 0;
+                        }
+                        else cluster = 0;
+                    }
+                    
+                    // Result of above checking leaves us with a cluster or not
+                    if (cluster)
+                    {
+                        // Add this cluster to the track
+                        trackHit = makeTkrTrackHit(cluster);
+
+                        track->push_back(trackHit);
+
+                        // Do some accounting
+                        if      (trackHit->getStatusBits() & Event::TkrTrackHit::MEASURESX) nHitsX++;
+                        else if (trackHit->getStatusBits() & Event::TkrTrackHit::MEASURESY) nHitsY++;
+
+                        curGapSize = 0;
+                    }
+                    // Otherwise insert a gap hit
+                    else
+                    {
+                        // Increment our gap counters
+                        nGaps++;
+                        curGapSize++;
+
+                        if (curGapSize > nConsecutiveGaps) nConsecutiveGaps = curGapSize;
+
+                        track->push_back(new Event::TkrTrackHit(0, missingTkrId, missingPlaneZ, 0., 0., 0., 0., 0.));
+                    }
+
+                    missingPlane--;
+                }
+            }
+
+            // Sort out top and bottom cluster from the bottom hit on link
+            const Event::TkrCluster* topCluster = link->getSecondVecPoint()->getXCluster();
+            const Event::TkrCluster* botCluster = link->getSecondVecPoint()->getYCluster();
+
+            if (botCluster->position().z() > topCluster->position().z())
+            {
+                topCluster = link->getSecondVecPoint()->getYCluster();
+                botCluster = link->getSecondVecPoint()->getXCluster();
+            }
+
+            // Make the track hits for these two clusters and add to track
+            track->push_back(makeTkrTrackHit(topCluster));
+            track->push_back(makeTkrTrackHit(botCluster));
+
+            // By definition we have created both an X and Y cluster, count them
+            nHitsX++;
+            nHitsY++;
+        }
+
+        // Set the number of hits
+        track->setNumXHits(nHitsX);
+        track->setNumYHits(nHitsY);
 
         // Run the filter on this 
         m_trackFitTool->doFilterFitWithKinks(*track);
@@ -848,237 +992,131 @@ Event::TkrTrack* TkrTreeTrackFinderTool::getTkrTrackFromHits(Point            st
     return track;
 }
 
-BuildTkrTrack::CandTrackHitVec TkrTreeTrackFinderTool::getCandTrackHitVecFromLeaf(Event::TkrVecNode* leaf)
+Event::TkrTrackHit* TkrTreeTrackFinderTool::makeTkrTrackHit(const Event::TkrCluster* cluster)
 {
-    // Given the map of cluster/positions by plane id, go through and create the "CandTrackHitVec" vector
-    // which can be used to create TkrTrackHits at each plane
-    // The candidate track hit vector to return
-    BuildTkrTrack::CandTrackHitVec clusVec;
-    clusVec.clear();
+    Event::TkrTrackHit* trackHit =  new Event::TkrTrackHit(const_cast<Event::TkrCluster*>(cluster), 
+                                                           cluster->getTkrId(),
+                                                           cluster->position().z(),   
+                                                           0., 0., 0., 0., 0.);
 
-    // Maximum allowed depth for shared hits
-    int maxSharedDepth = leaf->getBestNumBiLayers() - m_maxSharedLeadingHits / 2;
+    // Retrieve a reference to the measured parameters (for setting)
+    Event::TkrTrackParams& params = trackHit->getTrackParams(Event::TkrTrackHit::MEASURED);
 
-    // Handle the special case of the bottom hits first
-    const Event::TkrVecPointsLink* pointsLink = leaf->getAssociatedLink();
+    // Set measured track parameters
+    params(Event::TkrTrackParams::xPosIdx) = cluster->position().x();
+    params(Event::TkrTrackParams::xSlpIdx) = 0.;
+    params(Event::TkrTrackParams::yPosIdx) = cluster->position().y();
+    params(Event::TkrTrackParams::ySlpIdx) = 0.;
 
-    insertVecPointIntoClusterVec(leaf->getAssociatedLink()->getSecondVecPoint(), clusVec);
+    int measIdx = trackHit->getParamIndex(Event::TkrTrackHit::SSDMEASURED,    Event::TkrTrackParams::Position);
+    int nonmIdx = trackHit->getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Position);
 
-    // Traverse up the branch starting at the leaf
-    while(leaf->getParentNode())
-    {
-        // Recover pointer to the link so we can check sharing conditions (if any)
-        const Event::TkrVecPointsLink* vecLink = leaf->getAssociatedLink();
-/*
-        // Are the clusters associated to the bottom of this link already in use?
-        bool xClusUsed = vecLink->getSecondVecPoint()->getXCluster()->hitFlagged();
-        bool yClusUsed = vecLink->getSecondVecPoint()->getYCluster()->hitFlagged();
+    double sigma     = m_tkrGeom->siResolution();
+    double sigma_alt = m_tkrGeom->trayWidth()/sqrt(12.);
 
-        // Also check cluster widths, wider than anticipated clusters can be shared
-        const Vector&            linkDir  = vecLink->getVector();
-        const Event::TkrCluster* xCluster = vecLink->getSecondVecPoint()->getXCluster();
-        const Event::TkrCluster* yCluster = vecLink->getSecondVecPoint()->getYCluster();
+    params(measIdx,measIdx) = sigma * sigma;
+    params(nonmIdx,nonmIdx) = sigma_alt * sigma_alt;
 
-        double xSlope     = linkDir.x() / linkDir.z();
-        double ySlope     = linkDir.y() / linkDir.z();
-        int    xCalcWidth = fabs(xSlope) * m_tkrGeom->siThickness() / m_tkrGeom->siStripPitch() + 2.;
-        int    yCalcWidth = fabs(ySlope) * m_tkrGeom->siThickness() / m_tkrGeom->siStripPitch() + 2.;
+    // Last: set the hit status bits
+    unsigned int status_bits = Event::TkrTrackHit::HITONFIT | Event::TkrTrackHit::HASMEASURED |
+                               Event::TkrTrackHit::HITISSSD | Event::TkrTrackHit::HASVALIDTKR;
 
-        // Kick out immediately if shared hits after number of allowed leading
-        if (leaf->getDepth() <= maxSharedDepth && 
-            ((xClusUsed && xCluster->size() <= xCalcWidth) || (yClusUsed && yCluster->size() <= yCalcWidth)))
-        {
-            clusVec.clear();
-            break;
-        }
-*/
-        // If this node is skipping layers then we have some special handling
-        // Put the code for this inline since we are going "up" the branch and it can
-        // be confusing to separate out
-        if (vecLink->skipsLayers())
-        {
+    if (cluster->getTkrId().getView() == idents::TkrId::eMeasureX) status_bits |= Event::TkrTrackHit::MEASURESX;
+    else                                                           status_bits |= Event::TkrTrackHit::MEASURESY;
 
-            // Loop through missing bilayers adding hit info, start at the bottom...
-            int nextPlane = 2 * vecLink->getSecondVecPoint()->getLayer() + 1;
+    trackHit->setStatusBit((Event::TkrTrackHit::StatusBits)status_bits);
 
-            // and work out way up to the top point
-            while(++nextPlane < 2 * vecLink->getFirstVecPoint()->getLayer())
-            {
-                // Recover the position of the plane we need to deal with
-                double nextPlaneZ = m_tkrGeom->getPlaneZ(nextPlane);
-                Point  nextPoint  = vecLink->getPosition(nextPlaneZ);
-
-                idents::TkrId nextTkrId = makeTkrId(nextPoint, nextPlane);
-
-                // Search for a nearby cluster -
-                // The assumption is that one plane is missing so no TkrVecPoint but perhaps the cluster is nearby
-                int view  = nextTkrId.getView();
-                int layer = nextPlane/2;
-
-                Event::TkrCluster* cluster = m_clusTool->nearestClusterOutside(view, layer, 0., nextPoint);
-
-                // If a cluster in this plane, check that it is nearby
-                if (cluster)
-                {
-                    // we are not allowed to use already flagged clusters, if not flagged checked proximity to track
-                    if (!cluster->hitFlagged())
-                    {
-                        double deltaPos = view == idents::TkrId::eMeasureX
-                                        ? nextPoint.x() - cluster->position().x()
-                                        : nextPoint.y() - cluster->position().y();
-
-                        // For now take anything "close"
-                        if (fabs(deltaPos) > 2.5 * m_tkrGeom->siStripPitch()) cluster = 0;
-                    }
-                    else cluster = 0;
-                }
-
-                clusVec.insert(clusVec.begin(),BuildTkrTrack::CandTrackHitPair(nextTkrId, cluster));
-            }
-        }
-
-        // Add the first clusters to the vector
-        insertVecPointIntoClusterVec(leaf->getAssociatedLink()->getFirstVecPoint(), clusVec);
-
-        // Move to next node
-        leaf = const_cast<Event::TkrVecNode*>(leaf->getParentNode());
-    }
-
-    return clusVec;
+    return trackHit;
 }
 
-void TkrTreeTrackFinderTool::insertVecPointIntoClusterVec(const Event::TkrVecPoint*       vecPoint, 
-                                                  BuildTkrTrack::CandTrackHitVec& clusVec)
+void TkrTreeTrackFinderTool::setFirstHitParams(Event::TkrTrack* track, TkrLinkPtrVec& linkVec)
 {
-    // Set up the first hit
-    const Event::TkrCluster* clusterX  = vecPoint->getXCluster();
-    const Event::TkrCluster* clusterY  = vecPoint->getYCluster();
+    Event::TkrTrackHit* trackHit = track->front();
 
-    // Check to see which plane is on top
-    if (clusterX->position().z() < clusterY->position().z())
-    {
-        clusVec.insert(clusVec.begin(),BuildTkrTrack::CandTrackHitPair(clusterX->getTkrId(), clusterX));
-        clusVec.insert(clusVec.begin(),BuildTkrTrack::CandTrackHitPair(clusterY->getTkrId(), clusterY));
-    }
-    else
-    {
-        clusVec.insert(clusVec.begin(),BuildTkrTrack::CandTrackHitPair(clusterY->getTkrId(), clusterY));
-        clusVec.insert(clusVec.begin(),BuildTkrTrack::CandTrackHitPair(clusterX->getTkrId(), clusterX));
-    }
+    trackHit->setEnergy(track->getInitialEnergy());
+
+    // Recover indices and basic quanitites that we need/want
+    int    measIdx   = trackHit->getParamIndex(Event::TkrTrackHit::SSDMEASURED,    Event::TkrTrackParams::Position);
+    int    nonmIdx   = trackHit->getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Position);
+    int    xSlpIdx   = Event::TkrTrackParams::xSlpIdx;
+    int    ySlpIdx   = Event::TkrTrackParams::ySlpIdx;
+    double sigma     = m_tkrGeom->siResolution();
+    double sigma_alt = m_tkrGeom->trayWidth()/sqrt(12.);
+
+    // Use the input link vector to develop a "better" initial direction and uncertainties
+    TkrLinkPtrVec::iterator linkItr = linkVec.begin();
+    const Event::TkrVecPoint* topPoint = (*linkItr)->getFirstVecPoint();
+    const Event::TkrVecPoint* midPoint = (*linkItr++)->getSecondVecPoint();
+    const Event::TkrVecPoint* botPoint = (*linkItr)->getSecondVecPoint();
+
+    // Get vectors from mid and bottom points to the top point, and then their average
+    Vector midToTop = (midPoint->getPosition() - topPoint->getPosition()).unit();
+    Vector botToTop = (botPoint->getPosition() - topPoint->getPosition()).unit();
+    Vector aveVec   = 0.5 * (midToTop + botToTop);
+
+    // Make sure the average is a unit vector
+    aveVec.setMag(1.);
+
+    // Get position at intermediate point
+    double arcLenToMid = (midPoint->getPosition().z() - topPoint->getPosition().z()) / aveVec.z();
+    Point midPos = topPoint->getPosition() + arcLenToMid * aveVec;
+
+    double deltaX   = fabs(midPos.x() - midPoint->getPosition().x());
+    double deltaY   = fabs(midPos.y() - midPoint->getPosition().y());
+    double aveDelta = 0.5 * (deltaX + deltaY);
+
+    double deltaSlp = aveDelta / arcLenToMid;
+    double minSlp   = m_tkrGeom->siStripPitch() / arcLenToMid;
+
+    deltaSlp = std::max(deltaSlp, minSlp);
+
+    if (measIdx == 3) std::swap(deltaX, deltaY);
+
+    double clusWid = topPoint->getXCluster()->size();
+    if (topPoint->getXCluster()->position().z() < topPoint->getYCluster()->position().z())
+        clusWid = topPoint->getYCluster()->size();
+
+    sigma *= clusWid;
+
+    Point  startPos  = track->getInitialPosition();
+
+    double x_slope   = aveVec.x() / aveVec.z(); //startDir.x()/startDir.z();
+    double y_slope   = aveVec.y() / aveVec.z(); //startDir.y()/startDir.z();
+    Event::TkrTrackParams firstParams(startPos.x(), x_slope, startPos.y(), y_slope,
+                                      5., 0., 0., 0., 0., 0., 0., 5., 0., 0.);
+
+    firstParams(measIdx)          = trackHit->getMeasuredPosition(Event::TkrTrackHit::MEASURED);
+    firstParams(measIdx, measIdx) = sigma * sigma;
+    firstParams(nonmIdx, nonmIdx) = 0.8333 * deltaX * deltaX; //sigma_alt * sigma_alt;
+    firstParams(xSlpIdx, xSlpIdx) = deltaSlp * deltaSlp;
+    firstParams(ySlpIdx, ySlpIdx) = deltaSlp * deltaSlp;
+
+    // Now do the same for the FILTERED params
+    Event::TkrTrackParams& filtPar = trackHit->getTrackParams(Event::TkrTrackHit::FILTERED);
+    filtPar = firstParams;
+
+    // And now do the same for the PREDICTED params
+    Event::TkrTrackParams& predPar = trackHit->getTrackParams(Event::TkrTrackHit::PREDICTED);
+    predPar = firstParams;
+
+    // Last: set the hit status bits
+    unsigned int status_bits = trackHit->getStatusBits();
+
+    status_bits |= Event::TkrTrackHit::HASPREDICTED 
+                |  Event::TkrTrackHit::HASFILTERED 
+                |  Event::TkrTrackHit::HASVALIDTKR;
+
+    // Update the TkrTrackHit status bits
+    trackHit->setStatusBit((Event::TkrTrackHit::StatusBits)status_bits);
+
+    // Finally, set the radiation lengths (defined to be that of the converter at this layer)
+    int    layer  = trackHit->getClusterPtr()->getLayer();
+    double radLen = m_tkrGeom->getRadLenConv(layer); 
+    trackHit->setRadLen(radLen);
 
     return;
 }
 
-TkrTreeTrackFinderTool::TkrInitParams TkrTreeTrackFinderTool::getInitialParams(BuildTkrTrack::CandTrackHitVec& clusVec)
-{
-    // Given a "CandTrackHitVec", derive the initial parameters from it which will be used as
-    // the starting position and starting direction of the track
-    // Get the top point
-    Point topXPoint(0.,0.,0.);
-    Point topYPoint(0.,0.,0.);
-
-    if (clusVec[0].first.getView() == idents::TkrId::eMeasureX)
-    {
-        topXPoint = clusVec[0].second->position();
-        topYPoint = clusVec[1].second->position();
-    }
-    else
-    {
-        topXPoint = clusVec[1].second->position();
-        topYPoint = clusVec[0].second->position();
-    }
-
-    // For the second set of points we have to be sure we haven't skipped a layer
-    int pointIdx = 2;
-    int nAvePts  = 3;
-
-    while(!clusVec[pointIdx].second || !clusVec[pointIdx+1].second) 
-    {
-        pointIdx += 2;
-        nAvePts   = 1;
-    }
-
-    // default values for slope
-    double tSlopeX = 0.;
-    double tSlopeY = 0.;
-
-    // Average over next two pairs of points
-    int stopIdx = pointIdx + nAvePts;
-    int nPoints = 0;
-
-    if (stopIdx > int(clusVec.size())) stopIdx = clusVec.size();
-
-    while(pointIdx < stopIdx)
-    {
-        // Make sure we have two valid points
-        if (clusVec[pointIdx].second && clusVec[pointIdx+1].second)
-        {
-            // Get the bottom point
-            Point botXPoint(0.,0.,0.);
-            Point botYPoint(0.,0.,0.);
-    
-            if (clusVec[pointIdx].first.getView() == idents::TkrId::eMeasureX)
-            {
-                botXPoint = clusVec[pointIdx].second->position();
-                botYPoint = clusVec[pointIdx+1].second->position();
-            }
-            else
-            {
-                botXPoint = clusVec[pointIdx+1].second->position();
-                botYPoint = clusVec[pointIdx].second->position();
-            }
-    
-            // Pattern is either x-y-y-x or y-x-x-y
-            // Get the variables we'll use to determine the slopes
-            double deltaX  = topXPoint.x() - botXPoint.x();
-            double deltaZX = topXPoint.z() - botXPoint.z();
-            double deltaY  = topYPoint.y() - botYPoint.y();
-            double deltaZY = topYPoint.z() - botYPoint.z();
-    
-            // Ok, now can get slopes
-            tSlopeX += deltaX / deltaZX;
-            tSlopeY += deltaY / deltaZY;
-
-            // Keep track
-            nPoints++;
-        }
-
-        pointIdx += 2;
-    }
-
-    // Check to see if we need to average
-    if (nPoints > 1)
-    {
-        tSlopeX *= 0.5;
-        tSlopeY *= 0.5;
-    }
-
-    // From which we get the start direction
-    Vector startDir(-tSlopeX, -tSlopeY, -1.);
-    startDir.setMag(1.);
-
-    // And now we can determine the first hit position
-    Point startPos = clusVec[0].second->position();
-
-    if (clusVec[0].first.getView() == idents::TkrId::eMeasureX)
-    {
-        double deltaZ      = topYPoint.z() - startPos.z();
-        double yPosFrstHit = topYPoint.y() + tSlopeY * deltaZ;
-
-        startPos.setY(yPosFrstHit);
-    }
-    else
-    {
-        double deltaZ      = topXPoint.z() - startPos.z();
-        double xPosFrstHit = topXPoint.x() + tSlopeX * deltaZ;
-
-        startPos.setX(xPosFrstHit);
-    }
-
-    return TkrInitParams(startPos, startDir);
-}
-
-    
 idents::TkrId TkrTreeTrackFinderTool::makeTkrId(Point& planeHit, int planeId)
 {
     // Recover this plane's "view"
