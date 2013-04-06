@@ -1058,14 +1058,15 @@ void TkrTreeTrackFinderTool::setFirstHitParams(Event::TkrTrack* track, TkrLinkPt
     aveVec.setMag(1.);
 
     // Get position at intermediate point
-    double arcLenToMid = (midPoint->getPosition().z() - topPoint->getPosition().z()) / aveVec.z();
-    Point midPos = topPoint->getPosition() + arcLenToMid * aveVec;
+    double nSkippedLyrs = topPoint->getLayer() - botPoint->getLayer() - 1;
+    double arcLenToMid  = (midPoint->getPosition().z() - topPoint->getPosition().z()) / aveVec.z();
+    Point  midPos       = topPoint->getPosition() + arcLenToMid * aveVec;
 
     double deltaX   = fabs(midPos.x() - midPoint->getPosition().x());
     double deltaY   = fabs(midPos.y() - midPoint->getPosition().y());
     double aveDelta = 0.5 * (deltaX + deltaY);
 
-    double deltaSlp = 3. * aveDelta / arcLenToMid;
+    double deltaSlp = 4. * nSkippedLyrs * aveDelta / arcLenToMid;
 
     deltaSlp = std::max(deltaSlp, 0.01);
 
