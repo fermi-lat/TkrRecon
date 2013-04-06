@@ -1065,10 +1065,9 @@ void TkrTreeTrackFinderTool::setFirstHitParams(Event::TkrTrack* track, TkrLinkPt
     double deltaY   = fabs(midPos.y() - midPoint->getPosition().y());
     double aveDelta = 0.5 * (deltaX + deltaY);
 
-    double deltaSlp = aveDelta / arcLenToMid;
-    double minSlp   = m_tkrGeom->siStripPitch() / arcLenToMid;
+    double deltaSlp = 3. * aveDelta / arcLenToMid;
 
-    deltaSlp = std::max(deltaSlp, minSlp);
+    deltaSlp = std::max(deltaSlp, 0.01);
 
     if (measIdx == 3) std::swap(deltaX, deltaY);
 
@@ -1087,7 +1086,7 @@ void TkrTreeTrackFinderTool::setFirstHitParams(Event::TkrTrack* track, TkrLinkPt
 
     firstParams(measIdx)          = trackHit->getMeasuredPosition(Event::TkrTrackHit::MEASURED);
     firstParams(measIdx, measIdx) = sigma * sigma;
-    firstParams(nonmIdx, nonmIdx) = 0.8333 * deltaX * deltaX; //sigma_alt * sigma_alt;
+    firstParams(nonmIdx, nonmIdx) = sigma_alt * sigma_alt;
     firstParams(xSlpIdx, xSlpIdx) = deltaSlp * deltaSlp;
     firstParams(ySlpIdx, ySlpIdx) = deltaSlp * deltaSlp;
 
