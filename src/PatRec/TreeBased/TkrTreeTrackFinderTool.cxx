@@ -1040,25 +1040,36 @@ void TkrTreeTrackFinderTool::setFirstHitParams(Event::TkrTrack* track, TkrLinkPt
     int    nonmIdx   = trackHit->getParamIndex(Event::TkrTrackHit::SSDNONMEASURED, Event::TkrTrackParams::Position);
     int    xSlpIdx   = Event::TkrTrackParams::xSlpIdx;
     int    ySlpIdx   = Event::TkrTrackParams::ySlpIdx;
+
+    // Set initial sigmas for the position - note that these will be overwritten at the start of filtering
     double sigma     = m_tkrGeom->siResolution();
     double sigma_alt = m_tkrGeom->trayWidth()/sqrt(12.);
 
     // Use the input link vector to develop a "better" initial direction and uncertainties
     TkrLinkPtrVec::iterator linkItr = linkVec.begin();
-    const Event::TkrVecPoint* topPoint = (*linkItr)->getFirstVecPoint();
-    const Event::TkrVecPoint* midPoint = (*linkItr++)->getSecondVecPoint();
-    const Event::TkrVecPoint* botPoint = (*linkItr)->getSecondVecPoint();
+
+    const Event::TkrVecPointsLink* topLink  = *linkItr++;
+    const Event::TkrVecPointsLink* botLink  = *linkItr;
+    const Event::TkrVecPoint*      topPoint = topLink->getFirstVecPoint();
+    const Event::TkrVecPoint*      midPoint = topLink->getSecondVecPoint();
+    const Event::TkrVecPoint*      botPoint = botLink->getSecondVecPoint();
+
+    // Recover the number of intervening skipped layers - useful for weighting
+    double nSkippedLyrsTop = topPoint->getLayer() - midPoint->getLayer() - 1;
+    double nSkippedLyrsBot = midPoint->getLayer() - botPoint->getLayer() - 1;
 
     // Get vectors from mid and bottom points to the top point, and then their average
     Vector midToTop = (midPoint->getPosition() - topPoint->getPosition()).unit();
     Vector botToTop = (botPoint->getPosition() - topPoint->getPosition()).unit();
-    Vector aveVec   = 0.5 * (midToTop + botToTop);
+
+    // Get a weighted average of the two vectors, skewing towards the first link
+    double wghtFctr = 3. + nSkippedLyrsTop + nSkippedLyrsBot;
+    Vector aveVec   = ((2. + nSkippedLyrsBot) * midToTop + (1. + nSkippedLyrsTop) * botToTop) / wghtFctr;
 
     // Make sure the average is a unit vector
     aveVec.setMag(1.);
 
     // Get position at intermediate point
-    double nSkippedLyrs = topPoint->getLayer() - botPoint->getLayer() - 1;
     double arcLenToMid  = (midPoint->getPosition().z() - topPoint->getPosition().z()) / aveVec.z();
     Point  midPos       = topPoint->getPosition() + arcLenToMid * aveVec;
 
@@ -1066,19 +1077,13 @@ void TkrTreeTrackFinderTool::setFirstHitParams(Event::TkrTrack* track, TkrLinkPt
     double deltaY   = fabs(midPos.y() - midPoint->getPosition().y());
     double aveDelta = 0.5 * (deltaX + deltaY);
 
-    double deltaSlp = 4. * nSkippedLyrs * aveDelta / arcLenToMid;
+    double deltaSlp = 4. * (topPoint->getLayer() - botPoint->getLayer() - 1.) * aveDelta / arcLenToMid;
+    double logEne   = std::max(log10(trackHit->getEnergy()), 1.);
 
-    deltaSlp = std::max(deltaSlp, 0.01);
-
-    if (measIdx == 3) std::swap(deltaX, deltaY);
-
-    double clusWid = topPoint->getXCluster()->size();
-    if (topPoint->getXCluster()->position().z() < topPoint->getYCluster()->position().z())
-        clusWid = topPoint->getYCluster()->size();
-
-    sigma *= clusWid;
+    deltaSlp = std::max(deltaSlp, M_PI_4 / (2.*logEne));
 
     Point  startPos  = track->getInitialPosition();
+    Vector startDir  = track->getInitialDirection();
 
     double x_slope   = aveVec.x() / aveVec.z(); //startDir.x()/startDir.z();
     double y_slope   = aveVec.y() / aveVec.z(); //startDir.y()/startDir.z();
