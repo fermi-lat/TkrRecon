@@ -1079,8 +1079,9 @@ void TkrTreeTrackFinderTool::setFirstHitParams(Event::TkrTrack* track, TkrLinkPt
 
     double deltaSlp = 4. * (topPoint->getLayer() - botPoint->getLayer() - 1.) * aveDelta / arcLenToMid;
     double logEne   = std::max(log10(trackHit->getEnergy()), 1.);
+    double minAngle = std::max(0.001, M_PI_4 / (2.*logEne));
 
-    deltaSlp = std::max(deltaSlp, M_PI_4 / (2.*logEne));
+    deltaSlp = std::max(deltaSlp, minAngle);
 
     Point  startPos  = track->getInitialPosition();
     Vector startDir  = track->getInitialDirection();
