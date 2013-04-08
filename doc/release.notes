@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-39-01  8-Apr-2013 TU Small fixes to initial track parameters before fitting
  TkrRecon-10-39-00  6-Apr-2013 TU Introduce new "hit error" models for fitting electrons, also a new "process noise matrix" 
  TkrRecon-10-38-11  6-Mar-2013 TU Try to fool optimizer on sort comparator in TkrVecNodesBuilder, set bit for residuals fit
  TkrRecon-10-38-10 26-Feb-2013 TU Fix bug in Cal Sort comparator and finally fix the unguarded sort error for links
