@@ -82,7 +82,7 @@ double StaticModelMeasErrs::computeError(double clusterWidth, double slope)
 
     // Now hit the standard uniform measurement with the scaleFactor
     // Note that the extra 0.6 is to match "observed"
-    measErr *= 0.6*scaleFactor;
+    measErr *= 0.5*scaleFactor;
 
     return measErr;
 }
