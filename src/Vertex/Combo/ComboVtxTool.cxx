@@ -48,7 +48,11 @@ private:
     StatusCode neutralEnergyVtx(Event::TkrTree* tree, Event::TkrVertexCol* vertexCol);
 
     Event::TkrTrackParams getParamAve(Event::TkrTrackParams& params1, 
-                                      Event::TkrTrackParams& params2);
+        Event::TkrTrackParams& params2);
+
+    /// this is the guts of the vertex finder
+    StatusCode findVerticesFromTracks(Event::TkrTrackVec* trackCol, 
+        Event::TkrVertexCol* vertexCol);
 
     /// @brief Keep pointers to the geometry service and the data 
     /// data provider service. These are both needed by the combo
@@ -58,7 +62,7 @@ private:
     /// Pointer to the G4 propagator
     IPropagator*      m_propagatorTool;
 
-        double            m_maxDOCA;   /// Max. accepted DOCA separation for which to make vertex
+    double            m_maxDOCA;   /// Max. accepted DOCA separation for which to make vertex
     double            m_minQuality;/// Min. accepted VTX quality
 
     double            m_chisq;     /// Internal transport for Chi-Square
@@ -125,9 +129,10 @@ StatusCode ComboVtxTool::findVtxs()
 
     // Retrieve the collection of trees from the TDS
     Event::TkrTreeCol* treeCol = SmartDataPtr<Event::TkrTreeCol>(m_dataSvc, "/Event/TkrRecon/TkrTreeCol");
+    Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(m_dataSvc, "/Event/TkrRecon/TkrTrackCol");
 
     // If no tree collection then nothing to do
-    if (!treeCol) return sc;
+    if (!treeCol&&!trackCol) return sc;
 
     // Now recover the vertex collection
     Event::TkrVertexCol* vertexCol = SmartDataPtr<Event::TkrVertexCol>(m_dataSvc, EventModel::TkrRecon::TkrVertexCol);
@@ -135,223 +140,253 @@ StatusCode ComboVtxTool::findVtxs()
     // If there is no vertex collection then this is really an error, but return anyway
     if (!vertexCol) return sc;
 
-    // The strategy here is to only combine tracks which result from a single tree, so the outside loop
-    // here is over trees, not over tracks
-    for(Event::TkrTreeCol::iterator treeItr = treeCol->begin(); treeItr != treeCol->end(); treeItr++)
-    {
-        Event::TkrTree* tree = *treeItr;
+    // The strategy here is to only combine tracks which result from a single tree, 
+    //   so the outside loop here is over trees, not over tracks
+    // Except for the McPatRec, where there are no trees!
 
-        // Now we can recover the tracks associated with this tree
-        Event::TkrTrackVec* trackCol = tree;
 
-        // Skip if there are no tracks 
-        if(trackCol->empty()) continue;
-
-        //Define a vector to contain a list of "isolated" tracks
-        int numTracks = trackCol->size();
-        std::vector<bool>  unused(numTracks);
-        while(numTracks--) unused[numTracks] = true;
-    
-        //Track counter
-        int   tkr1Idx = 0;
-      
-        // Loop over all tracks and try to find a mate within declared properties tolerances
-        for(Event::TkrTrackColPtr pTrack1 = trackCol->begin(); pTrack1 != trackCol->end(); pTrack1++, tkr1Idx++)
+    if(treeCol) {
+        Event::TkrTreeCol::iterator treeItr = treeCol->begin();
+        for(; treeItr != treeCol->end(); treeItr++)
         {
-            if(!unused[tkr1Idx]) continue; 
+            Event::TkrTree* tree = *treeItr;
 
-            Event::TkrTrack*  track1    = *pTrack1;
-            Event::TkrVertex* newVertex = 0;
-
-            if (track1->getStatusBits() & Event::TkrTrack::COSMICRAY) continue;  //RJ: don't use CR tracks for vertexing
-
-            Point                      tkr1Pos     = track1->front()->getPoint(Event::TkrTrackHit::SMOOTHED);
-            Vector                     tkr1Dir     = track1->front()->getDirection(Event::TkrTrackHit::SMOOTHED);
-            Event::TkrTrackParams      tkr1Params  = track1->front()->getTrackParams(Event::TkrTrackHit::SMOOTHED);
-            idents::TkrId              tkr1ID      = track1->front()->getTkrId();
-            const Event::TkrClusterPtr tkr1Cls     = track1->front()->getClusterPtr();
-            double                     e1          = track1->getInitialEnergy();
-            double                     firstChisq1 = std::max(track1->chiSquareSegment(), .1);
-
-            // Set up a new vertex - it may only contain this track
-            double best_quality = -100.;
-
-            // Recover the covariance matrix elements
-            double cxx     = tkr1Params.getxPosxPos();
-            double cxSx    = 0.; 
-            double cxy     = tkr1Params.getxPosyPos(); 
-            double cxSy    = 0.; 
-
-            double cSxy    = 0.; 
-
-            double cyy     = tkr1Params.getyPosyPos();
-            double cySy    = 0.; 
-
-            double cSxSx   = tkr1Params.getxSlpxSlp();
-            double cSySy   = tkr1Params.getySlpySlp();
-            double cSxSy   = tkr1Params.getxSlpySlp();
-
-            double x_slope = tkr1Params.getxSlope();
-            double y_slope = tkr1Params.getySlope();
-
-            double x_vtx   = tkr1Params.getxPosition();
-            double y_vtx   = tkr1Params.getyPosition();
-
-            Event::TkrTrackParams scaled_Tkr1Params(x_vtx, x_slope, y_vtx, y_slope,
-                                                    cxx,  cxSx,  cxy,  cxSy,
-                                                    cSxSx, cSxy, cSxSy,
-                                                    cyy,  cySy,
-                                                    cSySy);
-
-            newVertex = new Event::TkrVertex(tkr1ID, e1, best_quality, 0.,
-                                                        0., 0., 0., 0., tkr1Pos.z(), scaled_Tkr1Params); 
-            newVertex->setStatusBit(Event::TkrVertex::ONETKRVTX);
-            newVertex->addTrack(track1);
-                        double Tkr1CovDet = scaled_Tkr1Params.getxSlpxSlp()*scaled_Tkr1Params.getySlpySlp() - 
-                                                scaled_Tkr1Params.getxSlpySlp()*scaled_Tkr1Params.getxSlpySlp();
-
-
-
-            //Loop over possible 2nd tracks to pair with #1
-            Event::TkrTrack *best_track2;
-//            Event::TkrTrackColPtr pTrack2 = pTrack1;
-//            pTrack2++; 
-            int   tkr2Idx = tkr1Idx+1;
-            int   best_tkr2Idx = -1; 
-            for (Event::TkrTrackColPtr pTrack2 = pTrack1 + 1; pTrack2 != trackCol->end(); pTrack2++, tkr2Idx++) 
-            {
-                if(!unused[tkr2Idx]) continue;
-
-                Event::TkrTrack* track2 = *pTrack2;
-                                if (track2->getStatusBits() & Event::TkrTrack::COSMICRAY) continue;  //RJ: don't use CR tracks for vertexing
-
-                Point   tkr2Pos = track2->front()->getPoint(Event::TkrTrackHit::SMOOTHED);
-                Vector  tkr2Dir = track2->front()->getDirection(Event::TkrTrackHit::SMOOTHED);
-                Event::TkrTrackParams tkr2Params = track2->front()->getTrackParams(Event::TkrTrackHit::SMOOTHED);
-                idents::TkrId tkr2ID = track2->front()->getTkrId();
-                const Event::TkrClusterPtr tkr2Cls  = track2->front()->getClusterPtr();
-                double e2 = track2->getInitialEnergy();
-                double firstChisq2 = std::max(track2->chiSquareSegment(), .1);
-                double eTot = e1 + e2;
-
-                // Compute DOCA and DOCA location
-                RayDoca doca    = RayDoca(Ray(tkr1Pos, tkr1Dir), Ray(tkr2Pos, tkr2Dir));
-                double dist = doca.docaRay1Ray2();
-                                //if(dist >  m_maxDOCA*100./std::max(50.,std::min(500., eTot))) continue;
-                                if(dist * sqrt(std::min(eTot, 5000.)/100.) > m_maxDOCA) continue;
-
-                double s1   = doca.arcLenRay1();
-                double s2   = doca.arcLenRay2(); 
-                double docaZPos = .5*(tkr1Pos.z() + s1*tkr1Dir.z() + tkr2Pos.z() + s2*tkr2Dir.z());
-
-                // 2-track vertices from here out
-                unsigned int status = Event::TkrVertex::TWOTKRVTX;
-
-                // Determine where to locate the vertex in Z
-                //  Initialize by putting vertex at z location of head of first track
-                                double zVtx = tkr1Pos.z(); 
-
-                                // Cycle through Vertex Types
-                if(s1 > 0 && s2 > 0 && tkr1Cls != tkr2Cls) 
-                                        status |= Event::TkrVertex::CROSSTKR;
-
-                if(fabs(tkr1Pos.z() - tkr2Pos.z()) > .5*m_tkrGeom->trayHeight()  && tkr1Cls != tkr2Cls)
-                     status |= Event::TkrVertex::STAGVTX;
-
-                int plane = m_tkrGeom->getPlane(tkr1ID);
-                int layer = m_tkrGeom->getLayer(plane);
-
-                double clsSize = tkr1Cls->size();
-                                
-                if(tkr1Cls == tkr2Cls) 
-                {
-                    if(clsSize * fabs(tkr1Dir.z()) < 3.01 ) 
-                    {
-                        // Put vertex 1/2 way into preceeding radiator if first hit is in upper plane
-                        bool isTopPlane = m_tkrGeom->isTopPlaneInLayer(plane);
-                        if (isTopPlane) zVtx = m_tkrGeom->getConvZ(layer);
-                        else // Leave zVtx in middle of first-hit-SSD
-                            status |= Event::TkrVertex::FIRSTHIT;
-                    }       // First Cluster too wide 
-                    else    status |= Event::TkrVertex::WIDEFIRSTCLUSTER;
-                }
-                else if((docaZPos-tkr1Pos.z()) > 0. && 
-                        (docaZPos-tkr1Pos.z()) < m_tkrGeom->trayHeight())
-                {// Put vertex at DOCA location   
-                    zVtx = docaZPos;
-                    status |= Event::TkrVertex::DOCAVTX; 
-                }
-                                
-                // Limit vertexing to at most propagating tracks by one layer
-                if(fabs(zVtx - tkr1Pos.z()) > 37. || fabs(zVtx - tkr2Pos.z()) > 37.) continue;
-                double sv1 = (zVtx - tkr1Pos.z())/tkr1Dir.z();
-                double sv2 = (zVtx - tkr2Pos.z())/tkr2Dir.z();
-                if(layer < 6) sv1 += .3/tkr1Dir.z();
-                else          sv1 += .05/tkr1Dir.z();
-                if(layer < 6) sv2 += .3/tkr2Dir.z();
-                else          sv2 += .05/tkr2Dir.z();
-                
-                // Propagate the TkrParams to the vertex location
-                m_propagatorTool->setStepStart(tkr1Params, tkr1Pos.z(), (sv1 < 0));
-                m_propagatorTool->step(fabs(sv1));
-                Event::TkrTrackParams vertexParams = m_propagatorTool->getTrackParams(fabs(sv1), e1, (sv1 < 0));
-                double extraRadLen = m_propagatorTool->getRadLength();
-
-                m_propagatorTool->setStepStart(tkr2Params, tkr2Pos.z(), (sv2 < 0));
-                m_propagatorTool->step(fabs(sv2));
-                Event::TkrTrackParams vtx2Params = m_propagatorTool->getTrackParams(fabs(sv2), e2, (sv2 < 0));
-                                
-                        //  NEW: Scaled covariance matrix for Track 1 & 2 
-                // the chi-square for the association. Results in m_chisq)
-                Event::TkrTrackParams vtxParams = getParamAve(vertexParams, vtx2Params); 
-
-                // Calculate quality for this vertex
-                                if(m_chisq < 0) continue;
-                double trial_quality = -fabs(s1 - s2) - m_chisq*firstChisq1*firstChisq2/3.; 
-                                double VtxCovDet = vtxParams.getxSlpxSlp()*vtxParams.getySlpySlp()- vtxParams.getxSlpySlp()*vtxParams.getxSlpySlp();
-
-                // Deside if to update vertex using this track
-                if(trial_quality > best_quality && trial_quality > m_minQuality && 
-                                        VtxCovDet > 0. && VtxCovDet < Tkr1CovDet) 
-                {
-                    if(newVertex->getNumTracks() > 1) newVertex->deleteTrack();
-                    newVertex->addTrack(track2);
-                    newVertex->setParams(vtxParams);
-                    newVertex->setPosition(Point(vtxParams(1), vtxParams(3), zVtx));
-                    newVertex->setDirection(Vector(-vtxParams(2), -vtxParams(4), -1.).unit());
-                    newVertex->setEnergy(eTot);
-                    newVertex->setChiSquare(m_chisq);
-                    newVertex->setQuality(trial_quality);
-                    newVertex->setAddedRadLen(extraRadLen);
-                    newVertex->setDOCA(dist);
-                    newVertex->setTkr1ArcLen(sv1);
-                    newVertex->setTkr2ArcLen(sv2);
-                    newVertex->clearStatusBits();
-                    newVertex->setStatusBit(status);
-
-                    best_quality = trial_quality;
-                    best_track2 = track2;
-                    best_tkr2Idx = tkr2Idx;
-                }
-            }  // Close loop over 2nd track
-            
-            // Add track to TkrVertexCol
-            if(newVertex) vertexCol->push_back(newVertex); // RJ LSR
-
-            unused[tkr1Idx] = false;
-            if(best_tkr2Idx > -1) unused[best_tkr2Idx] = false;
-        }      // Close loop over 1st track
+            // Now we can recover the tracks associated with this tree
+                Event::TkrTrackVec* pTrackVec = tree;
+            sc = findVerticesFromTracks(pTrackVec, vertexCol);
+            if (!vertexCol->empty()) {
+                sc = neutralEnergyVtx(treeCol->front(), vertexCol); // RJ LSR
+            }
+        }
+    }
+    else {
+        if(trackCol->empty()) return sc;
+        unsigned size = trackCol->size();
+        Event::TkrTrackVec trackVec;
+        Event::TkrTrackVec* pTrackVec = &trackVec;
+        trackVec.clear();
+        bool first = true;
+        Event::TkrTrack* track0;
+        Event::TkrTrackColPtr pTrack1 = trackCol->begin();
+        for(; pTrack1 != trackCol->end(); ++pTrack1) {
+            if(first) track0 = *pTrack1;
+            Event::TkrTrack*  track    = *pTrack1;
+            pTrackVec->push_back(track);
+        }
+        sc = findVerticesFromTracks(pTrackVec, vertexCol);
     }
 
-        // If we found at least one vertex then attempt to make a neutral vertex
-        // Doing here makes sure it is added to the end of the list 
-        if (!vertexCol->empty())
-        {
-                sc = neutralEnergyVtx(treeCol->front(), vertexCol); // RJ LSR
-        }
-    
     return sc;
 }
+
+StatusCode ComboVtxTool::findVerticesFromTracks(
+    Event::TkrTrackVec* trackCol, Event::TkrVertexCol* vertexCol)
+{
+    StatusCode sc = StatusCode::SUCCESS;
+    // Skip if there are no tracks 
+    if(trackCol->empty()) return sc;
+
+    //Define a vector to contain a list of "isolated" tracks
+    int numTracks = trackCol->size();
+    std::vector<bool>  unused(numTracks);
+    while(numTracks--) unused[numTracks] = true;
+
+    //Track counter
+    int   tkr1Idx = 0;
+
+    // Loop over all tracks and try to find a mate within declared properties tolerances
+    for(Event::TkrTrackColPtr pTrack1 = trackCol->begin(); pTrack1 != trackCol->end(); pTrack1++, tkr1Idx++)
+    {
+        if(!unused[tkr1Idx]) continue; 
+
+        Event::TkrTrack*  track1    = *pTrack1;
+        Event::TkrVertex* newVertex = 0;
+
+        if (track1->getStatusBits() & Event::TkrTrack::COSMICRAY) continue;  //RJ: don't use CR tracks for vertexing
+
+        Point                      tkr1Pos     = track1->front()->getPoint(Event::TkrTrackHit::SMOOTHED);
+        Vector                     tkr1Dir     = track1->front()->getDirection(Event::TkrTrackHit::SMOOTHED);
+        Event::TkrTrackParams      tkr1Params  = track1->front()->getTrackParams(Event::TkrTrackHit::SMOOTHED);
+        idents::TkrId              tkr1ID      = track1->front()->getTkrId();
+        const Event::TkrClusterPtr tkr1Cls     = track1->front()->getClusterPtr();
+        double                     e1          = track1->getInitialEnergy();
+        double                     firstChisq1 = std::max(track1->chiSquareSegment(), .1);
+
+        // Set up a new vertex - it may only contain this track
+        double best_quality = -100.;
+
+        // Recover the covariance matrix elements
+        double cxx     = tkr1Params.getxPosxPos();
+        double cxSx    = 0.; 
+        double cxy     = tkr1Params.getxPosyPos(); 
+        double cxSy    = 0.; 
+
+        double cSxy    = 0.; 
+
+        double cyy     = tkr1Params.getyPosyPos();
+        double cySy    = 0.; 
+
+        double cSxSx   = tkr1Params.getxSlpxSlp();
+        double cSySy   = tkr1Params.getySlpySlp();
+        double cSxSy   = tkr1Params.getxSlpySlp();
+
+        double x_slope = tkr1Params.getxSlope();
+        double y_slope = tkr1Params.getySlope();
+
+        double x_vtx   = tkr1Params.getxPosition();
+        double y_vtx   = tkr1Params.getyPosition();
+
+        Event::TkrTrackParams scaled_Tkr1Params(x_vtx, x_slope, y_vtx, y_slope,
+            cxx,  cxSx,  cxy,  cxSy,
+            cSxSx, cSxy, cSxSy,
+            cyy,  cySy,
+            cSySy);
+
+        newVertex = new Event::TkrVertex(tkr1ID, e1, best_quality, 0.,
+            0., 0., 0., 0., tkr1Pos.z(), scaled_Tkr1Params); 
+        newVertex->setStatusBit(Event::TkrVertex::ONETKRVTX);
+        newVertex->addTrack(track1);
+        double Tkr1CovDet = scaled_Tkr1Params.getxSlpxSlp()*scaled_Tkr1Params.getySlpySlp() - 
+            scaled_Tkr1Params.getxSlpySlp()*scaled_Tkr1Params.getxSlpySlp();
+
+
+
+        //Loop over possible 2nd tracks to pair with #1
+        Event::TkrTrack *best_track2;
+        //            Event::TkrTrackColPtr pTrack2 = pTrack1;
+        //            pTrack2++; 
+        int   tkr2Idx = tkr1Idx+1;
+        int   best_tkr2Idx = -1; 
+        for (Event::TkrTrackColPtr pTrack2 = pTrack1 + 1; pTrack2 != trackCol->end(); pTrack2++, tkr2Idx++) 
+        {
+            if(!unused[tkr2Idx]) continue;
+
+            Event::TkrTrack* track2 = *pTrack2;
+            if (track2->getStatusBits() & Event::TkrTrack::COSMICRAY) continue;  //RJ: don't use CR tracks for vertexing
+
+            Point   tkr2Pos = track2->front()->getPoint(Event::TkrTrackHit::SMOOTHED);
+            Vector  tkr2Dir = track2->front()->getDirection(Event::TkrTrackHit::SMOOTHED);
+            Event::TkrTrackParams tkr2Params = track2->front()->getTrackParams(Event::TkrTrackHit::SMOOTHED);
+            idents::TkrId tkr2ID = track2->front()->getTkrId();
+            const Event::TkrClusterPtr tkr2Cls  = track2->front()->getClusterPtr();
+            double e2 = track2->getInitialEnergy();
+            double firstChisq2 = std::max(track2->chiSquareSegment(), .1);
+            double eTot = e1 + e2;
+
+            // Compute DOCA and DOCA location
+            RayDoca doca    = RayDoca(Ray(tkr1Pos, tkr1Dir), Ray(tkr2Pos, tkr2Dir));
+            double dist = doca.docaRay1Ray2();
+            //if(dist >  m_maxDOCA*100./std::max(50.,std::min(500., eTot))) continue;
+            if(dist * sqrt(std::min(eTot, 5000.)/100.) > m_maxDOCA) continue;
+
+            double s1   = doca.arcLenRay1();
+            double s2   = doca.arcLenRay2(); 
+            double docaZPos = .5*(tkr1Pos.z() + s1*tkr1Dir.z() + tkr2Pos.z() + s2*tkr2Dir.z());
+
+            // 2-track vertices from here out
+            unsigned int status = Event::TkrVertex::TWOTKRVTX;
+
+            // Determine where to locate the vertex in Z
+            //  Initialize by putting vertex at z location of head of first track
+            double zVtx = tkr1Pos.z(); 
+
+            // Cycle through Vertex Types
+            if(s1 > 0 && s2 > 0 && tkr1Cls != tkr2Cls) 
+                status |= Event::TkrVertex::CROSSTKR;
+
+            if(fabs(tkr1Pos.z() - tkr2Pos.z()) > .5*m_tkrGeom->trayHeight()  && tkr1Cls != tkr2Cls)
+                status |= Event::TkrVertex::STAGVTX;
+
+            int plane = m_tkrGeom->getPlane(tkr1ID);
+            int layer = m_tkrGeom->getLayer(plane);
+
+            double clsSize = tkr1Cls->size();
+
+            if(tkr1Cls == tkr2Cls) 
+            {
+                if(clsSize * fabs(tkr1Dir.z()) < 3.01 ) 
+                {
+                    // Put vertex 1/2 way into preceeding radiator if first hit is in upper plane
+                    bool isTopPlane = m_tkrGeom->isTopPlaneInLayer(plane);
+                    if (isTopPlane) zVtx = m_tkrGeom->getConvZ(layer);
+                    else // Leave zVtx in middle of first-hit-SSD
+                        status |= Event::TkrVertex::FIRSTHIT;
+                }       // First Cluster too wide 
+                else    status |= Event::TkrVertex::WIDEFIRSTCLUSTER;
+            }
+            else if((docaZPos-tkr1Pos.z()) > 0. && 
+                (docaZPos-tkr1Pos.z()) < m_tkrGeom->trayHeight())
+            {// Put vertex at DOCA location   
+                zVtx = docaZPos;
+                status |= Event::TkrVertex::DOCAVTX; 
+            }
+
+            // Limit vertexing to at most propagating tracks by one layer
+            if(fabs(zVtx - tkr1Pos.z()) > 37. || fabs(zVtx - tkr2Pos.z()) > 37.) continue;
+            double sv1 = (zVtx - tkr1Pos.z())/tkr1Dir.z();
+            double sv2 = (zVtx - tkr2Pos.z())/tkr2Dir.z();
+            if(layer < 6) sv1 += .3/tkr1Dir.z();
+            else          sv1 += .05/tkr1Dir.z();
+            if(layer < 6) sv2 += .3/tkr2Dir.z();
+            else          sv2 += .05/tkr2Dir.z();
+
+            // Propagate the TkrParams to the vertex location
+            m_propagatorTool->setStepStart(tkr1Params, tkr1Pos.z(), (sv1 < 0));
+            m_propagatorTool->step(fabs(sv1));
+            Event::TkrTrackParams vertexParams = m_propagatorTool->getTrackParams(fabs(sv1), e1, (sv1 < 0));
+            double extraRadLen = m_propagatorTool->getRadLength();
+
+            m_propagatorTool->setStepStart(tkr2Params, tkr2Pos.z(), (sv2 < 0));
+            m_propagatorTool->step(fabs(sv2));
+            Event::TkrTrackParams vtx2Params = m_propagatorTool->getTrackParams(fabs(sv2), e2, (sv2 < 0));
+
+            //  NEW: Scaled covariance matrix for Track 1 & 2 
+            // the chi-square for the association. Results in m_chisq)
+            Event::TkrTrackParams vtxParams = getParamAve(vertexParams, vtx2Params); 
+
+            // Calculate quality for this vertex
+            if(m_chisq < 0) continue;
+            double trial_quality = -fabs(s1 - s2) - m_chisq*firstChisq1*firstChisq2/3.; 
+            double VtxCovDet = vtxParams.getxSlpxSlp()*vtxParams.getySlpySlp()- vtxParams.getxSlpySlp()*vtxParams.getxSlpySlp();
+
+            // Deside if to update vertex using this track
+            if(trial_quality > best_quality && trial_quality > m_minQuality && 
+                VtxCovDet > 0. && VtxCovDet < Tkr1CovDet) 
+            {
+                if(newVertex->getNumTracks() > 1) newVertex->deleteTrack();
+                newVertex->addTrack(track2);
+                newVertex->setParams(vtxParams);
+                newVertex->setPosition(Point(vtxParams(1), vtxParams(3), zVtx));
+                newVertex->setDirection(Vector(-vtxParams(2), -vtxParams(4), -1.).unit());
+                newVertex->setEnergy(eTot);
+                newVertex->setChiSquare(m_chisq);
+                newVertex->setQuality(trial_quality);
+                newVertex->setAddedRadLen(extraRadLen);
+                newVertex->setDOCA(dist);
+                newVertex->setTkr1ArcLen(sv1);
+                newVertex->setTkr2ArcLen(sv2);
+                newVertex->clearStatusBits();
+                newVertex->setStatusBit(status);
+
+                best_quality = trial_quality;
+                best_track2 = track2;
+                best_tkr2Idx = tkr2Idx;
+            }
+        }  // Close loop over 2nd track
+
+        // Add track to TkrVertexCol
+        if(newVertex) vertexCol->push_back(newVertex); // RJ LSR
+
+        unused[tkr1Idx] = false;
+        if(best_tkr2Idx > -1) unused[best_tkr2Idx] = false;
+    }      // Close loop over 1st track
+
+
+    // If we found at least one vertex then attempt to make a neutral vertex
+    // Doing here makes sure it is added to the end of the list 
+    return sc;
+}
+
 
 StatusCode ComboVtxTool::neutralEnergyVtx(Event::TkrTree* tree, Event::TkrVertexCol* vertexCol)
 {
@@ -366,7 +401,7 @@ StatusCode ComboVtxTool::neutralEnergyVtx(Event::TkrTree* tree, Event::TkrVertex
 
     //If Cal information available, then retrieve estimate for the energy & centroid
     if (tkrEventParams == 0 || !(tkrEventParams->getStatusBits() & Event::TkrEventParams::CALPARAMS))
-                return sc;
+        return sc;
 
     // Now set up the calorimeter stuff we need for the vertexing...
     // Always take the energy from TkrEventParams because it is using the recon second 
@@ -399,12 +434,12 @@ StatusCode ComboVtxTool::neutralEnergyVtx(Event::TkrTree* tree, Event::TkrVertex
     // corrected centroid position
     if (cluster)
     {
-            calPos = cluster->getCorPosition(tree->getAxisParams()->getEventAxis());
+        calPos = cluster->getCorPosition(tree->getAxisParams()->getEventAxis());
     }
     // Otherwise, fall back to the TkrEventParams
     else
     {
-            calPos = tkrEventParams->getEventPosition();
+        calPos = tkrEventParams->getEventPosition();
     }
 
     // Recover the first vertex
@@ -414,7 +449,7 @@ StatusCode ComboVtxTool::neutralEnergyVtx(Event::TkrTree* tree, Event::TkrVertex
     Point vtx_pos = vertex->getPosition();
 
     Event::TkrVertex* neutralVertex = new Event::TkrVertex(vertex->getTkrId(), vertex->getEnergy(), 0, 0.,
-                                                       0., 0., 0., 0., vtx_pos.z(), vertex->getVertexParams()); 
+        0., 0., 0., 0., vtx_pos.z(), vertex->getVertexParams()); 
     neutralVertex->setStatusBit(Event::TkrVertex::NEUTRALVTX);
     SmartRefVector<Event::TkrTrack>::const_iterator pTrack1 = vertex->getTrackIterBegin(); 
     const Event::TkrTrack* tkr1 = *pTrack1;
@@ -468,7 +503,7 @@ StatusCode ComboVtxTool::neutralEnergyVtx(Event::TkrTree* tree, Event::TkrVertex
     double theta_Ratio = sqrt(3./2.)*open_angle/theta_0;
 
     // WBA: where should the transition point be?   
-        //      Right now its set at theta_0.... probably should be a 1.5 - 2x theta_0
+    //      Right now its set at theta_0.... probably should be a 1.5 - 2x theta_0
     // Calcuate an energy dependent cross-over point
     double cross_over  = LogCalRaw;  
     double neutral_wgt = cross_over/std::min(cross_over, theta_Ratio*theta_Ratio); 
@@ -490,10 +525,10 @@ StatusCode ComboVtxTool::neutralEnergyVtx(Event::TkrTree* tree, Event::TkrVertex
 
 
     Event::TkrTrackParams neutral_params(vtx_pos.x(), x_slope, vtx_pos.y(), y_slope,
-                                         cxx,  cxSx,  cxy,  cxSy,
-                                         cSxSx, cSxy, cSxSy,
-                                         cyy,  cySy,
-                                         cSySy);
+        cxx,  cxSx,  cxy,  cxSy,
+        cSxSx, cSxy, cSxSy,
+        cyy,  cySy,
+        cSySy);
 
     // De-weight the charged tracking solution according Chisq for the best track and 
     // the opening angle between the neutral direction and the charged direction
@@ -509,10 +544,10 @@ StatusCode ComboVtxTool::neutralEnergyVtx(Event::TkrTree* tree, Event::TkrVertex
     y_slope = vertex_params.getySlope();
 
     Event::TkrTrackParams charged_params(vtx_pos.x(), x_slope, vtx_pos.y(), y_slope,
-                                         cxx,  cxSx,  cxy,  cxSy,
-                                         cSxSx, cSxy, cSxSy,
-                                         cyy,  cySy,
-                                         cSySy);
+        cxx,  cxSx,  cxy,  cxSy,
+        cSxSx, cSxy, cSxSy,
+        cyy,  cySy,
+        cSySy);
 
     // Covariantly add the neutral energy "track" and the de-weighted charged track
     Event::TkrTrackParams vtxNParams = getParamAve(charged_params, neutral_params); 
@@ -532,7 +567,7 @@ StatusCode ComboVtxTool::neutralEnergyVtx(Event::TkrTree* tree, Event::TkrVertex
     {
         // Make a second Neutral vertex and finish the first one
         Event::TkrVertex *neutralVertex1 = new Event::TkrVertex(vertex->getTkrId(), vertex->getEnergy(), 0, 0.,
-                                                                0., 0., 0., 0., vtx_pos.z(), vertex->getVertexParams()); 
+            0., 0., 0., 0., vtx_pos.z(), vertex->getVertexParams()); 
         neutralVertex1->setStatusBit(Event::TkrVertex::NEUTRALVTX);
         neutralVertex1->setStatusBit(Event::TkrVertex::ONETKRVTX);
         neutralVertex1->addTrack(tkr1);
@@ -546,7 +581,7 @@ StatusCode ComboVtxTool::neutralEnergyVtx(Event::TkrTree* tree, Event::TkrVertex
 
         // again, use the projected distance
         double path_length1 = calPos.z() - tkr1_pos.z();
-            
+
         minor_axis = shower_radial_error*path_length_corr / path_length1; 
         major_axis = minor_axis / fabs(neutral_dir.z());  
 
@@ -587,10 +622,10 @@ StatusCode ComboVtxTool::neutralEnergyVtx(Event::TkrTree* tree, Event::TkrVertex
         cyy  = tkr1_params.getyPosyPos();
         cySy = 0.; //vertex_params.getyPosySlp()/y_slope*vertex_params.getySlope();
         Event::TkrTrackParams neutral1_params(tkr1_pos.x(), x_slope, tkr1_pos.y(), y_slope,
-                                              cxx,  cxSx,  cxy,  cxSy,
-                                              cSxSx, cSxy, cSxSy,
-                                              cyy,  cySy,
-                                              cSySy);
+            cxx,  cxSx,  cxy,  cxSy,
+            cSxSx, cSxy, cSxSy,
+            cyy,  cySy,
+            cSySy);
 
         // Build the weighted cov. matrix for the first track
         indep_var = open_angle* std::min(10000., CalEnergy)/20.; // equals 1 for OA = .05 & CalE = 400
@@ -604,10 +639,10 @@ StatusCode ComboVtxTool::neutralEnergyVtx(Event::TkrTree* tree, Event::TkrVertex
         y_slope = tkr1_params.getySlope();
 
         Event::TkrTrackParams charged1_params(tkr1_pos.x(), x_slope, tkr1_pos.y(), y_slope,
-                                              cxx,  cxSx,  cxy,  cxSy,
-                                              cSxSx, cSxy, cSxSy,
-                                              cyy,  cySy,
-                                              cSySy);
+            cxx,  cxSx,  cxy,  cxSy,
+            cSxSx, cSxy, cSxSy,
+            cyy,  cySy,
+            cSySy);
 
         // Covariantly add the neutral energy "track" and the de-weighted charged track
         vtxNParams = getParamAve(charged1_params, neutral1_params); 
@@ -636,9 +671,9 @@ Event::TkrTrackParams ComboVtxTool::getParamAve(Event::TkrTrackParams& params1,
     // Chisquare for the association
 
     //bool debug = true;
-    
+
     //MsgStream log(msgSvc(), name());
-    
+
     KFvector vec1(params1);
     KFvector vec2(params2);
     KFmatrix cov1(params1);
@@ -647,20 +682,20 @@ Event::TkrTrackParams ComboVtxTool::getParamAve(Event::TkrTrackParams& params1,
     KFmatrix cov2Inv(params2);
 
     int      matInvErr = 0;
-    
+
     cov1Inv.invert(matInvErr);
-//  if (matInvErr) throw(TkrException("Failed to invert  covariance matrix 1 in ComboVtxTool::getParamAve"));
+    //  if (matInvErr) throw(TkrException("Failed to invert  covariance matrix 1 in ComboVtxTool::getParamAve"));
     cov2Inv.invert(matInvErr);
-//  if (matInvErr) throw(TkrException("Failed to invert  covariance matrix 2 in ComboVtxTool::getParamAve"));
+    //  if (matInvErr) throw(TkrException("Failed to invert  covariance matrix 2 in ComboVtxTool::getParamAve"));
 
     KFmatrix cov_ave = (cov1Inv + cov2Inv);
     cov_ave.invert(matInvErr);
-//  if (matInvErr) throw(TkrException("Failed to invert ave covariance matrix in ComboVtxTool::getParamAve"));
-    
+    //  if (matInvErr) throw(TkrException("Failed to invert ave covariance matrix in ComboVtxTool::getParamAve"));
+
     KFvector vec_ave = cov_ave*(cov1Inv*vec1 + cov2Inv*vec2);
 
     Event::TkrTrackParams aveParam;
- 
+
     vec_ave.setParams(&aveParam);
     cov_ave.setParams(&aveParam);
     //double caveSxSx = aveParam.getxSlpxSlp();
@@ -669,15 +704,15 @@ Event::TkrTrackParams ComboVtxTool::getParamAve(Event::TkrTrackParams& params1,
     /*
     if (debug) {
 
-        log << MSG::INFO << "  params of first track " << endreq;
-        log.stream() << params1;
-        log << endreq;
-        log << "  params of 2nd track " << endreq;
-        log.stream() << params2;
-        log << endreq;
-        log << "  params of average " << endreq;
-        log.stream() << aveParam << endreq ;
-        log << endreq << endreq;
+    log << MSG::INFO << "  params of first track " << endreq;
+    log.stream() << params1;
+    log << endreq;
+    log << "  params of 2nd track " << endreq;
+    log.stream() << params2;
+    log << endreq;
+    log << "  params of average " << endreq;
+    log.stream() << aveParam << endreq ;
+    log << endreq << endreq;
     }
     */
 
@@ -687,7 +722,7 @@ Event::TkrTrackParams ComboVtxTool::getParamAve(Event::TkrTrackParams& params1,
     cov2_res.invert(matInvErr);
 
     CLHEP::HepVector chisq = (vec1-vec_ave).T()*(cov1_res*(vec1-vec_ave)) + 
-                      (vec2-vec_ave).T()*(cov2_res*(vec2-vec_ave));
+        (vec2-vec_ave).T()*(cov2_res*(vec2-vec_ave));
     m_chisq = chisq(1);
 
     return aveParam;

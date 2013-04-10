@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.34 2012/10/03 14:12:59 bruel Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.35 2012/12/11 17:27:25 usher Exp $
  */
 
 #include <vector>
@@ -71,6 +71,9 @@ private:
 
     /// And for the energy tool
     ITkrTrackEnergyTool* m_energyTool;
+
+    bool m_doAlignment;
+    //bool m_alignPatRec;
 };
 
 // Used by Gaudi for identifying this algorithm
@@ -86,6 +89,8 @@ Algorithm(name, pSvcLocator)
     declareProperty("TrackFitType",   m_TrackFitType="Combo");
     declareProperty("UseGenericFit",  m_GenericFit=true);
     declareProperty("EnergyToolName", m_energyToolName = "TkrTrackShareEnergyTool");
+    declareProperty("DoAlignment",    m_doAlignment = true);
+    //declareProperty("AlignPatRec",    m_alignPatRec = false);
 }
 
 StatusCode TkrTrackFitAlg::initialize()
@@ -190,7 +195,13 @@ StatusCode TkrTrackFitAlg::doTrackFit()
         Event::TkrTrack* track = *trackIter;
 
                 // RJ: don't refit the Cosmic Ray tracks
-                if (!(track->getStatusBits() & Event::TkrTrack::COSMICRAY)) m_FitTool->doTrackFit(track);
+        if (!(track->getStatusBits() & Event::TkrTrack::COSMICRAY)) { 
+		  if(m_doAlignment /* && m_alignPatRec */) {
+            //std::cout << "TkrTrackFitAlg:: align before doTrackFit" <<std::endl;
+            m_AlignTool->alignHits(track);
+		  }
+          m_FitTool->doTrackFit(track);
+         }
     }
 
     return sc;
@@ -226,11 +237,14 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
     // Ok, now set up to loop over candidate tracks
     for(Event::TkrTrackColPtr trackIter = trackCol->begin(); trackIter != trackCol->end(); trackIter++)
     {
-         Event::TkrTrack* track = *trackIter;
-                 if (!(track->getStatusBits() & Event::TkrTrack::COSMICRAY)) {   // RJ: don't refit cosmic-ray candidates
-                        m_AlignTool->alignHits(track);
-                        m_FitTool->doTrackReFit(track);
-                 }
+        Event::TkrTrack* track = *trackIter;
+        if (!(track->getStatusBits() & Event::TkrTrack::COSMICRAY)) {   // RJ: don't refit cosmic-ray candidates
+		  if(m_doAlignment /* && !m_alignPatRec */) { 
+            //std::cout << "TkrTrackFitAlg:: align before reDoTrackFit" <<std::endl;
+            m_AlignTool->alignHits(track);
+          }
+          m_FitTool->doTrackReFit(track);
+        }
     }
 
     return sc;

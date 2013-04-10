@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.57 2013/02/19 04:16:19 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.65 2013/04/05 22:03:55 usher Exp $
  */
 
 // to turn one debug variables
@@ -58,6 +58,7 @@
 #include "src/TrackFit/KalmanFilterFit/HitErrors/StandardMeasErrs.h"
 #include "src/TrackFit/KalmanFilterFit/HitErrors/IComputeMeasErrors.h"
 #include "src/TrackFit/LineFit2D/LineFit2D.h"
+#include "src/Track/ITkrAlignHitsTool.h"
 
 #include <float.h>
 
@@ -126,6 +127,7 @@ private:
     /// Pointer to the local Tracker geometry service and IPropagator
     ITkrGeometrySvc*     m_tkrGeom;
     IPropagator*         m_propagator;
+    ITkrAlignHitsTool*   m_alignHitsTool;
 
     /// Pointer to the failure service
     ITkrFailureModeSvc*  pTkrFailSvc;
@@ -290,6 +292,13 @@ StatusCode KalmanTrackFitTool::initialize()
     if( (sc = toolSvc()->retrieveTool("G4PropagationTool", m_propagator)).isFailure() )
     {
         throw GaudiException("ToolSvc could not find G4PropagationTool", name(), sc);
+    }
+
+    //Locate a pointer to TkrAlignHitsTool
+    //IPropagator* propagatorTool = 0;
+    if( (sc = toolSvc()->retrieveTool("TkrAlignHitsTool", m_alignHitsTool)).isFailure() )
+    {
+        throw GaudiException("ToolSvc could not find TkrAlignHitsTool", name(), sc);
     }
 
     // Set up control
@@ -704,11 +713,19 @@ void KalmanTrackFitTool::doFullKalmanFit(Event::TkrTrack& track)
     // Run the filter and follow with the smoother
     double chiSqFit    = 0.;
     
+    // we've got enough now to do the alignment correction... once and for all!
+	//std::cout << "about to call alignHits" << std::endl;
+	//m_alignHitsTool->alignHits(&track);
+
     // If the track has been found to have a kink(s) then refilter with the kink finder
+    
     if (track.getStatusBits() & Event::TkrTrack::HASKINKS) chiSqFit = doFilterWithKinks(track);
     else                                                   chiSqFit = doFilter(track);
 
     double chiSqSmooth = doSmoother(track);
+    // this is the first time we have smoothed hits
+    // alignment will be done only once per track
+    //m_alignHitsTool->alignHits(&track); // now try it without!
 
     // Number of degrees of freedom for the final chi-square
     int    numDegFree  = m_nMeasPerPlane * nHits - m_nParams;

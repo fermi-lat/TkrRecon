@@ -10,7 +10,7 @@
 * @author Leon Rochester
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.cxx,v 1.9.654.1 2011/04/21 03:39:19 heather Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/TkrAlignHitsTool.cxx,v 1.10 2011/12/12 20:57:14 heather Exp $
 */
 
 #include "src/Track/TkrAlignHitsTool.h"
@@ -32,6 +32,8 @@ AlgTool(type, name, parent)
 {
     //Declare the additional interface
     declareInterface<ITkrAlignHitsTool>(this);
+
+    //declareProperty("useFlags", m_useFlags = false);
 }
 
 StatusCode TkrAlignHitsTool::initialize() {
@@ -45,22 +47,27 @@ StatusCode TkrAlignHitsTool::initialize() {
     sc = service("TkrGeometrySvc", m_tkrGeom, true);
     m_alignSvc = m_tkrGeom->getTkrAlignmentSvc();
 
+
     return sc;
 }
 
-StatusCode TkrAlignHitsTool::alignHits(const Event::TkrTrack* track
-                                       /*, std::vector<double>& alignVec */)
+StatusCode TkrAlignHitsTool::alignHits(Event::TkrTrack* track, bool doFirstPoint)
 {
     StatusCode sc = StatusCode::SUCCESS;
     if(!m_alignSvc || !m_alignSvc->alignRec()) return sc;
+    
+    if(track->isSet(Event::TkrTrack::ALIGNED)) return sc;
 
     bool first = true;
 
     Event::TkrTrackHitVecConItr pPlane = track->begin();
-    //int planeNumber = 0;
-    for (; pPlane<track->end(); ++pPlane) {
+    int planeNumber = 0;
+    for (; pPlane<track->end(); ++pPlane,++planeNumber) {
         SmartRef<Event::TkrTrackHit> plane = *pPlane;
 //        const Event::TkrCluster* pClus = plane->getClusterPtr();
+
+        // check for SMOOTHED params
+        if(!plane->validSmoothedHit()) return sc;
 
         // get the layer info
         idents::TkrId tkrId = plane->getTkrId();
@@ -71,30 +78,53 @@ StatusCode TkrAlignHitsTool::alignHits(const Event::TkrTrack* track
         m_tkrGeom->trayToLayer(tray, face, layer, view);
         //int tower = idents::TowerId(tkrId.getTowerX(), tkrId.getTowerY()).id();
 
-        HepPoint3D  pos = plane->getPoint(Event::TkrTrackHit::SMOOTHED);
-        HepVector3D dir = plane->getDirection(Event::TkrTrackHit::SMOOTHED);
+        HepPoint3D  pos(0.,0.,0);
+        HepVector3D dir(0.,0.,0.), delta(0.,0.,0);
 
-        HepVector3D delta = m_alignSvc->deltaReconPoint(pos, dir, layer, view, APPLYCONSTS);
 
-        Event::TkrTrackParams& params = plane->getTrackParams(Event::TkrTrackHit::MEASURED);
+        pos = plane->getPoint(Event::TkrTrackHit::SMOOTHED);
+        dir = plane->getDirection(Event::TkrTrackHit::SMOOTHED);
+        delta = m_alignSvc->deltaReconPoint(pos, dir, layer, view);
+          //std::cout <<"TAH: delta calculated" << std::endl;
+          //std::cout <<"   pos: " << pos << " dir " << dir << " delta " << delta << std::endl;
+
+        if(plane->validMeasuredHit()) {
+
+          Event::TkrTrackParams& params = plane->getTrackParams(Event::TkrTrackHit::MEASURED);
+
+          double coord;
+  		  double before, after;
+          if(view==idents::TkrId::eMeasureX) {
+		    before = params.getxPosition();
+            coord = params.getxPosition() + delta.x();
+            params.setxPosition(coord);
+            after  = params.getxPosition();
+          } else {
+		    before = params.getyPosition();
+            coord = params.getyPosition() + delta.y();
+            params.setyPosition(coord);
+			after  = params.getyPosition();
+          } 
+		  //std::cout << "TkrAlignHitsTool: before/after/diff " << before << " " << after << " " << after-before << std::endl;       
+          } else {
+		  //std::cout << "No valid MEASURED hit for plane " << planeNumber << std::endl;
+        }
         
-        if (first) {
+        if (first&&doFirstPoint) {
             // fitter starts with the FILTERED coordinates of the first hit... so we need to fix these
+		  if(plane->validFilteredHit()) {
             Event::TkrTrackParams& firstParams = plane->getTrackParams(Event::TkrTrackHit::FILTERED);
             firstParams.setxPosition(firstParams.getxPosition() + delta.x());
             firstParams.setyPosition(firstParams.getyPosition() + delta.y());
+          } else {
+            //std::cout << "no valid FILTERED params for first hit" << std::endl;
+          }
             first = false;
         }
         
-        double coord;
-        if(view==idents::TkrId::eMeasureX) {
-            coord = params.getxPosition() + delta.x();
-            params.setxPosition(coord);
-        } else {
-            coord = params.getyPosition() + delta.y();
-            params.setyPosition(coord);
-        }        
     }
+
+    track->setStatusBit(Event::TkrTrack::ALIGNED);
 
     /*
    m_hitVec.clear();

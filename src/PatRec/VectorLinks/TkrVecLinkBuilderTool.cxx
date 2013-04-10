@@ -8,7 +8,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks/TkrVecLinkBuilderTool.cxx,v 1.7 2013/01/29 20:43:20 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks/TkrVecLinkBuilderTool.cxx,v 1.8 2013/03/26 21:32:56 usher Exp $
  *
 */
 
@@ -22,6 +22,7 @@
 
 #include "GlastSvc/GlastDetSvc/IGlastDetSvc.h"
 #include "TkrUtil/ITkrGeometrySvc.h"
+#include "TkrUtil/ITkrAlignmentSvc.h"
 #include "TkrUtil/ITkrSplitsSvc.h"
 #include "GaudiKernel/IDataProviderSvc.h"
 #include "TkrUtil/ITkrQueryClustersTool.h"
@@ -67,9 +68,11 @@ private:
     typedef Event::TkrVecPointsLinkPtrVec    TkrVecPointsLinkVec;
     typedef std::vector<TkrVecPointsLinkVec> TkrVecPointsLinkVecVec;
 
+    typedef Event::TkrLyrToVecPointItrMap::reverse_iterator LyrToVPtItrMapRItr;
+
     /// This will build all links between vectors of points passed in
-    int    buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::reverse_iterator& firstPointsItr, 
-                               Event::TkrLyrToVecPointItrMap::reverse_iterator& secondPointsItr);
+    int    buildLinksGivenVecs(LyrToVPtItrMapRItr& firstPointsItr, 
+                               LyrToVPtItrMapRItr& secondPointsItr);
 
     /// This finds the TkrVecPoint nearest to the given Point
     const Event::TkrVecPoint* findNearestTkrVecPoint(const Event::TkrVecPointItrPair& intPoints, 
@@ -77,10 +80,12 @@ private:
                                                      double&                          dist2VecPoint,
                                                      int&                             nHitsInRange);
 
-    void markLinkVerified(std::vector<Event::TkrVecPointToLinksRel*>& pointToLinkVec, const Event::TkrVecPoint* point);
+    void markLinkVerified(std::vector<Event::TkrVecPointToLinksRel*>& pointToLinkVec, 
+        const Event::TkrVecPoint* point);
 
     /// This will prune the links which are not "verified"
-    int pruneNonVerifiedLinks(TkrVecPointsLinkVec& linkVec, Event::TkrVecPointsLinkCol* tkrVecPointsLinkCol);
+    int pruneNonVerifiedLinks(TkrVecPointsLinkVec& linkVec, 
+        Event::TkrVecPointsLinkCol* tkrVecPointsLinkCol);
 
     /// This checks to see if we are in a truncated region
     bool inTruncatedRegion(const Point& planeHit, double& truncatedDist);
@@ -100,6 +105,7 @@ private:
     // Local pointers to services
     IDataProviderSvc*             m_dataSvc;
     ITkrGeometrySvc*              m_tkrGeom;
+    ITkrAlignmentSvc*             m_pAlign;
     IGlastDetSvc*                 m_detSvc;
     ITkrQueryClustersTool*        m_clusTool;
     ITkrReasonsTool*              m_reasonsTool;
@@ -143,6 +149,8 @@ private:
     /// Define a local relational table which will relate TkrVecPoints
     /// to TkrVecPointLinks
     Event::TkrVecPointToLinksTab* m_pointToLinksTab;
+
+    bool m_useFlags;
 };
 
 //static ToolFactory<TkrVecLinkBuilderTool> s_factory;
@@ -150,7 +158,9 @@ private:
 DECLARE_TOOL_FACTORY(TkrVecLinkBuilderTool);
 
 
-TkrVecLinkBuilderTool::TkrVecLinkBuilderTool(const std::string& type, const std::string& name, const IInterface* parent)
+TkrVecLinkBuilderTool::TkrVecLinkBuilderTool(const std::string& type, 
+                                             const std::string& name, 
+                                             const IInterface* parent)
                                                  : AlgTool(type,name,parent),
                                                    m_dataSvc(0),
                                                    m_tkrGeom(0), 
@@ -170,6 +180,7 @@ TkrVecLinkBuilderTool::TkrVecLinkBuilderTool(const std::string& type, const std:
 
     declareProperty("DoToolTiming",   m_doTiming          = true);
     declareProperty("NrmProjDistCut", m_nrmProjDistCutDef = 1.3);
+    //declareProperty("useFlags", m_useFlags = false);
                                                    
     m_nrmProjDistCut = m_nrmProjDistCutDef;
 
@@ -204,6 +215,12 @@ StatusCode TkrVecLinkBuilderTool::initialize()
     if((sc = service( "TkrGeometrySvc", m_tkrGeom, true )).isFailure()) 
     {
         throw GaudiException("Service [TkrGeometrySvc] not found", name(), sc);
+    } else 
+    {
+        m_pAlign = m_tkrGeom->getTkrAlignmentSvc();
+        if(m_pAlign==0) 
+            throw GaudiException("Service [TkrAlignmentSvc] not found", 
+            name(), StatusCode::FAILURE);
     }
 
     if((sc = service( "EventDataSvc", m_dataSvc, true )).isFailure()) 
@@ -251,7 +268,8 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getSingleLayerLinks(const Po
 
     // Check the TDS for the existence, already, of the TkrVecPointsInfoLink object
     Event::TkrVecPointsLinkInfo* linkInfo = 
-        SmartDataPtr<Event::TkrVecPointsLinkInfo>(m_dataSvc, EventModel::TkrRecon::TkrVecPointsLinkInfo);
+        SmartDataPtr<Event::TkrVecPointsLinkInfo>(m_dataSvc, 
+        EventModel::TkrRecon::TkrVecPointsLinkInfo);
 
     // If there is no TkrVecPointInfo in the TDS then we need to create it
     if (linkInfo) return linkInfo;
@@ -261,7 +279,8 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getSingleLayerLinks(const Po
 
     // And register it in the TDS
     StatusCode sc;
-    if ((sc = m_dataSvc->registerObject(EventModel::TkrRecon::TkrVecPointsLinkCol, m_tkrVecPointsLinkCol)).isFailure())
+    if ((sc = m_dataSvc->registerObject(EventModel::TkrRecon::TkrVecPointsLinkCol, 
+        m_tkrVecPointsLinkCol)).isFailure())
     {
         throw GaudiException("Unable to register TkrVecPointsLinkCol in TDS", name(), sc);
     }
@@ -270,7 +289,8 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getSingleLayerLinks(const Po
     Event::TkrVecPointToLinksTabList* pointToLinksRelList = new Event::TkrVecPointToLinksTabList();
 
     // And register in the TDS
-    if ((sc = m_dataSvc->registerObject("/Event/TkrRecon/TkrVecPointToLinksTabList", pointToLinksRelList)).isFailure())
+    if ((sc = m_dataSvc->registerObject("/Event/TkrRecon/TkrVecPointToLinksTabList", 
+        pointToLinksRelList)).isFailure())
     {
         throw GaudiException("Unable to register TkrVecPointToLinksTabList in TDS", name(), sc);
     }
@@ -289,7 +309,8 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getSingleLayerLinks(const Po
     sc = m_dataSvc->registerObject(EventModel::TkrRecon::TkrVecPointsLinkInfo, linkInfo);
 
     // Need the truncation map information
-    SmartDataPtr<Event::TkrTruncationInfo> truncInfo( m_dataSvc, EventModel::TkrRecon::TkrTruncationInfo );
+    SmartDataPtr<Event::TkrTruncationInfo> truncInfo( m_dataSvc, 
+        EventModel::TkrRecon::TkrTruncationInfo );
 
     m_truncationInfo = truncInfo;
 
@@ -319,7 +340,8 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getSingleLayerLinks(const Po
         Point  tkrBotPos = m_eventPosition + arcLen * m_eventAxis;
 
         // Are we outside the fiducial area already?
-        if (std::fabs(tkrBotPos.x()) > 0.5 * m_tkrGeom->calXWidth() || tkrBotPos.y() > 0.5 * m_tkrGeom->calYWidth())
+        if (std::fabs(tkrBotPos.x()) > 0.5 * m_tkrGeom->calXWidth() 
+            || tkrBotPos.y() > 0.5 * m_tkrGeom->calYWidth())
         {
             static Point top(0., 0., 1000.);
             Vector newAxis = top - m_eventPosition;
@@ -346,10 +368,10 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getSingleLayerLinks(const Po
     // Iterator which points at the "top" vector of TkrVecPoints
     // Note that the construction of the map has taken into account how many bilayers we
     // are allowed to skip when constructing links
-    Event::TkrLyrToVecPointItrMap::reverse_iterator topBiLyrItr = 
-        Event::TkrLyrToVecPointItrMap::reverse_iterator(tkrLyrToVecPointItrMap->find(m_tkrGeom->numLayers() + 1));
-    Event::TkrLyrToVecPointItrMap::reverse_iterator botBiLyrItr = 
-        Event::TkrLyrToVecPointItrMap::reverse_iterator(tkrLyrToVecPointItrMap->find(m_tkrGeom->numLayers() - 1));
+    LyrToVPtItrMapRItr topBiLyrItr = 
+        LyrToVPtItrMapRItr(tkrLyrToVecPointItrMap->find(m_tkrGeom->numLayers() + 1));
+    LyrToVPtItrMapRItr botBiLyrItr = 
+        LyrToVPtItrMapRItr(tkrLyrToVecPointItrMap->find(m_tkrGeom->numLayers() - 1));
 
     // If requested, start chrono service for single link timing
     if (m_doTiming) m_chronoSvc->chronoStart(m_toolSingleLinkTag);
@@ -360,7 +382,7 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getSingleLayerLinks(const Po
         // Start the outside loop over the "bottom" vectors of TkrVecPoints
         for( ; botBiLyrItr != tkrLyrToVecPointItrMap->rend(); botBiLyrItr++, topBiLyrItr++)
         {
-            Event::TkrLyrToVecPointItrMap::reverse_iterator intBiLyrItr = botBiLyrItr;
+            LyrToVPtItrMapRItr intBiLyrItr = botBiLyrItr;
 
             // If no TkrVecPoints then nothing to do here
             if (botBiLyrItr->second.first == botBiLyrItr->second.second) continue;
@@ -386,7 +408,8 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getSingleLayerLinks(const Po
     {
         if (m_doTiming) m_chronoSvc->chronoStop(m_toolSingleLinkTag);
 
-        // In case a try-catch block lower down already caught something, just pass the original message along
+        // In case a try-catch block lower down already caught something, 
+        //just pass the original message along
         throw e;
     } 
     catch(...)
@@ -420,13 +443,14 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
                                                                      double        energy)
 {
     // The links collection and the relational table should already be in the TDS
-    // The simple way to recover, and be sure something is there, is to call the single layer link builder
+    // The simple way to recover, and be sure something is there, 
+    //is to call the single layer link builder
     Event::TkrVecPointsLinkInfo* linkInfo = getSingleLayerLinks(refPoint, refAxis, refError, energy);
 
     // If there are no links at this point then we stop now
     if (!linkInfo || linkInfo->getTkrVecPointsLinkCol()->empty()) return linkInfo;
 
-    //****************************************************************************************************
+    //***********************************************************************************************
     // Temporarily plop down the following to see if we can make this concept work
 
     // Retrieve the TkrVecPointInfo object from the TDS
@@ -437,7 +461,8 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
     if (!vecPointInfo) return linkInfo;
 
     // Need the truncation map information
-    m_truncationInfo = SmartDataPtr<Event::TkrTruncationInfo>( m_dataSvc, EventModel::TkrRecon::TkrTruncationInfo );
+    m_truncationInfo = SmartDataPtr<Event::TkrTruncationInfo>( m_dataSvc, 
+        EventModel::TkrRecon::TkrTruncationInfo );
 
     // From this object, get the mapping we need to build the links between points
     Event::TkrLyrToVecPointItrMap* tkrLyrToVecPointItrMap = vecPointInfo->getLyrToVecPointItrMap();
@@ -457,7 +482,8 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
         Point  tkrBotPos = m_eventPosition + arcLen * m_eventAxis;
 
         // Are we outside the fiducial area already?
-        if (std::fabs(tkrBotPos.x()) > 0.5 * m_tkrGeom->calXWidth() || tkrBotPos.y() > 0.5 * m_tkrGeom->calYWidth())
+        if (std::fabs(tkrBotPos.x()) > 0.5 * m_tkrGeom->calXWidth() 
+            || tkrBotPos.y() > 0.5 * m_tkrGeom->calYWidth())
         {
             static Point top(0., 0., 1000.);
             Vector newAxis = top - m_eventPosition;
@@ -484,9 +510,9 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
     // Iterator which points at the "top" vector of TkrVecPoints
     // Note that the construction of the map has taken into account how many bilayers we
     // are allowed to skip when constructing links
-    Event::TkrLyrToVecPointItrMap::reverse_iterator topBiLyrItr = tkrLyrToVecPointItrMap->rbegin();
-    Event::TkrLyrToVecPointItrMap::reverse_iterator botBiLyrItr = 
-        Event::TkrLyrToVecPointItrMap::reverse_iterator(tkrLyrToVecPointItrMap->find(m_tkrGeom->numLayers() - 1));
+    LyrToVPtItrMapRItr topBiLyrItr = tkrLyrToVecPointItrMap->rbegin();
+    LyrToVPtItrMapRItr botBiLyrItr = 
+        LyrToVPtItrMapRItr(tkrLyrToVecPointItrMap->find(m_tkrGeom->numLayers() - 1));
 
     // If requested, start chrono service for single link timing
     if (m_doTiming) m_chronoSvc->chronoStart(m_toolMultiLinkTag);
@@ -501,7 +527,7 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
             if (botBiLyrItr->second.first == botBiLyrItr->second.second) continue;
 
             // Initialize our intermediate layer counter
-            Event::TkrLyrToVecPointItrMap::reverse_iterator intBiLyrItr = botBiLyrItr;
+            LyrToVPtItrMapRItr intBiLyrItr = botBiLyrItr;
 
             // Insure that we don't do single layer links again
             intBiLyrItr--;
@@ -524,7 +550,8 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
     {
         if (m_doTiming) m_chronoSvc->chronoStop(m_toolMultiLinkTag);
 
-        // In case a try-catch block lower down already caught something, just pass the original message along
+        // In case a try-catch block lower down already caught something, 
+        //  just pass the original message along
         throw e;
     } 
     catch(...)
@@ -536,7 +563,7 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
     }
 
 
-    //****************************************************************************************************
+    //************************************************************************************************
 
 
     // Make sure timer is shut down
@@ -556,7 +583,8 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
     return linkInfo;
 }
 
-void   TkrVecLinkBuilderTool::setAngleTolerances(double refError, Event::TkrVecPointInfo* vecPointInfo)
+void   TkrVecLinkBuilderTool::setAngleTolerances(double refError, 
+                                                 Event::TkrVecPointInfo* vecPointInfo)
 {
     // Set the default value for the tolerance angle
     m_tolerance      = M_PI/3.; // Take all comers!
@@ -599,7 +627,8 @@ void   TkrVecLinkBuilderTool::setAngleTolerances(double refError, Event::TkrVecP
     return;
 }
 
-void   TkrVecLinkBuilderTool::setDocaTolerances(double docaError, Event::TkrVecPointInfo* vecPointInfo)
+void   TkrVecLinkBuilderTool::setDocaTolerances(double docaError, 
+                                                Event::TkrVecPointInfo* vecPointInfo)
 {
     // Set the default value for the tolerance angle
     m_tolerance      = 3.0 * docaError;    // Be overly generous?
@@ -651,8 +680,8 @@ void   TkrVecLinkBuilderTool::setDocaTolerances(double docaError, Event::TkrVecP
 }
 
 
-int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::reverse_iterator& firstPointsItr, 
-                                               Event::TkrLyrToVecPointItrMap::reverse_iterator& nextPointsItr)
+int TkrVecLinkBuilderTool::buildLinksGivenVecs(LyrToVPtItrMapRItr& firstPointsItr, 
+                                               LyrToVPtItrMapRItr& nextPointsItr)
 {
     // Keep count of how many links we create
     int nCurLinks = m_tkrVecPointsLinkCol->size();
@@ -690,7 +719,61 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::re
             int    skippedLayers = startLayer - endLayer - 1;
 
             // Get a vector from the first point to the second point
-            Vector startToEnd = firstPoint->getPosition() - secondPoint->getPosition();
+
+            Point firstPos  = firstPoint->getPosition();
+            Point secondPos = secondPoint->getPosition();
+
+
+            /*
+            if(m_useFlags) { 
+
+                // XX Here is where we finish the alignment corrections.
+                // XX We use first and second points to get a direction
+                // XX  and that with the position defines the corrections
+                // XX  to the position of the vecPoints
+
+                // we have to do the entire alignment here, because it's the first time
+                //   that all the info is available.
+   
+                // flag was XANDY&&ANGLE, flag below does all 6 corrections
+                unsigned flags = (int)ITkrAlignmentSvc::USEALL;
+                int layer, viewX, viewY;
+                Vector dir;
+                idents::TkrId idX, idY;
+                HepVector3D delta, deltaX, deltaY;
+
+                dir = (firstPos-secondPos).unit();
+                layer = firstPoint->getLayer();
+
+                idX  = firstPoint->getXCluster()->getTkrId();
+                viewX = idX.getView();
+                deltaX = 
+                    m_pAlign->deltaReconPoint(firstPos, dir, layer, viewX, flags);
+
+                idY  = firstPoint->getYCluster()->getTkrId();
+                viewY = idY.getView();
+                deltaY = 
+                    m_pAlign->deltaReconPoint(firstPos, dir, layer, viewY, flags);
+
+                delta = 0.5*(deltaX + deltaY);
+                firstPos += Vector(delta);
+                
+                idX  = secondPoint->getXCluster()->getTkrId();
+                viewX = idX.getView();
+                deltaX = 
+                    m_pAlign->deltaReconPoint(secondPos, dir, layer, viewX, flags);
+
+                idY  = secondPoint->getYCluster()->getTkrId();
+                viewY = idY.getView();
+                deltaY = 
+                    m_pAlign->deltaReconPoint(secondPos, dir, layer, viewY, flags);
+
+                delta = 0.5*(deltaX + deltaY);
+                secondPos += Vector(delta);
+            }
+			*/
+
+            Vector startToEnd = firstPos - secondPos;
 
             // Use this to try to limit distance apart to no more than a tower width
             double startToEndMag  = startToEnd.magnitude();
@@ -704,7 +787,8 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::re
 
             // Really getting serious now, create an instance of a candidate link to facilitate
             // further checking 
-            Event::TkrVecPointsLink* candLink    = new Event::TkrVecPointsLink(firstPoint, secondPoint, 0.);
+            Event::TkrVecPointsLink* candLink    
+                = new Event::TkrVecPointsLink(firstPoint, secondPoint, 0.);
             const Vector&            candLinkVec = -candLink->getVector();
 
             // Keep track of average for case of adjacent layer links
@@ -858,49 +942,57 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::re
 
             // Develop the logic to check that the projected widths are consistent with the observed
             // cluster widths. Currently we use a best 3 of 4 logic to accept further processing
-            bool   topXWidOk =  projectX / (firstPoint->getXCluster()->size() * m_siStripPitch)  < m_nrmProjDistCut;
-            bool   topYWidOk =  projectY / (firstPoint->getYCluster()->size() * m_siStripPitch)  < m_nrmProjDistCut;
-            bool   botXWidOk =  projectX / (secondPoint->getXCluster()->size() * m_siStripPitch) < m_nrmProjDistCut;
-            bool   botYWidOk =  projectY / (secondPoint->getYCluster()->size() * m_siStripPitch) < m_nrmProjDistCut;
+            bool   topXWidOk =  
+                projectX / (firstPoint->getXCluster()->size() * m_siStripPitch)  < m_nrmProjDistCut;
+            bool   topYWidOk =  
+                projectY / (firstPoint->getYCluster()->size() * m_siStripPitch)  < m_nrmProjDistCut;
+            bool   botXWidOk =  
+                projectX / (secondPoint->getXCluster()->size() * m_siStripPitch) < m_nrmProjDistCut;
+            bool   botYWidOk =  
+                projectY / (secondPoint->getYCluster()->size() * m_siStripPitch) < m_nrmProjDistCut;
             bool   best3of4  =  topXWidOk && botXWidOk && botYWidOk
                              || topYWidOk && botXWidOk && botYWidOk
                              || topXWidOk && topYWidOk && botXWidOk
                              || topXWidOk && topYWidOk && botYWidOk;
 
-            // skip if best3of4 is not true (which should include 4 of 4). Idea is that this allows case
-            // where you have an edge hit, or dead strip, or something, without actually looking
+            // skip if best3of4 is not true (which should include 4 of 4). 
+            // Idea is that this allows case where you have an edge hit, 
+            //   or dead strip, or something, without actually looking
             if (!(best3of4)) 
             {
                 delete candLink;
                 continue;
             }
 
-            // In the event of skipping layers links, set a status bit word to help determine what happened
+            // In the event of skipping layers links, set a status bit word to help determine 
+            //   what happened
             unsigned int skippedStatus = 0;
 
             // Does our proposed link skip layers?
             if (skippedLayers > 0)
             {
-                // Set up to loop through intervening layers to check if we should expect intermediate hits for 
-                // a "layer skipping" link
+                // Set up to loop through intervening layers to check if we should expect 
+                //   intermediate hits for  a "layer skipping" link
                 bool inActiveArea  = false;
                     
                 // Use this to define search areas 
-                double topPointDist = firstPoint->getXCluster()->size()*firstPoint->getXCluster()->size()
-                                    + firstPoint->getYCluster()->size()*firstPoint->getYCluster()->size();
-                double botPointDist = secondPoint->getXCluster()->size()*secondPoint->getXCluster()->size()
-                                    + secondPoint->getYCluster()->size()*secondPoint->getYCluster()->size();
+                double topPointDist 
+                    = firstPoint->getXCluster()->size()*firstPoint->getXCluster()->size()
+                      + firstPoint->getYCluster()->size()*firstPoint->getYCluster()->size();
+                double botPointDist 
+                    = secondPoint->getXCluster()->size()*secondPoint->getXCluster()->size()
+                      + secondPoint->getYCluster()->size()*secondPoint->getYCluster()->size();
                 double searchDist   = 0.5 * m_siStripPitch * (sqrt(topPointDist) + sqrt(botPointDist));
                 double truncDistVar = 0.;
 
                 // Check that the last layer is not truncated
                 bool secondLayerTruncated = endLayer > 0 
-                                          ? false
-                                          : inTruncatedRegion(secondPoint->getXCluster()->position(), truncDistVar) || 
-                                            inTruncatedRegion(secondPoint->getYCluster()->position(), truncDistVar);
+                        ? false
+                        : inTruncatedRegion(secondPoint->getXCluster()->position(), truncDistVar) || 
+                          inTruncatedRegion(secondPoint->getYCluster()->position(), truncDistVar);
 
                 // Set up to loop over "missing" layers with the iterators passed in
-                Event::TkrLyrToVecPointItrMap::reverse_iterator intPointsItr = firstPointsItr;
+                LyrToVPtItrMapRItr intPointsItr = firstPointsItr;
                 int                                             intMissLyr   = startLayer; 
 
                 // If an intervening missing layer then check for nearest hits
@@ -909,12 +1001,13 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::re
                     // Retrieve the vector of TkrVecPoints for this bilayer
                     const Event::TkrVecPointItrPair& intPointsPair = intPointsItr->second;
 
-                    // Where are we? Unfortunately, we need to keep track of what layer we are looking at 
-                    // by keeping count through this loop...
+                    // Where are we? Unfortunately, we need to keep track of what layer 
+                    //   we are looking at by keeping count through this loop...
                     intMissLyr--;
 
                     // What we do:
-          //ingore all this for now              // First we look for a TkrVecPoint "nearby". If this is true then we know we
+                //ingore all this for now              
+                    // First we look for a TkrVecPoint "nearby". If this is true then we know we
                     // aren't going to make a layer skipping link, but we can also then mark the 
                     // intervening links as 'good'. 
                     // After this step then we check to see if we are in (or close to) an active 
@@ -929,7 +1022,8 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::re
                     double zLayer   = 0.5 * (zLayerX + zLayerY);
 
                     // The first thing we are going to do is check each of the sense planes for their 
-                    // distance to an edge. Start this up by getting the projected position in the X plane
+                    //    distance to an edge. 
+                    // Start this up by getting the projected position in the X plane
                     Point  layerPtX = candLink->getPosition(zLayerX);
 
                     // Initialize the reasons tool with the current point in this plane
@@ -985,24 +1079,29 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::re
                         continue;
                     }
 
-                    // If here we have no nearby hit and we believe we are in the confines of the active silicon. 
-                    // At this point we might be very near the edge, or in a gap in the middle of a tower. So, now 
+                    // If here we have no nearby hit and we believe we are in the confines 
+                    //   of the active silicon. 
+                    // At this point we might be very near the edge, 
+                    //   or in a gap in the middle of a tower. So, now 
                     // test for that special case! 
                     // First get the projected width of the link through the silicon
                     double projectedX = fabs(m_tkrGeom->siThickness() * tanThetaX);
                     double projectedY = fabs(m_tkrGeom->siThickness() * tanThetaY);
 
-                    // Add this to the "active distance" to get a number that should give us an idea of how much 
-                    // active silicon an edge hit would be seeing. Remember, "active distance" is negative if outside
-                    // the active area, positive if inside. If we add this to our projected distance, then we would get
-                    // zero if the link just clips the active silicon, it will be positive as we hit more silicon, negative
+                    // Add this to the "active distance" to get a number that should give us 
+                    //   an idea of how much active silicon an edge hit would be seeing. 
+                    // Remember, "active distance" is negative if outside the active area, 
+                    //   positive if inside. If we add this to our projected distance, 
+                    //   then we would get zero if the link just clips the active silicon, 
+                    //   it will be positive as we hit more silicon, negative
                     // if we miss completely
                     double siHitDistXx = gapEdgeX.x() - projectedX;
                     double siHitDistXy = gapEdgeX.y() - projectedY;
                     double siHitDistYx = gapEdgeY.x() - projectedX;
                     double siHitDistYy = gapEdgeY.y() - projectedY;
 
-                    double nStripsEdgeTol = numFirstPoints * numSecondPoints > 4 ? 4. : 8; // Tighten this back up now that bug fixed nHitsInRange > 3 ? 4. : 8.;
+                    // Tighten this back up now that bug fixed nHitsInRange > 3 ? 4. : 8.;
+                    double nStripsEdgeTol = numFirstPoints * numSecondPoints > 4 ? 4. : 8; 
                     double gapEdgeTol     = nStripsEdgeTol * m_siStripPitch; 
 
                     // Useful to break down
@@ -1035,7 +1134,9 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::re
 
                     double distToNearestVecPoint = 0.25 * towerPitch;
                     int    nHitsInRange          = 0;
-                    const Event::TkrVecPoint* nearestHit = findNearestTkrVecPoint(intPointsPair, layerPt, distToNearestVecPoint, nHitsInRange);
+                    const Event::TkrVecPoint* nearestHit = 
+                        findNearestTkrVecPoint(intPointsPair, layerPt, 
+                        distToNearestVecPoint, nHitsInRange);
 
                     if (nearestHit && distToNearestVecPoint < 0.2 * towerPitch)
                     {
@@ -1059,13 +1160,18 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::re
                         }
                     }
 
-                    Event::TkrCluster* clusterX = m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureX, intMissLyr, 0., layerPtX);
-                    Event::TkrCluster* clusterY = m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureY, intMissLyr, 0., layerPtY);
+                    Event::TkrCluster* clusterX = 
+                        m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureX, 
+                        intMissLyr, 0., layerPtX);
+                    Event::TkrCluster* clusterY = 
+                        m_clusTool->nearestClusterOutside(idents::TkrId::eMeasureY, 
+                        intMissLyr, 0., layerPtY);
 
                     double hitDeltaX = clusterX ? fabs(layerPtX.x() - clusterX->position().x()) : 100.;
                     double hitDeltaY = clusterY ? fabs(layerPtY.y() - clusterY->position().y()) : 100.;
 
-                    // Let's check to see if we are in a truncated region, but only if not on the bottom layer
+                    // Let's check to see if we are in a truncated region, 
+                    //   but only if not on the bottom layer
                     if ((endLayer != 0 || !secondLayerTruncated) && skippedLayers < 2)
                     {
                         double truncDistX     = 0.;
@@ -1104,15 +1210,18 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::re
                         }
                     }
 
-                    // At this point we are in the general active silicon and are definitely not in a gap (both planes). We are 
-                    // either in active silicon expecting a hit in both planes, or might be in a gap in one plane... if the latter 
-                    // we want to make sure we have a hit near in the active plane. 
-                    // The silicon is not 100% efficient, though nearly so, so if we are here then we **think** about whether we 
-                    // should let it go... One thing... let's see how many hits are "nearby"... this will help us decide if we
-                    // might be in the core of a shower and probably not willing to make the link
-
-                    // We do not have a TkrVecPoint nearby that we should be "on", look at the less restrictive
-                    // case that a single cluster is nearby in one plane or the other
+                    // At this point we are in the general active silicon and are definitely 
+                    //   not in a gap (both planes). We are either in active silicon expecting a hit 
+                    //   in both planes, or might be in a gap in one plane... if the latter 
+                    //   we want to make sure we have a hit near in the active plane. 
+                    //   The silicon is not 100% efficient, though nearly so, so if we are here
+                    //   then we **think** about whether we should let it go... 
+                    // One thing... let's see how many hits are "nearby"... this will help us decide
+                    //   if we might be in the core of a shower 
+                    //   and probably not willing to make the link
+                    // We do not have a TkrVecPoint nearby that we should be "on", look at 
+                    //   the less restrictive case that a single cluster is nearby in one plane 
+                    //   or the other
                     // Start by retrieving the nearest cluster (if one exists)
                     if (siHitGapX || siHitGapY)
                     {
@@ -1131,8 +1240,10 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::re
                         }
 
                         // ***** ACCEPT LINK *****
-                        // A special case where we are close to a gap AND there are not hits/clusters anywhere nearby
-                        if (siHitGapX && siHitGapY && distToNearestVecPoint >= towerPitch && (hitDeltaX > 40. || hitDeltaY > 40.))
+                        // A special case where we are close to a gap AND there are not 
+                        //   hits/clusters anywhere nearby
+                        if (siHitGapX && siHitGapY && distToNearestVecPoint >= towerPitch 
+                            && (hitDeltaX > 40. || hitDeltaY > 40.))
                         {
                             skippedStatus |= Event::TkrVecPointsLink::GAPANDCLUS;
                             continue;
@@ -1151,12 +1262,14 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::re
                     // 1) the proposed link crosses the planes of this bilayer in the intertower gap
                     // 2) both points at the plane crossing are in a gap
                     // 3) neither points are in a gap and there is no nearby hit
-                    // 4) the proposed link is in a gap in one plane and "on" a cluster in the other plane
+                    // 4) the proposed link is in a gap in one plane and "on" a cluster 
+                    //      in the other plane
                     // What's left to check?
                     // 1) One plane is in a gap, the other has no nearby cluster
                     // 2) Neither plane is in a gap and there are no nearby clusters in either plane
 
-                    // Let's check to see if we are in a truncated region, but only if not on the bottom layer
+                    // Let's check to see if we are in a truncated region, 
+                    //   but only if not on the bottom layer
 
                     // Are there bad clusters to explain this? 
                     // that check goes here...
@@ -1166,7 +1279,8 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::re
                     break;
                 }
 
-                // If result of above check is that there are nearby points then we don't proceed to make a link
+                // If result of above check is that there are nearby points 
+                //   then we don't proceed to make a link
                 if (inActiveArea) 
                 {
                     delete candLink;
@@ -1177,7 +1291,7 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::re
             // Now determine an expected angle due to MS 
             // Use the first pass Cal Energy as a guess to help guide this
             double radLenTot = 1.E-10;
-            for(int layer = endLayer; layer <= startLayer; layer++)           // This will need fixing...
+            for(int layer = endLayer; layer <= startLayer; layer++)      // This will need fixing...
             {
                 double radLenConv = m_tkrGeom->getRadLenConv(layer);
                 double radLenRest = m_tkrGeom->getRadLenRest(layer);
@@ -1223,7 +1337,8 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(Event::TkrLyrToVecPointItrMap::re
 
             // Finally, create a relation between the top TkrVecPoint and this link
             Event::TkrVecPointToLinksRel* pointToLink = 
-                    new Event::TkrVecPointToLinksRel(const_cast<Event::TkrVecPoint*>(firstPoint), candLink);
+                    new Event::TkrVecPointToLinksRel(const_cast<Event::TkrVecPoint*>(firstPoint), 
+                    candLink);
             if (!m_pointToLinksTab->addRelation(pointToLink)) delete pointToLink;
         }
     }
@@ -1261,20 +1376,24 @@ idents::TkrId TkrVecLinkBuilderTool::makeTkrId(const Point& planeHit)
     int    towerY      = -1;
     int    tray        = 0;
     int    face        = 0;
-    double towerXPos = m_tkrGeom->truncateCoord(planeHit.x(), m_tkrGeom->towerPitch(), m_tkrGeom->numXTowers(), towerX);
-    double towerYPos = m_tkrGeom->truncateCoord(planeHit.y(), m_tkrGeom->towerPitch(), m_tkrGeom->numYTowers(), towerY);
+    double towerXPos = m_tkrGeom->truncateCoord(planeHit.x(), m_tkrGeom->towerPitch(), 
+        m_tkrGeom->numXTowers(), towerX);
+    double towerYPos = m_tkrGeom->truncateCoord(planeHit.y(), m_tkrGeom->towerPitch(), 
+        m_tkrGeom->numYTowers(), towerY);
 
     m_tkrGeom->layerToTray(biLayer, planeView, tray, face);
 
-    idents::TkrId tkrId = idents::TkrId(towerX, towerY, tray, (face == idents::TkrId::eTKRSiTop), planeView);
+    idents::TkrId tkrId = idents::TkrId(towerX, towerY, tray, 
+        (face == idents::TkrId::eTKRSiTop), planeView);
 
     return tkrId;
 }
 
-const Event::TkrVecPoint* TkrVecLinkBuilderTool::findNearestTkrVecPoint(const Event::TkrVecPointItrPair& intPointsPair, 
-                                                                          Point                            layerPt,
-                                                                          double&                          dist2VecPoint,
-                                                                          int&                             nHitsInRange)
+const Event::TkrVecPoint* TkrVecLinkBuilderTool::findNearestTkrVecPoint(
+    const Event::TkrVecPointItrPair& intPointsPair, 
+    Point                            layerPt,
+    double&                          dist2VecPoint,
+    int&                             nHitsInRange)
 {
     const Event::TkrVecPoint* foundVecPoint   = 0;
     double                    dist2VecPoint2  = dist2VecPoint * dist2VecPoint;
@@ -1286,7 +1405,8 @@ const Event::TkrVecPoint* TkrVecLinkBuilderTool::findNearestTkrVecPoint(const Ev
 
     nHitsInRange = 0;
 
-    for(Event::TkrVecPointColPtr intPointsItr = intPointsPair.first; intPointsItr != intPointsPair.second; intPointsItr++)
+    for(Event::TkrVecPointColPtr intPointsItr = intPointsPair.first; 
+        intPointsItr != intPointsPair.second; intPointsItr++)
     {
         const Event::TkrVecPoint* vecPoint = *intPointsItr;
 
@@ -1312,10 +1432,13 @@ const Event::TkrVecPoint* TkrVecLinkBuilderTool::findNearestTkrVecPoint(const Ev
     return foundVecPoint;
 }
     
-void TkrVecLinkBuilderTool::markLinkVerified(std::vector<Event::TkrVecPointToLinksRel*>& pointToLinkVec, const Event::TkrVecPoint* point)
+void TkrVecLinkBuilderTool::markLinkVerified(
+    std::vector<Event::TkrVecPointToLinksRel*>& pointToLinkVec, 
+    const Event::TkrVecPoint* point)
 {
     // No choice but to loop through and look for match to second point
-    for(std::vector<Event::TkrVecPointToLinksRel*>::iterator ptItr = pointToLinkVec.begin(); ptItr != pointToLinkVec.end(); ptItr++)
+    for(std::vector<Event::TkrVecPointToLinksRel*>::iterator ptItr = pointToLinkVec.begin(); 
+        ptItr != pointToLinkVec.end(); ptItr++)
     {
         Event::TkrVecPointsLink* link = (*ptItr)->getSecond();
 
@@ -1329,7 +1452,8 @@ void TkrVecLinkBuilderTool::markLinkVerified(std::vector<Event::TkrVecPointToLin
     return;
 }    
 
-int TkrVecLinkBuilderTool::pruneNonVerifiedLinks(TkrVecPointsLinkVec& linkVec, Event::TkrVecPointsLinkCol* tkrVecPointsLinkCol)
+int TkrVecLinkBuilderTool::pruneNonVerifiedLinks(TkrVecPointsLinkVec& linkVec, 
+                                                 Event::TkrVecPointsLinkCol* tkrVecPointsLinkCol)
 {
     TkrVecPointsLinkVec::iterator linkVecEndItr = linkVec.end();
     TkrVecPointsLinkVec::iterator linkVecItr    = linkVec.begin();
@@ -1339,7 +1463,8 @@ int TkrVecLinkBuilderTool::pruneNonVerifiedLinks(TkrVecPointsLinkVec& linkVec, E
     {
         if (!(*linkVecItr)->verified())
         {
-            std::vector<Event::TkrVecPointToLinksRel*> relVec = m_pointToLinksTab->getRelBySecond(*linkVecItr);
+            std::vector<Event::TkrVecPointToLinksRel*> relVec = 
+                m_pointToLinksTab->getRelBySecond(*linkVecItr);
         
             // Just a check to be sure only one relation here
             if (relVec.size() > 1)
@@ -1357,7 +1482,8 @@ int TkrVecLinkBuilderTool::pruneNonVerifiedLinks(TkrVecPointsLinkVec& linkVec, E
             linkVecItr = linkVec.erase(linkVecItr);
 
             // Find this link in the object vector
-            Event::TkrVecPointsLinkCol::iterator linkColItr = std::find(tkrVecPointsLinkCol->begin(), tkrVecPointsLinkCol->end(), link);
+            Event::TkrVecPointsLinkCol::iterator linkColItr = 
+                std::find(tkrVecPointsLinkCol->begin(), tkrVecPointsLinkCol->end(), link);
 
             // And erase it from the collection (which will delete the object too)
             tkrVecPointsLinkCol->erase(linkColItr);
@@ -1369,7 +1495,8 @@ int TkrVecLinkBuilderTool::pruneNonVerifiedLinks(TkrVecPointsLinkVec& linkVec, E
     }
     catch(...)
     {
-        throw(TkrException("Exception encountered in TkrTreeBuilder while pruning non-verified links "));  
+        throw(TkrException(
+            "Exception encountered in TkrTreeBuilder while pruning non-verified links "));  
     }
 
     return linkVec.size();

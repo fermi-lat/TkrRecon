@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.35 2012/01/25 05:18:50 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.36 2012/04/25 04:54:34 heather Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -48,7 +48,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.35 2012/01/25 05:18:50 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.36 2012/04/25 04:54:34 heather Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -312,8 +312,12 @@ StatusCode TkrFindAlg::execute()
             AlgTool* findAlgTool = dynamic_cast<AlgTool*>(m_findTool);    
             findAlgTool->setProperty("PatrecMode", "Normal");
         }
-        if (name() != "TkrFindIter") sc = m_findTool->firstPass();
-        else                         sc = m_findTool->secondPass();
+        //std::cout << name() << std::endl;
+        if (name() != "TkrFindIter") {
+            sc = m_findTool->firstPass();
+        } else {
+            sc = m_findTool->secondPass();
+        }
 
         if(m_ghostTool && m_standardGhosts) {
             sc = m_ghostTool->flagEarlyTracks();

@@ -16,6 +16,7 @@
 
 #include "GaudiKernel/IAlgTool.h"
 #include "Event/Recon/TkrRecon/TkrTrack.h"
+#include "TkrUtil/ITkrAlignmentSvc.h"
 
 static const InterfaceID IID_ITkrAlignHitsTool("ITkrAlignHitsTool", 1 , 0);
 
@@ -28,7 +29,6 @@ class ITkrAlignHitsTool : virtual public IAlgTool
   static const InterfaceID& interfaceID() { return IID_ITkrAlignHitsTool; }
 
   /// Align the hits after they are loaded into a TkrFitTrack
-  virtual StatusCode alignHits(const Event::TkrTrack* track
-      /* , alignVector & aVec */) = 0;
+  virtual StatusCode alignHits(Event::TkrTrack* track, bool doFirstPoint = true) = 0;
 };
 #endif

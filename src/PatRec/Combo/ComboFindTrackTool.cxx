@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.63 2012/04/25 04:54:35 heather Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/Combo/ComboFindTrackTool.cxx,v 1.65 2012/11/13 05:36:58 lsrea Exp $
 //
 // Description:
 //      Tool for find candidate tracks via the "Combo" approach
@@ -1551,8 +1551,11 @@ ComboFindTrackTool::trialReturn ComboFindTrackTool::tryCandidate(int firstLayer,
         // if trial doesn't work, return to continue searching
         return FITFAILED;
     }
-    // Set Cosmic-Ray status bit
-    if (m_searchType==CRAYSEARCH) trial->track()->setStatusBit(Event::TkrTrack::COSMICRAY);
+    // Set Combo or Cosmic-Ray status bit
+    if (m_searchType==CRAYSEARCH) {
+        trial->track()->setStatusBit(Event::TkrTrack::COSMICRAY);
+    } else { trial->track()->setStatusBit(Event::TkrTrack::COMBO);
+    }
 
     setTrackQuality(trial);
     if(trial->track()->getQuality() > m_minQuality) {
