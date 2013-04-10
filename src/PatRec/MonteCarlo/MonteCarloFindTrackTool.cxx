@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.34 2011/12/12 20:57:11 heather Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/MonteCarlo/MonteCarloFindTrackTool.cxx,v 1.35 2013/03/08 20:30:55 usher Exp $
 //
 // Description:
 //      Tool for finding pattern candidate tracks via the "MonteCarlo" approach
@@ -45,7 +45,7 @@ public:
     /// @brief Method to association the Monte Carlo hits into Pattern Candidate tracks
     StatusCode firstPass();
 
-    StatusCode secondPass() {return StatusCode::SUCCESS;}
+    StatusCode secondPass() {return StatusCode::SUCCESS;} 
 
 private:
     /// private method to build an individual Monte Carlo track
@@ -283,6 +283,9 @@ void MonteCarloFindTrackTool::storeTracksInTds(TrackVec& trackVec)
             Event::TkrTrack* track = *trackIter;
     
             // Now reset the energies if we are not in full MC mode
+            track->setStatusBit(Event::TkrTrack::MC);
+                track->setStatusBit(Event::TkrTrack::FOUND);
+
             if (m_useCalEnergy)
             {
                 track->setInitialEnergy(m_energy);

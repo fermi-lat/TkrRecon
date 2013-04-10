@@ -364,10 +364,10 @@ void TrackFitUtils::computeMSEnergy(Event::TkrTrack& track)
         if((doX || doY)&&thisLayer.m_radLen>0.001) {
             // take a measurement at this point
             // weight by number of measurable kinks (no kink if no hit!)
-            if (thisLayer.m_hasXHit) weight += 1.0;
-            if (thisLayer.m_hasYHit) weight += 1.0;
-            //if (doX) weight += 1.0;  // is this better?
-            //if (doY) weight += 1.0;
+            //if (thisLayer.m_hasXHit) weight += 1.0;
+            //if (thisLayer.m_hasYHit) weight += 1.0;
+            if (doX) weight += 1.0;  // is this better?
+            if (doY) weight += 1.0;
         }
         if(weight==0.0) continue;
 
