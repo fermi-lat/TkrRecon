@@ -28,7 +28,7 @@ class ITkrAlignHitsTool : virtual public IAlgTool
   static const InterfaceID& interfaceID() { return IID_ITkrAlignHitsTool; }
 
   /// Align the hits after they are loaded into a TkrFitTrack
-  virtual StatusCode alignHits(const Event::TkrTrack* track) = 0;
+  virtual StatusCode alignHits(Event::TkrTrack* track) = 0;
 
 };
 #endif

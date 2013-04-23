@@ -6,7 +6,7 @@
  *
  * @author The Tracking Software Group
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/TkrSetEnergyTool.cxx,v 1.38 2012/10/03 14:13:02 bruel Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrSetEnergyTool.cxx,v 1.1 2013/04/10 23:32:30 lsrea Exp $
  */
 
 #include "GaudiKernel/AlgTool.h"
@@ -64,6 +64,7 @@ private:
 
     /// Turn on diagnostic mode where energies are not set
     bool                   m_doNotChangeEnergy;
+    double                 m_energy;
 };
 
 //static ToolFactory<TkrSetEnergyTool> s_factory;
@@ -72,13 +73,9 @@ DECLARE_TOOL_FACTORY(TkrSetEnergyTool);
 
 // constants defined at file scope
 
-namespace {
-
-  double _energy = 10000.;
-}
 
 //
-// Feeds Combo pattern recognition tracks to Kalman Filter
+// Sets the energy of the tracks going to Kalman Filter
 //
 
 TkrSetEnergyTool::TkrSetEnergyTool(const std::string& type, const std::string& name, const IInterface* parent) :
@@ -88,6 +85,7 @@ TkrSetEnergyTool::TkrSetEnergyTool(const std::string& type, const std::string& n
     declareInterface<ITkrTrackEnergyTool>(this);
 
     declareProperty("DoNotChangeEnergy", m_doNotChangeEnergy = false);
+    declareProperty("SetEnergy",         m_energy = 10000);
 
     return;
 }
@@ -96,7 +94,7 @@ StatusCode TkrSetEnergyTool::initialize()
 {
     // Purpose and Method: finds the "Global Event Energy" and constrains the
     //                     first two track energies to sum to it.
-    // Inputs:  Calorimeter Energy
+    // Inputs:  none (set by jO, default is 10GeV)
     // Outputs: Sets the "constrained" energy for all Candidates
     //          Note: This is the energy that will be used for the 
     //          final track fit. 
@@ -126,9 +124,8 @@ StatusCode TkrSetEnergyTool::initialize()
 
 StatusCode TkrSetEnergyTool::SetTrackEnergies()
 {
-    // Purpose and Method: finds the "Global Event Energy" and constrains the
-    //                     first two track energies to sum to it.
-    // Inputs:  Calorimeter Energy
+    // Purpose and Method: sets the desired energy.
+    // Inputs:  none
     // Outputs: Sets the "constrained" energy for all Candidates
     //          Note: This is the energy that will be used for the 
     //          final track fit. 
@@ -146,9 +143,9 @@ StatusCode TkrSetEnergyTool::SetTrackEnergies()
     Event::TkrTreeCol* treeCol = SmartDataPtr<Event::TkrTreeCol>(m_dataSvc,EventModel::TkrRecon::TkrTreeCol);
 
     // Also retrieve a pointer to the tree and cluster to cluster association map (if there)
-    Event::TreeToRelationMap*    treeToRelationMap    = SmartDataPtr<Event::TreeToRelationMap>(m_dataSvc,    EventModel::Recon::TreeToRelationMap);
-    Event::ClusterToRelationMap* clusterToRelationMap = SmartDataPtr<Event::ClusterToRelationMap>(m_dataSvc, EventModel::Recon::ClusterToRelationMap);
-    Event::CalEventEnergyMap*    calEventEnergyMap    = SmartDataPtr<Event::CalEventEnergyMap>(m_dataSvc,    EventModel::CalRecon::CalEventEnergyMap);
+    //Event::TreeToRelationMap*    treeToRelationMap    = SmartDataPtr<Event::TreeToRelationMap>(m_dataSvc,    EventModel::Recon::TreeToRelationMap);
+    //Event::ClusterToRelationMap* clusterToRelationMap = SmartDataPtr<Event::ClusterToRelationMap>(m_dataSvc, EventModel::Recon::ClusterToRelationMap);
+    //Event::CalEventEnergyMap*    calEventEnergyMap    = SmartDataPtr<Event::CalEventEnergyMap>(m_dataSvc,    EventModel::CalRecon::CalEventEnergyMap);
 
     //If candidates, then proceed
     if (treeCol && !treeCol->empty())
@@ -209,6 +206,8 @@ StatusCode TkrSetEnergyTool::SetTrackEnergies()
 
 
 /*
+            // may use this later...
+
             if((firstCandTrk->getStatusBits() & Event::TkrTrack::LATENERGY)
                 && !(firstCandTrk->getStatusBits() & Event::TkrTrack::COSMICRAY)) 
             {
@@ -284,9 +283,9 @@ StatusCode TkrSetEnergyTool::SetTrackEnergies()
 */
 
 			if (!secndCandTrk) {
-                    setTrackEnergy(firstCandTrk, _energy);
+                    setTrackEnergy(firstCandTrk, m_energy);
             } else  {
-              setTrackEnergies(firstCandTrk, secndCandTrk, _energy);
+              setTrackEnergies(firstCandTrk, secndCandTrk, m_energy);
             }
         }
     }
@@ -305,7 +304,7 @@ void TkrSetEnergyTool::setTrackEnergy(Event::TkrTrack* track, double energy)
 void TkrSetEnergyTool::setTrackEnergies(Event::TkrTrack* first, Event::TkrTrack* second, double ene_total)
 {
 
-    setTrackEnergy(first,  _energy);
+    setTrackEnergy(first,  m_energy);
     setTrackEnergy(second, 30.0);
 
     return;

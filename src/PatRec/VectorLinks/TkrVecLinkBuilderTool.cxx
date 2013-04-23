@@ -8,7 +8,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks/TkrVecLinkBuilderTool.cxx,v 1.8 2013/03/26 21:32:56 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/TkrVecLinkBuilderTool.cxx,v 1.9 2013/04/10 23:32:29 lsrea Exp $
  *
 */
 
@@ -34,6 +34,8 @@
 #include "Event/Recon/TkrRecon/TkrVecPointInfo.h"
 #include "Event/Recon/TkrRecon/TkrVecPointsLinkInfo.h"
 #include "Event/Recon/TkrRecon/TkrTruncationInfo.h"
+
+#include <math.h>
 
 //Exception handler
 #include "Utilities/TkrException.h"
@@ -99,6 +101,9 @@ private:
     /// Make a TkrId given position
     idents::TkrId makeTkrId(const Point& planeHit);
 
+    /// align a potential link
+    void alignTkrVecPointsLink(Event::TkrVecPointsLink* link);
+
     /// Energy of the event
     double                        m_evtEnergy;
 
@@ -150,7 +155,8 @@ private:
     /// to TkrVecPointLinks
     Event::TkrVecPointToLinksTab* m_pointToLinksTab;
 
-    bool m_useFlags;
+    bool                          m_doAlignment;
+  
 };
 
 //static ToolFactory<TkrVecLinkBuilderTool> s_factory;
@@ -180,7 +186,7 @@ TkrVecLinkBuilderTool::TkrVecLinkBuilderTool(const std::string& type,
 
     declareProperty("DoToolTiming",   m_doTiming          = true);
     declareProperty("NrmProjDistCut", m_nrmProjDistCutDef = 1.3);
-    //declareProperty("useFlags", m_useFlags = false);
+    declareProperty("DoAlignment",    m_doAlignment = false);
                                                    
     m_nrmProjDistCut = m_nrmProjDistCutDef;
 
@@ -215,8 +221,7 @@ StatusCode TkrVecLinkBuilderTool::initialize()
     if((sc = service( "TkrGeometrySvc", m_tkrGeom, true )).isFailure()) 
     {
         throw GaudiException("Service [TkrGeometrySvc] not found", name(), sc);
-    } else 
-    {
+    } else {
         m_pAlign = m_tkrGeom->getTkrAlignmentSvc();
         if(m_pAlign==0) 
             throw GaudiException("Service [TkrAlignmentSvc] not found", 
@@ -409,7 +414,7 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getSingleLayerLinks(const Po
         if (m_doTiming) m_chronoSvc->chronoStop(m_toolSingleLinkTag);
 
         // In case a try-catch block lower down already caught something, 
-        //just pass the original message along
+        //   just pass the original message along
         throw e;
     } 
     catch(...)
@@ -683,14 +688,17 @@ void   TkrVecLinkBuilderTool::setDocaTolerances(double docaError,
 int TkrVecLinkBuilderTool::buildLinksGivenVecs(LyrToVPtItrMapRItr& firstPointsItr, 
                                                LyrToVPtItrMapRItr& nextPointsItr)
 {
+    
+    MsgStream log (msgSvc(), name());
+
     // Keep count of how many links we create
     int nCurLinks = m_tkrVecPointsLinkCol->size();
 
     // Get first VecPointsVec 
-    const Event::TkrVecPointItrPair& firstPair = firstPointsItr->second;
+    Event::TkrVecPointItrPair& firstPair = firstPointsItr->second;
 
     // Get the second VecPointsVec
-    const Event::TkrVecPointItrPair& secondPair = nextPointsItr->second;
+    Event::TkrVecPointItrPair& secondPair = nextPointsItr->second;
 
     // What is the "distance" between the start/stop iterators here?
     int numFirstPoints  = std::distance(firstPair.first,  firstPair.second);
@@ -699,7 +707,7 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(LyrToVPtItrMapRItr& firstPointsIt
     // Loop through the first and then second hits and build the pairs
     for (Event::TkrVecPointColPtr frstItr = firstPair.first; frstItr != firstPair.second; frstItr++)
     {
-        const Event::TkrVecPoint* firstPoint = *frstItr;
+        Event::TkrVecPoint* firstPoint = *frstItr;
 
         // Is this point usable?
         if (!firstPoint->isUsablePoint()) continue;
@@ -707,7 +715,7 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(LyrToVPtItrMapRItr& firstPointsIt
         // Loop over the second hits
         for (Event::TkrVecPointColPtr scndItr = secondPair.first; scndItr != secondPair.second; scndItr++)
         {
-            const Event::TkrVecPoint* secondPoint = *scndItr;
+            Event::TkrVecPoint* secondPoint = *scndItr;
 
             // Is this point usable?
             if (!secondPoint->isUsablePoint()) continue;
@@ -724,54 +732,6 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(LyrToVPtItrMapRItr& firstPointsIt
             Point secondPos = secondPoint->getPosition();
 
 
-            /*
-            if(m_useFlags) { 
-
-                // XX Here is where we finish the alignment corrections.
-                // XX We use first and second points to get a direction
-                // XX  and that with the position defines the corrections
-                // XX  to the position of the vecPoints
-
-                // we have to do the entire alignment here, because it's the first time
-                //   that all the info is available.
-   
-                // flag was XANDY&&ANGLE, flag below does all 6 corrections
-                unsigned flags = (int)ITkrAlignmentSvc::USEALL;
-                int layer, viewX, viewY;
-                Vector dir;
-                idents::TkrId idX, idY;
-                HepVector3D delta, deltaX, deltaY;
-
-                dir = (firstPos-secondPos).unit();
-                layer = firstPoint->getLayer();
-
-                idX  = firstPoint->getXCluster()->getTkrId();
-                viewX = idX.getView();
-                deltaX = 
-                    m_pAlign->deltaReconPoint(firstPos, dir, layer, viewX, flags);
-
-                idY  = firstPoint->getYCluster()->getTkrId();
-                viewY = idY.getView();
-                deltaY = 
-                    m_pAlign->deltaReconPoint(firstPos, dir, layer, viewY, flags);
-
-                delta = 0.5*(deltaX + deltaY);
-                firstPos += Vector(delta);
-                
-                idX  = secondPoint->getXCluster()->getTkrId();
-                viewX = idX.getView();
-                deltaX = 
-                    m_pAlign->deltaReconPoint(secondPos, dir, layer, viewX, flags);
-
-                idY  = secondPoint->getYCluster()->getTkrId();
-                viewY = idY.getView();
-                deltaY = 
-                    m_pAlign->deltaReconPoint(secondPos, dir, layer, viewY, flags);
-
-                delta = 0.5*(deltaX + deltaY);
-                secondPos += Vector(delta);
-            }
-			*/
 
             Vector startToEnd = firstPos - secondPos;
 
@@ -1300,7 +1260,7 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(LyrToVPtItrMapRItr& firstPointsIt
             }
 
             // Close enough for Governement work...
-            double msScatAng = 13.6*sqrt(radLenTot)*(1+0.038*log(radLenTot))/m_evtEnergy;
+            double msScatAng = 13.6*sqrt(radLenTot)*(1+0.038*std::log(radLenTot))/m_evtEnergy;
             double geoAngle  = 3. * m_siStripPitch / startToEndMag;
 
             // Set the maximum angle we expect to be the larger of the MS or geometric angles
@@ -1323,6 +1283,8 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(LyrToVPtItrMapRItr& firstPointsIt
             }
 
             candLink->setMaxScatAngle(maxAngle);
+
+           if (m_doAlignment) alignTkrVecPointsLink(candLink);
 
             // Give ownership of the candidate link to the TDS and fill our tables
             m_tkrVecPointsLinkCol->push_back(candLink);
@@ -1501,3 +1463,120 @@ int TkrVecLinkBuilderTool::pruneNonVerifiedLinks(TkrVecPointsLinkVec& linkVec,
 
     return linkVec.size();
 }
+
+void TkrVecLinkBuilderTool::alignTkrVecPointsLink( Event::TkrVecPointsLink* link )
+{  
+		    
+    MsgStream log(msgSvc(), name());
+    
+
+    // There is enough information at this point to do an alignment
+    // We use first and second points to get a direction
+    //   and that with the position defines the corrections
+    //   to the position of the vecPoints
+
+    // Here's the plan:
+    //
+    // Get the direction of the vecLink
+
+    // Correction to the points:
+    //   Use the direction and the position of the x and y clusters 
+    //     to get the correction to the position of the 1st point
+    //   And similarly for the 2nd point
+
+    // Using the direction, project the vecLink to the z-position of the 2nd point
+
+    // calculate the corrected position of the 1st point
+    // rederive the direction:
+    //   Calculate the corrected position of the 2nd point
+    //   Calculate the difference, and turn into a unit vector.
+   
+    //   Store the new position and direction.
+    
+   
+    // flag for allowing detailed printout    
+    bool detail = true;
+
+    int layer, view;
+    Vector dir;
+    idents::TkrId idX, idY;
+    Vector deltaX, deltaY;
+    Vector deltaFirst, deltaSecond;
+
+	// the two points making up this link
+    const Event::TkrVecPoint* firstPoint  = link->getFirstVecPoint();
+	const Event::TkrVecPoint* secondPoint = link->getSecondVecPoint();
+
+    // the positions of the first points
+    Point firstPos  = firstPoint->getPosition();
+    Point secondPos = secondPoint->getPosition();
+
+    dir = (firstPos-secondPos).unit();
+
+
+    idX  = firstPoint->getXCluster()->getTkrId();
+    layer = firstPoint->getLayer();
+    view = idX.getView();
+    deltaX = (Vector)m_pAlign->deltaReconPoint(firstPos, dir, layer, view);
+
+    if (detail) {
+        log << MSG::DEBUG << " " << endreq;
+        log << "FirstPos/dir  " << firstPos << " / " << dir << endreq;
+        log << "Align layer/view " <<  layer << " " << view << ", delta for first X cluster " << deltaX << endreq;
+    }
+
+    idY  = firstPoint->getYCluster()->getTkrId();
+    view = idY.getView();
+    deltaY = (Vector)m_pAlign->deltaReconPoint(firstPos, dir, layer, view);
+
+    deltaFirst = Vector(deltaX.x(), deltaY.y(), 0.);
+
+    if(detail) {
+        log << "Align layer/view " << layer << " " << view << ", delta for first Y cluster " << deltaY << endreq;
+        log << "Correction to  pos. of first point (and vecLink) " << deltaFirst << endreq << endreq;
+    }
+
+    idX  = secondPoint->getXCluster()->getTkrId();
+    layer = secondPoint->getLayer();
+    view = idX.getView();
+    deltaX = (Vector)m_pAlign->deltaReconPoint(secondPos, dir, layer, view);
+
+    if(detail) {
+        log << "2ndPos/dir  " << firstPos << " / " << dir << endreq;
+        log << "Align layer/view "  << layer << " " << view << ", delta for 2nd X cluster " << deltaX << endreq;
+    }
+
+    idY  = secondPoint->getYCluster()->getTkrId();
+    view = idY.getView();
+    deltaY = (Vector)m_pAlign->deltaReconPoint(secondPos, dir, layer, view);
+
+    deltaSecond = Vector(deltaX.x(), deltaY.y(), 0.);
+
+    if(detail) {
+        log << "Align layer/view " << layer << " " << view << ", delta for 2nd Y cluster " << deltaY << endreq;
+        log << "Correction to  pos. of 2nd point " << deltaSecond << endreq << endreq;
+    }
+   
+    Point vecLinkPos1 = link->getPosition();
+    Point vecLinkPos2 = link->getPosition(secondPos.z());
+    Vector dirLink    = link->getVector();
+
+    if(detail) {
+        log << MSG::DEBUG << "link pos/dir, bef. " << link->getPosition() << " / " << link->getVector() << endreq;
+        log << MSG::DEBUG << "link pos1/pos2     " << vecLinkPos1         << " / " << vecLinkPos2       << endreq; 
+    }
+               
+    link->setPosition(firstPos + deltaFirst);
+    dir = (vecLinkPos2 + deltaSecond - vecLinkPos1 - deltaFirst).unit();
+    link->setVector(dir);
+
+    if(detail) {
+        log << MSG::DEBUG << "link pos/dir, aft. " << link->getPosition()     << " / " << link->getVector()<< endreq;
+        log << MSG::DEBUG << "link pos1/2, aft   " << vecLinkPos1+deltaFirst  << " / " << vecLinkPos2+deltaSecond 
+            << endreq << endreq; 
+    }
+ 
+    return;
+  }
+       
+ 
