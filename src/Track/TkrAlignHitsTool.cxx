@@ -10,7 +10,7 @@
 * @author Leon Rochester
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/TkrAlignHitsTool.cxx,v 1.10 2011/12/12 20:57:14 heather Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.cxx,v 1.11 2013/04/10 23:32:30 lsrea Exp $
 */
 
 #include "src/Track/TkrAlignHitsTool.h"
@@ -19,8 +19,10 @@
 
 #include "Event/Recon/TkrRecon/TkrCluster.h"
 
+
 namespace {
-    bool debug = false;
+    int _doAlignCount;
+    int _count;
 }
 
 DECLARE_TOOL_FACTORY(TkrAlignHitsTool);
@@ -32,100 +34,101 @@ AlgTool(type, name, parent)
 {
     //Declare the additional interface
     declareInterface<ITkrAlignHitsTool>(this);
-
-    //declareProperty("useFlags", m_useFlags = false);
 }
 
 StatusCode TkrAlignHitsTool::initialize() {
 
     StatusCode sc = StatusCode::SUCCESS;
 
-    // get the EventDataSvc
-    //sc = service("EventDataSvc", m_dataSvc, true);
-
     //Locate and store a pointer to the geometry service
     sc = service("TkrGeometrySvc", m_tkrGeom, true);
     m_alignSvc = m_tkrGeom->getTkrAlignmentSvc();
 
+    _doAlignCount = 0;
+    _count = 0;
 
     return sc;
 }
 
-StatusCode TkrAlignHitsTool::alignHits(Event::TkrTrack* track, bool doFirstPoint)
+StatusCode TkrAlignHitsTool::alignHits(const Event::TkrTrack* track
+                                       /*, std::vector<double>& alignVec */)
 {
     StatusCode sc = StatusCode::SUCCESS;
-    if(!m_alignSvc || !m_alignSvc->alignRec()) return sc;
+
+    bool changeMeasured = true;
+
+    if(!m_alignSvc)             return sc;
+    if(!m_alignSvc->alignRec()) return sc;
+
+    MsgStream log(msgSvc(), name());
+
+    if(!track->isSet(Event::TkrTrack::SMOOTHED)) {
+        log << MSG::DEBUG << "track not smoothed -- no alignment will be done" << endreq;
+        return sc;
+	}
+
+    _count++;
+
+    if(!track->isSet(Event::TkrTrack::ALIGNED)) {
+       _doAlignCount++;
+       log << MSG::DEBUG << "Track not aligned, will do it" << endreq;
+	} else {
+	    log << MSG::DEBUG << "Track already aligned" << endreq;
+	    return sc;
+	}
     
-    if(track->isSet(Event::TkrTrack::ALIGNED)) return sc;
-
+    unsigned trackStatus = track->getStatusBits();
+    
+      
     bool first = true;
-
     Event::TkrTrackHitVecConItr pPlane = track->begin();
-    int planeNumber = 0;
-    for (; pPlane<track->end(); ++pPlane,++planeNumber) {
-        SmartRef<Event::TkrTrackHit> plane = *pPlane;
-//        const Event::TkrCluster* pClus = plane->getClusterPtr();
 
-        // check for SMOOTHED params
-        if(!plane->validSmoothedHit()) return sc;
+    int nKinks = 0;
+
+    for (; pPlane<track->end(); ++pPlane) {
+
+        SmartRef<Event::TkrTrackHit> plane = *pPlane;
 
         // get the layer info
         idents::TkrId tkrId = plane->getTkrId();
-        //int view = (tkrId.getView() == idents::TkrId::eMeasureX ? 0 : 1);
         int tray = tkrId.getTray();
         int face = tkrId.getBotTop();
         int layer, view;
         m_tkrGeom->trayToLayer(tray, face, layer, view);
-        //int tower = idents::TowerId(tkrId.getTowerX(), tkrId.getTowerY()).id();
 
-        HepPoint3D  pos(0.,0.,0);
-        HepVector3D dir(0.,0.,0.), delta(0.,0.,0);
+        HepPoint3D  pos = plane->getPoint(Event::TkrTrackHit::SMOOTHED);
+        HepVector3D dir = plane->getDirection(Event::TkrTrackHit::SMOOTHED);
 
 
-        pos = plane->getPoint(Event::TkrTrackHit::SMOOTHED);
-        dir = plane->getDirection(Event::TkrTrackHit::SMOOTHED);
-        delta = m_alignSvc->deltaReconPoint(pos, dir, layer, view);
-          //std::cout <<"TAH: delta calculated" << std::endl;
-          //std::cout <<"   pos: " << pos << " dir " << dir << " delta " << delta << std::endl;
-
-        if(plane->validMeasuredHit()) {
-
-          Event::TkrTrackParams& params = plane->getTrackParams(Event::TkrTrackHit::MEASURED);
-
-          double coord;
-  		  double before, after;
-          if(view==idents::TkrId::eMeasureX) {
-		    before = params.getxPosition();
-            coord = params.getxPosition() + delta.x();
-            params.setxPosition(coord);
-            after  = params.getxPosition();
-          } else {
-		    before = params.getyPosition();
-            coord = params.getyPosition() + delta.y();
-            params.setyPosition(coord);
-			after  = params.getyPosition();
-          } 
-		  //std::cout << "TkrAlignHitsTool: before/after/diff " << before << " " << after << " " << after-before << std::endl;       
-          } else {
-		  //std::cout << "No valid MEASURED hit for plane " << planeNumber << std::endl;
-        }
+        HepVector3D delta = m_alignSvc->deltaReconPoint(pos, dir, layer, view, APPLYCONSTS);
         
-        if (first&&doFirstPoint) {
+        //log << MSG::DEBUG << "Smoothed coords, pos " << Vector(pos) << ", dir " << Vector(dir) << endreq;
+        
+        Event::TkrTrackParams& params = plane->getTrackParams(Event::TkrTrackHit::MEASURED);
+        
+        if (first) {
             // fitter starts with the FILTERED coordinates of the first hit... so we need to fix these
-		  if(plane->validFilteredHit()) {
             Event::TkrTrackParams& firstParams = plane->getTrackParams(Event::TkrTrackHit::FILTERED);
             firstParams.setxPosition(firstParams.getxPosition() + delta.x());
             firstParams.setyPosition(firstParams.getyPosition() + delta.y());
-          } else {
-            //std::cout << "no valid FILTERED params for first hit" << std::endl;
-          }
             first = false;
         }
         
+        double coord, before, after;
+        if(view==idents::TkrId::eMeasureX) {
+            coord  = params.getxPosition() + delta.x();
+            params.setxPosition(coord);
+        } else {
+            coord  = params.getyPosition() + delta.y();
+            params.setyPosition(coord);
+        }   
+		unsigned status = plane->getStatusBits();
+        if(status&Event::TkrTrackHit::HITHASKINKANG!=0) {
+           nKinks++;
+		}
+           
     }
-
-    track->setStatusBit(Event::TkrTrack::ALIGNED);
-
+    
     /*
    m_hitVec.clear();
 
@@ -258,65 +261,15 @@ StatusCode TkrAlignHitsTool::alignHits(Event::TkrTrack* track, bool doFirstPoint
     }
     clearHits();
     */
+    
+    track->setStatusBit(Event::TkrTrack::ALIGNED);
 
     return sc;
 }
-    
-/*
-void TkrAlignHitsTool::clearHits()
-{
-    itVec it = m_hitVec.begin();
-    for (; it!=m_hitVec.end(); ++it) {
-        delete *it;
-    }
-    m_hitVec.clear();
-}
-*/
-  
-/*
-void TkrAlignHitsTool::findNearestLayers(HitStuff* hit0, 
-                                         HitStuff*& hit1, HitStuff*& hit2, bool same)
-{
-    int dist1 = 1000;
-    int dist2 = 1000;
-    itVec jt = m_hitVec.begin();
 
-    // get the closest and next closest layer of opposite view
-    //    we can do better than this later, by maybe starting the the 
-    //    point in question and going both ways.
-
-    HitStuff* hit;
-    int view0   = hit0->view;
-    int layer0  = hit0->layer;
-    //int planeNumber0 = hit0->planeNumber;
-    for (; jt!=m_hitVec.end(); ++jt) {
-        hit = *jt;
-        // we never need to go back more than 10 planes so...
-        //  No! event 827 had such a track!
-        //if (planeNumber0 - hit->planeNumber > 10) continue;
-        if (same) {
-            if (hit->view!=view0) continue;
-        } else {
-            if (hit->view==view0) continue;
-        }
-        int dist = abs(layer0 - hit->layer);
-        if (dist>dist2) break;
-        if (dist<=dist1) {
-            dist2  = dist1;
-            dist1  = dist;
-            hit2 = hit1;
-            hit1 = hit;
-        } else if (dist<=dist2) {
-            dist2  = dist;
-            hit2 = hit;
-        }
-    }
-    // the two distances are the same, choose the lower one,
-    //   also, if we're doing "same", since the upper one is the point itself
-    if (dist1==dist2 || same) {
-        hit = hit1;
-        hit1 = hit2;
-        hit2 = hit;
-    }
+StatusCode TkrAlignHitsTool::finalize()
+{
+    MsgStream log(msgSvc(), name());
+    log << MSG::INFO << "finalize:Of " << _count << " tracks, " << _doAlignCount  << " weren't yet aligned" << endreq;
+	return StatusCode::SUCCESS;
 }
-*/

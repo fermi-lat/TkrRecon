@@ -12,7 +12,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/TkrAlignHitsTool.h,v 1.5 2011/12/12 20:57:14 heather Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.h,v 1.6 2013/04/10 23:32:30 lsrea Exp $
 */
 
 
@@ -74,7 +74,9 @@ public:
     ///        added to the collection in the TDS.
 
     StatusCode initialize();
-    StatusCode alignHits(Event::TkrTrack* track, bool doFirstPoint );
+    StatusCode alignHits(const Event::TkrTrack* track
+        /*, alignVector& aVec */);
+	StatusCode finalize();
 
 private:
     /// Pointer to the local Tracker geometry service
@@ -83,8 +85,6 @@ private:
     //ITkrFailureModeSvc* m_failSvc;
     /// alignmentsvc
     ITkrAlignmentSvc*   m_alignSvc;
-
-    bool m_useFlags;
 
     /*
     /// Pointer to the Gaudi data provider service
