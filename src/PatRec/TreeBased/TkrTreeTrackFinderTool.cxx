@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.19 2013/02/21 00:30:16 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrTreeTrackFinderTool.cxx,v 1.24 2013/04/08 14:19:26 usher Exp $
  *
 */
 #include "ITkrTreeTrackFinder.h"
@@ -18,6 +18,7 @@
 
 #include "TkrUtil/ITkrGeometrySvc.h"
 #include "TkrUtil/ITkrSplitsSvc.h"
+#include "TkrUtil/ITkrAlignmentSvc.h"
 #include "TkrUtil/ITkrQueryClustersTool.h"
 #include "TkrUtil/ITkrReasonsTool.h"
 #include "TkrRecon/Track/ITkrFitTool.h"
@@ -77,7 +78,7 @@ public:
     virtual int findTracks(Event::TkrTree* tree, double eventEnergy, Event::CalCluster* cluster);
 
     /// @brief Finalize method for outputting run statistics
-    StatusCode finalize() {return StatusCode::SUCCESS;}
+    StatusCode finalize();
 
 private:
     // Define here a TkrVecPointsLink pointer vector
@@ -122,6 +123,10 @@ private:
 
     /// Makes a TkrId
     idents::TkrId makeTkrId(Point& planeHit, int planeId);
+
+    void alignTkrTrackHit(const Event::TkrVecPointsLink* link, const Event::TkrCluster* cluster, Event::TkrTrackHit* trackHit);
+
+    void dumpMeasuredHitPositions(const Event::TkrTrack* track, std::string heading= "");
 
     /// Data provider service
     IDataProviderSvc*      m_dataSvc;
@@ -181,7 +186,22 @@ private:
     /// Parameter used to control fraction of energy assigned to second track
     double                 m_scndTrackEnergyScaleFctr;
 
+    ITkrAlignmentSvc*      m_pAlign; 
+
+    bool                   m_doAlignment;
+
 };
+
+namespace 
+{
+    int    _nEvents;
+    int    _nKinks;
+    double _sumKinkAngle;
+    double _sumKinkAngleSq;
+
+    double _siStripPitch;
+    double _aspectRatio;
+}
 
 DECLARE_TOOL_FACTORY(TkrTreeTrackFinderTool);
 
@@ -209,6 +229,8 @@ TkrTreeTrackFinderTool::TkrTreeTrackFinderTool(const std::string& type, const st
     declareProperty("SecondTrackEnergyFrac",    m_scndTrackEnergyScaleFctr = 0.25);
     declareProperty("FractionUniqueHits",       m_fracUniqueHits           = 0.49);
 
+    declareProperty("DoAlignment",              m_doAlignment              = false);
+
     return;
 }
 
@@ -226,7 +248,13 @@ StatusCode TkrTreeTrackFinderTool::initialize()
     // First lets retrieve the services we will need
     if(service( "TkrGeometrySvc", m_tkrGeom, true ).isFailure()) 
     {
-        throw GaudiException("ToolSvc could not find TkrGeometryService", name(), sc);
+        throw GaudiException("ToolSvc could not find ", name(), sc);
+    }
+
+    m_pAlign = m_tkrGeom->getTkrAlignmentSvc();
+    if( m_pAlign==0)
+    {
+        throw GaudiException("ToolSvc could not find ", name(), sc);
     }
 
     if(service( "EventDataSvc", m_dataSvc, true ).isFailure()) 
@@ -249,6 +277,14 @@ StatusCode TkrTreeTrackFinderTool::initialize()
     {
         throw GaudiException("ToolSvc could not find TkrQueryClustersTool", name(), sc);
     }
+
+    _siStripPitch = m_tkrGeom->siStripPitch();
+    _aspectRatio  = m_tkrGeom->siThickness() / _siStripPitch;
+;
+    _nEvents  = 0;
+    _nKinks   = 0;
+    _sumKinkAngle   = 0.0;
+    _sumKinkAngleSq = 0.0;
 
     return sc;
 }
@@ -615,8 +651,8 @@ Event::TkrVecNode* TkrTreeTrackFinderTool::findBestLeaf(TkrVecNodeLeafQueue& lea
                 const Vector& linkDir    = link->getVector();
                 double        xSlope     = linkDir.x() / linkDir.z();
                 double        ySlope     = linkDir.y() / linkDir.z();
-                int           xCalcWidth = fabs(xSlope) * m_tkrGeom->siThickness() / m_tkrGeom->siStripPitch() + 2.;
-                int           yCalcWidth = fabs(ySlope) * m_tkrGeom->siThickness() / m_tkrGeom->siStripPitch() + 2.;
+                int xCalcWidth = int(fabs(xSlope) * _aspectRatio + 2.) ;
+                int yCalcWidth = int(fabs(ySlope) * _aspectRatio + 2.) ;
 
                 // If the cluster is used but does NOT satisfy the sharing condition
                 // then mark it here for counting in the end
@@ -796,6 +832,9 @@ Event::TkrTrack* TkrTreeTrackFinderTool::getTkrTrackFromLeaf(Event::TkrVecNode* 
         Point  initialPos = firstLink->getPosition(firstCluster->position().z());
         Vector initialDir = firstLink->getVector();
 
+        Vector link0Dir = initialDir;
+        Vector link1Dir;
+
         // Armed with the initial position and direction, create an instance of a new track
         track = new Event::TkrTrack();
 
@@ -815,14 +854,27 @@ Event::TkrTrack* TkrTreeTrackFinderTool::getTkrTrackFromLeaf(Event::TkrVecNode* 
         // The first two clusters to add to the track are special and handled separately
         Event::TkrTrackHit* trackHit = makeTkrTrackHit(firstCluster);
 
+		//std::cout << " 1st before alignment: " << trackHit->getMeasuredPosition(Event::TkrTrackHit::MEASURED);
+      
+        alignTkrTrackHit(firstLink, firstCluster, trackHit);  
+		//std::cout << " 1st before push: " << trackHit->getMeasuredPosition(Event::TkrTrackHit::MEASURED);
+
         track->push_back(trackHit);
+		//std::cout << " 1st after push: " << trackHit->getMeasuredPosition(Event::TkrTrackHit::MEASURED);
 
         trackHit = makeTkrTrackHit(scndCluster);
+		//	std::cout << " 2nd before alignment: " << trackHit->getMeasuredPosition(Event::TkrTrackHit::MEASURED);
+        alignTkrTrackHit(firstLink, scndCluster, trackHit);
+		//std::cout << " 2nd before alignment: " << trackHit->getMeasuredPosition(Event::TkrTrackHit::MEASURED);
 
         track->push_back(trackHit);
+		//std::cout << " 2nd before alignment: " << trackHit->getMeasuredPosition(Event::TkrTrackHit::MEASURED);
 
         // With the first hits in place can set the first track hit's track parameters
         setFirstHitParams(track, linkVec);
+
+        int numKinks = 0;
+        double sumKinks = 0.;
 
         // For the remaining hits we need to loop through the links in our link vector
         for(std::vector<const Event::TkrVecPointsLink*>::iterator linkVecItr  = linkVec.begin();
@@ -867,7 +919,7 @@ Event::TkrTrack* TkrTreeTrackFinderTool::getTkrTrackFromLeaf(Event::TkrVecNode* 
                                             : missingPoint.y() - cluster->position().y();
             
                             // For now take anything "close"
-                            if (fabs(deltaPos) > 2.5 * m_tkrGeom->siStripPitch()) cluster = 0;
+                            if (fabs(deltaPos) > 2.5 * _siStripPitch ) cluster = 0;
                         }
                         else cluster = 0;
                     }
@@ -877,6 +929,7 @@ Event::TkrTrack* TkrTreeTrackFinderTool::getTkrTrackFromLeaf(Event::TkrVecNode* 
                     {
                         // Add this cluster to the track
                         trackHit = makeTkrTrackHit(cluster);
+                        alignTkrTrackHit(link, cluster, trackHit);
 
                         track->push_back(trackHit);
 
@@ -913,20 +966,50 @@ Event::TkrTrack* TkrTreeTrackFinderTool::getTkrTrackFromLeaf(Event::TkrVecNode* 
             }
 
             // Make the track hits for these two clusters and add to track
-            track->push_back(makeTkrTrackHit(topCluster));
-            track->push_back(makeTkrTrackHit(botCluster));
+
+            trackHit = makeTkrTrackHit(topCluster);
+
+            link1Dir = link->getVector();
+            double kinkAngle = 57.3*acos(link0Dir.dot(link1Dir));
+	  	  	numKinks++;
+   	  	    if(kinkAngle<10.) sumKinks += fabs(kinkAngle);
+  	   	   	link0Dir = link1Dir;
+ 
+	
+        	//std::cout << " another before alignment: " << trackHit->getMeasuredPosition(Event::TkrTrackHit::MEASURED);
+            alignTkrTrackHit(link, topCluster, trackHit);
+            //dumpMeasuredHitPositions(track,  "Another hit before push");
+	    	//std::cout << " another before push: " << trackHit->getMeasuredPosition(Event::TkrTrackHit::MEASURED);
+            track->push_back(trackHit);
+	    	//std::cout <<"  another after push: " << trackHit->getMeasuredPosition(Event::TkrTrackHit::MEASURED);
+            //dumpMeasuredHitPositions(track,  "Another hit after push");
+
+            trackHit = makeTkrTrackHit(botCluster);
+            alignTkrTrackHit(link, botCluster, trackHit);
+            track->push_back(trackHit);
 
             // By definition we have created both an X and Y cluster, count them
             nHitsX++;
             nHitsY++;
         }
 
+        if(numKinks>5) {
+		  _nEvents++;
+          sumKinks /= numKinks;
+          _nKinks += numKinks;
+          _sumKinkAngle += sumKinks;
+          _sumKinkAngleSq += sumKinks*sumKinks;
+        }
+
         // Set the number of hits
         track->setNumXHits(nHitsX);
         track->setNumYHits(nHitsY);
 
+        //dumpMeasuredHitPositions(track,  "We have a track! Positions follow: ");
+
         // Run the filter on this 
         m_trackFitTool->doFilterFitWithKinks(*track);
+		//dumpMeasuredHitPositions(track,  "Positions after the filter: ");
 
         // Remove trailing gap hits - this never happens here?
         while(!track->back()->validCluster()) 
@@ -939,12 +1022,14 @@ Event::TkrTrack* TkrTreeTrackFinderTool::getTkrTrackFromLeaf(Event::TkrVecNode* 
         // By definition, we always "find" a track here
         track->setStatusBit(Event::TkrTrack::FOUND);
         track->setStatusBit(Event::TkrTrack::TREEBASED);
+        if(m_doAlignment) track->setStatusBit(Event::TkrTrack::ALIGNED);
 
         // Do the full fit
         if (StatusCode sc = m_trackFitTool->doTrackFit(track) != StatusCode::SUCCESS)
         {
             throw(TkrException("Exception encountered when fitting track in tree builder "));  
         }
+        //dumpMeasuredHitPositions(track, "Positions after the 'full fit' ");
     }
 
     // Finally, we're done!
@@ -1196,4 +1281,120 @@ void TkrTreeTrackFinderTool::flagAllUsedClusters(const Event::TkrTree* tree)
     }
 
     return;
+}
+
+void TkrTreeTrackFinderTool::alignTkrTrackHit( const Event::TkrVecPointsLink* link, 
+                                               const Event::TkrCluster* cluster, Event::TkrTrackHit* trackHit)
+{
+    if(!m_doAlignment) return;
+
+/*
+    if(trackHit==0) {
+	    std::cout << "TkrTreeTrackFinderTool: alignTkrTrackHit called with null trackHit pointer" << std::endl;
+        return;
+	}
+
+    if(link==0) {
+	    std::cout << "TkrTreeTrackFinderTool: alignTkrTrackHit called with null link pointer" << std::endl;
+        return;
+	}
+
+  
+    if(cluster==0) {
+        return;
+	    std::cout << "TkrTreeTrackFinderTool: alignTkrTrackHit called with null cluster pointer" << std::endl;
+        return;
+	}
+*/
+
+    MsgStream log(msgSvc(), name());
+
+
+    const HepPoint3D  pos = link->getPosition(cluster->position().z());
+	const HepVector3D dir = link->getVector();
+   
+	//std::cout << "Check on coordinates " << pos << " " << dir << std::endl;
+
+    log << MSG::DEBUG << "pos " << Vector(pos) << " dir " << Vector(dir) << endreq;
+
+    int layer = cluster->getLayer();
+    int view  = (cluster->getTkrId()).getView();
+        
+	HepVector3D delta;
+
+    delta = m_pAlign->deltaReconPoint(pos, dir, layer, view);
+    Event::TkrTrackParams& params = trackHit->getTrackParams(Event::TkrTrackHit::MEASURED);
+
+    double coord, before, after;
+
+    if(view==0) {        
+		before= params.getxPosition();
+        coord = params.getxPosition() + delta.x();
+        params.setxPosition(coord);
+        after = params.getxPosition();
+	} else {
+		before= params.getyPosition();
+        coord = params.getyPosition() + delta.y();
+        params.setyPosition(coord);
+        after = params.getyPosition();
+    }
+
+    log << MSG::DEBUG << "Before " << before << " after " << after << " diff " << after-before << " delta " << Vector(delta) << endreq;
+    return;
+}
+
+void TkrTreeTrackFinderTool::dumpMeasuredHitPositions(const Event::TkrTrack* track, std::string heading)
+{
+
+    MsgStream log(msgSvc(), name());
+
+	log << MSG::DEBUG << endreq << heading << endreq;
+
+    Event::TkrTrackHitVecConItr pPlane = track->begin();
+
+    int hitNum = 0;
+    for (; pPlane<track->end(); ++pPlane, ++hitNum) {
+
+        SmartRef<Event::TkrTrackHit> plane = *pPlane;
+
+        idents::TkrId tkrId = plane->getTkrId();
+        Event::TkrTrackParams& params = plane->getTrackParams(Event::TkrTrackHit::MEASURED);
+ 
+        int view = tkrId.getView();       
+        double coord;
+        if(view==idents::TkrId::eMeasureX) {
+		    coord = params.getxPosition();
+        } else {
+		    coord = params.getyPosition();
+        } 
+        log << MSG::DEBUG << " hit " << hitNum << " view " << view << " pos " << coord << endreq;      
+    }
+
+  
+  return;
+}
+
+StatusCode TkrTreeTrackFinderTool::finalize()
+{
+    
+    MsgStream log(msgSvc(), name());
+
+    log << MSG::INFO << "Finalizing TkrTreeTrackFinderTool " << endreq;
+   
+    double kinkAngleRMS = sqrt((_sumKinkAngleSq - _sumKinkAngle*_sumKinkAngle/_nEvents)/(std::max(1, _nEvents-1)));
+
+	// for some reason this doesn't appear in the output
+    log  << MSG::INFO 
+         << "VecLink of 1st track: " << endreq;
+    log  << _nEvents << " events, <kinkAngle> = " << _sumKinkAngle/_nEvents 
+         << ", RMS = " << kinkAngleRMS << ", <#kinks> = " << _nKinks/_nEvents << endreq;
+
+
+    // soonce more...
+	std::cout << "TkrTreeTrackFinderTool: finalize " << std::endl;
+   
+	std::cout << "                        " << _nEvents << " events, <kinkAngle> = " << _sumKinkAngle/_nEvents 
+			  << ", RMS = " << kinkAngleRMS << ", <#kinks> = " << _nKinks/_nEvents << std::endl;
+
+    return StatusCode::SUCCESS;
 }

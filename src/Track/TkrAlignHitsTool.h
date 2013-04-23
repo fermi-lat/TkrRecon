@@ -12,7 +12,7 @@
 * @author The Tracking Software Group
 *
 * File and Version Information:
-*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.h,v 1.6 2013/04/10 23:32:30 lsrea Exp $
+*      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/TkrAlignHitsTool.h,v 1.7 2013/04/23 16:55:59 lsrea Exp $
 */
 
 
@@ -74,7 +74,7 @@ public:
     ///        added to the collection in the TDS.
 
     StatusCode initialize();
-    StatusCode alignHits(const Event::TkrTrack* track
+    StatusCode alignHits(Event::TkrTrack* track
         /*, alignVector& aVec */);
 	StatusCode finalize();
 

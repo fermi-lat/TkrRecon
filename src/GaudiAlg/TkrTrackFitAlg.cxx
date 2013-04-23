@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.35 2012/12/11 17:27:25 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.36 2013/04/10 23:32:27 lsrea Exp $
  */
 
 #include <vector>
@@ -73,7 +73,6 @@ private:
     ITkrTrackEnergyTool* m_energyTool;
 
     bool m_doAlignment;
-    //bool m_alignPatRec;
 };
 
 // Used by Gaudi for identifying this algorithm
@@ -90,7 +89,6 @@ Algorithm(name, pSvcLocator)
     declareProperty("UseGenericFit",  m_GenericFit=true);
     declareProperty("EnergyToolName", m_energyToolName = "TkrTrackShareEnergyTool");
     declareProperty("DoAlignment",    m_doAlignment = true);
-    //declareProperty("AlignPatRec",    m_alignPatRec = false);
 }
 
 StatusCode TkrTrackFitAlg::initialize()
@@ -195,14 +193,8 @@ StatusCode TkrTrackFitAlg::doTrackFit()
         Event::TkrTrack* track = *trackIter;
 
                 // RJ: don't refit the Cosmic Ray tracks
-        if (!(track->getStatusBits() & Event::TkrTrack::COSMICRAY)) { 
-		  if(m_doAlignment /* && m_alignPatRec */) {
-            //std::cout << "TkrTrackFitAlg:: align before doTrackFit" <<std::endl;
-            m_AlignTool->alignHits(track);
-		  }
-          m_FitTool->doTrackFit(track);
-         }
-    }
+                if (!(track->getStatusBits() & Event::TkrTrack::COSMICRAY)) m_FitTool->doTrackFit(track);
+	}
 
     return sc;
 }
@@ -239,10 +231,7 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
     {
         Event::TkrTrack* track = *trackIter;
         if (!(track->getStatusBits() & Event::TkrTrack::COSMICRAY)) {   // RJ: don't refit cosmic-ray candidates
-		  if(m_doAlignment /* && !m_alignPatRec */) { 
-            //std::cout << "TkrTrackFitAlg:: align before reDoTrackFit" <<std::endl;
-            m_AlignTool->alignHits(track);
-          }
+				        if (m_doAlignment) m_AlignTool->alignHits(track);
           m_FitTool->doTrackReFit(track);
         }
     }
