@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.66 2013/04/10 23:32:30 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.57 2013/02/19 04:16:19 usher Exp $
  */
 
 // to turn one debug variables
@@ -291,7 +291,6 @@ StatusCode KalmanTrackFitTool::initialize()
     {
         throw GaudiException("ToolSvc could not find G4PropagationTool", name(), sc);
     }
-
 
     // Set up control
     m_control = TkrControl::getPtr();
@@ -705,9 +704,7 @@ void KalmanTrackFitTool::doFullKalmanFit(Event::TkrTrack& track)
     // Run the filter and follow with the smoother
     double chiSqFit    = 0.;
     
-
     // If the track has been found to have a kink(s) then refilter with the kink finder
-    
     if (track.getStatusBits() & Event::TkrTrack::HASKINKS) chiSqFit = doFilterWithKinks(track);
     else                                                   chiSqFit = doFilter(track);
 
@@ -1097,14 +1094,13 @@ double KalmanTrackFitTool::doFilterStep(Event::TkrTrackHit& referenceHit, Event:
             // Extract maxtrix params we need to alter here
             // Note that the scattering here is contained within the plane
             double arcLen2    = deltaZ * deltaZ * (1. + measSlope*measSlope);
-            double scat_disp2 = 0.25 * arcLen2 * sin(kinkAngle) * sin(kinkAngle) / (1. + measSlope*measSlope);
+            double scat_disp2 = arcLen2 * sin(kinkAngle) * sin(kinkAngle) / (1. + measSlope*measSlope);
             double scat_angle = kinkAngle * kinkAngle;  
             double scat_dist  = scat_disp2;
-            double scat_covr  = 0.5 * sqrt(scat_dist * scat_angle);    // Has already been scaled by cos(theta) / sqrt(norm_term);
+            double scat_covr  = sqrt(scat_dist * scat_angle);    // Has already been scaled by cos(theta) / sqrt(norm_term);
 
             // Create 2x2 matrix to hold values
             KFmatrix kinkMat(2,2,0);
-            int      matInvError = 0;
 
             kinkMat(1,1) = scat_dist * p33;
             kinkMat(2,2) = scat_angle * p33;
