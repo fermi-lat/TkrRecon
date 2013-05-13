@@ -801,12 +801,13 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(LyrToVPtItrMapRItr& firstPointsIt
                     // Can we quickly eliminate skipping layer links that are simply out of range
                     // If we have a Filter axis we can cut tightly
                     // If we have a cal moments axis then we need to open cut up as we go up into tracker 
-                    double minDocaVal     = 650. - 150. * std::min(m_logNumVecPoints, 4.);
+                    double minDocaVal     = (950. - 200. * std::min(m_logNumVecPoints, 4.)) / 3.;
                     double arcLSclFctr    = 1.3 - 0.3 * std::min(m_logNumVecPoints, 4.);
-                    double axisDocaCut    = m_eventPosition.z() > m_tkrGeom->gettkrZBot() 
-                                          ? 2. * minDocaVal : std::min(minDocaVal, arcLSclFctr * arcLEvt2Cand);
-                    double ptDocaRangeCut = m_eventPosition.z() > m_tkrGeom->gettkrZBot() 
-                                          ? 4. * minDocaVal : std::min(2.*minDocaVal, arcLSclFctr * arcLEvt2Cand);
+                    double arcLenDocaVal  = std::max(1., arcLSclFctr * fabs(arcLEvt2Cand));
+                    double axisDocaCut    = m_eventPosition.z() < m_tkrGeom->gettkrZBot() 
+                                          ? 2. * minDocaVal : std::min(minDocaVal, arcLenDocaVal);
+                    double ptDocaRangeCut = m_eventPosition.z() < m_tkrGeom->gettkrZBot() 
+                                          ? 4. * minDocaVal : std::min(2.*minDocaVal, arcLenDocaVal);
 
                     if (fabs(docaBtwnAxes) > axisDocaCut && docaEvt2Cand > ptDocaRangeCut && docaCand2Evt > ptDocaRangeCut)
                     {
