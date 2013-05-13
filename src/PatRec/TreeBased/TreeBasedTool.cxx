@@ -851,13 +851,16 @@ Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRel
                             // Get the best rms angle for comparison below
                             double bestRmsAngle = relVec->front()->getTree()->getHeadNode()->getBestRmsAngle();
 
+                            // Set a loop iterator
+                            Event::TreeClusterRelationVec::iterator loopItr = relVec->begin();
+
                             // Reset the lastItr
-                            lastItr = relVec->begin(); // + 1; This would automatically add the second tree
+                            lastItr = relVec->begin(); 
 
                             // Go through the list of relations looking for the point at which the length changes
-                            while(lastItr != relVec->end())
+                            while(loopItr != relVec->end())
                             {
-                                Event::TreeClusterRelation* rel = *lastItr;
+                                Event::TreeClusterRelation* rel = *loopItr;
 
                                 double calTransRms = rel->getCluster()->getMomParams().getTransRms();
                                 double treeCalDoca = rel->getTreeClusDoca() / std::max(0.0001, rel->getTreeClusCosAngle());
@@ -868,7 +871,9 @@ Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRel
                                 if (deltaLen > 6 || (deltaLen > 2 && treeCalDoca > 3. * calTransRms)) break;
 
                                 // Only increment the "last" if the other tree is relatively "straight"
-                                if (rel->getTree()->getHeadNode()->getBestRmsAngle() < 7.5 * bestRmsAngle) lastItr++;
+                                if (rel->getTree()->getHeadNode()->getBestRmsAngle() < 7.5 * bestRmsAngle) lastItr = loopItr;
+                                    
+                                loopItr++;
                             }
                         }
 
