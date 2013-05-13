@@ -138,6 +138,7 @@ private:
 
     // Also keep count of the number of input TkrVecPoints
     int                           m_numVecPoints;
+    double                        m_logNumVecPoints;
 
     /// We seem to use these a lot, keep track of them
     double                        m_siStripPitch;
@@ -176,6 +177,7 @@ TkrVecLinkBuilderTool::TkrVecLinkBuilderTool(const std::string& type, const std:
                                                    m_evtEnergy(0), 
                                                    m_numVecLinks(0),
                                                    m_numVecPoints(0),
+                                                   m_logNumVecPoints(0.),
                                                    m_numAveLinks(0),
                                                    m_linkAveVec(0.,0.,0.)
 {
@@ -588,24 +590,24 @@ void   TkrVecLinkBuilderTool::setAngleTolerances(double refError, Event::TkrVecP
     m_nrmProjDistCut = m_nrmProjDistCutDef;
 
     // Get the number of TkrVecPoints
-    m_numVecPoints = vecPointInfo->getNumTkrVecPoints();
+    m_numVecPoints    = vecPointInfo->getNumTkrVecPoints();
+    m_logNumVecPoints = m_numVecPoints > 0 ? log10(double(m_numVecPoints)) : 0.;
 
     // Develop estimate of links based on number of vec points
-    double expVecPoints = m_numVecPoints > 0. ? log10(double(m_numVecPoints)) : 0.;
-    double ordVecLinks  = 2. * expVecPoints - 1.;
+    double ordVecLinks  = 2. * m_logNumVecPoints - 1.;
     double guessNLinks  = vecPointInfo->getMaxNumLinkCombinations();
     double expGuessNL   = guessNLinks > 0. ? log10(guessNLinks) : 0.;
 
     // Recalculate the tight tolerance based on the number of vec points
-    m_tolerance = 0.05 * M_PI * (27. - 7. * expVecPoints);
+    m_tolerance = 0.05 * M_PI * (27. - 7. * m_logNumVecPoints);
 //    m_tolerance = std::max(M_PI/8., m_tolerance);
     m_tolerance = std::max(M_PI/16., m_tolerance);
 
     // Following is a completely ad hoc scheme to increase efficiency of link production
     // when there are a few number of hits, likely to happen at low energy
-    if (expVecPoints < 1.7)
+    if (m_logNumVecPoints < 1.7)
     {
-        double sclFctr = 1.7 - expVecPoints;
+        double sclFctr = 1.7 - m_logNumVecPoints;
 
         m_nrmProjDistCut += sclFctr;
         m_tightTolerance *= 2.;
@@ -630,11 +632,11 @@ void   TkrVecLinkBuilderTool::setDocaTolerances(double docaError, Event::TkrVecP
     m_nrmProjDistCut = m_nrmProjDistCutDef;
 
     // Get the number of TkrVecPoints
-    m_numVecPoints = vecPointInfo->getNumTkrVecPoints();
+    m_numVecPoints    = vecPointInfo->getNumTkrVecPoints();
+    m_logNumVecPoints = m_numVecPoints > 0 ? log10(double(m_numVecPoints)) : 0.;
 
     // Develop estimate of links based on number of vec points
-    double expVecPoints = m_numVecPoints > 0. ? log10(double(m_numVecPoints)) : 0.;
-    double ordVecLinks  = 2. * expVecPoints - 1.;
+    double ordVecLinks  = 2. * m_logNumVecPoints - 1.;
     double guessNLinks  = vecPointInfo->getMaxNumLinkCombinations();
     double expGuessNL   = guessNLinks > 0. ? log10(guessNLinks) : 0.;
 
@@ -799,8 +801,12 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(LyrToVPtItrMapRItr& firstPointsIt
                     // Can we quickly eliminate skipping layer links that are simply out of range
                     // If we have a Filter axis we can cut tightly
                     // If we have a cal moments axis then we need to open cut up as we go up into tracker 
-                    double axisDocaCut    = m_eventPosition.z() > m_tkrGeom->gettkrZBot() ? 15. : std::min( 50., 0.1 * arcLEvt2Cand);
-                    double ptDocaRangeCut = m_eventPosition.z() > m_tkrGeom->gettkrZBot() ? 50. : std::min(100., 0.1 * arcLEvt2Cand);
+                    double minDocaVal     = 650. - 150. * std::min(m_logNumVecPoints, 4.);
+                    double arcLSclFctr    = 1.3 - 0.3 * std::min(m_logNumVecPoints, 4.);
+                    double axisDocaCut    = m_eventPosition.z() > m_tkrGeom->gettkrZBot() 
+                                          ? 2. * minDocaVal : std::min(minDocaVal, arcLSclFctr * arcLEvt2Cand);
+                    double ptDocaRangeCut = m_eventPosition.z() > m_tkrGeom->gettkrZBot() 
+                                          ? 4. * minDocaVal : std::min(2.*minDocaVal, arcLSclFctr * arcLEvt2Cand);
 
                     if (fabs(docaBtwnAxes) > axisDocaCut && docaEvt2Cand > ptDocaRangeCut && docaCand2Evt > ptDocaRangeCut)
                     {
@@ -845,7 +851,7 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(LyrToVPtItrMapRItr& firstPointsIt
                             // Basic idea: if doca too large, or arcLen to doca out indicating that 
                             if (fabs(docaBtwnAxes) > sclFctr * m_tightTolerance || arcLenEventPos < arcLenFctr*(arcLEvt2Cand-5.))
                             {
-                                useLink = false;
+//                                useLink = false;
                             }
                         }
                         // Otherwise the reference axis is from another source... 
@@ -856,7 +862,7 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(LyrToVPtItrMapRItr& firstPointsIt
                             //if (fabs(docaBtwnAxes) > sclFctr * m_tightTolerance || arcLenEventPos < arcLenFctr * (arcLEvt2Cand - 5.))
                             if (fabs(docaBtwnAxes) > m_tightTolerance || arcLenEventPos < 0.02*arcLEvt2Cand)
                             {
-                                useLink = false;
+//                                useLink = false;
                             }
                         }
                 

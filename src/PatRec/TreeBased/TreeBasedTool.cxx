@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.50 2013/02/19 18:54:08 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.50 2013/02/19 18:54:08 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -848,8 +848,11 @@ Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRel
                         // Ok, this search only makes sense if the best Tree length is more than 5 bilayers
                         if (bestTreeLength > 5)
                         {
+                            // Get the best rms angle for comparison below
+                            double bestRmsAngle = relVec->front()->getTree()->getHeadNode()->getBestRmsAngle();
+
                             // Reset the lastItr
-                            lastItr = relVec->begin() + 1;
+                            lastItr = relVec->begin(); // + 1; This would automatically add the second tree
 
                             // Go through the list of relations looking for the point at which the length changes
                             while(lastItr != relVec->end())
@@ -861,9 +864,11 @@ Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRel
                                 int    treeLength = rel->getTree()->getHeadNode()->getBestNumBiLayers();
                                 int deltaLen   = bestTreeLength - treeLength;
 
+                                // This test meant to cut off any more searching after remaining trees get to be too short
                                 if (deltaLen > 6 || (deltaLen > 2 && treeCalDoca > 3. * calTransRms)) break;
 
-                                lastItr++;
+                                // Only increment the "last" if the other tree is relatively "straight"
+                                if (rel->getTree()->getHeadNode()->getBestRmsAngle() < 7.5 * bestRmsAngle) lastItr++;
                             }
                         }
 
