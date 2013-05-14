@@ -460,8 +460,9 @@ void TkrVecNodesBuilder::attachLinksToNode(Event::TkrVecPointToNodesRel*        
         // Otherwise check to see that we are head node and need to check if the candidate link is allowed
         else if (!bestNode->getParentNode())
         {
-            quadSum = checkNodeLinkAssociation(bestNode, nextLink);
-            if (quadSum == -1.) continue;
+            // This will do the basic first link checking to make sure its an allowed link
+            // If the result is -1 then we skip
+            if (checkNodeLinkAssociation(bestNode, nextLink) == -1.) continue;
         }
 
         // Update angle information at this point
@@ -558,15 +559,21 @@ const double TkrVecNodesBuilder::getLinkAssociation(const Event::TkrVecPointsLin
     
 double TkrVecNodesBuilder::checkNodeLinkAssociation(Event::TkrVecNode* curNode, Event::TkrVecPointsLink* curLink)
 {
+    static const unsigned int gapbits = Event::TkrVecPointsLink::INTERTOWER
+                                      | Event::TkrVecPointsLink::WAFERGAP
+                                      | Event::TkrVecPointsLink::WAFERGAPPLUS
+                                      | Event::TkrVecPointsLink::INTERTOWER;
     double metric = -1.;
 
     // If this is a head node then we are not allowed to start with a link skipping 2 bilayers
     if (   !curNode->getParentNode() 
-        && ((curLink->skip2Layer() && !(curLink->getStatusBits() & Event::TkrVecPointsLink::GAPANDCLUS))
-            || curLink->skip3Layer() 
-            || curLink->skipNLayer())
+        && (   (curLink->skip2Layer() && !(curLink->getStatusBits() & gapbits))
+            || (curLink->skip3Layer() && !(curLink->getStatusBits() & gapbits))
+            ||  curLink->skipNLayer())
        ) 
+    {
         return metric;
+    }
 
     // More complicated version of the above but allowing skipping if no links already
     if (   !curNode->empty() 
@@ -574,14 +581,18 @@ double TkrVecNodesBuilder::checkNodeLinkAssociation(Event::TkrVecNode* curNode, 
         && !curNode->getParentNode()                             // same thing as? curNode->getTreeStartLayer() == curNode->getCurrentBiLayer() 
         &&  curLink->skipsLayers()
         && !curLink->skip1Layer()) 
-         return metric;
+    {
+        return metric;
+    }
 
     // Can't attach links that skip layers to a node/link that already skips layers
     if (    curNode->getAssociatedLink() 
         &&  curNode->getNumBiLayers() < 4
         &&  curNode->getAssociatedLink()->skipsLayers() 
         &&  curLink->skipsLayers() && !curLink->skip1Layer()) 
+    {
          return metric;
+    }
 
     // If we made it here then its a link angle issue so change the value of the default metric
     metric = -2.;
