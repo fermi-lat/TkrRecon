@@ -871,7 +871,7 @@ Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRel
                                 if (deltaLen > 6 || (deltaLen > 2 && treeCalDoca > 3. * calTransRms)) break;
 
                                 // Only increment the "last" if the other tree is relatively "straight"
-                                if (rel->getTree()->getHeadNode()->getBestRmsAngle() < 7.5 * bestRmsAngle) lastItr = loopItr;
+                                if (rel->getTree()->getHeadNode()->getBestRmsAngle() < 7.5 * bestRmsAngle) lastItr = loopItr + 1;
                                     
                                 loopItr++;
                             }
