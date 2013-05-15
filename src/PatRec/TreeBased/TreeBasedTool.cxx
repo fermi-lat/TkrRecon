@@ -47,6 +47,7 @@
 #include "Utilities/TkrException.h"
 
 #include <errno.h>
+#include <math.h>
 
 //typedef std::vector<Event::TkrVecPoint*> VecPointVec;
 //typedef Event::TkrVecPointsLinkPtrVec    VecPointsLinkVec;
@@ -113,6 +114,7 @@ private:
     /// Set a scale factor for the "refError" if getting from the tracker filter
     /// between the reference point and the projection of the candidate link
     double                     m_minRefError;
+    double                     m_minAngError;
 
     /// Control for merging clusters
     bool                       m_mergeClusters;
@@ -159,6 +161,7 @@ TreeBasedTool::TreeBasedTool(const std::string& type, const std::string& name, c
     declareProperty("MinEnergy",          m_minEnergy           = 30.);
     declareProperty("FracEneFirstTrack",  m_fracEneFirstTrack   = 0.80);
     declareProperty("MinimumRefError",    m_minRefError         = 50.);
+    declareProperty("MinimumAngError",    m_minAngError         = M_PI/16.);
     declareProperty("MergeClusters",      m_mergeClusters       = false);
     declareProperty("NumClustersToMerge", m_nClusToMerge        = 3);
     declareProperty("MergeStripGap",      m_stripGap            = 8);
@@ -311,14 +314,37 @@ StatusCode TreeBasedTool::firstPass()
         // STEP TWO: Associate (link) adjacent pairs of VecPoints and store away
 
         // We need to give the link building code a reference point/axis and energy
-        // Set base values
-        Point  refPoint(0.,0.,0.);
-        Vector refAxis(0., 0., 1.);
-        double energy(30.);
-        double refError(m_minRefError);
+        // By default we'll use the values in TkrEventParams so we'll initialize those first
+        Event::TkrEventParams* tkrEventParams = 
+            SmartDataPtr<Event::TkrEventParams>(m_dataSvc,EventModel::TkrRecon::TkrEventParams);
 
-        // The first/best place to look for this is in the TkrFilterParams, so look
-        // up the collection in the TDS
+        Point  refPoint = tkrEventParams->getEventPosition();
+        Vector refAxis  = tkrEventParams->getEventAxis();
+        double energy   = tkrEventParams->getEventEnergy();
+        double refError = std::max(tkrEventParams->getTransRms(), m_minRefError);
+        double angError = m_minAngError;
+
+        // This axis comes from cal so make sure it is pointing into the tracker!
+        if (tkrEventParams->getEventEnergy() > 20.)
+        {
+            refPoint         = tkrEventParams->getEventPosition();
+            double arcLen    = (m_tkrGeom->gettkrZBot() - refPoint.z()) / refAxis.z();
+            Point  tkrBotPos = refPoint + arcLen * refAxis;
+
+            // Are we outside the fiducial area already?
+            if (std::fabs(tkrBotPos.x()) > 0.5 * m_tkrGeom->calXWidth() || tkrBotPos.y() > 0.5 * m_tkrGeom->calYWidth())
+            {
+                static Point top(0., 0., 1000.);
+                Vector newAxis = top - refPoint;
+
+                refAxis = newAxis.unit();
+            }
+        }
+        // If the energy is zero then there is no axis so set to point "up"
+        else refAxis = Vector(0.,0.,1.);
+
+        // However, if we have reconstructed a nice axis from the Hough Filter we will use that instead
+        // Look up in TDS to see if such axis exists
         Event::TkrFilterParamsCol* tkrFilterParamsCol = 
             SmartDataPtr<Event::TkrFilterParamsCol>(m_dataSvc,EventModel::TkrRecon::TkrFilterParamsCol);
 
@@ -327,46 +353,15 @@ StatusCode TreeBasedTool::firstPass()
         {
             Event::TkrFilterParams* filterParams = tkrFilterParamsCol->front();
 
+            // First lets check the angle between the above reference axis and the filter
+            double cosAxesAng = filterParams->getEventAxis().dot(refAxis);
+
             refPoint = filterParams->getEventPosition();
             refAxis  = filterParams->getEventAxis();
             energy   = filterParams->getEventEnergy();
-            refError = 3. * filterParams->getTransRms();
+            refError = std::max(3. * filterParams->getTransRms(), m_minRefError);
+            angError = std::max(acos(std::max(-1., std::min(1., cosAxesAng))), m_minAngError);
         }
-        // Otherwise default back to the standard TkrEventParams
-        else
-        {
-            // Look up the Cal event information
-            Event::TkrEventParams* tkrEventParams = 
-                SmartDataPtr<Event::TkrEventParams>(m_dataSvc,EventModel::TkrRecon::TkrEventParams);
-
-            refPoint = tkrEventParams->getEventPosition();
-            refAxis  = tkrEventParams->getEventAxis();
-            energy   = tkrEventParams->getEventEnergy();
-            refError = tkrEventParams->getTransRms();
-
-            // This axis comes from cal so make sure it is pointing into the tracker!
-            if (tkrEventParams->getEventEnergy() > 20.)
-            {
-                refPoint         = tkrEventParams->getEventPosition();
-                double arcLen    = (m_tkrGeom->gettkrZBot() - refPoint.z()) / refAxis.z();
-                Point  tkrBotPos = refPoint + arcLen * refAxis;
-
-                // Are we outside the fiducial area already?
-                if (std::fabs(tkrBotPos.x()) > 0.5 * m_tkrGeom->calXWidth() || tkrBotPos.y() > 0.5 * m_tkrGeom->calYWidth())
-                {
-                    static Point top(0., 0., 1000.);
-                    Vector newAxis = top - refPoint;
-
-                    refAxis = newAxis.unit();
-                }
-            }
-
-            // If the energy is zero then there is no axis so set to point "up"
-            else refAxis = Vector(0.,0.,1.);
-        }
-
-        // Make sure the refError is not too small
-        refError = std::max(m_minRefError, refError);
 
         // Having said the above regarding refError, it is observed that once the number of vector 
         // points gets above 2000 that the number of links can "explode". Add in a bit of a safety factor 
@@ -378,7 +373,7 @@ StatusCode TreeBasedTool::firstPass()
             refError *= 1. / (1. + sclFctrInc);
         }
 
-        Event::TkrVecPointsLinkInfo* tkrVecPointsLinkInfo = m_linkBuilder->getAllLayerLinks(refPoint, refAxis, refError, energy);
+        Event::TkrVecPointsLinkInfo* tkrVecPointsLinkInfo = m_linkBuilder->getAllLayerLinks(refPoint, refAxis, refError, angError, energy);
 
         int numVecPointsLinks = tkrVecPointsLinkInfo->getTkrVecPointsLinkCol()->size();
 
