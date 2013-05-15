@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-39-03 15-May-2013 TU Restore resolution from GR-20-08-11 and declare "frozen"
  TkrRecon-10-39-02 23-Apr-2013  lsrea Mods for patrec alignment
  TkrRecon-10-39-01  8-Apr-2013 TU Small fixes to initial track parameters before fitting
  TkrRecon-10-39-00  6-Apr-2013 TU Introduce new "hit error" models for fitting electrons, also a new "process noise matrix" 
