@@ -61,6 +61,7 @@ public:
     Event::TkrVecPointsLinkInfo* getAllLayerLinks(const Point&  refPoint, 
                                                   const Vector& refAxis, 
                                                   double        refError,
+                                                  double        angError,
                                                   double        energy);
 
     /// @brief Finalize method for outputting run statistics
@@ -128,6 +129,10 @@ private:
     double                        m_tolerance;
     double                        m_tightTolerance;
     bool                          m_usePosition;
+
+    // These cut limits are specifically for creating multilayer links
+    double                        m_axisDocaCut;
+    double                        m_docaRangeCut;
 
     // Cut on the normalized projected width vs actual cluster width
     double                        m_nrmProjDistCutDef;
@@ -440,6 +445,7 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getSingleLayerLinks(const Po
 Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point&  refPoint, 
                                                                      const Vector& refAxis, 
                                                                      double        refError,
+                                                                     double        angError,
                                                                      double        energy)
 {
     // The links collection and the relational table should already be in the TDS
@@ -493,7 +499,7 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
     else m_eventAxis = Vector(0.,0.,1.);
 
     // Set the tolerances for this event
-    setAngleTolerances(refError, vecPointInfo);
+    setAngleTolerances(angError, vecPointInfo);
 
     // For a test, screw down the tolerance a bit
     m_nrmProjDistCut *= 0.85;  // should result in 1.1 if lots of links
@@ -579,12 +585,11 @@ Event::TkrVecPointsLinkInfo* TkrVecLinkBuilderTool::getAllLayerLinks(const Point
     return linkInfo;
 }
 
-void   TkrVecLinkBuilderTool::setAngleTolerances(double refError, Event::TkrVecPointInfo* vecPointInfo)
+void   TkrVecLinkBuilderTool::setAngleTolerances(double angError, Event::TkrVecPointInfo* vecPointInfo)
 {
     // Set the default value for the tolerance angle
-    m_tolerance      = M_PI/3.; // Take all comers!
-//    m_tightTolerance = 2. * refError;
-    m_tightTolerance = refError;
+    m_tolerance      = std::max(M_PI/3., angError);
+    m_tightTolerance = angError;
 
     // Reset the norm'd projected distance cut
     m_nrmProjDistCut = m_nrmProjDistCutDef;
@@ -593,15 +598,12 @@ void   TkrVecLinkBuilderTool::setAngleTolerances(double refError, Event::TkrVecP
     m_numVecPoints    = vecPointInfo->getNumTkrVecPoints();
     m_logNumVecPoints = m_numVecPoints > 0 ? log10(double(m_numVecPoints)) : 0.;
 
-    // Develop estimate of links based on number of vec points
-    double ordVecLinks  = 2. * m_logNumVecPoints - 1.;
-    double guessNLinks  = vecPointInfo->getMaxNumLinkCombinations();
-    double expGuessNL   = guessNLinks > 0. ? log10(guessNLinks) : 0.;
-
     // Recalculate the tight tolerance based on the number of vec points
-    m_tolerance = 0.05 * M_PI * (27. - 7. * m_logNumVecPoints);
+//    m_tolerance = 0.05 * M_PI * (27. - 7. * m_logNumVecPoints);
 //    m_tolerance = std::max(M_PI/8., m_tolerance);
-    m_tolerance = std::max(M_PI/16., m_tolerance);
+//    m_tolerance = std::max(M_PI/16., m_tolerance);
+    m_tolerance = 1.1 * angError * (31. - 7. * std::min(m_logNumVecPoints, 4.)) / 3.;
+    m_tolerance = std::max(std::min(m_tolerance, 1.1*M_PI_2), M_PI/16.);
 
     // Following is a completely ad hoc scheme to increase efficiency of link production
     // when there are a few number of hits, likely to happen at low energy
@@ -615,9 +617,14 @@ void   TkrVecLinkBuilderTool::setAngleTolerances(double refError, Event::TkrVecP
         if (m_evtEnergy < 100.) m_tolerance = M_PI;
     }
 
-    // Following is a completely ad hoc scheme to constrain links if we think 
-    // combinatorics are about to go out of control. All of this based on a quick
-    // study looking at some histograms of # vec points vs time, etc. 
+    // The final step here is to set the cuts that will be used to try to weed out
+    // candidate skipping layer links that are clearly not associated with the event
+    double minDocaVal     = (950. - 200. * std::min(m_logNumVecPoints, 4.)) / 3.;
+
+    m_axisDocaCut  = m_eventPosition.z() < m_tkrGeom->gettkrZBot() 
+                   ? 2. * minDocaVal : minDocaVal;
+    m_docaRangeCut = m_eventPosition.z() < m_tkrGeom->gettkrZBot() 
+                   ? 4. * minDocaVal : 2.*minDocaVal;
 
     return;
 }
@@ -669,6 +676,10 @@ void   TkrVecLinkBuilderTool::setDocaTolerances(double docaError, Event::TkrVecP
 
         m_tolerance *= 1. / (1. + sclFctrInc);
     }
+
+    // These variables are not used in single layer linking but should be initialized anyway
+    m_axisDocaCut  = 999.;
+    m_docaRangeCut = 999.;
 
     return;
 }
@@ -801,84 +812,34 @@ int TkrVecLinkBuilderTool::buildLinksGivenVecs(LyrToVPtItrMapRItr& firstPointsIt
                     // Can we quickly eliminate skipping layer links that are simply out of range
                     // If we have a Filter axis we can cut tightly
                     // If we have a cal moments axis then we need to open cut up as we go up into tracker 
-                    double minDocaVal     = (950. - 200. * std::min(m_logNumVecPoints, 4.)) / 3.;
-                    double arcLSclFctr    = 1.3 - 0.3 * std::min(m_logNumVecPoints, 4.);
-                    double arcLenDocaVal  = std::max(1., arcLSclFctr * fabs(arcLEvt2Cand));
-                    double axisDocaCut    = m_eventPosition.z() < m_tkrGeom->gettkrZBot() 
-                                          ? 2. * minDocaVal : std::min(minDocaVal, arcLenDocaVal);
-                    double ptDocaRangeCut = m_eventPosition.z() < m_tkrGeom->gettkrZBot() 
-                                          ? 4. * minDocaVal : std::min(2.*minDocaVal, arcLenDocaVal);
+                    // If the link is clearly not related to the principal event axis then reject it
+                    double axisDocaCut  = m_axisDocaCut;
+                    double docaRangeCut = m_docaRangeCut;
 
-                    if (fabs(docaBtwnAxes) > axisDocaCut && docaEvt2Cand > ptDocaRangeCut && docaCand2Evt > ptDocaRangeCut)
+                    if (m_eventPosition.z() > m_tkrGeom->gettkrZBot())
+                    {
+                        double arcLSclFctr    = 1.3 - 0.3 * std::min(m_logNumVecPoints, 4.);
+                        double arcLenDocaVal  = std::max(1., arcLSclFctr * fabs(arcLEvt2Cand));
+
+                        axisDocaCut  = std::min(m_axisDocaCut,  arcLenDocaVal);
+                        docaRangeCut = std::min(m_docaRangeCut, arcLenDocaVal);
+                    }
+
+                    if (fabs(docaBtwnAxes) > axisDocaCut && docaEvt2Cand > docaRangeCut && docaCand2Evt > docaRangeCut)
                     {
                         useLink = false;
                     }
-                    // Otherwise, see if we can find other reasons to reject
+                    // Link might be related, reject if the angle is out of range. 
                     else
                     {
-                        // Compute distance from the start positions of both the event axis and
-                        // the candidate link so that we can get arc length along both lines
-                        double a     = m_eventAxis.dot(m_eventAxis);
-                        double b     = m_eventAxis.dot(candLinkVec);
-                        double c     = candLinkVec.dot(candLinkVec);
-                        double d     = m_eventAxis.dot(startToEvent);
-                        double e     = candLinkVec.dot(startToEvent);
-                        double denom = a*c - b*b;
-
-                        // We want the arc lengths along each line to their point of closest approach
-                        // Note signing here: if positive then the doca is "above" the position of the
-                        // respective position, if negative its "below"
-                        double arcLenEventPos = 0.;
-                        double arcLenCandLink = 0.;
+                        // Check angle link makes with event axis
+                        double cosTestAngle   = m_eventAxis.dot(candLinkVec);
+                        double testAngle      = acos(std::max(-1.,std::min(1.,cosTestAngle)));
                 
-                        // Standard case, lines are skew so we can calculate the arc lengths
-                        // If parallel then the doca is constant so there is no arc length to compute
-                        if (denom > 0)
+                        // If the test angle exceeds our tolerance then reject
+                        if (testAngle > m_tolerance) 
                         {
-                            // Note the sign convention here!
-                            arcLenEventPos = -(b*e - c*d) / denom;
-                            arcLenCandLink = -(a*e - b*d) / denom;
-                        }
-                
-                        // If the reference axis is from the filter then the event position z will be positive
-                        if (m_eventPosition.z() > m_tkrGeom->gettkrZBot())
-                        {
-                            // Come back and look at the line doca and its position along the event axis
-                            double sclFctr    = 1. + 0.5 * std::max(fabs(startToEvent.z()) / 32. - 3., 0.);
-                            double arcLenFctr = 1.;
-            
-                            if (docaEvt2Cand > 25.) arcLenFctr = 0.5;
-
-                            // Basic idea: if doca too large, or arcLen to doca out indicating that 
-                            if (fabs(docaBtwnAxes) > sclFctr * m_tightTolerance || arcLenEventPos < arcLenFctr*(arcLEvt2Cand-5.))
-                            {
-//                                useLink = false;
-                            }
-                        }
-                        // Otherwise the reference axis is from another source... 
-                        else
-                        {
-                            // Unfortunately, if the reference axis is in the cal then the resolution is not great 
-                            // and we can't really make super tight cuts like we did above
-                            //if (fabs(docaBtwnAxes) > sclFctr * m_tightTolerance || arcLenEventPos < arcLenFctr * (arcLEvt2Cand - 5.))
-                            if (fabs(docaBtwnAxes) > m_tightTolerance || arcLenEventPos < 0.02*arcLEvt2Cand)
-                            {
-//                                useLink = false;
-                            }
-                        }
-                
-                        // If haven't rejected link, keep looking for a reason to not like it
-                        if (useLink)
-                        {
-                            // Check angle link makes with event axis
-                            double cosTestAngle   = m_eventAxis.dot(candLinkVec);
-                            double testAngle      = acos(std::max(-1.,std::min(1.,cosTestAngle)));
-                
-                            // If the test angle exceeds our tolerance then reject
-                            if (testAngle > m_tolerance) 
-                            {
-                                useLink = false;
-                            }
+                            useLink = false;
                         }
                     }
                 }

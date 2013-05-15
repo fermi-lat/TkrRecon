@@ -5,7 +5,7 @@
  *
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/Attic/ITkrVecPointLinksBuilder.h,v 1.1.2.2 2012/02/17 20:46:11 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks/ITkrVecPointLinksBuilder.h,v 1.2 2012/04/25 04:54:36 heather Exp $
  *
 */
 
@@ -36,6 +36,7 @@ class ITkrVecPointsLinkBuilder : virtual public IAlgTool
   virtual Event::TkrVecPointsLinkInfo* getAllLayerLinks(const Point&  refPoint, 
                                                         const Vector& refAxis,
                                                         double        refError = 1000.,
+                                                        double        angError = M_PI,
                                                         double        energy   = 30.)    = 0;
 };
 
