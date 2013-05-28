@@ -452,17 +452,19 @@ void TkrVecPointsBuilderTool::storeMergeClusters(TkrClusterVec& mergeVec, TkrClu
             p            *= 0.5;
             Point clusPos(p.x(), p.y(), p.z());
 
-            unsigned status = firstCluster->getStatusWord();
-            int      numBad = firstCluster->getNBad();
+            unsigned status = 0;
+            int      numBad = 0;
 
-            for(TkrClusterVec::iterator mergeItr = mergeVec.begin() + 1; mergeItr != mergeVec.end(); mergeItr++)
+            for(TkrClusterVec::iterator mergeItr = mergeVec.begin(); mergeItr != mergeVec.end(); mergeItr++)
             {
                 status |= (*mergeItr)->getStatusWord();
                 numBad += (*mergeItr)->getNBad();
+
+                const_cast<Event::TkrCluster*>(*mergeItr)->setStatusBits(Event::TkrCluster::maskMERGED);
             }
 
             // Set bit to signify that this is a merged cluster
-            status |= Event::TkrCluster::maskMERGED;
+            status |= Event::TkrCluster::maskMERGERESULT;
 
             // Make the new cluster
             Event::TkrCluster* mergeCluster = new Event::TkrCluster(firstCluster->getTkrId(), 
