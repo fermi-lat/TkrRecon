@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/VectorLinks/VectorLinksTool.cxx,v 1.12 2011/12/12 20:57:13 heather Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/VectorLinks/VectorLinksTool.cxx,v 1.13 2012/10/03 14:13:01 bruel Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -32,7 +32,7 @@
 #include "TkrRecon/Track/ITkrFitTool.h"
 #include "TkrRecon/Track/IFindTrackHitsTool.h"
 #include "src/Track/TkrControl.h"
-#include "TkrVecPointsBuilder.h"
+#include "ITkrVecPointsBuilder.h"
 #include "TkrVecPointLinksBuilder.h"
 #include "TkrTrackElementsBuilder.h"
 #include "TkrTracksBuilder.h"
@@ -72,10 +72,13 @@ private:
 
     ///*** PRIVATE DATA MEMBERS ***
     /// The track fit code
-    ITkrFitTool*        m_trackFitTool;
+    ITkrFitTool*          m_trackFitTool;
+
+    /// Tool for builder TkrVecPoints
+    ITkrVecPointsBuilder* m_pointsBuilder;
 
     /// Hit Finding, we'll use to look for leading hits
-    IFindTrackHitsTool* m_findHitsTool;
+    IFindTrackHitsTool*   m_findHitsTool;
 
     /// Services for hit arbitration
     IGlastDetSvc*         m_glastDetSvc;
@@ -147,6 +150,11 @@ StatusCode VectorLinksTool::initialize()
     {
         throw GaudiException("ToolSvc could not find FindTrackHitsTool", name(), sc);
     }
+
+    if( (sc = toolSvc()->retrieveTool("TkrVecPointsBuilderTool", "TkrVecPointsBuilderTool", m_pointsBuilder)).isFailure() )
+    {
+        throw GaudiException("ToolSvc could not find TkrVecPointsBuilderTool", name(), sc);
+    }
   
     // Get the Glast Det Service
     if( serviceLocator() ) 
@@ -189,10 +197,12 @@ StatusCode VectorLinksTool::firstPass()
     int numLyrsToSkip = 3;
 
     // STEP ONE: build the list of all VecPoints
-    TkrVecPointsBuilder vecPointsBuilder(numLyrsToSkip, m_dataSvc, m_tkrGeom, m_clusTool);
+    Event::TkrVecPointCol* tkrVecPointCol = m_pointsBuilder->buildTkrVecPoints(numLyrsToSkip);
+
+    if (!tkrVecPointCol) return StatusCode::FAILURE;
 
     // No point in continuing if too few VecPoints
-    if (vecPointsBuilder.getNumBiLayers() > 2)
+    if (tkrVecPointCol->size() > 2)
     {
         // STEP TWO: Associate (link) adjacent pairs of VecPoints and store away
         TkrVecPointLinksBuilder vecPointLinksBuilder(eventEnergy,

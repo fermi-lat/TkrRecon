@@ -35,8 +35,7 @@
 #include "TkrRecon/Track/ITkrFitTool.h"
 #include "TkrRecon/Track/IFindTrackHitsTool.h"
 #include "src/Track/TkrControl.h"
-#include "../VectorLinks/TkrVecPointsBuilder.h"
-//#include "../VectorLinks/TkrVecPointLinksBuilder.h"
+#include "../VectorLinks/ITkrVecPointsBuilder.h"
 #include "../VectorLinks/ITkrVecPointLinksBuilder.h"
 #include "TkrVecNodesBuilder.h"
 #include "TkrTreeBuilder.h"
@@ -97,6 +96,9 @@ private:
 
     /// Services for hit arbitration
     IGlastDetSvc*              m_glastDetSvc;
+
+    /// Points builder tool
+    ITkrVecPointsBuilder*      m_pointsBuilder;
 
     /// Link builder tool
     ITkrVecPointsLinkBuilder*  m_linkBuilder;
@@ -213,6 +215,11 @@ StatusCode TreeBasedTool::initialize()
         throw GaudiException("ToolSvc could not find FindTrackHitsTool", name(), sc);
     }
 
+    if( (sc = toolSvc()->retrieveTool("TkrVecPointsBuilderTool", "TkrVecPointsBuilderTool", m_pointsBuilder)).isFailure() )
+    {
+        throw GaudiException("ToolSvc could not find TkrVecPointsBuilderTool", name(), sc);
+    }
+
     if( (sc = toolSvc()->retrieveTool("TkrVecLinkBuilderTool", "TkrVecLinkBuilderTool", m_linkBuilder)).isFailure() )
     {
         throw GaudiException("ToolSvc could not find TkrVecLinkBuilderTool", name(), sc);
@@ -295,12 +302,11 @@ StatusCode TreeBasedTool::firstPass()
     {
         // Put this here for now
         int numLyrsToSkip = 3;
-
-        // Build the list of all VecPoints
-        TkrVecPointsBuilder vecPointsBuilder(numLyrsToSkip, m_dataSvc, m_tkrGeom, m_clusTool);
     
         // Re-recover the vector point collection
-        tkrVecPointCol = SmartDataPtr<Event::TkrVecPointCol>(m_dataSvc, EventModel::TkrRecon::TkrVecPointCol);
+        tkrVecPointCol = m_pointsBuilder->buildTkrVecPoints(numLyrsToSkip);
+
+        if (!tkrVecPointCol) return StatusCode::FAILURE;
     }
 
     // Place a temporary cut here to prevent out of control events
