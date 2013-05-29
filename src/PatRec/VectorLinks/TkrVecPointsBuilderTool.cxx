@@ -45,6 +45,11 @@ public:
     Event::TkrVecPointCol*        buildTkrVecPoints(int numSkippedLayers);
 
 private:
+    typedef std::map<int, Event::TkrTruncatedPlane> PlaneToTruncInfoMap;
+    typedef std::map<int, PlaneToTruncInfoMap >     TruncTowerToPlanesMap;
+
+    void buildTruncTowerToPlanesMap(Event::TkrTruncationInfo::TkrTruncationMap* truncMap);
+
     typedef std::vector<const Event::TkrCluster*> TkrClusterVec;
     typedef std::map<int, TkrClusterVec >         TowerToClusterMap;
 
@@ -52,10 +57,13 @@ private:
     TowerToClusterMap makeTowerToClusterMap(const Event::TkrClusterVec& clusterList);
 
     // Return a vector of clusters to use when making vec points
-    TkrClusterVec makeTkrClusterVec(TowerToClusterMap::iterator& inputItr, Event::TkrTruncationInfo::TkrTruncationMap* truncMap);
+    TkrClusterVec makeTkrClusterVec(TowerToClusterMap::iterator& inputItr);
 
     // Store clusters in a "merge vector" to an output vector
     void storeMergeClusters(TkrClusterVec& mergeVec, TkrClusterVec& clusterVec);
+
+    // Make the Truncation tower to planes map a member variable
+    TruncTowerToPlanesMap   m_truncTowerToPlanesMap;
 
     // Flags for control
     bool                    m_noGhostClusters;
@@ -66,6 +74,10 @@ private:
     // Control of gaps for merging
     int                     m_maxAllowedGapSize;
     int                     m_minAllowedGapSize;
+
+    // Control of whether we do truncation handling or not
+    bool                    m_handleTruncPlanes;
+    int                     m_minTruncPlanesPerTower;
 
     // Internal pointer to the recovered cluster collection
     Event::TkrClusterCol*   m_clusterCol;
@@ -85,10 +97,11 @@ TkrVecPointsBuilderTool::TkrVecPointsBuilderTool(const std::string& type, const 
     // declare base interface for all consecutive concrete classes
     declareInterface<ITkrVecPointsBuilder>(this);
 
-    declareProperty("NoGhostClusters",     m_noGhostClusters   = true);
-    declareProperty("HitDensityThreshold", m_hitDensityThreshold = 0.1);
-    declareProperty("MinAllowedGapSize",   m_minAllowedGapSize =  3);
-    declareProperty("MaxAllowedGapSize",   m_maxAllowedGapSize = 12);
+    declareProperty("NoGhostClusters",        m_noGhostClusters        = true);
+    declareProperty("HitDensityThreshold",    m_hitDensityThreshold    =  0.1);
+    declareProperty("MinAllowedGapSize",      m_minAllowedGapSize      =  3);
+    declareProperty("MaxAllowedGapSize",      m_maxAllowedGapSize      = 12);
+    declareProperty("MinTruncPlanesPerTower", m_minTruncPlanesPerTower =  5);
 
     return;
 }
@@ -172,15 +185,16 @@ Event::TkrVecPointCol* TkrVecPointsBuilderTool::buildTkrVecPoints(int numSkipped
         return tkrVecPointCol;
     }
 
-    // Set up a truncation map
-    Event::TkrTruncationInfo::TkrTruncationMap  dummyTruncMap;
-    Event::TkrTruncationInfo::TkrTruncationMap* truncMap = &dummyTruncMap;
-
     // Recover the truncated plane info
     Event::TkrTruncationInfo* truncInfo 
         = SmartDataPtr<Event::TkrTruncationInfo>(m_dataSvc, EventModel::TkrRecon::TkrTruncationInfo);
 
-    if (truncInfo) truncMap = truncInfo->getTruncationMap();
+    // Make sure the truncated tower to planes map has been cleared
+    m_truncTowerToPlanesMap.clear();
+    m_handleTruncPlanes = false;
+
+    // If there is truncation information, initialize it for this event
+    if (truncInfo) buildTruncTowerToPlanesMap(truncInfo->getTruncationMap());
 
     // Keep track of some items
     int numClusters            = 0;
@@ -220,8 +234,8 @@ Event::TkrVecPointCol* TkrVecPointsBuilderTool::buildTkrVecPoints(int numSkipped
             if (yMapItr == towerToYClusterMap.end()) continue;
 
             // Get the cluster vectors for this tower 
-            TkrClusterVec xClusterVec = makeTkrClusterVec(xMapItr, truncMap);
-            TkrClusterVec yClusterVec = makeTkrClusterVec(yMapItr, truncMap);
+            TkrClusterVec xClusterVec = makeTkrClusterVec(xMapItr);
+            TkrClusterVec yClusterVec = makeTkrClusterVec(yMapItr);
 
             // Now loop through cluster combinations
             for(TkrClusterVec::iterator xClusItr  = xClusterVec.begin();
@@ -290,6 +304,48 @@ Event::TkrVecPointCol* TkrVecPointsBuilderTool::buildTkrVecPoints(int numSkipped
 
     return tkrVecPointCol;
 }
+
+void TkrVecPointsBuilderTool::buildTruncTowerToPlanesMap(Event::TkrTruncationInfo::TkrTruncationMap* truncMap)
+{
+    // Our goal here is to run through the input truncation map and translate into something we can use by
+    // Tower and then by Plane. 
+    // Keep track of the tower with the most number of truncated planes
+    int numTruncPlanes = 0;
+    int towerIndex     = -1;
+
+    // Start loop through all truncation information
+    for(Event::TkrTruncationInfo::TkrTruncationMap::iterator truncMapItr  = truncMap->begin();
+                                                             truncMapItr != truncMap->end();
+                                                             truncMapItr++)
+    {
+        Event::SortId             sortId     = truncMapItr->first;
+        Event::TkrTruncatedPlane& truncPlane = truncMapItr->second;
+
+        // Use secret decoder rings to get our location
+        int tower = sortId.getTower();
+        int plane = m_tkrGeom->getPlane(truncPlane.getPlaneZ());
+
+        // Now populate the tower to planes map
+        // Do piecemeal so we can see what is happening in debugger
+        PlaneToTruncInfoMap& planeToTruncMap = m_truncTowerToPlanesMap[tower];
+
+        planeToTruncMap[plane] = truncPlane;
+
+        // Keep track of the winner
+        if (int(planeToTruncMap.size()) > numTruncPlanes)
+        {
+            numTruncPlanes = planeToTruncMap.size();
+            towerIndex     = tower;
+        }
+
+        // If any tower exceeds the minimum threshold then turn on truncation handling
+        if (numTruncPlanes > m_minTruncPlanesPerTower) m_handleTruncPlanes = true;
+        else                                           m_handleTruncPlanes = false;
+    }
+
+    return;
+}
+
     
 TkrVecPointsBuilderTool::TowerToClusterMap TkrVecPointsBuilderTool::makeTowerToClusterMap(const Event::TkrClusterVec& clusterList)
 {
@@ -307,26 +363,30 @@ TkrVecPointsBuilderTool::TowerToClusterMap TkrVecPointsBuilderTool::makeTowerToC
     return towerToClusterMap;
 }
 
-TkrVecPointsBuilderTool::TkrClusterVec TkrVecPointsBuilderTool::makeTkrClusterVec(TowerToClusterMap::iterator&                inputItr, 
-                                                                                  Event::TkrTruncationInfo::TkrTruncationMap* truncMap)
+TkrVecPointsBuilderTool::TkrClusterVec TkrVecPointsBuilderTool::makeTkrClusterVec(TowerToClusterMap::iterator& inputItr)
 {
     // Create holders for truncated plane information
     Event::TkrTruncatedPlane truncPlane;
 
     // If we have a truncation info then see if we can recover info for the plane
-    if (!truncMap->empty())
+    if (m_handleTruncPlanes)
     {
         // Recover sort id's so we can recover information on truncations
-        int plane = inputItr->second.front()->getPlane();
+        int tower = inputItr->first;
 
-        Event::SortId sortId(inputItr->first, 
-                             m_tkrGeom->planeToTray(plane), 
-                             m_tkrGeom->planeToBotTop(plane), 
-                             m_tkrGeom->getView(plane));
+        TruncTowerToPlanesMap::iterator towerToPlanesItr = m_truncTowerToPlanesMap.find(tower);
 
-        Event::TkrTruncationInfo::TkrTruncationMap::iterator truncMapItr = truncMap->find(sortId);
+        if (towerToPlanesItr != m_truncTowerToPlanesMap.end())
+        {
+            int plane = inputItr->second.front()->getPlane();
 
-        if (truncMapItr != truncMap->end()) truncPlane = truncMapItr->second;
+            PlaneToTruncInfoMap::iterator planeToTruncItr = towerToPlanesItr->second.find(plane);
+
+            if (planeToTruncItr != towerToPlanesItr->second.end())
+            {
+                truncPlane = planeToTruncItr->second;
+            }
+        }
     }
 
     // Flags to set whether we merge or not
@@ -407,7 +467,7 @@ TkrVecPointsBuilderTool::TkrClusterVec TkrVecPointsBuilderTool::makeTkrClusterVe
         int gapSize = nextCluster->firstStrip() - cluster->lastStrip();
 
         // Check if we have a truncated end 
-        if ((cluster->lastStrip() < breakPoint && !mergeLow) || (nextCluster->firstStrip() > breakPoint && !mergeHi)) 
+        if ((cluster->lastStrip() < breakPoint && !mergeLow) || (nextCluster->firstStrip() >= breakPoint && !mergeHi)) 
             gapSize = gapThres + 1;
 
         // If the gap to the next cluster is above threshold then we need to store
