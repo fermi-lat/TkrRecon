@@ -220,8 +220,8 @@ Event::TkrVecPointCol* TkrVecPointsBuilderTool::buildTkrVecPoints(int numSkipped
             if (yMapItr == towerToYClusterMap.end()) continue;
 
             // Get the cluster vectors for this tower 
-            TkrClusterVec& xClusterVec = makeTkrClusterVec(xMapItr, truncMap);
-            TkrClusterVec& yClusterVec = makeTkrClusterVec(yMapItr, truncMap);
+            TkrClusterVec xClusterVec = makeTkrClusterVec(xMapItr, truncMap);
+            TkrClusterVec yClusterVec = makeTkrClusterVec(yMapItr, truncMap);
 
             // Now loop through cluster combinations
             for(TkrClusterVec::iterator xClusItr  = xClusterVec.begin();
@@ -471,8 +471,8 @@ void TkrVecPointsBuilderTool::storeMergeClusters(TkrClusterVec& mergeVec, TkrClu
                                                                     firstStrip, 
                                                                     lastStrip, 
                                                                     clusPos, 
-                                                                    firstCluster->getRawToT(), 
-                                                                    firstCluster->ToT(), 
+                                                                    int(firstCluster->getRawToT()), 
+                                                                    float(firstCluster->getMips()), 
                                                                     status, 
                                                                     numBad);
 
