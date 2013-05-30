@@ -45,8 +45,8 @@ public:
     Event::TkrVecPointCol*        buildTkrVecPoints(int numSkippedLayers);
 
 private:
-    typedef std::map<int, Event::TkrTruncatedPlane> PlaneToTruncInfoMap;
-    typedef std::map<int, PlaneToTruncInfoMap >     TruncTowerToPlanesMap;
+    typedef std::map<int, Event::TkrTruncatedPlane*> PlaneToTruncInfoMap;
+    typedef std::map<int, PlaneToTruncInfoMap >      TruncTowerToPlanesMap;
 
     void buildTruncTowerToPlanesMap(Event::TkrTruncationInfo::TkrTruncationMap* truncMap);
 
@@ -62,10 +62,14 @@ private:
     // Store clusters in a "merge vector" to an output vector
     void storeMergeClusters(TkrClusterVec& mergeVec, TkrClusterVec& clusterVec);
 
+    // Do a full clear of the truncation Tower to Planes map
+    void clearTruncTowerToPlanesMap();
+
     // Make the Truncation tower to planes map a member variable
     TruncTowerToPlanesMap   m_truncTowerToPlanesMap;
 
     // Flags for control
+    bool                    m_mergeClusters;
     bool                    m_noGhostClusters;
 
     // Threshold for considering enough hit "density" to consider merging clusters
@@ -97,11 +101,12 @@ TkrVecPointsBuilderTool::TkrVecPointsBuilderTool(const std::string& type, const 
     // declare base interface for all consecutive concrete classes
     declareInterface<ITkrVecPointsBuilder>(this);
 
+    declareProperty("MergeClusters",          m_mergeClusters          = true);
     declareProperty("NoGhostClusters",        m_noGhostClusters        = true);
     declareProperty("HitDensityThreshold",    m_hitDensityThreshold    =  0.1);
-    declareProperty("MinAllowedGapSize",      m_minAllowedGapSize      =  3);
+    declareProperty("MinAllowedGapSize",      m_minAllowedGapSize      =  2);
     declareProperty("MaxAllowedGapSize",      m_maxAllowedGapSize      = 12);
-    declareProperty("MinTruncPlanesPerTower", m_minTruncPlanesPerTower =  5);
+    declareProperty("MinTruncPlanesPerTower", m_minTruncPlanesPerTower =  7);
 
     return;
 }
@@ -177,20 +182,14 @@ Event::TkrVecPointCol* TkrVecPointsBuilderTool::buildTkrVecPoints(int numSkipped
     // Recover the Tracker cluster collection from the TDS in case we need to add to it
     m_clusterCol = SmartDataPtr<Event::TkrClusterCol>(m_dataSvc, EventModel::TkrRecon::TkrClusterCol);
 
-    if (sc.isFailure())
-    {
-        delete tkrVecPointCol;
-
-        tkrVecPointCol = 0;
-        return tkrVecPointCol;
-    }
+    if (sc.isFailure()) return tkrVecPointCol;
 
     // Recover the truncated plane info
     Event::TkrTruncationInfo* truncInfo 
         = SmartDataPtr<Event::TkrTruncationInfo>(m_dataSvc, EventModel::TkrRecon::TkrTruncationInfo);
 
     // Make sure the truncated tower to planes map has been cleared
-    m_truncTowerToPlanesMap.clear();
+    clearTruncTowerToPlanesMap();
     m_handleTruncPlanes = false;
 
     // If there is truncation information, initialize it for this event
@@ -217,40 +216,76 @@ Event::TkrVecPointCol* TkrVecPointsBuilderTool::buildTkrVecPoints(int numSkipped
         // Do we have at least one hit in each projection?
         if (xHitList.size() < 1 || yHitList.size() < 1) continue;
 
-        // Build maps by tower
-        TowerToClusterMap towerToXClusterMap = makeTowerToClusterMap(xHitList);
-        TowerToClusterMap towerToYClusterMap = makeTowerToClusterMap(yHitList);
-
         // Keep count...
         int numVecPointsThisBiLayer = 0;
 
-        // Loop through the towers in the X cluster map, find the association to the Y cluster Map
-        for(TowerToClusterMap::iterator xMapItr  = towerToXClusterMap.begin();
-                                        xMapItr != towerToXClusterMap.end();
-                                        xMapItr++)
+        // Allow for reverting to the old school method for testing
+        if (m_mergeClusters)
         {
-            TowerToClusterMap::iterator yMapItr = towerToYClusterMap.find(xMapItr->first);
+            // Build maps by tower
+            TowerToClusterMap towerToXClusterMap = makeTowerToClusterMap(xHitList);
+            TowerToClusterMap towerToYClusterMap = makeTowerToClusterMap(yHitList);
 
-            if (yMapItr == towerToYClusterMap.end()) continue;
-
-            // Get the cluster vectors for this tower 
-            TkrClusterVec xClusterVec = makeTkrClusterVec(xMapItr);
-            TkrClusterVec yClusterVec = makeTkrClusterVec(yMapItr);
-
-            // Now loop through cluster combinations
-            for(TkrClusterVec::iterator xClusItr  = xClusterVec.begin();
-                                        xClusItr != xClusterVec.end();
-                                        xClusItr++)
+            // Loop through the towers in the X cluster map, find the association to the Y cluster Map
+            for(TowerToClusterMap::iterator xMapItr  = towerToXClusterMap.begin();
+                                            xMapItr != towerToXClusterMap.end();
+                                            xMapItr++)
             {
-                const Event::TkrCluster* xCluster = *xClusItr;
+                TowerToClusterMap::iterator yMapItr = towerToYClusterMap.find(xMapItr->first);
 
-                for(TkrClusterVec::iterator yClusItr  = yClusterVec.begin();
-                                            yClusItr != yClusterVec.end();
-                                            yClusItr++)
+                if (yMapItr == towerToYClusterMap.end()) continue;
+
+                // Get the cluster vectors for this tower 
+                TkrClusterVec xClusterVec = makeTkrClusterVec(xMapItr);
+                TkrClusterVec yClusterVec = makeTkrClusterVec(yMapItr);
+
+                // Now loop through cluster combinations
+                for(TkrClusterVec::iterator xClusItr  = xClusterVec.begin();
+                                            xClusItr != xClusterVec.end();
+                                            xClusItr++)
                 {
-                    const Event::TkrCluster* yCluster = *yClusItr;
+                    const Event::TkrCluster* xCluster = *xClusItr;
 
-                    Event::TkrVecPoint* tkrVecPoint = new Event::TkrVecPoint(curBiLayer, xCluster, yCluster);
+                    for(TkrClusterVec::iterator yClusItr  = yClusterVec.begin();
+                                                yClusItr != yClusterVec.end();
+                                                yClusItr++)
+                    {
+                        const Event::TkrCluster* yCluster = *yClusItr;
+
+                        Event::TkrVecPoint* tkrVecPoint = new Event::TkrVecPoint(curBiLayer, xCluster, yCluster);
+                        Event::TkrVecPointColPtr lastElemItr = tkrVecPointCol->insert(tkrVecPointCol->end(), tkrVecPoint);
+
+                        // Increment counter
+                        numVecPointsThisBiLayer++;
+
+                        if (curBiLayer != lastBiLayer)
+                        {
+                            // update the end point of the previous bilayer
+                            if (lastBiLayer > 0) (*lyrToVecPointsMap)[lastBiLayer].second = lastElemItr;
+
+                            lastBiLayer = curBiLayer;
+
+                            (*lyrToVecPointsMap)[curBiLayer].first = lastElemItr;
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            for (Event::TkrClusterVecConItr itX = xHitList.begin(); itX!=xHitList.end(); ++itX) 
+            {
+                const Event::TkrCluster* clX = *itX;
+                
+                // Now over the y hits
+                for (Event::TkrClusterVecConItr itY = yHitList.begin(); itY!=yHitList.end(); ++itY) 
+                {
+                    const Event::TkrCluster* clY = *itY;
+
+                    // Can't pair hits that are not in the same tower
+                    if(clX->tower() != clY->tower()) continue;
+
+                    Event::TkrVecPoint* tkrVecPoint = new Event::TkrVecPoint(curBiLayer, clX, clY);
                     Event::TkrVecPointColPtr lastElemItr = tkrVecPointCol->insert(tkrVecPointCol->end(), tkrVecPoint);
 
                     // Increment counter
@@ -258,6 +293,9 @@ Event::TkrVecPointCol* TkrVecPointsBuilderTool::buildTkrVecPoints(int numSkipped
 
                     if (curBiLayer != lastBiLayer)
                     {
+                        //Event::TkrVecPointColPtr lastElemItr = tkrVecPointCol->end();
+                        //lastElemItr--;
+
                         // update the end point of the previous bilayer
                         if (lastBiLayer > 0) (*lyrToVecPointsMap)[lastBiLayer].second = lastElemItr;
 
@@ -329,7 +367,7 @@ void TkrVecPointsBuilderTool::buildTruncTowerToPlanesMap(Event::TkrTruncationInf
         // Do piecemeal so we can see what is happening in debugger
         PlaneToTruncInfoMap& planeToTruncMap = m_truncTowerToPlanesMap[tower];
 
-        planeToTruncMap[plane] = truncPlane;
+        planeToTruncMap[plane] = &truncPlane;
 
         // Keep track of the winner
         if (int(planeToTruncMap.size()) > numTruncPlanes)
@@ -355,7 +393,10 @@ TkrVecPointsBuilderTool::TowerToClusterMap TkrVecPointsBuilderTool::makeTowerToC
     {
         const Event::TkrCluster* cluster = *clusItr;
 
-        if (m_noGhostClusters && cluster->isSet(Event::TkrCluster::maskGHOST)) continue;
+        if (m_noGhostClusters && cluster->isSet(Event::TkrCluster::maskGHOST)) 
+        {
+            continue;
+        }
 
         towerToClusterMap[cluster->tower()].push_back(cluster);
     }
@@ -366,7 +407,13 @@ TkrVecPointsBuilderTool::TowerToClusterMap TkrVecPointsBuilderTool::makeTowerToC
 TkrVecPointsBuilderTool::TkrClusterVec TkrVecPointsBuilderTool::makeTkrClusterVec(TowerToClusterMap::iterator& inputItr)
 {
     // Create holders for truncated plane information
-    Event::TkrTruncatedPlane truncPlane;
+    Event::TkrTruncatedPlane* truncPlane = 0;
+
+    // Flags to set whether we merge or not
+    bool mergeLow   = false;
+    bool mergeHi    = false;
+    int  breakPoint = 5000;
+    int  gapThres   = 0;  // This means NO merging of clusters will occur by default
 
     // If we have a truncation info then see if we can recover info for the plane
     if (m_handleTruncPlanes)
@@ -387,69 +434,63 @@ TkrVecPointsBuilderTool::TkrClusterVec TkrVecPointsBuilderTool::makeTkrClusterVe
                 truncPlane = planeToTruncItr->second;
             }
         }
-    }
 
-    // Flags to set whether we merge or not
-    bool mergeLow   = false;
-    bool mergeHi    = false;
-    int  breakPoint = truncPlane.isTruncated() ? truncPlane.getStripNumber()[3] : 5000;
-    int  gapThres   = 0;  // This means NO merging of clusters will occur by default
-
-    // If this plane is truncated then we need to go through and determine which end is affected,
-    // what the breakpoint is and then try to set a reasonable gap threshold for merging clusters
-    if (truncPlane.isTruncated())
-    {
-        breakPoint = truncPlane.getStripNumber()[3];
-
-        int lowCount = truncPlane.getStripCount()[0];
-        int firstLow = inputItr->second.front()->firstStrip();
-        int hiCount  = truncPlane.getStripCount()[1];
-        int lastHi   = inputItr->second.back()->lastStrip();
-
-        float lowDens = lowCount < 14 ? 0. : float(lowCount) / float(truncPlane.getStripNumber()[0] - firstLow + 1);
-        float lowDen2 = float(lowCount) / float(truncPlane.getStripNumber()[0]);
-        float hiDens  = hiCount  < 14 ? 0. : float(hiCount) / float(lastHi - truncPlane.getStripNumber()[1] + 1);
-        float hiDen2  = float(hiCount) / float(truncPlane.getStripNumber()[2] - truncPlane.getStripNumber()[1] + 1);
-
-        if (lowDens > m_hitDensityThreshold) mergeLow = true;
-        if (hiDens  > m_hitDensityThreshold) mergeHi  = true;
-
-        // The below is an attempt to set a "reasonable" threshold. The idea is to loop through the proposed clusters
-        // to merge and determine an "average" gap size. 
-        int gapSizeSumLo = 0;
-        int gapSizeSumHi = 0;
-        int gapCountLo   = 0;
-        int gapCountHi   = 0;
-        TkrClusterVec::iterator firstClusItr = inputItr->second.begin();
-
-        for(TkrClusterVec::iterator secondClusItr = firstClusItr + 1; secondClusItr != inputItr->second.end(); secondClusItr++)
+        // If this plane is truncated then we need to go through and determine which end is affected,
+        // what the breakpoint is and then try to set a reasonable gap threshold for merging clusters
+        if (truncPlane && truncPlane->isTruncated())
         {
-            int firstStrip  = (*firstClusItr)->lastStrip();
-            int secondStrip = (*secondClusItr)->firstStrip();
+            breakPoint = truncPlane->getStripNumber()[3];
 
-            // If the second strip is less than the break point then it must be we are on low side
-            if (secondStrip < breakPoint)
+            int lowCount = truncPlane->getStripCount()[0];
+            int firstLow = inputItr->second.front()->firstStrip();
+            int hiCount  = truncPlane->getStripCount()[1];
+            int lastHi   = inputItr->second.back()->lastStrip();
+
+            float lowDens = lowCount < 14 ? 0. : float(lowCount) / float(truncPlane->getStripNumber()[0] - firstLow + 1);
+            float lowDen2 = float(lowCount) / float(truncPlane->getStripNumber()[0]);
+            float hiDens  = hiCount  < 14 ? 0. : float(hiCount) / float(lastHi - truncPlane->getStripNumber()[1] + 1);
+            float hiDen2  = float(hiCount) / float(truncPlane->getStripNumber()[2] - truncPlane->getStripNumber()[1] + 1);
+
+            if (lowDens > m_hitDensityThreshold) mergeLow = true;
+            if (hiDens  > m_hitDensityThreshold) mergeHi  = true;
+
+            // The below is an attempt to set a "reasonable" threshold. The idea is to loop through the proposed clusters
+            // to merge and determine an "average" gap size. 
+            int gapSizeSumLo = 0;
+            int gapSizeSumHi = 0;
+            int gapCountLo   = 0;
+            int gapCountHi   = 0;
+            TkrClusterVec::iterator firstClusItr = inputItr->second.begin();
+
+            for(TkrClusterVec::iterator secondClusItr = firstClusItr + 1; secondClusItr != inputItr->second.end(); secondClusItr++)
             {
-                gapSizeSumLo += secondStrip - firstStrip;
-                gapCountLo++;
-            }
-            // Similar logic for the high side
-            else if (firstStrip > breakPoint)
-            {
-                gapSizeSumHi += secondStrip - firstStrip;
-                gapCountHi++;
+                int firstStrip  = (*firstClusItr)->lastStrip();
+                int secondStrip = (*secondClusItr)->firstStrip();
+
+                // If the second strip is less than the break point then it must be we are on low side
+                if (secondStrip < breakPoint)
+                {
+                    gapSizeSumLo += secondStrip - firstStrip;
+                    gapCountLo++;
+                }
+                // Similar logic for the high side
+                else if (firstStrip > breakPoint)
+                {
+                    gapSizeSumHi += secondStrip - firstStrip;
+                    gapCountHi++;
+                }
+
+                firstClusItr  = secondClusItr;
             }
 
-            firstClusItr  = secondClusItr;
+            // Determine the average, where we try to make sure rounding is reasonable
+            int aveGapSizeLo = gapCountLo > 0 ? float(gapSizeSumLo) / float(gapCountLo) + 0.5 : 5000;
+            int aveGapSizeHi = gapCountHi > 0 ? float(gapSizeSumHi) / float(gapCountHi) + 0.5 : 5000;
+            int aveGapSize   = std::min(aveGapSizeLo, aveGapSizeHi) + 1;
+
+            // Set a maximum to the number of strips we can gap
+            gapThres = std::min(std::max(aveGapSize, m_minAllowedGapSize), m_maxAllowedGapSize);
         }
-
-        // Determine the average, where we try to make sure rounding is reasonable
-        int aveGapSizeLo = gapCountLo > 0 ? float(gapSizeSumLo) / float(gapCountLo) + 0.5 : 5000;
-        int aveGapSizeHi = gapCountHi > 0 ? float(gapSizeSumHi) / float(gapCountHi) + 0.5 : 5000;
-        int aveGapSize   = std::min(aveGapSizeLo, aveGapSizeHi) + 1;
-
-        // Set a maximum to the number of strips we can gap
-        gapThres = std::min(std::max(aveGapSize, m_minAllowedGapSize), m_maxAllowedGapSize);
     }
 
     // Ok, now set up to loop through the clusters in this tower and build the output list...
@@ -547,6 +588,20 @@ void TkrVecPointsBuilderTool::storeMergeClusters(TkrClusterVec& mergeVec, TkrClu
 
         mergeVec.clear();
     }
+
+    return;
+}
+    
+void TkrVecPointsBuilderTool::clearTruncTowerToPlanesMap()
+{
+    for(TruncTowerToPlanesMap::iterator truncMapItr  = m_truncTowerToPlanesMap.begin();
+                                        truncMapItr != m_truncTowerToPlanesMap.end();
+                                        truncMapItr++)
+    {
+        truncMapItr->second.clear();
+    }
+
+    m_truncTowerToPlanesMap.clear();
 
     return;
 }
