@@ -1372,20 +1372,22 @@ StatusCode TkrTreeTrackFinderTool::finalize()
 
     log << MSG::INFO << "Finalizing TkrTreeTrackFinderTool " << endreq;
    
-    double kinkAngleRMS = sqrt((m_sumKinkAngleSq - m_sumKinkAngle*m_sumKinkAngle/m_nEvents)/(std::max(1, m_nEvents-1)));
+    if ((m_nEvents > 0) && (m_nKinks))
+    {
+        double kinkAngleRMS = sqrt((m_sumKinkAngleSq - m_sumKinkAngle*m_sumKinkAngle/m_nEvents)/(std::max(1, m_nEvents-1)));
 
-    // for some reason this doesn't appear in the output
-    log  << MSG::INFO 
-         << "VecLink of 1st track: " << endreq;
-    log  << m_nEvents << " events, <kinkAngle> = " << m_sumKinkAngle/m_nEvents 
-         << ", RMS = " << kinkAngleRMS << ", <#kinks> = " << m_nKinks/m_nEvents << endreq;
+        // for some reason this doesn't appear in the output
+        log  << MSG::INFO 
+             << "VecLink of 1st track: " << endreq;
+        log  << m_nEvents << " events, <kinkAngle> = " << m_sumKinkAngle/m_nEvents 
+            << ", RMS = " << kinkAngleRMS << ", <#kinks> = " << m_nKinks/m_nEvents << endreq;
 
-
-    // soonce more...
-    std::cout << "TkrTreeTrackFinderTool: finalize " << std::endl;
+        // soonce more...
+        std::cout << "TkrTreeTrackFinderTool: finalize " << std::endl;
    
-    std::cout << "                        " << m_nEvents << " events, <kinkAngle> = " << m_sumKinkAngle/m_nEvents 
-              << ", RMS = " << kinkAngleRMS << ", <#kinks> = " << m_nKinks/m_nEvents << std::endl;
+        std::cout << "                        " << m_nEvents << " events, <kinkAngle> = " << m_sumKinkAngle/m_nEvents 
+                << ", RMS = " << kinkAngleRMS << ", <#kinks> = " << m_nKinks/m_nEvents << std::endl;
+    }
 
     return StatusCode::SUCCESS;
 }
