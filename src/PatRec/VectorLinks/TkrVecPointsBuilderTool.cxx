@@ -48,7 +48,7 @@ private:
     typedef std::map<int, Event::TkrTruncatedPlane*> PlaneToTruncInfoMap;
     typedef std::map<int, PlaneToTruncInfoMap >      TruncTowerToPlanesMap;
 
-    void buildTruncTowerToPlanesMap(Event::TkrTruncationInfo::TkrTruncationMap* truncMap);
+    void buildTruncTowerToPlanesMap();
 
     typedef std::vector<const Event::TkrCluster*> TkrClusterVec;
     typedef std::map<int, TkrClusterVec >         TowerToClusterMap;
@@ -184,16 +184,8 @@ Event::TkrVecPointCol* TkrVecPointsBuilderTool::buildTkrVecPoints(int numSkipped
 
     if (sc.isFailure()) return tkrVecPointCol;
 
-    // Recover the truncated plane info
-    Event::TkrTruncationInfo* truncInfo 
-        = SmartDataPtr<Event::TkrTruncationInfo>(m_dataSvc, EventModel::TkrRecon::TkrTruncationInfo);
-
-    // Make sure the truncated tower to planes map has been cleared
-    clearTruncTowerToPlanesMap();
-    m_handleTruncPlanes = false;
-
-    // If there is truncation information, initialize it for this event
-    if (truncInfo) buildTruncTowerToPlanesMap(truncInfo->getTruncationMap());
+    // Build up the truncation map information if we are merging clusters
+    buildTruncTowerToPlanesMap();
 
     // Keep track of some items
     int numClusters            = 0;
@@ -343,42 +335,59 @@ Event::TkrVecPointCol* TkrVecPointsBuilderTool::buildTkrVecPoints(int numSkipped
     return tkrVecPointCol;
 }
 
-void TkrVecPointsBuilderTool::buildTruncTowerToPlanesMap(Event::TkrTruncationInfo::TkrTruncationMap* truncMap)
+void TkrVecPointsBuilderTool::buildTruncTowerToPlanesMap()
 {
-    // Our goal here is to run through the input truncation map and translate into something we can use by
-    // Tower and then by Plane. 
-    // Keep track of the tower with the most number of truncated planes
-    int numTruncPlanes = 0;
-    int towerIndex     = -1;
+    // Make sure the truncated tower to planes map has been cleared
+    clearTruncTowerToPlanesMap();
+    m_handleTruncPlanes = false;
 
-    // Start loop through all truncation information
-    for(Event::TkrTruncationInfo::TkrTruncationMap::iterator truncMapItr  = truncMap->begin();
-                                                             truncMapItr != truncMap->end();
-                                                             truncMapItr++)
+    // If we are merging clusters then look up the truncation information
+    if (m_mergeClusters)
     {
-        Event::SortId             sortId     = truncMapItr->first;
-        Event::TkrTruncatedPlane& truncPlane = truncMapItr->second;
+        // Recover the truncated plane info
+        Event::TkrTruncationInfo* truncInfo 
+            = SmartDataPtr<Event::TkrTruncationInfo>(m_dataSvc, EventModel::TkrRecon::TkrTruncationInfo);
 
-        // Use secret decoder rings to get our location
-        int tower = sortId.getTower();
-        int plane = m_tkrGeom->getPlane(truncPlane.getPlaneZ());
-
-        // Now populate the tower to planes map
-        // Do piecemeal so we can see what is happening in debugger
-        PlaneToTruncInfoMap& planeToTruncMap = m_truncTowerToPlanesMap[tower];
-
-        planeToTruncMap[plane] = &truncPlane;
-
-        // Keep track of the winner
-        if (int(planeToTruncMap.size()) > numTruncPlanes)
+        if (truncInfo)
         {
-            numTruncPlanes = planeToTruncMap.size();
-            towerIndex     = tower;
-        }
+            Event::TkrTruncationInfo::TkrTruncationMap* truncMap = truncInfo->getTruncationMap();
 
-        // If any tower exceeds the minimum threshold then turn on truncation handling
-        if (numTruncPlanes > m_minTruncPlanesPerTower) m_handleTruncPlanes = true;
-        else                                           m_handleTruncPlanes = false;
+            // Our goal here is to run through the input truncation map and translate into something we can use by
+            // Tower and then by Plane. 
+            // Keep track of the tower with the most number of truncated planes
+            int numTruncPlanes = 0;
+            int towerIndex     = -1;
+
+            // Start loop through all truncation information
+            for(Event::TkrTruncationInfo::TkrTruncationMap::iterator truncMapItr  = truncMap->begin();
+                                                                     truncMapItr != truncMap->end();
+                                                                     truncMapItr++)
+            {
+                Event::SortId             sortId     = truncMapItr->first;
+                Event::TkrTruncatedPlane& truncPlane = truncMapItr->second;
+
+                // Use secret decoder rings to get our location
+                int tower = sortId.getTower();
+                int plane = m_tkrGeom->getPlane(truncPlane.getPlaneZ());
+
+                // Now populate the tower to planes map
+                // Do piecemeal so we can see what is happening in debugger
+                PlaneToTruncInfoMap& planeToTruncMap = m_truncTowerToPlanesMap[tower];
+
+                planeToTruncMap[plane] = &truncPlane;
+
+                // Keep track of the winner
+                if (int(planeToTruncMap.size()) > numTruncPlanes)
+                {
+                    numTruncPlanes = planeToTruncMap.size();
+                    towerIndex     = tower;
+                }
+
+                // If any tower exceeds the minimum threshold then turn on truncation handling
+                if (numTruncPlanes > m_minTruncPlanesPerTower) m_handleTruncPlanes = true;
+                else                                           m_handleTruncPlanes = false;
+            }
+        }
     }
 
     return;
