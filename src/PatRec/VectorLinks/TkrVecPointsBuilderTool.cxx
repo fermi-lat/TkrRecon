@@ -382,11 +382,11 @@ void TkrVecPointsBuilderTool::buildTruncTowerToPlanesMap()
                     numTruncPlanes = planeToTruncMap.size();
                     towerIndex     = tower;
                 }
-
-                // If any tower exceeds the minimum threshold then turn on truncation handling
-                if (numTruncPlanes > m_minTruncPlanesPerTower) m_handleTruncPlanes = true;
-                else                                           m_handleTruncPlanes = false;
             }
+
+            // If any tower exceeds the minimum threshold then turn on truncation handling
+            if (numTruncPlanes > m_minTruncPlanesPerTower) m_handleTruncPlanes = true;
+            else                                           m_handleTruncPlanes = false;
         }
     }
 
