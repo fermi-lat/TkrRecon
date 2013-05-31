@@ -104,8 +104,8 @@ TkrVecPointsBuilderTool::TkrVecPointsBuilderTool(const std::string& type, const 
     declareProperty("MergeClusters",          m_mergeClusters          = true);
     declareProperty("NoGhostClusters",        m_noGhostClusters        = true);
     declareProperty("HitDensityThreshold",    m_hitDensityThreshold    =  0.1);
-    declareProperty("MinAllowedGapSize",      m_minAllowedGapSize      =  2);
-    declareProperty("MaxAllowedGapSize",      m_maxAllowedGapSize      = 12);
+    declareProperty("MinAllowedGapSize",      m_minAllowedGapSize      =  3);
+    declareProperty("MaxAllowedGapSize",      m_maxAllowedGapSize      = 10);
     declareProperty("MinTruncPlanesPerTower", m_minTruncPlanesPerTower =  7);
 
     return;
