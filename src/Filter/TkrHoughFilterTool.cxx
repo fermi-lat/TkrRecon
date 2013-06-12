@@ -373,6 +373,9 @@ public:
     /// @brief Intialization of the tool
     StatusCode initialize();
 
+    /// @brief start of event processing
+    StatusCode start();
+
     /// @brief Method  
     StatusCode doFilterStep();
 
@@ -565,6 +568,28 @@ StatusCode TkrHoughFilterTool::initialize()
     m_tkrHighXY = m_tkrGeom->getLATLimit(0, HIGH);
 
     return sc;
+}
+
+StatusCode TkrHoughFilterTool::start()
+{
+    // Make sure all the timing is zero for the case the tool is not actually used
+    if (m_doTiming) 
+    {
+        m_toolTime  = 0;
+        m_fillTime  = 0;
+        m_peakTime  = 0;
+        m_buildTime = 0;
+
+        m_chronoSvc->chronoStart(m_toolTag);
+        m_chronoSvc->chronoStop(m_toolTag);
+        m_chronoSvc->chronoStart(m_toolFillTag);
+        m_chronoSvc->chronoStop(m_toolFillTag);
+        m_chronoSvc->chronoStart(m_toolPeakTag);
+        m_chronoSvc->chronoStop(m_toolPeakTag);
+        m_chronoSvc->chronoStart(m_toolBuildTag);
+        m_chronoSvc->chronoStop(m_toolBuildTag);
+    }
+    return StatusCode::SUCCESS;
 }
 
 StatusCode TkrHoughFilterTool::doFilterStep()
