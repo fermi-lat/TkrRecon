@@ -61,6 +61,9 @@ public:
     /// @brief Intialization of the tool
     StatusCode initialize();
 
+    /// @brief start of event processing
+    StatusCode start();
+
     /// @brief First Pass method to build trees
     StatusCode firstPass();
 
@@ -252,6 +255,28 @@ StatusCode TreeBasedTool::initialize()
     m_clusterCol->clear();
 
     return sc;
+}
+
+StatusCode TreeBasedTool::start()
+{
+    if (m_doTiming)
+    {
+        m_toolTime  = 0;
+        m_linkTime  = 0;
+        m_nodeTime  = 0;
+        m_buildTime = 0;
+
+        m_chronoSvc->chronoStart(m_toolTag);
+        m_chronoSvc->chronoStop(m_toolTag);
+        m_chronoSvc->chronoStart(m_toolLinkTag);
+        m_chronoSvc->chronoStop(m_toolLinkTag);
+        m_chronoSvc->chronoStart(m_toolNodeTag);
+        m_chronoSvc->chronoStop(m_toolNodeTag);
+        m_chronoSvc->chronoStart(m_toolBuildTag);
+        m_chronoSvc->chronoStop(m_toolBuildTag);
+    }
+
+    return StatusCode::SUCCESS;
 }
 
 //
