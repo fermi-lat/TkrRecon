@@ -14,7 +14,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.50 2013/02/19 18:54:08 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TreeBasedTool.cxx,v 1.57 2013/06/12 16:15:38 usher Exp $
  */
 
 #include "GaudiKernel/ToolFactory.h"
@@ -840,7 +840,7 @@ Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRel
     // in the TDS colletion!
     try
     {
-        if (m_reorderTrees && calClusterVec)
+        if (m_reorderTrees && calClusterVec && !calClusterVec->empty())
         {
             // The Cal cluster ordering should reflect the output of the classification tree where the first
             // cluster is thought to be "the" gamma cluster. Loop through clusters in order and do the 
@@ -918,11 +918,20 @@ Event::TreeClusterRelationVec TreeBasedTool::buildTreeRelVec(Event::ClusterToRel
             }
 
             // Don't forget the remaining trees
-            for(Event::TreeToRelationMap::iterator treeItr  = treeToRelationMap->begin();
-                                                   treeItr != treeToRelationMap->end();
-                                                   treeItr++)
+            // Note that to preserve order we MUST loop over the input tree collection
+            for(Event::TkrTreeCol::iterator treeItr  = treeCol->begin();
+                                            treeItr != treeCol->end();
+                                            treeItr++)
             {
-                Event::TreeClusterRelation* treeClusRel = treeItr->second.front();
+                Event::TreeToRelationMap::iterator treeMapItr = treeToRelationMap->find(*treeItr);
+
+                // Should **always** be an entry here
+                if (treeMapItr == treeToRelationMap->end())
+                {
+                    throw(TkrException("No Tree to cal cluster relation found!!"));
+                }
+                
+                Event::TreeClusterRelation* treeClusRel = treeMapItr->second.front();
 
                 if (!treeClusRel->getCluster() && treeClusRel->getTree()) treeRelVec.push_back(treeClusRel);
             }
