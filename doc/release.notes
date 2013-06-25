@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-40-02 25-Jun-2013 TU Fix bugs which caused non-repeatability between runs
  TkrRecon-10-40-01 14-Jun-2013 TU Make sure Tree auditor vars zeroed in "start"
  TkrRecon-10-40-00 31-May-2013 TU Toolify the TkrVecPoints builder and include "merge cluster" capability to kill long cpu time events
  TkrRecon-10-39-04 20-May-2013 heather protect TkrTreeTrackFinderTool::finalize from 0 events
