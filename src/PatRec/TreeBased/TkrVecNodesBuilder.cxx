@@ -5,7 +5,7 @@
  *
  * @authors Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.36 2013/03/06 22:27:05 usher Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/PatRec/TreeBased/TkrVecNodesBuilder.cxx,v 1.38 2013/05/14 17:56:56 usher Exp $
  *
 */
 
@@ -921,7 +921,7 @@ void TkrVecNodesBuilder::prunePrimaryBranches(Event::TkrVecNode* headNode)
 
                 if (cosAng < 0.975)
                 {
-                    delete node;
+                    deleteNode(node);
                 }
             }
             else nodeItr++;
