@@ -10,7 +10,7 @@
  * @author Tracy Usher
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.57 2013/02/19 04:16:19 usher Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/Track/KalmanTrackFitTool.cxx,v 1.68 2013/05/10 18:15:50 usher Exp $
  */
 
 // to turn one debug variables
@@ -224,7 +224,7 @@ m_KalmanFit(0), m_nMeasPerPlane(0), m_nParams(0), m_fitErrs(0)
     /// Minimum filter chi-square for track before looking for kinks
     declareProperty("minTrackChiSq",      m_minTrackChiSq     = 2.);
     /// Minimum hit chi-square to consider a kink at previous hit
-    declareProperty("minHitChiSquare",    m_minHitChiSquare   = 2.);
+    declareProperty("minHitChiSquare",    m_minHitChiSquare   = 1.);
     /// Minimum normalized hit residual to kink
     declareProperty("minNrmResForKink",   m_minNrmResForKink  = 25.);
     /// Don't allow crazy kink angles, constrain to 45 degrees maximum
@@ -962,7 +962,7 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
 
         // If enough hits, check for a kink
 //        if (numHits > m_minNumLeadingHits && numKinks < m_maxNumKinks && filterHit.getClusterPtr())
-        if (chiSqInc > m_minHitChiSquare && numHits > m_minNumLeadingHits && numKinks < m_maxNumKinks)
+        if (chiSqInc > m_minHitChiSquare && numHits >= m_minNumLeadingHits && numKinks < m_maxNumKinks)
         {
             // We want to start by looking at the hit residual in the measured plane for this hit
             // To do so, we recover the "measured" track parameters and the "predicted" (non-filtered)
@@ -986,12 +986,14 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
 
                 Event::TkrTrackHit& prevFilterHit = **prevFilterHitIter;
 
-                double predSlp    = predPar(measIdx+1);
                 double deltaZ     = filterHit.getZPlane() - prevFilterHit.getZPlane();
-                double theta      = atan(predSlp);
-                double newSlp     = (measPos - prevFilterHit.getTrackParams(Event::TkrTrackHit::FILTERED)(measIdx)) / deltaZ;
-                double thetaPr    = atan(newSlp);
-                double kinkAngle  = thetaPr - theta;
+                double oldSlp     = prevFilterHit.getTrackParams(Event::TkrTrackHit::FILTERED)(measIdx+1);
+                double newMeasSlp = (measPos - prevFilterHit.getTrackParams(Event::TkrTrackHit::MEASURED)(measIdx)) / deltaZ;
+                double altSlope   = (newMeasSlp - oldSlp) / (1. + newMeasSlp*oldSlp);
+                double altAngle   = atan(altSlope);
+
+                // For test 
+                double kinkAngle = altAngle;
 
                 // Don't allow crazy kink angles
                 kinkAngle = std::max(-m_maxKinkAngle, std::min(m_maxKinkAngle, kinkAngle));
