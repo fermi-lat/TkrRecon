@@ -947,11 +947,11 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
     int minNumLeadingHits = m_minNumLeadingHits;
 
     // Idea is to prevent kinks which might affect resolution in leading hits for high energy/long tracks
-    if (track.size() > 2 * m_minNumLeadingHits || track.getInitialEnergy() > m_minEarlyKinkEnergy)
-    {
-        minNumLeadingHits *= 2;
-        minHitChiSquare   *= 2.;
-    }
+//    if (track.size() > 2 * m_minNumLeadingHits || track.getInitialEnergy() > m_minEarlyKinkEnergy)
+//    {
+//        minNumLeadingHits *= 2;
+//        minHitChiSquare   *= 2.;
+//    }
 
     // Keep track of number of kinks encountered
     int numKinks = 0;
@@ -1009,25 +1009,29 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
                 // For test 
                 double kinkAngle = altAngle;
 
-                // Don't allow crazy kink angles
-                kinkAngle = std::max(-m_maxKinkAngle, std::min(m_maxKinkAngle, kinkAngle));
-
-                prevFilterHit.setKinkAngle(kinkAngle);
-                prevFilterHit.setStatusBit(Event::TkrTrackHit::HITHASKINKANG);
-
-                numKinks++;
-
-                // Now must re-filter from the previous plane to the current hit
-                while(prevFilterHitIter != filtIter)
+                // Require a minimum kink angle (should this somehow be energy dependent?)
+                if (fabs(kinkAngle) > 0.01)
                 {
-                    Event::TkrTrackHit& filtRefHit = **prevFilterHitIter++;
-                    Event::TkrTrackHit& filt2ndHit = **prevFilterHitIter;
+                    // Don't allow crazy kink angles
+                    kinkAngle = std::max(-m_maxKinkAngle, std::min(m_maxKinkAngle, kinkAngle));
 
-                    chiSqInc = doFilterStep(filtRefHit, filt2ndHit);
+                    prevFilterHit.setKinkAngle(kinkAngle);
+                    prevFilterHit.setStatusBit(Event::TkrTrackHit::HITHASKINKANG);
+            
+                    numKinks++;
+            
+                    // Now must re-filter from the previous plane to the current hit
+                    while(prevFilterHitIter != filtIter)
+                    {
+                        Event::TkrTrackHit& filtRefHit = **prevFilterHitIter++;
+                        Event::TkrTrackHit& filt2ndHit = **prevFilterHitIter;
+            
+                        chiSqInc = doFilterStep(filtRefHit, filt2ndHit);
+                    }
+
+                    // And set the bit on the track to indicate a kink
+                    track.setStatusBit(Event::TkrTrack::HASKINKS);
                 }
-
-                // And set the bit on the track to indicate a kink
-                track.setStatusBit(Event::TkrTrack::HASKINKS);
             }
         }
 
