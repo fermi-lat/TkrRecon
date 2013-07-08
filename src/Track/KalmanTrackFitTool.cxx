@@ -156,6 +156,7 @@ private:
     int                  m_maxIterations;
 
     /// To control kink angles in fit
+    double               m_minEarlyKinkEnergy;
     int                  m_minNumLeadingHits;
     int                  m_maxNumKinks;
     double               m_minTrackChiSq;
@@ -216,6 +217,8 @@ m_KalmanFit(0), m_nMeasPerPlane(0), m_nParams(0), m_fitErrs(0)
     declareProperty("FracDifference",    m_fracDifference = 0.01);
     declareProperty("MaxIterations",     m_maxIterations = 5);
 
+    /// Minimum initial track energy for kinks early in the track
+    declareProperty("minEarlyKinkEnergy", m_minEarlyKinkEnergy = 1000.);
     /// Number of leading hits on track before allowing a kink
     declareProperty("nLeadingMinForKink", m_minNumLeadingHits = 4);
     /// Maximum number of kinks allowed on the track
@@ -938,6 +941,17 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
     // Keep track of how many hits encountered
     int numHits = 2;  // Have already "encountered" the reference hit
                       // and first pass through will be working with second hit
+
+    // Set limits for kinks 
+    int minHitChiSquare   = m_minHitChiSquare;
+    int minNumLeadingHits = m_minNumLeadingHits;
+
+    // Idea is to prevent kinks which might affect resolution in leading hits for high energy/long tracks
+    if (track.size() > 2 * m_minNumLeadingHits || track.getInitialEnergy() > m_minEarlyKinkEnergy)
+    {
+        minNumLeadingHits *= 2;
+        minHitChiSquare   *= 2.;
+    }
 
     // Keep track of number of kinks encountered
     int numKinks = 0;
