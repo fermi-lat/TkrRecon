@@ -1001,16 +1001,26 @@ double KalmanTrackFitTool::doFilterWithKinks(Event::TkrTrack& track)
                 Event::TkrTrackHit& prevFilterHit = **prevFilterHitIter;
 
                 double deltaZ     = filterHit.getZPlane() - prevFilterHit.getZPlane();
-                double oldSlp     = prevFilterHit.getTrackParams(Event::TkrTrackHit::FILTERED)(measIdx+1);
-                double newMeasSlp = (measPos - prevFilterHit.getTrackParams(Event::TkrTrackHit::MEASURED)(measIdx)) / deltaZ;
-                double altSlope   = (newMeasSlp - oldSlp) / (1. + newMeasSlp*oldSlp);
-                double altAngle   = atan(altSlope);
+                double oldFiltSlp = prevFilterHit.getTrackParams(Event::TkrTrackHit::FILTERED)(measIdx+1);
+//                double newMeasSlp = (measPos - prevFilterHit.getTrackParams(Event::TkrTrackHit::MEASURED)(measIdx)) / deltaZ;
+                double newMeasSlp = (measPos - prevFilterHit.getTrackParams(Event::TkrTrackHit::FILTERED)(measIdx)) / deltaZ;
+                double altSlope   = (newMeasSlp - oldFiltSlp) / (1. + newMeasSlp*oldFiltSlp);
+                double kinkAngle  = atan(altSlope);
 
-                // For test 
-                double kinkAngle = altAngle;
+                // Compare to old method
+                double predSlp    = predPar(measIdx+1);
+                double predAng    = atan(predSlp);
+                double oldNewSlp  = (measPos - prevFilterHit.getTrackParams(Event::TkrTrackHit::FILTERED)(measIdx)) / deltaZ;
+                double filtAng    = atan(oldNewSlp);
+                double oldKinkAng = filtAng - predAng;
 
-                // Require a minimum kink angle (should this somehow be energy dependent?)
-                if (fabs(kinkAngle) > 0.01)
+                // Use the Q material matrix to set a minimum allowed kink value
+                // But also use an upper cutoff to prevent screwy values when ultra low energy and oblique angles
+                // And a lower cutoff since at high energy we might stop calculating the Q matrix altogether
+                double minKinkAng = std::max(std::min(sqrt(filterHit.getTrackParams(Event::TkrTrackHit::QMATERIAL)(measIdx+1,measIdx+1)), 0.25),0.02);
+
+                // Require a minimum kink angle 
+                if (fabs(kinkAngle) > minKinkAng)
                 {
                     // Don't allow crazy kink angles
                     kinkAngle = std::max(-m_maxKinkAngle, std::min(m_maxKinkAngle, kinkAngle));
