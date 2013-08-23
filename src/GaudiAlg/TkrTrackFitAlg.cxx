@@ -13,7 +13,7 @@
  * @author The Tracking Software Group
  *
  * File and Version Information:
- *      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.36 2013/04/10 23:32:27 lsrea Exp $
+ *      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/GaudiAlg/TkrTrackFitAlg.cxx,v 1.37 2013/04/23 20:23:30 lsrea Exp $
  */
 
 #include <vector>
@@ -56,6 +56,10 @@ private:
     /// First pass track fit
     StatusCode doTrackFit();
     StatusCode doTrackReFit();
+    StatusCode doAfterBurner();
+
+    /// Function to do the work for this instance
+    StatusCode (TkrTrackFitAlg::*m_fitAlgorithm)(void);
 
     /// Type of fit to perform
     std::string  m_TrackFitType;
@@ -145,6 +149,11 @@ StatusCode TkrTrackFitAlg::initialize()
     sc = toolSvc()->retrieveTool(m_energyToolName,   m_energyTool);
     sc = toolSvc()->retrieveTool("TkrAlignHitsTool", m_AlignTool);
 
+    // Finally, set the actual fit algorithm
+    if (name()      == "AfterBurner") m_fitAlgorithm = &TkrTrackFitAlg::doAfterBurner;
+    else if (name() == "TkrFitIter")  m_fitAlgorithm = &TkrTrackFitAlg::doTrackReFit;
+    else                              m_fitAlgorithm = &TkrTrackFitAlg::doTrackFit;
+
     return sc;
 }
 
@@ -156,11 +165,11 @@ StatusCode TkrTrackFitAlg::execute()
     // Dependencies: None
     // Restrictions and Caveats:  None
 
-    StatusCode sc = StatusCode::SUCCESS;
+    StatusCode sc = (this->*m_fitAlgorithm)();
 
     // What to do depends upon first track fit or iteration
-    if (name() != "TkrFitIter") sc = doTrackFit();
-    else                        sc = doTrackReFit();
+//    if (name() != "TkrFitIter") sc = doTrackFit();
+//    else                        sc = doTrackReFit();
 
     return sc;
 }
@@ -194,7 +203,7 @@ StatusCode TkrTrackFitAlg::doTrackFit()
 
                 // RJ: don't refit the Cosmic Ray tracks
                 if (!(track->getStatusBits() & Event::TkrTrack::COSMICRAY)) m_FitTool->doTrackFit(track);
-	}
+    }
 
     return sc;
 }
@@ -231,8 +240,45 @@ StatusCode TkrTrackFitAlg::doTrackReFit()
     {
         Event::TkrTrack* track = *trackIter;
         if (!(track->getStatusBits() & Event::TkrTrack::COSMICRAY)) {   // RJ: don't refit cosmic-ray candidates
-				        if (m_doAlignment) m_AlignTool->alignHits(track);
-          m_FitTool->doTrackReFit(track);
+            if (m_doAlignment) m_AlignTool->alignHits(track);
+            m_FitTool->doTrackReFit(track);
+        }
+    }
+
+    return sc;
+}
+
+StatusCode TkrTrackFitAlg::doAfterBurner()
+{
+    // Purpose and Method: Called each event for iteration of the track fit
+    // Inputs:  None
+    // Outputs:  StatusCode upon completetion
+    // Dependencies: None
+    // Restrictions and Caveats:  None
+
+    MsgStream log(msgSvc(), name());
+    StatusCode sc = StatusCode::SUCCESS;
+
+    log << MSG::DEBUG; 
+    if (log.isActive()) {
+        log << "------- TkrRecon Track Fit Afterburner --------";
+    }
+    log << endreq;
+  
+    // Find the collection of candidate tracks
+    Event::TkrTrackCol* trackCol = SmartDataPtr<Event::TkrTrackCol>(eventSvc(),EventModel::TkrRecon::TkrTrackCol);
+
+    // Check that there are tracks to fit
+    if(!trackCol) return sc;
+    if(trackCol->size() < 1) return sc;
+
+    // Ok, now set up to loop over candidate tracks
+    for(Event::TkrTrackColPtr trackIter = trackCol->begin(); trackIter != trackCol->end(); trackIter++)
+    {
+        Event::TkrTrack* track = *trackIter;
+        if (!(track->getStatusBits() & Event::TkrTrack::COSMICRAY)) {   // RJ: don't refit cosmic-ray candidates
+            if (m_doAlignment) m_AlignTool->alignHits(track);
+            m_FitTool->doTrackReFit(track);
         }
     }
 
