@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.37 2013/04/10 23:32:27 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.38 2013/04/23 20:23:30 lsrea Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -48,7 +48,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.37 2013/04/10 23:32:27 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.38 2013/04/23 20:23:30 lsrea Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -82,6 +82,8 @@ private:
     bool     m_doStandardFinding;
     bool     m_CRGhosts;
     bool     m_standardGhosts;
+    bool     m_doStandardTrackDeghosting;
+    bool     m_doCRTrackDeghosting;
 };
 
 //static const AlgFactory<TkrFindAlg>  Factory;
@@ -94,9 +96,12 @@ Algorithm(name, pSvcLocator)
     declareProperty("TrackFindType",   m_TrackFindType="TreeBased"); 
     declareProperty("DoCRFinding",     m_doCRFinding=true);
     declareProperty("CRGhosts",        m_CRGhosts=true);
+    declareProperty("DoCRTrackDeghosting", m_doCRTrackDeghosting=false);
 
     declareProperty("DoStandardFinding", m_doStandardFinding=true);
     declareProperty("StandardGhosts",    m_standardGhosts=false);
+    declareProperty("DoStandardTrackDeghosting", m_doStandardTrackDeghosting=false);
+
     
 }
 
@@ -296,7 +301,7 @@ StatusCode TkrFindAlg::execute()
         sc = m_CRFindTool->firstPass();
         
         if(m_ghostTool && m_CRGhosts) {
-            sc = m_ghostTool->flagEarlyTracks();
+            if(m_doCRTrackDeghosting) sc = m_ghostTool->flagEarlyTracks();
             sc = m_ghostTool->flagEarlyCalClusters();
         }
     }
@@ -316,7 +321,7 @@ StatusCode TkrFindAlg::execute()
         else                         sc = m_findTool->secondPass();
 
         if(m_ghostTool && m_standardGhosts) {
-            sc = m_ghostTool->flagEarlyTracks();
+            if(m_doStandardTrackDeghosting) sc = m_ghostTool->flagEarlyTracks();
         }
     }
 
