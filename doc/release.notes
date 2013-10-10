@@ -4,6 +4,7 @@
   Managers: Tracy Usher, Leon Rochester 
   * EOH *
 
+ TkrRecon-10-40-05 10-Oct-2013  lsrea cleanup of TkrFindAlg
  TkrRecon-10-40-04 02-Sep-2013 TU restore correct version of track fitter 
  TkrRecon-10-40-03 02-Sep-2013  lsrea turn off track deghosting by default in CR (and standard)
  TkrRecon-10-40-02 25-Jun-2013 TU Fix bugs which caused non-repeatability between runs
