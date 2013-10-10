@@ -1,5 +1,5 @@
 // File and Version Information:
-//      $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.38 2013/04/23 20:23:30 lsrea Exp $
+//      $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.39 2013/09/02 17:56:12 lsrea Exp $
 //
 // Description:
 //      Contains the implementation of the methods for running the pattern recognition
@@ -48,7 +48,7 @@
  * 
  * @author Tracy Usher
  *
- * $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.38 2013/04/23 20:23:30 lsrea Exp $
+ * $Header: /nfs/slac/g/glast/ground/cvs/TkrRecon/src/GaudiAlg/TkrFindAlg.cxx,v 1.39 2013/09/02 17:56:12 lsrea Exp $
  */
 
 class TkrFindAlg : public Algorithm
@@ -300,8 +300,8 @@ StatusCode TkrFindAlg::execute()
         findCRAlgTool->setProperty("PatrecMode", "CosmicRay");
         sc = m_CRFindTool->firstPass();
         
-        if(m_ghostTool && m_CRGhosts) {
-            if(m_doCRTrackDeghosting) sc = m_ghostTool->flagEarlyTracks();
+        if(m_ghostTool && m_CRGhosts && m_doCRTrackDeghosting) {
+            sc = m_ghostTool->flagEarlyTracks();
             sc = m_ghostTool->flagEarlyCalClusters();
         }
     }
@@ -320,8 +320,8 @@ StatusCode TkrFindAlg::execute()
         if (name() != "TkrFindIter") sc = m_findTool->firstPass();
         else                         sc = m_findTool->secondPass();
 
-        if(m_ghostTool && m_standardGhosts) {
-            if(m_doStandardTrackDeghosting) sc = m_ghostTool->flagEarlyTracks();
+        if(m_ghostTool && m_standardGhosts && m_doStandardTrackDeghosting) {
+            sc = m_ghostTool->flagEarlyTracks();
         }
     }
 
